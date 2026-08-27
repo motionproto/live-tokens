@@ -152,25 +152,27 @@
      icon size) all read through these default names, so rebinding them
      here is enough — no per-state small token explosion. Per-side padding
      overrides are rebound too so split-padding edits at small don't leak
-     through to default size. Font-weight and color are intentionally NOT
+     through to default size; each carries the same fallback themed-padding
+     emits, so merging the small padding back to one value leaves the base
+     token in charge instead of binding to a name nothing sets. Font-weight and color are intentionally NOT
      rebound: weight differences are state-driven (selected = semibold),
      colors are state-driven too. */
   .segmented-control.small {
     --segmentedcontrol-bar-padding: var(--segmentedcontrol-bar-small-padding);
-    --segmentedcontrol-bar-padding-top: var(--segmentedcontrol-bar-small-padding-top);
-    --segmentedcontrol-bar-padding-right: var(--segmentedcontrol-bar-small-padding-right);
-    --segmentedcontrol-bar-padding-bottom: var(--segmentedcontrol-bar-small-padding-bottom);
-    --segmentedcontrol-bar-padding-left: var(--segmentedcontrol-bar-small-padding-left);
+    --segmentedcontrol-bar-padding-top: var(--segmentedcontrol-bar-small-padding-top, var(--segmentedcontrol-bar-small-padding));
+    --segmentedcontrol-bar-padding-right: var(--segmentedcontrol-bar-small-padding-right, var(--segmentedcontrol-bar-small-padding));
+    --segmentedcontrol-bar-padding-bottom: var(--segmentedcontrol-bar-small-padding-bottom, var(--segmentedcontrol-bar-small-padding));
+    --segmentedcontrol-bar-padding-left: var(--segmentedcontrol-bar-small-padding-left, var(--segmentedcontrol-bar-small-padding));
     --segmentedcontrol-bar-radius: var(--segmentedcontrol-bar-small-radius);
 
     --segmentedcontrol-divider-inset: var(--segmentedcontrol-small-divider-inset);
     --segmentedcontrol-divider-thickness: var(--segmentedcontrol-small-divider-thickness);
 
     --segmentedcontrol-option-padding: var(--segmentedcontrol-option-small-padding);
-    --segmentedcontrol-option-padding-top: var(--segmentedcontrol-option-small-padding-top);
-    --segmentedcontrol-option-padding-right: var(--segmentedcontrol-option-small-padding-right);
-    --segmentedcontrol-option-padding-bottom: var(--segmentedcontrol-option-small-padding-bottom);
-    --segmentedcontrol-option-padding-left: var(--segmentedcontrol-option-small-padding-left);
+    --segmentedcontrol-option-padding-top: var(--segmentedcontrol-option-small-padding-top, var(--segmentedcontrol-option-small-padding));
+    --segmentedcontrol-option-padding-right: var(--segmentedcontrol-option-small-padding-right, var(--segmentedcontrol-option-small-padding));
+    --segmentedcontrol-option-padding-bottom: var(--segmentedcontrol-option-small-padding-bottom, var(--segmentedcontrol-option-small-padding));
+    --segmentedcontrol-option-padding-left: var(--segmentedcontrol-option-small-padding-left, var(--segmentedcontrol-option-small-padding));
     --segmentedcontrol-option-gap: var(--segmentedcontrol-option-small-gap);
 
     /* Icon size has a single source-of-truth token now; text size/line-height

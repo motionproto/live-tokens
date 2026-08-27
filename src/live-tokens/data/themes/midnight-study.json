@@ -1,12 +1,12 @@
 {
   "name": "Midnight Study",
   "createdAt": "2026-08-13T10:21:46.867Z",
-  "updatedAt": "2026-08-19T22:39:32.785Z",
+  "updatedAt": "2026-08-27T17:03:51.623Z",
   "schemaVersion": 4,
   "colorsAndType": {
     "name": "Midnight Study",
-    "createdAt": "2026-08-12T20:13:46.264Z",
-    "updatedAt": "2026-08-13T14:14:20.015Z",
+    "createdAt": "2026-08-27T17:01:37.984Z",
+    "updatedAt": "2026-08-27T17:01:37.984Z",
     "editorConfigs": {
       "Brand": {
         "baseColor": {
@@ -2267,10 +2267,6 @@
       }
     },
     "cssVariables": {
-      "--gradient-1": "linear-gradient(90deg, var(--color-brand-400) 0%, var(--color-brand-700) 100%)",
-      "--gradient-2": "linear-gradient(135deg, var(--color-special-500) 0%, var(--color-brand-500) 100%)",
-      "--gradient-3": "linear-gradient(90deg, var(--color-brand-500) 0%, var(--color-accent-500) 100%)",
-      "--gradient-4": "linear-gradient(180deg, var(--color-canvas-600) 0%, var(--color-canvas-900) 100%)",
       "--badge-trait-surface": "var(--surface-brand)",
       "--badge-trait-text": "var(--text-brand)",
       "--badge-trait-text-font-family": "var(--font-sans)",
@@ -2321,7 +2317,15 @@
       "--shadow-md": "3px 3px 6px hsla(237, 18%, 3%, 0.9)",
       "--shadow-lg": "5px 5px 9px hsla(237, 18%, 3%, 0.9)",
       "--shadow-xl": "6px 7px 13px hsla(237, 18%, 3%, 0.9)",
-      "--shadow-2xl": "8px 9px 16px hsla(237, 18%, 3%, 0.9)"
+      "--shadow-2xl": "8px 9px 16px hsla(237, 18%, 3%, 0.9)",
+      "--gradient-1": "linear-gradient(90deg, var(--color-brand-400) 0%, var(--color-brand-700) 100%)",
+      "--gradient-1-stops": "var(--color-brand-400) 0%, var(--color-brand-700) 100%",
+      "--gradient-2": "linear-gradient(135deg, var(--color-special-500) 0%, var(--color-brand-500) 100%)",
+      "--gradient-2-stops": "var(--color-special-500) 0%, var(--color-brand-500) 100%",
+      "--gradient-3": "linear-gradient(90deg, var(--color-brand-500) 0%, var(--color-accent-500) 100%)",
+      "--gradient-3-stops": "var(--color-brand-500) 0%, var(--color-accent-500) 100%",
+      "--gradient-4": "linear-gradient(180deg, color-mix(in srgb, var(--color-canvas-600) 49%, transparent) 0%, var(--color-canvas-850) 14.2%, var(--color-canvas-900) 83.8%)",
+      "--gradient-4-stops": "color-mix(in srgb, var(--color-canvas-600) 49%, transparent) 0%, var(--color-canvas-850) 14.2%, var(--color-canvas-900) 83.8%"
     },
     "fontSources": [
       {
@@ -2474,25 +2478,6 @@
         ]
       }
     ],
-    "harmonyAxes": [
-      {
-        "hue": 300,
-        "family": "Brand"
-      },
-      {
-        "hue": 340,
-        "family": "Accent"
-      },
-      {
-        "hue": 268,
-        "family": "Canvas"
-      },
-      {
-        "hue": 210,
-        "family": null
-      }
-    ],
-    "schemaVersion": 3,
     "gradients": [
       {
         "variable": "--gradient-1",
@@ -2546,15 +2531,40 @@
         "stops": [
           {
             "position": 0,
-            "color": "--color-canvas-600"
+            "color": "--color-canvas-600",
+            "opacity": 49
           },
           {
-            "position": 100,
+            "position": 14.2,
+            "color": "--color-canvas-850",
+            "opacity": 100
+          },
+          {
+            "position": 83.8,
             "color": "--color-canvas-900"
           }
         ]
       }
-    ]
+    ],
+    "harmonyAxes": [
+      {
+        "hue": 300,
+        "family": "Brand"
+      },
+      {
+        "hue": 340,
+        "family": "Accent"
+      },
+      {
+        "hue": 268,
+        "family": "Canvas"
+      },
+      {
+        "hue": 210,
+        "family": null
+      }
+    ],
+    "schemaVersion": 5
   },
   "componentConfigs": {
     "badge": {
@@ -2884,12 +2894,12 @@
       }
     },
     "card": {
-      "name": "midnight-study",
+      "name": "Midnight Study",
       "component": "card",
-      "createdAt": "2026-05-10T19:26:31.704Z",
-      "updatedAt": "2026-08-19T22:39:32.785Z",
+      "createdAt": "2026-08-27T17:02:30.403Z",
+      "updatedAt": "2026-08-27T17:02:30.403Z",
       "aliases": {
-        "--card-default-surface": "color-mix(in srgb, var(--surface-neutral-lower) 70%, transparent)",
+        "--card-default-surface": "--gradient-4",
         "--card-default-border": "--border-neutral",
         "--card-default-border-width": "--border-width-1",
         "--card-default-radius": "--radius-sm",
@@ -2899,14 +2909,10 @@
         "--card-default-header-padding-bottom": "--space-8",
         "--card-default-header-padding-left": "--space-12",
         "--card-default-header-gap": "--space-6",
-        "--card-default-body-padding": "--space-10",
-        "--card-default-body-padding-top": "--space-10",
-        "--card-default-body-padding-right": "--space-12",
-        "--card-default-body-padding-bottom": "--space-10",
-        "--card-default-body-padding-left": "--space-12",
+        "--card-default-body-padding": "--space-16",
         "--card-default-shadow": "--shadow-sm",
         "--card-default-blur": "--blur-none",
-        "--card-default-header-surface": "color-mix(in srgb, var(--surface-neutral-lowest) 80%, transparent)",
+        "--card-default-header-surface": "color-mix(in srgb, var(--color-brand-700) 60%, transparent)",
         "--card-default-title": "--text-primary",
         "--card-default-title-font-family": "--font-sans",
         "--card-default-title-font-size": "--font-size-2xl",
@@ -2921,8 +2927,13 @@
         "--card-hover-border": "--border-neutral-strong",
         "--card-hover-shadow": "--shadow-md",
         "--card-hover-border-active": "--card-default-border",
-        "--card-hover-shadow-active": "--card-default-shadow"
-      }
+        "--card-hover-shadow-active": "--card-default-shadow",
+        "--card-default-body-padding-top": "--space-16",
+        "--card-default-body-padding-right": "--space-20",
+        "--card-default-body-padding-bottom": "--space-48",
+        "--card-default-body-padding-left": "--space-20"
+      },
+      "config": {}
     },
     "codesnippet": {
       "name": "midnight-study",
@@ -3451,14 +3462,17 @@
       }
     },
     "panel": {
-      "name": "midnight-study",
+      "name": "Midnight Study",
       "component": "panel",
-      "createdAt": "2026-06-01T09:34:52.417Z",
-      "updatedAt": "2026-08-19T22:39:32.785Z",
+      "createdAt": "2026-08-27T17:03:50.744Z",
+      "updatedAt": "2026-08-27T17:03:50.744Z",
       "aliases": {
         "--panel-frame-border": "--border-neutral",
         "--panel-frame-border-width": "--border-width-1",
         "--panel-frame-radius": "--radius-2xl",
+        "--panel-stage-padding": "--space-16",
+        "--panel-stage-inline-padding": "--space-24",
+        "--panel-stage-gap": "--space-16",
         "--panel-stage-surface": {
           "kind": "gradient",
           "value": {
@@ -3477,11 +3491,9 @@
               }
             ]
           }
-        },
-        "--panel-stage-padding": "--space-10",
-        "--panel-stage-inline-padding": "--space-10",
-        "--panel-stage-gap": "--space-12"
-      }
+        }
+      },
+      "config": {}
     },
     "progressbar": {
       "name": "midnight-study",

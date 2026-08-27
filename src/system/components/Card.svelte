@@ -3,6 +3,9 @@
     icon?: string;
     iconColor?: string;
     title?: string;
+    /** `bare` drops the header. The frame and body keep every token the default
+        variant uses, so padding, stroke and fill stay editable. */
+    variant?: 'default' | 'bare';
     size?: 'default' | 'compact';
     /** false → the card stops pinning body typography so the consumer fully owns slotted content's styling. */
     prose?: boolean;
@@ -20,6 +23,7 @@
     icon = '',
     iconColor = 'var(--text-secondary)',
     title = '',
+    variant = 'default',
     size = 'default',
     prose = true,
     flush = false,
@@ -35,16 +39,25 @@
   let hoverShadow = $derived(
     hover === undefined ? undefined : hover ? 'var(--card-hover-shadow)' : 'var(--card-default-shadow)',
   );
+
+  let showHeader = $derived(variant !== 'bare' && Boolean(icon || title));
+
+  $effect(() => {
+    if (import.meta.env.DEV && variant === 'default' && !icon && !title) {
+      console.warn('[live-tokens] <Card> has no icon or title. Use variant="bare" to declare a headerless card.');
+    }
+  });
 </script>
 
 <div
   class="card {className}"
+  class:bare={variant === 'bare'}
   class:compact={size === 'compact'}
   style:--card-color={iconColor}
   style:--card-hover-border-active={hoverBorder}
   style:--card-hover-shadow-active={hoverShadow}
 >
-  {#if icon || title}
+  {#if showHeader}
     <div class="card-header">
       {#if icon}
         <i class="{icon} card-icon"></i>
@@ -68,17 +81,22 @@
     --card-default-border: var(--border-neutral);
     --card-default-border-width: var(--border-width-1);
     --card-default-radius: var(--radius-lg);
+    /* Every side tracks its base. A declared side always beats the fallback
+       themed-padding emits, so naming a literal step here left the base token
+       inert: merging split padding back to one value cleared the side aliases
+       and the card kept the old geometry. The asymmetry is a themed choice now,
+       carried by per-side aliases that override these outright. */
     --card-default-header-padding: var(--space-16);
-    --card-default-header-padding-top: var(--space-12);
-    --card-default-header-padding-right: var(--space-20);
-    --card-default-header-padding-bottom: var(--space-12);
-    --card-default-header-padding-left: var(--space-20);
+    --card-default-header-padding-top: var(--card-default-header-padding);
+    --card-default-header-padding-right: var(--card-default-header-padding);
+    --card-default-header-padding-bottom: var(--card-default-header-padding);
+    --card-default-header-padding-left: var(--card-default-header-padding);
     --card-default-header-gap: var(--space-8);
     --card-default-body-padding: var(--space-16);
-    --card-default-body-padding-top: var(--space-16);
-    --card-default-body-padding-right: var(--space-20);
-    --card-default-body-padding-bottom: var(--space-16);
-    --card-default-body-padding-left: var(--space-20);
+    --card-default-body-padding-top: var(--card-default-body-padding);
+    --card-default-body-padding-right: var(--card-default-body-padding);
+    --card-default-body-padding-bottom: var(--card-default-body-padding);
+    --card-default-body-padding-left: var(--card-default-body-padding);
     --card-default-shadow: var(--shadow-sm);
     --card-default-blur: var(--blur-none);
     --card-default-header-surface: color-mix(in srgb, var(--surface-neutral-lowest) 80%, transparent);

@@ -11,6 +11,8 @@
   import type { CssVarRef } from '../../core/store/editorTypes';
   import { cssStringToRef, refToCss } from '../../core/store/cssVarRef';
   import { getEditorContext } from './editorContext';
+  import { setSketchScope } from '../../core/sketch/sketchLayer';
+  import { sketchEnabled, sketchSettings } from '../../core/sketch/sketchStore';
   import type { Token, TypeGroupConfig } from './types';
   import type { Sibling } from './siblings';
 
@@ -83,6 +85,15 @@
 
   let bgMode: 'default' | 'image' | 'color' = $state('default');
   let bgVar = $derived(`--backdrop-${component ?? name}-surface`);
+
+  // The demo shows the component as the page will draw it, sketch included, so
+  // the scope attribute goes on this wrapper. It stops here: the tab strips and
+  // property rows around it are chrome and run on --ui-* tokens the layer knows
+  // nothing about. Only one of the four render sites below is ever mounted.
+  let sketchStage = $state<HTMLDivElement | undefined>(undefined);
+  $effect(() => {
+    setSketchScope(sketchStage ?? null, $sketchEnabled ? $sketchSettings : null);
+  });
 
   const editorCtx = getEditorContext();
   const linkedOrderStore = editorCtx?.linkedOrder ?? writable<Map<string, number> | null>(null);
@@ -397,7 +408,9 @@
         {/if}
       </div>
       {#if unboxedPreview}
-        {@render children?.({ activeState: activeTab })}
+        <div class="sketch-scope" bind:this={sketchStage}>
+          {@render children?.({ activeState: activeTab })}
+        </div>
       {:else}
         <ShadowBackdrop mode={bgMode} colorVariable={bgVar} padding={backdropPadding}>
           {#snippet controls()}
@@ -407,7 +420,9 @@
               {@render canvasToolbarExtras?.()}
             </div>
           {/snippet}
+          <div class="sketch-scope" bind:this={sketchStage}>
           {@render children?.({ activeState: activeTab })}
+        </div>
         </ShadowBackdrop>
       {/if}
 
@@ -508,10 +523,14 @@
     {/if}
   {:else}
     {#if unboxedPreview}
-      {@render children?.({ activeState: '' })}
+      <div class="sketch-scope" bind:this={sketchStage}>
+        {@render children?.({ activeState: '' })}
+      </div>
     {:else}
       <ShadowBackdrop mode={bgMode} colorVariable={bgVar} padding={backdropPadding}>
+        <div class="sketch-scope" bind:this={sketchStage}>
         {@render children?.({ activeState: '' })}
+      </div>
       </ShadowBackdrop>
     {/if}
     <TokenLayout
@@ -570,6 +589,10 @@
     height: var(--ui-space-12);
     background: linear-gradient(to bottom, var(--ui-surface-low), transparent);
     pointer-events: none;
+  }
+
+  .sketch-scope {
+    display: contents;
   }
 
   .preview-header {

@@ -134,7 +134,7 @@
   }
 </script>
 
-<ComponentEditorBase {component} title="Card" description="Generic card with icon, title, and slotted body." tokens={allTokens} {linked}>
+<ComponentEditorBase {component} title="Card" description="Generic card with icon, title, and slotted body. The bare variant drops the header and keeps every frame and body token." tokens={allTokens} {linked}>
   <VariantGroup
     name="card"
     title="Card"
@@ -165,6 +165,9 @@
         <Card title="Card title" icon="fas fa-star" class={previewClass}>
           <div class="content-placeholder">Content Placeholder</div>
         </Card>
+        <Card variant="bare" class={previewClass}>
+          <div class="content-placeholder">Bare variant</div>
+        </Card>
       </div>
     {/snippet}
   </VariantGroup>
@@ -172,6 +175,9 @@
 
 <style>
   .card-demo {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ui-space-12);
     min-width: 16rem;
     max-width: 28rem;
   }

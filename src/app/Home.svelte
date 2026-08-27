@@ -7,7 +7,7 @@
   import Card from '../system/components/Card.svelte';
   import Button from '../system/components/Button.svelte';
   import { navigate } from '../editor/core/routing/router';
-  import { DEFAULT_COMPONENTS_PATH, DEFAULT_COLORS_PATH } from '../editor/core/routing/ownedRoutes';
+  import { DEFAULT_COMPONENTS_PATH } from '../editor/core/routing/ownedRoutes';
   import { overlayOpen } from '../editor/overlay/overlayState';
   import ThemeSelect from './ThemeSelect.svelte';
   import SketchSelect from './SketchSelect.svelte';
@@ -17,8 +17,7 @@
 
 <div class="home">
   <section class="stub">
-    <Card>
-      <span class="eyebrow">Your app lives here</span>
+    <Card variant="bare">
       <h1>Home</h1>
       <p>
         Replace this page with your own content. Edit <code>src/pages/Home.svelte</code>
@@ -27,8 +26,7 @@
       </p>
       {#if isDev}
         <div class="actions">
-          <Button on:click={() => navigate('/demo')}>Demo page</Button>
-          <Button variant="secondary" on:click={() => navigate(DEFAULT_COLORS_PATH)}>Colors</Button>
+          <Button variant="primary" on:click={() => navigate('/demo')}>Demo page</Button>
           <Button variant="secondary" on:click={() => navigate(DEFAULT_COMPONENTS_PATH)}>Components</Button>
           <Button
             variant="secondary"
@@ -63,12 +61,6 @@
     grid-column: 1 / -1;
     justify-self: center;
     max-width: 100%;
-  }
-
-  .eyebrow {
-    display: block;
-    color: var(--text-tertiary);
-    margin-bottom: var(--space-8);
   }
 
   h1 {

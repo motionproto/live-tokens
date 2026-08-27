@@ -12,8 +12,7 @@
 
 <div class="home">
   <section class="stub">
-    <Card>
-      <span class="eyebrow">Your app lives here</span>
+    <Card variant="bare">
       <h1>Home</h1>
       <p>
         Replace this with your own content. Edit <code>src/pages/Home.svelte</code>
@@ -44,15 +43,6 @@
 
   .stub {
     grid-column: 4 / span 6;
-  }
-
-  .eyebrow {
-    display: block;
-    font-size: var(--font-size-sm);
-    font-weight: var(--font-weight-normal);
-    text-transform: uppercase;
-    color: var(--text-tertiary);
-    margin-bottom: var(--space-8);
   }
 
   h1 {
