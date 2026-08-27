@@ -53,7 +53,7 @@ export function hasPersistedSketchState(): boolean {
   try {
     return localStorage.getItem(TOUCHED_KEY) === 'true';
   } catch {
-    return sketchTouched;
+    return false;
   }
 }
 
@@ -154,7 +154,7 @@ export function liveSketch(): SketchSettings | undefined {
     made a sketch decision the same as any other control does. */
 export function setSketchEnabled(enabled: boolean): void {
   markSketchTouched();
-  liveMovedSinceBake.set(true);
+  if (enabled !== get(sketchEnabled)) liveMovedSinceBake.set(true);
   sketchEnabled.set(enabled);
 }
 
@@ -199,7 +199,7 @@ export function selectSketchPreset(name: string): void {
   const preset = SKETCH_PRESETS[name];
   if (!preset) return;
   markSketchTouched();
-  liveMovedSinceBake.set(true);
+  if (get(sketchEnabled)) liveMovedSinceBake.set(true);
   sketchPreset.set(name);
   sketchBaseline.set({ ...preset });
   sketchSettings.set({ ...preset });
@@ -216,7 +216,7 @@ export async function refreshUserPresets(): Promise<void> {
 export async function selectUserSketchPreset(fileName: string): Promise<void> {
   const file = await loadSketchPreset(fileName);
   markSketchTouched();
-  liveMovedSinceBake.set(true);
+  if (get(sketchEnabled)) liveMovedSinceBake.set(true);
   sketchPreset.set(USER_PRESET_PREFIX + fileName);
   sketchBaseline.set({ ...file.settings });
   sketchSettings.set(file.settings);
@@ -231,7 +231,6 @@ export async function saveCurrentAsSketchPreset(name: string): Promise<string> {
   const fileName = slugifySketchPreset(trimmed);
   if (!fileName) throw new Error('That name has no letters or digits to make a file name from');
   markSketchTouched();
-  liveMovedSinceBake.set(true);
   const settings = { ...get(sketchSettings), label: trimmed };
   await saveSketchPreset(fileName, trimmed, settings);
   await refreshUserPresets();
@@ -256,7 +255,7 @@ export async function deleteUserSketchPreset(fileName: string): Promise<void> {
     drift. Save writes a new preset rather than overwriting the base. */
 export function updateSketchSettings(patch: Partial<SketchSettings>): void {
   markSketchTouched();
-  liveMovedSinceBake.set(true);
+  if (get(sketchEnabled)) liveMovedSinceBake.set(true);
   sketchSettings.update((s) => ({ ...s, ...patch }));
 }
 

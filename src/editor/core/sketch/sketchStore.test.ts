@@ -1,12 +1,13 @@
 // @vitest-environment happy-dom
 
 import { get } from 'svelte/store';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { DEFAULT_SKETCH_PRESET, hydrateSketchSettings, SKETCH_PRESETS, type SketchSettings } from './sketchPresets';
 import { liveMovedSinceBake } from '../productionPulse';
 import {
   liveSketch,
   openThemeSketch,
+  saveCurrentAsSketchPreset,
   selectSketchPreset,
   setSketchEnabled,
   setSketchPageRoot,
@@ -164,6 +165,24 @@ describe('liveMovedSinceBake follows the gesture boundary', () => {
     expect(get(liveMovedSinceBake)).toBe(true);
   });
 
+  it('is not set by a preset pick while the effect is off', () => {
+    // The dial set and the preset grid stay interactive with the effect off
+    // (browsing is ordinary use), but `liveSketch()` returns undefined while
+    // disabled, so nothing done to them then can reach a theme or a bake.
+    selectSketchPreset('napkin');
+
+    expect(get(liveMovedSinceBake)).toBe(false);
+  });
+
+  it('is not set by re-enabling an effect that is already on', () => {
+    setSketchEnabled(true);
+    liveMovedSinceBake.set(false);
+
+    setSketchEnabled(true);
+
+    expect(get(liveMovedSinceBake)).toBe(false);
+  });
+
   it('is not set by opening a theme', () => {
     openThemeSketch(SKETCH_PRESETS.napkin);
 
@@ -183,6 +202,31 @@ describe('liveMovedSinceBake follows the gesture boundary', () => {
 
     expect(get(sketchEnabled)).toBe(true);
     expect(get(liveMovedSinceBake)).toBe(false);
+  });
+});
+
+describe('saveCurrentAsSketchPreset', () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  // `saveCurrentAsSketchPreset` only rewrites `label`, which `sameLook`
+  // defines as outside the look. Flagging here would make the Theme panel's
+  // Sketch row read in sync while Adopt read the look as unpublished: two
+  // readings of one state, disagreeing.
+  it('does not raise the bake flag, or the off-look flag, for an untouched theme-supplied sketch', async () => {
+    vi.stubGlobal('fetch', async (url: string, init?: RequestInit) => {
+      if (init?.method === 'PUT') return new Response(null, { status: 200 });
+      return new Response(JSON.stringify({ files: [] }), { status: 200 });
+    });
+    openThemeSketch(SKETCH_PRESETS.napkin);
+    liveMovedSinceBake.set(false);
+    expect(get(sketchOffLook)).toBe(false);
+
+    await saveCurrentAsSketchPreset('My Napkin');
+
+    expect(get(liveMovedSinceBake)).toBe(false);
+    expect(get(sketchOffLook)).toBe(false);
   });
 });
 
@@ -303,9 +347,12 @@ describe('page root', () => {
   });
 });
 
-/* `sketchTouched` (`hasPersistedSketchState`) only computes once, at module
-   import, from whatever localStorage already holds — so pinning it needs a
-   fresh module instance per case, not the file's shared static import. */
+/* `sketchTouched` still computes once, at module import, from whatever
+   localStorage already holds (including the legacy-key migration below) — so
+   pinning that needs a fresh module instance per case, not the file's shared
+   static import. `hasPersistedSketchState` itself re-reads `TOUCHED_KEY` on
+   every call (see the last case here), but the value it reads still starts
+   from that one-time import-time write. */
 describe('hasPersistedSketchState', () => {
   const ENABLED_KEY = 'lt.sketchEnabled';
   const SETTINGS_KEY = 'lt.sketchSettings';
