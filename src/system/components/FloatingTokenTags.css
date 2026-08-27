@@ -3,12 +3,14 @@
  * animations are hardcoded so token edits don't repaint our chrome. The
  * exceptions are intentional and ARE the demo: the central box's
  * surface/radius/border (set inline), the dropdown (rendered through
- * <MenuSelect>), and elevation, which reads from the --shadow-* scale.
+ * <MenuSelect>), elevation, which reads from the --shadow-* scale, and the
+ * zap colour, which tracks --text-accent so the beam stays on-theme.
  * File is global; keep selectors `ftt-` prefixed.
  */
 
 .ftt-stage {
   --ftt-contrast-color: var(--color-white);
+  --ftt-zap-color: var(--text-accent);
   --ftt-string-opacity: 0.5;
   position: relative;
   width: 100%;
@@ -85,7 +87,7 @@
 }
 
 .ftt-string.ftt-live {
-  stroke: #ff8eeb;
+  stroke: var(--ftt-zap-color);
   opacity: 1;
 }
 
@@ -103,18 +105,18 @@
 }
 
 /* --- Energy ball ---------------------------------------------------------- */
-/* Colour must match `.ftt-string.ftt-live` so the beam reads as a continuous
-   trail, not a colour-shifting projectile. */
+/* Shares --ftt-zap-color with `.ftt-string.ftt-live` so the beam reads as a
+   continuous trail, not a colour-shifting projectile. */
 .ftt-energy-ball {
   position: absolute;
   width: 0.875rem;
   height: 0.875rem;
   translate: -50% -50%;
   border-radius: 9999px;
-  background: #ff8eeb;
+  background: var(--ftt-zap-color);
   box-shadow:
-    0 0 8px  2px #ff8eeb,
-    0 0 18px 4px #ff8eeb;
+    0 0 8px  2px var(--ftt-zap-color),
+    0 0 18px 4px var(--ftt-zap-color);
   pointer-events: none;
   opacity: 0;
   z-index: 6;
@@ -233,7 +235,7 @@
   z-index: 30;
 }
 .ftt-tag-trigger:focus-visible {
-  outline: 2px solid #f31fdb;
+  outline: 2px solid var(--ftt-zap-color);
   outline-offset: 3px;
   border-radius: 9999px;
 }
