@@ -13,6 +13,7 @@ const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const SKILLS = join(ROOT, '.claude/skills');
 const CONFIGS = join(ROOT, 'src/live-tokens/data/component-configs');
 const CLI = join(ROOT, 'bin/cli.mjs');
+const CHECK_COMPONENT = join(ROOT, 'bin/check-component.mjs');
 const rel = (p) => relative(ROOT, p);
 
 // A body past this length is where the long material wants a reference file;
@@ -143,6 +144,33 @@ if (existsSync(pickerPath)) {
   }
   for (const item of listed) {
     if (!components.includes(item)) errors.push(`live-tokens-pick-component: catalogue lists "${item}", which has no component config`);
+  }
+}
+
+// A token's suffix is what picks its editor control, and the list now sits in
+// three places: KNOWN_SUFFIXES decides, references/token-naming.md explains, and
+// the skill's inline summary is what a model reads before it names anything.
+// Splitting the tables out of SKILL.md is what made this worth gating; while
+// they sat inline next to the rule they serve, drift had nowhere to hide.
+const suffixSources = [
+  ['live-tokens-create-component/references/token-naming.md', (t) => t],
+  ['live-tokens-create-component/SKILL.md', (t) => t.match(/^### Suffix vocabulary\n([\s\S]*?)\n### /m)?.[1] ?? ''],
+];
+const knownSuffixes = new Set(
+  [...(read(CHECK_COMPONENT).match(/const KNOWN_SUFFIXES = \[([\s\S]*?)\];/)?.[1] ?? '').matchAll(/'([a-z-]+)'/g)].map((m) => m[1]),
+);
+for (const [path, scope] of suffixSources) {
+  const full = join(SKILLS, path);
+  if (!existsSync(full)) {
+    errors.push(`${path}: missing, so the suffix vocabulary has nowhere to live`);
+    continue;
+  }
+  const listed = new Set([...scope(read(full)).matchAll(/`-([a-z][a-z-]*)`/g)].map((m) => m[1]));
+  for (const suffix of knownSuffixes) {
+    if (!listed.has(suffix)) errors.push(`${path}: does not list \`-${suffix}\`, which check-component accepts`);
+  }
+  for (const suffix of listed) {
+    if (!knownSuffixes.has(suffix)) errors.push(`${path}: lists \`-${suffix}\`, which check-component rejects`);
   }
 }
 

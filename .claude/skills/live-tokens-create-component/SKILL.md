@@ -70,47 +70,15 @@ For pattern reference, read any shipped component's source directly from the con
 
 ### Suffix vocabulary
 
-The editor picker is chosen by suffix. There is no per-token override; if a token renders with the wrong picker, rename it to one of these suffixes.
+The editor picker is chosen by the token's suffix, so the suffix is the naming
+decision that matters. Color and surface: `-surface`, `-border`, `-text`,
+`-icon`, `-label`, `-fill`, `-divider`, `-color`, `-shadow`, `-opacity`,
+`-blur`. Geometry: `-radius`, `-border-width`, `-thickness`, `-width`, `-size`,
+`-padding`, `-gap`. Typography: `-font-family`, `-font-weight`, `-font-size`,
+`-line-height`, `-letter-spacing`.
 
-**Color and surface**
-
-| Suffix      | Meaning                                                       |
-|-------------|---------------------------------------------------------------|
-| `-surface`  | Fill / background color                                        |
-| `-border`   | Border color                                                  |
-| `-text`     | Text color                                                    |
-| `-icon`     | Icon color                                                    |
-| `-label`    | Label text color                                              |
-| `-fill`     | Inner fill (distinct from outer surface)                      |
-| `-divider`  | Divider / separator color                                     |
-| `-color`    | Generic color, when none of the above name the role           |
-| `-shadow`   | Box-shadow                                                    |
-| `-opacity`  | Opacity (0–1)                                                 |
-| `-blur`     | Backdrop or filter blur radius                                |
-
-**Geometry**
-
-| Suffix          | Meaning                                                       |
-|-----------------|---------------------------------------------------------------|
-| `-radius`       | Corner radius                                                 |
-| `-border-width` | Stroke thickness (used even when CSS uses `outline:`)         |
-| `-thickness`    | Alternative to `-width` when fallback siblings would collide  |
-| `-width`        | Width dimension                                               |
-| `-size`         | Square / uniform dimension                                    |
-| `-padding`      | Internal spacing                                              |
-| `-gap`          | Spacing between sibling elements                              |
-
-**Typography**
-
-| Suffix             | Meaning                  |
-|--------------------|--------------------------|
-| `-font-family`     | Font family reference    |
-| `-font-weight`     | Font weight reference    |
-| `-font-size`       | Font size reference      |
-| `-line-height`     | Line height              |
-| `-letter-spacing`  | Letter spacing           |
-
-The authoritative recognised list lives in `bin/check-component.mjs` (`KNOWN_SUFFIXES`). If you need a suffix that isn't listed, either rename to one that is, or open an issue against `@motion-proto/live-tokens` to add it. Don't invent suffixes; the editor falls back to a plain text input and your token won't get a real picker.
+Read `references/token-naming.md` for what each one means and when two of them
+compete. A suffix outside that list fails `check-component`.
 
 ### Rules that bite
 
