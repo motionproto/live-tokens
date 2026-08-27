@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { normalizeTheme, THEME_SCHEMA_VERSION, type ThemeResolvers } from './normalizeTheme';
 import { CURRENT_COMPONENT_SCHEMA_VERSION } from '../../src/editor/core/themes/migrations';
+import { SKETCH_PRESETS } from '../../src/editor/core/sketch/sketchPresets';
 
 const COLORS_AND_TYPE: Record<string, any> = {
   default: { name: 'Default Theme', cssVariables: { '--surface-default': 'white' } },
@@ -447,6 +448,58 @@ describe('normalizeTheme completeness fill', () => {
     filledSurface.value.stops[0].color = 'mutated';
 
     expect(CONFIGS['panel/default'].aliases['--panel-surface'].value.stops[0].color).toBe('red');
+  });
+});
+
+// Wave 1 of docs/plans/sketch-in-the-theme.md: a theme carries its sketch
+// layer by value, resolved the same way a saved preset is (RJC 3). Presence
+// is the on state (RJC 1) — nothing here ever fills a sketch in for a theme
+// that has none.
+describe('normalizeTheme sketch field', () => {
+  const withSketch = {
+    name: 'Sketchy Look',
+    schemaVersion: THEME_SCHEMA_VERSION,
+    colorsAndType: { name: 'Embedded' },
+    componentConfigs: {},
+    sketch: SKETCH_PRESETS.marker,
+  };
+
+  it('round-trips a full sketch unchanged', () => {
+    const { theme } = normalizeTheme(withSketch, resolvers());
+    expect(theme.sketch).toEqual(SKETCH_PRESETS.marker);
+  });
+
+  it('carries no sketch key at all when the input has none', () => {
+    const { sketch: _omit, ...noSketch } = withSketch;
+    const { theme } = normalizeTheme(noSketch, resolvers());
+    expect('sketch' in theme).toBe(false);
+  });
+
+  it.each([null, 'napkin', []])('resolves %p to no sketch', (value) => {
+    const { theme } = normalizeTheme({ ...withSketch, sketch: value }, resolvers());
+    expect('sketch' in theme).toBe(false);
+  });
+
+  it('fills a sketch missing a dial from the fallback preset and drops an unknown key', () => {
+    // napkin's own fillTravel (3) differs from the fallback preset's (marker,
+    // 2), so recovering marker's value (not 0, not undefined) pins the fill
+    // rather than a coincidence of the two presets agreeing.
+    const { fillTravel: _dropped, ...withoutFillTravel } = SKETCH_PRESETS.napkin;
+    const partialSketch = { ...withoutFillTravel, notADial: 'ghost' };
+    const { theme } = normalizeTheme({ ...withSketch, sketch: partialSketch }, resolvers());
+    expect(theme.sketch?.fillTravel).toBe(SKETCH_PRESETS.marker.fillTravel);
+    expect(theme.sketch).not.toHaveProperty('notADial');
+  });
+
+  it('does not invent a sketch for a theme that has none, even once the completeness fill runs', () => {
+    const gappedNoSketch = {
+      name: 'Gapped',
+      schemaVersion: THEME_SCHEMA_VERSION,
+      colorsAndType: { name: 'Embedded' },
+      componentConfigs: {},
+    };
+    const { theme } = normalizeTheme(gappedNoSketch, resolvers({ listComponentNames: () => ['card'] }));
+    expect('sketch' in theme).toBe(false);
   });
 });
 

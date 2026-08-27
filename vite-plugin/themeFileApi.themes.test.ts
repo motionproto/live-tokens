@@ -13,6 +13,7 @@ import os from 'os';
 import path from 'path';
 import { themeFileApi } from './themeFileApi';
 import { THEME_SCHEMA_VERSION } from './themes/normalizeTheme';
+import { SKETCH_PRESETS } from '../src/editor/core/sketch/sketchPresets';
 
 const API = '/api/live-tokens';
 const REPO_ROOT = process.cwd();
@@ -485,6 +486,23 @@ describe('read doors', () => {
     expect(written.componentConfigs.button.aliases).toEqual(BUTTON_CONFIG.aliases);
   });
 
+  // Wave 1 of docs/plans/sketch-in-the-theme.md, invariant 1: `sketch` must be
+  // named on `EncapsulatedTheme`'s whitelist, or a PUT normalizes it away and
+  // the next GET reads back a theme with no sketch at all.
+  it('PUT a theme carrying a sketch, and GET it back with the dials intact', async () => {
+    seedPointerTheme();
+    boot();
+    await request('PUT', `${API}/themes/sketched`, {
+      name: 'sketched',
+      theme: 'custom',
+      componentConfigs: { button: 'fancy' },
+      sketch: SKETCH_PRESETS.marker,
+    });
+
+    const { json } = await request('GET', `${API}/themes/sketched`);
+    expect(json.sketch).toEqual(SKETCH_PRESETS.marker);
+  });
+
   it('leaves a corrupt theme out of the list instead of failing the door', async () => {
     seedPointerTheme();
     boot();
@@ -822,6 +840,27 @@ describe('export and import', () => {
     expect(json.renames).toEqual({ 'theme:look': 'look-2' });
     expect(readJson(path.join(themesDir, 'look-2.json')).colorsAndType.name).toBe('Custom');
     expect(fs.readdirSync(colorsAndTypeDir).length).toBe(colorsAndTypeFilesBefore);
+  });
+
+  // Wave 1 of docs/plans/sketch-in-the-theme.md, invariant 4: `ThemeBundle.
+  // manifest` is a whole `Theme` and import runs it back through
+  // `normalizeTheme`, so a bundle exported with a sketch layer must land with
+  // one, at no extra cost past the whitelist fix this wave makes.
+  it('carries a sketch layer through export and back in through import', async () => {
+    seedPointerTheme();
+    boot();
+    await request('PUT', `${API}/themes/sketched`, {
+      name: 'sketched',
+      theme: 'custom',
+      componentConfigs: { button: 'fancy' },
+      sketch: SKETCH_PRESETS.marker,
+    });
+    const exported = (await request('GET', `${API}/themes/sketched/export`)).json;
+    expect(exported.manifest.sketch).toEqual(SKETCH_PRESETS.marker);
+
+    const { json } = await request('POST', `${API}/themes/import`, exported);
+    const written = readJson(path.join(themesDir, `${json.theme}.json`));
+    expect(written.sketch).toEqual(SKETCH_PRESETS.marker);
   });
 
   it('imports a v1 bundle by embedding what the bundle carries, filled complete from the local defaults', async () => {

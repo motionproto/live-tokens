@@ -28,6 +28,7 @@ import { CURRENT_COMPONENT_SCHEMA_VERSION } from '../../src/editor/core/themes/m
 import type { AliasDiskValue, ThemeFillReport } from '../../src/editor/core/themes/themeTypes';
 import { THEME_SCHEMA_VERSION } from '../../src/editor/core/themes/themeTypes';
 import { KNOWN_COMPONENT_CONFIG_KEYS } from '../../src/editor/core/components/componentConfigKeys';
+import { hydrateSketchSettings, type SketchSettings } from '../../src/editor/core/sketch/sketchPresets';
 
 // Owned by `themeTypes.ts` so the editor can read it without importing build
 // tooling that the published tarball does not carry.
@@ -72,6 +73,10 @@ export interface EncapsulatedTheme {
    *  single global counter over every component migration, so a per-entry
    *  stamp would buy no isolation and the theme is rewritten wholesale anyway. */
   componentSchemaVersion: number;
+  /** The sketch layer this look paints, by value. Absent means the look is
+   *  crisp: presence is the on state, so there is no separate flag that can
+   *  disagree with the dials beside it (RJC 1). */
+  sketch?: SketchSettings;
 }
 
 export interface NormalizedTheme {
@@ -270,6 +275,12 @@ export function normalizeTheme(
     }
   }
 
+  // Reconciled the way a saved preset is: a look stored before a dial existed
+  // picks that dial's default up, a retired key is dropped. A theme with no
+  // sketch keeps none — absent is the off state, not a value to fill (RJC 3).
+  const embeddedSketch = asObject(src.sketch);
+  const sketch = embeddedSketch ? hydrateSketchSettings(embeddedSketch) : undefined;
+
   return {
     theme: {
       name: asString(src.name, 'Untitled'),
@@ -279,6 +290,7 @@ export function normalizeTheme(
       colorsAndType,
       componentConfigs,
       componentSchemaVersion: CURRENT_COMPONENT_SCHEMA_VERSION,
+      ...(sketch ? { sketch } : {}),
     },
     dropped,
     migrated,
