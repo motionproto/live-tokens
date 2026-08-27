@@ -1,5 +1,45 @@
 # Changelog
 
+## 0.60.0 — A brief names a feeling or an idiom
+
+### Added
+
+- **The theme skill reads two new anchor references: feelings and idioms.**
+  `live-tokens-generate-theme` turned a brief into seeds through a six-row dial
+  table. It covered "cheerful" and "calm" and left everything else to guesswork,
+  so "Bauhaus", "terminal" and "wistful" all landed on the same polished-UI
+  defaults. `references/mood-vocabulary.md` places eighteen feelings on valence,
+  energy and dominance axes, and says which of the three color carries at all.
+  `references/style-vocabulary.md` fixes color, type and geometry together for
+  nineteen idioms, eras and genres, and names the one layer each is allowed to
+  break the chroma budget in. An entry overrides the generic bands, and its Type
+  and Geometry columns go verbatim to `live-tokens-pair-fonts` and
+  `live-tokens-adjust-geometry`, so all three decisions come from one reading of
+  the brief. `named-themes.md` keeps the holidays and seasons, and the three
+  files are now read as one set of anchors.
+
+### Changed
+
+- **The menu panel is mostly opaque, and cannot be dialled below 90%.** At 85%
+  the page behind a dropdown ghosted through it: a headline or a rule crossing
+  the panel read as content inside the list, and the panel stopped looking like
+  a solid thing you could touch. `--menuselect-menu-surface` now defaults to 95%
+  of `--surface-neutral-lower`, enough translucency to sit above the page
+  without competing with it. The floor is declared on the token itself, so the
+  opacity slider stops at 90 and the `None` chip is gone from that one picker.
+  Any component, shipped or consumer-authored, can declare `minOpacity` on a
+  colour token; the registry contract test holds its shipped default above the
+  line.
+
+### Fixed
+
+- **Sketch mode leaves the editor's own chrome alone.** The layer draws glyphs
+  and inline SVG with a filter and an ink mask, and chrome inside the scope
+  turns both off by declaring `--sketch-icon-off`. Only the filter read it: the
+  mask went on regardless, so the overlay bar's icons came out blotched by an
+  effect meant for the page behind it. The mask now answers to the same one
+  declaration, and the column guides, which never opted out at all, now do.
+
 ## 0.59.0 — The shadow traces the art
 
 ### Added
@@ -19,16 +59,6 @@
 
 ### Changed
 
-- **The menu panel is mostly opaque, and cannot be dialled below 90%.** At 85%
-  the page behind a dropdown ghosted through it: a headline or a rule crossing
-  the panel read as content inside the list, and the panel stopped looking like
-  a solid thing you could touch. `--menuselect-menu-surface` now defaults to 95%
-  of `--surface-neutral-lower`, enough translucency to sit above the page
-  without competing with it. The floor is declared on the token itself, so the
-  opacity slider stops at 90 and the `None` chip is gone from that one picker.
-  Any component, shipped or consumer-authored, can declare `minOpacity` on a
-  colour token; the registry contract test holds its shipped default above the
-  line.
 - **A shadow token writes its spread slot only when the spread is set.**
   `--shadow-md` read `3px 3px 6px 0px hsla(…)`, and that fourth length was the
   reason a shadow token could not also be a filter: `drop-shadow()` has no
@@ -43,12 +73,6 @@
 
 ### Fixed
 
-- **Sketch mode leaves the editor's own chrome alone.** The layer draws glyphs
-  and inline SVG with a filter and an ink mask, and chrome inside the scope
-  turns both off by declaring `--sketch-icon-off`. Only the filter read it: the
-  mask went on regardless, so the overlay bar's icons came out blotched by an
-  effect meant for the page behind it. The mask now answers to the same one
-  declaration, and the column guides, which never opted out at all, now do.
 - **The colour edit panel wears editor chrome again.** Its confirm, cancel and
   "Remove override" buttons were the shipped `Button` and `InlineEditActions`
   components, which read the theme's own tokens — so the controls you edit a
