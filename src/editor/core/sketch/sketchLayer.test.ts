@@ -108,6 +108,15 @@ describe('sketch layer', () => {
     expect(buildStylesheet({ ...marker, maskOn: false })).not.toMatch(/::before\{[^}]*mask-image/);
   });
 
+  // A menu or a tooltip floats over whatever the page has under it, and a fill
+  // worn through in patches shows it: the panel stops reading as a surface.
+  it('draws the parts that float over the page solid', () => {
+    const rule = buildStylesheet(marker)
+      .match(/\[data-sketch\] :is\([^{]*\):is\(([^{]*)\)::before\{mask-image:none;\}/);
+    expect(rule).not.toBeNull();
+    expect(rule![1]).toBe('.tooltip, .menuselect');
+  });
+
   it('names one field for the fill and the icons to share', () => {
     const css = buildStylesheet(marker);
     expect(css.match(/--sketch-mask:url/g)).toHaveLength(1);

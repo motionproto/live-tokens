@@ -84,6 +84,12 @@ interface PartSpec {
       drawn corner radii on the host instead, so the clip at least turns the
       same way the ink does. */
   clips?: boolean;
+  /** Keeps the ink coverage mask off the fill. Coverage wears a fill through in
+      patches, and a part that floats over arbitrary page content shows whatever
+      is behind it through the worn places: it stops reading as a surface the
+      pointer can land on. Set it where the part floats over the page rather
+      than over a scrim of its own. */
+  unmasked?: boolean;
   positioned?: boolean;
   strokeless?: boolean;
 }
@@ -165,7 +171,7 @@ const PART_SPECS: readonly PartSpec[] = [
     clips: true,
   },
   // The arrow is the tooltip's own ::after, so the box takes the fill only.
-  { sel: '.tooltip', stem: 'tooltip', positioned: true, strokeless: true },
+  { sel: '.tooltip', stem: 'tooltip', positioned: true, strokeless: true, unmasked: true },
 
   // Status blocks
   ...STATUS_VARIANTS.map((v) => ({ sel: `.callout-${v}`, stem: `callout-${v}` })),
@@ -189,6 +195,7 @@ const PART_SPECS: readonly PartSpec[] = [
     stroke: 'var(--menuselect-menu-border)',
     radius: 'var(--menuselect-menu-radius, 0px)',
     shadow: 'var(--menuselect-menu-shadow, none)',
+    unmasked: true,
   },
   { sel: '.tab', stem: 'tabbar-default', radius: 'var(--tabbar-default-tab-top-radius, 0px)' },
   { sel: '.tab.active', stem: 'tabbar-active', radius: 'var(--tabbar-active-tab-top-radius, 0px)' },
@@ -316,6 +323,7 @@ const FLOW_PARTS = PART_SPECS.filter((p) => !p.positioned).map((p) => p.sel).joi
 const STROKE_PARTS = PART_SPECS.filter((p) => !p.strokeless).map((p) => p.sel).join(', ');
 const UNCLIPPED = PART_SPECS.filter((p) => !p.clips).map((p) => p.sel).join(', ');
 const CLIPPED = PART_SPECS.filter((p) => p.clips).map((p) => p.sel).join(', ');
+const UNMASKED = PART_SPECS.filter((p) => p.unmasked).map((p) => p.sel).join(', ');
 
 export function buildDefsMarkup(s: SketchSettings): string {
   /**
@@ -853,6 +861,10 @@ export function buildStylesheet(s: SketchSettings): string {
       `pointer-events:none;` +
     `}`;
 
+  /* The parts that float over page content take the fill whole, and everything
+     else the layer does with it. The second `:is` outweighs the rule above. */
+  const solidFills = s.maskOn ? `${el}:is(${UNMASKED})::before{mask-image:none;}` : '';
+
   // The hatch is laid over the fill as a second background LAYER rather than
   // as `background-image` beside a `background-color`, because a part is free
   // to name a gradient as its fill: the Kit's lead block hands the layer the
@@ -1037,7 +1049,7 @@ export function buildStylesheet(s: SketchSettings): string {
   }).join('');
 
   return [
-    registrations, vars, icons, host, fill, fillStyles, retrace, stroke,
+    registrations, vars, icons, host, fill, solidFills, fillStyles, retrace, stroke,
     seedRotation, shape, jitter, perPart, colours, states,
   ].join('\n');
 }

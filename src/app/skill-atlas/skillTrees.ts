@@ -1390,7 +1390,7 @@ export const skillTrees: Record<string, SkillTree> = {
         "row": 4,
         "kind": "step",
         "title": "Reach for a whole text style",
-        "desc": "--heading-xl through --heading-sm, --body-md, --body-sm, --eyebrow and --code each carry family, size, weight, line-height and letter-spacing. A heading set from --heading-lg-* retypes when the theme's fonts change; one set from a raw font-size does not.",
+        "desc": "--heading-xl through --heading-sm, --body-md, --body-sm, --editorial-md, --editorial-sm, --eyebrow and --code each carry family, size, weight, line-height and letter-spacing. A heading set from --heading-lg-* retypes when the theme's fonts change; one set from a raw font-size does not.",
         "lines": [
           13,
           13

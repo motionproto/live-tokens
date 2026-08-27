@@ -24,7 +24,7 @@ Flags: `--dry-run` reports without writing. `--no-verify` skips the network and 
 { "display": "Fraunces", "body": "Nunito Sans" }
 ```
 
-Every slot is optional and an omitted slot is left exactly as it is. `display` is `--font-display`, `body` is `--font-sans`; `serif`, `mono` and `editorial` exist when a theme needs them. `editorial` is `--font-editorial`, the long-reading face behind the `--editorial-*` text style: it tracks the body face until a theme repoints it, so set it only when essays and articles should not carry the body face. A slot may be `{ "name": "...", "url": "..." }` to pin an exact URL. Spell families as Google does; the CLI reports the canonical spelling back.
+Every slot is optional and an omitted slot is left exactly as it is. `display` is `--font-display`, `body` is `--font-sans`; `serif`, `mono` and `editorial` exist when a theme needs them. `editorial` is `--font-editorial`, the long-reading face behind the `--editorial-md-*` and `--editorial-sm-*` text styles: it tracks the body face until a theme repoints it, so set it only when essays and articles should not carry the body face. A slot may be `{ "name": "...", "url": "..." }` to pin an exact URL. Spell families as Google does; the CLI reports the canonical spelling back.
 
 ## Choose the body face first
 

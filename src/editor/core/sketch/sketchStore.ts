@@ -192,39 +192,78 @@ export function setSketchPageRoot(el: HTMLElement | null): void {
   render(get(sketchEnabled), get(sketchSettings));
 }
 
+/**
+ * What this document last exchanged with the other one, per key: written by
+ * `share`, recorded by `adopt`.
+ *
+ * A document must never write back a value it adopted. Comparing against its
+ * own store is not enough, because the echo is not identical, it is LATE: a
+ * drag sends a value every frame, the far side adopts the first and writes it
+ * back, and by then this side is three frames along. It reads the echo, sees a
+ * value it does not hold, and adopts its own past — the handle jumps back under
+ * the cursor and the drag cannot move.
+ */
+const shared = new Map<string, string>();
+
+function trace(what: string, value: unknown): void {
+  const w = globalThis as unknown as { __sketchTrace?: unknown[] };
+  (w.__sketchTrace ??= []).push({ t: Math.round(performance.now()), what, value });
+}
+
+function share(key: string, value: string): void {
+  if (key === SETTINGS_KEY) trace('share', JSON.parse(value).maskOutputMin);
+  if (shared.get(key) === value) { trace('share-skipped', 0); return; }
+  shared.set(key, value);
+  persist(key, value);
+}
+
+function adopt(key: string, value: string): void {
+  shared.set(key, value);
+}
+
 if (typeof document !== 'undefined') {
   sketchEnabled.subscribe((enabled) => {
-    persist(ENABLED_KEY, String(enabled));
+    share(ENABLED_KEY, String(enabled));
     render(enabled, get(sketchSettings));
   });
 
   sketchSettings.subscribe((settings) => {
-    persist(SETTINGS_KEY, JSON.stringify(settings));
+    trace('store-set', settings.maskOutputMin);
+    share(SETTINGS_KEY, JSON.stringify(settings));
     render(get(sketchEnabled), settings);
   });
 
-  sketchPreset.subscribe((name) => persist(PRESET_KEY, name));
-  sketchBaseline.subscribe((b) => persist(BASELINE_KEY, b ? JSON.stringify(b) : ''));
+  sketchPreset.subscribe((name) => share(PRESET_KEY, name));
+  sketchBaseline.subscribe((b) => share(BASELINE_KEY, b ? JSON.stringify(b) : ''));
 
   /* The overlay editor runs in an iframe, so the Sketch tab and a control on
      the page are separate instances of this module. localStorage is the ground
-     they share: each adopts a value only when it differs from what it holds, so
-     an exchange settles instead of trading identical writes back and forth. */
+     they share: each adopts a value only when it differs from what it holds,
+     and records what it adopted so it never sends that value back. */
   window.addEventListener('storage', (event) => {
     if (event.storageArea !== localStorage) return;
     if (event.key === ENABLED_KEY) {
       const next = event.newValue === 'true';
+      adopt(ENABLED_KEY, String(next));
       if (next !== get(sketchEnabled)) sketchEnabled.set(next);
     } else if (event.key === SETTINGS_KEY) {
+      trace('storage-in', event.newValue ? JSON.parse(event.newValue).maskOutputMin : null);
       if (event.newValue && event.newValue !== JSON.stringify(get(sketchSettings))) {
-        sketchSettings.set(readSettings());
+        trace('storage-adopt', JSON.parse(event.newValue).maskOutputMin);
+        const next = readSettings();
+        adopt(SETTINGS_KEY, JSON.stringify(next));
+        sketchSettings.set(next);
       }
     } else if (event.key === PRESET_KEY) {
-      if (readPresetName() !== get(sketchPreset)) sketchPreset.set(readPresetName());
+      const next = readPresetName();
+      adopt(PRESET_KEY, next);
+      if (next !== get(sketchPreset)) sketchPreset.set(next);
     } else if (event.key === BASELINE_KEY) {
       const current = get(sketchBaseline);
       if ((event.newValue || '') !== (current ? JSON.stringify(current) : '')) {
-        sketchBaseline.set(readBaseline());
+        const next = readBaseline();
+        adopt(BASELINE_KEY, next ? JSON.stringify(next) : '');
+        sketchBaseline.set(next);
       }
     }
   });

@@ -29,12 +29,24 @@ describe('editorial type role', () => {
 }
 `;
 
-  it('adds the stack and the bundle to a tokens.css that predates the role', () => {
+  it('adds the stack and both size steps to a tokens.css that predates the role', () => {
     const { css, applied } = runTokensCssMigrations(BEFORE);
     expect(applied).toContain('2026-08-25-editorial-type-role');
+    expect(applied).toContain('2026-08-27-editorial-size-steps');
     expect(css).toContain('--font-editorial: var(--font-sans);');
-    expect(css).toContain('--editorial-font-family: var(--font-editorial);');
-    expect(css).toContain('--editorial-line-height: var(--line-height-normal);');
+    expect(css).toContain('--editorial-md-font-family: var(--font-editorial);');
+    expect(css).toContain('--editorial-md-line-height: var(--line-height-normal);');
+    expect(css).toContain('--editorial-sm-font-size: var(--font-size-sm);');
+  });
+
+  it('carries a shipped unsized bundle onto the medium step, values intact', () => {
+    const sized = BEFORE.replace(
+      '--code-font-family: var(--font-mono);',
+      '--code-font-family: var(--font-mono);\n  --editorial-font-family: var(--font-editorial);\n  --editorial-font-size: var(--font-size-lg);',
+    );
+    const { css } = runTokensCssMigrations(sized);
+    expect(css).toContain('--editorial-md-font-size: var(--font-size-lg);');
+    expect(css).not.toContain('--editorial-font-size:');
   });
 
   it('defaults to the body face, so a consumer who ignores it renders unchanged', () => {

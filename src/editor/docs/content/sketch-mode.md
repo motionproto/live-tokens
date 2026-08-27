@@ -51,9 +51,12 @@ your own, alongside the shipped seven, as a file under
 - **Fill.** Solid or hatched, how far the fill's edge travels, and how far each
   instance is offset, rotated and scaled from its neighbours. **Ink coverage**
   thins the fill with a field of blotches: set their size and how many levels of
-  detail, then work the field as a levels control. Input cuts a black and a
-  white point into it for contrast, Steps flattens it into tones, and Output
-  states how pale and how dense the ink goes.
+  detail, then work the field as a levels control. The field always runs black
+  to white whatever the noise underneath. Steps flattens it into tones, and
+  Output squeezes the whole of it into the range the ink covers, from how pale
+  it gets at its thinnest to how dense at its fullest. Menus and tooltips are
+  drawn solid whatever the coverage dials say: they float over the page, and a
+  fill worn through in patches lets the page show through them.
 - **Shape.** **Corner spread** rounds each corner by its own share of the dial,
   so no two match. **Corner travel** leans the drawn box into a quadrilateral
   with no two sides parallel. This is the dial that stops a component reading as

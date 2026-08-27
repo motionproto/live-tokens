@@ -40,27 +40,6 @@ describe('mask field', () => {
     }
   });
 
-  it('cuts the input handles into the field and stretches what is left', () => {
-    const settings = { ...flat, maskInputMin: 0.3, maskInputMax: 0.7 };
-    const { field: raw } = buildMaskField(settings, 9, 'noise');
-    const { field } = buildMaskField(settings, 9, 'levels');
-    let bare = 0, whole = 0;
-    for (let i = 0; i < raw.length; i++) {
-      expect(field[i]).toBeCloseTo(Math.min(1, Math.max(0, (raw[i] - 0.3) / 0.4)), 5);
-      if (field[i] === 0) bare++;
-      if (field[i] === 1) whole++;
-    }
-    expect(bare / field.length).toBeCloseTo(0.3, 2);
-    expect(whole / field.length).toBeCloseTo(0.3, 2);
-  });
-
-  it('cuts a threshold as the input handles meet', () => {
-    const { field } = buildMaskField(
-      { ...flat, maskInputMin: 0.5, maskInputMax: 0.5 }, 9, 'levels');
-    expect(new Set(field)).toEqual(new Set([0, 1]));
-    expect([...field].filter((v) => v === 1).length / field.length).toBeCloseTo(0.5, 2);
-  });
-
   // The output pair is the density range, not a cut: a low handle above zero
   // is the palest the fill gets, and must never punch a hole through it.
   it('lands the field between the two output levels and nowhere outside them', () => {
@@ -86,6 +65,30 @@ describe('mask field', () => {
     expect(sorted[sorted.length >> 1]).toBeGreaterThan(0.4);
   });
 
+  // The Photoshop output handles, and the failure this replaces: a pair that
+  // clipped instead of squeezing threw away every tone past the handle, so
+  // raising the black point turned most of the field into a flat hole rather
+  // than lifting the darkest patch to meet it.
+  it('squeezes the whole field between the handles, wherever they sit', () => {
+    const { field: full } = buildMaskField(flat, 9, 'levels');
+    for (const [min, max] of [[0, 0.455], [0.392, 0.612], [0.392, 1]] as const) {
+      const { field } = buildMaskField(
+        { ...flat, maskOutputMin: min, maskOutputMax: max }, 9, 'levels');
+      let lo = 1, hi = 0;
+      for (let i = 0; i < field.length; i++) {
+        expect(field[i]).toBeCloseTo(min + full[i] * (max - min), 5);
+        lo = Math.min(lo, field[i]); hi = Math.max(hi, field[i]);
+      }
+      // Both ends land ON the handles, and no more of the field piles up against
+      // them than was already at black and white: nothing was cut off.
+      expect(lo).toBeCloseTo(min, 2);
+      expect(hi).toBeCloseTo(max, 2);
+      const pinned = field.filter((v) => v <= lo + 1e-6 || v >= hi - 1e-6).length;
+      const extremes = full.filter((v) => v <= 1e-6 || v >= 1 - 1e-6).length;
+      expect(pinned).toBeLessThanOrEqual(extremes + 2);
+    }
+  });
+
   // Posterising ran after the levels and quantised the floor back down to
   // black, so a fill with a floor well clear of bare still came out in holes.
   it('holds the floor through the posterising', () => {
@@ -97,6 +100,27 @@ describe('mask field', () => {
   it('flattens to a wash as the levels close up', () => {
     const { field } = buildMaskField({ ...flat, maskOutputMin: 0.6, maskOutputMax: 0.6 }, 9, 'levels');
     expect(field.every((v) => Math.abs(v - 0.6) < 1e-6)).toBe(true);
+  });
+
+  // The dial used to round the box radius to a whole number of samples, and a
+  // sample is two page px: everything under 2.5px came out perfectly sharp and
+  // 2.5 to 4.2px came out identical. Two presets shipped a blur they never got.
+  it('softens by more at every step of the dial', () => {
+    const soften = (maskSoftness: number) => {
+      const settings = { ...marker, maskSoftness };
+      const before = buildMaskField(settings, 9, 'levels').field;
+      const after = buildMaskField(settings, 9).field;
+      let sum = 0;
+      for (let i = 0; i < before.length; i++) sum += Math.abs(before[i] - after[i]);
+      return sum / before.length;
+    };
+    let last = 0;
+    for (const px of [1.75, 2.5, 3.25, 4, 5, 6.7, 12, 20, 32, 48, 64]) {
+      const amount = soften(px);
+      expect(amount).toBeGreaterThan(last);
+      last = amount;
+    }
+    expect(soften(0)).toBe(0);
   });
 
   // A tile that does not meet itself draws a line across the page everywhere it

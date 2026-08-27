@@ -164,3 +164,47 @@ describe('page root', () => {
     expect(document.documentElement.hasAttribute('data-sketch')).toBe(false);
   });
 });
+
+/* The overlay editor is a second instance of this module in an iframe, and the
+   two trade through localStorage. */
+describe('cross-document sync', () => {
+  const SETTINGS_KEY = 'lt.sketchSettings';
+
+  /** Deliver a value as the other document would, serialised in ITS key order.
+      The same settings written by this document would come out in the canonical
+      order `hydrateSketchSettings` produces, so the stored text says who wrote
+      last — which no spy can, since happy-dom's localStorage is a Proxy and
+      neither the instance method nor the prototype one stays patched. */
+  function arrive(settings: object): string {
+    const sent = JSON.stringify(Object.fromEntries(Object.entries(settings).reverse()));
+    localStorage.setItem(SETTINGS_KEY, sent);
+    window.dispatchEvent(new StorageEvent('storage', {
+      key: SETTINGS_KEY, newValue: sent, storageArea: localStorage,
+    }));
+    return sent;
+  }
+
+  // The bug this replaces: a document wrote back everything it adopted, and the
+  // echo is not identical but LATE. Dragging a handle sent a value a frame, the
+  // far side adopted the first and returned it, and this side — three frames on
+  // — read a value it did not hold and adopted its own past. The handle jumped
+  // back under the cursor and the drag could not move.
+  it('never writes back a value it adopted from the other document', () => {
+    selectSketchPreset('marker');
+    updateSketchSettings({ maskOutputMin: 0.3 });
+
+    const sent = arrive({ ...get(sketchSettings), maskOutputMin: 0.2 });
+
+    expect(get(sketchSettings).maskOutputMin).toBe(0.2);
+    expect(localStorage.getItem(SETTINGS_KEY)).toBe(sent);
+  });
+
+  it('still sends its own changes after adopting one', () => {
+    selectSketchPreset('marker');
+    arrive({ ...get(sketchSettings), maskOutputMin: 0.2 });
+
+    updateSketchSettings({ maskOutputMin: 0.7 });
+
+    expect(JSON.parse(localStorage.getItem(SETTINGS_KEY)!).maskOutputMin).toBe(0.7);
+  });
+});

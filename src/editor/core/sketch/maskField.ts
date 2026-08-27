@@ -11,9 +11,10 @@
  * comes out as one flat mid-grey.
  *
  * Generated here, the tile is auto-levelled before any dial sees it, and the
- * dials that follow are a levels control: Input cuts a black and a white point
- * into the field, Steps quantises it, Output states the density range the mask
- * paints between.
+ * dials that follow are a levels control: Steps quantises the field, Output
+ * squeezes it into the density range the mask paints between. Neither ever
+ * clips: the field arrives running black to white and every tone survives to
+ * the other end in the order it started.
  *
  * Everything is integer maths on a Float32Array with no DOM, so what a test
  * asserts is what the browser paints.
@@ -172,34 +173,14 @@ function equalise(f: Float32Array): Float32Array {
 
 /* ------------------------------------------------------------- levelling --- */
 
-/** Input levels. The black and white points cut into the field and stretch
-    what is left back over the whole range, the way Photoshop's input handles
-    do. The field is equalised, so the pair reads as shares of the tile: 30 to
-    70 wears the darkest thirty per cent through to bare, fills the palest
-    thirty per cent in solid, and spreads the middle across everything between.
+/** Output levels, the same squeeze Photoshop's output handles apply. The whole
+    field is stretched into the gap between them, so the pair states the range
+    the mask paints: nothing is barer than Min or denser than Max, and every
+    tone in between keeps its place in the order.
 
-    Handles together are the limit of that stretch, a threshold: half the tile
-    bare and half whole, with no ramp. */
-function applyInput(f: Float32Array, min: number, max: number): Float32Array {
-  const span = max - min;
-  if (span <= 1e-6) {
-    for (let i = 0; i < f.length; i++) f[i] = f[i] >= min ? 1 : 0;
-    return f;
-  }
-  for (let i = 0; i < f.length; i++) {
-    f[i] = Math.min(1, Math.max(0, (f[i] - min) / span));
-  }
-  return f;
-}
-
-/** Output levels. The field is stretched into the gap between the handles, so
-    the pair states the range the mask paints: nothing is barer than Min or
-    denser than Max, and the field keeps its own shape in between.
-
-    Cutting here instead of stretching is what Input is for. Cut twice and the
-    second cut has nothing left to take: the low handle would become the value
-    most of the field sits AT rather than its floor, and the fill would come
-    out a flat wash at the floor with a thin bright tail above it. */
+    Never a cut. Clipping to the handles instead would make Min the value most
+    of the field sits AT rather than its floor, and the fill would come out a
+    flat wash at the floor with a thin bright tail above it. */
 function applyOutput(f: Float32Array, min: number, max: number): Float32Array {
   const span = max - min;
   for (let i = 0; i < f.length; i++) f[i] = min + f[i] * span;
@@ -215,14 +196,30 @@ function posterise(f: Float32Array, steps: number): Float32Array {
   return f;
 }
 
-/** Three box passes, wrapped at the tile edges so the blur cannot draw a rim
-    where the tile repeats.
+/** Wrapped box blur, so the blur cannot draw a rim where the tile repeats.
 
-    The width is the one the filter spec derives for three boxes to land on a
-    gaussian of a given deviation, so the dial's px are the px it gets. */
+    Three boxes at the width the filter spec derives land on a gaussian of a
+    given deviation, which is what makes the dial's px the px it gets. But a box
+    radius is a whole number of samples and a sample is two page px, so rounding
+    to one put the dial on a 2px ladder with a dead zone at the bottom: every
+    setting under 2.5px came out perfectly sharp, and everything from 2.5 to
+    4.2px came out identical. Mixing the two radii either side of the exact one
+    puts the dial back on a continuous scale, and radius zero is the field
+    itself, so the bottom of the travel eases in instead of switching on. */
 function blur(f: Float32Array, raster: number, std: number): Float32Array {
-  const radius = Math.round((std * 3 * Math.sqrt(2 * Math.PI) / 4 - 1) / 2);
-  if (radius < 1) return f;
+  const exact = (std * 3 * Math.sqrt(2 * Math.PI) / 4 - 1) / 2;
+  if (exact <= 0) return f;
+  const lower = Math.floor(exact);
+  const mix = exact - lower;
+  const low = lower < 1 ? f : boxes(f, raster, lower);
+  if (mix < 1e-6) return low;
+  const high = boxes(f, raster, lower + 1);
+  const out = new Float32Array(f.length);
+  for (let i = 0; i < f.length; i++) out[i] = low[i] + (high[i] - low[i]) * mix;
+  return out;
+}
+
+function boxes(f: Float32Array, raster: number, radius: number): Float32Array {
   let cur = f;
   for (let pass = 0; pass < 3; pass++) cur = boxPass(cur, raster, radius);
   return cur;
@@ -271,8 +268,10 @@ function cachedRaw(s: SketchSettings, seed: number): Float32Array {
 /**
  * The finished field, 0 (bare) to 1 (inked), row-major.
  *
- * Three stages and no fourth: the last one IS the result, so the strip of
- * previews in the tab accounts for the whole of what the dials do.
+ * `through` stops the pipeline early. Nothing in the app asks for a part of it
+ * — the tab shows the finished field and nothing else — but the levels are
+ * three passes over one array, and the seam is where the tests read what each
+ * pass did.
  */
 export function buildMaskField(
   s: SketchSettings, seed = 9, through?: MaskStage,
@@ -281,10 +280,7 @@ export function buildMaskField(
   if (through === 'noise') return { field: raw, raster: RASTER };
 
   const levelled = applyOutput(
-    posterise(
-      applyInput(Float32Array.from(raw), s.maskInputMin, s.maskInputMax), s.maskPosterize,
-    ),
-    s.maskOutputMin, s.maskOutputMax,
+    posterise(Float32Array.from(raw), s.maskPosterize), s.maskOutputMin, s.maskOutputMax,
   );
   if (through === 'levels') return { field: levelled, raster: RASTER };
 
@@ -402,8 +398,8 @@ export function fieldToPng(field: Float32Array, raster: number): string {
     never triggers another. The tab holds four of them at once, the field at
     three stages beside the finished one, with headroom over that. */
 const KEYS = [
-  'maskBlob', 'maskOctaves', 'maskGrain', 'maskInputMin', 'maskInputMax',
-  'maskOutputMin', 'maskOutputMax', 'maskPosterize', 'maskSoftness',
+  'maskBlob', 'maskOctaves', 'maskGrain', 'maskOutputMin', 'maskOutputMax',
+  'maskPosterize', 'maskSoftness',
 ] as const;
 
 const CACHE_MAX = 6;

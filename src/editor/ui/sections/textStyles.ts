@@ -1,5 +1,5 @@
 /**
- * Registry of the eight v1 semantic text styles rendered by TextStylesSection.
+ * Registry of the semantic text styles rendered by TextStylesSection.
  * Each style is a bundle of alias tokens declared in tokens.css; the prefix
  * joins with a kind suffix (`-font-family`, `-font-size`, …) to form each
  * axis variable the editor's pickers target.
@@ -63,6 +63,20 @@ export const TEXT_STYLES: TextStyle[] = [
     prefix: '--body-sm',
     defaultElement: 'small',
     preview: 'Captions and secondary text.',
+  },
+  {
+    name: 'editorial-md',
+    label: 'Editorial MD',
+    prefix: '--editorial-md',
+    defaultElement: 'editorial-md',
+    preview: 'Long-form reading, set in the editorial face.',
+  },
+  {
+    name: 'editorial-sm',
+    label: 'Editorial SM',
+    prefix: '--editorial-sm',
+    defaultElement: 'editorial-sm',
+    preview: 'Standfirsts, pull quotes, and asides.',
   },
   {
     name: 'code',

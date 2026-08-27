@@ -23,6 +23,7 @@ import { tokensCssMigration_2026_08_19_oklchColorValues } from './migrations/202
 import { tokensCssMigration_2026_08_25_editorialTypeRole } from './migrations/2026-08-25-editorial-type-role';
 import { tokensCssMigration_2026_08_26_gradientStops } from './migrations/2026-08-26-gradient-stops';
 import { tokensCssMigration_2026_08_27_backdropPolarity } from './migrations/2026-08-27-backdrop-polarity';
+import { tokensCssMigration_2026_08_27_editorialSizeSteps } from './migrations/2026-08-27-editorial-size-steps';
 
 export type { TokensCssMigration } from './types';
 export {
@@ -53,6 +54,7 @@ export const TOKENS_CSS_MIGRATIONS: TokensCssMigration[] = [
   tokensCssMigration_2026_08_25_editorialTypeRole,
   tokensCssMigration_2026_08_26_gradientStops,
   tokensCssMigration_2026_08_27_backdropPolarity,
+  tokensCssMigration_2026_08_27_editorialSizeSteps,
 ];
 
 export interface RunResult {

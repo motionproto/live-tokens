@@ -728,7 +728,8 @@
 
 <style>
   :global(:root) {
-    /* thumbnail (closed inline) + animated modal stage */
+    /* thumbnail (closed inline) + animated modal stage; the fill is the
+       thumbnail's alone — the open stage rides the overlay */
     --imagelightbox-tile-surface:          var(--color-transparent);
     --imagelightbox-tile-radius:           var(--radius-2xl);
     --imagelightbox-tile-border:           var(--color-transparent);
@@ -813,13 +814,15 @@
     border: 0;
   }
 
+  /* No tile fill here: the open stage sits on the near-opaque overlay, which
+     already backs transparent art. Painting the fill too would band the scrim
+     wherever the image's aspect leaves the stage box unfilled. */
   .image-lightbox-stage {
     position: fixed;
     z-index: var(--z-modal);
     cursor: zoom-out;
     border: var(--imagelightbox-tile-border-width) solid var(--imagelightbox-tile-border);
     border-radius: var(--imagelightbox-tile-radius);
-    background: var(--imagelightbox-tile-surface);
   }
 
   .image-lightbox-clip {

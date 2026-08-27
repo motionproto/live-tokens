@@ -1,7 +1,8 @@
 // @vitest-environment happy-dom
 //
 // The tile's fill. Light art on a light page needs a ground of its own, and the
-// tile is the only box that tracks the image's geometry in both states.
+// closed tile is the only box that tracks the image's geometry. The open stage
+// has the overlay behind it and takes no fill of its own.
 
 import { describe, it, expect } from 'vitest';
 import { fileURLToPath } from 'node:url';
@@ -24,8 +25,8 @@ describe('ImageLightbox tile fill', () => {
     expect(rule('.image-lightbox-thumb')).toContain('background: var(--imagelightbox-tile-surface)');
   });
 
-  it('follows the image into the open stage', () => {
-    expect(rule('.image-lightbox-stage')).toContain('background: var(--imagelightbox-tile-surface)');
+  it('stops at the closed tile — the open stage rides the overlay instead', () => {
+    expect(rule('.image-lightbox-stage')).not.toContain('background:');
   });
 
   it('paints inside the tile radius, so the fill is a frame and not a slab', () => {

@@ -1,5 +1,34 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+- **The editorial role has its own sizes.** The role shipped with a single
+  unsized bundle, so an editorial surface could only take the body size. It now
+  reads as a pair, matching body: `--editorial-md-*` and `--editorial-sm-*`,
+  both editable in the editor's Text Styles section beside the other styles, and
+  both carried by an `.editorial-md` / `.editorial-sm` class in `site.css`. Each
+  step mirrors its body counterpart apart from the family, so a project that
+  never repoints `--font-editorial` renders exactly as it did.
+
+### Changed (breaking)
+
+- **`--editorial-*` is now `--editorial-md-*`.** The unsized bundle became the
+  medium step. A `breaking` tokens.css migration
+  (`2026-08-27-editorial-size-steps`) renames it and backfills both steps,
+  carrying any value already tuned. It never auto-applies: run
+  `npx live-tokens migrate`.
+
+### Fixed
+
+- **`ImageLightbox`'s tile fill stays on the closed tile.** The fill also
+  painted the opened stage, where it had nothing to do: the stage rides a
+  near-opaque overlay that already backs transparent art, so the fill only
+  showed as a slab of theme color in the gap the image's aspect left inside the
+  stage box. The open stage now takes no fill of its own, matching the tile
+  shadow, which already stopped at the same edge.
+
 ## 0.61.0 — A surface says which way it leans
 
 ### Added

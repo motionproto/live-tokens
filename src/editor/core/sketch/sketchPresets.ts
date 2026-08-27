@@ -61,17 +61,11 @@ export interface SketchSettings {
   maskOn: boolean;
   /** Wavelength of the coverage noise, in page px. Small gives speckle, large gives broad patches. */
   maskBlob: number;
-  /** Input levels on the coverage field, 0 to 1: the black and the white point.
-      The field is equalised before they apply, so the pair reads as shares of
-      the tile. 0 to 1 leaves the field as it is; 0.3 to 0.7 wears the darkest
-      thirty per cent through and fills the palest thirty per cent in solid,
-      which is the contrast control. */
-  maskInputMin: number;
-  maskInputMax: number;
   /** Output levels on the coverage field, 0 to 1: the palest the fill gets and
-      the densest. 0 is bare and 1 is whole, so 0.4 to 1 is a fill that is never
-      thinner than 40% ink, and 0 to 0.8 one that never quite fills in. Close
-      together is a flat wash, far apart a strong blotch. */
+      the densest. The whole field is squeezed into the gap, never cut at it, so
+      0.4 to 1 is a fill that is never thinner than 40% ink and 0 to 0.8 one
+      that never quite fills in. Close together is a flat wash, far apart a
+      strong blotch. */
   maskOutputMin: number;
   maskOutputMax: number;
   /** Detail layers. 1-2 gives broad blobs, 4+ goes cloudy and stops reading as blotches. */
@@ -132,8 +126,7 @@ const base: SketchSettings = {
   strokeWidth: 1.5, doubleStroke: false, retraceOffset: 1.2, retracePass: 'copy',
   fillStyle: 'solid', hatchInk: 0.4, strokeStyle: 'solid',
   pressure: 0.25, pressureMod: 0.35, pooling: 1.2, strokeInk: 1,
-  maskOn: true, maskBlob: 100, maskInputMin: 0, maskInputMax: 1,
-  maskOutputMin: 0.45, maskOutputMax: 1,
+  maskOn: true, maskBlob: 100, maskOutputMin: 0.45, maskOutputMax: 1,
   maskOctaves: 2, maskGrain: 'fractal', maskPosterize: 1, maskSoftness: 1.5,
   jitterX: 2.5, jitterY: 2.5, jitterRot: 0.6, jitterScale: 0.035,
   cornerSpread: 10, cornerTravel: 8,
@@ -146,7 +139,7 @@ export const SKETCH_PRESETS: Record<string, SketchSettings> = {
     blurb: 'Two graphite passes on their own seeds, so the outline disagrees with itself the way a hand coming back round does. Tight grain, little else.',
     fillTravel: 0.75, strokeTravel: 1.25, wobble: 30, roughness: 3, waveform: 1,
     strokeWidth: 1.25, doubleStroke: true, retracePass: 'reseeded', retraceOffset: 1.5, strokeInk: 0.85,
-    maskBlob: 40, maskOutputMin: 0.62, maskOutputMax: 1, maskOctaves: 3, maskPosterize: 1, maskSoftness: 0.6,
+    maskBlob: 40, maskOutputMin: 0.62, maskOutputMax: 1, maskOctaves: 3, maskPosterize: 1, maskSoftness: 0,
     jitterX: 1.5, jitterY: 1.5, jitterRot: 0.35, jitterScale: 0.022,
     cornerSpread: 6, cornerTravel: 4.5,
     pressure: 0.15, pressureMod: 0.3, pooling: 0, iconTravel: 0.75,
@@ -157,7 +150,7 @@ export const SKETCH_PRESETS: Record<string, SketchSettings> = {
     blurb: 'Broad translucent nib gone round twice on the same line, so the overlap darkens and the ink pools where it slows.',
     fillTravel: 2, strokeTravel: 1.5, wobble: 56, waveform: 1.4, borderWavelength: 1.3,
     strokeWidth: 4, doubleStroke: true, retracePass: 'copy', strokeInk: 0.52, retraceOffset: 2.2,
-    maskBlob: 115, maskOutputMin: 0.21, maskOutputMax: 1, maskOctaves: 3, maskPosterize: 4, maskSoftness: 2.5,
+    maskBlob: 115, maskOutputMin: 0.42, maskOutputMax: 1, maskOctaves: 3, maskPosterize: 4, maskSoftness: 4,
     jitterX: 3, jitterY: 3, jitterRot: 0.8, jitterScale: 0.045,
     cornerSpread: 10, cornerTravel: 8,
     pressure: 0.2, pressureMod: 0.25, pooling: 2, iconTravel: 1.25, iconMaskScale: 4,
@@ -168,8 +161,8 @@ export const SKETCH_PRESETS: Record<string, SketchSettings> = {
     blurb: 'The fattest nib on glass. One long smooth undulation, and a veined mask that streaks the fill like a half-wiped board.',
     fillTravel: 2.5, strokeTravel: 2.5, wobble: 90, roughness: 1, waveform: 1, borderWavelength: 1.5,
     strokeWidth: 5.5, doubleStroke: true, retracePass: 'copy', strokeInk: 0.66, retraceOffset: 3,
-    maskGrain: 'turbulence', maskBlob: 180, maskOutputMin: 0.42, maskOutputMax: 0.9,
-    maskOctaves: 1, maskPosterize: 3, maskSoftness: 5,
+    maskGrain: 'turbulence', maskBlob: 180, maskOutputMin: 0.42, maskOutputMax: 1,
+    maskOctaves: 1, maskPosterize: 3, maskSoftness: 8,
     jitterX: 4.5, jitterY: 4.5, jitterRot: 1.2, jitterScale: 0.07,
     cornerSpread: 14, cornerTravel: 11,
     pressure: 0.15, pressureMod: 0.15, pooling: 3.5, iconTravel: 1.75, iconMaskScale: 1.5,
@@ -202,7 +195,7 @@ export const SKETCH_PRESETS: Record<string, SketchSettings> = {
     blurb: 'Ballpoint in a hurry. Everything loose at once: a square wave sends every edge to full travel, and the second pass lands wherever it lands.',
     fillTravel: 3, strokeTravel: 2.25, wobble: 50, roughness: 3, waveform: 2.5,
     strokeWidth: 2.25, doubleStroke: true, retracePass: 'reseeded', retraceOffset: 4, strokeInk: 1,
-    maskBlob: 150, maskOutputMin: 0.43, maskOutputMax: 0.95, maskOctaves: 2, maskPosterize: 2, maskSoftness: 6.7,
+    maskBlob: 150, maskOutputMin: 0.43, maskOutputMax: 0.95, maskOctaves: 2, maskPosterize: 2, maskSoftness: 10,
     jitterX: 6, jitterY: 6, jitterRot: 1.8, jitterScale: 0.1,
     cornerSpread: 20, cornerTravel: 17,
     pressure: 0.45, pressureMod: 0.6, pooling: 2.5, iconTravel: 2.25, iconMaskScale: 3.6,
@@ -213,7 +206,7 @@ export const SKETCH_PRESETS: Record<string, SketchSettings> = {
     blurb: 'Ink that ran out. One scratchy pass that breaks up along its length, over a fill the mask has worn nearly through in patches.',
     fillTravel: 2.25, strokeTravel: 1.75, wobble: 50, waveform: 2, borderWavelength: 0.5,
     strokeWidth: 3.5, doubleStroke: false, strokeInk: 0.4,
-    maskBlob: 150, maskOutputMin: 0.15, maskOutputMax: 0.91,
+    maskBlob: 150, maskOutputMin: 0.24, maskOutputMax: 0.91,
     maskOctaves: 2, maskPosterize: 4, maskSoftness: 1.75,
     jitterX: 5, jitterY: 5, jitterRot: 1.4, jitterScale: 0.08,
     cornerSpread: 16, cornerTravel: 13,

@@ -681,11 +681,19 @@
   --code-line-height: var(--line-height-normal);
   --code-letter-spacing: var(--letter-spacing-normal);
 
-  --editorial-font-family: var(--font-editorial);
-  --editorial-font-size: var(--font-size-md);
-  --editorial-font-weight: var(--font-weight-normal);
-  --editorial-line-height: var(--line-height-normal);
-  --editorial-letter-spacing: var(--letter-spacing-normal);
+  /* Editorial — the long-reading role. Each step mirrors its body counterpart
+     until the stack is repointed. */
+  --editorial-md-font-family: var(--font-editorial);
+  --editorial-md-font-size: var(--font-size-md);
+  --editorial-md-font-weight: var(--font-weight-normal);
+  --editorial-md-line-height: var(--line-height-normal);
+  --editorial-md-letter-spacing: var(--letter-spacing-normal);
+
+  --editorial-sm-font-family: var(--font-editorial);
+  --editorial-sm-font-size: var(--font-size-sm);
+  --editorial-sm-font-weight: var(--font-weight-normal);
+  --editorial-sm-line-height: var(--line-height-tight);
+  --editorial-sm-letter-spacing: var(--letter-spacing-normal);
 
   /* Eyebrow — values track the existing .eyebrow class in src/app/Home.svelte. */
   --eyebrow-font-family: var(--font-sans);

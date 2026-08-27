@@ -4,7 +4,7 @@
   import UISegmentedControl from '../UISegmentedControl.svelte';
   import SketchDial from './SketchDial.svelte';
   import SketchRange from './SketchRange.svelte';
-  import { buildMaskUri, MASK_TILE } from '../../core/sketch/maskField';
+  import { buildMaskUri } from '../../core/sketch/maskField';
   import SketchPreview from './SketchPreview.svelte';
   import { onMount } from 'svelte';
   import UIPillButton from '../UIPillButton.svelte';
@@ -191,7 +191,12 @@
       ceiling is a few blobs across a card, which is where it still reads as
       uneven ink. */
   const SIZE = { min: 20, max: 250 };
-  const BLUR_MAX = 8;
+  const BLUR_MAX = 64;
+  /** Squared response. A blur only reads as a different blur while it is small,
+      so a linear walk to 64px would spend a tenth of the dial on everything
+      legible and the rest sliding between shades of gone. */
+  const blurPos = (px: number) => Math.round(Math.sqrt(px / BLUR_MAX) * 100);
+  const blurVal = (t: number) => Math.round(BLUR_MAX * (t / 100) ** 2 * 4) / 4;
 
   /** Tones the field is flattened into, in the order the dial walks them:
       smooth, then coarsening all the way down to two. The stored value is the
@@ -210,25 +215,15 @@
   let scalePos = $derived(logPos(s.maskBlob, SIZE));
   const setScale = (v: number) =>
     updateSketchSettings({ maskBlob: Math.round(logVal(v / 100, SIZE) / 5) * 5 });
-  let inputMin = $derived(Math.round(s.maskInputMin * 100));
-  let inputMax = $derived(Math.round(s.maskInputMax * 100));
   let outputMin = $derived(Math.round(s.maskOutputMin * 100));
   let outputMax = $derived(Math.round(s.maskOutputMax * 100));
   let stepPos = $derived(Math.max(0, STEP_TONES.indexOf(s.maskPosterize)));
-  const setInput = (min: number, max: number) =>
-    updateSketchSettings({ maskInputMin: min / 100, maskInputMax: max / 100 });
+  let blurStep = $derived(blurPos(s.maskSoftness));
   const setOutput = (min: number, max: number) =>
     updateSketchSettings({ maskOutputMin: min / 100, maskOutputMax: max / 100 });
 
-  // The same stages the fill filter runs, painted at true pixel size over a
-  // sample card, so blob size here is blob size on the components and the
-  // card's shadow is always on show: coverage that ate it would be a bug you
-  // saw at once.
+  // The finished field, the last stage and the one the components get.
   let maskPreview = $derived(buildMaskUri(s));
-  // The field itself after each stage, white for ink.
-  let stageTiles = $derived(
-    (['noise', 'levels', 'blur'] as const).map((stage) => ({ stage, uri: buildMaskUri(s, 9, stage) })),
-  );
 </script>
 
 <div class="sketch-tab">
@@ -542,21 +537,7 @@
           </div>
 
           <figure class="scope" class:muted={!s.maskOn}>
-            <div class="sample">
-              <div
-                class="ink"
-                style:mask-image={maskPreview}
-                style:mask-size="{MASK_TILE}px {MASK_TILE}px"
-              ></div>
-            </div>
-            <div class="stages">
-              {#each stageTiles as { stage, uri } (stage)}
-                <figure>
-                  <div class="tile" style:mask-image={uri} style:mask-size="{MASK_TILE}px {MASK_TILE}px"></div>
-                  <figcaption>{stage}</figcaption>
-                </figure>
-              {/each}
-            </div>
+            <div class="field" style:mask-image={maskPreview}></div>
           </figure>
 
           <h5>Noise</h5>
@@ -586,17 +567,18 @@
 
           <h5>Levels</h5>
           <p class="group-note">
-            The field runs black to white before these apply. Input cuts a black
-            and a white point into it, and reads as shares of the field: 30 wears
-            the darkest thirty per cent of it away. Output states the range of
-            ink the mask paints between: 0 is bare, 100 is whole.
+            The field runs black to white before these apply. Output states the
+            range of ink the mask paints between, 0 bare to 100 whole, and the
+            whole field is squeezed into it: raise the low handle and the
+            darkest patch rises with it, drop the high handle and the densest
+            falls. Nothing is ever cut off at a handle.
           </p>
           <SketchRange
-            label="Input" low={inputMin} high={inputMax} min={0} max={100} step={1}
+            label="Output" low={outputMin} high={outputMax} min={0} max={100} step={1}
             gap={0}
-            readout={`${inputMin}–${inputMax}%`}
-            hint="Contrast. Bring the handles in for hard blotches with bare patches between, open them out for a soft even field."
-            onchange={setInput}
+            readout={`${outputMin}–${outputMax}%`}
+            hint="Bring the handles together for a flat wash, open them for strong blotches. Move the pair to ink more or less of the fill."
+            onchange={setOutput}
           />
           <SketchDial
             label="Steps" value={stepPos} min={0} max={STEP_TONES.length - 1} step={1}
@@ -605,20 +587,14 @@
             hint="Flattens the field into this many tones. Fewer tones give harder ink, down to a two-tone cut."
             onchange={(v) => updateSketchSettings({ maskPosterize: STEP_TONES[v] })}
           />
-          <SketchRange
-            label="Output" low={outputMin} high={outputMax} min={0} max={100} step={1}
-            gap={0}
-            readout={`${outputMin}–${outputMax}%`}
-            hint="Bring the handles together for a flat wash, open them for strong blotches. Move the pair to ink more or less of the fill."
-            onchange={setOutput}
-          />
 
           <h5>Blur</h5>
           <SketchDial
-            label="Blur" value={s.maskSoftness} min={0} max={BLUR_MAX} step={0.25}
+            label="Blur" value={blurStep} min={0} max={100} step={1}
             readout={px(s.maskSoftness)}
-            hint="Softens the blotch edges. Few tones with a little blur give a hard blotch with a soft rim."
-            onchange={(v) => updateSketchSettings({ maskSoftness: v })}
+            ends={['hard', 'clouded']}
+            hint="Softens the blotch edges. Few tones with a little blur give a hard blotch with a soft rim; wound right up the field goes to weather."
+            onchange={(v) => updateSketchSettings({ maskSoftness: blurVal(v) })}
           />
         </div>
         </div>
@@ -1209,11 +1185,14 @@
     pointer-events: none;
   }
 
+  /* The ground the field is cut out of, so a masked-away pixel reads as black
+     rather than as the panel. */
   .scope {
     margin: 0;
-    display: flex;
-    flex-direction: column;
-    gap: var(--ui-space-4);
+    border: 1px solid var(--ui-border-low);
+    border-radius: var(--ui-radius-sm);
+    background: var(--ui-surface-lowest);
+    overflow: hidden;
     transition: opacity var(--ui-transition-base);
   }
 
@@ -1221,57 +1200,17 @@
     opacity: 0.4;
   }
 
-  /* The shadow sits on the card and the mask on the fill inside it: the same
-     split the fill layer makes, so what this shows is what the page does. */
-  .sample {
-    height: 6rem;
-    padding: var(--ui-space-16) var(--ui-space-24);
-    border: 1px solid var(--ui-border-low);
-    border-radius: var(--ui-radius-sm);
-    background: var(--ui-surface-lowest);
-    overflow: hidden;
-  }
-
-  .ink {
-    box-shadow: var(--ui-shadow-md);
-  }
-
-  .stages {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: var(--ui-space-8);
-  }
-
-  .stages figure {
-    margin: 0;
-  }
-
-  .tile {
-    height: var(--ui-space-48);
-    border-radius: var(--ui-radius-sm);
+  /* One readout of the finished field: the whole tile, repeated across the
+     strip, white on that ground so 0 reads as black and 100 as white. Neither
+     was readable before. The field was painted at page-px size, which showed a
+     crop off the top of the tile that never reached the bright end, over an ink
+     colour that could not have painted it if it had. */
+  .field {
+    height: 7rem;
     background: var(--ui-text-primary);
     mask-mode: luminance;
     mask-repeat: repeat;
-  }
-
-  .stages figcaption {
-    margin-top: var(--ui-space-2);
-    font-size: var(--ui-font-size-xs);
-    text-align: center;
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    color: var(--ui-text-tertiary);
-  }
-
-  .ink {
-    height: 100%;
-    border-radius: var(--ui-radius-md);
-    /* An ink colour, not a surface one: the point of the swatch is the
-       blotches, and the surface rungs sit within a shade or two of the ground
-       under them, which showed the finished field as a flat dark rectangle. */
-    background: var(--ui-text-muted);
-    mask-mode: luminance;
-    mask-repeat: repeat;
+    mask-size: contain;
   }
 
 </style>
