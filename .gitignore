@@ -35,3 +35,7 @@ src/live-tokens/data/themes/package-fixture-look.json
 *.njsproj
 *.sln
 *.sw?
+
+# Names the theme the editor has open. Local dev state: it ships in no
+# tarball, boot recreates it, and every reader falls back to "default".
+src/live-tokens/data/themes/_active.json
