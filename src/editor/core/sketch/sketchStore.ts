@@ -6,6 +6,7 @@ import {
   type SketchSettings,
 } from './sketchPresets';
 import { applySketchLayer, hostRoot, removeSketchLayer, setSketchScope } from './sketchLayer';
+import { liveMovedSinceBake } from '../productionPulse';
 import {
   deleteSketchPreset,
   listSketchPresets,
@@ -172,6 +173,19 @@ export function openThemeSketch(sketch: SketchSettings | undefined): void {
   sketchEnabled.set(true);
 }
 
+/** The live sketch differs from what the open theme carries. Presence is
+    half the comparison: on with dials the theme does not hold, or off while
+    the theme holds a layer, are both off the theme. */
+export const sketchOffLook = derived(
+  [sketchEnabled, sketchSettings, themeSketch],
+  ([enabled, settings, saved]) => {
+    const live = enabled ? settings : undefined;
+    if (!live && !saved) return false;
+    if (!live || !saved) return true;
+    return !sameLook(live, saved);
+  },
+);
+
 export function selectSketchPreset(name: string): void {
   const preset = SKETCH_PRESETS[name];
   if (!preset) return;
@@ -230,6 +244,7 @@ export async function deleteUserSketchPreset(fileName: string): Promise<void> {
     drift. Save writes a new preset rather than overwriting the base. */
 export function updateSketchSettings(patch: Partial<SketchSettings>): void {
   markSketchTouched();
+  liveMovedSinceBake.set(true);
   sketchSettings.update((s) => ({ ...s, ...patch }));
 }
 
@@ -298,9 +313,15 @@ function adopt(key: string, value: string): void {
 }
 
 if (typeof document !== 'undefined') {
+  // Skips its own first call: a subscribe fires immediately with the value
+  // the store already held, which is a page load, not a change, and must not
+  // read as one past the last bake.
+  let sketchEnabledHydrated = false;
   sketchEnabled.subscribe((enabled) => {
     share(ENABLED_KEY, String(enabled));
     render(enabled, get(sketchSettings));
+    if (sketchEnabledHydrated) liveMovedSinceBake.set(true);
+    sketchEnabledHydrated = true;
   });
 
   sketchSettings.subscribe((settings) => {

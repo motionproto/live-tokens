@@ -14,6 +14,7 @@
   import {
     sketchEnabled,
     setSketchEnabled,
+    sketchOffLook,
     sketchPreset,
     sketchDirty,
     sketchSettings,
@@ -256,6 +257,11 @@
       <div class="readout" aria-live="polite">
         <span class="readout-name">{active.name}</span>
         <p class="readout-blurb">{active.blurb}</p>
+        {#if $sketchOffLook}
+          <p class="readout-off-look">
+            These dials are ahead of the saved theme. Save it in the Theme panel to fold them in.
+          </p>
+        {/if}
       </div>
 
       <div class="presets">
@@ -987,6 +993,13 @@
     font-size: var(--ui-font-size-md);
     line-height: var(--ui-line-height-relaxed);
     color: var(--ui-text-secondary);
+  }
+
+  .readout-off-look {
+    margin: var(--ui-space-2) 0 0;
+    font-size: var(--ui-font-size-sm);
+    font-weight: var(--ui-font-weight-medium);
+    color: var(--ui-text-primary);
   }
 
   .dormant {

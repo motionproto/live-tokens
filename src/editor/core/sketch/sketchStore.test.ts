@@ -10,6 +10,7 @@ import {
   setSketchPageRoot,
   sketchDirty,
   sketchEnabled,
+  sketchOffLook,
   sketchPreset,
   sketchSettings,
   themeSketch,
@@ -80,6 +81,47 @@ describe('openThemeSketch', () => {
 
     expect(get(sketchPreset)).toBe('');
     expect(get(sketchDirty)).toBe(false);
+  });
+});
+
+describe('sketchOffLook', () => {
+  it('is false when both the live state and the theme are absent', () => {
+    openThemeSketch(undefined);
+
+    expect(get(sketchOffLook)).toBe(false);
+  });
+
+  it('is false when the live dials match what the theme carries', () => {
+    openThemeSketch(SKETCH_PRESETS.napkin);
+
+    expect(get(sketchOffLook)).toBe(false);
+  });
+
+  it('is true when the effect is on and the theme carries none', () => {
+    openThemeSketch(undefined);
+    selectSketchPreset('napkin');
+    sketchEnabled.set(true);
+
+    expect(get(sketchOffLook)).toBe(true);
+  });
+
+  it('is true when the effect is off and the theme carries a layer', () => {
+    openThemeSketch(SKETCH_PRESETS.napkin);
+    sketchEnabled.set(false);
+
+    expect(get(sketchOffLook)).toBe(true);
+  });
+
+  it('reads false again once the theme is opened onto the live value', () => {
+    openThemeSketch(undefined);
+    selectSketchPreset('napkin');
+    sketchEnabled.set(true);
+    updateSketchSettings({ fillTravel: 9.5 });
+    expect(get(sketchOffLook)).toBe(true);
+
+    openThemeSketch(get(sketchSettings));
+
+    expect(get(sketchOffLook)).toBe(false);
   });
 });
 

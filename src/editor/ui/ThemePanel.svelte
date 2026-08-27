@@ -58,7 +58,7 @@
     markComponentSaved,
   } from '../core/store/editorStore';
   import { openThemeSlug } from '../core/store/editorConfigStore';
-  import { themeSketch } from '../core/sketch/sketchStore';
+  import { sketchOffLook, sketchSettings, themeSketch } from '../core/sketch/sketchStore';
   import { editorView } from '../core/store/editorViewStore';
   import {
     componentActiveRevision,
@@ -105,7 +105,7 @@
   let dirtyComponentCount = $derived(
     Object.values($componentDirty).filter(Boolean).length,
   );
-  let unsavedEdits = $derived($colorsAndTypeDirty || dirtyComponentCount > 0);
+  let unsavedEdits = $derived($colorsAndTypeDirty || dirtyComponentCount > 0 || $sketchOffLook);
 
   async function refreshFiles() {
     try {
@@ -855,6 +855,30 @@
           Open
         </UIPillButton>
       {/if}
+    </div>
+
+    <div class="part-head part-static">
+      <span class="part-label">Sketch</span>
+      <span class="part-summary">
+        <span class="part-summary-sep">·</span>
+        {#if $sketchOffLook}
+          <span>off the theme</span>
+        {:else if $themeSketch}
+          <span class="part-summary-text">{$sketchSettings.label}</span>
+        {:else}
+          <span>none</span>
+        {/if}
+      </span>
+      <UIInfoPopover title="Sketch" ariaLabel="About the sketch layer">
+        <p>
+          <strong>Sketch</strong> is part of the theme, the same way colors and type are.
+          It travels with the theme when you save, load or share it.
+        </p>
+        <p>
+          It does not reach a production build. Adopt publishes the crisp look; the drawing
+          stays a preview.
+        </p>
+      </UIInfoPopover>
     </div>
   </div>
 </div>
