@@ -20,3 +20,18 @@ git status --short src/live-tokens/data   # then delete untracked theme files th
 # CI runs tests before the plugin is built
 
 `dist-plugin/` does not exist when `npm test` runs in CI. A `.mjs` module that a test imports must load the compiled engine lazily, inside the function that needs it, never at module top. `bin/engineLoadsLazily.test.ts` enforces it. To reproduce CI locally, move `dist-plugin/` aside and run the suite.
+
+# Editing a skill moves the Skill Atlas
+
+`src/app/skill-atlas/skillTrees.ts` cites `.claude/skills/*/SKILL.md` by line
+number. The numbers are derived from anchor text, so after any edit to a
+SKILL.md — including adding or removing a line — run:
+
+```sh
+npm run sync:skill-atlas
+```
+
+`check:skill-atlas` is in `prepublishOnly` and fails on drift, so skipping the
+sync surfaces at release rather than at commit. The sync repairs a range that
+moved; it refuses a range whose anchor text is gone, which means that node has
+to be re-pointed by hand.
