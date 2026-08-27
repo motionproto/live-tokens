@@ -10,6 +10,8 @@
  *   (3) Editor ↔ Default config: every editable token has a seed alias in the
  *       component's `default.json` so consumers adopt with full defaults.
  *   (4) Round-trip: `setComponentAlias` persists into the slice under the same key.
+ *   (5) Opacity floors: a token declaring `minOpacity` ships a default at or
+ *       above it, so a floating panel starts out legible over page content.
  *
  * Tokens excluded from (2) and (3):
  *   - `hidden: true` schema entries (vestigial or hidden-by-design; see audit).
@@ -26,6 +28,7 @@ import { readFileSync, existsSync } from 'node:fs';
 import path from 'node:path';
 import { get } from 'svelte/store';
 import { getComponentRegistryEntries } from './registry';
+import { parseColorOpacity } from '../core/themes/parsers/colorOpacity';
 import {
   editorState,
   setComponentAlias,
@@ -37,7 +40,7 @@ const CONFIG_ROOT = path.resolve(REPO_ROOT, 'src/live-tokens/data/component-conf
 
 const PADDING_SIDE_RE = /-padding-(top|right|bottom|left)$/;
 
-type SchemaToken = { variable: string; hidden?: boolean; kind?: string };
+type SchemaToken = { variable: string; hidden?: boolean; kind?: string; minOpacity?: number };
 
 function isEditableSurfaceToken(t: SchemaToken): boolean {
   if (t.hidden) return false;
@@ -58,11 +61,18 @@ function extractRuntimeDeclarations(source: string): Set<string> {
   return out;
 }
 
-function loadDefaultAliasKeys(componentId: string): Set<string> | null {
+function loadDefaultAliases(componentId: string): Record<string, unknown> | null {
   const configPath = path.join(CONFIG_ROOT, componentId, 'default.json');
   if (!existsSync(configPath)) return null;
   const config = JSON.parse(readFileSync(configPath, 'utf-8')) as { aliases?: Record<string, unknown> };
-  return new Set(Object.keys(config.aliases ?? {}));
+  return config.aliases ?? {};
+}
+
+/** Opacity a seeded alias resolves to. A plain token alias is fully opaque; a
+    gradient payload or `transparent` carries no guarantee, so it reads as 0. */
+function seededOpacity(raw: unknown): number {
+  if (typeof raw !== 'string' || raw === 'transparent') return 0;
+  return parseColorOpacity(raw)?.opacity ?? 100;
 }
 
 const entries = getComponentRegistryEntries();
@@ -102,8 +112,8 @@ describe('component registry contract', () => {
     });
 
     it('every editable schema variable is seeded in the default config', () => {
-      const aliasKeys = loadDefaultAliasKeys(entry.id);
-      if (!aliasKeys) {
+      const aliases = loadDefaultAliases(entry.id);
+      if (!aliases) {
         // No default config — component is editor-only or a smoke test.
         // Registration test still ran; skip the seed check.
         return;
@@ -111,8 +121,18 @@ describe('component registry contract', () => {
       const missing = schema
         .filter(isEditableSurfaceToken)
         .map((t) => t.variable)
-        .filter((v) => !aliasKeys.has(v));
+        .filter((v) => !(v in aliases));
       expect(missing).toEqual([]);
+    });
+
+    it('every declared opacity floor is honoured by the default config', () => {
+      const aliases = loadDefaultAliases(entry.id);
+      if (!aliases) return;
+      const violations = schema
+        .filter((t) => t.minOpacity !== undefined)
+        .map((t) => ({ variable: t.variable, opacity: seededOpacity(aliases[t.variable]), floor: t.minOpacity! }))
+        .filter((v) => v.opacity < v.floor);
+      expect(violations).toEqual([]);
     });
 
     it('setComponentAlias round-trips a sample editable token through the slice', () => {

@@ -163,7 +163,8 @@ redraw. Body type is left alone: an icon is a shape and survives a wobble, a
 paragraph is not.
 
 `--sketch-icon-off` names what a subtree's glyphs are drawn with instead. It
-inherits, so one declaration covers everything under it:
+inherits, so one declaration covers everything under it, and it takes the ink
+mask off as well as the wobble:
 
 ```css
 /* Crisp. Chrome, a logo, anything that has to stay exact. */

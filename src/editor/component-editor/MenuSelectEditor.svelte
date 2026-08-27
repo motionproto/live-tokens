@@ -7,7 +7,8 @@
   // Non-text tokens per state; text/font lives in typeGroups. Item-shape tokens sit under `menu` so they read as one decision across states.
   const states: Record<string, Token[]> = {
     menu: [
-      { label: 'surface color', element: 'frame', groupKey: 'surface', variable: '--menuselect-menu-surface' },
+      // The panel floats over arbitrary page content; below ~90% the content behind it ghosts through and it stops reading as a solid, tappable target.
+      { label: 'surface color', element: 'frame', groupKey: 'surface', variable: '--menuselect-menu-surface', minOpacity: 90 },
       { label: 'border color', element: 'frame', groupKey: 'border', variable: '--menuselect-menu-border' },
       { label: 'border width', element: 'frame', groupKey: 'width', variable: '--menuselect-menu-border-width' },
       { label: 'corner radius', element: 'frame', groupKey: 'menu-radius', variable: '--menuselect-menu-radius' },

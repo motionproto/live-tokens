@@ -3309,7 +3309,7 @@
       "createdAt": "2026-05-16T00:00:00.000Z",
       "updatedAt": "2026-08-19T22:39:32.785Z",
       "aliases": {
-        "--menuselect-menu-surface": "color-mix(in srgb, var(--surface-neutral-lower) 85%, transparent)",
+        "--menuselect-menu-surface": "color-mix(in srgb, var(--surface-neutral-lower) 95%, transparent)",
         "--menuselect-menu-border": "--border-neutral-medium",
         "--menuselect-menu-border-width": "--border-width-2",
         "--menuselect-menu-radius": "--radius-md",

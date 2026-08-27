@@ -279,6 +279,15 @@ describe('icons', () => {
     expect(buildStylesheet(marker)).toContain('var(--sketch-icon-off,');
   });
 
+  // One knob, both treatments: an opt-out that left the mask on came out
+  // blotched, which is the effect reaching chrome that asked to be left alone.
+  it('takes the ink mask off the same opt-out as the filter', () => {
+    const css = buildStylesheet({ ...marker, iconMaskOn: true });
+    expect(css).toContain('mask-image:var(--sketch-icon-off,) var(--sketch-mask, none);');
+    // The parts keep the ungated mask — nothing inherits an opt-out onto them.
+    expect(css).toContain('mask-image:var(--sketch-mask, none);');
+  });
+
   it('offers a soft bank an element can name instead of going crisp', () => {
     const css = buildStylesheet(marker);
     expect(css).toContain('--sketch-icon-soft:url(#lt-sketch-icon-soft-0);');

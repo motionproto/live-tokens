@@ -58,7 +58,10 @@
 {/if}
 
 <style>
+  /* Sketch mode scopes itself to the host document root, and these guides live
+     there too. The effect is for the page being measured, not for the ruler. */
   .columns-overlay {
+    --sketch-icon-off: none;
     position: fixed;
     inset: 0;
     pointer-events: none;

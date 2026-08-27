@@ -124,6 +124,8 @@
     standalone?: boolean;
   };
 
+  const paletteExtra = (t: Token) => ({ minOpacity: t.minOpacity ?? 0 });
+
   const SELECTOR_REGISTRY: Record<Kind, SelectorEntry> = {
     'font-family': { component: UIFontFamilySelector },
     'font-weight': { component: UIFontWeightSelector },
@@ -153,9 +155,9 @@
     'blur': { component: UIVariantSelector, extra: () => ({ ...BLUR }) },
     'scale': { component: UIVariantSelector, extra: () => ({ ...SCALE }) },
     'shadow': { component: UIVariantSelector, extra: () => ({ ...SHADOW }) },
-    'surface': { component: UIPaletteSelector },
-    'border': { component: UIPaletteSelector },
-    'text-color': { component: UIPaletteSelector },
+    'surface': { component: UIPaletteSelector, extra: paletteExtra },
+    'border': { component: UIPaletteSelector, extra: paletteExtra },
+    'text-color': { component: UIPaletteSelector, extra: paletteExtra },
   };
 
   /** Multi-col rank: same as `orderRank` but with `text-color` hoisted between

@@ -45,6 +45,10 @@
      *  Slots that must always paint something (e.g. overlay backdrops) opt
      *  out — picking None would just degenerate to opacity 0. */
     showNone?: boolean;
+    /** Opacity floor, 0-100. Declared on tokens whose surface floats over
+     *  arbitrary page content (a dropdown panel) and must stay legible there.
+     *  A floor also retires "None", which would defeat it. */
+    minOpacity?: number;
     onchange?: () => void;
     /** Forwarded to UITokenSelector — when set, writes route through this
      *  callback instead of the DOM. See UITokenSelector.onwrite. */
@@ -59,9 +63,13 @@
     selectionsLocked = false,
     familyFilter = null,
     showNone = true,
+    minOpacity = 0,
     onchange,
     onwrite,
   }: Props = $props();
+
+  const clampOpacity = (n: number) => Math.max(minOpacity, Math.min(100, Math.round(n)));
+  let noneAllowed = $derived(showNone && minOpacity <= 0);
 
   type Category = 'palette' | 'surface' | 'border' | 'text';
 
@@ -270,7 +278,7 @@
   }
 
   function applyOpacity() {
-    opacity = Math.max(0, Math.min(100, Math.round(opacity)));
+    opacity = clampOpacity(opacity);
     if (chosenStatic !== null) {
       selector?.writeOverride(buildValue(`--color-${chosenStatic}`));
       onchange?.();
@@ -394,7 +402,7 @@
       chosenCategory = null;
       chosenFamily = null;
       chosenStep = null;
-      opacity = staticParsed.opacity;
+      opacity = clampOpacity(staticParsed.opacity);
       return;
     }
     chosenStatic = null;
@@ -406,7 +414,7 @@
         chosenCategory = parsed.category;
         chosenFamily = parsed.family;
         chosenStep = parsed.step;
-        opacity = opacityParsed.opacity;
+        opacity = clampOpacity(opacityParsed.opacity);
         return;
       }
     }
@@ -597,8 +605,8 @@
   {#snippet subheader()}
     <div  class="opacity-control" class:hidden={chosenGradient !== null}>
       <span class="opacity-label">opacity</span>
-      <input type="range" min="0" max="100" bind:value={opacity} class="opacity-slider" oninput={applyOpacity} />
-      <input type="number" min="0" max="100" bind:value={opacity} class="opacity-input" onchange={applyOpacity} />
+      <input type="range" min={minOpacity} max="100" bind:value={opacity} class="opacity-slider" oninput={applyOpacity} />
+      <input type="number" min={minOpacity} max="100" bind:value={opacity} class="opacity-input" onchange={applyOpacity} />
       <span class="opacity-unit">%</span>
     </div>
   {/snippet}
@@ -616,7 +624,7 @@
             <div class="static-swatch static-swatch--black"></div>
             <span class="static-label">Black</span>
           </button>
-          {#if showNone}
+          {#if noneAllowed}
             <button class="static-chip" class:active={chosenNone} onclick={() => selectNone(close)}>
               <div class="static-swatch static-swatch--none"></div>
               <span class="static-label">None</span>

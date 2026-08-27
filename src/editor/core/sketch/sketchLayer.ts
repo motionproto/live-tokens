@@ -693,8 +693,8 @@ export function buildStylesheet(s: SketchSettings): string {
    * Chrome does not honour it — see `bleed` below, which is what actually keeps
    * the drawn edge off the border box.
    */
-  const coverage = (size: string, pos: string) =>
-    `mask-image:var(--sketch-mask, none);` +
+  const coverage = (size: string, pos: string, off = '') =>
+    `mask-image:${off}var(--sketch-mask, none);` +
     `mask-size:${size};` +
     `mask-mode:luminance;mask-repeat:repeat;mask-clip:no-clip;` +
     `mask-position:var(${pos}, 0 0);`;
@@ -706,10 +706,19 @@ export function buildStylesheet(s: SketchSettings): string {
   // `--sketch-icon-off` names what to draw a subtree's glyphs with instead:
   // `none` keeps them crisp, `var(--sketch-icon-soft)` draws them at a fraction
   // of the travel. It inherits, so any chrome that lives in the host document
-  // (the overlay bar) sets it once on its own root and every icon under it
-  // follows regardless of specificity. `svg` covers inline artwork the same
-  // way. The injected filter bank is itself an svg in the body, so it has to be
-  // excluded or it filters itself.
+  // (the overlay bar, the column guides) sets it once on its own root and every
+  // icon under it follows regardless of specificity. `svg` covers inline artwork
+  // the same way. The injected filter bank is itself an svg in the body, so it
+  // has to be excluded or it filters itself.
+  //
+  // The knob answers for the ink mask as well, or chrome that asked for crisp
+  // glyphs came out blotched anyway. It holds a filter, which is not a mask
+  // image, so it cannot be substituted into `mask-image` as a value: prefixed
+  // to it, any value the knob carries makes the declaration invalid, and an
+  // invalid declaration is dropped, which is the no-mask this wants. Unset, it
+  // substitutes to nothing and the field lands as before. Soft loses the mask
+  // too, which is the point of asking for less: the mask is what eats a glyph
+  // small enough to need the soft bank.
   const iconSel = `[class*="fa-"], svg:not([${DEFS_ATTR}])`;
   const iconsOn = s.iconTravel > 0 || s.iconMaskOn;
   const icons = iconsOn
@@ -728,7 +737,7 @@ export function buildStylesheet(s: SketchSettings): string {
         // covers and the dial reads the same on a 16px icon as on a page-wide
         // drawing. `auto` on the other axis keeps the tile square.
         (s.iconMaskOn
-          ? coverage('auto var(--sketch-icon-mask-tile)', '--sketch-icon-mask-pos')
+          ? coverage('auto var(--sketch-icon-mask-tile)', '--sketch-icon-mask-pos', 'var(--sketch-icon-off,) ')
           : '') +
       `}` +
       SEEDS.map((seed, i) =>

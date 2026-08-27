@@ -1,15 +1,15 @@
 ---
 name: live-tokens-generate-theme
-description: Generate a complete live-tokens theme (color, type, and geometry) from a natural-language mood brief. Chooses 10 OKLCH seeds and runs the packaged generator, which enforces AA contrast, then carries the same brief into a font pairing and a geometry through the sibling skills. Use whenever the user asks for a theme, a look, a vibe, a brand feel, a color scheme, or a palette, by mood, season, holiday, or hue, even if they only mention color: make me a bright and cheerful theme, a dark moody night theme, a St. Patrick's Day theme in green and gold, a Christmas look, something red-based, warmer, more contrast, calmer. Not for a single token (use the editor), for type alone (live-tokens-pair-fonts), or for geometry alone (live-tokens-adjust-geometry).
+description: Generate a complete live-tokens theme (color, type, and geometry) from a natural-language brief. Chooses 10 OKLCH seeds and runs the packaged generator, which enforces AA contrast, then carries the same brief into a font pairing and a geometry through the sibling skills. Use whenever the user asks for a theme, a look, a vibe, a brand feel, a color scheme, or a palette, by mood, style, era, season, holiday, or hue, even if they only mention color: make me a bright and cheerful theme, a dark moody night theme, a brutalist look, mid-century modern, something Swiss and minimal, make it feel like a terminal, cyberpunk neon, an editorial magazine feel, a St. Patrick's Day theme in green and gold, something red-based, warmer, more contrast, calmer. Not for a single token (use the editor), for type alone (live-tokens-pair-fonts), or for geometry alone (live-tokens-adjust-geometry).
 ---
 
-# Generating a theme from a mood brief
+# Generating a theme from a brief
 
 A theme is three decisions made from one brief: color, type, and geometry. This skill owns the color decision directly and delegates the other two, so the whole look comes from the same reading of the brief. Never hand-author theme JSON and never edit the data tree directly.
 
 ## Workflow
 
-1. Read the brief once and name its voice in a sentence: the mood, the hue family, the scheme, and the type and geometry that mood implies. Everything below keys off that sentence.
+1. Read the brief once and name its voice in a sentence: the mood, the hue family, the scheme, and the type and geometry that mood implies. Everything below keys off that sentence. Then read the anchor reference that matches the brief (feeling, idiom, or occasion; see below) before seeding: each entry fixes all three decisions together and overrides the generic defaults here.
 2. Translate the brief into a seed file using the framework below. Write it to `scratch/theme-brief.json`.
 3. Run `npx live-tokens generate-theme scratch/theme-brief.json`. It writes `themes/<slug>.json`, opens that theme, and prints a contrast report. Auto-corrections are fine. Unmet floors (exit 1) mean the seeds themselves are unworkable; each failure line names the seed to change, usually by raising its lightness or cutting its chroma. Fix the brief and re-run; the same name overwrites. Regeneration replaces that theme's whole color state, including palette edits made in the editor since the last run, so say so once when iterating.
 4. Invoke **live-tokens-pair-fonts** with the same voice. Skip only when the user asked for colors specifically and said to leave the type alone.
@@ -86,16 +86,9 @@ Also:
 
 ## Mood dials
 
-Pleasantness rises with lightness (strongly) and saturation (weakly); energy rises with saturation; drama rises with dark plus saturated.
+Pleasantness rises with lightness (strongly) and saturation (weakly); energy rises with saturation; drama rises with dark plus saturated. Dominance, the third axis, is carried by surface contrast, type weight, and tightness rather than by color at all.
 
-| Brief says | Dials |
-|---|---|
-| cheerful, bright, playful | light; Brand and Accent L 0.7 to 0.9, C 0.15 to 0.22; warm hues 40 to 140 (yellow is the strongest joy hue) |
-| calm, serene, soft | light; C 0.03 to 0.08 on everything chromatic; cool hues 140 to 260 |
-| energetic, bold | C 0.18 or more at L 0.55 to 0.65; red, orange, magenta |
-| dark, moody, dramatic, luxurious | dark; Canvas L 0.15 to 0.25; purple, deep blue, crimson; working accents stay light per the dark transform, with dark saturated color saved for one or two moments |
-| professional, trustworthy | blue 230 to 265, C 0.08 to 0.15; everything else muted |
-| warm / cool | hues 20 to 110 plus pink 290 to 360 / hues 140 to 290 |
+That is the whole mechanism, and one dial moves without a reference: warm is hues 20 to 110 plus pink 290 to 360, cool is 140 to 290. For a brief that names a feeling, read `references/mood-vocabulary.md` instead of guessing the dial settings; each entry places the emotion on the three axes and gives the color, type, and geometry together.
 
 Avoid mid-lightness yellow-green (H 100 to 120 at L 0.5 to 0.7, C about 0.1) unless the brief asks for olive or toxic.
 
@@ -122,9 +115,15 @@ Hue offsets from Brand: complementary +180; split-complementary +150/+210; triad
 
 Shadow opacity derives from Canvas lightness and re-derives on every run, so there is nothing to choose. When shadows read heavy or muddy, raise the Canvas seed's L.
 
-## Named themes
+## Anchor references
 
-A holiday or season brief is a statement brief: commitment level 2 or 3, with the named color on the ground rather than only on the buttons. Read `references/named-themes.md` for the OKLCH anchors of Christmas, Halloween, St. Patrick's, Ocean, Sunset, Autumn, and Spring before seeding one.
+Read the matching reference before seeding, and apply the bands above on top of it.
+
+- `references/mood-vocabulary.md` covers feelings: joyful, playful, optimistic, confident, serene, tender, cozy, earthy, clinical, wistful, contemplative, urgent, tense, defiant, melancholy, somber, ominous, austere. It opens with the valence, energy, and dominance axes, so a feeling it does not list still places on them.
+- `references/style-vocabulary.md` covers named idioms, eras, and genres: Swiss, Bauhaus, mid-century, art deco, terminal, cyberpunk, vaporwave, Y2K, blueprint, Scandinavian, Japandi, cottagecore, editorial, newsprint, riso, corporate, brutalist, Memphis, industrial. Each entry fixes color, type, and geometry as one set, so hand its Type and Geometry columns to the sibling skills verbatim.
+- `references/named-themes.md` covers holidays, seasons, and natural scenes: Christmas, Halloween, St. Patrick's, Ocean, Sunset, Autumn, Spring. A holiday or season brief is a statement brief: commitment level 2 or 3, with the named color on the ground rather than only on the buttons.
+
+Most briefs hit the first file. A brief that names no feeling, idiom, or occasion at all takes the bands above and the geometry table below.
 
 ## Geometry from the voice
 
@@ -136,6 +135,8 @@ The geometry lives in radius, padding, gap, and border width, and `live-tokens-a
 | luxurious, elegant, editorial | sharper corners, airier padding, thin borders |
 | technical, dense, systematic | tighter spacing, small radius, square corners on containers |
 | calm, minimal | leave geometry alone unless the brief says otherwise |
+
+This table is the fallback. When the brief matched an entry in the mood or style reference, take the geometry from that entry instead: it is tuned to the same reading the color came from, and a style's geometry is often targeted rather than global.
 
 ## What each step writes
 

@@ -34,6 +34,12 @@ export type Token = {
       `accent`). Set on gradient-kind tokens so Copy-from's family-swap
       can compute the src→dst family substitution. */
   family?: string;
+  /** Opacity floor (0-100) for a colour token. A surface that floats over
+      arbitrary page content has to stay legible and hit-obvious there, so the
+      picker refuses to take it below this percentage and drops the `None`
+      chip. Shipped defaults are held above the floor by the registry
+      contract test. */
+  minOpacity?: number;
 };
 
 /** An intrinsic: a structural/display property (alignment, hairline position,

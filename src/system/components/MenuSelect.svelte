@@ -72,7 +72,7 @@
 
   :global(:root) {
     /* Menu panel */
-    --menuselect-menu-surface: color-mix(in srgb, var(--surface-neutral-lower) 85%, transparent);
+    --menuselect-menu-surface: color-mix(in srgb, var(--surface-neutral-lower) 95%, transparent);
     --menuselect-menu-border: var(--border-neutral-medium);
     --menuselect-menu-border-width: var(--border-width-1);
     --menuselect-menu-radius: var(--radius-md);
