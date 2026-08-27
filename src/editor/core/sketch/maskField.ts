@@ -155,12 +155,17 @@ function normalise(f: Float32Array): Float32Array {
 
 /* ------------------------------------------------------------- levelling --- */
 
-/** Output levels, as a floor and a ceiling rather than a remap. Anything below
-    Min is lifted to Min and anything above Max is pulled down to Max; the field
-    between the handles keeps the values it already had. Stretching the whole
-    ramp into the gap instead squeezed the contrast out of every setting. */
+/** Output levels. The field is stretched into the gap between the handles, so
+    the pair states the range the mask paints: nothing is barer than Min or
+    denser than Max, and the field keeps its own shape in between.
+
+    Clamping instead makes Min the value most of the field sits AT rather than
+    its rare floor, because the field arrives centred on its own middle: half of
+    it is below 0.5, so a floor of 0.6 piles that half onto 0.6 and the fill
+    comes out a flat wash at the floor with a thin bright tail above it. */
 function applyOutput(f: Float32Array, min: number, max: number): Float32Array {
-  for (let i = 0; i < f.length; i++) f[i] = Math.min(max, Math.max(min, f[i]));
+  const span = max - min;
+  for (let i = 0; i < f.length; i++) f[i] = min + f[i] * span;
   return f;
 }
 

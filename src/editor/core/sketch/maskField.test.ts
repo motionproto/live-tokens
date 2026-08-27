@@ -39,19 +39,18 @@ describe('mask field', () => {
     expect(field.some((v) => v < 0.01)).toBe(false);
   });
 
-  // Remapping the ramp into the gap took the contrast out of every setting: the
-  // handles are a floor and a ceiling, and the field between them is untouched.
-  it('leaves the levels between the handles where they were', () => {
+  // Clamping to the handles instead of stretching into them makes Min the value
+  // most of the field sits AT, since the field arrives centred on its own
+  // middle: a floor of 0.62 came out as a flat 62% wash with a thin bright tail
+  // rather than as a surface with texture on it.
+  it('stretches the field into the handles rather than cutting it off there', () => {
     const settings = { ...flat, maskOutputMin: 0.2, maskOutputMax: 0.8 };
     const { field: raw } = buildMaskField(settings, 9, 'noise');
     const { field } = buildMaskField(settings, 9, 'output');
-    let inside = 0;
-    for (let i = 0; i < raw.length; i++) {
-      if (raw[i] <= 0.2 || raw[i] >= 0.8) continue;
-      inside++;
-      expect(field[i]).toBeCloseTo(raw[i], 6);
-    }
-    expect(inside).toBeGreaterThan(raw.length * 0.2);
+    for (let i = 0; i < raw.length; i++) expect(field[i]).toBeCloseTo(0.2 + raw[i] * 0.6, 6);
+    // The median of a centred field lands mid-range, not on the floor.
+    const sorted = Float32Array.from(field).sort();
+    expect(sorted[sorted.length >> 1]).toBeGreaterThan(0.4);
   });
 
   // Posterising ran after the levels and quantised the floor back down to
