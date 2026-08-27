@@ -190,7 +190,7 @@ against the compiled `<style>` block.
 
 ## Verify
 
-Switch Sketch mode on from the editor's **Sketch Style** view, then check the
+Switch Sketch mode on from the editor's **Sketchstyle** view, then check the
 component in place:
 
 - [ ] Drawn, not crisp, in every variant.

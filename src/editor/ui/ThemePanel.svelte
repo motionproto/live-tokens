@@ -84,10 +84,9 @@
   let { showComponentsLink = true }: Props = $props();
 
   let canOpenComponents = $derived(showComponentsLink && $editorView !== 'components');
-  // No `showComponentsLink`-style gate: the Sketchstyle view has no full-page
-  // route standing outside the switcher, the way ComponentEditorPage does for
-  // Components, so "not already there" is the whole condition.
-  let canOpenSketchStyle = $derived($editorView !== 'sketch');
+  // showComponentsLink=false marks the ThemePanel that renders outside the
+  // view switcher (ComponentEditorPage), where neither pill can navigate.
+  let canOpenSketchStyle = $derived(showComponentsLink && $editorView !== 'sketch');
 
   let files: ThemeMeta[] = $state([]);
   let colorsFiles: ColorsAndTypeMeta[] = $state([]);

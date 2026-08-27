@@ -23,7 +23,7 @@ separately wobbled boxes.
 ## The sketchstyles
 
 Seven looks ship with the package, and each is a complete set of dials rather
-than a sketchstyle name:
+than just a name:
 
 - **Pencil.** Two graphite passes on their own seeds, so the outline disagrees
   with itself the way a hand coming back round does.
