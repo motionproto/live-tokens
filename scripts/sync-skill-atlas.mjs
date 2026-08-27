@@ -1,0 +1,138 @@
+#!/usr/bin/env node
+// The Skill Atlas cites SKILL.md by line number, and a line number is the one
+// thing an edit to a skill always changes. Nothing caught that, so an
+// insertion anywhere above a cited range silently moved every node below it
+// onto the wrong paragraph — visible only to someone who opened the page and
+// read it. That coupling is why generate-theme's step 1 still carries two
+// decisions: renumbering was expensive, so it did not happen.
+//
+// Each range now stores the opening text of the lines it means. The numbers
+// are derived from that text, so an edit costs a sync rather than an audit.
+//
+//   node scripts/sync-skill-atlas.mjs [--write]
+//
+// Without --write it is a dry run that fails on drift.
+
+import { readFileSync, writeFileSync } from 'node:fs';
+import { dirname, join, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
+const ATLAS = join(ROOT, 'src/app/skill-atlas/skillTrees.ts');
+const SKILLS = join(ROOT, '.claude/skills');
+
+// Long enough to be unique for all but three lines that are genuinely
+// identical to another line in the same file; those resolve by proximity.
+const ANCHOR_LENGTH = 60;
+
+const write = process.argv.slice(2).includes('--write');
+const anchorOf = (line) => line.trim().slice(0, ANCHOR_LENGTH);
+
+const source = readFileSync(ATLAS, 'utf8');
+const open = source.indexOf('= {', source.indexOf('skillTrees')) + 2;
+const close = source.lastIndexOf('}');
+const head = source.slice(0, open);
+const tail = source.slice(close + 1);
+const trees = JSON.parse(source.slice(open, close + 1));
+
+const bodies = new Map();
+const linesOf = (id) => {
+  if (!bodies.has(id)) bodies.set(id, readFileSync(join(SKILLS, id, 'SKILL.md'), 'utf8').split('\n'));
+  return bodies.get(id);
+};
+
+const errors = [];
+let moved = 0;
+let anchored = 0;
+
+// Nearest match wins so that a repeated line resolves to the range it was
+// written for rather than to the first copy in the file.
+function locate(lines, anchor, hint, from = 0) {
+  const hits = [];
+  for (let i = from; i < lines.length; i += 1) {
+    if (lines[i].trim().startsWith(anchor)) hits.push(i + 1);
+  }
+  if (hits.length === 0) return null;
+  return hits.reduce((best, n) => (Math.abs(n - hint) < Math.abs(best - hint) ? n : best));
+}
+
+function sync(node, id, label) {
+  if (!Array.isArray(node.lines)) return;
+  const lines = linesOf(id);
+  const [start, end] = node.lines;
+
+  if (typeof node.anchor !== 'string') {
+    if (!write) {
+      errors.push(`${label}: no anchor; run \`npm run sync:skill-atlas\` to record one`);
+      return;
+    }
+    rebuild(node, { anchor: anchorOf(lines[start - 1]), ...(end > start ? { anchorEnd: anchorOf(lines[end - 1]) } : {}) });
+    anchored += 1;
+    return;
+  }
+
+  const foundStart = locate(lines, node.anchor, start);
+  if (foundStart === null) {
+    errors.push(`${label}: anchor ${JSON.stringify(node.anchor)} is no longer in ${id}/SKILL.md; re-point the node or update its anchor`);
+    return;
+  }
+  let foundEnd = foundStart;
+  if (typeof node.anchorEnd === 'string') {
+    foundEnd = locate(lines, node.anchorEnd, end, foundStart - 1);
+    if (foundEnd === null) {
+      errors.push(`${label}: end anchor ${JSON.stringify(node.anchorEnd)} is not at or below line ${foundStart} of ${id}/SKILL.md`);
+      return;
+    }
+  } else if (end > start) {
+    foundEnd = end + (foundStart - start);
+  }
+
+  if (foundStart === start && foundEnd === end) return;
+  moved += 1;
+  if (!write) {
+    errors.push(`${label}: cites lines ${start}-${end} of ${id}/SKILL.md, but its anchor is now at ${foundStart}-${foundEnd}`);
+    return;
+  }
+  node.lines = [foundStart, foundEnd];
+}
+
+// Key order is the file's diff: rebuilding in place keeps `anchor` next to the
+// `lines` it explains rather than appending it after the node's prose.
+function rebuild(node, extra) {
+  const next = {};
+  for (const [key, value] of Object.entries(node)) {
+    next[key] = value;
+    if (key === 'lines') Object.assign(next, extra);
+  }
+  for (const key of Object.keys(node)) delete node[key];
+  Object.assign(node, next);
+}
+
+function walk(value, id, label) {
+  if (Array.isArray(value)) {
+    value.forEach((item, i) => walk(item, id, `${label}[${i}]`));
+    return;
+  }
+  if (value === null || typeof value !== 'object') return;
+  sync(value, id, value.id ? `${id} ${value.id}` : label);
+  for (const [key, child] of Object.entries(value)) walk(child, id, `${label}.${key}`);
+}
+
+for (const tree of Object.values(trees)) walk(tree, tree.id, tree.id);
+
+if (errors.length > 0) {
+  console.error(`check:skill-atlas FAILED — ${errors.length} problem(s):\n`);
+  for (const e of errors) console.error(`  - ${e}`);
+  console.error('\nRun `npm run sync:skill-atlas` to re-derive the line numbers from the anchors.');
+  process.exit(1);
+}
+
+if (write) {
+  writeFileSync(ATLAS, head + JSON.stringify(trees, null, 2) + tail);
+  const parts = [];
+  if (anchored > 0) parts.push(`anchored ${anchored} range(s)`);
+  if (moved > 0) parts.push(`re-pointed ${moved} range(s)`);
+  console.log(`sync:skill-atlas — ${parts.length > 0 ? parts.join(', ') : 'already in sync'}.`);
+} else {
+  console.log('check:skill-atlas OK — every atlas range still opens on the text it was written for.');
+}

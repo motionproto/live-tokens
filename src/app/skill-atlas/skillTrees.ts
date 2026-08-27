@@ -15,7 +15,9 @@ export const skillTrees: Record<string, SkillTree> = {
         "lines": [
           2,
           8
-        ]
+        ],
+        "anchor": "name: live-tokens-generate-theme",
+        "anchorEnd": "A theme is three decisions made from one brief: color, type,"
       },
       {
         "id": "gt-voice",
@@ -27,7 +29,8 @@ export const skillTrees: Record<string, SkillTree> = {
         "lines": [
           12,
           12
-        ]
+        ],
+        "anchor": "1. Read the brief once and name its voice in a sentence: the"
       },
       {
         "id": "gt-anchor",
@@ -38,7 +41,9 @@ export const skillTrees: Record<string, SkillTree> = {
         "lines": [
           118,
           126
-        ]
+        ],
+        "anchor": "## Anchor references",
+        "anchorEnd": "Most briefs hit the first file. A brief that names no feelin"
       },
       {
         "id": "gt-mood",
@@ -49,7 +54,8 @@ export const skillTrees: Record<string, SkillTree> = {
         "lines": [
           122,
           122
-        ]
+        ],
+        "anchor": "- `references/mood-vocabulary.md` covers feelings: joyful, p"
       },
       {
         "id": "gt-style",
@@ -60,7 +66,8 @@ export const skillTrees: Record<string, SkillTree> = {
         "lines": [
           123,
           123
-        ]
+        ],
+        "anchor": "- `references/style-vocabulary.md` covers named idioms, eras"
       },
       {
         "id": "gt-named",
@@ -71,7 +78,8 @@ export const skillTrees: Record<string, SkillTree> = {
         "lines": [
           124,
           124
-        ]
+        ],
+        "anchor": "- `references/named-themes.md` covers holidays, seasons, and"
       },
       {
         "id": "gt-none",
@@ -82,7 +90,8 @@ export const skillTrees: Record<string, SkillTree> = {
         "lines": [
           126,
           126
-        ]
+        ],
+        "anchor": "Most briefs hit the first file. A brief that names no feelin"
       },
       {
         "id": "gt-seed",
@@ -94,7 +103,8 @@ export const skillTrees: Record<string, SkillTree> = {
         "lines": [
           13,
           13
-        ]
+        ],
+        "anchor": "2. Translate the brief into a seed file using the framework "
       },
       {
         "id": "gt-cons",
@@ -108,56 +118,72 @@ export const skillTrees: Record<string, SkillTree> = {
             "lines": [
               23,
               46
-            ]
+            ],
+            "anchor": "## The brief",
+            "anchorEnd": "Roles: **Brand** is the dominant chromatic identity; **Accen"
           },
           {
             "label": "Chroma budget",
             "lines": [
               48,
               57
-            ]
+            ],
+            "anchor": "## Chroma budget: color is inversely proportional to area",
+            "anchorEnd": "A good theme reads as 3 or 4 hue families on screen, never 1"
           },
           {
             "label": "Per-role bands",
             "lines": [
               59,
               71
-            ]
+            ],
+            "anchor": "## Per-role bands",
+            "anchorEnd": "| Danger | shared status L, C 0.15 to 0.20 | same | H 20 to "
           },
           {
             "label": "Commit the canvas",
             "lines": [
               73,
               86
-            ]
+            ],
+            "anchor": "**The canvas carries the theme's identity, so commit to it.*",
+            "anchorEnd": ""
           },
           {
             "label": "Mood dials",
             "lines": [
               87,
               93
-            ]
+            ],
+            "anchor": "## Mood dials",
+            "anchorEnd": "Avoid mid-lightness yellow-green (H 100 to 120 at L 0.5 to 0"
           },
           {
             "label": "Gamut guardrails",
             "lines": [
               95,
               102
-            ]
+            ],
+            "anchor": "## Gamut guardrails",
+            "anchorEnd": "- Peak chroma anchors: red H20 C 0.25 at L 0.63; orange H60 "
           },
           {
             "label": "Harmony offsets",
             "lines": [
               104,
               110
-            ]
+            ],
+            "anchor": "## Harmony",
+            "anchorEnd": "- Drama or maximum contrast: complementary, triadic, or tetr"
           },
           {
             "label": "Canvas sky",
             "lines": [
               112,
               116
-            ]
+            ],
+            "anchor": "## Canvas sky and shadows",
+            "anchorEnd": "Shadow opacity derives from Canvas lightness and re-derives "
           }
         ],
         "tag": "constraints"
@@ -173,13 +199,15 @@ export const skillTrees: Record<string, SkillTree> = {
           14,
           14
         ],
+        "anchor": "3. Run `npx live-tokens generate-theme scratch/<slug>-brief.",
         "chips": [
           {
             "label": "Flags",
             "lines": [
               21,
               21
-            ]
+            ],
+            "anchor": "Flags: `--dry-run` prints the report without writing; `--no-"
           }
         ],
         "command": "npx live-tokens generate-theme scratch/theme-brief.json"
@@ -193,7 +221,8 @@ export const skillTrees: Record<string, SkillTree> = {
         "lines": [
           14,
           14
-        ]
+        ],
+        "anchor": "3. Run `npx live-tokens generate-theme scratch/<slug>-brief."
       },
       {
         "id": "gt-pass",
@@ -204,7 +233,8 @@ export const skillTrees: Record<string, SkillTree> = {
         "lines": [
           14,
           14
-        ]
+        ],
+        "anchor": "3. Run `npx live-tokens generate-theme scratch/<slug>-brief."
       },
       {
         "id": "gt-fonts",
@@ -216,7 +246,8 @@ export const skillTrees: Record<string, SkillTree> = {
         "lines": [
           15,
           15
-        ]
+        ],
+        "anchor": "4. Invoke **live-tokens-pair-fonts** with the same voice. Sk"
       },
       {
         "id": "gt-geo",
@@ -228,7 +259,8 @@ export const skillTrees: Record<string, SkillTree> = {
         "lines": [
           16,
           16
-        ]
+        ],
+        "anchor": "5. Invoke **live-tokens-adjust-geometry** with the geometry "
       },
       {
         "id": "gt-geotab",
@@ -241,21 +273,26 @@ export const skillTrees: Record<string, SkillTree> = {
             "lines": [
               128,
               139
-            ]
+            ],
+            "anchor": "## Geometry from the voice",
+            "anchorEnd": "This table is the fallback. When the brief matched an entry "
           },
           {
             "label": "Order is safe as written",
             "lines": [
               19,
               19
-            ]
+            ],
+            "anchor": "Order matters only for safety, and the order above is safe: "
           },
           {
             "label": "What each step writes",
             "lines": [
               147,
               149
-            ]
+            ],
+            "anchor": "## What each step writes",
+            "anchorEnd": "Color writes `themes/<slug>.json` and opens it. Type and geo"
           }
         ],
         "tag": "where it comes from"
@@ -270,7 +307,8 @@ export const skillTrees: Record<string, SkillTree> = {
         "lines": [
           17,
           17
-        ]
+        ],
+        "anchor": "6. Tell the user to look at the running app, and that type a"
       },
       {
         "id": "gt-ver",
@@ -281,7 +319,9 @@ export const skillTrees: Record<string, SkillTree> = {
         "lines": [
           151,
           155
-        ]
+        ],
+        "anchor": "## Verify",
+        "anchorEnd": "- To return to the previous look, load the theme the CLI out"
       }
     ],
     "edges": [
@@ -382,7 +422,9 @@ export const skillTrees: Record<string, SkillTree> = {
         "lines": [
           2,
           6
-        ]
+        ],
+        "anchor": "name: live-tokens-pair-fonts",
+        "anchorEnd": "# Pairing fonts for a theme"
       },
       {
         "id": "pf-pool",
@@ -393,7 +435,8 @@ export const skillTrees: Record<string, SkillTree> = {
         "lines": [
           8,
           8
-        ]
+        ],
+        "anchor": "You choose the families; the CLI verifies each against Googl"
       },
       {
         "id": "pf-body",
@@ -404,7 +447,9 @@ export const skillTrees: Record<string, SkillTree> = {
         "lines": [
           29,
           31
-        ]
+        ],
+        "anchor": "## Choose the body face first",
+        "anchorEnd": "The body face is the anchor. It carries most of the words, a"
       },
       {
         "id": "pf-spec",
@@ -415,7 +460,9 @@ export const skillTrees: Record<string, SkillTree> = {
         "lines": [
           65,
           67
-        ]
+        ],
+        "anchor": "## Shortcuts",
+        "anchorEnd": "These find an adequate pairing fast and skip the reasoning; "
       },
       {
         "id": "pf-matrix",
@@ -426,7 +473,9 @@ export const skillTrees: Record<string, SkillTree> = {
         "lines": [
           35,
           44
-        ]
+        ],
+        "anchor": "## The font matrix: the decision rule",
+        "anchorEnd": ""
       },
       {
         "id": "pf-short",
@@ -437,7 +486,9 @@ export const skillTrees: Record<string, SkillTree> = {
         "lines": [
           65,
           72
-        ]
+        ],
+        "anchor": "## Shortcuts",
+        "anchorEnd": "- **Serif display over sans body** when nothing else decides"
       },
       {
         "id": "pf-rule",
@@ -450,28 +501,32 @@ export const skillTrees: Record<string, SkillTree> = {
             "lines": [
               45,
               45
-            ]
+            ],
+            "anchor": "- **Same skeleton, different flesh: reliable.** Helvetica an"
           },
           {
             "label": "Same flesh, different skeleton: the failure case",
             "lines": [
               46,
               46
-            ]
+            ],
+            "anchor": "- **Same flesh, different skeleton: the failure case.** The "
           },
           {
             "label": "Far apart on both: deliberate",
             "lines": [
               47,
               47
-            ]
+            ],
+            "anchor": "- **Far apart on both: works, deliberately.** An unmistakabl"
           },
           {
             "label": "When a face straddles",
             "lines": [
               49,
               49
-            ]
+            ],
+            "anchor": "Many faces sit between columns. When one straddles, say so a"
           }
         ],
         "tag": "the decision rule"
@@ -485,7 +540,9 @@ export const skillTrees: Record<string, SkillTree> = {
         "lines": [
           51,
           63
-        ]
+        ],
+        "anchor": "## Voice",
+        "anchorEnd": "Match the type to the same brief the color came from. A warm"
       },
       {
         "id": "pf-watch",
@@ -498,34 +555,39 @@ export const skillTrees: Record<string, SkillTree> = {
             "lines": [
               76,
               76
-            ]
+            ],
+            "anchor": "- **x-height parity.** Both faces are set from one size scal"
           },
           {
             "label": "Print faces at small sizes",
             "lines": [
               77,
               77
-            ]
+            ],
+            "anchor": "- **Print faces at small sizes.** Delicate serifs and high s"
           },
           {
             "label": "Every family is a request",
             "lines": [
               78,
               78
-            ]
+            ],
+            "anchor": "- **Every family is a request.** Two is the target; three ne"
           },
           {
             "label": "Sets of themes",
             "lines": [
               79,
               79
-            ]
+            ],
+            "anchor": "- **Sets of themes:** no two share a display face or a body "
           }
         ],
         "lines": [
           74,
           74
         ],
+        "anchor": "## Watch for",
         "tag": "watch for"
       },
       {
@@ -538,7 +600,8 @@ export const skillTrees: Record<string, SkillTree> = {
         "lines": [
           12,
           12
-        ]
+        ],
+        "anchor": "1. Choose the pairing with the framework below and write a b"
       },
       {
         "id": "pf-shape",
@@ -551,21 +614,25 @@ export const skillTrees: Record<string, SkillTree> = {
             "lines": [
               21,
               27
-            ]
+            ],
+            "anchor": "## The brief",
+            "anchorEnd": "Every slot is optional and an omitted slot is left exactly a"
           },
           {
             "label": "State your reasoning",
             "lines": [
               17,
               17
-            ]
+            ],
+            "anchor": "State your reasoning when you propose the pairing: each face"
           },
           {
             "label": "Flags",
             "lines": [
               19,
               19
-            ]
+            ],
+            "anchor": "Flags: `--dry-run` reports without writing. `--no-verify` sk"
           }
         ],
         "tag": "the brief"
@@ -581,6 +648,7 @@ export const skillTrees: Record<string, SkillTree> = {
           13,
           13
         ],
+        "anchor": "2. Run `npx live-tokens set-fonts scratch/font-brief.json`. ",
         "command": "npx live-tokens set-fonts scratch/font-brief.json"
       },
       {
@@ -592,7 +660,8 @@ export const skillTrees: Record<string, SkillTree> = {
         "lines": [
           14,
           14
-        ]
+        ],
+        "anchor": "3. Read the report. A weight gap is a quality note: name it "
       },
       {
         "id": "pf-gap",
@@ -604,7 +673,8 @@ export const skillTrees: Record<string, SkillTree> = {
         "lines": [
           14,
           14
-        ]
+        ],
+        "anchor": "3. Read the report. A weight gap is a quality note: name it "
       },
       {
         "id": "pf-tell",
@@ -616,7 +686,8 @@ export const skillTrees: Record<string, SkillTree> = {
         "lines": [
           15,
           15
-        ]
+        ],
+        "anchor": "4. Tell the user to reload the editor page before saving. A "
       },
       {
         "id": "pf-scope",
@@ -629,7 +700,9 @@ export const skillTrees: Record<string, SkillTree> = {
             "lines": [
               81,
               83
-            ]
+            ],
+            "anchor": "## Scope",
+            "anchorEnd": "Type only. Color, component aliases, shape, and the type sca"
           }
         ],
         "tag": "scope"
@@ -643,7 +716,9 @@ export const skillTrees: Record<string, SkillTree> = {
         "lines": [
           85,
           90
-        ]
+        ],
+        "anchor": "## Verify",
+        "anchorEnd": "- To revert, run the inverse brief, or load the open theme a"
       }
     ],
     "edges": [
@@ -736,7 +811,9 @@ export const skillTrees: Record<string, SkillTree> = {
         "lines": [
           2,
           8
-        ]
+        ],
+        "anchor": "name: live-tokens-adjust-geometry",
+        "anchorEnd": "You translate the request into a small ops file; the CLI res"
       },
       {
         "id": "ag-live",
@@ -747,7 +824,8 @@ export const skillTrees: Record<string, SkillTree> = {
         "lines": [
           17,
           17
-        ]
+        ],
+        "anchor": "Each run reads the LIVE config (buffer, else the open theme,"
       },
       {
         "id": "ag-target",
@@ -758,7 +836,8 @@ export const skillTrees: Record<string, SkillTree> = {
         "lines": [
           34,
           34
-        ]
+        ],
+        "anchor": "- `target` (optional): a component id (the folder names unde"
       },
       {
         "id": "ag-kind",
@@ -771,28 +850,32 @@ export const skillTrees: Record<string, SkillTree> = {
             "lines": [
               35,
               35
-            ]
+            ],
+            "anchor": "- `kind`: `radius | padding | gap | border-width`."
           },
           {
             "label": "padding",
             "lines": [
               35,
               35
-            ]
+            ],
+            "anchor": "- `kind`: `radius | padding | gap | border-width`."
           },
           {
             "label": "gap",
             "lines": [
               35,
               35
-            ]
+            ],
+            "anchor": "- `kind`: `radius | padding | gap | border-width`."
           },
           {
             "label": "border-width",
             "lines": [
               35,
               35
-            ]
+            ],
+            "anchor": "- `kind`: `radius | padding | gap | border-width`."
           }
         ],
         "tag": "pick one"
@@ -806,7 +889,8 @@ export const skillTrees: Record<string, SkillTree> = {
         "lines": [
           36,
           36
-        ]
+        ],
+        "anchor": "- `set` or `shift`, exactly one of the two. `set` takes an e"
       },
       {
         "id": "ag-shift",
@@ -817,7 +901,8 @@ export const skillTrees: Record<string, SkillTree> = {
         "lines": [
           53,
           53
-        ]
+        ],
+        "anchor": "Magnitude words: \"slightly\" or \"a bit\" is 1 step, unqualifie"
       },
       {
         "id": "ag-set",
@@ -828,7 +913,8 @@ export const skillTrees: Record<string, SkillTree> = {
         "lines": [
           37,
           37
-        ]
+        ],
+        "anchor": "- `full` (radius shifts only): admits `--radius-full` as the"
       },
       {
         "id": "ag-idiom",
@@ -839,7 +925,9 @@ export const skillTrees: Record<string, SkillTree> = {
         "lines": [
           39,
           51
-        ]
+        ],
+        "anchor": "## Idioms",
+        "anchorEnd": "| thicker, thinner borders | border-width `shift: 1` or `-1`"
       },
       {
         "id": "ag-squeeze",
@@ -850,7 +938,9 @@ export const skillTrees: Record<string, SkillTree> = {
         "lines": [
           55,
           59
-        ]
+        ],
+        "anchor": "## Controls squeeze before containers",
+        "anchorEnd": "So a global compaction is `shift: -1`. When the brief wants "
       },
       {
         "id": "ag-pill",
@@ -861,7 +951,8 @@ export const skillTrees: Record<string, SkillTree> = {
         "lines": [
           61,
           61
-        ]
+        ],
+        "anchor": "A pill needs the room most. `--radius-full` bends the corner"
       },
       {
         "id": "ag-pillop",
@@ -872,7 +963,9 @@ export const skillTrees: Record<string, SkillTree> = {
         "lines": [
           63,
           69
-        ]
+        ],
+        "anchor": "```json",
+        "anchorEnd": "```"
       },
       {
         "id": "ag-ladder",
@@ -885,41 +978,47 @@ export const skillTrees: Record<string, SkillTree> = {
             "lines": [
               73,
               73
-            ]
+            ],
+            "anchor": "Radius runs `none, sm, md, lg, xl, 2xl, 3xl, 4xl`, with `ful"
           },
           {
             "label": "Content insets stop at --space-4",
             "lines": [
               75,
               75
-            ]
+            ],
+            "anchor": "Content insets stop at `--space-4`. Below it the text sits a"
           },
           {
             "label": "Padding under type stops at --space-6",
             "lines": [
               77,
               77
-            ]
+            ],
+            "anchor": "Padding that wraps a line of type stops a rung higher, at `-"
           },
           {
             "label": "Margins ride padding, unfloored",
             "lines": [
               79,
               79
-            ]
+            ],
+            "anchor": "The floor guards `-padding` only. Outer space is exempt, bec"
           },
           {
             "label": "Off-subset aliases step onto the rung",
             "lines": [
               81,
               81
-            ]
+            ],
+            "anchor": "An alias sitting off the subset spends its first step reachi"
           }
         ],
         "lines": [
           71,
           71
         ],
+        "anchor": "## Ladders",
         "tag": "ladders and floors"
       },
       {
@@ -932,7 +1031,8 @@ export const skillTrees: Record<string, SkillTree> = {
         "lines": [
           12,
           12
-        ]
+        ],
+        "anchor": "1. Write the ops file to `scratch/adjust-ops.json`."
       },
       {
         "id": "ag-shapes",
@@ -945,27 +1045,33 @@ export const skillTrees: Record<string, SkillTree> = {
             "lines": [
               20,
               25
-            ]
+            ],
+            "anchor": "",
+            "anchorEnd": "```"
           },
           {
             "label": "Targeted, absolute",
             "lines": [
               27,
               31
-            ]
+            ],
+            "anchor": "Targeted, absolute:",
+            "anchorEnd": "```"
           },
           {
             "label": "name is ignored",
             "lines": [
               33,
               33
-            ]
+            ],
+            "anchor": "- `name`: ignored. Buffers are fixed slots, so a name names "
           }
         ],
         "lines": [
           19,
           19
         ],
+        "anchor": "## The ops file",
         "tag": "the ops file"
       },
       {
@@ -979,6 +1085,7 @@ export const skillTrees: Record<string, SkillTree> = {
           13,
           13
         ],
+        "anchor": "2. Run `npx live-tokens adjust scratch/adjust-ops.json`. It ",
         "command": "npx live-tokens adjust scratch/adjust-ops.json"
       },
       {
@@ -990,7 +1097,8 @@ export const skillTrees: Record<string, SkillTree> = {
         "lines": [
           14,
           14
-        ]
+        ],
+        "anchor": "3. Read the report card: every changed alias old → new, plus"
       },
       {
         "id": "ag-card",
@@ -1002,7 +1110,8 @@ export const skillTrees: Record<string, SkillTree> = {
         "lines": [
           14,
           14
-        ]
+        ],
+        "anchor": "3. Read the report card: every changed alias old → new, plus"
       },
       {
         "id": "ag-tell",
@@ -1014,7 +1123,8 @@ export const skillTrees: Record<string, SkillTree> = {
         "lines": [
           15,
           15
-        ]
+        ],
+        "anchor": "4. Tell the user to reload the page before saving. The edito"
       },
       {
         "id": "ag-scope",
@@ -1027,7 +1137,9 @@ export const skillTrees: Record<string, SkillTree> = {
             "lines": [
               83,
               85
-            ]
+            ],
+            "anchor": "## Scope",
+            "anchorEnd": "Every value written is an existing token; nothing new is min"
           }
         ],
         "tag": "scope"
@@ -1041,7 +1153,9 @@ export const skillTrees: Record<string, SkillTree> = {
         "lines": [
           87,
           93
-        ]
+        ],
+        "anchor": "## Verify",
+        "anchorEnd": "- To revert, run the inverse ops, or load a theme in the The"
       }
     ],
     "edges": [
@@ -1146,7 +1260,9 @@ export const skillTrees: Record<string, SkillTree> = {
         "lines": [
           2,
           8
-        ]
+        ],
+        "anchor": "name: live-tokens-pick-component",
+        "anchorEnd": "This skill helps you choose between shipped components when "
       },
       {
         "id": "pk-cat",
@@ -1157,7 +1273,9 @@ export const skillTrees: Record<string, SkillTree> = {
         "lines": [
           12,
           14
-        ]
+        ],
+        "anchor": "## Catalogue",
+        "anchorEnd": "Action: `Button`, `IconButton`, `InlineEditActions`. Input: "
       },
       {
         "id": "pk-fam",
@@ -1168,7 +1286,8 @@ export const skillTrees: Record<string, SkillTree> = {
         "lines": [
           14,
           14
-        ]
+        ],
+        "anchor": "Action: `Button`, `IconButton`, `InlineEditActions`. Input: "
       },
       {
         "id": "pk-act",
@@ -1180,7 +1299,9 @@ export const skillTrees: Record<string, SkillTree> = {
         "lines": [
           16,
           23
-        ]
+        ],
+        "anchor": "## Action family: Button vs IconButton",
+        "anchorEnd": "- `InlineEditActions` is the confirm-and-cancel pair that fo"
       },
       {
         "id": "pk-sel",
@@ -1192,7 +1313,9 @@ export const skillTrees: Record<string, SkillTree> = {
         "lines": [
           25,
           39
-        ]
+        ],
+        "anchor": "## Single-selection family: SegmentedControl vs TabBar vs Ra",
+        "anchorEnd": "- **Don't pick `SegmentedControl` when option labels are lon"
       },
       {
         "id": "pk-con",
@@ -1204,7 +1327,9 @@ export const skillTrees: Record<string, SkillTree> = {
         "lines": [
           41,
           53
-        ]
+        ],
+        "anchor": "## Container family: Card vs CollapsibleSection vs Dialog",
+        "anchorEnd": "- **Don't use `Dialog` for routine forms.** Reach for it onl"
       },
       {
         "id": "pk-msg",
@@ -1216,7 +1341,9 @@ export const skillTrees: Record<string, SkillTree> = {
         "lines": [
           55,
           68
-        ]
+        ],
+        "anchor": "## Messaging family: Callout vs Notification vs Tooltip vs B",
+        "anchorEnd": "- `Badge` and `CornerBadge` differ only in positioning. `Cor"
       },
       {
         "id": "pk-bin",
@@ -1228,7 +1355,9 @@ export const skillTrees: Record<string, SkillTree> = {
         "lines": [
           79,
           91
-        ]
+        ],
+        "anchor": "## Toggle vs SegmentedControl vs RadioButton (for on/off)",
+        "anchorEnd": "- `Toggle` flips immediately; `RadioButton` pair is for form"
       },
       {
         "id": "pk-fits",
@@ -1239,7 +1368,9 @@ export const skillTrees: Record<string, SkillTree> = {
         "lines": [
           93,
           95
-        ]
+        ],
+        "anchor": "---",
+        "anchorEnd": "If nothing in the catalogue fits (a `Slider`, a `DatePicker`"
       },
       {
         "id": "pk-place",
@@ -1250,7 +1381,8 @@ export const skillTrees: Record<string, SkillTree> = {
         "lines": [
           10,
           10
-        ]
+        ],
+        "anchor": "For composing a page once you've picked components, see **li"
       },
       {
         "id": "pk-make",
@@ -1261,7 +1393,8 @@ export const skillTrees: Record<string, SkillTree> = {
         "lines": [
           95,
           95
-        ]
+        ],
+        "anchor": "If nothing in the catalogue fits (a `Slider`, a `DatePicker`"
       }
     ],
     "edges": [
@@ -1337,7 +1470,9 @@ export const skillTrees: Record<string, SkillTree> = {
         "lines": [
           2,
           8
-        ]
+        ],
+        "anchor": "name: live-tokens-build-page",
+        "anchorEnd": "Two rules above all else:"
       },
       {
         "id": "bp-fit",
@@ -1349,7 +1484,8 @@ export const skillTrees: Record<string, SkillTree> = {
         "lines": [
           10,
           10
-        ]
+        ],
+        "anchor": "1. **Use a shipped component if one fits.** Import from `@mo"
       },
       {
         "id": "bp-pick",
@@ -1360,7 +1496,8 @@ export const skillTrees: Record<string, SkillTree> = {
         "lines": [
           10,
           10
-        ]
+        ],
+        "anchor": "1. **Use a shipped component if one fits.** Import from `@mo"
       },
       {
         "id": "bp-make",
@@ -1371,7 +1508,8 @@ export const skillTrees: Record<string, SkillTree> = {
         "lines": [
           10,
           10
-        ]
+        ],
+        "anchor": "1. **Use a shipped component if one fits.** Import from `@mo"
       },
       {
         "id": "bp-tok",
@@ -1383,7 +1521,8 @@ export const skillTrees: Record<string, SkillTree> = {
         "lines": [
           11,
           11
-        ]
+        ],
+        "anchor": "2. **Use theme tokens for every value.** Every color, spacin"
       },
       {
         "id": "bp-text",
@@ -1394,7 +1533,8 @@ export const skillTrees: Record<string, SkillTree> = {
         "lines": [
           13,
           13
-        ]
+        ],
+        "anchor": "For text, reach for a whole text style rather than assemblin"
       },
       {
         "id": "bp-grid",
@@ -1405,7 +1545,9 @@ export const skillTrees: Record<string, SkillTree> = {
         "lines": [
           17,
           21
-        ]
+        ],
+        "anchor": "## Layout",
+        "anchorEnd": "To place children at specific page-column positions, span th"
       },
       {
         "id": "bp-wire",
@@ -1416,7 +1558,9 @@ export const skillTrees: Record<string, SkillTree> = {
         "lines": [
           23,
           28
-        ]
+        ],
+        "anchor": "## Wiring",
+        "anchorEnd": "Either way use `lazy`, not a static top-level import: static"
       },
       {
         "id": "bp-router",
@@ -1427,7 +1571,8 @@ export const skillTrees: Record<string, SkillTree> = {
         "lines": [
           26,
           26
-        ]
+        ],
+        "anchor": "- **`<LiveTokensRouter pages={...}>`** (the usual case): add"
       },
       {
         "id": "bp-overlay",
@@ -1438,7 +1583,8 @@ export const skillTrees: Record<string, SkillTree> = {
         "lines": [
           27,
           27
-        ]
+        ],
+        "anchor": "- **Manual `<LiveEditorOverlay>`**: dispatch with `$derived."
       },
       {
         "id": "bp-css",
@@ -1449,7 +1595,8 @@ export const skillTrees: Record<string, SkillTree> = {
         "lines": [
           29,
           29
-        ]
+        ],
+        "anchor": "- Import `site.css` from each page's `<script>` block, never"
       },
       {
         "id": "bp-avoid",
@@ -1462,41 +1609,47 @@ export const skillTrees: Record<string, SkillTree> = {
             "lines": [
               33,
               33
-            ]
+            ],
+            "anchor": "- Hex or pixel literals in page CSS."
           },
           {
             "label": "Hardcoded column counts",
             "lines": [
               34,
               34
-            ]
+            ],
+            "anchor": "- Hardcoded column counts (`repeat(10, 1fr)`). Use `repeat(v"
           },
           {
             "label": "Utility classes over components",
             "lines": [
               35,
               35
-            ]
+            ],
+            "anchor": "- Utility classes overriding shipped components. Extend via "
           },
           {
             "label": "Deep node_modules imports",
             "lines": [
               36,
               36
-            ]
+            ],
+            "anchor": "- Deep imports from `node_modules/@motion-proto/live-tokens/"
           },
           {
             "label": "Editor mounted off its route",
             "lines": [
               37,
               37
-            ]
+            ],
+            "anchor": "- Mounting `Editor` or `ComponentEditorPage` outside their d"
           }
         ],
         "lines": [
           31,
           31
         ],
+        "anchor": "## Avoid",
         "tag": "avoid"
       },
       {
@@ -1508,7 +1661,9 @@ export const skillTrees: Record<string, SkillTree> = {
         "lines": [
           40,
           42
-        ]
+        ],
+        "anchor": "## Verify",
+        "anchorEnd": "In dev: change a colour in `/live-tokens/editor` and confirm"
       }
     ],
     "edges": [
@@ -1584,7 +1739,9 @@ export const skillTrees: Record<string, SkillTree> = {
         "lines": [
           2,
           8
-        ]
+        ],
+        "anchor": "name: live-tokens-create-component",
+        "anchorEnd": "The end state is a runtime Svelte file, an editor Svelte fil"
       },
       {
         "id": "cc-read",
@@ -1595,7 +1752,9 @@ export const skillTrees: Record<string, SkillTree> = {
         "lines": [
           10,
           22
-        ]
+        ],
+        "anchor": "## Worked examples ship inside the package",
+        "anchorEnd": "**File-location note.** Shipped editors live in `src/editor/"
       },
       {
         "id": "cc-run",
@@ -1607,7 +1766,9 @@ export const skillTrees: Record<string, SkillTree> = {
         "lines": [
           24,
           26
-        ]
+        ],
+        "anchor": "## The recipe",
+        "anchorEnd": "1. **Runtime file** — `src/system/components/MyWidget.svelte"
       },
       {
         "id": "cc-ed",
@@ -1619,7 +1780,8 @@ export const skillTrees: Record<string, SkillTree> = {
         "lines": [
           27,
           27
-        ]
+        ],
+        "anchor": "2. **Editor file** — `src/system/components/MyWidgetEditor.s"
       },
       {
         "id": "cc-ext",
@@ -1632,27 +1794,32 @@ export const skillTrees: Record<string, SkillTree> = {
             "lines": [
               208,
               208
-            ]
+            ],
+            "anchor": "- `references/linked-siblings.md`: variants that share base "
           },
           {
             "label": "Intrinsics",
             "lines": [
               209,
               209
-            ]
+            ],
+            "anchor": "- `references/intrinsics.md`: structural or display choices "
           },
           {
             "label": "Sketch mode (always)",
             "lines": [
               210,
               210
-            ]
+            ],
+            "anchor": "- `references/sketch-mode.md`: joining the sketch layer. **E"
           }
         ],
         "lines": [
           204,
           210
         ],
+        "anchor": "## Extensions",
+        "anchorEnd": "- `references/sketch-mode.md`: joining the sketch layer. **E",
         "tag": "extensions"
       },
       {
@@ -1665,7 +1832,9 @@ export const skillTrees: Record<string, SkillTree> = {
         "lines": [
           28,
           45
-        ]
+        ],
+        "anchor": "3. **Register** — pass the component to `bootLiveTokens` in ",
+        "anchorEnd": "The schema side-effect happens inside `registerComponent` (w"
       },
       {
         "id": "cc-pick",
@@ -1677,7 +1846,8 @@ export const skillTrees: Record<string, SkillTree> = {
         "lines": [
           46,
           46
-        ]
+        ],
+        "anchor": "4. **Tell the picker** — open `.claude/skills/live-tokens-pi"
       },
       {
         "id": "cc-sk",
@@ -1689,7 +1859,9 @@ export const skillTrees: Record<string, SkillTree> = {
         "lines": [
           47,
           54
-        ]
+        ],
+        "anchor": "5. **Join the sketch layer** — the effect draws a fixed set ",
+        "anchorEnd": "`references/sketch-mode.md`."
       },
       {
         "id": "cc-disc",
@@ -1703,56 +1875,72 @@ export const skillTrees: Record<string, SkillTree> = {
             "lines": [
               57,
               70
-            ]
+            ],
+            "anchor": "## Token discipline",
+            "anchorEnd": ""
           },
           {
             "label": "Suffix vocabulary",
             "lines": [
               71,
               113
-            ]
+            ],
+            "anchor": "### Suffix vocabulary",
+            "anchorEnd": "The authoritative recognised list lives in `bin/check-compon"
           },
           {
             "label": "Rules that bite",
             "lines": [
               115,
               121
-            ]
+            ],
+            "anchor": "### Rules that bite",
+            "anchorEnd": "- **Text aliases.** Neutral scale is `--text-primary` / `--t"
           },
           {
             "label": "Typography groupKey trap",
             "lines": [
               122,
               132
-            ]
+            ],
+            "anchor": "- **Typography `groupKey` on multi-slot components must incl",
+            "anchorEnd": "The helper strips the `--<component>-` prefix and those segm"
           },
           {
             "label": "State model",
             "lines": [
               135,
               159
-            ]
+            ],
+            "anchor": "## State model",
+            "anchorEnd": "```"
           },
           {
             "label": "User-facing copy",
             "lines": [
               161,
               165
-            ]
+            ],
+            "anchor": "## User-facing copy",
+            "anchorEnd": "If you add custom chrome inside an editor snippet (rare — `C"
           },
           {
             "label": "Public imports only",
             "lines": [
               167,
               182
-            ]
+            ],
+            "anchor": "## Public imports only",
+            "anchorEnd": "**Never deep-import `node_modules/@motion-proto/live-tokens/"
           },
           {
             "label": "Worked example: Toggle",
             "lines": [
               184,
               202
-            ]
+            ],
+            "anchor": "## Worked example: the shipped Toggle",
+            "anchorEnd": "For your own component, copy the pattern and substitute your"
           }
         ],
         "tag": "applies throughout"
@@ -1768,13 +1956,16 @@ export const skillTrees: Record<string, SkillTree> = {
           212,
           221
         ],
+        "anchor": "## Verification checklist",
+        "anchorEnd": "It enforces the file layout, the `:global(:root)` block, tok",
         "chips": [
           {
             "label": "Step 6 in the recipe",
             "lines": [
               55,
               55
-            ]
+            ],
+            "anchor": "6. **Verify** with the checklist at the bottom of this file,"
           }
         ],
         "command": "npx live-tokens check-component <id>"
@@ -1788,7 +1979,9 @@ export const skillTrees: Record<string, SkillTree> = {
         "lines": [
           223,
           231
-        ]
+        ],
+        "anchor": "**Then run the registry contract test.** If you're authoring",
+        "anchorEnd": "A new first-party component is auto-covered the moment it la"
       },
       {
         "id": "cc-intr",
@@ -1799,7 +1992,8 @@ export const skillTrees: Record<string, SkillTree> = {
         "lines": [
           233,
           233
-        ]
+        ],
+        "anchor": "**If your component declares `intrinsics`, the intrinsics co"
       },
       {
         "id": "cc-man",
@@ -1810,7 +2004,9 @@ export const skillTrees: Record<string, SkillTree> = {
         "lines": [
           235,
           243
-        ]
+        ],
+        "anchor": "Finally navigate to `/live-tokens/components` and confirm th",
+        "anchorEnd": "- [ ] Switch Sketch mode on in the editor and walk the check"
       }
     ],
     "edges": [
