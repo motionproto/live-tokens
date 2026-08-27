@@ -58,6 +58,7 @@
     markComponentSaved,
   } from '../core/store/editorStore';
   import { openThemeSlug } from '../core/store/editorConfigStore';
+  import { themeSketch } from '../core/sketch/sketchStore';
   import { editorView } from '../core/store/editorViewStore';
   import {
     componentActiveRevision,
@@ -120,6 +121,10 @@
       if (active) {
         openThemeSlug.set(active._fileName ?? 'default');
         currentDisplayName = active.name ?? $openThemeSlug;
+        // Deleting the open theme repoints active without going through Load
+        // or Save, both of which already set this; this is the path that
+        // makes sketchStore's "set by every path that opens a theme" true.
+        themeSketch.set(active.sketch);
       }
     } catch {
       // silent

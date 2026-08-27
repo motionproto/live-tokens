@@ -9,6 +9,8 @@ import {
   setComponentAlias,
 } from '../store/editorStore';
 import { initializeTheme } from './themeInit';
+import { SKETCH_PRESETS } from '../sketch/sketchPresets';
+import { sketchEnabled, sketchSettings, themeSketch, updateSketchSettings } from '../sketch/sketchStore';
 
 beforeEach(() => {
   __resetForTests();
@@ -85,5 +87,58 @@ describe('initializeTheme component hydration', () => {
 
     expect(get(editorState).components['local-component']).toBeDefined();
     expect(get(editorState).components.button).toBeUndefined();
+  });
+});
+
+function stubActiveTheme(sketch: unknown) {
+  vi.stubGlobal('fetch', async (url: string) => {
+    if (url === `${API_BASE}/themes/active`) {
+      return new Response(JSON.stringify({ name: 'Sketchy', sketch }), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
+    return new Response(null, { status: 404 });
+  });
+}
+
+// Order matters here: the first test relies on this browser never having
+// recorded a sketch decision, which is only true before any later test in
+// this file calls `updateSketchSettings` and flips that permanently.
+describe('initializeTheme sketch reconcile', () => {
+  it('seeds the live buffer from the theme when this browser never recorded a sketch decision', async () => {
+    stubActiveTheme(SKETCH_PRESETS.napkin);
+
+    await initializeTheme();
+
+    expect(get(sketchEnabled)).toBe(true);
+    expect(get(sketchSettings)).toEqual(SKETCH_PRESETS.napkin);
+    expect(get(themeSketch)).toEqual(SKETCH_PRESETS.napkin);
+  });
+
+  it('leaves an unsaved buffer alone once this browser has recorded a decision, and only learns the theme', async () => {
+    updateSketchSettings({}); // records a decision without changing the dials
+    sketchEnabled.set(true);
+    const liveBefore = get(sketchSettings);
+    stubActiveTheme(SKETCH_PRESETS.napkin);
+
+    await initializeTheme();
+
+    expect(get(sketchSettings)).toEqual(liveBefore);
+    expect(get(sketchEnabled)).toBe(true);
+    expect(get(themeSketch)).toEqual(SKETCH_PRESETS.napkin);
+  });
+
+  it('leaves the sketch state alone when the active-theme fetch fails, rather than reading that as no sketch', async () => {
+    updateSketchSettings({});
+    sketchEnabled.set(true);
+    const liveBefore = get(sketchSettings);
+    themeSketch.set(SKETCH_PRESETS.pencil);
+    vi.stubGlobal('fetch', async () => new Response(null, { status: 503 }));
+
+    await initializeTheme();
+
+    expect(get(sketchSettings)).toEqual(liveBefore);
+    expect(get(themeSketch)).toEqual(SKETCH_PRESETS.pencil);
   });
 });

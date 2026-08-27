@@ -43,7 +43,7 @@ export function hydrateAppliedTheme(fileName: string, result: ApplyThemeResult):
   migrateColorsAndTypeFonts(colorsAndType);
   loadThemeFromApi(colorsAndType, structuredClone(result.componentConfigs));
   openThemeSlug.set(fileName);
-  openThemeSketch(result.theme?.sketch);
+  openThemeSketch(result.theme.sketch);
   liveMovedSinceBake.set(false);
   if (typeof document !== 'undefined') {
     document.dispatchEvent(new CustomEvent<AppliedThemeDetail>(THEME_APPLIED_EVENT, {

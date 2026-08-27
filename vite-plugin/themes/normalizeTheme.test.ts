@@ -478,7 +478,7 @@ describe('normalizeTheme sketch field', () => {
     expect('sketch' in theme).toBe(false);
   });
 
-  it.each([null, 'napkin', []])('resolves %s to no sketch', (value) => {
+  it.each([[null], ['napkin'], [[]]])('resolves %s to no sketch', (value) => {
     const { theme } = normalizeTheme({ ...withSketch, sketch: value }, resolvers());
     expect('sketch' in theme).toBe(false);
   });

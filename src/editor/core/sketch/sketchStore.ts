@@ -19,27 +19,43 @@ const ENABLED_KEY = 'lt.sketchEnabled';
 const SETTINGS_KEY = 'lt.sketchSettings';
 const PRESET_KEY = 'lt.sketchPreset';
 const BASELINE_KEY = 'lt.sketchBaseline';
+/** Set only by a genuine user decision (`markSketchTouched`), never by the
+    `subscribe` write-back below. That write-back plants the four keys above
+    on every boot regardless of whether a dial was ever moved, so deriving
+    "touched" from their presence would answer "yes" from the second load
+    onward — this key is the thing that actually distinguishes the two. */
+const TOUCHED_KEY = 'lt.sketchTouched';
 
-/** Whether this browser had recorded a sketch decision before this module's
-    own bookkeeping ran. Snapshotted here, at the top of the file, because the
-    `subscribe` calls below write every key straight back to localStorage on
-    their first tick (mirroring whatever `readEnabled`/`readSettings` resolved
-    to); a check made after that point would read those keys and answer "yes"
-    on every boot, seeded or not. */
-const persistedSketchStateOnLoad = (() => {
+/** True once this browser has recorded a genuine sketch decision, so boot
+    (`themeInit.ts`) can tell "never touched" from "explicitly off" and only
+    seed the live buffer from the theme in the first case. Mutated in place
+    by `markSketchTouched`; the first read migrates a browser that already
+    held real dial state before this key existed (RJC 7) so it starts
+    touched, not one this module is about to seed for the first time. */
+let sketchTouched = (() => {
   try {
-    return localStorage.getItem(ENABLED_KEY) !== null || localStorage.getItem(SETTINGS_KEY) !== null;
+    const recorded = localStorage.getItem(TOUCHED_KEY);
+    if (recorded !== null) return recorded === 'true';
+    const priorUse = localStorage.getItem(ENABLED_KEY) !== null || localStorage.getItem(SETTINGS_KEY) !== null;
+    localStorage.setItem(TOUCHED_KEY, String(priorUse));
+    return priorUse;
   } catch {
     return false;
   }
 })();
 
-/** True once anything about the sketch has ever been recorded in this
-    browser, so boot (`themeInit.ts`) can tell "never touched" from
-    "explicitly off" and only seed the live buffer from the theme in the
-    first case. */
 export function hasPersistedSketchState(): boolean {
-  return persistedSketchStateOnLoad;
+  return sketchTouched;
+}
+
+/** Called from every control a user can act on: a dial, a preset pick, the
+    on/off switch. Never from `openThemeSketch` or the storage-sync `adopt`
+    path, both of which write the same four keys as a side effect of state
+    this browser did not decide on its own. */
+function markSketchTouched(): void {
+  if (sketchTouched) return;
+  sketchTouched = true;
+  persist(TOUCHED_KEY, 'true');
 }
 
 function readEnabled(): boolean {
@@ -117,9 +133,19 @@ export const sketchDirty = derived(
 export const sketchBlurb = derived(sketchSettings, (s) => s.blurb);
 
 /** The live look as a theme would carry it: the dials when the effect is
-    on, nothing when it is off (RJC 1). */
+    on, nothing when it is off (RJC 1). A copy, not the store's own object,
+    so a caller holding onto the result can never observe a later dial move
+    through it. */
 export function liveSketch(): SketchSettings | undefined {
-  return get(sketchEnabled) ? get(sketchSettings) : undefined;
+  return get(sketchEnabled) ? { ...get(sketchSettings) } : undefined;
+}
+
+/** The Sketch tab's on/off switch goes through here rather than a bare
+    `sketchEnabled.set`, so flipping it by hand marks this browser as having
+    made a sketch decision the same as any other control does. */
+export function setSketchEnabled(enabled: boolean): void {
+  markSketchTouched();
+  sketchEnabled.set(enabled);
 }
 
 /** What the open theme holds, so "unsaved" is a comparison rather than a
@@ -149,6 +175,7 @@ export function openThemeSketch(sketch: SketchSettings | undefined): void {
 export function selectSketchPreset(name: string): void {
   const preset = SKETCH_PRESETS[name];
   if (!preset) return;
+  markSketchTouched();
   sketchPreset.set(name);
   sketchBaseline.set({ ...preset });
   sketchSettings.set({ ...preset });
@@ -164,6 +191,7 @@ export async function refreshUserPresets(): Promise<void> {
 
 export async function selectUserSketchPreset(fileName: string): Promise<void> {
   const file = await loadSketchPreset(fileName);
+  markSketchTouched();
   sketchPreset.set(USER_PRESET_PREFIX + fileName);
   sketchBaseline.set({ ...file.settings });
   sketchSettings.set(file.settings);
@@ -177,6 +205,7 @@ export async function saveCurrentAsSketchPreset(name: string): Promise<string> {
   if (!trimmed) throw new Error('A preset needs a name');
   const fileName = slugifySketchPreset(trimmed);
   if (!fileName) throw new Error('That name has no letters or digits to make a file name from');
+  markSketchTouched();
   const settings = { ...get(sketchSettings), label: trimmed };
   await saveSketchPreset(fileName, trimmed, settings);
   await refreshUserPresets();
@@ -200,6 +229,7 @@ export async function deleteUserSketchPreset(fileName: string): Promise<void> {
     keeps naming the preset this look came from, and `sketchDirty` reports the
     drift. Save writes a new preset rather than overwriting the base. */
 export function updateSketchSettings(patch: Partial<SketchSettings>): void {
+  markSketchTouched();
   sketchSettings.update((s) => ({ ...s, ...patch }));
 }
 

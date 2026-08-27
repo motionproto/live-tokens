@@ -64,14 +64,19 @@ export async function initializeTheme(): Promise<void> {
   }
 
   const active = await safeFetch<Theme>(`${API_BASE}/themes/active`);
-  if (hasPersistedSketchState()) {
-    // The buffer already painted on the first frame; boot only learns what
-    // the theme holds so unsaved dial work reads as unsaved rather than
-    // getting silently overwritten (that overwrite is what Apply is for).
-    themeSketch.set(active?.sketch);
-  } else {
-    // Nothing was ever recorded in this browser: the theme's value becomes
-    // the live value, the same reconciliation opening a theme performs.
-    openThemeSketch(active?.sketch);
+  // A failed fetch is not "the theme carries no sketch": treating null as
+  // absent would tell the panel the look is off the theme, or hand a fresh
+  // browser a blank buffer, over a fetch that will likely succeed next time.
+  if (active) {
+    if (hasPersistedSketchState()) {
+      // The buffer already painted on the first frame; boot only learns what
+      // the theme holds so unsaved dial work reads as unsaved rather than
+      // getting silently overwritten (that overwrite is what Apply is for).
+      themeSketch.set(active.sketch);
+    } else {
+      // Nothing was ever recorded in this browser: the theme's value becomes
+      // the live value, the same reconciliation opening a theme performs.
+      openThemeSketch(active.sketch);
+    }
   }
 }

@@ -13,6 +13,7 @@
   import { SKETCH_PRESETS } from '../../core/sketch/sketchPresets';
   import {
     sketchEnabled,
+    setSketchEnabled,
     sketchPreset,
     sketchDirty,
     sketchSettings,
@@ -235,7 +236,7 @@
           label="Sketch mode"
           labelFirst
           checked={$sketchEnabled}
-          onchange={(v) => sketchEnabled.set(v)}
+          onchange={setSketchEnabled}
         />
         <UIInfoPopover title="Sketch mode">
           <p>
