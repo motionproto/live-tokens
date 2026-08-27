@@ -5,14 +5,18 @@ Save your work, switch between looks, and ship one to production.
 ## The Theme panel
 
 The **Theme** panel at the foot of the editor sidebar holds the whole look:
-colors, type, and a setting for every component, in one file. It carries the
-name the look ships under, whether production is running it, and **Adopt**.
-Two parts sit under it, each a read-out rather than a file to manage.
+colors, type, a setting for every component, and the sketch layer, in one
+file. It carries the name the look ships under, whether production is running
+it, and **Adopt**. Three parts sit under it, each a read-out rather than a
+file to manage.
 
 - **Colors & Type** holds the design tokens. Components read those tokens to
   define their appearance. It names the two faces the page is showing.
 - **Components** counts how many components have an unsaved edit that has not
   been saved into the theme, and opens the component editors.
+- **Sketch** shows whether the drawn effect is off the theme, matches a
+  shipped preset, or is off. It travels with the theme like colors and type
+  do, but never reaches a production build.
 
 A theme holds its own copy of every part, so one theme can never break another.
 
@@ -21,13 +25,15 @@ A theme holds its own copy of every part, so one theme can never break another.
 A theme is a document, and the editor works the way any editor does.
 
 - **A theme** is a named JSON file in `src/live-tokens/data/themes/`. It carries
-  the whole look: the colors and type plus a setting for every component.
+  the whole look: the colors and type, a setting for every component, and the
+  sketch layer.
 - **The open theme** is the one the editor is working on, named in
   `themes/_active.json`. One at a time.
 - **Your unsaved edits** are what the page shows right now. The editor keeps
-  them in your browser as you work and writes them to a buffer, `_working.json`,
-  one slot per part of the look. **Save** captures that buffer into the open
-  theme.
+  them in your browser as you work, writing most parts to a buffer,
+  `_working.json`, one slot each; the sketch layer has no buffer and stays
+  live in the browser until you save. **Save** captures all of it into the
+  open theme.
 - **The production theme** is the one your site ships, named in
   `themes/_production.json`. **Adopt** changes it; saving a preset in the Theme
   Picker performs that Adopt for you.

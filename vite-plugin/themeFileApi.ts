@@ -262,9 +262,8 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
 
   // Sketch presets — the dials a user saved from the Sketch tab. No packageDir:
   // the shipped presets are code (`sketchPresets.ts`), so this directory holds
-  // nothing but user files. No pointer pair either: a sketch look is a draft
-  // effect that is never opened as the active document nor published, so there
-  // is no active/production to name.
+  // nothing but user files. No pointer pair either: a preset is a library file,
+  // not the active document, so there is no active/production to name.
   const sketchPresetsResource = versionedFileResourceServer({ dir: SKETCH_PRESETS_DIR });
 
   function ensureColorsAndTypeDir() {

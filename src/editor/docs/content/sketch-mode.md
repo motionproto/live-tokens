@@ -76,15 +76,15 @@ applies whatever a theme carries, and turns the effect off for a theme that
 carries none.
 
 Until you save, the dials sit in your browser only. The Theme panel calls
-that state off the theme, the same word it uses for an unsaved color or
-component change. The built-in **Motion Proto** theme is read-only, so Save
+that state off the theme, the same word it uses for an unsaved component
+change. The built-in **Motion Proto** theme is read-only, so Save
 is disabled there; use **Save As** to fold the dials into a theme of your
 own.
 
-**Save current** in the Sketch tab is a different gesture. It writes a named
-preset to `src/live-tokens/data/sketch-presets/`, a look you can pick from
-any theme. It never touches the open theme, and it never marks the look off
-the theme.
+**Save current** in the **Sketch Style** view is a different gesture. It
+writes a named preset to `src/live-tokens/data/sketch-presets/`, a look you
+can pick from any theme. It never touches the open theme, and it never marks
+the look off the theme.
 
 Sketch mode is a tool for looking at the page, not a layer the page can ship.
 The theme records the dials, but nothing bakes them: `tokens.generated.css`

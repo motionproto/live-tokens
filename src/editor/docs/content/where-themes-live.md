@@ -26,9 +26,9 @@ src/system/styles/
   fonts.css              font imports, rewritten when you Adopt
 ```
 
-A saved theme carries the whole look by value: the colors and type plus a
-setting for every component. It depends on no other file, so deleting
-anything else never breaks it.
+A saved theme carries the whole look by value: the colors and type, a
+setting for every component, and the sketch layer. It depends on no other
+file, so deleting anything else never breaks it.
 
 ## What writes when
 

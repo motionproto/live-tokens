@@ -247,9 +247,9 @@
         />
         <UIInfoPopover title="Sketch mode">
           <p>
-            An effect layer over the active theme. It reads no theme values and writes none:
-            each component's fill and outline are redrawn from the tokens that component
-            already owns, then pushed around a shared noise field.
+            An effect layer over the active theme. It repaints each component's fill and
+            outline from the tokens that component already owns, then pushes them around a
+            shared noise field. Save in the Theme panel folds the dials into the open theme.
           </p>
           <p>
             While it is on, the effect applies to the page behind this editor as well as to the

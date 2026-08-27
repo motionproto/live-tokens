@@ -151,6 +151,10 @@ describe('liveMovedSinceBake follows the gesture boundary', () => {
     liveMovedSinceBake.set(false);
   });
 
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
   it('is set by turning the effect on', () => {
     setSketchEnabled(true);
 
@@ -188,7 +192,6 @@ describe('liveMovedSinceBake follows the gesture boundary', () => {
     await selectUserSketchPreset('mine');
 
     expect(get(liveMovedSinceBake)).toBe(false);
-    vi.unstubAllGlobals();
   });
 
   it('is not set by re-enabling an effect that is already on', () => {

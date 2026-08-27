@@ -15,6 +15,9 @@
   constant, so an article does not resize itself between breakpoints. An
   `additive` tokens.css migration (`2026-08-27-editorial-large-steps`) adds both
   steps to a vendored `tokens.css`.
+
+### Changed
+
 - **A theme carries its sketch layer.** Save folds the live dials into the open
   theme's `sketch` field; Load applies whatever the theme carries, or turns the
   effect off for a theme with none. `sketch-presets/` keeps its old job: a
