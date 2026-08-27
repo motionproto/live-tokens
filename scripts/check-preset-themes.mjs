@@ -40,7 +40,7 @@ const THEME_SCHEMA_VERSION = 4;
 
 const PRESETS = [
   'autumn', 'halloween', 'midnight-study', 'ocean', 'royal-velvet',
-  'sketches', 'spring-meadow', 'sunset',
+  'sketchy', 'spring-meadow', 'sunset',
 ];
 
 const readJson = (p) => JSON.parse(readFileSync(p, 'utf8'));

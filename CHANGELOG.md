@@ -21,6 +21,34 @@
   selector to get drawn at all. The classes name no colours, so the element's
   own `--sketch-fill` / `--sketch-stroke` survive untouched.
 
+### Changed
+
+- **The `Sketches` preset theme is now `Sketchy`.** The old name read as a
+  collection of sketches rather than as the look itself, which is the one thing
+  a preset name has to do. The theme's files move to
+  `themes/sketchy.json` and `colors-and-type/sketchy.json`. Presets are served
+  read-through from the package, so a consumer who never opened it sees only the
+  new name; one whose active or production pointer names `sketches` has to
+  repoint it at `sketchy`.
+- **The editor's `Sketch` and `Colors` views are now `Sketch Style` and
+  `Color Wheel`,** and the condensed rail cycles Tokens, Components, Sketch
+  Style, Color Wheel. `Sketch` named the mode and the view identically while
+  `Colors` said less than the view does; the flow order now runs from the
+  narrowest edit to the widest.
+- **The sketch layer's contract is now documented from both sides.** The guide
+  and the component-authoring skill each described what an element has to
+  declare to be drawn, and neither said what the layer takes away from it: the
+  element's `background`, `border-color` and `box-shadow` are forced off, its
+  `overflow` is forced visible, it is given a stacking context, and both its
+  pseudo-elements are claimed. That is what decides where the opt-in class can
+  go, so a component that owned a `::before`, clipped its content or positioned
+  its root failed in a way neither document accounted for. The skill reference
+  now carries the full contract, including the icon controls, the hatch-ink
+  fallback for a part with no outline, and the `PART_SPECS` path a first-party
+  component takes instead of the reserved classes. The guide gains a short
+  section on where the dials live, since nothing said they are held in the
+  browser rather than in the theme.
+
 ### Fixed
 
 - **Sketch mode's "Drawing your own elements" section showed the custom
