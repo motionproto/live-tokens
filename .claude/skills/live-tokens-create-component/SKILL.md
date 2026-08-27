@@ -43,27 +43,27 @@ For pattern reference, read any shipped component's source directly from the con
    });
    ```
    The schema side-effect happens inside `registerComponent` (which `bootLiveTokens` calls for you), so you don't call `registerComponentSchema` separately. **Do not place a standalone `registerComponent(...)` *before* `bootLiveTokens`** — that registers before the editor's init hooks run, which is the wrong window and can leave editor changes disconnected from the live page. Only call `registerComponent` directly if your app mounts manually (no `bootLiveTokens`), in which case call it before `mount(App, ...)`.
-4. **Tell the picker** — open `.claude/skills/live-tokens-pick-component/SKILL.md` and add your new component to the **Catalogue** line under the family it belongs to (Action / Input / Selection / Containers / Messaging / Display). If it's confusable with an existing component (a second selection control, a competing container), add a row to that family's decision table explaining the use-case it owns. Without this step, the component exists but [[live-tokens-pick-component]] can't recommend it when a user asks "which component should I use?" — the same rule applies whether the component is first-party (update the picker shipped in this package) or consumer-authored (update the local copy at `.claude/skills/live-tokens-pick-component/SKILL.md` that `setup-claude` placed in your project).
+4. **Tell the picker** — open `.claude/skills/live-tokens-pick-component/SKILL.md` and add your new component to the **Catalogue** line under the family it belongs to (Action / Input / Selection / Containers / Messaging / Display). If it's confusable with an existing component (a second selection control, a competing container), add a row to that family's decision table explaining the use-case it owns. Without this step, the component exists but **live-tokens-pick-component** can't recommend it when a user asks "which component should I use?" — the same rule applies whether the component is first-party (update the picker shipped in this package) or consumer-authored (update the local copy at `.claude/skills/live-tokens-pick-component/SKILL.md` that `setup-claude` placed in your project).
 5. **Join the sketch layer** — the effect draws a fixed set of parts, so a new
    component stays crisp while the page around it goes hand-drawn until it opts
    in. A consumer component carries one of four reserved classes on its root and
-   names the five `--sketch-*` colours it is drawn with; a first-party component
+   names the five `--sketch-*` values it is drawn with; a first-party component
    adds a `PartSpec` row instead. The layer also takes `background`,
    `border-color`, `box-shadow`, `overflow`, `position` and both pseudo-elements
    away from the element it draws, which constrains where the class can go. Read
    `references/sketch-mode.md`.
-6. **Verify** with the checklist at the bottom of this file.
+6. **Verify** with the checklist at the bottom of this file, then place the component on a page with **live-tokens-build-page**.
 
 ## Token discipline
 
 ### Naming scheme
 
 ```
---<componentId>-<part>[-<state>][-<element>]-<property>
+--<componentId>-<part|variant>[-<state>][-<element>]-<property>
 ```
 
 - `componentId` — the literal id passed to `registerComponent()`. Lowercase, no dashes, no abbreviations (`segmentedcontrol` not `sc`). The file id matches: `MyWidget.svelte` → id `mywidget`.
-- `part` — sub-region (`bar`, `option`, `track`, `header`, `body`, `footer`, `overlay`, `value`, `label`).
+- `part` or `variant` — the sub-region (`bar`, `option`, `track`, `header`, `body`, `footer`, `overlay`, `value`, `label`), or, on a component whose variants differ in more than one property, the variant name: `--badge-accent-surface`, `--callout-danger-border`. A component with both stacks them outer to inner, so the bar in its small size is `--segmentedcontrol-bar-small-padding`.
 - `state` (optional) — interaction or component state (`hover`, `disabled`, `selected`, `focus`). **Always before the property.**
 - `element` (optional) — sub-element inside the part (`dot`, `icon`, `label`, `text`).
 - `property` — theme role or CSS property. Always last.

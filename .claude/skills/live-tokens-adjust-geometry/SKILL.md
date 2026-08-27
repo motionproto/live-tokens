@@ -12,7 +12,7 @@ You translate the request into a small ops file; the CLI resolves each matching 
 1. Write the ops file to `scratch/adjust-ops.json`.
 2. Run `npx live-tokens adjust scratch/adjust-ops.json`. It writes `component-configs/<id>/_working.json` for every component the ops change, which is the buffer the page already runs. `--dry-run` prints the report without writing.
 3. Read the report card: every changed alias old → new, plus skips (raw value, off the ladder, already at the ladder end, pill preserved). Exit 1 means the run was rejected; the message names the offending op or the missing input, so fix it and re-run. Read where the controls landed, not only that the run succeeded: a button, badge, input, or tab padding sitting at `--space-6` is on its floor, and one that also carries `--radius-full` wants a targeted lift.
-4. Tell the user to reload the app and look. Offer the inverse op as the undo, and say the edit is unsaved until they save the open theme.
+4. Tell the user to reload the page before saving. The editor keeps the look in the browser and writes the buffers from that copy, so a Save in a tab that was open during the run puts the pre-run shape back and the report you just showed them becomes a lie. After the reload, offer the inverse op as the undo and say the edit is unsaved until they save the open theme.
 
 Each run reads the LIVE config (buffer, else the open theme, else the shipped default), so "a bit more" and "back one" compound naturally.
 
@@ -31,7 +31,7 @@ Targeted, absolute:
 ```
 
 - `name`: ignored. Buffers are fixed slots, so a name names no file, and the CLI says it dropped one. Leave it out.
-- `target` (optional): a component id (the folder names under `src/live-tokens/data/component-configs/`). A named component targets its id: "windows" or "modals" is `dialog`, "cards" is `card`, "tabs" is `tabbar`; an unknown target is a hard error. "The UI", "everything", or no noun at all means global, so omit it.
+- `target` (optional): a component id (the folder names under `src/live-tokens/data/component-configs/`, which the Catalogue in **live-tokens-pick-component** also names in full). A named component targets its id: "windows" or "modals" is `dialog`, "cards" is `card`, "tabs" is `tabbar`; an unknown target is a hard error. "The UI", "everything", or no noun at all means global, so omit it.
 - `kind`: `radius | padding | gap | border-width`.
 - `set` or `shift`, exactly one of the two. `set` takes an existing token on that kind's ladder. `shift` is a whole number of steps, clamped at the ladder ends.
 - `full` (radius shifts only): admits `--radius-full` as the ladder's top rung. `set` plus `full` is an error, so a pill request is `set: "--radius-full"` with no `full` flag.
@@ -56,7 +56,7 @@ Magnitude words: "slightly" or "a bit" is 1 step, unqualified is 1 to 2, "much",
 
 A global op spends the same number of steps everywhere, but a step costs a control far more than a container. `padding shift: -2` takes a card from a 16px inset to 10px and it is still a card. It takes a button from 8 to 4, doubled to 8px at each end, around an 18px line. The button stops reading as a button.
 
-So a global compaction is `shift: -1`. When the brief wants more, spend the extra steps on the containers by name (`card`, `dialog`, `panel`, `sidenavigation`, `table`, `codesnippet`) and leave the controls alone. Loosening is not symmetric: airier is safe globally, because nothing breaks by growing.
+So a global compaction is `shift: -1`. When the brief wants more, spend the extra steps on the containers by name (`card`, `dialog`, `panel`, `collapsiblesection`, `sidenavigation`, `table`, `codesnippet`) and leave the controls alone. Loosening is not symmetric: airier is safe globally, because nothing breaks by growing.
 
 A pill needs the room most. `--radius-full` bends the corner in over the first and last glyph, so a capsule wants more horizontal inset than a square-cornered control, never less. `--space-8` is the floor for a large-text pill, which is where compact Midnight Study sits; the roomier pill presets (Ocean, Sunset, Royal Velvet) run `--space-10` to `--space-12`. Pair the radius op with a padding `set` on the same target, placed after any global compaction so it wins outright:
 

@@ -7,10 +7,12 @@ description: Apply the @motion-proto/live-tokens project conventions when buildi
 
 Two rules above all else:
 
-1. **Use a shipped component if one fits.** Import from `@motion-proto/live-tokens/components/<Name>.svelte`. See [[live-tokens-pick-component]] for the catalogue and the confusing-pair decisions. Author custom markup only when nothing fits, and then consider [[live-tokens-create-component]] so the new piece is editable too.
+1. **Use a shipped component if one fits.** Import from `@motion-proto/live-tokens/components/<Name>.svelte`. See **live-tokens-pick-component** for the catalogue and the confusing-pair decisions. Author custom markup only when nothing fits, and then consider **live-tokens-create-component** so the new piece is editable too.
 2. **Use theme tokens for every value.** Every color, spacing, radius, font-size, and font-family in page CSS is a `var(--token-*)`. No hex literals. No pixel literals. A change in `/live-tokens/editor` should repaint your page.
 
 For text, reach for a whole text style rather than assembling one: `--heading-xl` through `--heading-sm`, `--body-md`, `--body-sm`, `--editorial-xl` through `--editorial-sm`, `--eyebrow`, and `--code` each carry a `-font-family`, `-font-size`, `-font-weight`, `-line-height`, and `-letter-spacing`. A heading set from `--heading-lg-*` retypes when the theme's fonts change; one set from a raw `font-size` does not.
+
+Text inside a `Card` or a `CollapsibleSection` is typed by that container, not by the page: the slot pins the axes the container owns onto nested `p`, `ul`, `ol`, and `li`, so a consumer's global element rules cannot break a card's body. Pass `prose={false}` when the page should own the type instead, which is also what full-bleed media wants.
 
 ## Layout
 
@@ -33,6 +35,7 @@ To place children at specific page-column positions, span the parent grid (`grid
 - Utility classes overriding shipped components. Extend via the `/live-tokens/components` editor instead.
 - Deep imports from `node_modules/@motion-proto/live-tokens/src/...`. Use public entry points only.
 - Mounting `Editor` or `ComponentEditorPage` outside their dedicated routes.
+- A page route under `/live-tokens/*`. That namespace is reserved for the package's own dev surfaces so they can never shadow your routes; the rest of the URL space is yours.
 
 ## Verify
 

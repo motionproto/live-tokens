@@ -10,15 +10,15 @@ A theme is three decisions made from one brief: color, type, and geometry. This 
 ## Workflow
 
 1. Read the brief once and name its voice in a sentence: the mood, the hue family, the scheme, and the type and geometry that mood implies. Everything below keys off that sentence. Then read the anchor reference that matches the brief (feeling, idiom, or occasion; see below) before seeding: each entry fixes all three decisions together and overrides the generic defaults here.
-2. Translate the brief into a seed file using the framework below. Write it to `scratch/theme-brief.json`.
-3. Run `npx live-tokens generate-theme scratch/theme-brief.json`. It writes `themes/<slug>.json`, opens that theme, and prints a contrast report. Auto-corrections are fine. Unmet floors (exit 1) mean the seeds themselves are unworkable; each failure line names the seed to change, usually by raising its lightness or cutting its chroma. Fix the brief and re-run; the same name overwrites. Regeneration replaces that theme's whole color state, including palette edits made in the editor since the last run, so say so once when iterating.
+2. Translate the brief into a seed file using the framework below. Write it to `scratch/<slug>-brief.json`. Nothing else records the seeds, so this file is the only copy; one per slug is what makes the refinement pass below cheap.
+3. Run `npx live-tokens generate-theme scratch/<slug>-brief.json`. It writes `themes/<slug>.json`, opens that theme, and prints a contrast report. Auto-corrections are fine. Unmet floors (exit 1) mean the seeds themselves are unworkable; each failure line names the seed to change, usually by raising its lightness or cutting its chroma. Fix the brief and re-run; the same name overwrites. Regeneration replaces that theme's whole color state, including palette edits made in the editor since the last run, so say so once when iterating.
 4. Invoke **live-tokens-pair-fonts** with the same voice. Skip only when the user asked for colors specifically and said to leave the type alone.
 5. Invoke **live-tokens-adjust-geometry** with the geometry the voice implies (table below). Skip when the voice implies nothing about geometry.
-6. Tell the user to look at the running app, and that type and geometry sit in the unsaved buffer until they save the open theme. Offer refinements as edits to the same brief.
+6. Tell the user to look at the running app, and that type and geometry sit in the unsaved buffer until they save the open theme. Offer refinements as edits to the same brief (see Refining a theme that exists).
 
 Order matters only for safety, and the order above is safe: the color generator carries the live buffers forward into the new theme file, so a color re-roll after fonts and geometry keeps both.
 
-Flags: `--dry-run` prints the report without writing; `--no-activate` writes without opening. Opening a theme never changes what the site ships. Only Adopt, in the editor, does that.
+Flags: `--dry-run` prints the report without writing; `--no-activate` writes without opening; `--carry-from <theme>` takes the non-color content (gradients, fonts, component aliases) from a named theme rather than from the live look. Generating a set needs it: the first run becomes the live look, so a second run without it carries the first theme's fonts and geometry into the second. Opening a theme never changes what the site ships. Only Adopt, in the editor, does that.
 
 ## The brief
 
@@ -137,6 +137,12 @@ The geometry lives in radius, padding, gap, and border width, and `live-tokens-a
 | calm, minimal | leave geometry alone unless the brief says otherwise |
 
 This table is the fallback. When the brief matched an entry in the mood or style reference, take the geometry from that entry instead: it is tuned to the same reading the color came from, and a style's geometry is often targeted rather than global.
+
+## Refining a theme that exists
+
+"Warmer", "calmer", "more contrast" arrive against a theme that is already open, and the answer is a new brief rather than hand-edits. Edit `scratch/<slug>-brief.json` when it is still there. When it is not, recover the seeds: `src/live-tokens/data/themes/<slug>.json` holds each one verbatim at `colorsAndType.editorConfigs.<Palette>.baseColor` as `{l, c, h}`, and the Canvas seed's lightness tells you the scheme. Rebuild the brief from those ten values, move the dial the user named, re-run under the same name.
+
+One adjective moves one dial. Warmer and cooler rotate hue; calmer and louder move chroma; lighter, darker, and moodier move Canvas L and the scheme; more contrast widens the L gap between Canvas and Brand and takes chroma out of the ground rather than adding it to the garnish. Leave every seed the user did not name alone, because a refinement that re-rolls the whole palette reads as a different theme and loses the thing they liked.
 
 ## What each step writes
 

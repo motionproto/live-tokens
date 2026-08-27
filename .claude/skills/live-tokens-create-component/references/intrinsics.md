@@ -45,13 +45,15 @@ Declare intrinsics so the editor and the contract test stay honest:
 
    Writes go through `setComponentAlias(component, spec.variable(v), { kind: 'literal', value })` so the choice cascades to `:root` like any token.
 
-4. **Pass `intrinsics` to `registerComponent`** so the contract test can see it:
+4. **Put `intrinsics` on the registry entry** so the contract test can see it. That is the same entry the recipe passes to `bootLiveTokens`, with one more field:
 
    ```ts
-   registerComponent({
-     id: 'mywidget',
-     // ...label, icon, sourceFile, editorComponent, schema...
-     intrinsics: myWidgetIntrinsics,
+   bootLiveTokens(App, '#app', {
+     components: [{
+       id: 'mywidget',
+       // ...label, icon, sourceFile, editorComponent, schema...
+       intrinsics: myWidgetIntrinsics,
+     }],
    });
    ```
 

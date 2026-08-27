@@ -7,13 +7,11 @@ description: Recommend which shipped @motion-proto/live-tokens component fits a 
 
 This skill helps you choose between shipped components when several could plausibly fit. The catalogue is small; the hard part is semantic intent. A `RadioButton` set and a `SegmentedControl` can render identical-looking UIs but communicate different things.
 
-For composing a page once you've picked components, see [[live-tokens-build-page]]. For authoring a brand-new component when nothing fits, see [[live-tokens-create-component]] (but read this skill first to confirm nothing in the catalogue fits).
+For composing a page once you've picked components, see **live-tokens-build-page**. For authoring a brand-new component when nothing fits, see **live-tokens-create-component** (but read this skill first to confirm nothing in the catalogue fits).
 
 ## Catalogue
 
 Action: `Button`, `IconButton`, `InlineEditActions`. Input: `Input`. Selection: `SegmentedControl`, `TabBar`, `RadioButton`, `MenuSelect`, `Toggle`. Containers: `Card`, `CollapsibleSection`, `Dialog`, `Panel`. Messaging: `Callout`, `Notification`, `Tooltip`, `Badge`, `CornerBadge`. Display: `Table`, `Image`, `ImageLightbox`, `ProgressBar`, `SectionDivider`, `SideNavigation`, `CodeSnippet`.
-
-`CodeSnippet` is for a single-line command or value the user is meant to copy and paste back into a terminal (install commands, generated keys, ids). Click-to-copy with a brief "Copied" popover. Use it whenever your page asks the reader to *run* something, rather than just *read* it.
 
 ## Action family: Button vs IconButton
 
@@ -69,6 +67,15 @@ All four pick one option from a set. The right one depends on **option count**, 
 - `Tooltip` is for *what an element means*. **Don't use `Tooltip` as the primary location of important content;** it auto-dismisses and isn't accessible for must-read content.
 - `Badge` and `CornerBadge` differ only in positioning. `CornerBadge` lives at a `top-right` / `bottom-left` anchor on a parent (notification counts, "NEW" stickers).
 
+## Display family: what the page shows rather than what it asks
+
+- `Image` frames a picture in the flow at one of four sizes, with an optional hover zoom. It is the default for any picture the page simply shows.
+- `ImageLightbox` adds click-to-open at full size and takes an array for a gallery. Use it when the detail is the point (screenshots, artwork, charts that need reading), and not for decoration: it puts a modal behind every picture it wraps.
+- `Table` themes your own rows and cells without owning the data. Records go here; a set of *things the user acts on* is a stack of `Card`s instead.
+- `ProgressBar` reports progress against a labelled track. It is a read-out, never a control.
+- `CodeSnippet` is for a single-line command or value the reader is meant to copy back into a terminal (install commands, generated keys, ids), with click-to-copy and a brief "Copied" popover. Use it whenever the page asks the reader to *run* something rather than just *read* it.
+- `SectionDivider` separates sections of one page. `SideNavigation` moves between pages, driven by the current path. **Don't use `SideNavigation` to switch panels inside one page;** that is `TabBar`, and the difference is whether the URL changes.
+
 ## Toggle vs SegmentedControl vs RadioButton (for on/off)
 
 All three can express a binary choice. The right one depends on what the choice *is*.
@@ -85,4 +92,4 @@ All three can express a binary choice. The right one depends on what the choice 
 
 ---
 
-If nothing in the catalogue fits (a `Slider`, a `DatePicker`, a `Stepper`, a custom widget), author it via [[live-tokens-create-component]]. **Don't reach for a custom component before checking the catalogue;** a custom component is a maintenance commitment.
+If nothing in the catalogue fits (a `Slider`, a `DatePicker`, a `Stepper`, a custom widget), author it via **live-tokens-create-component**. **Don't reach for a custom component before checking the catalogue;** a custom component is a maintenance commitment.

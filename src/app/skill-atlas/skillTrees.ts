@@ -253,8 +253,8 @@ export const skillTrees: Record<string, SkillTree> = {
           {
             "label": "What each step writes",
             "lines": [
-              141,
-              143
+              147,
+              149
             ]
           }
         ],
@@ -279,8 +279,8 @@ export const skillTrees: Record<string, SkillTree> = {
         "title": "Verify",
         "desc": "Color CLI exits 0 with every check passing, both siblings report what they changed, the app shows the whole look after a reload. Load the named theme to go back.",
         "lines": [
-          145,
-          149
+          151,
+          155
         ]
       }
     ],
@@ -413,8 +413,8 @@ export const skillTrees: Record<string, SkillTree> = {
         "title": "Is the brief specific about voice?",
         "desc": "A vague brief, or type that should stay quiet, takes a shortcut instead of the full argument.",
         "lines": [
-          63,
-          65
+          65,
+          67
         ]
       },
       {
@@ -424,8 +424,8 @@ export const skillTrees: Record<string, SkillTree> = {
         "title": "Run the font matrix",
         "desc": "Classify each candidate on two layers: the skeleton is the form model (dynamic, rational, geometric), the flesh is stroke contrast and serif treatment.",
         "lines": [
-          33,
-          42
+          35,
+          44
         ]
       },
       {
@@ -435,8 +435,8 @@ export const skillTrees: Record<string, SkillTree> = {
         "title": "Take a shortcut",
         "desc": "A superfamily, one family across weights, one designer, or serif display over sans body when nothing else decides it.",
         "lines": [
-          63,
-          70
+          65,
+          72
         ]
       },
       {
@@ -448,29 +448,29 @@ export const skillTrees: Record<string, SkillTree> = {
           {
             "label": "Same skeleton, different flesh: reliable",
             "lines": [
-              43,
-              43
-            ]
-          },
-          {
-            "label": "Same flesh, different skeleton: the failure case",
-            "lines": [
-              44,
-              44
-            ]
-          },
-          {
-            "label": "Far apart on both: deliberate",
-            "lines": [
               45,
               45
             ]
           },
           {
-            "label": "When a face straddles",
+            "label": "Same flesh, different skeleton: the failure case",
+            "lines": [
+              46,
+              46
+            ]
+          },
+          {
+            "label": "Far apart on both: deliberate",
             "lines": [
               47,
               47
+            ]
+          },
+          {
+            "label": "When a face straddles",
+            "lines": [
+              49,
+              49
             ]
           }
         ],
@@ -483,8 +483,8 @@ export const skillTrees: Record<string, SkillTree> = {
         "title": "Check the pairing against the voice table",
         "desc": "Seven brief words map to a type voice. Match the type to the same brief the color came from: a warm autumn palette under a cold geometric sans reads as two projects.",
         "lines": [
-          49,
-          61
+          51,
+          63
         ]
       },
       {
@@ -496,35 +496,35 @@ export const skillTrees: Record<string, SkillTree> = {
           {
             "label": "x-height parity",
             "lines": [
-              74,
-              74
-            ]
-          },
-          {
-            "label": "Print faces at small sizes",
-            "lines": [
-              75,
-              75
-            ]
-          },
-          {
-            "label": "Every family is a request",
-            "lines": [
               76,
               76
             ]
           },
           {
-            "label": "Sets of themes",
+            "label": "Print faces at small sizes",
             "lines": [
               77,
               77
             ]
+          },
+          {
+            "label": "Every family is a request",
+            "lines": [
+              78,
+              78
+            ]
+          },
+          {
+            "label": "Sets of themes",
+            "lines": [
+              79,
+              79
+            ]
           }
         ],
         "lines": [
-          72,
-          72
+          74,
+          74
         ],
         "tag": "watch for"
       },
@@ -627,8 +627,8 @@ export const skillTrees: Record<string, SkillTree> = {
           {
             "label": "Type only, never color",
             "lines": [
-              79,
-              81
+              81,
+              83
             ]
           }
         ],
@@ -641,8 +641,8 @@ export const skillTrees: Record<string, SkillTree> = {
         "title": "Verify",
         "desc": "CLI exits 0 naming each stack before and after, each URL reflects the family's real weights, the app shows the new type after a reload. Revert with the inverse brief.",
         "lines": [
-          83,
-          88
+          85,
+          90
         ]
       }
     ],
@@ -1156,7 +1156,7 @@ export const skillTrees: Record<string, SkillTree> = {
         "desc": "Six families across twenty-odd shipped components. CodeSnippet gets its own note: use it whenever the page asks the reader to run something rather than just read it.",
         "lines": [
           12,
-          16
+          14
         ]
       },
       {
@@ -1178,8 +1178,8 @@ export const skillTrees: Record<string, SkillTree> = {
         "title": "Is the glyph self-evident?",
         "desc": "Button carries a label. IconButton is icon-only and square, with no text slot, so an ariaLabel is required. InlineEditActions is the confirm-and-cancel pair, used rather than two loose IconButtons so every inline edit resolves the same way.",
         "lines": [
-          18,
-          25
+          16,
+          23
         ]
       },
       {
@@ -1190,8 +1190,8 @@ export const skillTrees: Record<string, SkillTree> = {
         "title": "Count, page-change, weight",
         "desc": "TabBar implies \"this changes the page\"; SegmentedControl implies \"one knob among others\". RadioButton when labels deserve room, MenuSelect when options would overflow. Labels long enough to wrap disqualify SegmentedControl.",
         "lines": [
-          27,
-          41
+          25,
+          39
         ]
       },
       {
@@ -1202,8 +1202,8 @@ export const skillTrees: Record<string, SkillTree> = {
         "title": "What is the modality?",
         "desc": "Default to Card, the workhorse. CollapsibleSection only when the content is legitimately secondary. Panel is a stage, not a content container. Dialog only when the page cannot meaningfully continue.",
         "lines": [
-          43,
-          55
+          41,
+          53
         ]
       },
       {
@@ -1214,8 +1214,8 @@ export const skillTrees: Record<string, SkillTree> = {
         "title": "Content, feedback, or hint?",
         "desc": "Callout is content, written into the markup. Notification is feedback, appearing then dismissing. Tooltip is what an element means, and never the primary location of important content. Badge and CornerBadge differ only in positioning.",
         "lines": [
-          57,
-          70
+          55,
+          68
         ]
       },
       {
@@ -1226,8 +1226,8 @@ export const skillTrees: Record<string, SkillTree> = {
         "title": "A setting, or two named alternatives?",
         "desc": "If the off and on states share a name, it is a Toggle. If the two states have names you want compared, SegmentedControl. Toggle flips immediately; a RadioButton pair belongs to a larger submission.",
         "lines": [
-          72,
-          84
+          79,
+          91
         ]
       },
       {
@@ -1237,8 +1237,8 @@ export const skillTrees: Record<string, SkillTree> = {
         "title": "Does anything in the catalogue fit?",
         "desc": "A custom component is a maintenance commitment. Do not reach for one before checking.",
         "lines": [
-          86,
-          88
+          93,
+          95
         ]
       },
       {
@@ -1259,8 +1259,8 @@ export const skillTrees: Record<string, SkillTree> = {
         "title": "Author it: create-component",
         "desc": "A Slider, a DatePicker, a Stepper, a custom widget.",
         "lines": [
-          88,
-          88
+          95,
+          95
         ]
       }
     ],
@@ -1403,8 +1403,8 @@ export const skillTrees: Record<string, SkillTree> = {
         "title": "Sit the page inside the column grid",
         "desc": "--columns-count, --columns-gutter, --columns-max-width. To place children at page-column positions, span the parent grid and redeclare repeat(var(--columns-count), 1fr). Never fabricate a local repeat(N, 1fr): the widths drift and the numbers stop matching ColumnsOverlay.",
         "lines": [
-          15,
-          19
+          17,
+          21
         ]
       },
       {
@@ -1414,8 +1414,8 @@ export const skillTrees: Record<string, SkillTree> = {
         "title": "How does this app wire routes?",
         "desc": "Add the route the way App.svelte already does. Either way use lazy, never a static top-level import: static imports evaluate every page module at boot and leak page CSS into the editor routes.",
         "lines": [
-          21,
-          26
+          23,
+          28
         ]
       },
       {
@@ -1425,8 +1425,8 @@ export const skillTrees: Record<string, SkillTree> = {
         "title": "LiveTokensRouter",
         "desc": "Add a pages entry as lazy: () => import('./YourPage.svelte') with a source: 'src/...'. For a route you cannot enumerate, add a resolve(path) instead; same entry shape.",
         "lines": [
-          24,
-          24
+          26,
+          26
         ]
       },
       {
@@ -1436,8 +1436,8 @@ export const skillTrees: Record<string, SkillTree> = {
         "title": "Manual LiveEditorOverlay",
         "desc": "Dispatch with $derived.by(() => import(...)) and register the route's source in pageSources.",
         "lines": [
-          25,
-          25
+          27,
+          27
         ]
       },
       {
@@ -1447,8 +1447,8 @@ export const skillTrees: Record<string, SkillTree> = {
         "title": "Import site.css from each page",
         "desc": "From the page's script block, never from main.ts, which would leak into editor routes.",
         "lines": [
-          27,
-          27
+          29,
+          29
         ]
       },
       {
@@ -1460,42 +1460,42 @@ export const skillTrees: Record<string, SkillTree> = {
           {
             "label": "Hex or pixel literals",
             "lines": [
-              31,
-              31
-            ]
-          },
-          {
-            "label": "Hardcoded column counts",
-            "lines": [
-              32,
-              32
-            ]
-          },
-          {
-            "label": "Utility classes over components",
-            "lines": [
               33,
               33
             ]
           },
           {
-            "label": "Deep node_modules imports",
+            "label": "Hardcoded column counts",
             "lines": [
               34,
               34
             ]
           },
           {
-            "label": "Editor mounted off its route",
+            "label": "Utility classes over components",
             "lines": [
               35,
               35
             ]
+          },
+          {
+            "label": "Deep node_modules imports",
+            "lines": [
+              36,
+              36
+            ]
+          },
+          {
+            "label": "Editor mounted off its route",
+            "lines": [
+              37,
+              37
+            ]
           }
         ],
         "lines": [
-          29,
-          29
+          31,
+          31
         ],
         "tag": "avoid"
       },
@@ -1506,8 +1506,8 @@ export const skillTrees: Record<string, SkillTree> = {
         "title": "Verify",
         "desc": "Change a colour in the editor and confirm the page repaints, which proves token usage. The overlay's Page Source button proves the route's source. Cmd+G shows content inside --columns-max-width.",
         "lines": [
-          37,
-          39
+          40,
+          42
         ]
       }
     ],

@@ -11,8 +11,8 @@ You choose the families; the CLI verifies each against Google Fonts, builds the 
 
 1. Choose the pairing with the framework below and write a brief to `scratch/font-brief.json`.
 2. Run `npx live-tokens set-fonts scratch/font-brief.json`. It prints each stack that moved, each family's real weights and URL, and the weights your typography tokens ask for that the family lacks.
-3. Read the report. A weight gap is a quality note: name it and offer an alternative only if it matters (a body face without 400 or 700 matters; a display face without 300 does not). A family not on Google Fonts fails the run; fix the spelling and re-run.
-4. Tell the user to reload and look, and that the edit is unsaved until they save the open theme.
+3. Read the report. A weight gap is a quality note: name it and offer an alternative only if it matters (a body face without 400, 700, or italic matters; a display face without 300 does not). A family not on Google Fonts fails the run; fix the spelling and re-run.
+4. Tell the user to reload the editor page before saving. A running editor holds its own copy of the buffer this CLI just wrote and never re-reads it, so a Save without a reload writes the stale copy back and the pairing vanishes with a success report still on screen. After the reload the type is on the page, and unsaved until they save the open theme.
 
 State your reasoning when you propose the pairing: each face's form model and the matrix verdict, in one sentence, so the user can argue with the argument rather than only the result.
 
@@ -29,6 +29,8 @@ Every slot is optional and an omitted slot is left exactly as it is. `display` i
 ## Choose the body face first
 
 The body face is the anchor. It carries most of the words, and text faces survive small sizes where display faces do not. Pick it against the brief, then pick the display face against it. A body face must have regular, bold, and italic; low to moderate stroke contrast; open apertures; and a large x-height. A face failing any of these is a display face whatever its name says. Single-weight families are fine for `display` and disqualifying for `body`.
+
+The shipped text styles ask the display face for 600, across all four heading levels, and the body face for 400; prose markup adds 700 and italic for `strong` and `em`. Screen candidates against those four before running, so the report confirms a decision instead of reporting a surprise.
 
 ## The font matrix: the decision rule
 
@@ -78,7 +80,7 @@ These find an adequate pairing fast and skip the reasoning; use them when the br
 
 ## Scope
 
-Type only. Color, component aliases, shape, and the type scale are untouched: `set-fonts` moves families between stacks and nothing else, writing only the unsaved colors-and-type buffer. Save the theme to keep it, Adopt to ship it.
+Type only. Color, component aliases, shape, and the type scale are untouched: `set-fonts` moves families between stacks and nothing else, writing only the unsaved colors-and-type buffer. Save the theme to keep it, Adopt to ship it. Adopt is also what rewrites `fonts.css`, which is how a build with no editor in it loads the family at all.
 
 ## Verify
 
