@@ -4,6 +4,7 @@
   "createdAt": "2026-05-26T02:03:38.863Z",
   "updatedAt": "2026-05-30T11:49:02.844Z",
   "aliases": {
+    "--imagelightbox-tile-surface": "--color-transparent",
     "--imagelightbox-tile-radius": "--radius-2xl",
     "--imagelightbox-tile-border": "--color-transparent",
     "--imagelightbox-tile-border-width": "--border-width-0",

@@ -90,6 +90,11 @@
       "svelte": "./src/editor/docs/Docs.svelte",
       "default": "./src/editor/docs/Docs.svelte"
     },
+    "./backdrop": {
+      "svelte": "./src/system/backdrop/index.ts",
+      "types": "./src/system/backdrop/index.ts",
+      "default": "./src/system/backdrop/index.ts"
+    },
     "./components/*": {
       "svelte": "./src/system/components/*",
       "default": "./src/system/components/*"

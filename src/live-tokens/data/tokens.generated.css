@@ -347,3 +347,8 @@
   --font-mono: "fira-code", ui-monospace, "SF Mono", Menlo, Consolas, monospace, monospace;
   --font-editorial: "Manrope", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif, sans-serif;
 }
+
+/* Page polarity, from --page-bg */
+:where(:root) {
+  color-scheme: dark;
+}

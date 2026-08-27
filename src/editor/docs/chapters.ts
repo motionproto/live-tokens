@@ -16,6 +16,7 @@ export const chapters: Chapter[] = [
   { id: 'sketch-mode',         title: 'Sketch mode' },
   { id: 'themes-workflow',     title: 'Themes' },
   { id: 'where-themes-live',   title: 'Where themes live' },
+  { id: 'light-and-dark',      title: 'Light and dark' },
   { id: 'creating-components', title: 'Creating components' },
 ];
 

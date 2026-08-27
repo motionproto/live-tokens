@@ -15,6 +15,7 @@ import {
 } from '../src/editor/core/palettes/paletteDerivation';
 import { migratePaletteColorsToOklch } from '../src/editor/core/themes/migrations/2026-07-21-palette-oklch-basis';
 import { CURRENT_COMPONENT_SCHEMA_VERSION } from '../src/editor/core/themes/migrations';
+import { polarityOfBackground } from '../src/system/backdrop/backdrop';
 import {
   versionedFileResourceServer,
   type VersionedFileResourceServer,
@@ -407,6 +408,7 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
     // Section 1: production colors-and-type overrides (palette ramps, font stacks, custom vars).
     const colorsAndTypeData = productionTheme?.colorsAndType as any;
     let colorsAndTypeVarCount = 0;
+    let pageBackground = '';
     if (colorsAndTypeData) {
       const cssVars: Record<string, string> = { ...(colorsAndTypeData.cssVariables || {}) };
       // On-disk JSON is a pre-basis (hex or already-numeric) input; convert
@@ -416,6 +418,7 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
       for (const [name, value] of Object.entries(resolvedFontVars)) {
         cssVars[name] = value;
       }
+      pageBackground = cssVars['--page-bg'] ?? '';
       colorsAndTypeVarCount = Object.keys(cssVars).length;
       if (colorsAndTypeVarCount > 0) {
         lines.push(`/* Production theme: ${productionThemeName} */`);
@@ -423,6 +426,25 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
         for (const [name, value] of Object.entries(cssVars)) {
           lines.push(`  ${name}: ${value};`);
         }
+        lines.push('}');
+        lines.push('');
+      }
+    }
+
+    // Section 1b: the theme's own polarity. `--page-bg` is the only thing that
+    // says which way a look leans — no saved theme records it — so the scheme
+    // is measured from it here and baked, rather than probed at runtime with a
+    // flash of the wrong half. `light-dark()` anywhere on the page answers to
+    // this; a section that states its own `data-backdrop` overrides it.
+    {
+      const polarity = pageBackground ? polarityOfBackground(pageBackground) : null;
+      if (polarity) {
+        // Zero specificity on purpose: this is the answer at first paint, and a
+        // `data-backdrop` stamp — the editor switching themes live, a section
+        // stating its own tone — has to outrank it.
+        lines.push(`/* Page polarity, from --page-bg */`);
+        lines.push(':where(:root) {');
+        lines.push(`  color-scheme: ${polarity};`);
         lines.push('}');
         lines.push('');
       }

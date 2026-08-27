@@ -1,5 +1,39 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+- **One answer to "is this surface light or dark".** A wordmark drawn in white
+  disappears on a pale theme, ink that multiplies onto paper vanishes on a dark
+  one, and a headline over a photograph is on a dark ground whatever the palette
+  says. Every one of those needs the same fact, and every one of them was
+  answering it for itself: a luminance probe here, a `--page-bg` poll there, a
+  hand-picked token pair somewhere else. `@motion-proto/live-tokens/backdrop`
+  answers it once. `data-backdrop` is the single channel — state it in markup
+  where the surface knows its own tone, or let `use:backdrop` measure what
+  actually paints and stamp it — and `tokens.css` turns the attribute into
+  `color-scheme`, so `light-dark()` under it resolves the half that reads. The
+  module also answers in JavaScript, for a canvas, a WebGL uniform, or an image
+  that comes in two versions: `isLightBackdrop`, `watchBackdrop`, `polarityOf`,
+  `contrastTokenFor`, and `cssColorToHex`. A new guide chapter, **Light and
+  dark**, covers the whole of it.
+- **A theme's own polarity is baked, not probed.** Nothing in a saved theme
+  recorded whether it was light or dark — the generator takes `scheme` as a
+  brief and throws it away — so anything that needed to know had to measure at
+  runtime and repaint. `tokens.generated.css` now carries a `color-scheme`
+  measured from the production theme's `--page-bg`, at zero specificity: it is
+  the answer at first paint, and any `data-backdrop` stamp — the editor
+  switching themes live, a section stating its own tone — outranks it.
+
+- **`ImageLightbox` has a tile fill.** A diagram drawn in light ink, or any
+  cut-out with a transparent ground, disappeared into a light page: the tile is
+  exactly the image's own box, so nothing stood behind the art to separate it
+  from the section. `--imagelightbox-tile-surface` paints behind the image on
+  the closed tile and the opened stage alike, inside the radius and border the
+  tile already carries. It takes any fill the editor offers, solid or gradient,
+  and defaults to none, so every existing lightbox renders as it did.
+
 ## 0.60.1 — A drawn heading is type, not an icon
 
 ### Fixed

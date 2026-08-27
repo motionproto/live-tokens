@@ -35,7 +35,7 @@
 <script lang="ts">
   import MenuSelect from './MenuSelect.svelte';
   import { SvelteMap } from 'svelte/reactivity';
-  import { contrastTokenForBackground } from '../internal/backgroundContrast';
+  import { contrastTokenForBackground } from '../backdrop';
   // `.ftt-tag` is hand-rolled (not Badge) so editing badge-* tokens doesn't
   // repaint the playground. The dropdown uses MenuSelect on purpose.
   import './FloatingTokenTags.css';

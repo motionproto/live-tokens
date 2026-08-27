@@ -3204,6 +3204,7 @@
       "createdAt": "2026-05-26T02:03:38.863Z",
       "updatedAt": "2026-08-19T22:39:32.785Z",
       "aliases": {
+        "--imagelightbox-tile-surface": "--color-transparent",
         "--imagelightbox-tile-radius": "--radius-3xl",
         "--imagelightbox-tile-border": "--color-transparent",
         "--imagelightbox-tile-border-width": "--border-width-0",

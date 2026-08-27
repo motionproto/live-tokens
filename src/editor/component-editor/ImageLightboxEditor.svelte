@@ -8,6 +8,7 @@
   // for the interactive controls. No second variant.
   const states: Record<string, Token[]> = {
     tile: [
+      { label: 'fill color',    groupKey: 'surface', variable: '--imagelightbox-tile-surface' },
       { label: 'corner radius', groupKey: 'radius', variable: '--imagelightbox-tile-radius' },
       { label: 'border color',  groupKey: 'border', variable: '--imagelightbox-tile-border' },
       { label: 'border width',  groupKey: 'width',  variable: '--imagelightbox-tile-border-width' },
@@ -50,7 +51,7 @@
 <ComponentEditorBase
   {component}
   title="Image Lightbox"
-  description="Click an inline image to expand it into a centered modal with a backdrop. Pass multiple images for a gallery (chevrons + counter). Extended mode adds zoom controls and drag panning. `shadow` picks where the one tile-shadow token falls: `box` casts it from the tile rectangle, `content` from the image's own alpha, or `none`."
+  description="Click an inline image to expand it into a centered modal with a backdrop. Pass multiple images for a gallery (chevrons + counter). Extended mode adds zoom controls and drag panning. `shadow` picks where the one tile-shadow token falls: `box` casts it from the tile rectangle, `content` from the image's own alpha, or `none`. The tile fill sits behind the image in both states: none by default, so cut-out art floats on the page, and any fill you set frames it instead."
   tokens={allTokens}
 >
   <VariantGroup name="imagelightbox" title="Image Lightbox" {states} {component}>

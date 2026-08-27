@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { contrastTokenForBackground } from './backgroundContrast';
+import { contrastTokenForBackground } from './backdrop';
 
 describe('contrastTokenForBackground', () => {
   it('uses white on dark page backgrounds', () => {

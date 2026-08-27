@@ -6,6 +6,26 @@
   font-family: var(--font-sans);
 }
 
+/* BACKDROP POLARITY — one attribute says which way a surface leans. State it
+   in markup (`<section data-backdrop="dark">`) or let `use:backdrop` measure
+   and stamp it. Either way `light-dark()` inside resolves the right half, and
+   a rule can key on the attribute for what colour alone cannot carry. */
+
+[data-backdrop='light'] {
+  color-scheme: light;
+}
+
+[data-backdrop='dark'] {
+  color-scheme: dark;
+}
+
+/* The look this file ships is dark. Zero specificity: it is the answer before
+   a theme is baked and before `use:backdrop` has measured anything, and it
+   must lose to both. */
+:where(:root) {
+  color-scheme: dark;
+}
+
 :root {
   /* Invariants. Never themed; not part of any ramp. */
   --color-white: oklch(1 0 0);

@@ -630,7 +630,7 @@
       class="image-lightbox-stage"
       class:shadow-box={shadow === 'box'}
       class:shadow-content={shadow === 'content'}
-      role="presentation"
+        role="presentation"
       tabindex="-1"
       onclick={onStageClick}
       onpointerdown={onPointerDown}
@@ -729,6 +729,7 @@
 <style>
   :global(:root) {
     /* thumbnail (closed inline) + animated modal stage */
+    --imagelightbox-tile-surface:          var(--color-transparent);
     --imagelightbox-tile-radius:           var(--radius-2xl);
     --imagelightbox-tile-border:           var(--color-transparent);
     --imagelightbox-tile-border-width:     var(--border-width-0);
@@ -759,7 +760,7 @@
     cursor: zoom-in;
     border: var(--imagelightbox-tile-border-width) solid var(--imagelightbox-tile-border);
     border-radius: var(--imagelightbox-tile-radius);
-    background: transparent;
+    background: var(--imagelightbox-tile-surface);
     overflow: hidden;
     transition: transform 250ms ease;
   }
@@ -818,7 +819,7 @@
     cursor: zoom-out;
     border: var(--imagelightbox-tile-border-width) solid var(--imagelightbox-tile-border);
     border-radius: var(--imagelightbox-tile-radius);
-    background: transparent;
+    background: var(--imagelightbox-tile-surface);
   }
 
   .image-lightbox-clip {

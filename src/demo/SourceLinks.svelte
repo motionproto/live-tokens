@@ -1,7 +1,7 @@
 <script lang="ts">
   import npmLogoUrl from '../system/assets/npm-mark-white.svg';
   import githubLogoUrl from '../system/assets/github-mark-white.svg';
-  import { contrastTokenForBackground } from '../system/internal/backgroundContrast';
+  import { contrastTokenForBackground } from '../system/backdrop';
 
   let { compact = false }: { compact?: boolean } = $props();
 
