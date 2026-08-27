@@ -39,6 +39,28 @@ describe('mask field', () => {
     expect(field.some((v) => v < 0.01)).toBe(false);
   });
 
+  // Clamping to the handles instead of stretching into them makes Min the value
+  // most of the field sits AT, since the field arrives centred on its own
+  // middle: a floor of 0.62 came out as a flat 62% wash with a thin bright tail
+  // rather than as a surface with texture on it.
+  it('stretches the field into the handles rather than cutting it off there', () => {
+    const settings = { ...flat, maskOutputMin: 0.2, maskOutputMax: 0.8 };
+    const { field: raw } = buildMaskField(settings, 9, 'noise');
+    const { field } = buildMaskField(settings, 9, 'output');
+    for (let i = 0; i < raw.length; i++) expect(field[i]).toBeCloseTo(0.2 + raw[i] * 0.6, 6);
+    // The median of a centred field lands mid-range, not on the floor.
+    const sorted = Float32Array.from(field).sort();
+    expect(sorted[sorted.length >> 1]).toBeGreaterThan(0.4);
+  });
+
+  // Posterising ran after the levels and quantised the floor back down to
+  // black, so a fill with a floor well clear of bare still came out in holes.
+  it('holds the floor through the posterising', () => {
+    const { field } = buildMaskField(
+      { ...flat, maskOutputMin: 0.3, maskOutputMax: 1, maskPosterize: 3 }, 9, 'output');
+    expect(Math.min(...field)).toBeCloseTo(0.3, 6);
+  });
+
   it('flattens to a wash as the levels close up', () => {
     const { field } = buildMaskField({ ...flat, maskOutputMin: 0.6, maskOutputMax: 0.6 }, 9, 'output');
     expect(field.every((v) => Math.abs(v - 0.6) < 1e-6)).toBe(true);
@@ -89,4 +111,24 @@ describe('mask field', () => {
     expect(png[24]).toBe(8); // bit depth
     expect(png[25]).toBe(0); // greyscale, which is what mask-mode:luminance reads
   });
+});
+
+// Only Dry marker is allowed to tear through: everywhere else the fill is a
+// texture over an unbroken surface, and a bare patch reads as a hole in the
+// component rather than as ink.
+describe('preset coverage', () => {
+  for (const [name, preset] of Object.entries(SKETCH_PRESETS)) {
+    if (!preset.maskOn) continue;
+    it(`${name} keeps the fill${name === 'dry' ? ' except where it tears' : ''}`, () => {
+      const { field } = buildMaskField(preset, 9);
+      const bare = field.reduce((n, v) => n + (v < 0.05 ? 1 : 0), 0) / field.length;
+      if (name === 'dry') {
+        expect(bare).toBeGreaterThan(0.05);
+        expect(bare).toBeLessThan(0.3);
+      } else {
+        expect(bare).toBe(0);
+        expect(Math.min(...field)).toBeGreaterThan(0.3);
+      }
+    });
+  }
 });

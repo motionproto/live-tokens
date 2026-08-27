@@ -26,6 +26,12 @@ const ID = 'lt-sketch';
     identical twins, which is the single biggest tell that it is not hand drawn. */
 const SEEDS = [0, 1, 2, 3, 4];
 
+/** The soft glyph bank, as a share of the icon travel. Travel is stated in px
+    against a glyph whose size the layer cannot know, so the dial that suits a
+    card's worth of artwork tears a 16px icon apart. An element that cannot take
+    the full amount names this bank instead of going crisp. */
+const ICON_SOFT = 0.35;
+
 const HATCH_ANGLE = 45;
 /** The second set of stripes leans and spaces itself a little off the first.
     Half a pixel of pitch against 7 puts the beat about 90px apart, and the two
@@ -438,7 +444,8 @@ export function buildDefsMarkup(s: SketchSettings): string {
     // Icons are glyphs a few tens of pixels across, read at a glance, with no
     // redundancy to lose. A high-frequency field at a small amplitude wobbles
     // the outline without pulling a stroke off the shape it belongs to.
-    displace(`${ID}-icon-${seed}`, base / s.iconWavelength, seed + 63, s.iconTravel, 40, 0, 0),
+    displace(`${ID}-icon-${seed}`, base / s.iconWavelength, seed + 63, s.iconTravel, 40, 0, 0) +
+    displace(`${ID}-icon-soft-${seed}`, base / s.iconWavelength, seed + 63, s.iconTravel * ICON_SOFT, 40, 0, 0),
   ).join('');
 
   // Ink pooling. Blur spreads the stroke, then a steep alpha ramp re-sharpens
@@ -651,6 +658,10 @@ export function buildStylesheet(s: SketchSettings): string {
       `--sketch-stroke-filter:url(#${ID}-stroke-0);` +
       `--sketch-mask:${s.maskOn || s.iconMaskOn ? buildMaskUri(s) : 'none'};` +
       `--sketch-mask-tile:${MASK_TILE}px;` +
+      `--sketch-icon-mask-tile:${Math.round(s.iconMaskScale * 100)}%;` +
+      // Named here rather than on the icons themselves, so an ancestor asking
+      // for the soft bank resolves it against a value it can actually see.
+      `--sketch-icon-soft:url(#${ID}-icon-soft-0);` +
       `--sketch-jit-x-base:${s.jitterX}px;` +
       `--sketch-jit-y-base:${s.jitterY}px;` +
       `--sketch-jit-rot-base:${s.jitterRot}deg;` +
@@ -668,15 +679,14 @@ export function buildStylesheet(s: SketchSettings): string {
    * that element's own origin and sampled at a different offset per instance,
    * so two parts the same size are not blotched alike.
    *
-   * `mask-clip: no-clip` is load-bearing on the fill. A mask clips what it masks
-   * to the border box by default, and the shadow the fill casts lies outside
-   * that box, so switching coverage on took every shadow with it. Unclipped, the
-   * tile runs on over the shadow and thins it where the ink beside it is thin,
-   * which is what ink that is not there would do.
+   * `mask-clip: no-clip` asks for the painting area not to be restricted, which
+   * is what a layer the filter has already carried outside its own box needs.
+   * Chrome does not honour it — see `bleed` below, which is what actually keeps
+   * the drawn edge off the border box.
    */
-  const coverage = (tile: string, pos: string) =>
+  const coverage = (size: string, pos: string) =>
     `mask-image:var(--sketch-mask, none);` +
-    `mask-size:${tile} ${tile};` +
+    `mask-size:${size};` +
     `mask-mode:luminance;mask-repeat:repeat;mask-clip:no-clip;` +
     `mask-position:var(${pos}, 0 0);`;
 
@@ -684,11 +694,13 @@ export function buildStylesheet(s: SketchSettings): string {
   // than through a redrawn ::before. Body type is deliberately left alone: an
   // icon is a shape and survives a wobble, a paragraph is not.
   //
-  // `--sketch-icon-off` is the opt-out. It inherits, so any chrome that lives
-  // in the host document (the overlay bar) sets it once on its own root and
-  // every icon under it resolves to `none` regardless of specificity.
-  // `svg` covers inline artwork the same way. The injected filter bank is
-  // itself an svg in the body, so it has to be excluded or it filters itself.
+  // `--sketch-icon-off` names what to draw a subtree's glyphs with instead:
+  // `none` keeps them crisp, `var(--sketch-icon-soft)` draws them at a fraction
+  // of the travel. It inherits, so any chrome that lives in the host document
+  // (the overlay bar) sets it once on its own root and every icon under it
+  // follows regardless of specificity. `svg` covers inline artwork the same
+  // way. The injected filter bank is itself an svg in the body, so it has to be
+  // excluded or it filters itself.
   const iconSel = `[class*="fa-"], svg:not([${DEFS_ATTR}])`;
   const iconsOn = s.iconTravel > 0 || s.iconMaskOn;
   const icons = iconsOn
@@ -697,14 +709,24 @@ export function buildStylesheet(s: SketchSettings): string {
           ? `filter:var(--sketch-icon-off, var(--sketch-icon-filter, url(#${ID}-icon-0)));`
           : '') +
         // The ink mask reads as coverage on a glyph the way it does on a fill,
-        // but the component tile is hundreds of px across: a whole icon would
-        // sample one patch of it and either survive intact or disappear. A
-        // tile near icon size puts several blotches across each glyph.
-        (s.iconMaskOn ? coverage(`${s.iconMaskTile}px`, '--sketch-icon-mask-pos') : '') +
+        // but the fill states its tile in px and a glyph has no fixed size to
+        // state one against: the component tile is hundreds of px across, so a
+        // whole icon sampled one flat patch of it and came out either untouched
+        // or gone.
+        //
+        // The glyph is the unit instead. A percentage resolves against the
+        // element the mask is laid on, so the tile scales with whatever it
+        // covers and the dial reads the same on a 16px icon as on a page-wide
+        // drawing. `auto` on the other axis keeps the tile square.
+        (s.iconMaskOn
+          ? coverage('auto var(--sketch-icon-mask-tile)', '--sketch-icon-mask-pos')
+          : '') +
       `}` +
       SEEDS.map((seed, i) =>
         `${on} :is(${iconSel}):nth-child(5n + ${i + 1})` +
-          `{--sketch-icon-filter:url(#${ID}-icon-${seed});--sketch-icon-mask-pos:${MASK_POS[i]};}`,
+          `{--sketch-icon-filter:url(#${ID}-icon-${seed});` +
+          `--sketch-icon-soft:url(#${ID}-icon-soft-${seed});` +
+          `--sketch-icon-mask-pos:${MASK_POS[i]};}`,
       ).join('')
     : '';
 
@@ -721,6 +743,46 @@ export function buildStylesheet(s: SketchSettings): string {
   const corners = s.cornerSpread > 0
     ? `border-radius:${[1, 2, 3, 4].map(cornerRadius).join(' ')};`
     : 'border-radius:inherit;';
+
+  /**
+   * How far past its own box the fill layer is drawn on.
+   *
+   * A mask is applied AFTER the filter, and its painting area stops at the
+   * border box whatever `mask-clip` says: Chrome accepts `no-clip`, computes it
+   * back, and clips anyway. Every pixel the displacement pushed outside the box
+   * was erased along a straight rectangle, and because `jitterScale` grows each
+   * fill one-sidedly the drawn shape always covered its own box — so what
+   * survived was the box itself, ruler-straight with perfectly circular
+   * corners, under a stroke that wobbled freely because it carries no mask.
+   *
+   * The fill is drawn on a box this much larger instead, with the paint held to
+   * the middle of it, so the mask's painting area covers everything the pen laid
+   * down. Only what the FILTER moves has to fit: the jitter transform runs after
+   * the mask and carries the finished layer whole.
+   */
+  const bleed = s.maskOn ? Math.ceil(s.cornerTravel + s.fillTravel) + 4 : 0;
+
+  /** Padding subtracts from a corner, so the bleed added here comes back off at
+      the content box and the paint turns exactly where it did before. The
+      inherit is spent at this point: a bleeding fill has to state its corners,
+      and `--sketch-radius` is what it states them from. */
+  const fillCorners = bleed === 0
+    ? corners
+    : `border-radius:${s.cornerSpread > 0
+      ? [1, 2, 3, 4].map((i) => `calc(${cornerRadius(i)} + ${bleed}px)`).join(' ')
+      : `calc(var(--sketch-radius, 0px) + ${bleed}px)`};`;
+
+  /** Grow the box, hold the paint to the middle of it. `content-box` sizing
+      keeps the content area at the element's own size, which a rule two pixels
+      tall cannot do under `border-box`; the two `auto`s are for Button, whose
+      shimmer ::before states `width: 100%` and would otherwise pin the grown box
+      back to the element. `background` is a shorthand and resets both box
+      properties, so `bleedPaint` follows every declaration of it. */
+  const bleedBox = bleed === 0
+    ? 'inset:0 !important;'
+    : `inset:-${bleed}px !important;padding:${bleed}px;box-sizing:content-box;` +
+      `width:auto !important;height:auto !important;`;
+  const bleedPaint = bleed === 0 ? '' : 'background-origin:content-box;background-clip:content-box;';
 
   const host =
     `${el}{` +
@@ -754,12 +816,17 @@ export function buildStylesheet(s: SketchSettings): string {
   // effect is switched on, because `left` animates from -100% to 0.
   const fill =
     `${el}::before{` +
-      `content:'';position:absolute;inset:0 !important;transition:none !important;` +
-      `z-index:-1;${corners}` +
+      `content:'';position:absolute;${bleedBox}transition:none !important;` +
+      `z-index:-1;${fillCorners}` +
       `background:var(--sketch-fill, var(--surface-neutral-lower));` +
-      `box-shadow:var(--sketch-shadow, none);` +
+      bleedPaint +
+      // A shadow is cast from the border box, and the bleed is not where the
+      // drawing is. The five parts that name one (card, dialog, menu, table,
+      // tooltip) go without while coverage is on rather than wear a halo the
+      // width of the bleed; every other part's token is --shadow-none anyway.
+      (bleed === 0 ? 'box-shadow:var(--sketch-shadow, none);' : '') +
       `filter:var(--sketch-fill-filter);` +
-      (s.maskOn ? coverage('var(--sketch-mask-tile)', '--sketch-mask-pos') : '') +
+      (s.maskOn ? coverage('var(--sketch-mask-tile) var(--sketch-mask-tile)', '--sketch-mask-pos') : '') +
       `transform:translate(` +
         `calc(var(--sketch-jx, 0) * var(--sketch-jit-x, 0px)),` +
         `calc(var(--sketch-jy, 0) * var(--sketch-jit-y, 0px))` +
@@ -799,6 +866,7 @@ export function buildStylesheet(s: SketchSettings): string {
         `${hatchInk('1')} 0 1.5px,` +
         `transparent 1.5px 7px),` +
       `var(--sketch-fill, var(--surface-neutral-lower));` +
+      bleedPaint +
     `}`;
 
   // A translucent nib. The retrace pass below overlaps this one, so where both

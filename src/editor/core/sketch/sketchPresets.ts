@@ -109,10 +109,15 @@ export interface SketchSettings {
   iconWavelength: number;
   /** Ink coverage over icons. Independent of `maskOn`, which governs fills. */
   iconMaskOn: boolean;
-  /** Icon mask tile, in px. Near glyph size puts several blotches across one
-      icon; at the fill's tile size a whole icon samples a single patch and
-      either survives intact or vanishes. */
-  iconMaskTile: number;
+  /** Icon mask tile, as a share of the glyph it covers. A px size cannot be
+      right for both a 16px icon and a page-wide illustration: the tile that
+      blotches the drawing swallows the icon whole, and one cut for the icon
+      is dust on the drawing. Stated against the glyph, the tile scales with
+      whatever it is laid on. At 1 every glyph gets one period of the field
+      across it; below that the field repeats inside the glyph and the blotches
+      get finer; above it a glyph reads part of a blotch and the mask acts as
+      an uneven wash over the whole thing. */
+  iconMaskScale: number;
 }
 
 const base: SketchSettings = {
@@ -122,11 +127,11 @@ const base: SketchSettings = {
   strokeWidth: 1.5, doubleStroke: false, retraceOffset: 1.2, retracePass: 'copy',
   fillStyle: 'solid', hatchInk: 0.4, strokeStyle: 'solid',
   pressure: 0.25, pressureMod: 0.35, pooling: 1.2, strokeInk: 1,
-  maskOn: true, maskBlob: 100, maskOutputMin: 0.35, maskOutputMax: 1,
+  maskOn: true, maskBlob: 100, maskOutputMin: 0.45, maskOutputMax: 1,
   maskOctaves: 2, maskGrain: 'fractal', maskPosterize: 1, maskSoftness: 1.5,
   jitterX: 2.5, jitterY: 2.5, jitterRot: 0.6, jitterScale: 0.035,
   cornerSpread: 10, cornerTravel: 8,
-  iconTravel: 1.25, iconWavelength: 0.625, iconMaskOn: true, iconMaskTile: 90,
+  iconTravel: 1.25, iconWavelength: 0.625, iconMaskOn: true, iconMaskScale: 1,
 };
 
 export const SKETCH_PRESETS: Record<string, SketchSettings> = {
@@ -135,7 +140,7 @@ export const SKETCH_PRESETS: Record<string, SketchSettings> = {
     blurb: 'Two graphite passes on their own seeds, so the outline disagrees with itself the way a hand coming back round does. Tight grain, little else.',
     fillTravel: 0.75, strokeTravel: 1.25, wobble: 30, roughness: 3, waveform: 1,
     strokeWidth: 1.25, doubleStroke: true, retracePass: 'reseeded', retraceOffset: 1.5, strokeInk: 0.85,
-    maskBlob: 40, maskOutputMin: 0.55, maskOutputMax: 1, maskOctaves: 3, maskPosterize: 1, maskSoftness: 0.6,
+    maskBlob: 40, maskOutputMin: 0.62, maskOutputMax: 1, maskOctaves: 3, maskPosterize: 1, maskSoftness: 0.6,
     jitterX: 1.5, jitterY: 1.5, jitterRot: 0.35, jitterScale: 0.022,
     cornerSpread: 6, cornerTravel: 4.5,
     pressure: 0.15, pressureMod: 0.3, pooling: 0, iconTravel: 0.75,
@@ -146,7 +151,7 @@ export const SKETCH_PRESETS: Record<string, SketchSettings> = {
     blurb: 'Broad translucent nib gone round twice on the same line, so the overlap darkens and the ink pools where it slows.',
     fillTravel: 2, strokeTravel: 1.5, wobble: 56, waveform: 1.4, borderWavelength: 1.3,
     strokeWidth: 4, doubleStroke: true, retracePass: 'copy', strokeInk: 0.52, retraceOffset: 2.2,
-    maskBlob: 95, maskOutputMin: 0.4, maskOutputMax: 1, maskOctaves: 2, maskPosterize: 4, maskSoftness: 2.8,
+    maskBlob: 95, maskOutputMin: 0.5, maskOutputMax: 0.92, maskOctaves: 2, maskPosterize: 4, maskSoftness: 2.8,
     jitterX: 3, jitterY: 3, jitterRot: 0.8, jitterScale: 0.045,
     cornerSpread: 10, cornerTravel: 8,
     pressure: 0.2, pressureMod: 0.25, pooling: 2, iconTravel: 1.25,
@@ -157,11 +162,11 @@ export const SKETCH_PRESETS: Record<string, SketchSettings> = {
     blurb: 'The fattest nib on glass. One long smooth undulation, and a veined mask that streaks the fill like a half-wiped board.',
     fillTravel: 2.5, strokeTravel: 2.5, wobble: 90, roughness: 1, waveform: 1, borderWavelength: 1.5,
     strokeWidth: 5.5, doubleStroke: true, retracePass: 'copy', strokeInk: 0.66, retraceOffset: 3,
-    maskGrain: 'turbulence', maskBlob: 180, maskOutputMin: 0.3, maskOutputMax: 1,
+    maskGrain: 'turbulence', maskBlob: 180, maskOutputMin: 0.42, maskOutputMax: 0.9,
     maskOctaves: 1, maskPosterize: 3, maskSoftness: 5,
     jitterX: 4.5, jitterY: 4.5, jitterRot: 1.2, jitterScale: 0.07,
     cornerSpread: 14, cornerTravel: 11,
-    pressure: 0.15, pressureMod: 0.15, pooling: 3.5, iconTravel: 1.75, iconMaskTile: 140,
+    pressure: 0.15, pressureMod: 0.15, pooling: 3.5, iconTravel: 1.75, iconMaskScale: 1.5,
   },
 
   hatched: {
@@ -191,7 +196,7 @@ export const SKETCH_PRESETS: Record<string, SketchSettings> = {
     blurb: 'Ballpoint in a hurry. Everything loose at once: a square wave sends every edge to full travel, and the second pass lands wherever it lands.',
     fillTravel: 3, strokeTravel: 2.25, wobble: 50, roughness: 3, waveform: 2.5,
     strokeWidth: 2.25, doubleStroke: true, retracePass: 'reseeded', retraceOffset: 4, strokeInk: 1,
-    maskBlob: 150, maskOutputMin: 0.25, maskOutputMax: 1, maskOctaves: 2, maskPosterize: 2, maskSoftness: 6.7,
+    maskBlob: 150, maskOutputMin: 0.45, maskOutputMax: 1, maskOctaves: 2, maskPosterize: 2, maskSoftness: 6.7,
     jitterX: 6, jitterY: 6, jitterRot: 1.8, jitterScale: 0.1,
     cornerSpread: 20, cornerTravel: 17,
     pressure: 0.45, pressureMod: 0.6, pooling: 2.5, iconTravel: 2.25,
@@ -199,14 +204,14 @@ export const SKETCH_PRESETS: Record<string, SketchSettings> = {
 
   dry: {
     ...base, label: 'Dry marker',
-    blurb: 'Ink that ran out. One scratchy pass that breaks up along its length, over a fill the veined mask has mostly eaten.',
+    blurb: 'Ink that ran out. One scratchy pass that breaks up along its length, over a fill the mask has torn holes clean through.',
     fillTravel: 2.25, strokeTravel: 1.75, wobble: 50, waveform: 2, borderWavelength: 0.5,
     strokeWidth: 3.5, doubleStroke: false, strokeInk: 0.4,
-    maskGrain: 'turbulence', maskBlob: 120, maskOutputMin: 0, maskOutputMax: 0.85,
-    maskOctaves: 2, maskPosterize: 1, maskSoftness: 3,
+    maskBlob: 150, maskOutputMin: 0, maskOutputMax: 0.85,
+    maskOctaves: 2, maskPosterize: 4, maskSoftness: 2,
     jitterX: 5, jitterY: 5, jitterRot: 1.4, jitterScale: 0.08,
     cornerSpread: 16, cornerTravel: 13,
-    pressure: 0.4, pressureMod: 0.8, pooling: 1.5, iconTravel: 1.75, iconMaskTile: 60,
+    pressure: 0.4, pressureMod: 0.8, pooling: 1.5, iconTravel: 1.75, iconMaskScale: 0.65,
   },
 };
 
@@ -230,6 +235,7 @@ export function hydrateSketchSettings(raw: unknown): SketchSettings {
   carryLevelsToOutput(stored as Record<string, unknown>, out);
   halveSwingDials(stored as Record<string, unknown>, out);
   convertCyclesToWavelength(stored as Record<string, unknown>, out);
+  convertIconTileToScale(stored as Record<string, unknown>, out);
   restoreDerivedRetrace(stored as Record<string, unknown>, out);
   return out;
 }
@@ -273,6 +279,17 @@ function convertCyclesToWavelength(stored: Record<string, unknown>, out: SketchS
   }
   const layers = stored.octaves;
   if (typeof layers === 'number') out.roughness = Math.min(3, Math.max(1, layers));
+}
+
+/** The icon mask tile used to be a px size, which is a unit the glyph it covers
+    has no say in: 90px against a 16px icon put a whole glyph inside one patch
+    of the field, so it came out either untouched or gone. It is a share of the
+    glyph now, and the old default reads as one period across the glyph, which
+    is what that size was aiming at. */
+function convertIconTileToScale(stored: Record<string, unknown>, out: SketchSettings): void {
+  const tile = stored.iconMaskTile;
+  if (typeof tile !== 'number') return;
+  out.iconMaskScale = Math.min(5, Math.max(0.5, Number((tile / 90).toFixed(2))));
 }
 
 function halveSwingDials(stored: Record<string, unknown>, out: SketchSettings): void {

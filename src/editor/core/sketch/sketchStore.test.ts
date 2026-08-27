@@ -96,6 +96,14 @@ describe('hydrateSketchSettings', () => {
     expect(hydrateSketchSettings({ strokeWidth: 4, retraceOffset: 6 }).retraceOffset).toBe(6);
   });
 
+  // A px tile against a glyph whose size the layer cannot know. The old default
+  // reads as one period across the glyph, which is what that size was aiming at.
+  it('reads a stored icon tile back as a share of the glyph', () => {
+    expect(hydrateSketchSettings({ iconMaskTile: 90 }).iconMaskScale).toBe(1);
+    expect(hydrateSketchSettings({ iconMaskTile: 140 }).iconMaskScale).toBe(1.56);
+    expect(hydrateSketchSettings({ iconMaskTile: 60 }).iconMaskScale).toBe(0.67);
+  });
+
   it('converts a tiled mask into page-px blobs', () => {
     const out = hydrateSketchSettings({
       maskScale: 1100, maskFrequency: 0.009, maskContrast: 2.2, maskFloor: 0.35, maskSoftness: 1.5,
