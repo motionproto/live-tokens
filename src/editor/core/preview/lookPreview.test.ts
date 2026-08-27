@@ -24,6 +24,7 @@ import {
   __resetPreviewForTests,
 } from './lookPreview';
 import { SKETCH_STYLES, type SketchStyle } from '../sketch/sketchStyles';
+import { setSketchScope } from '../sketch/sketchLayer';
 import { liveMovedSinceBake } from '../productionPulse';
 import {
   openThemeSketchStyle,
@@ -512,6 +513,24 @@ describe('previewTheme and the sketch layer', () => {
     expect(get(sketchSettings)).toEqual(before);
     expect(document.documentElement.getAttribute('data-sketch-fill')).toBe('solid');
     expect(document.documentElement.getAttribute('data-sketch-passes')).toBe('double');
+  });
+
+  // A crisp preview used to clear every [data-sketch] in the document. Only the
+  // two roots render() owns come back: a component's stage is painted by an
+  // $effect on the live stores, which the preview never ticks.
+  it('leaves a component-owned scope alone through a crisp preview and back', async () => {
+    openThemeSketchStyle(SKETCH_STYLES.napkin);
+    const stage = document.createElement('div'); // stands in for the Sketchstyle view's own
+    document.body.appendChild(stage);
+    setSketchScope(stage, get(sketchSettings));
+
+    await previewTheme(sketchedTheme('bare', undefined));
+    expect(document.documentElement.hasAttribute('data-sketch')).toBe(false);
+    expect(stage.getAttribute('data-sketch-fill')).toBe('solid');
+
+    revertPreview();
+    expect(stage.getAttribute('data-sketch-fill')).toBe('solid');
+    stage.remove();
   });
 
   it('does not move liveMovedSinceBake or sketchOffLook, since browsing the picker is not a gesture', async () => {
