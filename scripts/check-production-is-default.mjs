@@ -8,14 +8,18 @@
 //
 // Enforced (necessary conditions):
 //   1. themes/_production.json → "default" (absent resolves to default too)
-//   2. themes/_active.json     → "default"
-//   3. no `_working.json` anywhere: the buffer is an unsaved edit, never shipped
-//   4. no retired per-layer `_active`/`_production` pointer: while one exists
+//   2. no `_working.json` anywhere: the buffer is an unsaved edit, never shipped
+//   3. no retired per-layer `_active`/`_production` pointer: while one exists
 //      boot refuses to rebake, so tokens.generated.css could be anything
-//   5. committed tokens.generated.css carries NO component-alias override block
+//   4. committed tokens.generated.css carries NO component-alias override block
 //      (regenerateTokensCss emits one only where the production theme carries a
 //      config differing from that component's default, so its presence
 //      contradicts #1 or means the file is stale).
+//
+// Not enforced: themes/_active.json. That pointer names the theme the EDITOR
+// has open. It ships in no tarball, and only Adopt bakes tokens.generated.css,
+// which reads the production pointer. Asserting it failed the gate every time
+// anyone loaded a theme to look at it, which is the ordinary way to work here.
 //
 // Not enforced: a full regen-diff of the theme vars in tokens.generated.css.
 // The dev plugin regenerates that file from the production theme on every
@@ -46,11 +50,6 @@ function pointer(file, key) {
 const themeProduction = pointer(join(DATA, 'themes/_production.json'), 'productionFile');
 if (themeProduction !== 'default') {
   errors.push(`themes production pointer is "${themeProduction}", expected "default"`);
-}
-
-const themeActive = pointer(join(DATA, 'themes/_active.json'), 'activeFile');
-if (themeActive !== 'default') {
-  errors.push(`themes active pointer is "${themeActive}", expected "default"`);
 }
 
 const layerDirs = [join(DATA, 'colors-and-type'), join(DATA, 'themes')];
