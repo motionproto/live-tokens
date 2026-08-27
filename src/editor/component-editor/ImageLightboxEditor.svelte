@@ -44,12 +44,13 @@
   ];
 
   let multiple = $state(true);
+  let shadow = $state<'box' | 'content' | 'none'>('box');
 </script>
 
 <ComponentEditorBase
   {component}
   title="Image Lightbox"
-  description="Click an inline image to expand it into a centered modal with a backdrop. Pass multiple images for a gallery (chevrons + counter). Extended mode adds zoom controls and drag panning."
+  description="Click an inline image to expand it into a centered modal with a backdrop. Pass multiple images for a gallery (chevrons + counter). Extended mode adds zoom controls and drag panning. `shadow` picks where the one tile-shadow token falls: `box` casts it from the tile rectangle, `content` from the image's own alpha, or `none`."
   tokens={allTokens}
 >
   <VariantGroup name="imagelightbox" title="Image Lightbox" {states} {component}>
@@ -58,9 +59,17 @@
         <input type="checkbox" checked={multiple} onchange={(e) => (multiple = e.currentTarget.checked)} />
         <span>Multiple images</span>
       </label>
+      <label class="preview-toggle">
+        <span>Shadow</span>
+        <select value={shadow} onchange={(e) => (shadow = e.currentTarget.value as typeof shadow)}>
+          <option value="box">Box</option>
+          <option value="content">Content</option>
+          <option value="none">None</option>
+        </select>
+      </label>
     {/snippet}
     <div class="preview-frame">
-      <ImageLightbox images={multiple ? demoImages : [demoImages[0]]} extended />
+      <ImageLightbox images={multiple ? demoImages : [demoImages[0]]} {shadow} extended />
     </div>
   </VariantGroup>
 </ComponentEditorBase>

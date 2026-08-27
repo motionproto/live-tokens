@@ -203,6 +203,14 @@
 
   function startBaseEdit() {
     if (editing.kind === 'editingBase') { confirmEdit(); return; }
+    ensureBaseSession();
+  }
+
+  // The base panel applies every change straight to the store, so its
+  // confirm/cancel pair needs a session to act on. Opening one lazily on the
+  // first touch keeps the panel's mere presence from clipping the undo floor.
+  function ensureBaseSession() {
+    if (editing.kind === 'editingBase') return;
     editing = { kind: 'editingBase' };
     openSession();
   }
@@ -626,18 +634,18 @@
         <ColorEditPanel
           title={basePanelTitle}
           showRemoveOverride={false}
-          hideActions={!isEditingBase}
+          actionsDisabled={!isEditingBase}
           hidePreview
           hue={baseColor.h}
           chroma={baseColor.c}
           lightness={baseColor.l * 100}
           chromaMax={BASE_CHROMA_MAX}
           chromaHint={neutral ? NEUTRAL_CALM_CHROMA : undefined}
-          onHueChromaChange={(h, c, l) => setBaseColor(label, { l: l / 100, c, h })}
+          onHueChromaChange={(h, c, l) => { ensureBaseSession(); setBaseColor(label, { l: l / 100, c, h }); }}
           onConfirm={confirmEdit}
           onCancel={cancelEdit}
           onRemoveOverride={() => {}}
-          onSliderStart={() => beginSliderGesture(`edit ${label} base`)}
+          onSliderStart={() => { ensureBaseSession(); beginSliderGesture(`edit ${label} base`); }}
         />
       </div>
     </div>

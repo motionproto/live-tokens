@@ -1,5 +1,54 @@
 # Changelog
 
+## 0.59.0 — The shadow traces the art
+
+### Added
+
+- **`shadow` on `ImageLightbox`.** The tile cast its shadow from its own
+  rectangle and offered no way out, so a PNG or WebP with transparency sat on a
+  phantom slab: the shadow drew the box, and the box was not the picture. Art
+  cut out against the page — a device mockup, a logo, a chart on no background —
+  showed a hard rounded rectangle behind it. `shadow` now picks where that
+  shadow falls. `box` is the old behaviour and stays the default. `content`
+  casts from the image's own alpha, so the shadow follows the silhouette.
+  `none` drops it. All three read the one `--imagelightbox-tile-shadow` the
+  theme already sets — the mode moves the shadow, it does not restyle it. The
+  open modal keeps its shadow only under `box`: it casts against a near-opaque
+  scrim where nothing reads, and filtering the pan-and-zoom surface would
+  repaint it every frame.
+
+### Changed
+
+- **A shadow token writes its spread slot only when the spread is set.**
+  `--shadow-md` read `3px 3px 6px 0px hsla(…)`, and that fourth length was the
+  reason a shadow token could not also be a filter: `drop-shadow()` has no
+  spread slot, so the declaration was invalid and dropped. Every shipped theme
+  carries a zero spread, so the slot said nothing and cost the scale half its
+  reach. The zero-spread form is now three lengths, which `box-shadow` reads
+  identically and `drop-shadow()` accepts — one token, both properties, no
+  second scale to keep in step. The spread control is untouched: dial one and
+  the token grows its fourth length back, still a shadow but no longer a
+  filter, so a theme with a real spread has no shadow under `content`.
+  Four-length values still parse, and normalise on the next save.
+
+### Fixed
+
+- **The colour edit panel wears editor chrome again.** Its confirm, cancel and
+  "Remove override" buttons were the shipped `Button` and `InlineEditActions`
+  components, which read the theme's own tokens — so the controls you edit a
+  theme *with* restyled themselves as you edited, and a saturated success or
+  danger palette turned three small chrome buttons into slabs. They are now
+  `UIInlineEditActions` and `UIPillButton`, drawn from the theme-immune `--ui-*`
+  scale like the rest of the editor. `UIInlineEditActions` is the editor's
+  check/cross pair, sized to the 1.5rem chrome buttons it sits beside.
+- **The base colour panel offers a confirm and a cancel.** Opening a palette's
+  editor showed the base panel with no way to accept or discard — every slider
+  wrote straight through, and only the docked step panel carried the pair. The
+  panel now shows both, greyed until an edit is pending; the first touch of a
+  slider, a hex field or the eyedropper opens the same session the step panel
+  uses, so cancel restores the colour the panel opened with and confirm keeps
+  the drag as one undo step.
+
 ## 0.58.0 — The sketch layer states its contract
 
 ### Added

@@ -77,7 +77,7 @@ describe('editor renderer reactive projection', () => {
     expect(style.getPropertyValue('--font-size-5xl')).toBe('52px');
     expect(style.getPropertyValue('--columns-count')).toBe('10');
     expect(style.getPropertyValue('--overlay-low')).toContain('50%');
-    expect(style.getPropertyValue('--shadow-sm')).toBe('1px 2px 3px 0px hsla(200, 20%, 10%, 0.25)');
+    expect(style.getPropertyValue('--shadow-sm')).toBe('1px 2px 3px hsla(200, 20%, 10%, 0.25)');
     expect(style.getPropertyValue('--gradient-1')).toContain('22deg');
     expect(style.getPropertyValue('--sectiondivider-lg-title-font-size')).toBe('var(--font-size-5xl)');
     expect(style.getPropertyValue('--sectiondivider-lg-title-font-weight')).toBe('var(--font-weight-bold)');

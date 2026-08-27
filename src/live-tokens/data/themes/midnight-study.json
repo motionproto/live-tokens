@@ -2317,11 +2317,11 @@
       "--hover-low": "color-mix(in srgb, var(--text-primary) 5%, transparent)",
       "--hover": "color-mix(in srgb, var(--text-primary) 10%, transparent)",
       "--hover-high": "color-mix(in srgb, var(--text-primary) 15%, transparent)",
-      "--shadow-sm": "1px 1px 2px 0px hsla(237, 18%, 3%, 0.9)",
-      "--shadow-md": "3px 3px 6px 0px hsla(237, 18%, 3%, 0.9)",
-      "--shadow-lg": "5px 5px 9px 0px hsla(237, 18%, 3%, 0.9)",
-      "--shadow-xl": "6px 7px 13px 0px hsla(237, 18%, 3%, 0.9)",
-      "--shadow-2xl": "8px 9px 16px 0px hsla(237, 18%, 3%, 0.9)"
+      "--shadow-sm": "1px 1px 2px hsla(237, 18%, 3%, 0.9)",
+      "--shadow-md": "3px 3px 6px hsla(237, 18%, 3%, 0.9)",
+      "--shadow-lg": "5px 5px 9px hsla(237, 18%, 3%, 0.9)",
+      "--shadow-xl": "6px 7px 13px hsla(237, 18%, 3%, 0.9)",
+      "--shadow-2xl": "8px 9px 16px hsla(237, 18%, 3%, 0.9)"
     },
     "fontSources": [
       {

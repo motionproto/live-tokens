@@ -153,11 +153,11 @@ describe('buildColorsAndTypeFromSeeds', () => {
     expect(shadowOpacityForCanvas(0.97)).toBe(0.2);
 
     const light = buildColorsAndTypeFromSeeds(lightBrief, {}, NOW);
-    expect(light.colorsAndType.cssVariables['--shadow-md']).toBe('3px 3px 6px 0px hsla(237, 18%, 3%, 0.2)');
+    expect(light.colorsAndType.cssVariables['--shadow-md']).toBe('3px 3px 6px hsla(237, 18%, 3%, 0.2)');
     expect(light.report.shadows).toBe('opacity 0.2 for a canvas at L 0.97');
 
     const dark = buildColorsAndTypeFromSeeds(darkBrief, {}, NOW);
-    expect(dark.colorsAndType.cssVariables['--shadow-md']).toBe('3px 3px 6px 0px hsla(237, 18%, 3%, 0.9)');
+    expect(dark.colorsAndType.cssVariables['--shadow-md']).toBe('3px 3px 6px hsla(237, 18%, 3%, 0.9)');
   });
 
   it('recolors carried shadow geometry rather than replacing it', () => {

@@ -24,6 +24,13 @@
         `cover` only crops when the thumbnail has its own box (an aspect from
         `width`/`height`, or a CSS-constrained container). */
     fit?: 'contain' | 'cover';
+    /** Where the tile's shadow lands. Both modes read
+        `--imagelightbox-tile-shadow`: `box` casts it from the tile's rectangle,
+        `content` casts it from the image's own alpha, so art with transparency
+        doesn't sit on a phantom rectangle. `none` drops it. A theme that dials
+        a non-zero spread has no shadow under `content` — `drop-shadow()` has no
+        spread slot. */
+    shadow?: 'box' | 'content' | 'none';
     /** When true, shows a bottom toolbar (zoom in/out + percent) and a top-right close button, and enables wheel/drag zoom inside the open modal. When false, click anywhere closes. */
     extended?: boolean;
     /** Maximum zoom, as a multiple of the image's natural resolution: `1` = 100%
@@ -55,6 +62,7 @@
     images = undefined,
     maxWidth = undefined,
     fit = 'contain',
+    shadow = 'box',
     extended = false,
     maxZoom = undefined,
     capNatural = false,
@@ -582,6 +590,8 @@
   <button
     bind:this={thumbEl}
     class="image-lightbox-thumb"
+    class:shadow-box={shadow === 'box'}
+    class:shadow-content={shadow === 'content'}
     style:--imagelightbox-tile-object-fit={fit}
     type="button"
     aria-label={cover?.alt ? `Expand image: ${cover.alt}` : 'Expand image'}
@@ -618,6 +628,8 @@
     <div
       bind:this={stageEl}
       class="image-lightbox-stage"
+      class:shadow-box={shadow === 'box'}
+      class:shadow-content={shadow === 'content'}
       role="presentation"
       tabindex="-1"
       onclick={onStageClick}
@@ -747,10 +759,23 @@
     cursor: zoom-in;
     border: var(--imagelightbox-tile-border-width) solid var(--imagelightbox-tile-border);
     border-radius: var(--imagelightbox-tile-radius);
-    box-shadow: var(--imagelightbox-tile-shadow);
     background: transparent;
     overflow: hidden;
     transition: transform 250ms ease;
+  }
+
+  .image-lightbox-thumb.shadow-box,
+  .image-lightbox-stage.shadow-box {
+    box-shadow: var(--imagelightbox-tile-shadow);
+  }
+
+  /* Content mode traces the image's alpha. The filter goes on the tile, not the
+     <img>: applied to the element it runs after that element's own overflow
+     clip, so the shadow lands outside the box instead of being cropped by it.
+     The open modal stays bare — it casts against a near-opaque scrim where no
+     shadow reads, and a filter over the pan/zoom surface repaints every frame. */
+  .image-lightbox-thumb.shadow-content {
+    filter: drop-shadow(var(--imagelightbox-tile-shadow));
   }
 
   .image-lightbox-thumb:hover {
@@ -793,7 +818,6 @@
     cursor: zoom-out;
     border: var(--imagelightbox-tile-border-width) solid var(--imagelightbox-tile-border);
     border-radius: var(--imagelightbox-tile-radius);
-    box-shadow: var(--imagelightbox-tile-shadow);
     background: transparent;
   }
 

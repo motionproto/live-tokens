@@ -1,7 +1,7 @@
 <script lang="ts">
   import { hexToOklch, oklchToHex, gamutClamp } from '../core/palettes/oklch';
-  import InlineEditActions from '../../system/components/InlineEditActions.svelte';
-  import Button from '../../system/components/Button.svelte';
+  import UIInlineEditActions from './UIInlineEditActions.svelte';
+  import UIPillButton from './UIPillButton.svelte';
 
   
 
@@ -15,6 +15,8 @@
     /** Hide the confirm/cancel actions for live-apply consumers (Colors view
      *  readout) where edits commit through the store as they happen. */
     hideActions?: boolean;
+    /** Greys the confirm/cancel pair out while no edit is pending. */
+    actionsDisabled?: boolean;
     /** Hide the preview square where the surrounding view already shows the
      *  color (Colors view: wheel, swatches and derived scale all do). */
     hidePreview?: boolean;
@@ -43,6 +45,7 @@
     highlighted = false,
     showRemoveOverride = false,
     hideActions = false,
+    actionsDisabled = false,
     hidePreview = false,
     onConfirm = () => {},
     onCancel = () => {},
@@ -171,16 +174,17 @@
     {#if !hideActions}
       <div class="hsl-panel-actions">
         {#if showRemoveOverride}
-          <Button
-            variant="danger"
-            size="small"
-            icon="fas fa-trash"
-            on:click={onRemoveOverride}
-          >Remove override</Button>
+          <UIPillButton
+            size="compact"
+            variant="outline"
+            icon="fa-trash"
+            onclick={onRemoveOverride}
+          >Remove override</UIPillButton>
         {/if}
-        <InlineEditActions
+        <UIInlineEditActions
           onSave={onConfirm}
           onCancel={onCancel}
+          disabled={actionsDisabled}
           saveTitle="Apply changes"
           cancelTitle="Discard changes"
         />

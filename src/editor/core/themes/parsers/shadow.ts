@@ -1,7 +1,14 @@
 /**
  * The single source of truth for the CSS form of a shadow scale token:
  *
- *   <x>px <y>px <blur>px <spread>px hsla(<h>, <s>%, <l>%, <a>)
+ *   <x>px <y>px <blur>px [<spread>px] hsla(<h>, <s>%, <l>%, <a>)
+ *
+ * The spread slot is written only when it is non-zero. A three-length shadow is
+ * legal in `box-shadow` (spread defaults to 0) and in `filter: drop-shadow()`,
+ * which has no spread slot at all — so one token dresses both, and a component
+ * casting from an image's alpha reads the same variable as one casting from a
+ * box. Dial a spread and the token grows its fourth length: still a shadow,
+ * no longer a filter.
  *
  * Everything that reads or writes that form goes through `parseShadowCss` /
  * `shadowTokenCss`, so the theme generator (Node, no store) and the editor
@@ -33,16 +40,17 @@ export function computeAngleDistance(x: number, y: number): { angle: number; dis
 }
 
 export function shadowTokenCss(t: ShadowValue): string {
-  return `${t.x}px ${t.y}px ${t.blur}px ${t.spread}px hsla(${t.hue}, ${t.saturation}%, ${t.lightness}%, ${t.opacity})`;
+  const spread = t.spread ? `${t.spread}px ` : '';
+  return `${t.x}px ${t.y}px ${t.blur}px ${spread}hsla(${t.hue}, ${t.saturation}%, ${t.lightness}%, ${t.opacity})`;
 }
 
 export function parseShadowCss(variable: string, raw: string): ShadowToken | null {
-  const m = raw.trim().match(/^(-?\d+)px\s+(-?\d+)px\s+(\d+)px\s+(-?\d+)px\s+hsla\(([\d.]+),\s*([\d.]+)%,\s*([\d.]+)%,\s*([\d.]+)\)$/);
+  const m = raw.trim().match(/^(-?\d+)px\s+(-?\d+)px\s+(\d+)px\s+(?:(-?\d+)px\s+)?hsla\(([\d.]+),\s*([\d.]+)%,\s*([\d.]+)%,\s*([\d.]+)\)$/);
   if (!m) return null;
   const x = parseInt(m[1], 10);
   const y = parseInt(m[2], 10);
   const blur = parseInt(m[3], 10);
-  const spread = parseInt(m[4], 10);
+  const spread = m[4] === undefined ? 0 : parseInt(m[4], 10);
   const hue = Math.round(parseFloat(m[5]));
   const saturation = Math.round(parseFloat(m[6]));
   const lightness = Math.round(parseFloat(m[7]));
