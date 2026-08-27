@@ -196,8 +196,21 @@ export function migrateData(opts: MigrateDataOptions): MigrateDataResult {
     configuredManifestsDir: opts.legacyManifestsDir,
   };
   const legacyLayout = detectLegacyLayout(layoutInput);
-  const renames = legacyLayout ? planLegacyRenames(legacyLayout, layoutInput) : [];
-  if (legacyLayout && !check) applyLegacyRenames(renames);
+  const legacyRenames = legacyLayout ? planLegacyRenames(legacyLayout, layoutInput) : [];
+
+  // A second, unrelated rename rides the same pipeline: `sketch-presets/`
+  // (0.57.0 through 0.62.0) is `sketch-styles/` now. Unlike the 0.48 layout
+  // above, this is a plain directory rename — nothing inside changes shape,
+  // so there is no need to gate the rest of the pass behind it the way
+  // `legacyLayout` gates the whole heal below.
+  const sketchStylesFrom = path.join(opts.dataDir, 'sketch-presets');
+  const sketchStylesTo = path.join(opts.dataDir, 'sketch-styles');
+  const sketchStylesRenames = fs.existsSync(sketchStylesFrom)
+    ? [{ from: sketchStylesFrom, to: sketchStylesTo }]
+    : [];
+
+  const renames = [...legacyRenames, ...sketchStylesRenames];
+  if (!check) applyLegacyRenames(renames);
 
   // `--check` moves nothing, so it plans against the directories where the
   // content still sits: the old themes directory holds the colors and type, the
@@ -272,7 +285,7 @@ export function migrateData(opts: MigrateDataOptions): MigrateDataResult {
   // every named file is a preset the user saved, and there is nothing left to
   // heal once the directories carry their 0.48 names.
   if (legacyPointers.length === 0) {
-    if (!legacyLayout) return empty;
+    if (!legacyLayout && renames.length === 0) return empty;
     return { ...empty, status: check ? 'planned' : 'healed' };
   }
 

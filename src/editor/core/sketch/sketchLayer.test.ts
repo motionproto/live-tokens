@@ -11,9 +11,9 @@ import {
   PART_SELECTORS,
 } from './sketchLayer';
 import { MASK_TILE } from './maskField';
-import { SKETCH_PRESETS } from './sketchPresets';
+import { SKETCH_STYLES } from './sketchStyles';
 
-const marker = SKETCH_PRESETS.marker;
+const marker = SKETCH_STYLES.marker;
 
 /** Alpha at the middle of a straight run of the border once the pool blur has
     spread it, by numeric integration rather than by the layer's own maths. */
@@ -84,7 +84,7 @@ describe('sketch layer', () => {
   });
 
   it('defines every filter the stylesheet references', () => {
-    for (const preset of Object.values(SKETCH_PRESETS)) {
+    for (const preset of Object.values(SKETCH_STYLES)) {
       const defined = new Set(
         [...buildDefsMarkup(preset).matchAll(/<filter id="([^"]+)"/g)].map((m) => m[1]),
       );
@@ -139,7 +139,7 @@ describe('sketch layer', () => {
 
   it('rewrites one style and one defs node rather than stacking them', () => {
     applySketchLayer(marker);
-    applySketchLayer(SKETCH_PRESETS.napkin);
+    applySketchLayer(SKETCH_STYLES.napkin);
 
     expect(document.head.querySelectorAll('style[data-sketch-style]')).toHaveLength(1);
     expect(document.body.querySelectorAll('svg[data-sketch-defs]')).toHaveLength(1);
@@ -163,7 +163,7 @@ describe('sketch layer', () => {
 
   it('carries the fill style and pass count onto the scope element', () => {
     const stage = document.createElement('div');
-    setSketchScope(stage, { ...SKETCH_PRESETS.hatched, doubleStroke: true });
+    setSketchScope(stage, { ...SKETCH_STYLES.hatched, doubleStroke: true });
 
     expect(stage.getAttribute('data-sketch')).toBe('');
     expect(stage.getAttribute('data-sketch-fill')).toBe('hatched');
@@ -574,7 +574,7 @@ describe('ink pooling', () => {
   it('lands every instance at the same point on its own ramp', () => {
     const looks = [
       marker,
-      SKETCH_PRESETS.whiteboard,
+      SKETCH_STYLES.whiteboard,
       { ...marker, strokeWidth: 1.25, pooling: 4, strokeInk: 1, pressure: 0.3 },
       { ...marker, strokeWidth: 0.5, pooling: 6, strokeInk: 0.3, pressure: 0.7 },
     ];

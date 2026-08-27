@@ -37,7 +37,7 @@ export function bumpComponentActiveRevision(): void {
  * Set by the client writes that move the live look (`writeWorkingColorsAndType`,
  * `writeWorkingComponentConfig`, `saveActiveTheme`, `saveAsTheme`, and every
  * sketch gesture that changes what the effect paints: `setSketchEnabled`,
- * `updateSketchSettings`, `selectSketchPreset`, `selectUserSketchPreset`);
+ * `updateSketchSettings`, `selectSketchStyle`, `selectSavedSketchStyle`);
  * cleared by `adoptLook` and by `hydrateAppliedTheme`, on this document and on
  * every peer an Apply broadcasts to. Module-level, so it survives the
  * remounts a view switch causes.

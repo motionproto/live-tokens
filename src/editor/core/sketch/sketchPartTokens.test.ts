@@ -5,7 +5,7 @@ import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import * as sass from 'sass';
 import { buildStylesheet, PART_SELECTORS } from './sketchLayer';
-import { SKETCH_PRESETS } from './sketchPresets';
+import { SKETCH_STYLES } from './sketchStyles';
 
 /**
  * The sketch layer hides a component's real background and border and repaints
@@ -126,7 +126,7 @@ const STROKE_PROPS = /^(border|outline)(-(top|right|bottom|left|block|inline))?(
 
 /** Every `--sketch-fill` / `--sketch-stroke` the layer emits, per selector. */
 function paintedBySketch(): { sel: string; fill?: string; stroke?: string }[] {
-  const css = buildStylesheet(SKETCH_PRESETS.marker);
+  const css = buildStylesheet(SKETCH_STYLES.marker);
   const out: { sel: string; fill?: string; stroke?: string }[] = [];
   for (const m of css.matchAll(/\[data-sketch\] ([^{]+)\{((?:--sketch-\w+:[^;]*;)+)\}/g)) {
     const fill = m[2].match(/--sketch-fill:([^;]*);/)?.[1];
@@ -201,7 +201,7 @@ describe('the consumer opt-in classes', () => {
   });
 
   it('sort by size the same way the shipped parts do', () => {
-    const css = buildStylesheet(SKETCH_PRESETS.marker);
+    const css = buildStylesheet(SKETCH_STYLES.marker);
     // The container damping and the chip profile are single rules listing every
     // part that takes them; a hook is in the right band or it is not there.
     const band = (member: string) =>

@@ -1,4 +1,4 @@
-export interface SketchSettings {
+export interface SketchStyle {
   label: string;
   blurb: string;
   /** How far the fill's edge travels at its furthest, in px. Every dial that
@@ -119,7 +119,7 @@ export interface SketchSettings {
   iconMaskScale: number;
 }
 
-const base: SketchSettings = {
+const base: SketchStyle = {
   label: '', blurb: '',
   fillTravel: 1.5, strokeTravel: 1.5, wobble: 45, roughness: 3,
   borderWavelength: 1, waveform: 1,
@@ -133,7 +133,7 @@ const base: SketchSettings = {
   iconTravel: 1.25, iconWavelength: 0.625, iconMaskOn: true, iconMaskScale: 1,
 };
 
-export const SKETCH_PRESETS: Record<string, SketchSettings> = {
+export const SKETCH_STYLES: Record<string, SketchStyle> = {
   pencil: {
     ...base, label: 'Pencil',
     blurb: 'Two graphite passes on their own seeds, so the outline disagrees with itself the way a hand coming back round does. Tight grain, little else.',
@@ -214,17 +214,17 @@ export const SKETCH_PRESETS: Record<string, SketchSettings> = {
   },
 };
 
-export const DEFAULT_SKETCH_PRESET = 'marker';
+export const DEFAULT_SKETCH_STYLE = 'marker';
 
-/** Reconciled against a full preset in both directions: a value stored before a
+/** Reconciled against a full sketchstyle in both directions: a value stored before a
     control existed picks up the default, and a value stored for a control since
     retired is dropped. Without the drop, a stale key survives every spread and
     makes the settings compare unequal to any baseline forever. */
-export function hydrateSketchSettings(raw: unknown): SketchSettings {
-  const base = SKETCH_PRESETS[DEFAULT_SKETCH_PRESET];
-  const stored = (raw ?? {}) as Partial<SketchSettings>;
+export function hydrateSketchStyle(raw: unknown): SketchStyle {
+  const base = SKETCH_STYLES[DEFAULT_SKETCH_STYLE];
+  const stored = (raw ?? {}) as Partial<SketchStyle>;
   const out = { ...base };
-  for (const key of Object.keys(base) as (keyof SketchSettings)[]) {
+  for (const key of Object.keys(base) as (keyof SketchStyle)[]) {
     if (stored[key] !== undefined) (out[key] as unknown) = stored[key];
   }
   // A retired option: the fill's presence belongs to the theme, not the effect.
@@ -241,8 +241,8 @@ export function hydrateSketchSettings(raw: unknown): SketchSettings {
 
 /** The second pass used to sit at a distance derived from the stroke width,
     with no dial of its own. A look stored before the dial comes back at that
-    distance rather than at whatever the fallback preset happens to carry. */
-function restoreDerivedRetrace(stored: Record<string, unknown>, out: SketchSettings): void {
+    distance rather than at whatever the fallback sketchstyle happens to carry. */
+function restoreDerivedRetrace(stored: Record<string, unknown>, out: SketchStyle): void {
   if (stored.retraceOffset === undefined) {
     out.retraceOffset = Number(Math.max(1.2, out.strokeWidth * 0.55).toFixed(2));
   }
@@ -262,7 +262,7 @@ const SWING_DIALS = {
 /** The pen wobble used to be stated as `frequency`, in cycles per px, which is
     the number the filter wants and not one anybody can picture. It is a
     wavelength in px now, the way the mask states its blobs. */
-function convertCyclesToWavelength(stored: Record<string, unknown>, out: SketchSettings): void {
+function convertCyclesToWavelength(stored: Record<string, unknown>, out: SketchStyle): void {
   const cycles = stored.frequency;
   if (typeof cycles === 'number' && cycles > 0) out.wobble = Math.round(1 / cycles);
   // The layer count was `octaves`, and its dial ran to 5. The top two moved
@@ -285,13 +285,13 @@ function convertCyclesToWavelength(stored: Record<string, unknown>, out: SketchS
     of the field, so it came out either untouched or gone. It is a share of the
     glyph now, and the old default reads as one period across the glyph, which
     is what that size was aiming at. */
-function convertIconTileToScale(stored: Record<string, unknown>, out: SketchSettings): void {
+function convertIconTileToScale(stored: Record<string, unknown>, out: SketchStyle): void {
   const tile = stored.iconMaskTile;
   if (typeof tile !== 'number') return;
   out.iconMaskScale = Math.min(5, Math.max(0.5, Number((tile / 90).toFixed(2))));
 }
 
-function halveSwingDials(stored: Record<string, unknown>, out: SketchSettings): void {
+function halveSwingDials(stored: Record<string, unknown>, out: SketchStyle): void {
   for (const [legacy, key] of Object.entries(SWING_DIALS)) {
     const value = stored[legacy];
     if (typeof value === 'number') out[key as 'fillTravel'] = value / 2;
@@ -301,7 +301,7 @@ function halveSwingDials(stored: Record<string, unknown>, out: SketchSettings): 
 /** The mask used to be a 600-unit tile painted at `maskScale` px, with the
     coverage point buried in the hardness slope. Recover page-px blobs and
     softness, and the levels the old slope and floor put the edge at. */
-function convertTiledMask(stored: Record<string, unknown>, out: SketchSettings): void {
+function convertTiledMask(stored: Record<string, unknown>, out: SketchStyle): void {
   const scale = stored.maskScale;
   if (typeof scale !== 'number') return;
   const freq = stored.maskFrequency;
@@ -316,7 +316,7 @@ function convertTiledMask(stored: Record<string, unknown>, out: SketchSettings):
  * levels the pair put the edge between, and rescale them onto the field as it
  * is now: stretched onto its full range before the levels see it.
  */
-function convertCutToLevels(stored: Record<string, unknown>, out: SketchSettings): void {
+function convertCutToLevels(stored: Record<string, unknown>, out: SketchStyle): void {
   const contrast = stored.maskContrast;
   const coverage = stored.maskCoverage;
   if (typeof contrast !== 'number' || typeof coverage !== 'number') return;
@@ -332,7 +332,7 @@ function convertCutToLevels(stored: Record<string, unknown>, out: SketchSettings
     now, the palest and densest the fill gets. The same two numbers carry over:
     a look cut between 20% and 50% comes back as a wash between 20% and 50% ink,
     which keeps its spread and loses only the hole. */
-function carryLevelsToOutput(stored: Record<string, unknown>, out: SketchSettings): void {
+function carryLevelsToOutput(stored: Record<string, unknown>, out: SketchStyle): void {
   if (typeof stored.maskLevelMin === 'number') out.maskOutputMin = stored.maskLevelMin;
   if (typeof stored.maskLevelMax === 'number') out.maskOutputMax = stored.maskLevelMax;
 }

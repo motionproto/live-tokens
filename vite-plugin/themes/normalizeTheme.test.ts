@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { normalizeTheme, THEME_SCHEMA_VERSION, type ThemeResolvers } from './normalizeTheme';
 import { CURRENT_COMPONENT_SCHEMA_VERSION } from '../../src/editor/core/themes/migrations';
-import { SKETCH_PRESETS } from '../../src/editor/core/sketch/sketchPresets';
+import { SKETCH_STYLES } from '../../src/editor/core/sketch/sketchStyles';
 
 const COLORS_AND_TYPE: Record<string, any> = {
   default: { name: 'Default Theme', cssVariables: { '--surface-default': 'white' } },
@@ -451,50 +451,50 @@ describe('normalizeTheme completeness fill', () => {
   });
 });
 
-// Wave 1 of docs/plans/sketch-in-the-theme.md: a theme carries its sketch
-// layer by value, resolved the same way a saved preset is (RJC 3). Presence
-// is the on state (RJC 1). Nothing here ever fills a sketch in for a theme
-// that has none.
-describe('normalizeTheme sketch field', () => {
+// Wave 1 of docs/plans/sketch-in-the-theme.md: a theme carries its sketchstyle
+// by value, resolved the same way a saved sketchstyle is (RJC 3). Presence
+// is the on state (RJC 1). Nothing here ever fills a sketchstyle in for a
+// theme that has none.
+describe('normalizeTheme sketchStyle field', () => {
   const withSketch = {
     name: 'Sketchy Look',
     schemaVersion: THEME_SCHEMA_VERSION,
     colorsAndType: { name: 'Embedded' },
     componentConfigs: {},
-    // napkin, not the DEFAULT_SKETCH_PRESET (marker): a fixture built from the
-    // fallback preset would round-trip even if the theme's own dials were
-    // ignored entirely.
-    sketch: SKETCH_PRESETS.napkin,
+    // napkin, not the DEFAULT_SKETCH_STYLE (marker): a fixture built from the
+    // fallback sketchstyle would round-trip even if the theme's own dials
+    // were ignored entirely.
+    sketchStyle: SKETCH_STYLES.napkin,
   };
 
-  it('round-trips a full sketch unchanged', () => {
+  it('round-trips a full sketchstyle unchanged', () => {
     const { theme } = normalizeTheme(withSketch, resolvers());
-    expect(theme.sketch).toEqual(SKETCH_PRESETS.napkin);
+    expect(theme.sketchStyle).toEqual(SKETCH_STYLES.napkin);
   });
 
-  it('carries no sketch key at all when the input has none', () => {
-    const { sketch: _omit, ...noSketch } = withSketch;
+  it('carries no sketchStyle key at all when the input has none', () => {
+    const { sketchStyle: _omit, ...noSketch } = withSketch;
     const { theme } = normalizeTheme(noSketch, resolvers());
-    expect('sketch' in theme).toBe(false);
+    expect('sketchStyle' in theme).toBe(false);
   });
 
-  it.each([[null], ['napkin'], [[]]])('resolves %s to no sketch', (value) => {
-    const { theme } = normalizeTheme({ ...withSketch, sketch: value }, resolvers());
-    expect('sketch' in theme).toBe(false);
+  it.each([[null], ['napkin'], [[]]])('resolves %s to no sketchstyle', (value) => {
+    const { theme } = normalizeTheme({ ...withSketch, sketchStyle: value }, resolvers());
+    expect('sketchStyle' in theme).toBe(false);
   });
 
-  it('fills a sketch missing a dial from the fallback preset and drops an unknown key', () => {
-    // napkin's own fillTravel (3) differs from the fallback preset's (marker,
-    // 2), so recovering marker's value (not 0, not undefined) pins the fill
-    // rather than a coincidence of the two presets agreeing.
-    const { fillTravel: _dropped, ...withoutFillTravel } = SKETCH_PRESETS.napkin;
+  it('fills a sketchstyle missing a dial from the fallback sketchstyle and drops an unknown key', () => {
+    // napkin's own fillTravel (3) differs from the fallback sketchstyle's
+    // (marker, 2), so recovering marker's value (not 0, not undefined) pins
+    // the fill rather than a coincidence of the two sketchstyles agreeing.
+    const { fillTravel: _dropped, ...withoutFillTravel } = SKETCH_STYLES.napkin;
     const partialSketch = { ...withoutFillTravel, notADial: 'ghost' };
-    const { theme } = normalizeTheme({ ...withSketch, sketch: partialSketch }, resolvers());
-    expect(theme.sketch?.fillTravel).toBe(SKETCH_PRESETS.marker.fillTravel);
-    expect(theme.sketch).not.toHaveProperty('notADial');
+    const { theme } = normalizeTheme({ ...withSketch, sketchStyle: partialSketch }, resolvers());
+    expect(theme.sketchStyle?.fillTravel).toBe(SKETCH_STYLES.marker.fillTravel);
+    expect(theme.sketchStyle).not.toHaveProperty('notADial');
   });
 
-  it('does not invent a sketch for a theme that has none, even once the completeness fill runs', () => {
+  it('does not invent a sketchstyle for a theme that has none, even once the completeness fill runs', () => {
     const gappedNoSketch = {
       name: 'Gapped',
       schemaVersion: THEME_SCHEMA_VERSION,
@@ -502,7 +502,7 @@ describe('normalizeTheme sketch field', () => {
       componentConfigs: {},
     };
     const { theme } = normalizeTheme(gappedNoSketch, resolvers({ listComponentNames: () => ['card'] }));
-    expect('sketch' in theme).toBe(false);
+    expect('sketchStyle' in theme).toBe(false);
   });
 });
 

@@ -102,7 +102,7 @@
   let isColors = $derived(isDev && colorsEnabled && $route === colorsPath);
   let isDocs = $derived(isDev && docsEnabled && $route === docsPath);
 
-  // A sketch style paints the page and never the editor's own chrome. Which
+  // A sketchstyle paints the page and never the editor's own chrome. Which
   // routes are chrome is this component's knowledge alone, since a consumer can
   // relocate them, so it hands the sketch layer the root to paint.
   $effect(() => {

@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { buildMaskField, buildMaskUri, MASK_TILE } from './maskField';
-import { SKETCH_PRESETS } from './sketchPresets';
+import { SKETCH_STYLES } from './sketchStyles';
 
-const marker = SKETCH_PRESETS.marker;
+const marker = SKETCH_STYLES.marker;
 const flat = { ...marker, maskOutputMin: 0, maskOutputMax: 1, maskPosterize: 1, maskSoftness: 0 };
 
 /** Share of the field in each fifth, blackest first. */
@@ -174,7 +174,7 @@ describe('mask field', () => {
 // a bare patch reads as a hole in the component rather than as ink. Dry marker
 // runs the thinnest of them and still keeps ink everywhere.
 describe('preset coverage', () => {
-  for (const [name, preset] of Object.entries(SKETCH_PRESETS)) {
+  for (const [name, preset] of Object.entries(SKETCH_STYLES)) {
     if (!preset.maskOn) continue;
     it(`${name} keeps the fill`, () => {
       const { field } = buildMaskField(preset, 9);

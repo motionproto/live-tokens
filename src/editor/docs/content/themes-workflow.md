@@ -14,7 +14,7 @@ file to manage.
   define their appearance. It names the two faces the page is showing.
 - **Components** counts how many components have an unsaved edit that has not
   been saved into the theme, and opens the component editors.
-- **Sketch** names the look the theme's sketch layer carries: its label, or
+- **Sketchstyle** names the look the theme's sketch layer carries: its label, or
   off the theme when what's on screen no longer matches what was saved, or
   none when the theme carries no sketch layer. It travels with the theme
   like colors and type do, but never reaches a production build.

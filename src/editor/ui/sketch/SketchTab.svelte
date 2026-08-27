@@ -10,23 +10,23 @@
   import UIPillButton from '../UIPillButton.svelte';
   import UIReveal, { REVEAL_MS } from '../UIReveal.svelte';
   import { scrollSectionIntoView } from '../scrollSection';
-  import { SKETCH_PRESETS } from '../../core/sketch/sketchPresets';
+  import { SKETCH_STYLES } from '../../core/sketch/sketchStyles';
   import { openThemeSlug } from '../../core/store/editorConfigStore';
   import {
     sketchEnabled,
     setSketchEnabled,
     sketchOffLook,
-    sketchPreset,
+    sketchStyleName,
     sketchDirty,
     sketchSettings,
-    selectSketchPreset,
+    selectSketchStyle,
     updateSketchSettings,
-    userSketchPresets,
-    refreshUserPresets,
-    selectUserSketchPreset,
-    saveCurrentAsSketchPreset,
-    deleteUserSketchPreset,
-    USER_PRESET_PREFIX,
+    savedSketchStyles,
+    refreshSavedSketchStyles,
+    selectSavedSketchStyle,
+    saveCurrentSketchStyle,
+    deleteSavedSketchStyle,
+    USER_STYLE_PREFIX,
   } from '../../core/sketch/sketchStore';
 
   interface Props {
@@ -89,8 +89,8 @@
   const ROUGHNESS = ['smooth', 'grainy', 'rough'] as const;
 
   /** A layer's own wavelength: the multiple, and the length it resolves to
-      against the shared wave. The ratio is what a preset carries; the pixels
-      are what you can picture. */
+      against the shared wave. The ratio is what a sketchstyle carries; the
+      pixels are what you can picture. */
   const against = (multiple: number) => `${Math.round(s.wobble * multiple)}px`;
 
   /** The wave's shape, named rather than numbered: 1 is the field as the filter
@@ -118,52 +118,52 @@
       + (s.waveform > 1 ? ` · ${waveformLabel(s.waveform)}` : ''),
   });
 
-  /** Shipped and saved presets are one choice, so they share one radio group:
-      picking a saved one clears the shipped selection natively. */
-  const PRESET_RADIO_GROUP = 'sketch-preset';
+  /** Shipped and saved sketchstyles are one choice, so they share one radio
+      group: picking a saved one clears the shipped selection natively. */
+  const STYLE_RADIO_GROUP = 'sketchstyle';
 
   /** What the readout under the grid says. The selection survives a dial move,
       so the base keeps its name here and the blurb reports the drift instead. */
   let active = $derived(
     $sketchDirty
       ? { name: s.label, blurb: `Modified from ${s.label}. Save it to keep it.` }
-      : { name: s.label, blurb: s.blurb || 'Your saved preset.' },
+      : { name: s.label, blurb: s.blurb || 'Your saved sketchstyle.' },
   );
 
   let naming = $state(false);
   let draftName = $state('');
-  let presetError = $state('');
+  let styleError = $state('');
 
   onMount(() => {
-    // No dev plugin (a built preview, say) means no saved presets. That is a
-    // missing door, not a fault worth reporting in the tab.
-    refreshUserPresets().catch(() => {});
+    // No dev plugin (a built preview, say) means no saved sketchstyles. That
+    // is a missing door, not a fault worth reporting in the tab.
+    refreshSavedSketchStyles().catch(() => {});
   });
 
   function startNaming() {
-    draftName = s.label && $sketchPreset.startsWith(USER_PRESET_PREFIX) ? s.label : '';
-    presetError = '';
+    draftName = s.label && $sketchStyleName.startsWith(USER_STYLE_PREFIX) ? s.label : '';
+    styleError = '';
     naming = true;
   }
 
   async function commitSave(e: SubmitEvent) {
     e.preventDefault();
     try {
-      await saveCurrentAsSketchPreset(draftName);
+      await saveCurrentSketchStyle(draftName);
       naming = false;
       draftName = '';
-      presetError = '';
+      styleError = '';
     } catch (err) {
-      presetError = err instanceof Error ? err.message : 'Save failed';
+      styleError = err instanceof Error ? err.message : 'Save failed';
     }
   }
 
-  async function runPresetAction(action: Promise<unknown>) {
+  async function runStyleAction(action: Promise<unknown>) {
     try {
       await action;
-      presetError = '';
+      styleError = '';
     } catch (err) {
-      presetError = err instanceof Error ? err.message : 'That did not work';
+      styleError = err instanceof Error ? err.message : 'That did not work';
     }
   }
 
@@ -237,7 +237,7 @@
 <div class="sketch-tab">
   <header class="head">
     <div class="head-row">
-      <h2 class="section-title">Sketch</h2>
+      <h2 class="section-title">Sketchstyle</h2>
       <div class="switch">
         <Toggle
           label="Sketch mode"
@@ -277,7 +277,7 @@
             </p>
           {:else}
             <p class="readout-off-look">
-              The theme carries a sketch layer this page is not painting. Saving now would drop
+              The theme carries a sketchstyle this page is not painting. Saving now would drop
               it.
             </p>
           {/if}
@@ -285,25 +285,25 @@
       </div>
 
       <div class="presets">
-        {#each Object.entries(SKETCH_PRESETS) as [name, preset] (name)}
+        {#each Object.entries(SKETCH_STYLES) as [name, style] (name)}
           <label class="preset">
             <input
               type="radio"
-              name={PRESET_RADIO_GROUP}
+              name={STYLE_RADIO_GROUP}
               value={name}
-              checked={$sketchPreset === name}
-              onchange={() => selectSketchPreset(name)}
+              checked={$sketchStyleName === name}
+              onchange={() => selectSketchStyle(name)}
             />
-            <span class="preset-name">{preset.label}</span>
+            <span class="preset-name">{style.label}</span>
           </label>
         {/each}
       </div>
 
       <div class="saved">
         <div class="saved-head">
-          <span class="band-label">Saved</span>
+          <span class="band-label">Saved sketchstyles</span>
           <UIPillButton size="compact" icon="fa-floppy-disk" onclick={startNaming}>
-            Save current
+            Save as sketchstyle…
           </UIPillButton>
         </div>
 
@@ -313,8 +313,8 @@
             <input
               class="save-name"
               bind:value={draftName}
-              placeholder="Preset name"
-              aria-label="Preset name"
+              placeholder="Sketchstyle name"
+              aria-label="Sketchstyle name"
               autofocus
             />
             <UIPillButton size="compact" variant="primary" type="submit">Save</UIPillButton>
@@ -322,17 +322,17 @@
           </form>
         {/if}
 
-        {#if $userSketchPresets.length > 0}
+        {#if $savedSketchStyles.length > 0}
           <div class="presets">
-            {#each $userSketchPresets as saved (saved.fileName)}
+            {#each $savedSketchStyles as saved (saved.fileName)}
               <div class="saved-item">
                 <label class="preset">
                   <input
                     type="radio"
-                    name={PRESET_RADIO_GROUP}
-                    value={USER_PRESET_PREFIX + saved.fileName}
-                    checked={$sketchPreset === USER_PRESET_PREFIX + saved.fileName}
-                    onchange={() => runPresetAction(selectUserSketchPreset(saved.fileName))}
+                    name={STYLE_RADIO_GROUP}
+                    value={USER_STYLE_PREFIX + saved.fileName}
+                    checked={$sketchStyleName === USER_STYLE_PREFIX + saved.fileName}
+                    onchange={() => runStyleAction(selectSavedSketchStyle(saved.fileName))}
                   />
                   <span class="preset-name">{saved.name}</span>
                 </label>
@@ -341,15 +341,15 @@
                   class="saved-delete"
                   title="Delete {saved.name}"
                   aria-label="Delete {saved.name}"
-                  onclick={() => runPresetAction(deleteUserSketchPreset(saved.fileName))}
+                  onclick={() => runStyleAction(deleteSavedSketchStyle(saved.fileName))}
                 ><i class="fas fa-xmark"></i></button>
               </div>
             {/each}
           </div>
         {/if}
 
-        {#if presetError}
-          <p class="saved-error">{presetError}</p>
+        {#if styleError}
+          <p class="saved-error">{styleError}</p>
         {/if}
       </div>
     </div>
@@ -820,9 +820,9 @@
   }
 
 
-  /* Grid, saved band and readout are one control: which preset is on, and what
-     that preset is. Splitting them left the description reading as a stray
-     caption under the tab. */
+  /* Grid, saved band and readout are one control: which sketchstyle is on, and
+     what that sketchstyle is. Splitting them left the description reading as a
+     stray caption under the tab. */
   .picker {
     display: flex;
     flex-direction: column;

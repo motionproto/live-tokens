@@ -33,9 +33,9 @@ export interface ResolvedDataDirs {
   colorsAndTypeDir: string;
   componentConfigsDir: string;
   themesDir: string;
-  /** No per-folder config override: sketch presets are a draft-look artifact
-   *  with no reason to live apart from the rest of the data tree. */
-  sketchPresetsDir: string;
+  /** No per-folder config override: a sketchstyle has no reason to live apart
+   *  from the rest of the data tree. */
+  sketchStylesDir: string;
   /** Absolute path of the retired `manifestsDir` key, when the config sets it.
    *  Only the pre-0.48 layout detector and the migration read it. */
   legacyManifestsDir?: string;
@@ -133,7 +133,7 @@ export function resolveDataDirs(opts: ResolveDataDirsInput = {}): ResolvedDataDi
       : fileConfig.themesDir
         ? path.resolve(fileConfig.themesDir)
         : sub('themes'),
-    sketchPresetsDir: sub('sketch-presets'),
+    sketchStylesDir: sub('sketch-styles'),
     legacyManifestsDir: fileConfig.manifestsDir ? path.resolve(fileConfig.manifestsDir) : undefined,
   };
 }

@@ -9,7 +9,7 @@ import {
   setComponentAlias,
 } from '../store/editorStore';
 import { initializeTheme } from './themeInit';
-import { SKETCH_PRESETS } from '../sketch/sketchPresets';
+import { SKETCH_STYLES } from '../sketch/sketchStyles';
 
 beforeEach(() => {
   __resetForTests();
@@ -89,10 +89,10 @@ describe('initializeTheme component hydration', () => {
   });
 });
 
-function stubActiveTheme(sketch: unknown) {
+function stubActiveTheme(sketchStyle: unknown) {
   vi.stubGlobal('fetch', async (url: string) => {
     if (url === `${API_BASE}/themes/active`) {
-      return new Response(JSON.stringify({ name: 'Sketchy', sketch }), {
+      return new Response(JSON.stringify({ name: 'Sketchy', sketchStyle }), {
         status: 200,
         headers: { 'Content-Type': 'application/json' },
       });
@@ -105,51 +105,51 @@ function stubActiveTheme(sketch: unknown) {
 // "this browser never recorded a sketch decision" is a state the test sets
 // up rather than a side effect of what ran earlier in the file (`sketchStore`
 // computes `sketchTouched` once, at import).
-describe('initializeTheme sketch reconcile', () => {
+describe('initializeTheme sketchstyle reconcile', () => {
   beforeEach(() => {
     localStorage.clear();
     vi.resetModules();
   });
 
   it('seeds the live buffer from the theme when this browser never recorded a sketch decision', async () => {
-    stubActiveTheme(SKETCH_PRESETS.napkin);
+    stubActiveTheme(SKETCH_STYLES.napkin);
     const { initializeTheme } = await import('./themeInit');
-    const { sketchEnabled, sketchSettings, themeSketch } = await import('../sketch/sketchStore');
+    const { sketchEnabled, sketchSettings, themeSketchStyle } = await import('../sketch/sketchStore');
 
     await initializeTheme();
 
     expect(get(sketchEnabled)).toBe(true);
-    expect(get(sketchSettings)).toEqual(SKETCH_PRESETS.napkin);
-    expect(get(themeSketch)).toEqual(SKETCH_PRESETS.napkin);
+    expect(get(sketchSettings)).toEqual(SKETCH_STYLES.napkin);
+    expect(get(themeSketchStyle)).toEqual(SKETCH_STYLES.napkin);
   });
 
   it('leaves an unsaved buffer alone once this browser has recorded a decision, and only learns the theme', async () => {
     const { initializeTheme } = await import('./themeInit');
-    const { sketchEnabled, sketchSettings, themeSketch, updateSketchSettings } = await import('../sketch/sketchStore');
+    const { sketchEnabled, sketchSettings, themeSketchStyle, updateSketchSettings } = await import('../sketch/sketchStore');
     updateSketchSettings({}); // records a decision without changing the dials
     sketchEnabled.set(true);
     const liveBefore = get(sketchSettings);
-    stubActiveTheme(SKETCH_PRESETS.napkin);
+    stubActiveTheme(SKETCH_STYLES.napkin);
 
     await initializeTheme();
 
     expect(get(sketchSettings)).toEqual(liveBefore);
     expect(get(sketchEnabled)).toBe(true);
-    expect(get(themeSketch)).toEqual(SKETCH_PRESETS.napkin);
+    expect(get(themeSketchStyle)).toEqual(SKETCH_STYLES.napkin);
   });
 
-  it('leaves the sketch state alone when the active-theme fetch fails, rather than reading that as no sketch', async () => {
+  it('leaves the sketch state alone when the active-theme fetch fails, rather than reading that as no sketchstyle', async () => {
     const { initializeTheme } = await import('./themeInit');
-    const { sketchEnabled, sketchSettings, themeSketch, updateSketchSettings } = await import('../sketch/sketchStore');
+    const { sketchEnabled, sketchSettings, themeSketchStyle, updateSketchSettings } = await import('../sketch/sketchStore');
     updateSketchSettings({});
     sketchEnabled.set(true);
     const liveBefore = get(sketchSettings);
-    themeSketch.set(SKETCH_PRESETS.pencil);
+    themeSketchStyle.set(SKETCH_STYLES.pencil);
     vi.stubGlobal('fetch', async () => new Response(null, { status: 503 }));
 
     await initializeTheme();
 
     expect(get(sketchSettings)).toEqual(liveBefore);
-    expect(get(themeSketch)).toEqual(SKETCH_PRESETS.pencil);
+    expect(get(themeSketchStyle)).toEqual(SKETCH_STYLES.pencil);
   });
 });

@@ -2,7 +2,7 @@ import type { CurveAnchor } from '../../ui/curveEngine';
 import type { GradientValue } from './parsers/gradient';
 import type { Oklch } from '../palettes/oklch';
 import type { HarmonyAxis } from '../palettes/colorHarmony';
-import type { SketchSettings } from '../sketch/sketchPresets';
+import type { SketchStyle } from '../sketch/sketchStyles';
 /** Single source of truth for the theme schema version
  *  (docs/plans/theme-completeness.md, Wave 2 step 5). It lives here, on the
  *  shipped side: `vite-plugin/` is build tooling and is not in the tarball, so
@@ -280,10 +280,10 @@ export interface Theme {
    *  buy no isolation. `normalizeTheme` sets this on every read; an embedded
    *  config's own `schemaVersion` (if hand-authored) is ignored and stripped. */
   componentSchemaVersion: number;
-  /** The sketch layer this look paints, by value. Absent means the look is
+  /** The sketchstyle this look paints, by value. Absent means the look is
    *  crisp: presence is the on state, so there is no separate flag that can
    *  disagree with the dials beside it (RJC 1). */
-  sketch?: SketchSettings;
+  sketchStyle?: SketchStyle;
   /** Server-attached file-name marker. Same role as `ColorsAndType._fileName`. */
   _fileName?: string;
 }

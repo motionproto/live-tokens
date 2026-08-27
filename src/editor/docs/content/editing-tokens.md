@@ -11,7 +11,7 @@ The editor has four views:
   tell across a page.
 - **Components**: per-component editors. Re-Assign what tokens a component uses
   without changing the underlying system.
-- **Sketch Style**: an effect layer that redraws the page by hand. See
+- **Sketchstyle**: an effect layer that redraws the page by hand. See
   [Sketch mode](sketch-mode.md).
 
 This page covers **Tokens**. For components, see

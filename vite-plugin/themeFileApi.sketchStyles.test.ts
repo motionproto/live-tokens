@@ -1,5 +1,5 @@
 /**
- * The `sketch-presets` doors. Driven through the real route table with mock
+ * The `sketch-styles` doors. Driven through the real route table with mock
  * req/res, local data in a temp dir — same harness as the other themeFileApi
  * suites.
  */
@@ -81,51 +81,51 @@ afterEach(() => {
   fs.rmSync(tmp, { recursive: true, force: true });
 });
 
-describe('sketch presets', () => {
+describe('sketchstyles', () => {
   it('lists nothing before anything is saved', async () => {
-    const res = await request('GET', `${API}/sketch-presets`);
+    const res = await request('GET', `${API}/sketch-styles`);
     expect(res.status).toBe(200);
     expect(res.json.files).toEqual([]);
   });
 
-  it('round-trips a saved preset and lists its display name', async () => {
-    const put = await request('PUT', `${API}/sketch-presets/blueprint`, {
+  it('round-trips a saved sketchstyle and lists its display name', async () => {
+    const put = await request('PUT', `${API}/sketch-styles/blueprint`, {
       name: 'Blueprint',
       settings: SETTINGS,
     });
     expect(put.status).toBe(200);
 
-    const got = await request('GET', `${API}/sketch-presets/blueprint`);
+    const got = await request('GET', `${API}/sketch-styles/blueprint`);
     expect(got.json.settings).toEqual(SETTINGS);
     expect(got.json._fileName).toBe('blueprint');
 
-    const list = await request('GET', `${API}/sketch-presets`);
+    const list = await request('GET', `${API}/sketch-styles`);
     expect(list.json.files).toHaveLength(1);
     expect(list.json.files[0]).toMatchObject({ name: 'Blueprint', fileName: 'blueprint' });
   });
 
-  it('keeps createdAt when a preset is overwritten', async () => {
-    await request('PUT', `${API}/sketch-presets/blueprint`, { name: 'Blueprint', settings: SETTINGS });
-    const first = await request('GET', `${API}/sketch-presets/blueprint`);
+  it('keeps createdAt when a sketchstyle is overwritten', async () => {
+    await request('PUT', `${API}/sketch-styles/blueprint`, { name: 'Blueprint', settings: SETTINGS });
+    const first = await request('GET', `${API}/sketch-styles/blueprint`);
 
-    await request('PUT', `${API}/sketch-presets/blueprint`, {
+    await request('PUT', `${API}/sketch-styles/blueprint`, {
       name: 'Blueprint',
       settings: { ...SETTINGS, strokeWidth: 4 },
     });
-    const second = await request('GET', `${API}/sketch-presets/blueprint`);
+    const second = await request('GET', `${API}/sketch-styles/blueprint`);
 
     expect(second.json.createdAt).toBe(first.json.createdAt);
     expect(second.json.settings.strokeWidth).toBe(4);
   });
 
   it('refuses a body with no settings', async () => {
-    const res = await request('PUT', `${API}/sketch-presets/blueprint`, { name: 'Blueprint' });
+    const res = await request('PUT', `${API}/sketch-styles/blueprint`, { name: 'Blueprint' });
     expect(res.status).toBe(400);
-    expect(fs.existsSync(path.join(tmp, 'sketch-presets/blueprint.json'))).toBe(false);
+    expect(fs.existsSync(path.join(tmp, 'sketch-styles/blueprint.json'))).toBe(false);
   });
 
   it('refuses a reserved name', async () => {
-    const res = await request('PUT', `${API}/sketch-presets/_working`, {
+    const res = await request('PUT', `${API}/sketch-styles/_working`, {
       name: 'x',
       settings: SETTINGS,
     });
@@ -133,18 +133,18 @@ describe('sketch presets', () => {
     expect(res.json.code).toBe('RESERVED_NAME');
   });
 
-  it('deletes a preset', async () => {
-    await request('PUT', `${API}/sketch-presets/blueprint`, { name: 'Blueprint', settings: SETTINGS });
-    const del = await request('DELETE', `${API}/sketch-presets/blueprint`);
+  it('deletes a sketchstyle', async () => {
+    await request('PUT', `${API}/sketch-styles/blueprint`, { name: 'Blueprint', settings: SETTINGS });
+    const del = await request('DELETE', `${API}/sketch-styles/blueprint`);
     expect(del.status).toBe(200);
 
-    const list = await request('GET', `${API}/sketch-presets`);
+    const list = await request('GET', `${API}/sketch-styles`);
     expect(list.json.files).toEqual([]);
-    expect((await request('GET', `${API}/sketch-presets/blueprint`)).status).toBe(404);
+    expect((await request('GET', `${API}/sketch-styles/blueprint`)).status).toBe(404);
   });
 
   it('rejects POST to the collection', async () => {
-    const res = await request('POST', `${API}/sketch-presets`, {});
+    const res = await request('POST', `${API}/sketch-styles`, {});
     expect(res.status).toBe(405);
   });
 });

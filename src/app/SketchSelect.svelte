@@ -1,16 +1,16 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import LabeledSelect from './LabeledSelect.svelte';
-  import { SKETCH_PRESETS } from '../editor/core/sketch/sketchPresets';
+  import { SKETCH_STYLES } from '../editor/core/sketch/sketchStyles';
   import {
     sketchEnabled,
-    sketchPreset,
-    userSketchPresets,
-    refreshUserPresets,
-    selectSketchPreset,
-    selectUserSketchPreset,
+    sketchStyleName,
+    savedSketchStyles,
+    refreshSavedSketchStyles,
+    selectSketchStyle,
+    selectSavedSketchStyle,
     setSketchEnabled,
-    USER_PRESET_PREFIX,
+    USER_STYLE_PREFIX,
   } from '../editor/core/sketch/sketchStore';
 
   const NONE = '';
@@ -20,22 +20,22 @@
 
   const items = $derived([
     { value: NONE, label: 'None' },
-    ...Object.entries(SKETCH_PRESETS).map(([value, preset]) => ({ value, label: preset.label })),
-    ...$userSketchPresets.map(({ fileName, name }) => ({
-      value: USER_PRESET_PREFIX + fileName,
+    ...Object.entries(SKETCH_STYLES).map(([value, style]) => ({ value, label: style.label })),
+    ...$savedSketchStyles.map(({ fileName, name }) => ({
+      value: USER_STYLE_PREFIX + fileName,
       label: name || fileName,
     })),
   ]);
 
-  /* Off is its own choice here, so the picked preset only shows while the
-     effect is on. Turning it off in the Sketch Style view leaves that
-     preset selected there; this reads as None until it is switched back on. */
-  const value = $derived($sketchEnabled ? $sketchPreset : NONE);
+  /* Off is its own choice here, so the picked sketchstyle only shows while the
+     effect is on. Turning it off in the Sketchstyle view leaves that
+     sketchstyle selected there; this reads as None until it is switched back on. */
+  const value = $derived($sketchEnabled ? $sketchStyleName : NONE);
 
   onMount(() => {
-    // No dev plugin (a built preview, say) means no saved presets. That is a
-    // missing door, not a fault worth reporting here.
-    refreshUserPresets().catch(() => {});
+    // No dev plugin (a built preview, say) means no saved sketchstyles. That is
+    // a missing door, not a fault worth reporting here.
+    refreshSavedSketchStyles().catch(() => {});
   });
 
   async function changeSketch(next: string) {
@@ -47,14 +47,14 @@
         setSketchEnabled(false);
         return;
       }
-      if (next.startsWith(USER_PRESET_PREFIX)) {
-        await selectUserSketchPreset(next.slice(USER_PRESET_PREFIX.length));
+      if (next.startsWith(USER_STYLE_PREFIX)) {
+        await selectSavedSketchStyle(next.slice(USER_STYLE_PREFIX.length));
       } else {
-        selectSketchPreset(next);
+        selectSketchStyle(next);
       }
       setSketchEnabled(true);
     } catch (reason) {
-      error = reason instanceof Error ? reason.message : 'Could not apply that sketch style';
+      error = reason instanceof Error ? reason.message : 'Could not apply that sketchstyle';
     } finally {
       busy = false;
     }

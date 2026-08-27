@@ -58,7 +58,7 @@
     markComponentSaved,
   } from '../core/store/editorStore';
   import { openThemeSlug } from '../core/store/editorConfigStore';
-  import { sketchOffLook, sketchSettings, themeSketch } from '../core/sketch/sketchStore';
+  import { sketchOffLook, themeSketchStyle } from '../core/sketch/sketchStore';
   import { editorView } from '../core/store/editorViewStore';
   import {
     componentActiveRevision,
@@ -84,6 +84,10 @@
   let { showComponentsLink = true }: Props = $props();
 
   let canOpenComponents = $derived(showComponentsLink && $editorView !== 'components');
+  // No `showComponentsLink`-style gate: the Sketchstyle view has no full-page
+  // route standing outside the switcher, the way ComponentEditorPage does for
+  // Components, so "not already there" is the whole condition.
+  let canOpenSketchStyle = $derived($editorView !== 'sketch');
 
   let files: ThemeMeta[] = $state([]);
   let colorsFiles: ColorsAndTypeMeta[] = $state([]);
@@ -124,7 +128,7 @@
         // Deleting the open theme repoints active without going through Load
         // or Save, both of which already set this; this is the path that
         // makes sketchStore's "set by every path that opens a theme" true.
-        themeSketch.set(active.sketch);
+        themeSketchStyle.set(active.sketchStyle);
       }
     } catch {
       // silent
@@ -180,6 +184,10 @@
 
   function openComponents() {
     editorView.set('components');
+  }
+
+  function openSketchStyle() {
+    editorView.set('sketch');
   }
 
   onMount(async () => {
@@ -858,20 +866,30 @@
     </div>
 
     <div class="part-head part-static">
-      <span class="part-label">Sketch</span>
+      <span class="part-label">Sketchstyle</span>
       <span class="part-summary">
         <span class="part-summary-sep">·</span>
         {#if $sketchOffLook}
           <span>off the theme</span>
-        {:else if $themeSketch}
-          <span class="part-summary-text">{$sketchSettings.label}</span>
+        {:else if $themeSketchStyle}
+          <span class="part-summary-text">{$themeSketchStyle.label}</span>
         {:else}
           <span>none</span>
         {/if}
       </span>
-      <UIInfoPopover title="Sketch" ariaLabel="About the sketch layer">
+      {#if canOpenSketchStyle}
+        <UIPillButton
+          size="compact"
+          icon="fa-pen-nib"
+          title="Open the Sketchstyle view"
+          onclick={openSketchStyle}
+        >
+          Open
+        </UIPillButton>
+      {/if}
+      <UIInfoPopover title="Sketchstyle" ariaLabel="About the sketchstyle">
         <p>
-          <strong>Sketch</strong> is part of the theme, the same way colors and type are.
+          <strong>Sketchstyle</strong> is part of the theme, the same way colors and type are.
           It travels with the theme when you save, load or share it.
         </p>
         <p>

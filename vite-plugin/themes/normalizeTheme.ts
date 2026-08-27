@@ -28,7 +28,7 @@ import { CURRENT_COMPONENT_SCHEMA_VERSION } from '../../src/editor/core/themes/m
 import type { AliasDiskValue, ThemeFillReport } from '../../src/editor/core/themes/themeTypes';
 import { THEME_SCHEMA_VERSION } from '../../src/editor/core/themes/themeTypes';
 import { KNOWN_COMPONENT_CONFIG_KEYS } from '../../src/editor/core/components/componentConfigKeys';
-import { hydrateSketchSettings, type SketchSettings } from '../../src/editor/core/sketch/sketchPresets';
+import { hydrateSketchStyle, type SketchStyle } from '../../src/editor/core/sketch/sketchStyles';
 
 // Owned by `themeTypes.ts` so the editor can read it without importing build
 // tooling that the published tarball does not carry.
@@ -73,10 +73,10 @@ export interface EncapsulatedTheme {
    *  single global counter over every component migration, so a per-entry
    *  stamp would buy no isolation and the theme is rewritten wholesale anyway. */
   componentSchemaVersion: number;
-  /** The sketch layer this look paints, by value. Absent means the look is
+  /** The sketchstyle this look paints, by value. Absent means the look is
    *  crisp: presence is the on state, so there is no separate flag that can
    *  disagree with the dials beside it (RJC 1). */
-  sketch?: SketchSettings;
+  sketchStyle?: SketchStyle;
 }
 
 export interface NormalizedTheme {
@@ -275,11 +275,12 @@ export function normalizeTheme(
     }
   }
 
-  // Reconciled the way a saved preset is: a look stored before a dial existed
-  // picks that dial's default up, a retired key is dropped. A theme with no
-  // sketch keeps none. Absent is the off state, not a value to fill (RJC 3).
-  const embeddedSketch = asObject(src.sketch);
-  const sketch = embeddedSketch ? hydrateSketchSettings(embeddedSketch) : undefined;
+  // Reconciled the way a saved sketchstyle is: a look stored before a dial
+  // existed picks that dial's default up, a retired key is dropped. A theme
+  // with no sketchStyle keeps none. Absent is the off state, not a value to
+  // fill (RJC 3).
+  const embeddedSketchStyle = asObject(src.sketchStyle);
+  const sketchStyle = embeddedSketchStyle ? hydrateSketchStyle(embeddedSketchStyle) : undefined;
 
   return {
     theme: {
@@ -290,7 +291,7 @@ export function normalizeTheme(
       colorsAndType,
       componentConfigs,
       componentSchemaVersion: CURRENT_COMPONENT_SCHEMA_VERSION,
-      ...(sketch ? { sketch } : {}),
+      ...(sketchStyle ? { sketchStyle } : {}),
     },
     dropped,
     migrated,

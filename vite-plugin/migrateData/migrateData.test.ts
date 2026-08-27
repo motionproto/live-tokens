@@ -337,3 +337,58 @@ describe('migrateData', () => {
     expect(exists(root, 'themes', '_production.json')).toBe(false);
   });
 });
+
+// Sketch in the theme, Wave 6: `sketch-presets/` (0.57.0 through 0.62.0) is
+// `sketch-styles/` now. A plain rename, riding the same pipeline as the
+// pre-0.48 layout swap above but independent of it: a tree with no retired
+// pointers still carries it if the old directory is there.
+describe('migrateData sketchstyle rename', () => {
+  function sketchTree() {
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), 'lt-heal-sketch-'));
+    roots.push(root);
+    const d = dirs(root);
+    writeJson(path.join(d.dataDir, 'sketch-presets', 'blueprint.json'), { name: 'Blueprint', settings: {} });
+    return root;
+  }
+
+  it('reports the rename plan without touching disk under check', () => {
+    const root = sketchTree();
+    const d = dirs(root);
+
+    const result = heal(root, true);
+
+    expect(result.status).toBe('planned');
+    expect(result.renames).toEqual([
+      { from: path.join(d.dataDir, 'sketch-presets'), to: path.join(d.dataDir, 'sketch-styles') },
+    ]);
+    expect(exists(root, 'sketch-presets', 'blueprint.json')).toBe(true);
+    expect(exists(root, 'sketch-styles', 'blueprint.json')).toBe(false);
+  });
+
+  it('renames the directory, keeping the file inside it', () => {
+    const root = sketchTree();
+
+    const result = heal(root);
+
+    expect(result.status).toBe('healed');
+    expect(exists(root, 'sketch-presets')).toBe(false);
+    expect(readJson(path.join(root, DATA, 'sketch-styles', 'blueprint.json')).name).toBe('Blueprint');
+  });
+
+  it('does nothing once the directory already carries its new name', () => {
+    const root = sketchTree();
+    heal(root);
+
+    expect(heal(root).status).toBe('clean');
+  });
+
+  it('leaves a tree with no sketch-presets directory alone', () => {
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), 'lt-heal-nosketch-'));
+    roots.push(root);
+
+    const result = heal(root);
+
+    expect(result.status).toBe('clean');
+    expect(result.renames).toEqual([]);
+  });
+});

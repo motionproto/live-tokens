@@ -19,7 +19,7 @@
  * Everything is integer maths on a Float32Array with no DOM, so what a test
  * asserts is what the browser paints.
  */
-import type { SketchSettings } from './sketchPresets';
+import type { SketchStyle } from './sketchStyles';
 
 /** What the tile spans in page px. Blobs are fitted a whole number to the
     tile, which is what lets the lattice wrap; the dial's px reading is the
@@ -111,7 +111,7 @@ function makePerlin(seed: number): (x: number, y: number, period: number) => num
  * wherever the octave crossed zero, which is the marbled look; plain sum is
  * cloud.
  */
-function rawField(s: SketchSettings, seed: number, raster: number, cells: number): Float32Array {
+function rawField(s: SketchStyle, seed: number, raster: number, cells: number): Float32Array {
   const noise = makePerlin(seed);
   const veined = s.maskGrain === 'turbulence';
   const octaves = Math.max(1, Math.round(s.maskOctaves));
@@ -256,7 +256,7 @@ function boxPass(f: Float32Array, n: number, radius: number): Float32Array {
     all four; the levels, the posterising and the blur are one pass each. */
 let rawCache: { key: string; field: Float32Array } | null = null;
 
-function cachedRaw(s: SketchSettings, seed: number): Float32Array {
+function cachedRaw(s: SketchStyle, seed: number): Float32Array {
   const key = [s.maskBlob, s.maskOctaves, s.maskGrain, seed].join('|');
   if (rawCache?.key !== key) {
     const cells = Math.max(1, Math.round(MASK_TILE / s.maskBlob));
@@ -274,7 +274,7 @@ function cachedRaw(s: SketchSettings, seed: number): Float32Array {
  * pass did.
  */
 export function buildMaskField(
-  s: SketchSettings, seed = 9, through?: MaskStage,
+  s: SketchStyle, seed = 9, through?: MaskStage,
 ): { field: Float32Array; raster: number } {
   const raw = cachedRaw(s, seed);
   if (through === 'noise') return { field: raw, raster: RASTER };
@@ -406,7 +406,7 @@ const CACHE_MAX = 6;
 const cache = new Map<string, string>();
 
 /** The field as a `url(...)` for `mask-image`. */
-export function buildMaskUri(s: SketchSettings, seed = 9, through?: MaskStage): string {
+export function buildMaskUri(s: SketchStyle, seed = 9, through?: MaskStage): string {
   const key = [...KEYS.map((k) => s[k]), seed, through ?? 'all'].join('|');
   const hit = cache.get(key);
   if (hit) return hit;

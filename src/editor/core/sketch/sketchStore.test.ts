@@ -2,34 +2,34 @@
 
 import { get } from 'svelte/store';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { DEFAULT_SKETCH_PRESET, hydrateSketchSettings, SKETCH_PRESETS, type SketchSettings } from './sketchPresets';
+import { DEFAULT_SKETCH_STYLE, hydrateSketchStyle, SKETCH_STYLES, type SketchStyle } from './sketchStyles';
 import { liveMovedSinceBake } from '../productionPulse';
 import {
-  liveSketch,
-  openThemeSketch,
-  saveCurrentAsSketchPreset,
-  selectSketchPreset,
-  selectUserSketchPreset,
+  liveSketchStyle,
+  openThemeSketchStyle,
+  saveCurrentSketchStyle,
+  selectSketchStyle,
+  selectSavedSketchStyle,
   setSketchEnabled,
   setSketchPageRoot,
   sketchDirty,
   sketchEnabled,
   sketchOffLook,
-  sketchPreset,
+  sketchStyleName,
   sketchSettings,
-  themeSketch,
+  themeSketchStyle,
   updateSketchSettings,
 } from './sketchStore';
 
-describe('sketch preset selection', () => {
+describe('sketchstyle selection', () => {
   beforeEach(() => {
-    selectSketchPreset('pencil');
+    selectSketchStyle('pencil');
   });
 
   it('keeps the base selected after a dial moves', () => {
     updateSketchSettings({ strokeWidth: 9 });
 
-    expect(get(sketchPreset)).toBe('pencil');
+    expect(get(sketchStyleName)).toBe('pencil');
     expect(get(sketchSettings).strokeWidth).toBe(9);
   });
 
@@ -49,105 +49,105 @@ describe('sketch preset selection', () => {
 
   it('reads clean again after switching to another base', () => {
     updateSketchSettings({ strokeWidth: 9 });
-    selectSketchPreset('napkin');
+    selectSketchStyle('napkin');
 
-    expect(get(sketchPreset)).toBe('napkin');
+    expect(get(sketchStyleName)).toBe('napkin');
     expect(get(sketchDirty)).toBe(false);
   });
 });
 
-describe('openThemeSketch', () => {
+describe('openThemeSketchStyle', () => {
   beforeEach(() => {
-    selectSketchPreset('pencil');
+    selectSketchStyle('pencil');
   });
 
-  it('turns the effect off and empties the preset selection when the theme carries none', () => {
-    openThemeSketch(undefined);
+  it('turns the effect off and empties the sketchstyle selection when the theme carries none', () => {
+    openThemeSketchStyle(undefined);
 
     expect(get(sketchEnabled)).toBe(false);
-    expect(get(sketchPreset)).toBe('');
-    expect(get(themeSketch)).toBeUndefined();
+    expect(get(sketchStyleName)).toBe('');
+    expect(get(themeSketchStyle)).toBeUndefined();
   });
 
-  it('turns the effect on and selects the matching shipped preset by comparison', () => {
-    openThemeSketch(SKETCH_PRESETS.napkin);
+  it('turns the effect on and selects the matching shipped sketchstyle by comparison', () => {
+    openThemeSketchStyle(SKETCH_STYLES.napkin);
 
     expect(get(sketchEnabled)).toBe(true);
-    expect(get(sketchPreset)).toBe('napkin');
-    expect(get(sketchSettings)).toEqual(SKETCH_PRESETS.napkin);
+    expect(get(sketchStyleName)).toBe('napkin');
+    expect(get(sketchSettings)).toEqual(SKETCH_STYLES.napkin);
     expect(get(sketchDirty)).toBe(false);
   });
 
-  it('selects no preset when the theme dials match none of the shipped set, and still reads clean', () => {
-    const custom: SketchSettings = { ...SKETCH_PRESETS.napkin, fillTravel: 9.5 };
+  it('selects no sketchstyle when the theme dials match none of the shipped set, and still reads clean', () => {
+    const custom: SketchStyle = { ...SKETCH_STYLES.napkin, fillTravel: 9.5 };
 
-    openThemeSketch(custom);
+    openThemeSketchStyle(custom);
 
-    expect(get(sketchPreset)).toBe('');
+    expect(get(sketchStyleName)).toBe('');
     expect(get(sketchDirty)).toBe(false);
   });
 });
 
 describe('sketchOffLook', () => {
   it('is false when both the live state and the theme are absent', () => {
-    openThemeSketch(undefined);
+    openThemeSketchStyle(undefined);
 
     expect(get(sketchOffLook)).toBe(false);
   });
 
   it('is false when the live dials match what the theme carries', () => {
-    openThemeSketch(SKETCH_PRESETS.napkin);
+    openThemeSketchStyle(SKETCH_STYLES.napkin);
 
     expect(get(sketchOffLook)).toBe(false);
   });
 
   it('is true when the effect is on and the theme carries none', () => {
-    openThemeSketch(undefined);
-    selectSketchPreset('napkin');
+    openThemeSketchStyle(undefined);
+    selectSketchStyle('napkin');
     sketchEnabled.set(true);
 
     expect(get(sketchOffLook)).toBe(true);
   });
 
   it('is true when the effect is off and the theme carries a layer', () => {
-    openThemeSketch(SKETCH_PRESETS.napkin);
+    openThemeSketchStyle(SKETCH_STYLES.napkin);
     sketchEnabled.set(false);
 
     expect(get(sketchOffLook)).toBe(true);
   });
 
   it('reads false again once the theme is opened onto the live value', () => {
-    openThemeSketch(undefined);
-    selectSketchPreset('napkin');
+    openThemeSketchStyle(undefined);
+    selectSketchStyle('napkin');
     sketchEnabled.set(true);
     updateSketchSettings({ fillTravel: 9.5 });
     expect(get(sketchOffLook)).toBe(true);
 
-    openThemeSketch(get(sketchSettings));
+    openThemeSketchStyle(get(sketchSettings));
 
     expect(get(sketchOffLook)).toBe(false);
   });
 });
 
-describe('liveSketch', () => {
+describe('liveSketchStyle', () => {
   it('is undefined while the effect is off', () => {
-    selectSketchPreset('pencil');
+    selectSketchStyle('pencil');
     sketchEnabled.set(false);
 
-    expect(liveSketch()).toBeUndefined();
+    expect(liveSketchStyle()).toBeUndefined();
   });
 
   it('is the live dials while the effect is on', () => {
-    selectSketchPreset('napkin');
+    selectSketchStyle('napkin');
     sketchEnabled.set(true);
 
-    expect(liveSketch()).toEqual(SKETCH_PRESETS.napkin);
+    expect(liveSketchStyle()).toEqual(SKETCH_STYLES.napkin);
   });
 });
 
 describe('liveMovedSinceBake follows the gesture boundary', () => {
   beforeEach(() => {
-    openThemeSketch(undefined);
+    openThemeSketchStyle(undefined);
     liveMovedSinceBake.set(false);
   });
 
@@ -161,20 +161,20 @@ describe('liveMovedSinceBake follows the gesture boundary', () => {
     expect(get(liveMovedSinceBake)).toBe(true);
   });
 
-  it('is set by a preset pick while the effect is on', () => {
+  it('is set by a sketchstyle pick while the effect is on', () => {
     setSketchEnabled(true);
     liveMovedSinceBake.set(false);
 
-    selectSketchPreset('napkin');
+    selectSketchStyle('napkin');
 
     expect(get(liveMovedSinceBake)).toBe(true);
   });
 
-  it('is not set by a preset pick while the effect is off', () => {
-    // The dial set and the preset grid stay interactive with the effect off
-    // (browsing is ordinary use), but `liveSketch()` returns undefined while
-    // disabled, so nothing done to them then can reach a theme or a bake.
-    selectSketchPreset('napkin');
+  it('is not set by a sketchstyle pick while the effect is off', () => {
+    // The dial set and the sketchstyle grid stay interactive with the effect
+    // off (browsing is ordinary use), but `liveSketchStyle()` returns undefined
+    // while disabled, so nothing done to them then can reach a theme or a bake.
+    selectSketchStyle('napkin');
 
     expect(get(liveMovedSinceBake)).toBe(false);
   });
@@ -185,11 +185,11 @@ describe('liveMovedSinceBake follows the gesture boundary', () => {
     expect(get(liveMovedSinceBake)).toBe(false);
   });
 
-  it('is not set by a user-preset pick while the effect is off', async () => {
+  it('is not set by a saved-sketchstyle pick while the effect is off', async () => {
     vi.stubGlobal('fetch', async () =>
-      new Response(JSON.stringify({ name: 'Mine', settings: SKETCH_PRESETS.napkin }), { status: 200 }));
+      new Response(JSON.stringify({ name: 'Mine', settings: SKETCH_STYLES.napkin }), { status: 200 }));
 
-    await selectUserSketchPreset('mine');
+    await selectSavedSketchStyle('mine');
 
     expect(get(liveMovedSinceBake)).toBe(false);
   });
@@ -204,7 +204,7 @@ describe('liveMovedSinceBake follows the gesture boundary', () => {
   });
 
   it('is not set by opening a theme', () => {
-    openThemeSketch(SKETCH_PRESETS.napkin);
+    openThemeSketchStyle(SKETCH_STYLES.napkin);
 
     expect(get(liveMovedSinceBake)).toBe(false);
   });
@@ -225,61 +225,61 @@ describe('liveMovedSinceBake follows the gesture boundary', () => {
   });
 });
 
-describe('saveCurrentAsSketchPreset', () => {
+describe('saveCurrentSketchStyle', () => {
   afterEach(() => {
     vi.unstubAllGlobals();
   });
 
-  // `saveCurrentAsSketchPreset` only rewrites `label`, which `sameLook`
+  // `saveCurrentSketchStyle` only rewrites `label`, which `sameLook`
   // defines as outside the look. Flagging here would make the Theme panel's
-  // Sketch row read in sync while Adopt read the look as unpublished: two
+  // Sketchstyle row read in sync while Adopt read the look as unpublished: two
   // readings of one state, disagreeing.
   it('does not raise the bake flag, or the off-look flag, for an untouched theme-supplied sketch', async () => {
     vi.stubGlobal('fetch', async (url: string, init?: RequestInit) => {
       if (init?.method === 'PUT') return new Response(null, { status: 200 });
       return new Response(JSON.stringify({ files: [] }), { status: 200 });
     });
-    openThemeSketch(SKETCH_PRESETS.napkin);
+    openThemeSketchStyle(SKETCH_STYLES.napkin);
     liveMovedSinceBake.set(false);
     expect(get(sketchOffLook)).toBe(false);
 
-    await saveCurrentAsSketchPreset('My Napkin');
+    await saveCurrentSketchStyle('My Napkin');
 
     expect(get(liveMovedSinceBake)).toBe(false);
     expect(get(sketchOffLook)).toBe(false);
   });
 });
 
-describe('hydrateSketchSettings', () => {
+describe('hydrateSketchStyle', () => {
   it('drops a key for a control that no longer exists', () => {
-    const stored = { ...SKETCH_PRESETS.pencil, mode: 'global' };
+    const stored = { ...SKETCH_STYLES.pencil, mode: 'global' };
 
-    expect(hydrateSketchSettings(stored)).not.toHaveProperty('mode');
+    expect(hydrateSketchStyle(stored)).not.toHaveProperty('mode');
   });
 
-  it('leaves a rehydrated preset comparing equal to the shipped one', () => {
+  it('leaves a rehydrated sketchstyle comparing equal to the shipped one', () => {
     // A stale key survives every spread, so without the drop the settings read
     // as modified against their own baseline forever.
-    const stored = { ...SKETCH_PRESETS.pencil, mode: 'global' };
+    const stored = { ...SKETCH_STYLES.pencil, mode: 'global' };
 
-    expect(hydrateSketchSettings(stored)).toEqual(SKETCH_PRESETS.pencil);
+    expect(hydrateSketchStyle(stored)).toEqual(SKETCH_STYLES.pencil);
   });
 
-  it('still fills a control added since the value was stored, from the default preset', () => {
-    const { strokeInk, ...withoutNewControl } = SKETCH_PRESETS.pencil;
+  it('still fills a control added since the value was stored, from the default sketchstyle', () => {
+    const { strokeInk, ...withoutNewControl } = SKETCH_STYLES.pencil;
 
-    expect(hydrateSketchSettings(withoutNewControl).strokeInk).toBe(
-      SKETCH_PRESETS[DEFAULT_SKETCH_PRESET].strokeInk,
+    expect(hydrateSketchStyle(withoutNewControl).strokeInk).toBe(
+      SKETCH_STYLES[DEFAULT_SKETCH_STYLE].strokeInk,
     );
   });
 
-  it('drops the retired global preset from the shipped set', () => {
-    expect(Object.keys(SKETCH_PRESETS)).not.toContain('global');
+  it('drops the retired global sketchstyle from the shipped set', () => {
+    expect(Object.keys(SKETCH_STYLES)).not.toContain('global');
   });
 
   // The dial used to be the map's own `scale`, which is twice the travel.
   it('halves a look stored under the old swing-valued dials', () => {
-    const out = hydrateSketchSettings({
+    const out = hydrateSketchStyle({
       fillScale: 4, strokeScale: 3, iconScale: 2.5, cornerShift: 16,
     });
     expect(out.fillTravel).toBe(2);
@@ -290,28 +290,28 @@ describe('hydrateSketchSettings', () => {
 
   // Cycles per px is the number the filter wants, not one anybody can picture.
   it('reads a stored frequency back as a wavelength in px', () => {
-    expect(hydrateSketchSettings({ frequency: 0.018 }).wobble).toBe(56);
+    expect(hydrateSketchStyle({ frequency: 0.018 }).wobble).toBe(56);
   });
 
   // The distance between the passes used to be derived from the stroke width,
   // so a look stored before the dial has to come back at that distance rather
-  // than at whatever the fallback preset carries.
+  // than at whatever the fallback sketchstyle carries.
   it('rebuilds the pass offset a look was drawn with', () => {
-    expect(hydrateSketchSettings({ strokeWidth: 4 }).retraceOffset).toBe(2.2);
-    expect(hydrateSketchSettings({ strokeWidth: 1.25 }).retraceOffset).toBe(1.2);
-    expect(hydrateSketchSettings({ strokeWidth: 4, retraceOffset: 6 }).retraceOffset).toBe(6);
+    expect(hydrateSketchStyle({ strokeWidth: 4 }).retraceOffset).toBe(2.2);
+    expect(hydrateSketchStyle({ strokeWidth: 1.25 }).retraceOffset).toBe(1.2);
+    expect(hydrateSketchStyle({ strokeWidth: 4, retraceOffset: 6 }).retraceOffset).toBe(6);
   });
 
   // A px tile against a glyph whose size the layer cannot know. The old default
   // reads as one period across the glyph, which is what that size was aiming at.
   it('reads a stored icon tile back as a share of the glyph', () => {
-    expect(hydrateSketchSettings({ iconMaskTile: 90 }).iconMaskScale).toBe(1);
-    expect(hydrateSketchSettings({ iconMaskTile: 140 }).iconMaskScale).toBe(1.56);
-    expect(hydrateSketchSettings({ iconMaskTile: 60 }).iconMaskScale).toBe(0.67);
+    expect(hydrateSketchStyle({ iconMaskTile: 90 }).iconMaskScale).toBe(1);
+    expect(hydrateSketchStyle({ iconMaskTile: 140 }).iconMaskScale).toBe(1.56);
+    expect(hydrateSketchStyle({ iconMaskTile: 60 }).iconMaskScale).toBe(0.67);
   });
 
   it('converts a tiled mask into page-px blobs', () => {
-    const out = hydrateSketchSettings({
+    const out = hydrateSketchStyle({
       maskScale: 1100, maskFrequency: 0.009, maskContrast: 2.2, maskFloor: 0.35, maskSoftness: 1.5,
     });
     expect(out.maskBlob).toBe(204);
@@ -321,18 +321,18 @@ describe('hydrateSketchSettings', () => {
 
   // The pair were a cut point and a slope through feTurbulence's own output,
   // which never reached either end of 0 to 1. Rescaled onto a field that does,
-  // the same look comes back rather than the fallback preset's.
+  // the same look comes back rather than the fallback sketchstyle's.
   it('converts a coverage cut into the two levels it sat between', () => {
-    const out = hydrateSketchSettings({ maskCoverage: 0.5, maskContrast: 2 });
+    const out = hydrateSketchStyle({ maskCoverage: 0.5, maskContrast: 2 });
     expect(out.maskOutputMin).toBeCloseTo(0.02, 2);
     expect(out.maskOutputMax).toBeCloseTo(0.96, 2);
 
-    const hard = hydrateSketchSettings({ maskCoverage: 0.84, maskContrast: 4 });
+    const hard = hydrateSketchStyle({ maskCoverage: 0.84, maskContrast: 4 });
     expect(hard.maskOutputMax - hard.maskOutputMin).toBeLessThan(out.maskOutputMax - out.maskOutputMin);
   });
 
   it('carries input levels across as output levels', () => {
-    const out = hydrateSketchSettings({ maskLevelMin: 0.2, maskLevelMax: 0.5 });
+    const out = hydrateSketchStyle({ maskLevelMin: 0.2, maskLevelMax: 0.5 });
     expect(out.maskOutputMin).toBe(0.2);
     expect(out.maskOutputMax).toBe(0.5);
     expect('maskLevelMin' in out).toBe(false);
@@ -376,7 +376,7 @@ describe('page root', () => {
 describe('hasPersistedSketchState', () => {
   const ENABLED_KEY = 'lt.sketchEnabled';
   const SETTINGS_KEY = 'lt.sketchSettings';
-  const PRESET_KEY = 'lt.sketchPreset';
+  const STYLE_NAME_KEY = 'lt.sketchStyleName';
   const BASELINE_KEY = 'lt.sketchBaseline';
   const TOUCHED_KEY = 'lt.sketchTouched';
 
@@ -402,9 +402,9 @@ describe('hasPersistedSketchState', () => {
 
   it('reads touched, and migrates the sentinel, for a pre-upgrade browser holding the legacy keys with no sentinel', async () => {
     localStorage.setItem(ENABLED_KEY, 'true');
-    localStorage.setItem(SETTINGS_KEY, JSON.stringify(SKETCH_PRESETS.napkin));
-    localStorage.setItem(PRESET_KEY, 'napkin');
-    localStorage.setItem(BASELINE_KEY, JSON.stringify(SKETCH_PRESETS.napkin));
+    localStorage.setItem(SETTINGS_KEY, JSON.stringify(SKETCH_STYLES.napkin));
+    localStorage.setItem(STYLE_NAME_KEY, 'napkin');
+    localStorage.setItem(BASELINE_KEY, JSON.stringify(SKETCH_STYLES.napkin));
 
     const { hasPersistedSketchState } = await import('./sketchStore');
 
@@ -433,7 +433,7 @@ describe('cross-document sync', () => {
 
   /** Deliver a value as the other document would, serialised in ITS key order.
       The same settings written by this document would come out in the canonical
-      order `hydrateSketchSettings` produces, so the stored text says who wrote
+      order `hydrateSketchStyle` produces, so the stored text says who wrote
       last — which no spy can, since happy-dom's localStorage is a Proxy and
       neither the instance method nor the prototype one stays patched. */
   function arrive(settings: object): string {
@@ -451,7 +451,7 @@ describe('cross-document sync', () => {
   // — read a value it did not hold and adopted its own past. The handle jumped
   // back under the cursor and the drag could not move.
   it('never writes back a value it adopted from the other document', () => {
-    selectSketchPreset('marker');
+    selectSketchStyle('marker');
     updateSketchSettings({ maskOutputMin: 0.3 });
 
     const sent = arrive({ ...get(sketchSettings), maskOutputMin: 0.2 });
@@ -461,7 +461,7 @@ describe('cross-document sync', () => {
   });
 
   it('still sends its own changes after adopting one', () => {
-    selectSketchPreset('marker');
+    selectSketchStyle('marker');
     arrive({ ...get(sketchSettings), maskOutputMin: 0.2 });
 
     updateSketchSettings({ maskOutputMin: 0.7 });

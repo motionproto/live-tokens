@@ -18,15 +18,20 @@
 
 ### Changed
 
-- **A theme carries its sketch layer.** Save folds the live dials into the open
-  theme's `sketch` field; Load applies whatever the theme carries, or turns the
-  effect off for a theme with none. `sketch-presets/` keeps its old job: a
-  preset is a reusable look you pick from, saved and loaded independently of
-  the open theme. Production is unchanged: Adopt still does not bake the
-  layer, and a built site still ships no sketch. No migration runs: a browser
-  that already had sketch dials set reads them as off the theme on its first
-  boot after upgrading, and Save folds them into the open theme like any
-  other unsaved change.
+- **A theme carries its sketchstyle.** Save folds the live dials into the open
+  theme's `sketchStyle` field; Load applies whatever the theme carries, or
+  turns the effect off for a theme with none. A sketchstyle keeps its old job:
+  a reusable look you pick from, saved and loaded independently of the open
+  theme. Production is unchanged: Adopt still does not bake the layer, and a
+  built site still ships no sketch. No migration runs for the theme field
+  itself: a browser that already had sketch dials set reads them as off the
+  theme on its first boot after upgrading, and Save folds them into the open
+  theme like any other unsaved change.
+- **Sketchstyle, named as one thing.** "Sketch preset" is retired: the code,
+  the Theme panel row, the editor's fourth view and the on-disk directory all
+  say "sketchstyle" now. The saved-look directory moves from
+  `data/sketch-presets/` to `data/sketch-styles/`; `npx live-tokens migrate`
+  renames it (boot only warns on the old name, it does not refuse the tree).
 
 ## 0.62.0 — Editorial type reads as a pair
 

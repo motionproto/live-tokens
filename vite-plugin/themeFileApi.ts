@@ -138,7 +138,7 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
   const COLORS_AND_TYPE_DIR = dataDirs.colorsAndTypeDir;
   const COMPONENT_CONFIGS_DIR = dataDirs.componentConfigsDir;
   const THEMES_DIR = dataDirs.themesDir;
-  const SKETCH_PRESETS_DIR = dataDirs.sketchPresetsDir;
+  const SKETCH_STYLES_DIR = dataDirs.sketchStylesDir;
   const CSS_PATH = path.resolve(opts.tokensCssPath);
   const GENERATED_CSS_PATH = opts.tokensGeneratedCssPath
     ? path.resolve(opts.tokensGeneratedCssPath)
@@ -260,12 +260,12 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
     packageDir: packageThemesDir,
   });
 
-  // Sketch presets — the dials a user saved from the Sketch Style view. No
-  // packageDir: the shipped presets are code (`sketchPresets.ts`), so this
-  // directory holds nothing but user files. No pointer pair either: a preset
-  // is a library file, not the active document, so there is no
+  // Sketchstyles — the dials a user saved from the Sketchstyle view. No
+  // packageDir: the shipped sketchstyles are code (`sketchStyles.ts`), so this
+  // directory holds nothing but user files. No pointer pair either: a
+  // sketchstyle is a library file, not the active document, so there is no
   // active/production to name.
-  const sketchPresetsResource = versionedFileResourceServer({ dir: SKETCH_PRESETS_DIR });
+  const sketchStylesResource = versionedFileResourceServer({ dir: SKETCH_STYLES_DIR });
 
   function ensureColorsAndTypeDir() {
     // No local default.json is written: `default` resolves to the shipped
@@ -802,6 +802,20 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
     );
   }
 
+  /** A plain rename, unlike the pre-0.48 layout above: nothing inside changes
+   *  shape, and a writer aimed at `sketch-styles/` can never destroy a file
+   *  under the retired `sketch-presets/` name. Boot only warns, so the rest of
+   *  the tree keeps working while a saved sketchstyle waits to be renamed. */
+  function warnOnUnmigratedSketchStyles(warn: (msg: string) => void): void {
+    const legacyDir = path.join(dataDirs.dataDir, 'sketch-presets');
+    if (!fs.existsSync(legacyDir)) return;
+    warn(
+      `[live-tokens] Saved sketchstyles still live under the retired ` +
+        `${path.basename(legacyDir)}/ directory name. Run \`npx live-tokens migrate\` to rename it ` +
+        `to ${path.basename(SKETCH_STYLES_DIR)}/; until then they will not show up in the Sketchstyle view.`,
+    );
+  }
+
   // ── Themes helpers ────────────────────────────────────────────────────────
 
   /** Resolve a v1 theme's refs against the files on disk, package fallback
@@ -1183,8 +1197,8 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
   const THEME_EXPORT_REGEX = new RegExp(`^${escapedBase}/themes/([a-z0-9\\-_]+)/export$`);
   const THEME_IMPORT_ROUTE = `${API_BASE}/themes/import`;
   const THEME_BY_NAME_REGEX = new RegExp(`^${escapedBase}/themes/([a-z0-9\\-_]+)$`);
-  const SKETCH_PRESETS_ROUTE = `${API_BASE}/sketch-presets`;
-  const SKETCH_PRESET_BY_NAME_REGEX = new RegExp(`^${escapedBase}/sketch-presets/([a-z0-9\\-_]+)$`);
+  const SKETCH_STYLES_ROUTE = `${API_BASE}/sketch-styles`;
+  const SKETCH_STYLE_BY_NAME_REGEX = new RegExp(`^${escapedBase}/sketch-styles/([a-z0-9\\-_]+)$`);
   // The adopt door: publishes the open theme. Production is one named theme,
   // so there is nothing per-layer to promote and nothing to name in the body.
   const PRODUCTION_ROUTE = `${API_BASE}/production`;
@@ -1889,15 +1903,15 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
     });
   }
 
-  // ── /api/sketch-presets ──────────────────────────────────────────────────
+  // ── /api/sketch-styles ────────────────────────────────────────────────────
 
-  async function handleListSketchPresets({ res }: any) {
-    const files = sketchPresetsResource.listNames().map((fileName) => {
+  async function handleListSketchStyles({ res }: any) {
+    const files = sketchStylesResource.listNames().map((fileName) => {
       let data: any = null;
       // One unparseable file must not take the whole row down; it lists under
       // its own file name and the client can still delete it.
       try {
-        data = sketchPresetsResource.readJson(fileName);
+        data = sketchStylesResource.readJson(fileName);
       } catch { /* fall through to the file name */ }
       return {
         name: data?.name || fileName,
@@ -1908,13 +1922,13 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
     jsonResponse(res, 200, { files });
   }
 
-  async function handleSketchPresetByName({ params, req, res }: any) {
+  async function handleSketchStyleByName({ params, req, res }: any) {
     const [fileName] = params;
     if (rejectReservedName(res, fileName)) return;
-    const filePath = sketchPresetsResource.filePath(fileName);
+    const filePath = sketchStylesResource.filePath(fileName);
 
     if (req.method === 'GET') {
-      const raw = sketchPresetsResource.readJson(fileName) as any;
+      const raw = sketchStylesResource.readJson(fileName) as any;
       if (!raw) {
         jsonResponse(res, 404, { error: 'Not found' });
         return;
@@ -1926,7 +1940,7 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
     if (req.method === 'PUT') {
       const body = JSON.parse(await readBody(req));
       if (!body || typeof body !== 'object' || !body.settings || typeof body.settings !== 'object') {
-        jsonResponse(res, 400, { error: 'A sketch preset needs a settings object' });
+        jsonResponse(res, 400, { error: 'A sketchstyle needs a settings object' });
         return;
       }
       body.name = String(body.name || fileName);
@@ -1938,7 +1952,7 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
         } catch { /* a corrupt existing file just loses its createdAt */ }
       }
       if (!body.createdAt) body.createdAt = body.updatedAt;
-      sketchPresetsResource.ensureDir();
+      sketchStylesResource.ensureDir();
       fs.writeFileSync(filePath, JSON.stringify(body, null, 2));
       jsonResponse(res, 200, { ok: true, fileName });
       return;
@@ -2059,14 +2073,14 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
     { method: 'DELETE', pattern: THEME_BY_NAME_REGEX,     handler: handleThemeByName },
 
     // Production — the whole-look adopt door
-    { method: 'GET',    pattern: SKETCH_PRESETS_ROUTE,        handler: handleListSketchPresets },
-    { method: 'PUT',    pattern: SKETCH_PRESETS_ROUTE,        handler: methodNotAllowed },
-    { method: 'POST',   pattern: SKETCH_PRESETS_ROUTE,        handler: methodNotAllowed },
-    { method: 'DELETE', pattern: SKETCH_PRESETS_ROUTE,        handler: methodNotAllowed },
-    { method: 'GET',    pattern: SKETCH_PRESET_BY_NAME_REGEX, handler: handleSketchPresetByName },
-    { method: 'PUT',    pattern: SKETCH_PRESET_BY_NAME_REGEX, handler: handleSketchPresetByName },
-    { method: 'DELETE', pattern: SKETCH_PRESET_BY_NAME_REGEX, handler: handleSketchPresetByName },
-    { method: 'POST',   pattern: SKETCH_PRESET_BY_NAME_REGEX, handler: methodNotAllowed },
+    { method: 'GET',    pattern: SKETCH_STYLES_ROUTE,        handler: handleListSketchStyles },
+    { method: 'PUT',    pattern: SKETCH_STYLES_ROUTE,        handler: methodNotAllowed },
+    { method: 'POST',   pattern: SKETCH_STYLES_ROUTE,        handler: methodNotAllowed },
+    { method: 'DELETE', pattern: SKETCH_STYLES_ROUTE,        handler: methodNotAllowed },
+    { method: 'GET',    pattern: SKETCH_STYLE_BY_NAME_REGEX, handler: handleSketchStyleByName },
+    { method: 'PUT',    pattern: SKETCH_STYLE_BY_NAME_REGEX, handler: handleSketchStyleByName },
+    { method: 'DELETE', pattern: SKETCH_STYLE_BY_NAME_REGEX, handler: handleSketchStyleByName },
+    { method: 'POST',   pattern: SKETCH_STYLE_BY_NAME_REGEX, handler: methodNotAllowed },
 
     { method: 'PUT',    pattern: PRODUCTION_ROUTE,        handler: handleAdoptLook },
     { method: 'GET',    pattern: PRODUCTION_ROUTE,        handler: methodNotAllowed },
@@ -2133,6 +2147,7 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
         warnOnLegacyPointers(listLegacyPointers(), productionPointerHeld, (msg) =>
           server.config.logger.warn(msg),
         );
+        warnOnUnmigratedSketchStyles((msg) => server.config.logger.warn(msg));
       }
 
       server.middlewares.use(async (req, res, next) => {

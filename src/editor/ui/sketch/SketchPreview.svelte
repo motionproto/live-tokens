@@ -6,10 +6,10 @@
   import Callout from '../../../system/components/Callout.svelte';
   import Toggle from '../../../system/components/Toggle.svelte';
   import { setSketchScope } from '../../core/sketch/sketchLayer';
-  import type { SketchSettings } from '../../core/sketch/sketchPresets';
+  import type { SketchStyle } from '../../core/sketch/sketchStyles';
 
   interface Props {
-    settings: SketchSettings;
+    settings: SketchStyle;
     enabled: boolean;
   }
 
@@ -42,7 +42,7 @@
         <p>Fill and outline displace on different noise seeds, so they disagree at the edges.</p>
       </Card>
       <Card title="Second card">
-        <p>Same size and same preset. A different seed keeps the silhouette from repeating.</p>
+        <p>Same size and same sketchstyle. A different seed keeps the silhouette from repeating.</p>
       </Card>
     </div>
   </section>

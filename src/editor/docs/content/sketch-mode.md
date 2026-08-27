@@ -8,7 +8,7 @@ It is an effect layer, not a set of token values. It never touches a token
 itself, so turning it off returns every component to exactly what its tokens
 already say. A production build never carries the drawing.
 
-Open the **Sketch Style** view in the editor and switch **Sketch mode** on. The effect
+Open the **Sketchstyle** view in the editor and switch **Sketch mode** on. The effect
 applies to the page behind the editor as well as to the preview, so what you see
 in context is what it does.
 
@@ -20,10 +20,10 @@ are pushed around one shared field of noise. Because every component samples the
 same field, the whole page reads as one drawing rather than as a set of
 separately wobbled boxes.
 
-## The presets
+## The sketchstyles
 
 Seven looks ship with the package, and each is a complete set of dials rather
-than a style name:
+than a sketchstyle name:
 
 - **Pencil.** Two graphite passes on their own seeds, so the outline disagrees
   with itself the way a hand coming back round does.
@@ -38,9 +38,9 @@ than a style name:
 - **Napkin.** Ballpoint in a hurry. Everything loose at once.
 - **Dry marker.** Ink that ran out. One scratchy pass over a mostly eaten fill.
 
-Pick one, then move whatever you like. **Save current** keeps your dials under
-a name of your own, alongside the shipped seven, as a file under
-`src/live-tokens/data/sketch-presets/`. That is a different gesture from
+Pick one, then move whatever you like. **Save as sketchstyle…** keeps your
+dials under a name of your own, alongside the shipped seven, as a file under
+`src/live-tokens/data/sketch-styles/`. That is a different gesture from
 saving a theme; see "Where the settings live" below.
 
 ## The dials
@@ -81,8 +81,8 @@ change. The built-in **Motion Proto** theme is read-only, so Save
 is disabled there; use **Save As** to fold the dials into a theme of your
 own.
 
-**Save current** in the **Sketch Style** view is a different gesture. It
-writes a named preset to `src/live-tokens/data/sketch-presets/`, a look you
+**Save as sketchstyle…** in the **Sketchstyle** view is a different gesture. It
+writes a named sketchstyle to `src/live-tokens/data/sketch-styles/`, a look you
 can pick from any theme. It never touches the open theme, and it never marks
 the look off the theme.
 

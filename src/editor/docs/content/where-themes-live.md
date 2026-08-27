@@ -20,8 +20,8 @@ src/live-tokens/data/
       default.json       Button's shipped settings, derived at boot
       _working.json      unsaved Button edits
       my-button.json     a preset you saved from the Button editor
-  sketch-presets/
-    my-look.json         a sketch preset saved from the Sketch Style view
+  sketch-styles/
+    my-look.json         a sketchstyle saved from the Sketchstyle view
   tokens.generated.css   the baked CSS your production build ships
 src/system/styles/
   tokens.css             your token vocabulary, hand-authored, never written

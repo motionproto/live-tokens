@@ -7,7 +7,7 @@ import { getActiveColorsAndType } from './colorsAndTypeService';
 import { broadcastAppliedTheme, hydrateAppliedTheme } from './themeDocumentSync';
 import { CURRENT_COMPONENT_SCHEMA_VERSION } from './migrations';
 import { THEME_SCHEMA_VERSION } from './themeTypes';
-import { liveSketch, themeSketch } from '../sketch/sketchStore';
+import { liveSketchStyle, themeSketchStyle } from '../sketch/sketchStore';
 
 export type { ThemeFillReport };
 
@@ -145,7 +145,7 @@ function withoutLiveMarkers<T extends { _fileName?: string; _source?: unknown }>
  * way out of `GET /colors-and-type/active`, which matters: the server trusts an
  * already-embedded copy and runs no migrations over it on write.
  */
-async function captureLook(): Promise<Pick<Theme, 'colorsAndType' | 'componentConfigs' | 'sketch'>> {
+async function captureLook(): Promise<Pick<Theme, 'colorsAndType' | 'componentConfigs' | 'sketchStyle'>> {
   const liveColorsAndType = await getActiveColorsAndType();
   if (!liveColorsAndType) {
     throw new Error('No live colors and type to capture');
@@ -157,9 +157,9 @@ async function captureLook(): Promise<Pick<Theme, 'colorsAndType' | 'componentCo
     const config = configs[i];
     if (config) componentConfigs[c.name] = withoutLiveMarkers(config);
   });
-  // Sketch has no server door of its own (RJC 8): the live buffer, not a
+  // Sketchstyle has no server door of its own (RJC 8): the live buffer, not a
   // fetch, is the source of truth for what the dials currently say.
-  return { colorsAndType: withoutLiveMarkers(liveColorsAndType), componentConfigs, sketch: liveSketch() };
+  return { colorsAndType: withoutLiveMarkers(liveColorsAndType), componentConfigs, sketchStyle: liveSketchStyle() };
 }
 
 /**
@@ -181,7 +181,7 @@ export async function saveAsTheme(
     componentSchemaVersion: CURRENT_COMPONENT_SCHEMA_VERSION,
     ...look,
   });
-  themeSketch.set(look.sketch);
+  themeSketchStyle.set(look.sketchStyle);
   liveMovedSinceBake.set(true);
   await setActiveTheme(fileName);
 }
@@ -205,7 +205,7 @@ export async function saveActiveTheme(displayName?: string): Promise<void> {
     componentSchemaVersion: CURRENT_COMPONENT_SCHEMA_VERSION,
     ...look,
   });
-  themeSketch.set(look.sketch);
+  themeSketchStyle.set(look.sketchStyle);
   liveMovedSinceBake.set(true);
 }
 

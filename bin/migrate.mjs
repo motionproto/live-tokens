@@ -12,7 +12,7 @@
 // resolution, file IO, and reporting.
 
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
-import { dirname, join, relative, resolve } from 'node:path';
+import { basename, dirname, join, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const pkgRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
@@ -123,7 +123,11 @@ export function formatMigrateDataResult(result) {
   const lines = [planned ? 'Data tree heal (planned):' : 'Data tree healed:'];
 
   for (const { from, to } of result.renames) {
-    lines.push(`  ${planned ? 'would move' : 'moved'} ${rel(from)} → ${rel(to)} (0.48 layout)`);
+    // Two unrelated renames share this list: the pre-0.48 layout swap, and
+    // `sketch-presets/` → `sketch-styles/`. Told apart by the destination
+    // name, since `LegacyRename` carries no reason of its own.
+    const reason = basename(to) === 'sketch-styles' ? 'sketchstyle rename' : '0.48 layout';
+    lines.push(`  ${planned ? 'would move' : 'moved'} ${rel(from)} → ${rel(to)} (${reason})`);
   }
   for (const p of result.upgradedThemes) {
     lines.push(`  ${planned ? 'would carry' : 'carried'} ${rel(p)} by value (was a pre-v3 theme naming files)`);
