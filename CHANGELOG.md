@@ -23,7 +23,10 @@
   effect off for a theme with none. `sketch-presets/` keeps its old job: a
   preset is a reusable look you pick from, saved and loaded independently of
   the open theme. Production is unchanged: Adopt still does not bake the
-  layer, and a built site still ships no sketch.
+  layer, and a built site still ships no sketch. No migration runs: a browser
+  that already had sketch dials set reads them as off the theme on its first
+  boot after upgrading, and Save folds them into the open theme like any
+  other unsaved change.
 
 ## 0.62.0 — Editorial type reads as a pair
 

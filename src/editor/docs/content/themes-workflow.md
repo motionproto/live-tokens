@@ -14,9 +14,10 @@ file to manage.
   define their appearance. It names the two faces the page is showing.
 - **Components** counts how many components have an unsaved edit that has not
   been saved into the theme, and opens the component editors.
-- **Sketch** shows whether the drawn effect is off the theme, matches a
-  shipped preset, or is off. It travels with the theme like colors and type
-  do, but never reaches a production build.
+- **Sketch** names the look the theme's sketch layer carries: its label, or
+  off the theme when what's on screen no longer matches what was saved, or
+  none when the theme carries no sketch layer. It travels with the theme
+  like colors and type do, but never reaches a production build.
 
 A theme holds its own copy of every part, so one theme can never break another.
 
@@ -115,16 +116,16 @@ type*, and picking one is always that narrower load.
 
 ## Shipping
 
-**Adopt**, in the Theme panel, is the "ship it" step, and it ships the whole
-look. It saves the open theme, then bakes that theme into
+**Adopt**, in the Theme panel, is the "ship it" step. It saves the open theme,
+then bakes the colors and type plus every component the theme carries into
 `src/live-tokens/data/tokens.generated.css`, which your build bundles alongside
-`tokens.css`: the colors and type plus every component the theme carries. Fonts
-regenerate to match. The line under the theme name says whether production is
-running this theme.
+`tokens.css`. The sketch layer is the one part of the theme Adopt never bakes:
+it stays a preview. Fonts regenerate to match. The line under the theme name
+says whether production is running this theme.
 
 Production is one saved theme, so nothing else publishes. Trying a look, moving
 a token, saving a theme: all of it leaves the generated CSS alone until you
-Adopt. A component editor's Adopt runs the same whole-look step, because a
+Adopt. A component editor's Adopt runs the same save-then-bake step, because a
 component never ships alone. Adopting while Motion Proto is open saves your look
 as a theme of your own first, since the built-in one is read-only.
 

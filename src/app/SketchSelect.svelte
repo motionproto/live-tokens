@@ -28,8 +28,8 @@
   ]);
 
   /* Off is its own choice here, so the picked preset only shows while the
-     effect is on. Turning it off in the Sketch tab leaves that preset selected
-     there; this reads as None until it is switched back on. */
+     effect is on. Turning it off in the Sketch Style view leaves that
+     preset selected there; this reads as None until it is switched back on. */
   const value = $derived($sketchEnabled ? $sketchPreset : NONE);
 
   onMount(() => {

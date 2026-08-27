@@ -249,7 +249,8 @@
           <p>
             An effect layer over the active theme. It repaints each component's fill and
             outline from the tokens that component already owns, then pushes them around a
-            shared noise field. Save in the Theme panel folds the dials into the open theme.
+            shared noise field. Save in the Theme panel folds the dials into the open theme,
+            or Save As when the open theme is Motion Proto, the read-only built-in one.
           </p>
           <p>
             While it is on, the effect applies to the page behind this editor as well as to the

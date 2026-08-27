@@ -149,7 +149,7 @@ export function liveSketch(): SketchSettings | undefined {
   return get(sketchEnabled) ? { ...get(sketchSettings) } : undefined;
 }
 
-/** The Sketch tab's on/off switch goes through here rather than a bare
+/** The Sketch Style view's on/off switch goes through here rather than a bare
     `sketchEnabled.set`, so flipping it by hand marks this browser as having
     made a sketch decision the same as any other control does. */
 export function setSketchEnabled(enabled: boolean): void {
@@ -337,10 +337,11 @@ if (typeof document !== 'undefined') {
   sketchPreset.subscribe((name) => share(PRESET_KEY, name));
   sketchBaseline.subscribe((b) => share(BASELINE_KEY, b ? JSON.stringify(b) : ''));
 
-  /* The overlay editor runs in an iframe, so the Sketch tab and a control on
-     the page are separate instances of this module. localStorage is the ground
-     they share: each adopts a value only when it differs from what it holds,
-     and records what it adopted so it never sends that value back. */
+  /* The overlay editor runs in an iframe, so the Sketch Style view and a
+     control on the page are separate instances of this module. localStorage
+     is the ground they share: each adopts a value only when it differs from
+     what it holds, and records what it adopted so it never sends that value
+     back. */
   window.addEventListener('storage', (event) => {
     if (event.storageArea !== localStorage) return;
     if (event.key === ENABLED_KEY) {

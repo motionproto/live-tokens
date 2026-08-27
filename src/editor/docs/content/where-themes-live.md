@@ -20,6 +20,8 @@ src/live-tokens/data/
       default.json       Button's shipped settings, derived at boot
       _working.json      unsaved Button edits
       my-button.json     a preset you saved from the Button editor
+  sketch-presets/
+    my-look.json         a sketch preset saved from the Sketch Style view
   tokens.generated.css   the baked CSS your production build ships
 src/system/styles/
   tokens.css             your token vocabulary, hand-authored, never written
@@ -36,8 +38,10 @@ file, so deleting anything else never breaks it.
   edits in the browser as you work and writes them to the `_working.json`
   buffers when you save a component. When the Theme panel finds several dirty
   components, **Save all** writes those buffers together.
-- **Save** captures the buffers into the open theme's file. That file is the
-  durable copy of your look; matching buffers are then removed.
+- **Save** captures the buffers into the open theme's file, along with the
+  sketch layer, which has no buffer of its own and lives only in the browser
+  until Save writes it. That file is the durable copy of your look; matching
+  buffers are then removed.
 - **Load** clears the buffers and points `themes/_active.json` at the theme you
   picked. Live reads fall through to that file. Nothing else changes, so trying
   looks is free and ordinary switching changes only the pointer.
