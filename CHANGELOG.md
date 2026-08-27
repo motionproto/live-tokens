@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.60.1 — A drawn heading is type, not an icon
+
+### Fixed
+
+- **`SectionDivider`'s title holds still in Sketch mode.** The title is type
+  drawn as an SVG, so the sketch layer read it as one glyph and pushed it as
+  far as it pushes a 16px icon. It asked for the soft bank rather than opting
+  out, and at heading size any travel at all pulls the letters apart. The
+  title now declares `--sketch-icon-off: none`, which drops the ink mask along
+  with the displacement, so the heading stays crisp while the rest of the page
+  keeps its hand-drawn edge.
+
 ## 0.60.0 — A brief names a feeling or an idiom
 
 ### Added
