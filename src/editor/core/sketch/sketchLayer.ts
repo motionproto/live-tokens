@@ -227,10 +227,19 @@ const PART_SPECS: readonly PartSpec[] = [
   // outline: a line does not get drawn around.
   { sel: '.sd-hairline', fill: 'var(--_divider-hairline-color)', strokeless: true },
 
-  // Consumer opt-in. A page element that is not a component but paints a
-  // token-driven surface sets --sketch-fill / --sketch-stroke itself and
-  // carries this class; the layer then treats it like any other part.
+  // Consumer opt-in. A page element or a consumer-authored component that
+  // paints a token-driven surface sets --sketch-fill / --sketch-stroke itself
+  // and carries one of these; the layer then treats it like any other part.
+  // They name no colour, so no rule is emitted for them and whatever the
+  // element declared survives.
+  //
+  // Which one to carry is a question of size, not of kind. The shipped parts
+  // are sorted the same way below: a container tilts less than the type inside
+  // it can tolerate, a chip is smaller than one blob of the fill mask. A part
+  // that is neither takes `.sketch-surface` and the middle treatment.
   { sel: '.sketch-surface' },
+  { sel: '.sketch-container' },
+  { sel: '.sketch-chip' },
   { sel: '.sketch-rule', strokeless: true },
 ];
 
@@ -958,7 +967,8 @@ export function buildStylesheet(s: SketchSettings): string {
   // Large panels tilt less than the type inside them can tolerate; small chips
   // can take more rotation but less travel.
   const perPart =
-    `${el}:is(.card, .card-header, .panel, .dialog, .table-wrapper, .sidenavigation)` +
+    `${el}:is(.card, .card-header, .panel, .dialog, .table-wrapper, .sidenavigation,` +
+      ` .sketch-container)` +
       `{--sketch-jit-rot:calc(var(--sketch-jit-rot-base) * 0.3);}` +
     // A rule is one or two pixels tall. The full-size displacement tears it into
     // dashes and a translate that large lifts it clean off its own row, so it
@@ -972,7 +982,7 @@ export function buildStylesheet(s: SketchSettings): string {
       // rather than as a hand.
       `--sketch-corner-spread:0px;` +
     `}` +
-    `${el}:is(.badge, .toggle .track){` +
+    `${el}:is(.badge, .toggle .track, .sketch-chip){` +
       // A chip is smaller than one blob at the tile the cards read it at, so it
       // lands wholly inside a patch and comes out either untouched or gone.
       // Shrinking the tile puts several blotches across it, which is the same
@@ -993,8 +1003,8 @@ export function buildStylesheet(s: SketchSettings): string {
       `--sketch-stroke-filter:url(#${ID}-stroke-sm-2);` +
     `}`;
 
-  // `.sketch-surface` names its own colours, so it emits no rule and keeps
-  // whatever the page set.
+  // The `.sketch-*` opt-in classes name their own colours, so they emit no rule
+  // and keep whatever the page set.
   const colours = PART_SPECS.map((p) => {
     const f = p.fill ?? (p.stem ? `var(--${p.stem}-surface)` : null);
     const st = p.stroke ?? (p.stem ? `var(--${p.stem}-border)` : null);

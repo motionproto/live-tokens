@@ -4,7 +4,7 @@ import { readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import * as sass from 'sass';
-import { buildStylesheet } from './sketchLayer';
+import { buildStylesheet, PART_SELECTORS } from './sketchLayer';
 import { SKETCH_PRESETS } from './sketchPresets';
 
 /**
@@ -143,9 +143,9 @@ describe('what the layer paints a part with', () => {
   const rules = compiledRules();
   const sketched = paintedBySketch();
 
-  // A part the consumer colours itself (`.sketch-surface`) has no component
-  // rule to check against; nothing else may go unmatched.
-  const CONSUMER_OWNED = ['.sketch-surface', '.sketch-rule'];
+  // A part the consumer colours itself has no component rule to check against;
+  // nothing else may go unmatched.
+  const CONSUMER_OWNED = ['.sketch-surface', '.sketch-container', '.sketch-chip', '.sketch-rule'];
 
   it('reads its fill off a background the component sets on that same element', () => {
     const wrong: string[] = [];
@@ -177,5 +177,36 @@ describe('what the layer paints a part with', () => {
       .filter((s) => !rules.some((r) => applies(r.sel, s.sel)))
       .map((s) => s.sel);
     expect(unmatched).toEqual([]);
+  });
+});
+
+/**
+ * The consumer hooks are the only way a page element or a consumer-authored
+ * component joins the effect, so the layer has to draw them and must not name a
+ * colour for them: the element's own declaration is the whole point.
+ */
+describe('the consumer opt-in classes', () => {
+  const CONSUMER_HOOKS = ['.sketch-surface', '.sketch-container', '.sketch-chip', '.sketch-rule'];
+
+  it('are drawn', () => {
+    const missing = CONSUMER_HOOKS.filter((sel) => !PART_SELECTORS.includes(sel));
+    expect(missing).toEqual([]);
+  });
+
+  it("are left uncoloured, so the element's own --sketch-fill survives", () => {
+    const coloured = paintedBySketch()
+      .filter((s) => CONSUMER_HOOKS.includes(s.sel))
+      .map((s) => s.sel);
+    expect(coloured).toEqual([]);
+  });
+
+  it('sort by size the same way the shipped parts do', () => {
+    const css = buildStylesheet(SKETCH_PRESETS.marker);
+    // The container damping and the chip profile are single rules listing every
+    // part that takes them; a hook is in the right band or it is not there.
+    const band = (member: string) =>
+      css.split('\n').find((line) => line.includes(member)) ?? '';
+    expect(band('.sidenavigation')).toContain('.sketch-container');
+    expect(band('.toggle .track')).toContain('.sketch-chip');
   });
 });

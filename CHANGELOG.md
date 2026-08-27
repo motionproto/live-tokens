@@ -1,5 +1,31 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+- **`sketch-container` and `sketch-chip`, beside the existing `sketch-surface`
+  and `sketch-rule`.** The sketch layer draws a fixed set of selectors, so a
+  consumer-authored component stayed crisp while the page around it went
+  hand-drawn. The four reserved classes are now a size ladder — a container
+  tilts less than the type inside it can tolerate, a chip is smaller than one
+  blob of the fill mask — and a consumer picks the band its part belongs to
+  instead of inheriting the middle treatment or borrowing a shipped part's
+  selector to get drawn at all. The classes name no colours, so the element's
+  own `--sketch-fill` / `--sketch-stroke` survive untouched.
+
+### Fixed
+
+- **Sketch mode's "Drawing your own elements" section showed the custom
+  properties without the class that opts an element in**, so the example it gave
+  drew nothing. It now documents all four reserved classes, how to pick one, and
+  that variants, states and gradients are all just further declarations of
+  `--sketch-fill` / `--sketch-stroke`.
+- **`live-tokens-create-component` never mentioned sketch mode.** Joining the
+  layer is now step 5 of the recipe, with `references/sketch-mode.md` behind it
+  and a line on the verification checklist. A component authored to the old
+  recipe was invisible to the effect and nothing said so.
+
 ## 0.57.0 — A theme can be drawn by hand
 
 ### Added

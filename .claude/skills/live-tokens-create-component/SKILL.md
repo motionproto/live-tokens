@@ -44,7 +44,11 @@ For pattern reference, read any shipped component's source directly from the con
    ```
    The schema side-effect happens inside `registerComponent` (which `bootLiveTokens` calls for you), so you don't call `registerComponentSchema` separately. **Do not place a standalone `registerComponent(...)` *before* `bootLiveTokens`** — that registers before the editor's init hooks run, which is the wrong window and can leave editor changes disconnected from the live page. Only call `registerComponent` directly if your app mounts manually (no `bootLiveTokens`), in which case call it before `mount(App, ...)`.
 4. **Tell the picker** — open `.claude/skills/live-tokens-pick-component/SKILL.md` and add your new component to the **Catalogue** line under the family it belongs to (Action / Input / Selection / Containers / Messaging / Display). If it's confusable with an existing component (a second selection control, a competing container), add a row to that family's decision table explaining the use-case it owns. Without this step, the component exists but [[live-tokens-pick-component]] can't recommend it when a user asks "which component should I use?" — the same rule applies whether the component is first-party (update the picker shipped in this package) or consumer-authored (update the local copy at `.claude/skills/live-tokens-pick-component/SKILL.md` that `setup-claude` placed in your project).
-5. **Verify** with the checklist at the bottom of this file.
+5. **Join the sketch layer** — the effect draws a fixed set of parts, so a new
+   component stays crisp while the page around it goes hand-drawn until its root
+   element carries one of the four reserved classes and names its own colours.
+   Read `references/sketch-mode.md`.
+6. **Verify** with the checklist at the bottom of this file.
 
 ## Token discipline
 
@@ -123,6 +127,7 @@ The authoritative recognised list lives in `bin/check-component.mjs` (`KNOWN_SUF
 
   The helper strips the `--<component>-` prefix and those segments, keeping the rest: `--mywidget-header-default-text` → `header-text`, `--mywidget-header-default-text-font-family` → `header-text-font-family`. Two parts ending in the same word stay distinct; one slot across variants collapses to one key. To override a single derived key, set `colorGroupKey` on that type-group config — it wins and is never recomputed, so your fix survives. There is no name-based fallback: a bare `buildTypeGroupColorTokens` call emits un-grouped (solo) colors rather than guessing, and a bare *font* helper across multiple slots is a `check-component` warning (its default `font-family`/… keys would merge the slots' fonts).
 
+
 ## State model
 
 Components *can* have two state axes. Many don't: container and messaging components (Card, Badge, Callout, CollapsibleSection) have only variants, no hover/disabled. Skip the rest of this section for those.
@@ -194,10 +199,11 @@ For your own component, copy the pattern and substitute your id. Registering aga
 
 ## Extensions
 
-Read the one you need; most components need neither.
+Read the sketch reference for every component; the other two only when they apply.
 
 - `references/linked-siblings.md`: variants that share base properties and should move together (Badge, Card, SegmentedControl).
 - `references/intrinsics.md`: structural or display choices that are not token values (an alignment, an element's visibility), where the runtime default and the editor's read-back must agree.
+- `references/sketch-mode.md`: joining the sketch layer. **Every component needs this** — one class on the root plus the `--sketch-*` colours it draws with. Skip it and the component stays crisp while the page around it goes hand-drawn.
 
 ## Verification checklist
 
@@ -230,3 +236,4 @@ Finally navigate to `/live-tokens/components` and confirm the runtime behaviours
 - [ ] `component-configs/<id>/default.json` is derived from the `:global(:root)` block at boot. Save writes `_working.json`, the unsaved buffer the open theme captures; Save As also writes a named preset.
 - [ ] Reset returns each variable to its `:global(:root)` default.
 - [ ] Boot validation is clean (no warnings about the component being missing from the server scan, or about disk-vs-registry drift).
+- [ ] Switch Sketch mode on in the editor. The component is drawn, in its own colours, in every variant and on hover — not crisp, and not wearing another part's palette.

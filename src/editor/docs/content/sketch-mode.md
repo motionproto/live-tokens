@@ -65,10 +65,53 @@ your own, alongside the shipped seven, as a file under
 
 ## Drawing your own elements
 
-The effect displaces boxes, so anything drawn some other way is left alone. A
-rule made from a `border` is not a box; make it an element and tell the layer
-what to draw it with:
+The layer draws a fixed set of parts: the shipped components, and four classes
+it reserves for you. Nothing else is touched, so a page element or a
+consumer-authored component is left crisp until it carries one of them.
 
+| Class               | For                                                       |
+|---------------------|-----------------------------------------------------------|
+| `sketch-surface`    | A box. The default treatment.                              |
+| `sketch-container`  | A large box. Tilts less, so the type inside stays readable. |
+| `sketch-chip`       | A small box. Finer fill mask, more rotation, less travel.   |
+| `sketch-rule`       | A line rather than a box. No rotation, no rounded ends.     |
+
+Pick by size, not by kind: a card and a modal both take `sketch-container`, a
+badge and a pill both take `sketch-chip`.
+
+The class opts the element in; it names no colours, so the element states its
+own. `--sketch-fill`, `--sketch-stroke`, `--sketch-hatch-color`,
+`--sketch-radius` and `--sketch-shadow` name the fill, the outline, the hatching
+ink, the corners and the shadow for one element and everything inside it. The
+layer blanks the real background and border, so an element whose fill matters
+under Sketch mode has to name it here as well as paint it.
+
+```css
+.my-callout {
+  background: var(--surface-brand-lowest);
+  border: var(--border-width-1) solid var(--border-brand);
+  border-radius: var(--radius-xl);
+
+  --sketch-fill: var(--surface-brand-lowest);
+  --sketch-stroke: var(--border-brand);
+  --sketch-radius: var(--radius-xl);
+}
+```
+
+A gradient is a valid fill: the shorthand's last layer takes a colour or an
+image, so `--sketch-fill` accepts either. States work the same way, since
+nothing is competing with you for the value:
+
+```css
+.my-callout:hover { --sketch-stroke: var(--border-brand-strong); }
+```
+
+A rule made from a `border` is not a box and cannot be displaced. Make it an
+element, give it `sketch-rule`, and name its ink:
+
+```html
+<div class="rule sketch-rule"></div>
+```
 ```css
 .rule {
   height: var(--border-width-2);
@@ -76,11 +119,6 @@ what to draw it with:
   --sketch-fill: var(--border-brand);
 }
 ```
-
-`--sketch-fill`, `--sketch-stroke`, `--sketch-hatch-color` and `--sketch-radius`
-name the fill, the outline, the hatching ink and the corners for one element and
-everything inside it. Since the layer blanks the real background, an element
-whose fill matters under Sketch mode should name it here as well as paint it.
 
 Icons and inline SVG take the wobble directly, since a glyph has no box to
 redraw. Body type is left alone: an icon is a shape and survives a wobble, a
