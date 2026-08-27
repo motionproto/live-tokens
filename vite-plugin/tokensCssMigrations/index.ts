@@ -24,6 +24,7 @@ import { tokensCssMigration_2026_08_25_editorialTypeRole } from './migrations/20
 import { tokensCssMigration_2026_08_26_gradientStops } from './migrations/2026-08-26-gradient-stops';
 import { tokensCssMigration_2026_08_27_backdropPolarity } from './migrations/2026-08-27-backdrop-polarity';
 import { tokensCssMigration_2026_08_27_editorialSizeSteps } from './migrations/2026-08-27-editorial-size-steps';
+import { tokensCssMigration_2026_08_27_editorialLargeSteps } from './migrations/2026-08-27-editorial-large-steps';
 
 export type { TokensCssMigration } from './types';
 export {
@@ -55,6 +56,7 @@ export const TOKENS_CSS_MIGRATIONS: TokensCssMigration[] = [
   tokensCssMigration_2026_08_26_gradientStops,
   tokensCssMigration_2026_08_27_backdropPolarity,
   tokensCssMigration_2026_08_27_editorialSizeSteps,
+  tokensCssMigration_2026_08_27_editorialLargeSteps,
 ];
 
 export interface RunResult {

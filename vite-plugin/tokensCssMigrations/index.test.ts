@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import {
   runTokensCssMigrations,
+  runAdditiveTokensCssMigrations,
   validateTokensCss,
   TOKENS_CSS_MIGRATIONS,
 } from './index';
@@ -67,6 +68,57 @@ describe('editorial type role', () => {
 
   it('is idempotent', () => {
     const once = runTokensCssMigrations(BEFORE).css;
+    const twice = runTokensCssMigrations(once).css;
+    expect(twice).toBe(once);
+  });
+});
+
+describe('editorial steps above the reading size', () => {
+  const PAIR = `:root {
+  --font-editorial: var(--font-sans);
+  --font-size-lg: 1.125rem;
+  --font-size-xl: 1.25rem;
+  --font-weight-normal: 400;
+  --line-height-tight: 1.35;
+  --line-height-tighter: 1.25;
+  --letter-spacing-normal: 0;
+  --editorial-md-font-family: var(--font-editorial);
+  --editorial-md-font-size: var(--font-size-md);
+  --editorial-sm-font-size: var(--font-size-sm);
+}
+`;
+
+  it('adds both steps to a tokens.css that only has the pair', () => {
+    const { css, applied } = runTokensCssMigrations(PAIR);
+    expect(applied).toContain('2026-08-27-editorial-large-steps');
+    expect(css).toContain('--editorial-lg-font-size: var(--font-size-lg);');
+    expect(css).toContain('--editorial-xl-font-size: var(--font-size-xl);');
+    expect(css).toContain('--editorial-xl-font-family: var(--font-editorial);');
+  });
+
+  it('tightens leading by one step away from the reading size', () => {
+    const { css } = runTokensCssMigrations(PAIR);
+    expect(css).toContain('--editorial-lg-line-height: var(--line-height-tight);');
+    expect(css).toContain('--editorial-xl-line-height: var(--line-height-tighter);');
+  });
+
+  it('auto-applies, since it only inserts names', () => {
+    const { applied } = runAdditiveTokensCssMigrations(PAIR);
+    expect(applied).toContain('2026-08-27-editorial-large-steps');
+  });
+
+  it('leaves a step the consumer already tuned alone', () => {
+    const tuned = PAIR.replace(
+      '--editorial-sm-font-size: var(--font-size-sm);',
+      '--editorial-sm-font-size: var(--font-size-sm);\n  --editorial-lg-font-size: var(--font-size-2xl);',
+    );
+    const { css } = runTokensCssMigrations(tuned);
+    expect(css).toContain('--editorial-lg-font-size: var(--font-size-2xl);');
+    expect(css).not.toContain('--editorial-lg-font-size: var(--font-size-lg);');
+  });
+
+  it('is idempotent', () => {
+    const once = runTokensCssMigrations(PAIR).css;
     const twice = runTokensCssMigrations(once).css;
     expect(twice).toBe(once);
   });

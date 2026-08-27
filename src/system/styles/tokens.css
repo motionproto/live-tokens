@@ -681,8 +681,23 @@
   --code-line-height: var(--line-height-normal);
   --code-letter-spacing: var(--letter-spacing-normal);
 
-  /* Editorial — the long-reading role. Each step mirrors its body counterpart
-     until the stack is repointed. */
+  /* Editorial — the long-reading role. `md` is the reading step and takes the
+     most open leading; every step away from it tightens by one, so a lede or a
+     pull quote is not set at reading leading. Sizes stay inside the xs–xl band
+     the responsive scale leaves constant, so an article does not resize itself
+     between breakpoints. */
+  --editorial-xl-font-family: var(--font-editorial);
+  --editorial-xl-font-size: var(--font-size-xl);
+  --editorial-xl-font-weight: var(--font-weight-normal);
+  --editorial-xl-line-height: var(--line-height-tighter);
+  --editorial-xl-letter-spacing: var(--letter-spacing-normal);
+
+  --editorial-lg-font-family: var(--font-editorial);
+  --editorial-lg-font-size: var(--font-size-lg);
+  --editorial-lg-font-weight: var(--font-weight-normal);
+  --editorial-lg-line-height: var(--line-height-tight);
+  --editorial-lg-letter-spacing: var(--letter-spacing-normal);
+
   --editorial-md-font-family: var(--font-editorial);
   --editorial-md-font-size: var(--font-size-md);
   --editorial-md-font-weight: var(--font-weight-normal);

@@ -65,6 +65,20 @@ export const TEXT_STYLES: TextStyle[] = [
     preview: 'Captions and secondary text.',
   },
   {
+    name: 'editorial-xl',
+    label: 'Editorial XL',
+    prefix: '--editorial-xl',
+    defaultElement: 'editorial-xl',
+    preview: 'Pull quotes and opening statements.',
+  },
+  {
+    name: 'editorial-lg',
+    label: 'Editorial LG',
+    prefix: '--editorial-lg',
+    defaultElement: 'editorial-lg',
+    preview: 'Standfirsts and section ledes.',
+  },
+  {
     name: 'editorial-md',
     label: 'Editorial MD',
     prefix: '--editorial-md',
@@ -76,7 +90,7 @@ export const TEXT_STYLES: TextStyle[] = [
     label: 'Editorial SM',
     prefix: '--editorial-sm',
     defaultElement: 'editorial-sm',
-    preview: 'Standfirsts, pull quotes, and asides.',
+    preview: 'Captions, credits, and asides.',
   },
   {
     name: 'code',

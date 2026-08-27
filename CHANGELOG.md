@@ -1,5 +1,21 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+- **The editorial role reaches above the reading size.** It shipped as a pair,
+  so a lede, a standfirst or a pull quote had nowhere to go but a heading style:
+  the display face, at heading leading. `--editorial-lg-*` and `--editorial-xl-*`
+  are the two steps above `md`, set in the same editorial face, editable in the
+  editor's Text Styles section and carried by an `.editorial-lg` /
+  `.editorial-xl` class in `site.css`. Leading follows the role's own rule: `md`
+  is the reading step and takes the most open leading, and every step away from
+  it tightens by one. Sizes stay inside the band the responsive scale leaves
+  constant, so an article does not resize itself between breakpoints. An
+  `additive` tokens.css migration (`2026-08-27-editorial-large-steps`) adds both
+  steps to a vendored `tokens.css`.
+
 ## 0.62.0 — Editorial type reads as a pair
 
 ### Added

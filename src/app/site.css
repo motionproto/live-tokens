@@ -205,6 +205,22 @@ blockquote {
   letter-spacing: var(--body-sm-letter-spacing);
 }
 
+.editorial-xl {
+  font-family: var(--editorial-xl-font-family);
+  font-size: var(--editorial-xl-font-size);
+  font-weight: var(--editorial-xl-font-weight);
+  line-height: var(--editorial-xl-line-height);
+  letter-spacing: var(--editorial-xl-letter-spacing);
+}
+
+.editorial-lg {
+  font-family: var(--editorial-lg-font-family);
+  font-size: var(--editorial-lg-font-size);
+  font-weight: var(--editorial-lg-font-weight);
+  line-height: var(--editorial-lg-line-height);
+  letter-spacing: var(--editorial-lg-letter-spacing);
+}
+
 .editorial-md {
   font-family: var(--editorial-md-font-family);
   font-size: var(--editorial-md-font-size);

@@ -10,7 +10,7 @@ Two rules above all else:
 1. **Use a shipped component if one fits.** Import from `@motion-proto/live-tokens/components/<Name>.svelte`. See [[live-tokens-pick-component]] for the catalogue and the confusing-pair decisions. Author custom markup only when nothing fits, and then consider [[live-tokens-create-component]] so the new piece is editable too.
 2. **Use theme tokens for every value.** Every color, spacing, radius, font-size, and font-family in page CSS is a `var(--token-*)`. No hex literals. No pixel literals. A change in `/live-tokens/editor` should repaint your page.
 
-For text, reach for a whole text style rather than assembling one: `--heading-xl` through `--heading-sm`, `--body-md`, `--body-sm`, `--editorial-md`, `--editorial-sm`, `--eyebrow`, and `--code` each carry a `-font-family`, `-font-size`, `-font-weight`, `-line-height`, and `-letter-spacing`. A heading set from `--heading-lg-*` retypes when the theme's fonts change; one set from a raw `font-size` does not.
+For text, reach for a whole text style rather than assembling one: `--heading-xl` through `--heading-sm`, `--body-md`, `--body-sm`, `--editorial-xl` through `--editorial-sm`, `--eyebrow`, and `--code` each carry a `-font-family`, `-font-size`, `-font-weight`, `-line-height`, and `-letter-spacing`. A heading set from `--heading-lg-*` retypes when the theme's fonts change; one set from a raw `font-size` does not.
 
 ## Layout
 
