@@ -545,8 +545,9 @@
     color: var(--_divider-title);
     /* The title is type that happens to be drawn as an SVG, so Sketch mode
        reads it as one glyph and pushes it as far as it pushes a 16px icon.
-       At heading size that is enough travel to pull the letters apart. */
-    --sketch-icon-off: var(--sketch-icon-soft);
+       At heading size any travel pulls the letters apart, so it stays crisp.
+       `none` drops the ink mask along with the displacement. */
+    --sketch-icon-off: none;
   }
   svg.divider-label text {
     font-family: var(--_divider-title-font-family);
