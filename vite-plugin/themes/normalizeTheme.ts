@@ -277,7 +277,7 @@ export function normalizeTheme(
 
   // Reconciled the way a saved preset is: a look stored before a dial existed
   // picks that dial's default up, a retired key is dropped. A theme with no
-  // sketch keeps none — absent is the off state, not a value to fill (RJC 3).
+  // sketch keeps none. Absent is the off state, not a value to fill (RJC 3).
   const embeddedSketch = asObject(src.sketch);
   const sketch = embeddedSketch ? hydrateSketchSettings(embeddedSketch) : undefined;
 

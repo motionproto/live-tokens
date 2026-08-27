@@ -453,7 +453,7 @@ describe('normalizeTheme completeness fill', () => {
 
 // Wave 1 of docs/plans/sketch-in-the-theme.md: a theme carries its sketch
 // layer by value, resolved the same way a saved preset is (RJC 3). Presence
-// is the on state (RJC 1) — nothing here ever fills a sketch in for a theme
+// is the on state (RJC 1). Nothing here ever fills a sketch in for a theme
 // that has none.
 describe('normalizeTheme sketch field', () => {
   const withSketch = {
@@ -461,12 +461,15 @@ describe('normalizeTheme sketch field', () => {
     schemaVersion: THEME_SCHEMA_VERSION,
     colorsAndType: { name: 'Embedded' },
     componentConfigs: {},
-    sketch: SKETCH_PRESETS.marker,
+    // napkin, not the DEFAULT_SKETCH_PRESET (marker): a fixture built from the
+    // fallback preset would round-trip even if the theme's own dials were
+    // ignored entirely.
+    sketch: SKETCH_PRESETS.napkin,
   };
 
   it('round-trips a full sketch unchanged', () => {
     const { theme } = normalizeTheme(withSketch, resolvers());
-    expect(theme.sketch).toEqual(SKETCH_PRESETS.marker);
+    expect(theme.sketch).toEqual(SKETCH_PRESETS.napkin);
   });
 
   it('carries no sketch key at all when the input has none', () => {
@@ -475,7 +478,7 @@ describe('normalizeTheme sketch field', () => {
     expect('sketch' in theme).toBe(false);
   });
 
-  it.each([null, 'napkin', []])('resolves %p to no sketch', (value) => {
+  it.each([null, 'napkin', []])('resolves %s to no sketch', (value) => {
     const { theme } = normalizeTheme({ ...withSketch, sketch: value }, resolvers());
     expect('sketch' in theme).toBe(false);
   });

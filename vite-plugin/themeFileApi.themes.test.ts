@@ -842,10 +842,10 @@ describe('export and import', () => {
     expect(fs.readdirSync(colorsAndTypeDir).length).toBe(colorsAndTypeFilesBefore);
   });
 
-  // Wave 1 of docs/plans/sketch-in-the-theme.md, invariant 4: `ThemeBundle.
-  // manifest` is a whole `Theme` and import runs it back through
-  // `normalizeTheme`, so a bundle exported with a sketch layer must land with
-  // one, at no extra cost past the whitelist fix this wave makes.
+  // Wave 1 of docs/plans/sketch-in-the-theme.md, invariant 4: `ThemeBundle.manifest`
+  // is a whole `Theme` and import runs it back through `normalizeTheme`, so a
+  // bundle exported with a sketch layer must land with one, at no extra cost
+  // past the whitelist fix this wave makes.
   it('carries a sketch layer through export and back in through import', async () => {
     seedPointerTheme();
     boot();
