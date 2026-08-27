@@ -230,13 +230,13 @@ Files: `src/editor/core/sketch/sketchStore.ts`, `src/editor/ui/ThemePanel.svelte
 
 **Goal:** the preset theme named Sketchy paints sketched when you load it.
 
-**Executor:** Sonnet, with one decision reserved for the user.
+**Executor:** Sonnet.
 
-**User decision, needed before this wave runs:** which sketch look Sketchy ships. The executor does not choose. The user picks it in the Sketch tab, saves the theme, and hands the executor the resulting `data/themes/sketchy.json`; or names a shipped preset for the executor to write in verbatim from `SKETCH_PRESETS`.
+**Settled: Sketchy ships `marker`, written in verbatim from `SKETCH_PRESETS`.** Cabin Sketch on display and Shantell Sans on body are a felt-tip hand, and Marker is the same instrument, so the drawing and the lettering read as one hand. Napkin's square wave sends every edge to full travel, which is too loose to hand someone as a shipped example; Pencil's fine graphite sits at a different weight from a rough display face. Do not re-open this.
 
 Files: `src/live-tokens/data/themes/sketchy.json`, `scripts/check-preset-themes.mjs`, `vite-plugin/themes/presetThemes.test.ts`.
 
-1. `sketchy.json` gains the `sketch` object. Nothing else in the file moves: no `colorsAndType` edit, no alias reordering, no `updatedAt` churn beyond what the write itself does. Diff it before committing and reject any other change (the promotion in `0.57.0` taught this; see `project_sketch_mode_release`).
+1. `sketchy.json` gains the `sketch` object, the `marker` entry of `SKETCH_PRESETS` copied by value, `label` and `blurb` included. Nothing else in the file moves: no `colorsAndType` edit, no alias reordering, no `updatedAt` churn beyond what the write itself does. Diff it before committing and reject any other change (the promotion in `0.57.0` taught this; see `project_sketch_mode_release`).
 
 2. Pin it. `check-preset-themes.mjs` gains an assertion that `sketchy` carries a `sketch` and that every other preset theme carries none, phrased as a property of the preset set rather than of the seeder, since `seed-preset-theme.mjs` cannot rebuild Sketchy and has no slug for it. Mirror the phrasing already used for its font pairing.
 
