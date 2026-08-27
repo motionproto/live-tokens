@@ -294,6 +294,26 @@ function render(enabled: boolean, settings: SketchStyle): void {
   setSketchScope(pageRoot, settings);
 }
 
+/** Paint a sketchstyle for the Theme Picker preview, bypassing the live
+    buffer entirely: going through `sketchSettings`/`sketchEnabled` would
+    `share()` the previewed dials into localStorage and overwrite whatever
+    the user had live, which is right for Apply (RJC 6) but would destroy
+    unsaved work the moment the picker opened a row. `render` already reaches
+    the host page across the iframe boundary the same way Apply's paint does;
+    only the store write and the persistence are skipped. Pass `undefined`
+    for a theme that carries no sketchstyle. */
+export function previewSketchStyle(style: SketchStyle | undefined): void {
+  render(!!style, style ?? get(sketchSettings));
+}
+
+/** Undo a sketchstyle preview by repainting the live buffer, which the
+    preview never touched. Re-deriving from the current stores rather than a
+    scraped snapshot means it can't drift from what they actually hold by the
+    time the picker closes. */
+export function revertSketchStylePreview(): void {
+  render(get(sketchEnabled), get(sketchSettings));
+}
+
 export function setSketchPageRoot(el: HTMLElement | null): void {
   if (el === pageRoot) return;
   setSketchScope(pageRoot, null);
