@@ -2894,7 +2894,7 @@
       }
     },
     "card": {
-      "name": "Midnight Study",
+      "name": "midnight-study",
       "component": "card",
       "createdAt": "2026-08-27T17:02:30.403Z",
       "updatedAt": "2026-08-27T17:02:30.403Z",
@@ -2910,6 +2910,10 @@
         "--card-default-header-padding-left": "--space-12",
         "--card-default-header-gap": "--space-6",
         "--card-default-body-padding": "--space-16",
+        "--card-default-body-padding-top": "--space-16",
+        "--card-default-body-padding-right": "--space-20",
+        "--card-default-body-padding-bottom": "--space-48",
+        "--card-default-body-padding-left": "--space-20",
         "--card-default-shadow": "--shadow-sm",
         "--card-default-blur": "--blur-none",
         "--card-default-header-surface": "color-mix(in srgb, var(--color-brand-700) 60%, transparent)",
@@ -2927,11 +2931,7 @@
         "--card-hover-border": "--border-neutral-strong",
         "--card-hover-shadow": "--shadow-md",
         "--card-hover-border-active": "--card-default-border",
-        "--card-hover-shadow-active": "--card-default-shadow",
-        "--card-default-body-padding-top": "--space-16",
-        "--card-default-body-padding-right": "--space-20",
-        "--card-default-body-padding-bottom": "--space-48",
-        "--card-default-body-padding-left": "--space-20"
+        "--card-hover-shadow-active": "--card-default-shadow"
       },
       "config": {}
     },
@@ -3462,7 +3462,7 @@
       }
     },
     "panel": {
-      "name": "Midnight Study",
+      "name": "midnight-study",
       "component": "panel",
       "createdAt": "2026-08-27T17:03:50.744Z",
       "updatedAt": "2026-08-27T17:03:50.744Z",
@@ -3470,9 +3470,6 @@
         "--panel-frame-border": "--border-neutral",
         "--panel-frame-border-width": "--border-width-1",
         "--panel-frame-radius": "--radius-2xl",
-        "--panel-stage-padding": "--space-16",
-        "--panel-stage-inline-padding": "--space-24",
-        "--panel-stage-gap": "--space-16",
         "--panel-stage-surface": {
           "kind": "gradient",
           "value": {
@@ -3491,7 +3488,10 @@
               }
             ]
           }
-        }
+        },
+        "--panel-stage-padding": "--space-16",
+        "--panel-stage-inline-padding": "--space-24",
+        "--panel-stage-gap": "--space-16"
       },
       "config": {}
     },

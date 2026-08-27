@@ -205,14 +205,8 @@ export function setSketchPageRoot(el: HTMLElement | null): void {
  */
 const shared = new Map<string, string>();
 
-function trace(what: string, value: unknown): void {
-  const w = globalThis as unknown as { __sketchTrace?: unknown[] };
-  (w.__sketchTrace ??= []).push({ t: Math.round(performance.now()), what, value });
-}
-
 function share(key: string, value: string): void {
-  if (key === SETTINGS_KEY) trace('share', JSON.parse(value).maskOutputMin);
-  if (shared.get(key) === value) { trace('share-skipped', 0); return; }
+  if (shared.get(key) === value) return;
   shared.set(key, value);
   persist(key, value);
 }
@@ -228,7 +222,6 @@ if (typeof document !== 'undefined') {
   });
 
   sketchSettings.subscribe((settings) => {
-    trace('store-set', settings.maskOutputMin);
     share(SETTINGS_KEY, JSON.stringify(settings));
     render(get(sketchEnabled), settings);
   });
@@ -247,9 +240,7 @@ if (typeof document !== 'undefined') {
       adopt(ENABLED_KEY, String(next));
       if (next !== get(sketchEnabled)) sketchEnabled.set(next);
     } else if (event.key === SETTINGS_KEY) {
-      trace('storage-in', event.newValue ? JSON.parse(event.newValue).maskOutputMin : null);
       if (event.newValue && event.newValue !== JSON.stringify(get(sketchSettings))) {
-        trace('storage-adopt', JSON.parse(event.newValue).maskOutputMin);
         const next = readSettings();
         adopt(SETTINGS_KEY, JSON.stringify(next));
         sketchSettings.set(next);

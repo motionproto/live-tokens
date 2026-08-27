@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.62.0 — Editorial type reads as a pair
 
 ### Added
 
@@ -11,6 +11,17 @@
   both carried by an `.editorial-md` / `.editorial-sm` class in `site.css`. Each
   step mirrors its body counterpart apart from the family, so a project that
   never repoints `--font-editorial` renders exactly as it did.
+- **`Card` takes `variant="bare"`.** A card with no icon and no title dropped
+  its header silently, which read the same as a card whose title had gone
+  missing. `bare` says the headerless card is the intent; the frame and body
+  keep every token the default variant uses, so padding, stroke and fill stay
+  editable. A default-variant card with nothing to put in its header now warns
+  in dev.
+- **Sketch mode reaches the component editor.** A component demo draws itself
+  the way the page will, sketch included, while the tab strips and property rows
+  around it stay chrome: they run on `--ui-*` tokens the layer knows nothing
+  about. The router hands the layer the root to paint, so a sketch style never
+  bleeds onto the editor's own routes.
 
 ### Changed (breaking)
 
@@ -20,14 +31,47 @@
   carrying any value already tuned. It never auto-applies: run
   `npx live-tokens migrate`.
 
+### Changed
+
+- **Ink coverage is a levels control.** The dials read as a pile of unrelated
+  knobs because each one meant something different depending on the grain and
+  octave count under it. The field is now normalized to run black to white
+  whatever the noise beneath, so **Steps** flattens it into tones and **Output**
+  squeezes the whole of it into the range the ink covers, from palest to
+  densest. The field is squeezed into that gap, never clipped at it, so both
+  ends mean the same thing at every setting. The seven shipped presets are
+  retuned against the new response.
+- **Menus and tooltips are drawn solid whatever the coverage dials say.** They
+  float over arbitrary page content, so a fill worn through in patches let the
+  page show through them and they stopped reading as a surface the pointer can
+  land on.
+- **`SectionDivider` titles take no outline by default.** The three sizes each
+  carried a themed outline color, which drew a halo around every subsection
+  title on a page that never asked for one. All three default to transparent;
+  a theme that wants the halo sets the color.
+
 ### Fixed
 
+- **Per-side padding no longer strands the base token.** `themed-padding`
+  emits `var(--x-side, <base>)` for each side, so a per-side token is an
+  override slot the editor fills when the user splits the padding. `Card` and
+  `SegmentedControl` declared sides that named a literal step instead, which
+  always beat that fallback and left the base inert: merging split padding back
+  to one value cleared the side aliases, the fallback never took over, and the
+  padding control moved nothing. Both now track their own base, and
+  `paddingBaseStaysLive` holds every component that uses `themed-padding` to
+  the same rule. `Card`'s header and body padding are symmetric as a result;
+  a theme that wants the asymmetry back sets the per-side aliases.
 - **`ImageLightbox`'s tile fill stays on the closed tile.** The fill also
   painted the opened stage, where it had nothing to do: the stage rides a
   near-opaque overlay that already backs transparent art, so the fill only
   showed as a slab of theme color in the gap the image's aspect left inside the
   stage box. The open stage now takes no fill of its own, matching the tile
   shadow, which already stopped at the same edge.
+- **Sketch settings no longer accumulate a trace on `globalThis`.** Debug
+  instrumentation left in `sketchStore` pushed an entry onto an unbounded
+  global array on every settings write, every share and every cross-frame
+  adopt. It is gone.
 
 ## 0.61.0 — A surface says which way it leans
 

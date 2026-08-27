@@ -1,7 +1,7 @@
 {
   "name": "Midnight Study",
-  "createdAt": "2026-08-12T20:13:46.264Z",
-  "updatedAt": "2026-08-13T14:14:20.015Z",
+  "createdAt": "2026-08-27T17:01:37.984Z",
+  "updatedAt": "2026-08-27T17:01:37.984Z",
   "editorConfigs": {
     "Brand": {
       "baseColor": {
@@ -2262,10 +2262,6 @@
     }
   },
   "cssVariables": {
-    "--gradient-1": "linear-gradient(90deg, var(--color-brand-400) 0%, var(--color-brand-700) 100%)",
-    "--gradient-2": "linear-gradient(135deg, var(--color-special-500) 0%, var(--color-brand-500) 100%)",
-    "--gradient-3": "linear-gradient(90deg, var(--color-brand-500) 0%, var(--color-accent-500) 100%)",
-    "--gradient-4": "linear-gradient(180deg, var(--color-canvas-600) 0%, var(--color-canvas-900) 100%)",
     "--badge-trait-surface": "var(--surface-brand)",
     "--badge-trait-text": "var(--text-brand)",
     "--badge-trait-text-font-family": "var(--font-sans)",
@@ -2316,7 +2312,15 @@
     "--shadow-md": "3px 3px 6px hsla(237, 18%, 3%, 0.9)",
     "--shadow-lg": "5px 5px 9px hsla(237, 18%, 3%, 0.9)",
     "--shadow-xl": "6px 7px 13px hsla(237, 18%, 3%, 0.9)",
-    "--shadow-2xl": "8px 9px 16px hsla(237, 18%, 3%, 0.9)"
+    "--shadow-2xl": "8px 9px 16px hsla(237, 18%, 3%, 0.9)",
+    "--gradient-1": "linear-gradient(90deg, var(--color-brand-400) 0%, var(--color-brand-700) 100%)",
+    "--gradient-1-stops": "var(--color-brand-400) 0%, var(--color-brand-700) 100%",
+    "--gradient-2": "linear-gradient(135deg, var(--color-special-500) 0%, var(--color-brand-500) 100%)",
+    "--gradient-2-stops": "var(--color-special-500) 0%, var(--color-brand-500) 100%",
+    "--gradient-3": "linear-gradient(90deg, var(--color-brand-500) 0%, var(--color-accent-500) 100%)",
+    "--gradient-3-stops": "var(--color-brand-500) 0%, var(--color-accent-500) 100%",
+    "--gradient-4": "linear-gradient(180deg, color-mix(in srgb, var(--color-canvas-600) 49%, transparent) 0%, var(--color-canvas-850) 14.2%, var(--color-canvas-900) 83.8%)",
+    "--gradient-4-stops": "color-mix(in srgb, var(--color-canvas-600) 49%, transparent) 0%, var(--color-canvas-850) 14.2%, var(--color-canvas-900) 83.8%"
   },
   "fontSources": [
     {
@@ -2469,25 +2473,6 @@
       ]
     }
   ],
-  "harmonyAxes": [
-    {
-      "hue": 300,
-      "family": "Brand"
-    },
-    {
-      "hue": 340,
-      "family": "Accent"
-    },
-    {
-      "hue": 268,
-      "family": "Canvas"
-    },
-    {
-      "hue": 210,
-      "family": null
-    }
-  ],
-  "schemaVersion": 3,
   "gradients": [
     {
       "variable": "--gradient-1",
@@ -2541,13 +2526,38 @@
       "stops": [
         {
           "position": 0,
-          "color": "--color-canvas-600"
+          "color": "--color-canvas-600",
+          "opacity": 49
         },
         {
-          "position": 100,
+          "position": 14.2,
+          "color": "--color-canvas-850",
+          "opacity": 100
+        },
+        {
+          "position": 83.8,
           "color": "--color-canvas-900"
         }
       ]
     }
-  ]
+  ],
+  "harmonyAxes": [
+    {
+      "hue": 300,
+      "family": "Brand"
+    },
+    {
+      "hue": 340,
+      "family": "Accent"
+    },
+    {
+      "hue": 268,
+      "family": "Canvas"
+    },
+    {
+      "hue": 210,
+      "family": null
+    }
+  ],
+  "schemaVersion": 5
 }
