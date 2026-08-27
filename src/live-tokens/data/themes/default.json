@@ -1,7 +1,7 @@
 {
   "name": "Motion Proto",
   "createdAt": "2026-05-10T18:15:30.815Z",
-  "updatedAt": "2026-08-19T21:07:10.983Z",
+  "updatedAt": "2026-08-27T13:36:24.801Z",
   "schemaVersion": 4,
   "colorsAndType": {
     "name": "Motion Proto",
@@ -3449,7 +3449,7 @@
       "name": "default",
       "component": "sectiondivider",
       "createdAt": "2026-05-10T22:09:00.336Z",
-      "updatedAt": "2026-06-01T12:24:21.355Z",
+      "updatedAt": "2026-08-27T13:36:15.504Z",
       "aliases": {
         "--sectiondivider-lg-title-font-family": "--font-display",
         "--sectiondivider-lg-title-font-weight": "--font-weight-bold",
@@ -3478,7 +3478,7 @@
         "--sectiondivider-lg-description": "--text-alternate",
         "--sectiondivider-lg-eyebrow": "--text-brand",
         "--sectiondivider-lg-border": "--color-transparent",
-        "--sectiondivider-lg-title-outline-color": "--surface-canvas-lowest",
+        "--sectiondivider-lg-title-outline-color": "--color-transparent",
         "--sectiondivider-lg-hairline-color": "--border-brand-medium",
         "--sectiondivider-md-title-font-family": "--font-display",
         "--sectiondivider-md-title-font-weight": "--font-weight-bold",
@@ -3507,7 +3507,7 @@
         "--sectiondivider-md-description": "--text-secondary",
         "--sectiondivider-md-eyebrow": "--text-tertiary",
         "--sectiondivider-md-border": "--color-transparent",
-        "--sectiondivider-md-title-outline-color": "--surface-accent-lowest",
+        "--sectiondivider-md-title-outline-color": "--color-transparent",
         "--sectiondivider-md-hairline-color": "--border-brand-medium",
         "--sectiondivider-sm-title-font-family": "--font-display",
         "--sectiondivider-sm-title-font-weight": "--font-weight-medium",
@@ -3536,7 +3536,7 @@
         "--sectiondivider-sm-description": "--text-secondary",
         "--sectiondivider-sm-eyebrow": "--text-tertiary",
         "--sectiondivider-sm-border": "--color-transparent",
-        "--sectiondivider-sm-title-outline-color": "color-mix(in srgb, var(--surface-neutral-lowest) 25%, transparent)",
+        "--sectiondivider-sm-title-outline-color": "--color-transparent",
         "--sectiondivider-sm-hairline-color": "color-mix(in srgb, var(--border-brand-medium) 50%, transparent)"
       }
     },

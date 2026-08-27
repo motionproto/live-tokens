@@ -243,7 +243,7 @@
     --sectiondivider-lg-description: var(--text-alternate);
     --sectiondivider-lg-eyebrow: var(--text-brand);
     --sectiondivider-lg-border: var(--color-transparent);
-    --sectiondivider-lg-title-outline-color: var(--surface-canvas-lowest);
+    --sectiondivider-lg-title-outline-color: var(--color-transparent);
     --sectiondivider-lg-hairline-color: var(--border-brand-medium);
 
     /* Medium */
@@ -274,7 +274,7 @@
     --sectiondivider-md-description: var(--text-secondary);
     --sectiondivider-md-eyebrow: var(--text-tertiary);
     --sectiondivider-md-border: var(--color-transparent);
-    --sectiondivider-md-title-outline-color: var(--surface-accent-lowest);
+    --sectiondivider-md-title-outline-color: var(--color-transparent);
     --sectiondivider-md-hairline-color: var(--border-brand-medium);
 
     /* Small */
@@ -305,7 +305,7 @@
     --sectiondivider-sm-description: var(--text-secondary);
     --sectiondivider-sm-eyebrow: var(--text-tertiary);
     --sectiondivider-sm-border: var(--color-transparent);
-    --sectiondivider-sm-title-outline-color: color-mix(in srgb, var(--surface-neutral-lowest) 25%, transparent);
+    --sectiondivider-sm-title-outline-color: var(--color-transparent);
     --sectiondivider-sm-hairline-color: color-mix(in srgb, var(--border-brand-medium) 50%, transparent);
 
     /* Intrinsic defaults. These keys cascade to `:root` via the editor's

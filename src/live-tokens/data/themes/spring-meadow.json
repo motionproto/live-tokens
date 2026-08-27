@@ -3516,7 +3516,7 @@
         "--sectiondivider-lg-description": "--text-alternate",
         "--sectiondivider-lg-eyebrow": "--text-brand",
         "--sectiondivider-lg-border": "--color-transparent",
-        "--sectiondivider-lg-title-outline-color": "--surface-canvas-lowest",
+        "--sectiondivider-lg-title-outline-color": "transparent",
         "--sectiondivider-lg-hairline-color": "--border-brand-medium",
         "--sectiondivider-md-title-font-family": "--font-display",
         "--sectiondivider-md-title-font-weight": "--font-weight-bold",
@@ -3545,7 +3545,7 @@
         "--sectiondivider-md-description": "--text-secondary",
         "--sectiondivider-md-eyebrow": "--text-tertiary",
         "--sectiondivider-md-border": "--color-transparent",
-        "--sectiondivider-md-title-outline-color": "--surface-accent-lowest",
+        "--sectiondivider-md-title-outline-color": "transparent",
         "--sectiondivider-md-hairline-color": "--border-brand-medium",
         "--sectiondivider-sm-title-font-family": "--font-display",
         "--sectiondivider-sm-title-font-weight": "--font-weight-medium",
@@ -3574,7 +3574,7 @@
         "--sectiondivider-sm-description": "--text-secondary",
         "--sectiondivider-sm-eyebrow": "--text-tertiary",
         "--sectiondivider-sm-border": "--color-transparent",
-        "--sectiondivider-sm-title-outline-color": "color-mix(in srgb, var(--surface-neutral-lowest) 25%, transparent)",
+        "--sectiondivider-sm-title-outline-color": "transparent",
         "--sectiondivider-sm-hairline-color": "color-mix(in srgb, var(--border-brand-medium) 50%, transparent)"
       }
     },
