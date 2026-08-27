@@ -66,7 +66,7 @@ Match the type to the same brief the color came from. A warm autumn palette unde
 
 These find an adequate pairing fast and skip the reasoning; use them when the brief is vague or the type should stay quiet.
 
-- **A superfamily.** Google Fonts families with both sans and serif siblings: Alegreya, Ancizar, IBM Plex, Inria, Merriweather, Noto, PT, Roboto, Source.
+- **A superfamily.** Google Fonts families with both sans and serif siblings, among them Alegreya, Ancizar, IBM Plex, Inria, Merriweather, Noto, PT, Roboto, Source. The catalogue moves and this list does not, so treat it as a starting set: `set-fonts` verifies every family against the API and fails loudly on one that is gone.
 - **One family across weights.**
 - **Same designer or foundry.**
 - **Serif display over sans body** when nothing else decides it.

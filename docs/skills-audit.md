@@ -9,6 +9,57 @@ Verification after the pass: `check:skills` green, `svelte-check` 0 errors,
 `bin/` and `registryContract` suites green (213 tests), no churn under
 `src/live-tokens/data/`.
 
+## Status
+
+The recommendations below were worked through after the audit was written.
+Every item is closed except the two the audit itself made conditional.
+
+| # | Recommendation | Status | Commit |
+|---|---|---|---|
+| 1 | The atlas pins line numbers into the skills | Done | ae9e4a0 + 3a9b6bd |
+| 2 | Gate the suffix tables against `KNOWN_SUFFIXES` | Done | ca43d51 |
+| 3 | Gate the flags a skill owes its CLI verb | Done | 55952c1 |
+| 4 | Nothing measures triggering | Authored, unrun | f136573 |
+| 5 | Facts that cost a round trip belong in the skill | Adopted | — |
+| 6 | The tree is a DAG with two thin edges | Done | a9eb0ef |
+
+Per-skill: generate-theme's step 1 split, its anchor precedence rule, and an
+atlas node for the refinement section landed in cdfc522; create-component's
+suffix extraction in ca43d51; build-page's route scaffold in 781fadf;
+pair-fonts' superfamily list now reads as a starting set rather than a closed
+one. adjust-geometry needed nothing, as the audit said.
+
+Three items resolved differently than recommended, each for a reason found
+while doing them:
+
+- **Rec 1 took the better fix, not the cheap one.** The audit ranked
+  text-anchoring above a snapshot gate and then recommended the gate as
+  cheaper. They are not alternatives: `scripts/sync-skill-atlas.mjs` derives
+  every line number from anchor text, so `check:skill-atlas` fails on drift
+  and `sync:skill-atlas` repairs it. Editing a skill now costs a sync.
+- **Rec 2 was worth doing only after rec 1's neighbour.** The argument for
+  deferring — that `check-component` catches a bad suffix downstream, and the
+  tables sat inline beside the rule they serve — stopped holding once the
+  tables moved to `references/token-naming.md`. Extraction created the drift
+  surface; the gate closes it.
+- **Rec 4 is authored but unrun.** `claude plugin eval` is in early access and
+  refuses on this account. The eight cases in `.claude/evals/` follow the
+  documented layout and are unverified against the runner.
+
+Still open, both conditional and neither yet met:
+
+- **pick-component's outcome index.** The audit set the threshold at thirty
+  components; the catalogue holds 25.
+- **create-component's line ceiling.** The extraction bought 39 lines of
+  headroom, so the next addition no longer forces a cut.
+
+One correction to the audit's own text. Recommendation 4 asserts that "the
+risk is not mis-triggering between siblings. It is undertriggering." Nothing
+measured that, in a recommendation whose headline is that nothing measures
+triggering — and sibling contention had already happened once, when
+generate-theme advertised "warmer" with no body path for it. The eval suite is
+built so either answer can show up rather than assuming this one.
+
 ## What the pass changed
 
 | Skill | Change | Why |
