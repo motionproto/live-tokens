@@ -28,6 +28,13 @@
   drew nothing. It now documents all four reserved classes, how to pick one, and
   that variants, states and gradients are all just further declarations of
   `--sketch-fill` / `--sketch-stroke`.
+- **Nothing said how to keep an image inside a drawn part from bleeding.** A
+  part's `overflow` is forced visible so the fill and outline can travel past
+  the box, which is right for a background and wrong for a photo: it kept square
+  corners while the card around it turned. `--sketch-radius` was already the
+  radius the layer drew and already inherited, so the fix was a documentation
+  one. Both the Sketch mode chapter and the component-authoring reference now
+  show media reading it, with a fallback for the effect being off.
 - **`live-tokens-create-component` never mentioned sketch mode.** Joining the
   layer is now step 5 of the recipe, with `references/sketch-mode.md` behind it
   and a line on the verification checklist. A component authored to the old

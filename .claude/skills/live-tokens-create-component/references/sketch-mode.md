@@ -52,3 +52,21 @@ Rules that bite:
 - **Never reach for a shipped part's selector** (`.card`, `.panel`) to get drawn.
   It works, but it hands your component that part's colours and its damping, and
   it is package-internal — the reserved classes are the contract.
+
+## Media inside your component
+
+A drawn part's `overflow` is forced visible so the fill and outline can travel
+past the box. A background that bleeds is the effect working; an image that
+bleeds is not, since it keeps square corners while the part around it turns.
+Media running to your component's edge has to carry the corners itself:
+
+```css
+.mywidget-cover {
+  overflow: hidden;
+  border-top-left-radius: var(--sketch-radius, var(--mywidget-radius));
+  border-top-right-radius: var(--sketch-radius, var(--mywidget-radius));
+}
+```
+
+`--sketch-radius` is the radius the layer drew and it inherits, so the fallback
+covers the effect being off.

@@ -106,6 +106,28 @@ nothing is competing with you for the value:
 .my-callout:hover { --sketch-stroke: var(--border-brand-strong); }
 ```
 
+## Images inside a drawn part
+
+A drawn part's `overflow` is forced visible, because the fill and outline are
+painted on pseudo-elements that travel past the box and would otherwise be cut
+off at its edge. A background that bleeds is the effect working. An image that
+bleeds is not: it keeps its square corners while the card around it turns.
+
+Media that runs to a part's edge therefore has to carry that part's corners
+itself. `--sketch-radius` is the radius the layer drew, and it inherits, so a
+child can read it and fall back to its own value when Sketch mode is off:
+
+```css
+.cover {
+  overflow: hidden;
+  border-top-left-radius: var(--sketch-radius, var(--card-default-radius));
+  border-top-right-radius: var(--sketch-radius, var(--card-default-radius));
+}
+```
+
+Corner spread is per-corner and per-instance, so at high spread the crop is the
+mean rather than an exact trace of the drawn edge.
+
 A rule made from a `border` is not a box and cannot be displaced. Make it an
 element, give it `sketch-rule`, and name its ink:
 
