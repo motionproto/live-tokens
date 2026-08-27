@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.58.0 — The sketch layer states its contract
 
 ### Added
 
