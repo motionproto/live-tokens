@@ -1348,8 +1348,8 @@ export const skillTrees: Record<string, SkillTree> = {
         "title": "What is the modality?",
         "desc": "Default to Card, the workhorse. CollapsibleSection only when the content is legitimately secondary. Panel is a stage, not a content container. Dialog only when the page cannot meaningfully continue.",
         "lines": [
-          41,
-          53
+          48,
+          60
         ],
         "anchor": "## Container family: Card vs CollapsibleSection vs Dialog",
         "anchorEnd": "- **Don't use `Dialog` for routine forms.** Reach for it onl"
@@ -1362,8 +1362,8 @@ export const skillTrees: Record<string, SkillTree> = {
         "title": "Content, feedback, or hint?",
         "desc": "Callout is content, written into the markup. Notification is feedback, appearing then dismissing. Tooltip is what an element means, and never the primary location of important content. Badge and CornerBadge differ only in positioning.",
         "lines": [
-          55,
-          68
+          62,
+          75
         ],
         "anchor": "## Messaging family: Callout vs Notification vs Tooltip vs B",
         "anchorEnd": "- `Badge` and `CornerBadge` differ only in positioning. `Cor"
@@ -1376,8 +1376,8 @@ export const skillTrees: Record<string, SkillTree> = {
         "title": "A setting, or two named alternatives?",
         "desc": "If the off and on states share a name, it is a Toggle. If the two states have names you want compared, SegmentedControl. Toggle flips immediately; a RadioButton pair belongs to a larger submission.",
         "lines": [
-          79,
-          91
+          86,
+          98
         ],
         "anchor": "## Toggle vs SegmentedControl vs RadioButton (for on/off)",
         "anchorEnd": "- `Toggle` flips immediately; `RadioButton` pair is for form"
@@ -1389,8 +1389,8 @@ export const skillTrees: Record<string, SkillTree> = {
         "title": "Does anything in the catalogue fit?",
         "desc": "A custom component is a maintenance commitment. Do not reach for one before checking.",
         "lines": [
-          93,
-          95
+          100,
+          102
         ],
         "anchor": "---",
         "anchorEnd": "If nothing in the catalogue fits (a `Slider`, a `DatePicker`"
@@ -1414,8 +1414,8 @@ export const skillTrees: Record<string, SkillTree> = {
         "title": "Author it: create-component",
         "desc": "A Slider, a DatePicker, a Stepper, a custom widget.",
         "lines": [
-          95,
-          95
+          102,
+          102
         ],
         "anchor": "If nothing in the catalogue fits (a `Slider`, a `DatePicker`"
       }
