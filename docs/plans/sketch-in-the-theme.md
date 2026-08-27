@@ -12,11 +12,23 @@ Line numbers date from `0.62.0`. Locate by the cited symbol or string, and stop 
 
 | Wave | Summary | Executor | Status | Commit |
 |---|---|---|---|---|
-| 1 | `Theme.sketch`, carried through `normalizeTheme` | Sonnet | Not started | |
-| 2 | Capture on save, hydrate on apply and on boot | Sonnet | Not started | |
-| 3 | Off-the-theme signal and the Theme panel row | Sonnet | Not started | |
-| 4 | Sketchy carries its own sketch layer | Sonnet | Not started | |
-| 5 | Docs and changelog | Sonnet | Not started | |
+| 1 | `Theme.sketch`, carried through `normalizeTheme` | Sonnet | Done | 19ae14c |
+| 2 | Capture on save, hydrate on apply and on boot | Sonnet | Done | b2ea83d |
+| 3 | Off-the-theme signal and the Theme panel row | Sonnet | Done | 9dbceec + d84d124 |
+| 4 | The bake flag follows the gesture | Sonnet | Done | c2cd143 + 68c3551 |
+| 5 | Docs and changelog | Sonnet | Done | 3cb0d57 + 0e304ac + 40397dd |
+| 6 | The sketchstyle, named as one thing | Sonnet | Done | 2ddf9b6 + 04f7f0c + c979c0b |
+| 7 | The preview honours the theme's sketchstyle | Sonnet | Not started | |
+
+Wave 5 blocked at its first gate: `themes-workflow.md` still said two parts sit under a theme, and Wave 3 had added a third. The plan's item 2 named only `01-overview.md` and `editing-tokens.md`, so the sweep missed the chapter that documents the panel. It passed on re-review after `0e304ac` and `40397dd`, which swept all eight chapters and carried the corrected vocabulary into four source files' comments and the Sketch tab's popover.
+
+Wave 3 blocked at its first gate (`SketchSelect` bypassed the sentinel; the Sketch tab misdescribed the effect-off case) and passed on re-review after `d84d124`.
+
+Wave 4 was "Sketchy carries its own sketch layer". Dropped: Sketchy is an ordinary theme, and its name is a coincidence rather than a binding to Sketch mode. A sketchstyle applies to any theme, so shipping one baked into that file would assert a design connection that does not exist. Wave 4 now carries the bake-flag findings the Wave 2 and Wave 3 gates raised, which needed a home once the original wave went away.
+
+Wave 6 blocked at its first gate: the new Open pill was a dead control on the full-page components route, where `ThemePanel` renders outside the view switcher, and a shipped skill reference still named the old two-word view label. It passed on re-review after `04f7f0c`, which gated both pills on `showComponentsLink` and took the two-word form out of the shipped skills. `c979c0b` then pinned the gate in `ThemePanel.test.ts`, whose harness already mounted the panel with the prop false.
+
+Wave 6 was inserted after Wave 5 and before the preview work, which moved to Wave 7. The three parts of a theme now share the word "preset" with the themes themselves, and the preview wave should be written in the settled vocabulary rather than renamed after the fact.
 
 The orchestrator updates this table after each review gate: `Not started` to `In progress` to `Done` (or `Blocked`, with a one-line reason under the table). Record the short commit SHA.
 
@@ -28,7 +40,7 @@ Wave 1 is invisible on its own. Waves 1 and 2 together are the feature. Cutting 
 
 The sketch dials live in four localStorage keys (`sketchStore.ts:18`): `lt.sketchEnabled`, `lt.sketchSettings`, `lt.sketchPreset`, `lt.sketchBaseline`. Browser-scoped and origin-scoped. They survive a reload on one machine and nothing else sees them. The only thing that reaches disk is an explicit **Save current**, which writes `data/sketch-presets/<slug>.json`: a named look you can pick again, bound to no theme.
 
-So a look that includes a sketch layer is not a look anyone can hand over. Open the same theme on another machine, or after clearing site data, and the drawing is gone with no record that it was ever part of the design. `themeFileApi.ts:263` states the original rationale, that a sketch look is a draft effect never opened as a document nor published. That was right while Sketch mode was a way to look at the page. It stopped being right when Sketchy shipped as a preset theme: the theme now carries sketchy colors and type for a page that renders crisp.
+So a look that includes a sketch layer is not a look anyone can hand over. Open the same theme on another machine, or after clearing site data, and the drawing is gone with no record that it was ever part of the design. `themeFileApi.ts:263` states the original rationale, that a sketch look is a draft effect never opened as a document nor published. That was right while Sketch mode was a way to look at the page. It stopped being right once the dials became a design decision. Any theme can wear any sketchstyle, and which one it wears is part of the look.
 
 The layer already behaves like part of the theme. It reads `--{stem}-surface`, `-border` and `-radius` off whatever theme is active and redraws them. It is stored like a scratch setting and used like a design decision.
 
@@ -38,7 +50,7 @@ A theme carries its sketch layer by value, the way it already carries `colorsAnd
 
 ```jsonc
 {
-  "name": "Sketchy",
+  "name": "Autumn",
   "schemaVersion": 4,
   "colorsAndType": { ... },
   "componentConfigs": { ... },
@@ -82,7 +94,7 @@ Out of scope, and deliberately: **Adopt does not bake the layer, and a productio
 4. **Export and import carry it for free.** `ThemeBundle.manifest` is a whole `Theme` and import runs `normalizeTheme`, so Wave 1 is the entire cost. Wave 1 pins this with a test rather than assuming it.
 5. **The editor's own chrome never draws sketched.** `setSketchPageRoot` (`LiveTokensRouter.svelte:109`) stays the only thing that decides which root paints. No wave touches it.
 6. **`tokens.generated.css`, `fonts.css` and `tokens.css` are untouched by every wave.** Adopt's bake is out of scope; the token contract does not move.
-7. **The data tree is live app state.** Only Wave 4 writes to `src/live-tokens/data/`, where that write is the deliverable. Every other wave leaves it clean; restore per the recipe in `CLAUDE.md` before committing, and run `node scripts/check-production-is-default.mjs`.
+7. **The data tree is live app state.** No wave writes to `src/live-tokens/data/`. Every wave leaves it clean; restore per the recipe in `CLAUDE.md` before committing, and run `node scripts/check-production-is-default.mjs`.
 8. `npm run check` clean and `npm run test` green at every wave boundary.
 
 ## Commit-unit protocol
@@ -226,23 +238,33 @@ Files: `src/editor/core/sketch/sketchStore.ts`, `src/editor/ui/ThemePanel.svelte
 
 ---
 
-## Wave 4 — Sketchy carries its own sketch layer
+## Wave 4 — the bake flag follows the gesture
 
-**Goal:** the preset theme named Sketchy paints sketched when you load it.
+**Goal:** `liveMovedSinceBake` reports a moved look when the user moved it, and only then.
 
 **Executor:** Sonnet.
 
-**Settled: Sketchy ships `marker`, written in verbatim from `SKETCH_PRESETS`.** Cabin Sketch on display and Shantell Sans on body are a felt-tip hand, and Marker is the same instrument, so the drawing and the lettering read as one hand. Napkin's square wave sends every edge to full travel, which is too loose to hand someone as a shipped example; Pencil's fine graphite sits at a different weight from a rough display face. Do not re-open this.
+This wave replaces the original Wave 4, which shipped a sketch layer inside `themes/sketchy.json`. That is dropped: Sketchy is an ordinary theme whose name coincides with the feature, and a sketchstyle applies to any theme, so baking one into that file would state a relationship that is not there. Nothing in this plan now writes to `src/live-tokens/data/`.
 
-Files: `src/live-tokens/data/themes/sketchy.json`, `scripts/check-preset-themes.mjs`, `vite-plugin/themes/presetThemes.test.ts`.
+What lands instead are three findings the Wave 2 and Wave 3 gates raised against one mechanism. They were parked on the old Wave 4 because a shipped theme carrying a sketch made the first of them unconditional. Without that theme they are rarer, not gone: any theme a user saves with a sketch layer reaches the same paths.
 
-1. `sketchy.json` gains the `sketch` object, the `marker` entry of `SKETCH_PRESETS` copied by value, `label` and `blurb` included. Nothing else in the file moves: no `colorsAndType` edit, no alias reordering, no `updatedAt` churn beyond what the write itself does. Diff it before committing and reject any other change (the promotion in `0.57.0` taught this; see `project_sketch_mode_release`).
+Files: `src/editor/core/sketch/sketchStore.ts`, `src/editor/core/productionPulse.ts`, `src/editor/core/sketch/sketchStore.test.ts`.
 
-2. Pin it. `check-preset-themes.mjs` gains an assertion that `sketchy` carries a `sketch` and that every other preset theme carries none, phrased as a property of the preset set rather than of the seeder, since `seed-preset-theme.mjs` cannot rebuild Sketchy and has no slug for it. Mirror the phrasing already used for its font pairing.
+1. Move `liveMovedSinceBake.set(true)` off the `sketchEnabled` subscription (`sketchStore.ts:323`) and onto the gesture boundary in `setSketchEnabled`, beside the one already in `updateSketchSettings`. Wave 3 put it in the subscription because that is what the plan said; a subscription fires for things that are not gestures. The move closes two false positives the gate confirmed: boot's `openThemeSketch` on an untouched browser raises the flag with nothing clearing it, and a peer document's Apply raises this document's flag through the storage echo. It should also retire the `sketchEnabledHydrated` first-tick guard, which exists only to paper over the first of those.
 
-3. `presetThemes.test.ts`: the same pin at the unit level, plus an assertion that `normalizeTheme` leaves Sketchy's sketch dials unchanged on read.
+2. Preset picks genuinely move the look off the bake, and today nothing records it: `selectSketchPreset` (`:189`) and `selectUserSketchPreset` (`:206`) write `sketchSettings` directly rather than through `updateSketchSettings`. Picking a preset while the effect is on replaces every dial and repaints, so it gets the flag.
 
-**Verification:** `npm run test`, `npm run check:preset-themes`. Manual: load Sketchy from a clean state, confirm the page draws sketched, confirm loading any other preset returns it to crisp. Then restore the data tree per `CLAUDE.md` and confirm `node scripts/check-production-is-default.mjs` passes, since the only intended data change in this wave is `themes/sketchy.json` itself.
+   Two limits on that, both corrections to an earlier draft of this item. `saveCurrentAsSketchPreset` (`:217`) is **not** in the set: it rewrites `label` only, and `sameLook` defines `label` and `blurb` as outside the look, so flagging there makes the Sketch row read in sync while Adopt reads unpublished. And every writer in the set flags only while the effect is on. `liveSketch()` returns `undefined` while it is off, so nothing done to the dials then can reach a theme or a bake, and the preset grid stays interactive with the effect off. That gate belongs on `updateSketchSettings` too, which has the same defect from Wave 3; three of four gated is the inconsistency this plan warns against elsewhere.
+
+3. `productionPulse.ts:37` lists its writers exhaustively and the list predates this branch. Its value is that it is exhaustive, so bring it current.
+
+4. `SketchTab.svelte:262` tells the user to "Save it in the Theme panel", but Save is disabled while the protected Default theme is open (`ThemePanel.svelte:774`) and the gesture there is Save As. RJC 9 keeps Default free of a sketch layer, so this is the state anyone hits who turns Sketch on with Default open. Name the gesture that is actually available. Read the panel's own disabled condition rather than assuming which one applies.
+
+5. `hasPersistedSketchState()` (`sketchStore.ts:48`) returns a module-level flag read once at import, so a document that adopts a peer's change through the storage handshake (`:344`) keeps a stale `false` until it reloads. The gate found a sub-second window: flip the page's sketch select while the overlay iframe is between its import and `themes/active` resolving, and the iframe's boot reconcile overwrites the choice and echoes it back. Re-read `TOUCHED_KEY` in the function instead of returning the cached flag.
+
+Tests: a preset pick while the effect is on sets `liveMovedSinceBake`; `openThemeSketch` does not; the storage-echo path does not raise it in a document that did not act.
+
+**Verification:** `npm run test`, `npm run check`. `git status --short src/live-tokens/data` empty. Manual, for the user: with a saved sketched theme open, reload and confirm the Theme panel does not claim the look is unpublished before you touch anything; move a dial and confirm it does.
 
 ---
 
@@ -268,9 +290,139 @@ Files: `src/editor/docs/content/sketch-mode.md`, `src/editor/docs/content.genera
 
 ---
 
+## Wave 6 — the sketchstyle, named as one thing
+
+**Goal:** one noun for the drawing, in the code, on the screen, in the route and on disk. Two save gestures that cannot be mistaken for each other.
+
+**Executor:** Sonnet.
+
+Waves 1 to 5 gave a theme three parts and left the third sharing a word with the other two. "Preset" already names the nine shipped Themes, and `ThemePanel.svelte:650` calls the colors-and-type files presets too. So "sketch preset" distinguishes nothing: the seven built-in looks, the user's saved ones and a whole theme are all presets. The word also names a provenance rather than a thing, and Waves 1 to 5 turned these dials into a design decision a theme carries by value.
+
+**Sketchstyle**, one word. Not "style", which floats free beside "theme" and leaves the containment unstated. The compound names the thing and cannot decay into the vaguer word.
+
+### Reserved judgment calls for this wave
+
+1. **One word, everywhere.** "Sketchstyle" in copy, `SketchStyle` in code, `sketch-styles` on disk and in the route. Never "sketch style", never a bare "style".
+
+   Two shipped labels are already the loose form and both change. The editor's fourth view reads **Sketch Style** (`EditorViewSwitcher.svelte:35` and `:104`, shipped on `main`) and becomes **Sketchstyle**. The Theme panel's part row reads **Sketch** (`ThemePanel.svelte:861`) and becomes **Sketchstyle** too, so the row, the view and the field `Theme.sketchStyle` all say the same word. The three parts of a theme then read Colors & Type, Components, Sketchstyle.
+
+   The toggle inside the view stays **Sketch mode**. It names the mode, which is a separate thing from the drawing the mode paints, and it is the one place the shorter word is correct.
+
+2. **The theme field renames with the rest.** `Theme.sketch` becomes `Theme.sketchStyle`, matching `colorsAndType`, which spells its whole noun. The field is branch-only and absent from `main`, so it has never shipped: this costs nothing today and would cost a schema migration after release.
+
+3. **The directory and route are a real rename; the localStorage keys are mostly not.** `data/sketch-presets/` and `/sketch-presets` shipped in 0.57.0 and are published through 0.62.0, so they need a migration. Of the five browser keys only `lt.sketchPreset` states the wrong noun. Rename that one to `lt.sketchStyleName`, where losing a stored selection degrades to "adjusted from a sketchstyle" and self-heals on the next pick. Leave `lt.sketchEnabled`, `lt.sketchSettings`, `lt.sketchBaseline` and `lt.sketchTouched` alone: a browser key is a private encoding, its name is not the one in dispute, and renaming it would destroy a user's live dials to gain nothing anyone can read.
+
+### The sweep
+
+| Now | After |
+|---|---|
+| `SketchSettings` | `SketchStyle` |
+| `hydrateSketchSettings` | `hydrateSketchStyle` |
+| `SKETCH_PRESETS` | `SKETCH_STYLES` |
+| `DEFAULT_SKETCH_PRESET` | `DEFAULT_SKETCH_STYLE` |
+| `sketchPresets.ts` | `sketchStyles.ts` |
+| `sketchPresetService.ts` | `sketchStyleService.ts` |
+| `SketchPresetFile`, `SketchPresetMeta` | `SketchStyleFile`, `SketchStyleMeta` |
+| `slugifySketchPreset` | `slugifySketchStyle` |
+| `listSketchPresets`, `loadSketchPreset`, `saveSketchPreset`, `deleteSketchPreset` | the same verbs on `SketchStyle` |
+| `sketchPreset` (store) | `sketchStyleName` |
+| `selectSketchPreset` | `selectSketchStyle` |
+| `selectUserSketchPreset` | `selectSavedSketchStyle` |
+| `saveCurrentAsSketchPreset` | `saveCurrentSketchStyle` |
+| `deleteUserSketchPreset` | `deleteSavedSketchStyle` |
+| `userSketchPresets`, `refreshUserPresets` | `savedSketchStyles`, `refreshSavedSketchStyles` |
+| `USER_PRESET_PREFIX` | `USER_STYLE_PREFIX`, value `'user:'` unchanged (RJC 3) |
+| `Theme.sketch`, `themeSketch`, `openThemeSketch`, `liveSketch` | `Theme.sketchStyle`, `themeSketchStyle`, `openThemeSketchStyle`, `liveSketchStyle` |
+| `dataPaths.sketchPresetsDir` | `sketchStylesDir` |
+| `themeFileApi.sketchPresets.test.ts` | `themeFileApi.sketchStyles.test.ts` |
+
+`sketchOffLook` keeps its name. It matches `componentsOffLook`, which is the panel's own vocabulary for the same idea.
+
+`sketchSettings` and `updateSketchSettings` keep theirs, settled at the Wave 6 gate. The word in dispute was "preset", never "settings", and "settings" names something real: the live dial buffer, whose browser key RJC 3 deliberately keeps. The store is that key's in-memory face, so the two agreeing is the point. The type it holds is `SketchStyle`, the theme's field is `sketchStyle`, and `liveSketchStyle()` is the accessor that crosses between them, so the boundary is named on both sides.
+
+The 24 files carrying an affected identifier: `src/app/SketchSelect.svelte`, `src/editor/core/productionPulse.ts`, the seven files under `src/editor/core/sketch/`, `src/editor/core/themes/themeInit.test.ts`, `src/editor/core/themes/themeTypes.ts`, `src/editor/docs/content/sketch-mode.md`, `src/editor/docs/content/where-themes-live.md`, `src/editor/docs/content.generated.ts` (generated), `src/editor/ui/sketch/SketchPreview.svelte`, `src/editor/ui/sketch/SketchTab.svelte`, `vite-plugin/files/dataPaths.ts`, `vite-plugin/themeFileApi.ts`, `vite-plugin/themeFileApi.sketchPresets.test.ts`, `vite-plugin/themeFileApi.themes.test.ts`, `vite-plugin/themes/normalizeTheme.ts`, `vite-plugin/themes/normalizeTheme.test.ts`. Locate by symbol; the list is a census, not a permission slip.
+
+1. **The code sweep**, per the table. Mechanical, and the definition of done is greppable (see Verification).
+
+   `EditorViewSwitcher.svelte` is not in the census below because it carries no affected identifier, only the label. Sweep it anyway, and grep for the two-word form across `src` rather than trusting the identifier list.
+
+   Two comments call the effect a draft look and are named nowhere else, so a symbol sweep would leave them: `sketchStore.ts:232` ("the effect is a draft look") and the one near `sketchStore.ts:300` ("not worth surfacing for a draft look"). Waves 1 to 5 made both false. The Wave 5 gate found them.
+
+2. **The disk and route rename, with a migration.** `dataPaths.ts` gains `sketchStylesDir: sub('sketch-styles')`; the route table serves `/sketch-styles`. `migrateData` already carries a rename pipeline (`renames`, `planLegacyRenames`, `applyLegacyRenames`, `migrateData.ts:199`); add the directory to it.
+
+   This is a plain rename and not the 0.48 layout hazard. The files inside keep their shape, and no writer aimed at the new name can destroy one under the old, so **boot must not refuse a pre-rename tree** the way `legacyLayout.ts` does. Boot warns, `npx live-tokens migrate` renames. Read `legacyLayout.ts` first to see why the harder treatment was warranted there, and do not copy it.
+
+   `dataPaths.ts:36` calls the directory "a draft-look artifact". Waves 1 to 5 made that false. Correct it.
+
+   One path leads from the soft warning into a hard refusal, found at the gate and left standing: warn, then save a sketchstyle, and `ensureDir` creates `sketch-styles/` with a file in it, so `applyLegacyRenames` afterwards refuses a destination that exists and holds files. The error names the collision and destroys nothing, so it stays a known path rather than a defect. Do not soften `applyLegacyRenames` to accommodate it.
+
+3. **The two Save gestures, named apart.** In `SketchTab.svelte`: **Save current** becomes **Save as sketchstyle…**, the `Saved` band label becomes **Saved sketchstyles**, and the name field's placeholder and `aria-label` become "Sketchstyle name". The Theme panel's **Save** keeps its name. No screen then shows two buttons called Save for one set of dials.
+
+   The tab's info popover (`SketchTab.svelte:246`) currently explains the Theme panel's Save. Keep that sentence, and add nothing: the popover explains where the dials are kept, which is the question the two buttons raise.
+
+4. **The Theme panel's Sketch row points back.** The row prints `$sketchSettings.label`, the live label, not the one the theme holds. `sameLook` excludes `label`, so renaming a sketchstyle through **Save as sketchstyle…** leaves the row reading in sync while naming something the theme's own object does not carry. The Wave 5 gate found it. Fix it while you are in the row, or record why not.
+
+   Give the row an **Open** pill matching the Components row (`ThemePanel.svelte:846`) that opens the Sketchstyle view, so the panel names the tab as well as the tab naming the panel. Read how `canOpenComponents` and `openComponents` resolve before wiring it. If the Sketch tab is not reachable by that mechanism, leave the row as it is and report why, rather than inventing a second navigation path.
+
+5. **Docs.** `sketch-mode.md` (its "## The presets" heading and every mention of the directory), `where-themes-live.md`, and any chapter naming the old path. Then `npm run sync:docs`. Never hand-edit `content.generated.ts`.
+
+6. **CHANGELOG.** Fold into the unreleased entry Wave 5 opened: the rename, the directory move, and that `npx live-tokens migrate` performs it.
+
+**Verification:** `npm run test`, `npm run check`, `npm run check:docs-content`, `npm run check:preset-themes`.
+
+The greppable gate:
+
+```sh
+grep -rnE "sketch-presets|SketchPreset|sketchPreset|SKETCH_PRESETS|\bSketchSettings\b" src vite-plugin bin .claude/skills
+grep -rn "Sketch Style" src .claude/skills README.md
+```
+
+Both return only the migration's own record of the retired name. The word boundary on `SketchSettings` is load-bearing: without it the pattern matches `updateSketchSettings`, which keeps its name deliberately (see the note under the table). The second grep covers the labels, which carry no identifier and would otherwise pass a symbol sweep; `.claude/skills` is in `package.json` `files`, so it ships and counts as user-facing copy.
+
+**The one data-tree exception.** This repo tracks `src/live-tokens/data/sketch-presets/hatchsurface.json`, so this wave renames a tracked file. Use `git mv`; the rename is the deliverable and invariant 7 does not cover it. Nothing else under `src/live-tokens/data/` may move, and `node scripts/check-production-is-default.mjs` must still pass.
+
+Manual, for the user: open the Sketch tab, confirm the saved sketchstyle survived the rename and still loads, and save a new one; confirm the Theme panel row and the tab agree on its name.
+
+---
+
+## Wave 7 — the preview honours the theme's sketchstyle
+
+**Goal:** picking a theme in the Theme Picker shows that theme's sketch layer, and leaving the picker puts back what was there before.
+
+**Executor:** Sonnet. Not started, and it starts after Wave 6: write it in the settled vocabulary rather than renaming it afterwards. Everything below is specification, not applied work.
+
+Waves 1 to 5 covered apply and boot. Preview was never asked the question, so `src/editor/core/preview/lookPreview.ts` has no sketchstyle handling at all: previewing a sketched theme shows its colors under whatever drawing the previously applied theme left painted. Two themes' looks on screen at once, which is the one thing a preview exists to prevent. The Wave 5 gate found this; it is a gap in the feature rather than a defect in anything that shipped.
+
+Files: `src/editor/core/preview/lookPreview.ts`, and its tests. Read `lookPreview.ts` in full before writing anything; the mechanism below is stated as a requirement, not as a diff.
+
+**The trap, and the reason this is not a two-line change.** `openThemeSketchStyle` (`sketchStore.ts`, named by Wave 6) overwrites the live buffer, which is right for applying a theme (RJC 6) and wrong for previewing one. Browsing the picker must not destroy unsaved dials. So preview needs a transient path that paints without writing `sketchSettings`, `sketchBaseline`, `sketchStyleName` or `themeSketchStyle`, and restores the live look on leave. Establish how `lookPreview` already does this for colors and type and follow that shape rather than inventing a second mechanism.
+
+1. Preview a theme carrying a sketchstyle: paint it. Preview one carrying none: paint crisp, even if the applied theme is sketched. Absent means off here too (invariant 3).
+2. Leaving the preview restores exactly the pre-preview state, including an unsaved dial the user had moved. Pin this: it is the failure that would cost real work.
+3. `liveMovedSinceBake` and `sketchOffLook` must not move during a preview. A preview is not a gesture and nothing about the open theme changed (Wave 4's rule).
+4. The overlay iframe and the host page must agree during a preview, the way they do on apply.
+
+**Verification:** `npm run test`, `npm run check`. `git status --short src/live-tokens/data` empty. Manual: with unsaved dials, browse several themes in the picker and confirm the dials come back untouched on leave; preview a sketched theme and a crisp one in sequence and confirm neither leaks into the other.
+
+**Doc consequence.** `themes-workflow.md:104-106` says picking a theme shows it on the page as a preview. That over-promises today and becomes true when this lands. Check it, and the Wave 5 prose around it, rather than assuming.
+
+---
+
+## Open decision: how far the attached sketchstyle reaches
+
+Settled and built on this branch: a sketchstyle is attached to a theme. `Theme.sketchStyle` (`Theme.sketch` until Wave 6 renames it) is optional, absent or `null` means no layer, and a theme carrying one paints it when you load it. Every theme on disk has none today, and a theme written before this change keeps meaning none (RJC 1, RJC 2). Nothing here needs revisiting.
+
+What is not settled is how far that attachment reaches. Three surfaces, two of them still short:
+
+1. **The page and the editor.** Done. Load applies it, Save folds it in, an unsaved dial reads as off the theme.
+2. **The Theme Picker preview.** Specified as Wave 7, not built. Squarely inside the model this plan built.
+3. **A production build.** Not done, and deliberately so. See below.
+
+Wave 7 answers 2. Only 3 stays open, and it is the same question asked of the surface with the highest cost: when a theme carries an effect layer, does a built site honour it.
+
 ## The second move, not in this plan
 
-Whether Adopt bakes the layer. Once a theme carries a sketch, "the production theme is sketchy and the built site is not" is two truths in one document, so the eventual answer is probably yes. It is a separate piece of work with its own evidence to gather:
+Whether Adopt bakes the layer. Once a theme carries a sketchstyle, "the production theme is sketchy and the built site is not" is two truths in one document, so the eventual answer is probably yes. It is a separate piece of work with its own evidence to gather:
 
 - **How it ships.** The layer builds an SVG filter bank and injects it into the document (`sketchLayer.ts:1087`), so a static stylesheet is not enough on its own. Either the bake emits a `sketch.generated.css` whose filters are data-URI SVG refs, or the package exports a small runtime the consumer's entry calls with the production theme's settings. The first keeps the consumer's app untouched; the second is honest about needing JS.
 - **What it costs.** Filters on every drawn part, on every page. Measure before committing.
