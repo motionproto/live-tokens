@@ -1,6 +1,6 @@
 ---
 name: live-tokens-pick-component
-description: Recommend which shipped @motion-proto/live-tokens component fits a UX need, with decision trees for the confusable pairs (SegmentedControl vs TabBar vs RadioButton vs MenuSelect; Card vs CollapsibleSection vs Dialog; Callout vs Notification vs Tooltip; Badge vs CornerBadge; Toggle vs SegmentedControl vs RadioButton). Use when the user asks which / what component to use, should I use X or Y, what is the difference between two components, how do I show / let the user / capture / display some UX outcome, or starts to author a custom component before checking the catalogue. Read this before reaching for live-tokens-create-component. Not for actually placing the chosen component on a page (see live-tokens-build-page).
+description: Recommend which shipped @motion-proto/live-tokens component fits a UX need, with decision trees for the confusable pairs (SegmentedControl / TabBar / RadioButton / MenuSelect, Card / CollapsibleSection / Dialog, Callout / Notification / Tooltip, and others). Use when the user asks which component to use, should I use X or Y, what is the difference between two components, how do I show / let the user / capture some UX outcome, or starts authoring a custom component before checking the catalogue. Read this before live-tokens-create-component. Not for placing the chosen component on a page (see live-tokens-build-page).
 ---
 
 # Picking the right live-tokens component

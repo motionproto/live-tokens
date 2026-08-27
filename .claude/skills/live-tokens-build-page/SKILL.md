@@ -1,6 +1,6 @@
 ---
 name: live-tokens-build-page
-description: Apply the @motion-proto/live-tokens project conventions when building a page: use shipped components from the catalogue, reference theme tokens (never hex/pixel literals), mount routes dynamically, register each route's page source, and import site.css per-page. Use when the user asks to build / create / lay out a page, route, hero, marketing page, landing page, dashboard, settings screen, or pricing page; add a route; place / drop / use an existing component on a page; or assemble a screen from the live-tokens catalogue. For component-choice decisions, see live-tokens-pick-component. For authoring a brand-new component, see live-tokens-create-component.
+description: Apply the @motion-proto/live-tokens project conventions when building a page: shipped components, theme tokens over hex/pixel literals, dynamic route mounting, per-page site.css. Use when the user asks to build, create, or lay out a page, route, hero, landing page, dashboard, settings screen, or pricing page; add a route; place an existing component on a page; or assemble a screen from the catalogue. For component choice see live-tokens-pick-component; for a brand-new component, live-tokens-create-component; for look and feel mid-build, live-tokens-generate-theme or live-tokens-adjust-geometry.
 ---
 
 # Building pages in a live-tokens project
