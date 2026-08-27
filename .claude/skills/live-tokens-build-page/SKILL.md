@@ -28,6 +28,21 @@ To place children at specific page-column positions, span the parent grid (`grid
   Either way use `lazy`, not a static top-level import: static imports evaluate every page module at boot and leak page CSS into the editor routes.
 - Import `site.css` from each page's `<script>` block, never from `main.ts` (would leak into editor routes).
 
+The entry shape, for a project whose `App.svelte` has moved on from the template:
+
+```svelte
+const pages = {
+  '/pricing': {
+    lazy: () => import('./pages/Pricing.svelte'),
+    source: 'src/pages/Pricing.svelte',
+    label: 'Pricing',
+    icon: 'fa-tag',
+  },
+};
+```
+
+`source` is what makes Page Source work; drop `label` to keep a route reachable by URL but off the nav rail.
+
 ## Avoid
 
 - Hex or pixel literals in page CSS.

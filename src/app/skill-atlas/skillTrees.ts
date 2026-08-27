@@ -1630,47 +1630,47 @@ export const skillTrees: Record<string, SkillTree> = {
           {
             "label": "Hex or pixel literals",
             "lines": [
-              33,
-              33
+              48,
+              48
             ],
             "anchor": "- Hex or pixel literals in page CSS."
           },
           {
             "label": "Hardcoded column counts",
             "lines": [
-              34,
-              34
+              49,
+              49
             ],
             "anchor": "- Hardcoded column counts (`repeat(10, 1fr)`). Use `repeat(v"
           },
           {
             "label": "Utility classes over components",
             "lines": [
-              35,
-              35
+              50,
+              50
             ],
             "anchor": "- Utility classes overriding shipped components. Extend via "
           },
           {
             "label": "Deep node_modules imports",
             "lines": [
-              36,
-              36
+              51,
+              51
             ],
             "anchor": "- Deep imports from `node_modules/@motion-proto/live-tokens/"
           },
           {
             "label": "Editor mounted off its route",
             "lines": [
-              37,
-              37
+              52,
+              52
             ],
             "anchor": "- Mounting `Editor` or `ComponentEditorPage` outside their d"
           }
         ],
         "lines": [
-          31,
-          31
+          46,
+          46
         ],
         "anchor": "## Avoid",
         "tag": "avoid"
@@ -1682,8 +1682,8 @@ export const skillTrees: Record<string, SkillTree> = {
         "title": "Verify",
         "desc": "Change a colour in the editor and confirm the page repaints, which proves token usage. The overlay's Page Source button proves the route's source. Cmd+G shows content inside --columns-max-width.",
         "lines": [
-          40,
-          42
+          55,
+          57
         ],
         "anchor": "## Verify",
         "anchorEnd": "In dev: change a colour in `/live-tokens/editor` and confirm"
