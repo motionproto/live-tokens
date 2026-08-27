@@ -258,9 +258,17 @@
         <span class="readout-name">{active.name}</span>
         <p class="readout-blurb">{active.blurb}</p>
         {#if $sketchOffLook}
-          <p class="readout-off-look">
-            These dials are ahead of the saved theme. Save it in the Theme panel to fold them in.
-          </p>
+          {#if $sketchEnabled}
+            <p class="readout-off-look">
+              These dials are ahead of the saved theme. Save it in the Theme panel to fold them
+              in.
+            </p>
+          {:else}
+            <p class="readout-off-look">
+              The theme carries a sketch layer this page is not painting. Saving now would drop
+              it.
+            </p>
+          {/if}
         {/if}
       </div>
 

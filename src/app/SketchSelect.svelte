@@ -9,6 +9,7 @@
     refreshUserPresets,
     selectSketchPreset,
     selectUserSketchPreset,
+    setSketchEnabled,
     USER_PRESET_PREFIX,
   } from '../editor/core/sketch/sketchStore';
 
@@ -43,7 +44,7 @@
     error = '';
     try {
       if (next === NONE) {
-        sketchEnabled.set(false);
+        setSketchEnabled(false);
         return;
       }
       if (next.startsWith(USER_PRESET_PREFIX)) {
@@ -51,7 +52,7 @@
       } else {
         selectSketchPreset(next);
       }
-      sketchEnabled.set(true);
+      setSketchEnabled(true);
     } catch (reason) {
       error = reason instanceof Error ? reason.message : 'Could not apply that sketch style';
     } finally {

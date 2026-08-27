@@ -1,7 +1,7 @@
 // @vitest-environment happy-dom
 
 import { get } from 'svelte/store';
-import { beforeEach, describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { DEFAULT_SKETCH_PRESET, hydrateSketchSettings, SKETCH_PRESETS, type SketchSettings } from './sketchPresets';
 import {
   liveSketch,
@@ -255,6 +255,49 @@ describe('page root', () => {
     setSketchPageRoot(null);
 
     expect(document.documentElement.hasAttribute('data-sketch')).toBe(false);
+  });
+});
+
+/* `sketchTouched` (`hasPersistedSketchState`) only computes once, at module
+   import, from whatever localStorage already holds — so pinning it needs a
+   fresh module instance per case, not the file's shared static import. */
+describe('hasPersistedSketchState', () => {
+  const ENABLED_KEY = 'lt.sketchEnabled';
+  const SETTINGS_KEY = 'lt.sketchSettings';
+  const PRESET_KEY = 'lt.sketchPreset';
+  const BASELINE_KEY = 'lt.sketchBaseline';
+  const TOUCHED_KEY = 'lt.sketchTouched';
+
+  beforeEach(() => {
+    localStorage.clear();
+    vi.resetModules();
+  });
+
+  it('reads untouched on a virgin browser', async () => {
+    const { hasPersistedSketchState } = await import('./sketchStore');
+
+    expect(hasPersistedSketchState()).toBe(false);
+  });
+
+  it('still reads untouched on a second load, after its own write-back has planted the four keys', async () => {
+    await import('./sketchStore');
+    vi.resetModules();
+
+    const { hasPersistedSketchState } = await import('./sketchStore');
+
+    expect(hasPersistedSketchState()).toBe(false);
+  });
+
+  it('reads touched, and migrates the sentinel, for a pre-upgrade browser holding the legacy keys with no sentinel', async () => {
+    localStorage.setItem(ENABLED_KEY, 'true');
+    localStorage.setItem(SETTINGS_KEY, JSON.stringify(SKETCH_PRESETS.napkin));
+    localStorage.setItem(PRESET_KEY, 'napkin');
+    localStorage.setItem(BASELINE_KEY, JSON.stringify(SKETCH_PRESETS.napkin));
+
+    const { hasPersistedSketchState } = await import('./sketchStore');
+
+    expect(hasPersistedSketchState()).toBe(true);
+    expect(localStorage.getItem(TOUCHED_KEY)).toBe('true');
   });
 });
 

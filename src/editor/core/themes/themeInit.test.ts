@@ -10,7 +10,6 @@ import {
 } from '../store/editorStore';
 import { initializeTheme } from './themeInit';
 import { SKETCH_PRESETS } from '../sketch/sketchPresets';
-import { sketchEnabled, sketchSettings, themeSketch, updateSketchSettings } from '../sketch/sketchStore';
 
 beforeEach(() => {
   __resetForTests();
@@ -102,12 +101,20 @@ function stubActiveTheme(sketch: unknown) {
   });
 }
 
-// Order matters here: the first test relies on this browser never having
-// recorded a sketch decision, which is only true before any later test in
-// this file calls `updateSketchSettings` and flips that permanently.
+// Each case reimports both modules fresh, from a cleared localStorage, so
+// "this browser never recorded a sketch decision" is a state the test sets
+// up rather than a side effect of what ran earlier in the file (`sketchStore`
+// computes `sketchTouched` once, at import).
 describe('initializeTheme sketch reconcile', () => {
+  beforeEach(() => {
+    localStorage.clear();
+    vi.resetModules();
+  });
+
   it('seeds the live buffer from the theme when this browser never recorded a sketch decision', async () => {
     stubActiveTheme(SKETCH_PRESETS.napkin);
+    const { initializeTheme } = await import('./themeInit');
+    const { sketchEnabled, sketchSettings, themeSketch } = await import('../sketch/sketchStore');
 
     await initializeTheme();
 
@@ -117,6 +124,8 @@ describe('initializeTheme sketch reconcile', () => {
   });
 
   it('leaves an unsaved buffer alone once this browser has recorded a decision, and only learns the theme', async () => {
+    const { initializeTheme } = await import('./themeInit');
+    const { sketchEnabled, sketchSettings, themeSketch, updateSketchSettings } = await import('../sketch/sketchStore');
     updateSketchSettings({}); // records a decision without changing the dials
     sketchEnabled.set(true);
     const liveBefore = get(sketchSettings);
@@ -130,6 +139,8 @@ describe('initializeTheme sketch reconcile', () => {
   });
 
   it('leaves the sketch state alone when the active-theme fetch fails, rather than reading that as no sketch', async () => {
+    const { initializeTheme } = await import('./themeInit');
+    const { sketchEnabled, sketchSettings, themeSketch, updateSketchSettings } = await import('../sketch/sketchStore');
     updateSketchSettings({});
     sketchEnabled.set(true);
     const liveBefore = get(sketchSettings);
