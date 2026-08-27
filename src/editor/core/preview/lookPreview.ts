@@ -86,6 +86,10 @@ let defaultsPromise: Promise<Theme> | null = null;
 // buffer, so a colors-only preview (which never previews sketch) and revert
 // know whether there is anything to hand back.
 let sketchPreviewActive = false;
+// Bumped whenever a preview session ends or is superseded. `previewTheme` awaits
+// the defaults theme, and a Cancel landing inside that await was overwritten when
+// it resolved, stranding a preview the picker believed it had already taken down.
+let generation = 0;
 
 function loadDefaults(): Promise<Theme> {
   // A rejected promise must not be memoized, or one failed fetch (a dev-server
@@ -123,7 +127,10 @@ function applyPreview(look: RenderedLook): void {
  *  it carries, and its sketchstyle — present or not, since a theme with none
  *  paints crisp regardless of what is live (invariant 3). */
 export async function previewTheme(theme: Theme): Promise<void> {
-  applyPreview(themeLook(theme, await loadDefaults()));
+  const gen = generation;
+  const defaults = await loadDefaults();
+  if (gen !== generation) return;
+  applyPreview(themeLook(theme, defaults));
   previewSketchStyle(theme.sketchStyle);
   sketchPreviewActive = true;
 }
@@ -132,6 +139,7 @@ export async function previewTheme(theme: Theme): Promise<void> {
  *  look, so the sketchstyle stays live too — reverting a sketch preview a
  *  prior row left painted, if one is running. */
 export function previewColorsAndType(colorsAndType: ColorsAndType): void {
+  generation++;
   applyPreview(colorsAndTypeLook(colorsAndType));
   if (sketchPreviewActive) {
     revertSketchStylePreview();
@@ -141,6 +149,7 @@ export function previewColorsAndType(colorsAndType: ColorsAndType): void {
 
 /** Restore the live editor state. No-op when no preview is running. */
 export function revertPreview(): void {
+  generation++;
   if (!livePreview) return;
   paint(liveLook(), livePreview);
   livePreview = null;
@@ -154,9 +163,13 @@ export function revertPreview(): void {
  * the exact look being previewed into the store. This is the Save handoff: the
  * selected theme is already on screen, so restoring the old live look before
  * applying it would add work and create a visible flash across the request.
- * The sketchstyle stays painted for the same reason: `openThemeSketchStyle`
- * repaints it from the same values right after, so nothing flashes. */
+ * The sketchstyle stays painted for the same reason, though the handoff is not
+ * quite free: when the live state was crisp, `openThemeSketchStyle` writes the
+ * settings before the flag, so the sheet and the filter bank come down and go
+ * straight back up in between. That order is still the right one, since writing
+ * the flag first would paint the OLD dials for a frame. */
 export function commitPreview(): void {
+  generation++;
   livePreview = null;
   sketchPreviewActive = false;
 }
@@ -167,6 +180,7 @@ export function isPreviewing(): boolean {
 
 /** Test-only: drop the live preview and the cached defaults theme. */
 export function __resetPreviewForTests(): void {
+  generation++;
   livePreview = null;
   defaultsPromise = null;
   sketchPreviewActive = false;

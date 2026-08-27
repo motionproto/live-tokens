@@ -513,6 +513,8 @@ describe('previewTheme and the sketch layer', () => {
     expect(get(sketchSettings)).toEqual(before);
     expect(document.documentElement.getAttribute('data-sketch-fill')).toBe('solid');
     expect(document.documentElement.getAttribute('data-sketch-passes')).toBe('double');
+    expect(document.head.querySelector('style[data-sketch-style]')?.textContent)
+      .toContain('--sketch-stroke-width:9px');
   });
 
   // A crisp preview used to clear every [data-sketch] in the document. Only the
@@ -531,6 +533,49 @@ describe('previewTheme and the sketch layer', () => {
     revertPreview();
     expect(stage.getAttribute('data-sketch-fill')).toBe('solid');
     stage.remove();
+  });
+
+  it('hands the sketch layer back when a colors-and-type row follows a theme row', async () => {
+    openThemeSketchStyle(SKETCH_STYLES.napkin);
+    await previewTheme(sketchedTheme('inked', SKETCH_STYLES.hatched));
+    expect(document.documentElement.getAttribute('data-sketch-fill')).toBe('hatched');
+
+    previewColorsAndType(colorsAndType({ '--surface-canvas': '#333333' }));
+
+    expect(document.documentElement.getAttribute('data-sketch-fill')).toBe('solid');
+  });
+
+  // The Load handoff: the previewed look is already on screen and the caller
+  // applies it next, so taking it down first would only flash.
+  it('leaves the previewed sketchstyle painted across commitPreview', async () => {
+    openThemeSketchStyle(SKETCH_STYLES.napkin);
+    await previewTheme(sketchedTheme('inked', SKETCH_STYLES.hatched));
+
+    commitPreview();
+
+    expect(isPreviewing()).toBe(false);
+    expect(document.documentElement.getAttribute('data-sketch-fill')).toBe('hatched');
+  });
+
+  // previewTheme awaits the defaults theme. A Cancel landing inside that await
+  // used to be overwritten when it resolved, leaving a preview painted that the
+  // picker believed it had taken down.
+  it('drops a theme preview whose defaults land after the picker closed', async () => {
+    let release = () => {};
+    const gate = new Promise<void>((r) => { release = () => r(); });
+    vi.stubGlobal('fetch', async () => {
+      await gate;
+      return new Response(JSON.stringify(defaults), { headers: { 'Content-Type': 'application/json' } });
+    });
+    openThemeSketchStyle(SKETCH_STYLES.napkin);
+
+    const inFlight = previewTheme(sketchedTheme('inked', SKETCH_STYLES.hatched));
+    revertPreview();
+    release();
+    await inFlight;
+
+    expect(isPreviewing()).toBe(false);
+    expect(document.documentElement.getAttribute('data-sketch-fill')).toBe('solid');
   });
 
   it('does not move liveMovedSinceBake or sketchOffLook, since browsing the picker is not a gesture', async () => {

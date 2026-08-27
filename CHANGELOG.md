@@ -27,6 +27,14 @@
   itself: a browser that already had sketch dials set reads them as off the
   theme on its first boot after upgrading, and Save folds them into the open
   theme like any other unsaved change.
+- **The Theme Picker previews the sketch layer.** Picking a theme showed its
+  colors and type over whatever drawing the previously applied theme had left
+  painted, so two themes' looks were on screen at once, which is the one thing a
+  preview exists to prevent. A previewed theme now paints its own sketchstyle,
+  and one carrying none previews crisp whatever is live. Leaving the picker puts
+  back exactly what was there before, an unsaved dial included: the preview
+  paints without writing the live buffer, so browsing costs nothing and Cancel
+  reverts to the buffer rather than to a snapshot taken before it.
 - **Sketchstyle, named as one thing.** "Sketch preset" is retired: the code,
   the Theme panel row, the editor's fourth view and the on-disk directory all
   say "sketchstyle" now. The saved-look directory moves from
