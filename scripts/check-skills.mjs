@@ -32,6 +32,20 @@ const skillDirs = readdirSync(SKILLS, { withFileTypes: true })
 
 const cli = read(CLI);
 const cliVerbs = new Set([...cli.matchAll(/command === '([a-z-]+)'/g)].map((m) => m[1]));
+
+// Flags come off each verb's signature line in USAGE, never the indented prose
+// under it: set-fonts describes the --font-* custom properties there, and those
+// are not flags.
+const usage = cli.match(/const USAGE = `([\s\S]*?)`;/)?.[1] ?? '';
+const cliFlags = new Map(
+  [...usage.matchAll(/^ {2}([a-z][a-z-]+)\s+(.*)$/gm)].map(([, verb, rest]) => [
+    verb,
+    [...rest.matchAll(/--[a-z-]+/g)].map((m) => m[0]),
+  ]),
+);
+// A flag whose owning skill leaves it out on purpose, keyed `verb --flag`, with
+// the reason. Declaring one keeps the check honest; deleting the check does not.
+const OMITTED_FLAGS = new Map();
 const samplePrompts = new Set([...cli.matchAll(/^\s+'(live-tokens-[a-z-]+)':\s+['"]/gm)].map((m) => m[1]));
 
 const components = readdirSync(CONFIGS, { withFileTypes: true })
@@ -84,8 +98,22 @@ for (const skill of skillDirs) {
     if (!named.has(ref)) errors.push(`${skill}: references/${ref} exists but SKILL.md never points at it`);
   }
 
+  // A skill naming a verb the CLI dropped is the cheap direction. The costly one
+  // is the reverse: --carry-from shipped in bin/cli.mjs and in --help and reached
+  // no skill, so two generate-theme runs silently carried the first theme's fonts
+  // and geometry into the second. A flag its own skill never names is a flag the
+  // model never reaches for.
   for (const [, verb] of text.matchAll(/npx (?:@motion-proto\/)?live-tokens ([a-z-]+)/g)) {
-    if (!cliVerbs.has(verb)) errors.push(`${skill}: mentions \`live-tokens ${verb}\`, which bin/cli.mjs does not dispatch`);
+    if (!cliVerbs.has(verb)) {
+      errors.push(`${skill}: mentions \`live-tokens ${verb}\`, which bin/cli.mjs does not dispatch`);
+      continue;
+    }
+    for (const flag of cliFlags.get(verb) ?? []) {
+      if (OMITTED_FLAGS.has(`${verb} ${flag}`)) continue;
+      if (!text.includes(flag)) {
+        errors.push(`${skill}: documents \`live-tokens ${verb}\` but never names ${flag}, which bin/cli.mjs offers`);
+      }
+    }
   }
 
   for (const [, sibling] of text.matchAll(/\b(live-tokens-[a-z-]+)\b/g)) {
@@ -124,4 +152,4 @@ if (errors.length > 0) {
   process.exit(1);
 }
 
-console.log(`check:skills OK — ${skillDirs.length} skill(s), each under ${MAX_SKILL_LINES} lines with references resolved, CLI verbs real, and the picker catalogue complete.`);
+console.log(`check:skills OK — ${skillDirs.length} skill(s), each under ${MAX_SKILL_LINES} lines with references resolved, CLI verbs real and their flags documented, and the picker catalogue complete.`);
