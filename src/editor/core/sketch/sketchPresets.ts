@@ -151,10 +151,10 @@ export const SKETCH_PRESETS: Record<string, SketchSettings> = {
     blurb: 'Broad translucent nib gone round twice on the same line, so the overlap darkens and the ink pools where it slows.',
     fillTravel: 2, strokeTravel: 1.5, wobble: 56, waveform: 1.4, borderWavelength: 1.3,
     strokeWidth: 4, doubleStroke: true, retracePass: 'copy', strokeInk: 0.52, retraceOffset: 2.2,
-    maskBlob: 95, maskOutputMin: 0.5, maskOutputMax: 0.92, maskOctaves: 2, maskPosterize: 4, maskSoftness: 2.8,
+    maskBlob: 115, maskOutputMin: 0.21, maskOutputMax: 1, maskOctaves: 3, maskPosterize: 4, maskSoftness: 2.5,
     jitterX: 3, jitterY: 3, jitterRot: 0.8, jitterScale: 0.045,
     cornerSpread: 10, cornerTravel: 8,
-    pressure: 0.2, pressureMod: 0.25, pooling: 2, iconTravel: 1.25,
+    pressure: 0.2, pressureMod: 0.25, pooling: 2, iconTravel: 1.25, iconMaskScale: 4,
   },
 
   whiteboard: {
@@ -196,22 +196,22 @@ export const SKETCH_PRESETS: Record<string, SketchSettings> = {
     blurb: 'Ballpoint in a hurry. Everything loose at once: a square wave sends every edge to full travel, and the second pass lands wherever it lands.',
     fillTravel: 3, strokeTravel: 2.25, wobble: 50, roughness: 3, waveform: 2.5,
     strokeWidth: 2.25, doubleStroke: true, retracePass: 'reseeded', retraceOffset: 4, strokeInk: 1,
-    maskBlob: 150, maskOutputMin: 0.45, maskOutputMax: 1, maskOctaves: 2, maskPosterize: 2, maskSoftness: 6.7,
+    maskBlob: 150, maskOutputMin: 0.43, maskOutputMax: 0.95, maskOctaves: 2, maskPosterize: 2, maskSoftness: 6.7,
     jitterX: 6, jitterY: 6, jitterRot: 1.8, jitterScale: 0.1,
     cornerSpread: 20, cornerTravel: 17,
-    pressure: 0.45, pressureMod: 0.6, pooling: 2.5, iconTravel: 2.25,
+    pressure: 0.45, pressureMod: 0.6, pooling: 2.5, iconTravel: 2.25, iconMaskScale: 3.6,
   },
 
   dry: {
     ...base, label: 'Dry marker',
-    blurb: 'Ink that ran out. One scratchy pass that breaks up along its length, over a fill the mask has torn holes clean through.',
+    blurb: 'Ink that ran out. One scratchy pass that breaks up along its length, over a fill the mask has worn nearly through in patches.',
     fillTravel: 2.25, strokeTravel: 1.75, wobble: 50, waveform: 2, borderWavelength: 0.5,
     strokeWidth: 3.5, doubleStroke: false, strokeInk: 0.4,
-    maskBlob: 150, maskOutputMin: 0, maskOutputMax: 0.85,
-    maskOctaves: 2, maskPosterize: 4, maskSoftness: 2,
+    maskBlob: 150, maskOutputMin: 0.15, maskOutputMax: 0.91,
+    maskOctaves: 2, maskPosterize: 4, maskSoftness: 1.75,
     jitterX: 5, jitterY: 5, jitterRot: 1.4, jitterScale: 0.08,
     cornerSpread: 16, cornerTravel: 13,
-    pressure: 0.4, pressureMod: 0.8, pooling: 1.5, iconTravel: 1.75, iconMaskScale: 0.65,
+    pressure: 0.4, pressureMod: 0.8, pooling: 1.5, iconTravel: 1.75, iconMaskScale: 3.8,
   },
 };
 

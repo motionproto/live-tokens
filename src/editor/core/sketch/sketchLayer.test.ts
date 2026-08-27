@@ -262,7 +262,7 @@ describe('icons', () => {
   // A px tile is a size the glyph has no say in: anything smaller than the tile
   // sampled one flat patch of the field and came out either untouched or gone.
   it('sizes the icon mask against the glyph, not in px', () => {
-    const css = buildStylesheet(marker);
+    const css = buildStylesheet({ ...marker, iconMaskScale: 1 });
     expect(css).toContain('--sketch-icon-mask-tile:100%;');
     expect(css).toContain('mask-size:auto var(--sketch-icon-mask-tile);');
     // The fill keeps its px tile: a component does have a size to state one in.

@@ -113,22 +113,15 @@ describe('mask field', () => {
   });
 });
 
-// Only Dry marker is allowed to tear through: everywhere else the fill is a
-// texture over an unbroken surface, and a bare patch reads as a hole in the
-// component rather than as ink.
+// No preset tears through. The fill is a texture over an unbroken surface, and
+// a bare patch reads as a hole in the component rather than as ink. Dry marker
+// runs the thinnest of them and still keeps ink everywhere.
 describe('preset coverage', () => {
   for (const [name, preset] of Object.entries(SKETCH_PRESETS)) {
     if (!preset.maskOn) continue;
-    it(`${name} keeps the fill${name === 'dry' ? ' except where it tears' : ''}`, () => {
+    it(`${name} keeps the fill`, () => {
       const { field } = buildMaskField(preset, 9);
-      const bare = field.reduce((n, v) => n + (v < 0.05 ? 1 : 0), 0) / field.length;
-      if (name === 'dry') {
-        expect(bare).toBeGreaterThan(0.05);
-        expect(bare).toBeLessThan(0.3);
-      } else {
-        expect(bare).toBe(0);
-        expect(Math.min(...field)).toBeGreaterThan(0.3);
-      }
+      expect(Math.min(...field)).toBeGreaterThan(0.1);
     });
   }
 });
