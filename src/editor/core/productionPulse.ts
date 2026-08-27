@@ -35,8 +35,11 @@ export function bumpComponentActiveRevision(): void {
  * component editor's Adopt has to clear it for the panel.
  *
  * Set by the client writes that move the live look (`writeWorkingColorsAndType`,
- * `writeWorkingComponentConfig`, `saveActiveTheme`, `saveAsTheme`); cleared by
- * `adoptLook`. Module-level, so it survives the remounts a view switch causes.
+ * `writeWorkingComponentConfig`, `saveActiveTheme`, `saveAsTheme`, and every
+ * sketch gesture: `setSketchEnabled`, `updateSketchSettings`,
+ * `selectSketchPreset`, `selectUserSketchPreset`, `saveCurrentAsSketchPreset`);
+ * cleared by `adoptLook`. Module-level, so it survives the remounts a view
+ * switch causes.
  */
 export const liveMovedSinceBake = writable(false);
 

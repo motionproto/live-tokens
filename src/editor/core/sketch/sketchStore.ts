@@ -45,8 +45,16 @@ let sketchTouched = (() => {
   }
 })();
 
+/** Reads `TOUCHED_KEY` fresh rather than the cached `sketchTouched`, because a
+    peer document's write lands in localStorage between this module's import
+    and a caller's await (`themeInit.ts`'s boot reconcile is exactly that
+    gap): the cache would still answer as it did at import time. */
 export function hasPersistedSketchState(): boolean {
-  return sketchTouched;
+  try {
+    return localStorage.getItem(TOUCHED_KEY) === 'true';
+  } catch {
+    return sketchTouched;
+  }
 }
 
 /** Called from every control a user can act on: a dial, a preset pick, the
@@ -146,6 +154,7 @@ export function liveSketch(): SketchSettings | undefined {
     made a sketch decision the same as any other control does. */
 export function setSketchEnabled(enabled: boolean): void {
   markSketchTouched();
+  liveMovedSinceBake.set(true);
   sketchEnabled.set(enabled);
 }
 
@@ -190,6 +199,7 @@ export function selectSketchPreset(name: string): void {
   const preset = SKETCH_PRESETS[name];
   if (!preset) return;
   markSketchTouched();
+  liveMovedSinceBake.set(true);
   sketchPreset.set(name);
   sketchBaseline.set({ ...preset });
   sketchSettings.set({ ...preset });
@@ -206,6 +216,7 @@ export async function refreshUserPresets(): Promise<void> {
 export async function selectUserSketchPreset(fileName: string): Promise<void> {
   const file = await loadSketchPreset(fileName);
   markSketchTouched();
+  liveMovedSinceBake.set(true);
   sketchPreset.set(USER_PRESET_PREFIX + fileName);
   sketchBaseline.set({ ...file.settings });
   sketchSettings.set(file.settings);
@@ -220,6 +231,7 @@ export async function saveCurrentAsSketchPreset(name: string): Promise<string> {
   const fileName = slugifySketchPreset(trimmed);
   if (!fileName) throw new Error('That name has no letters or digits to make a file name from');
   markSketchTouched();
+  liveMovedSinceBake.set(true);
   const settings = { ...get(sketchSettings), label: trimmed };
   await saveSketchPreset(fileName, trimmed, settings);
   await refreshUserPresets();
@@ -313,15 +325,9 @@ function adopt(key: string, value: string): void {
 }
 
 if (typeof document !== 'undefined') {
-  // Skips its own first call: a subscribe fires immediately with the value
-  // the store already held, which is a page load, not a change, and must not
-  // read as one past the last bake.
-  let sketchEnabledHydrated = false;
   sketchEnabled.subscribe((enabled) => {
     share(ENABLED_KEY, String(enabled));
     render(enabled, get(sketchSettings));
-    if (sketchEnabledHydrated) liveMovedSinceBake.set(true);
-    sketchEnabledHydrated = true;
   });
 
   sketchSettings.subscribe((settings) => {

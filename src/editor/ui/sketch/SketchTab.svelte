@@ -11,6 +11,7 @@
   import UIReveal, { REVEAL_MS } from '../UIReveal.svelte';
   import { scrollSectionIntoView } from '../scrollSection';
   import { SKETCH_PRESETS } from '../../core/sketch/sketchPresets';
+  import { openThemeSlug } from '../../core/store/editorConfigStore';
   import {
     sketchEnabled,
     setSketchEnabled,
@@ -38,6 +39,11 @@
   let { sectionJump = null }: Props = $props();
 
   let s = $derived($sketchSettings);
+
+  // Save is disabled for the protected Default theme (ThemePanel.svelte);
+  // Save As is the gesture actually on offer there, so the off-look copy has
+  // to name it instead.
+  let activeIsProtected = $derived($openThemeSlug === 'default');
 
   type SectionKey = 'border' | 'fill' | 'shape' | 'icons' | 'noise';
 
@@ -260,8 +266,13 @@
         {#if $sketchOffLook}
           {#if $sketchEnabled}
             <p class="readout-off-look">
-              These dials are ahead of the saved theme. Save it in the Theme panel to fold them
-              in.
+              {#if activeIsProtected}
+                Motion Proto is read-only, and these dials are ahead of it. Use Save As in the
+                Theme panel to keep them in a new theme.
+              {:else}
+                These dials are ahead of the saved theme. Save it in the Theme panel to fold them
+                in.
+              {/if}
             </p>
           {:else}
             <p class="readout-off-look">

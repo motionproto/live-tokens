@@ -3,10 +3,12 @@
 import { get } from 'svelte/store';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { DEFAULT_SKETCH_PRESET, hydrateSketchSettings, SKETCH_PRESETS, type SketchSettings } from './sketchPresets';
+import { liveMovedSinceBake } from '../productionPulse';
 import {
   liveSketch,
   openThemeSketch,
   selectSketchPreset,
+  setSketchEnabled,
   setSketchPageRoot,
   sketchDirty,
   sketchEnabled,
@@ -138,6 +140,49 @@ describe('liveSketch', () => {
     sketchEnabled.set(true);
 
     expect(liveSketch()).toEqual(SKETCH_PRESETS.napkin);
+  });
+});
+
+describe('liveMovedSinceBake follows the gesture boundary', () => {
+  beforeEach(() => {
+    openThemeSketch(undefined);
+    liveMovedSinceBake.set(false);
+  });
+
+  it('is set by turning the effect on', () => {
+    setSketchEnabled(true);
+
+    expect(get(liveMovedSinceBake)).toBe(true);
+  });
+
+  it('is set by a preset pick while the effect is on', () => {
+    setSketchEnabled(true);
+    liveMovedSinceBake.set(false);
+
+    selectSketchPreset('napkin');
+
+    expect(get(liveMovedSinceBake)).toBe(true);
+  });
+
+  it('is not set by opening a theme', () => {
+    openThemeSketch(SKETCH_PRESETS.napkin);
+
+    expect(get(liveMovedSinceBake)).toBe(false);
+  });
+
+  it('is not raised by the storage-echo path adopting a peer document\'s change', () => {
+    // A peer document toggling the effect writes ENABLED_KEY and this
+    // document adopts it via the `storage` event, never through
+    // `setSketchEnabled`. Adopting a peer's choice must not read as this
+    // document having moved its own look.
+    const ENABLED_KEY = 'lt.sketchEnabled';
+    localStorage.setItem(ENABLED_KEY, 'true');
+    window.dispatchEvent(new StorageEvent('storage', {
+      key: ENABLED_KEY, newValue: 'true', storageArea: localStorage,
+    }));
+
+    expect(get(sketchEnabled)).toBe(true);
+    expect(get(liveMovedSinceBake)).toBe(false);
   });
 });
 
@@ -298,6 +343,19 @@ describe('hasPersistedSketchState', () => {
 
     expect(hasPersistedSketchState()).toBe(true);
     expect(localStorage.getItem(TOUCHED_KEY)).toBe('true');
+  });
+
+  // The race `themeInit.ts`'s boot reconcile hits: a peer document's
+  // `markSketchTouched` writes TOUCHED_KEY in the gap between this module's
+  // import and the caller's later check, with no `storage` handler for that
+  // key to update an in-memory cache. The read has to go to disk every time.
+  it('sees a peer document\'s write that lands after this module\'s own import', async () => {
+    const { hasPersistedSketchState } = await import('./sketchStore');
+    expect(hasPersistedSketchState()).toBe(false);
+
+    localStorage.setItem(TOUCHED_KEY, 'true');
+
+    expect(hasPersistedSketchState()).toBe(true);
   });
 });
 
