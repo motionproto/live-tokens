@@ -7,11 +7,11 @@ The editor has four views:
 
 - **Tokens**: the design-system primitives (colour, type, spacing, and so on).
   They apply everywhere your site uses them.
-- **Colors**: the harmony wheel, the palette curves, and the story your colours
+- **Color Wheel**: the harmony wheel, the palette curves, and the story your colours
   tell across a page.
 - **Components**: per-component editors. Re-Assign what tokens a component uses
   without changing the underlying system.
-- **Sketch**: an effect layer that redraws the page by hand. See
+- **Sketch Style**: an effect layer that redraws the page by hand. See
   [Sketch mode](sketch-mode.md).
 
 This page covers **Tokens**. For components, see

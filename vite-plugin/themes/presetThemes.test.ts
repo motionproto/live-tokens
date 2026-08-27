@@ -23,15 +23,15 @@ const PRESETS = [
   'midnight-study',
   'ocean',
   'royal-velvet',
-  'sketches',
+  'sketchy',
   'spring-meadow',
   'sunset',
 ];
 
-/** The presets `seed-preset-theme.mjs` built, which is every one but Sketches.
- *  Sketches was authored in the editor and checked in as it stood, so the
+/** The presets `seed-preset-theme.mjs` built, which is every one but Sketchy.
+ *  Sketchy was authored in the editor and checked in as it stood, so the
  *  invariants below that describe what the seeder *does* apply only here. */
-const SEEDED_PRESETS = PRESETS.filter((slug) => slug !== 'sketches');
+const SEEDED_PRESETS = PRESETS.filter((slug) => slug !== 'sketchy');
 
 const readJson = (p: string) => JSON.parse(fs.readFileSync(p, 'utf-8'));
 const themeOf = (slug: string) => readJson(path.join(DATA, 'themes', `${slug}.json`));
@@ -157,7 +157,7 @@ describe.each(PRESETS)('shipped preset theme "%s"', (slug) => {
 
 /* What `stampPresetFonts` guarantees about a seeded preset: it rewrites the
    display and body project slots and nothing else, so the fallbacks under them
-   and the serif and mono stacks still read as the default's. Sketches is
+   and the serif and mono stacks still read as the default's. Sketchy is
    excluded because it was authored in the editor, where choosing a mono face is
    an ordinary thing to do, and it chose IBM Plex Mono. */
 describe.each(SEEDED_PRESETS)('seeded preset theme "%s"', (slug) => {

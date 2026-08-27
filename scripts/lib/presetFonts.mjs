@@ -54,12 +54,12 @@ export const PRESET_FONTS = {
     display: { name: 'DM Serif Display', url: 'https://fonts.googleapis.com/css2?family=DM+Serif+Display&display=swap' },
     body: { name: 'Jost', url: 'https://fonts.googleapis.com/css2?family=Jost:wght@300..700&display=swap' },
   },
-  // Sketches is hand-authored rather than seeded, so this entry records the
+  // Sketchy is hand-authored rather than seeded, so this entry records the
   // pairing already in the file instead of supplying one to stamp. It is here
   // because `check:preset-themes` reads the table to pin each preset's faces
   // and to hold the pairings distinct; `seed-preset-theme.mjs` has no slug for
   // it and cannot rebuild it.
-  sketches: {
+  sketchy: {
     display: { name: 'Cabin Sketch', url: 'https://fonts.googleapis.com/css2?family=Cabin+Sketch:wght@400;700&display=swap' },
     body: { name: 'Shantell Sans', url: 'https://fonts.googleapis.com/css2?family=Shantell+Sans:ital,wght@0,300..800;1,300..800&display=swap' },
   },

@@ -1,10 +1,10 @@
 {
-  "name": "Sketches",
+  "name": "Sketchy",
   "createdAt": "2026-08-25T01:11:16.870Z",
   "updatedAt": "2026-08-26T10:04:53.000Z",
   "schemaVersion": 4,
   "colorsAndType": {
-    "name": "Sketches",
+    "name": "Sketchy",
     "createdAt": "2026-08-25T01:21:09.181Z",
     "updatedAt": "2026-08-25T01:21:09.181Z",
     "editorConfigs": {
@@ -2525,7 +2525,7 @@
   },
   "componentConfigs": {
     "badge": {
-      "name": "sketches",
+      "name": "sketchy",
       "component": "badge",
       "createdAt": "2026-05-01T08:28:00.345Z",
       "updatedAt": "2026-08-25T01:13:11.520Z",
@@ -2663,7 +2663,7 @@
       }
     },
     "button": {
-      "name": "sketches",
+      "name": "sketchy",
       "component": "button",
       "createdAt": "2026-05-10T19:28:06.893Z",
       "updatedAt": "2026-08-25T01:13:11.520Z",
@@ -2779,7 +2779,7 @@
       }
     },
     "callout": {
-      "name": "sketches",
+      "name": "sketchy",
       "component": "callout",
       "createdAt": "2026-05-12T00:00:00.000Z",
       "updatedAt": "2026-08-25T01:13:11.520Z",
@@ -2851,7 +2851,7 @@
       }
     },
     "card": {
-      "name": "sketches",
+      "name": "sketchy",
       "component": "card",
       "createdAt": "2026-05-10T19:26:31.704Z",
       "updatedAt": "2026-08-25T01:13:11.520Z",
@@ -2892,7 +2892,7 @@
       }
     },
     "codesnippet": {
-      "name": "sketches",
+      "name": "sketchy",
       "component": "codesnippet",
       "createdAt": "2026-05-27T13:22:54.228Z",
       "updatedAt": "2026-08-25T01:13:11.520Z",
@@ -2916,7 +2916,7 @@
       }
     },
     "collapsiblesection": {
-      "name": "sketches",
+      "name": "sketchy",
       "component": "collapsiblesection",
       "createdAt": "2026-05-10T20:40:17.048Z",
       "updatedAt": "2026-08-25T01:13:11.520Z",
@@ -2989,7 +2989,7 @@
       }
     },
     "cornerbadge": {
-      "name": "sketches",
+      "name": "sketchy",
       "component": "cornerbadge",
       "createdAt": "2026-05-12T15:31:06.313Z",
       "updatedAt": "2026-08-25T01:12:06.370Z",
@@ -3037,7 +3037,7 @@
       }
     },
     "dialog": {
-      "name": "sketches",
+      "name": "sketchy",
       "component": "dialog",
       "createdAt": "2026-05-10T20:05:24.719Z",
       "updatedAt": "2026-08-25T01:13:11.520Z",
@@ -3072,7 +3072,7 @@
       }
     },
     "iconbutton": {
-      "name": "sketches",
+      "name": "sketchy",
       "component": "iconbutton",
       "createdAt": "2026-06-14T00:00:00.000Z",
       "updatedAt": "2026-08-25T01:13:11.520Z",
@@ -3161,7 +3161,7 @@
       }
     },
     "image": {
-      "name": "sketches",
+      "name": "sketchy",
       "component": "image",
       "createdAt": "2026-04-26T00:00:00.000Z",
       "updatedAt": "2026-08-25T01:13:11.520Z",
@@ -3174,7 +3174,7 @@
       }
     },
     "imagelightbox": {
-      "name": "sketches",
+      "name": "sketchy",
       "component": "imagelightbox",
       "createdAt": "2026-05-26T02:03:38.863Z",
       "updatedAt": "2026-08-25T01:13:11.520Z",
@@ -3193,7 +3193,7 @@
       }
     },
     "inlineeditactions": {
-      "name": "sketches",
+      "name": "sketchy",
       "component": "inlineeditactions",
       "createdAt": "2026-05-01T08:34:39.325Z",
       "updatedAt": "2026-08-25T01:13:11.520Z",
@@ -3229,7 +3229,7 @@
       }
     },
     "input": {
-      "name": "sketches",
+      "name": "sketchy",
       "component": "input",
       "createdAt": "2026-05-24T14:28:03.860Z",
       "updatedAt": "2026-08-25T01:13:11.520Z",
@@ -3287,7 +3287,7 @@
       }
     },
     "menuselect": {
-      "name": "sketches",
+      "name": "sketchy",
       "component": "menuselect",
       "createdAt": "2026-05-16T00:00:00.000Z",
       "updatedAt": "2026-08-25T01:13:11.520Z",
@@ -3337,7 +3337,7 @@
       }
     },
     "notification": {
-      "name": "sketches",
+      "name": "sketchy",
       "component": "notification",
       "createdAt": "2026-04-18T02:43:11.330Z",
       "updatedAt": "2026-08-25T01:13:11.520Z",
@@ -3417,7 +3417,7 @@
       }
     },
     "panel": {
-      "name": "sketches",
+      "name": "sketchy",
       "component": "panel",
       "createdAt": "2026-06-01T09:34:52.417Z",
       "updatedAt": "2026-08-25T01:13:11.520Z",
@@ -3450,7 +3450,7 @@
       }
     },
     "progressbar": {
-      "name": "sketches",
+      "name": "sketchy",
       "component": "progressbar",
       "createdAt": "2026-05-10T20:42:26.726Z",
       "updatedAt": "2026-08-25T01:13:11.520Z",
@@ -3475,7 +3475,7 @@
       }
     },
     "radiobutton": {
-      "name": "sketches",
+      "name": "sketchy",
       "component": "radiobutton",
       "createdAt": "2026-05-10T20:44:44.372Z",
       "updatedAt": "2026-08-25T01:13:11.520Z",
@@ -3510,7 +3510,7 @@
       }
     },
     "sectiondivider": {
-      "name": "sketches",
+      "name": "sketchy",
       "component": "sectiondivider",
       "createdAt": "2026-05-10T22:09:00.336Z",
       "updatedAt": "2026-08-25T01:13:11.520Z",
@@ -3605,7 +3605,7 @@
       }
     },
     "segmentedcontrol": {
-      "name": "sketches",
+      "name": "sketchy",
       "component": "segmentedcontrol",
       "createdAt": "2026-04-28T21:13:17.669Z",
       "updatedAt": "2026-08-25T01:13:11.520Z",
@@ -3665,7 +3665,7 @@
       }
     },
     "sidenavigation": {
-      "name": "sketches",
+      "name": "sketchy",
       "component": "sidenavigation",
       "createdAt": "2026-05-25T19:34:09.771Z",
       "updatedAt": "2026-08-25T01:13:11.520Z",
@@ -3825,7 +3825,7 @@
       }
     },
     "tabbar": {
-      "name": "sketches",
+      "name": "sketchy",
       "component": "tabbar",
       "createdAt": "2026-05-12T01:57:26.390Z",
       "updatedAt": "2026-08-25T01:13:11.520Z",
@@ -3895,7 +3895,7 @@
       }
     },
     "table": {
-      "name": "sketches",
+      "name": "sketchy",
       "component": "table",
       "createdAt": "2026-05-12T00:00:00.000Z",
       "updatedAt": "2026-08-25T01:13:11.520Z",
@@ -3929,7 +3929,7 @@
       }
     },
     "toggle": {
-      "name": "sketches",
+      "name": "sketchy",
       "component": "toggle",
       "createdAt": "2026-04-18T02:43:11.333Z",
       "updatedAt": "2026-08-25T01:13:11.520Z",
@@ -3961,7 +3961,7 @@
       }
     },
     "tooltip": {
-      "name": "sketches",
+      "name": "sketchy",
       "component": "tooltip",
       "createdAt": "2026-04-18T02:43:11.333Z",
       "updatedAt": "2026-08-25T01:13:11.520Z",

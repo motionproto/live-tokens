@@ -18,10 +18,10 @@
   let componentsDisabled = $derived($parentRoute === DEFAULT_COMPONENTS_PATH);
   let colorsDisabled = $derived($parentRoute === DEFAULT_COLORS_PATH);
 
-  // Editing flow order: Tokens → Colors → Components → Sketch. The condensed rail cycles
-  // through these; a view is skipped while it's disabled (already on that
-  // page) so the cycle never lands on a dead view.
-  const CYCLE: readonly EditorView[] = ['tokens', 'colors', 'components', 'sketch'];
+  // Editing flow order: Tokens → Components → Sketch Style → Color Wheel. The condensed
+  // rail cycles through these; a view is skipped while it's disabled (already
+  // on that page) so the cycle never lands on a dead view.
+  const CYCLE: readonly EditorView[] = ['tokens', 'components', 'sketch', 'colors'];
   const ICONS: Record<EditorView, string> = {
     tokens: 'fa-sliders',
     colors: 'fa-palette',
@@ -30,9 +30,9 @@
   };
   const LABELS: Record<EditorView, string> = {
     tokens: 'Tokens',
-    colors: 'Colors',
+    colors: 'Color Wheel',
     components: 'Components',
-    sketch: 'Sketch',
+    sketch: 'Sketch Style',
   };
 
   function set(v: EditorView) {
@@ -83,19 +83,6 @@
         type="button"
         role="tab"
         class="seg-btn"
-        class:active={$editorView === 'colors'}
-        aria-selected={$editorView === 'colors'}
-        disabled={colorsDisabled}
-        title={colorsDisabled ? 'Already viewing the Colors page' : undefined}
-        onclick={() => set('colors')}
-      >
-        <span class="radio" aria-hidden="true"></span>
-        <span>Colors</span>
-      </button>
-      <button
-        type="button"
-        role="tab"
-        class="seg-btn"
         class:active={$editorView === 'components'}
         aria-selected={$editorView === 'components'}
         disabled={componentsDisabled}
@@ -114,7 +101,20 @@
         onclick={() => set('sketch')}
       >
         <span class="radio" aria-hidden="true"></span>
-        <span>Sketch</span>
+        <span>Sketch Style</span>
+      </button>
+      <button
+        type="button"
+        role="tab"
+        class="seg-btn"
+        class:active={$editorView === 'colors'}
+        aria-selected={$editorView === 'colors'}
+        disabled={colorsDisabled}
+        title={colorsDisabled ? 'Already viewing the Colors page' : undefined}
+        onclick={() => set('colors')}
+      >
+        <span class="radio" aria-hidden="true"></span>
+        <span>Color Wheel</span>
       </button>
     </div>
   </div>

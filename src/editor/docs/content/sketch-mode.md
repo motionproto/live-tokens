@@ -9,7 +9,7 @@ theme and writes nothing back, so it never touches a token, never lands in a
 theme file, and never reaches the CSS you ship. Turn it off and every trace of
 it goes.
 
-Open the **Sketch** view in the editor and switch **Sketch mode** on. The effect
+Open the **Sketch Style** view in the editor and switch **Sketch mode** on. The effect
 applies to the page behind the editor as well as to the preview, so what you see
 in context is what it does.
 
@@ -63,6 +63,17 @@ your own, alongside the shipped seven, as a file under
   sit on it, and the shape of its wave. A square wave sends nearly every edge to
   full travel, which is what makes the effect stronger rather than bigger.
 
+## Where the settings live
+
+The dials you are moving live in your browser, so the effect follows you across
+reloads and stays off everyone else's screen. **Save** writes a named preset to
+`src/live-tokens/data/sketch-presets/`, which is the only thing that reaches
+disk.
+
+Sketch mode is a tool for looking at the page, not a layer the page can ship.
+Nothing is written into a theme, `tokens.generated.css` never sees it, and a
+production build has no sketch layer in it at all.
+
 ## Drawing your own elements
 
 The layer draws a fixed set of parts: the shipped components, and four classes
@@ -85,6 +96,11 @@ own. `--sketch-fill`, `--sketch-stroke`, `--sketch-hatch-color`,
 ink, the corners and the shadow for one element and everything inside it. The
 layer blanks the real background and border, so an element whose fill matters
 under Sketch mode has to name it here as well as paint it.
+
+The layer also paints on the element's `::before` and `::after`, forces its
+`overflow` visible, and gives it a stacking context of its own. Keep the class
+off anything that owns a pseudo-element, clips its content, or is positioned
+absolutely, and put it on a wrapper instead.
 
 ```css
 .my-callout {
