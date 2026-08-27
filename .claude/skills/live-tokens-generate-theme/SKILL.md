@@ -9,12 +9,13 @@ A theme is three decisions made from one brief: color, type, and geometry. This 
 
 ## Workflow
 
-1. Read the brief once and name its voice in a sentence: the mood, the hue family, the scheme, and the type and geometry that mood implies. Everything below keys off that sentence. Then read the anchor reference that matches the brief (feeling, idiom, or occasion; see below) before seeding: each entry fixes all three decisions together and overrides the generic defaults here.
-2. Translate the brief into a seed file using the framework below. Write it to `scratch/<slug>-brief.json`. Nothing else records the seeds, so this file is the only copy; one per slug is what makes the refinement pass below cheap.
-3. Run `npx live-tokens generate-theme scratch/<slug>-brief.json`. It writes `themes/<slug>.json`, opens that theme, and prints a contrast report. Auto-corrections are fine. Unmet floors (exit 1) mean the seeds themselves are unworkable; each failure line names the seed to change, usually by raising its lightness or cutting its chroma. Fix the brief and re-run; the same name overwrites. Regeneration replaces that theme's whole color state, including palette edits made in the editor since the last run, so say so once when iterating.
-4. Invoke **live-tokens-pair-fonts** with the same voice. Skip only when the user asked for colors specifically and said to leave the type alone.
-5. Invoke **live-tokens-adjust-geometry** with the geometry the voice implies (table below). Skip when the voice implies nothing about geometry.
-6. Tell the user to look at the running app, and that type and geometry sit in the unsaved buffer until they save the open theme. Offer refinements as edits to the same brief (see Refining a theme that exists).
+1. Read the brief once and name its voice in a sentence: the mood, the hue family, the scheme, and the type and geometry that mood implies. Everything below keys off that sentence.
+2. Read the anchor reference that matches the voice (feeling, idiom, or occasion; see Anchor references) before seeding. Each entry fixes all three decisions together and overrides the generic defaults here.
+3. Translate the brief into a seed file using the framework below. Write it to `scratch/<slug>-brief.json`. Nothing else records the seeds, so this file is the only copy; one per slug is what makes the refinement pass below cheap.
+4. Run `npx live-tokens generate-theme scratch/<slug>-brief.json`. It writes `themes/<slug>.json`, opens that theme, and prints a contrast report. Auto-corrections are fine. Unmet floors (exit 1) mean the seeds themselves are unworkable; each failure line names the seed to change, usually by raising its lightness or cutting its chroma. Fix the brief and re-run; the same name overwrites. Regeneration replaces that theme's whole color state, including palette edits made in the editor since the last run, so say so once when iterating.
+5. Invoke **live-tokens-pair-fonts** with the same voice. Skip only when the user asked for colors specifically and said to leave the type alone.
+6. Invoke **live-tokens-adjust-geometry** with the geometry the voice implies (table below). Skip when the voice implies nothing about geometry.
+7. Tell the user to look at the running app, and that type and geometry sit in the unsaved buffer until they save the open theme. Offer refinements as edits to the same brief (see Refining a theme that exists).
 
 Order matters only for safety, and the order above is safe: the color generator carries the live buffers forward into the new theme file, so a color re-roll after fonts and geometry keeps both.
 
@@ -123,7 +124,7 @@ Read the matching reference before seeding, and apply the bands above on top of 
 - `references/style-vocabulary.md` covers named idioms, eras, and genres: Swiss, Bauhaus, mid-century, art deco, terminal, cyberpunk, vaporwave, Y2K, blueprint, Scandinavian, Japandi, cottagecore, editorial, newsprint, riso, corporate, brutalist, Memphis, industrial. Each entry fixes color, type, and geometry as one set, so hand its Type and Geometry columns to the sibling skills verbatim.
 - `references/named-themes.md` covers holidays, seasons, and natural scenes: Christmas, Halloween, St. Patrick's, Ocean, Sunset, Autumn, Spring. A holiday or season brief is a statement brief: commitment level 2 or 3, with the named color on the ground rather than only on the buttons.
 
-Most briefs hit the first file. A brief that names no feeling, idiom, or occasion at all takes the bands above and the geometry table below.
+Most briefs hit the first file. A brief that matches two ("cozy brutalist", "clinical Swiss") reads the idiom first and lets the feeling move the dials inside it: an idiom sets constraints, and dials move within constraints. A brief that names no feeling, idiom, or occasion at all takes the bands above and the geometry table below.
 
 ## Geometry from the voice
 

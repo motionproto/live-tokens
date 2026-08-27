@@ -30,7 +30,7 @@ export const skillTrees: Record<string, SkillTree> = {
           12,
           12
         ],
-        "anchor": "1. Read the brief once and name its voice in a sentence: the"
+        "anchor": "Read the brief once and name its voice in a sentence: the mo"
       },
       {
         "id": "gt-anchor",
@@ -39,11 +39,11 @@ export const skillTrees: Record<string, SkillTree> = {
         "title": "Which anchor reference matches?",
         "desc": "An anchor entry fixes color, type, and geometry together and overrides the generic defaults in this file. Read it before seeding.",
         "lines": [
-          118,
-          126
+          13,
+          13
         ],
-        "anchor": "## Anchor references",
-        "anchorEnd": "Most briefs hit the first file. A brief that names no feelin"
+        "anchor": "Read the anchor reference that matches the voice (feeling, i",
+        "n": "2"
       },
       {
         "id": "gt-mood",
@@ -52,8 +52,8 @@ export const skillTrees: Record<string, SkillTree> = {
         "title": "A feeling",
         "desc": "mood-vocabulary.md",
         "lines": [
-          122,
-          122
+          123,
+          123
         ],
         "anchor": "- `references/mood-vocabulary.md` covers feelings: joyful, p"
       },
@@ -64,8 +64,8 @@ export const skillTrees: Record<string, SkillTree> = {
         "title": "An idiom or era",
         "desc": "style-vocabulary.md",
         "lines": [
-          123,
-          123
+          124,
+          124
         ],
         "anchor": "- `references/style-vocabulary.md` covers named idioms, eras"
       },
@@ -76,8 +76,8 @@ export const skillTrees: Record<string, SkillTree> = {
         "title": "A holiday or season",
         "desc": "named-themes.md",
         "lines": [
-          124,
-          124
+          125,
+          125
         ],
         "anchor": "- `references/named-themes.md` covers holidays, seasons, and"
       },
@@ -88,23 +88,23 @@ export const skillTrees: Record<string, SkillTree> = {
         "title": "None of the three",
         "desc": "Fall back to the bands and the geometry table",
         "lines": [
-          126,
-          126
+          127,
+          127
         ],
-        "anchor": "Most briefs hit the first file. A brief that names no feelin"
+        "anchor": "Most briefs hit the first file. A brief that matches two (\"c"
       },
       {
         "id": "gt-seed",
         "row": 4,
         "kind": "step",
-        "n": "2",
+        "n": "3",
         "title": "Seed all ten palettes in OKLCH",
         "desc": "Write scratch/theme-brief.json. Ten seeds are required: Brand, Accent, Special, Canvas, Neutral, Alternate, and the four statuses.",
         "lines": [
-          13,
-          13
+          14,
+          14
         ],
-        "anchor": "2. Translate the brief into a seed file using the framework "
+        "anchor": "Translate the brief into a seed file using the framework bel"
       },
       {
         "id": "gt-cons",
@@ -116,8 +116,8 @@ export const skillTrees: Record<string, SkillTree> = {
           {
             "label": "Brief shape",
             "lines": [
-              23,
-              46
+              24,
+              47
             ],
             "anchor": "## The brief",
             "anchorEnd": "Roles: **Brand** is the dominant chromatic identity; **Accen"
@@ -125,8 +125,8 @@ export const skillTrees: Record<string, SkillTree> = {
           {
             "label": "Chroma budget",
             "lines": [
-              48,
-              57
+              49,
+              58
             ],
             "anchor": "## Chroma budget: color is inversely proportional to area",
             "anchorEnd": "A good theme reads as 3 or 4 hue families on screen, never 1"
@@ -134,8 +134,8 @@ export const skillTrees: Record<string, SkillTree> = {
           {
             "label": "Per-role bands",
             "lines": [
-              59,
-              71
+              60,
+              72
             ],
             "anchor": "## Per-role bands",
             "anchorEnd": "| Danger | shared status L, C 0.15 to 0.20 | same | H 20 to "
@@ -143,8 +143,8 @@ export const skillTrees: Record<string, SkillTree> = {
           {
             "label": "Commit the canvas",
             "lines": [
-              73,
-              86
+              74,
+              87
             ],
             "anchor": "**The canvas carries the theme's identity, so commit to it.*",
             "anchorEnd": ""
@@ -152,8 +152,8 @@ export const skillTrees: Record<string, SkillTree> = {
           {
             "label": "Mood dials",
             "lines": [
-              87,
-              93
+              88,
+              94
             ],
             "anchor": "## Mood dials",
             "anchorEnd": "Avoid mid-lightness yellow-green (H 100 to 120 at L 0.5 to 0"
@@ -161,8 +161,8 @@ export const skillTrees: Record<string, SkillTree> = {
           {
             "label": "Gamut guardrails",
             "lines": [
-              95,
-              102
+              96,
+              103
             ],
             "anchor": "## Gamut guardrails",
             "anchorEnd": "- Peak chroma anchors: red H20 C 0.25 at L 0.63; orange H60 "
@@ -170,8 +170,8 @@ export const skillTrees: Record<string, SkillTree> = {
           {
             "label": "Harmony offsets",
             "lines": [
-              104,
-              110
+              105,
+              111
             ],
             "anchor": "## Harmony",
             "anchorEnd": "- Drama or maximum contrast: complementary, triadic, or tetr"
@@ -179,8 +179,8 @@ export const skillTrees: Record<string, SkillTree> = {
           {
             "label": "Canvas sky",
             "lines": [
-              112,
-              116
+              113,
+              117
             ],
             "anchor": "## Canvas sky and shadows",
             "anchorEnd": "Shadow opacity derives from Canvas lightness and re-derives "
@@ -192,20 +192,20 @@ export const skillTrees: Record<string, SkillTree> = {
         "id": "gt-cli",
         "row": 6,
         "kind": "cli",
-        "n": "3",
+        "n": "4",
         "title": "npx live-tokens generate-theme",
         "desc": "Writes themes/<slug>.json, opens it, prints a contrast report. --dry-run reports only; --no-activate writes without opening.",
         "lines": [
-          14,
-          14
+          15,
+          15
         ],
-        "anchor": "3. Run `npx live-tokens generate-theme scratch/<slug>-brief.",
+        "anchor": "Run `npx live-tokens generate-theme scratch/<slug>-brief.jso",
         "chips": [
           {
             "label": "Flags",
             "lines": [
-              21,
-              21
+              22,
+              22
             ],
             "anchor": "Flags: `--dry-run` prints the report without writing; `--no-"
           }
@@ -219,10 +219,10 @@ export const skillTrees: Record<string, SkillTree> = {
         "title": "Exit 1: a floor is unmet",
         "desc": "The seeds themselves are unworkable. Each failure line names the seed to change, usually raise its lightness or cut its chroma. Fix the brief and re-run under the same name.",
         "lines": [
-          14,
-          14
+          15,
+          15
         ],
-        "anchor": "3. Run `npx live-tokens generate-theme scratch/<slug>-brief."
+        "anchor": "Run `npx live-tokens generate-theme scratch/<slug>-brief.jso"
       },
       {
         "id": "gt-pass",
@@ -231,36 +231,36 @@ export const skillTrees: Record<string, SkillTree> = {
         "title": "Exit 0: auto-corrections are fine",
         "desc": "Regeneration replaces the theme's whole color state, including palette edits made in the editor since the last run. Say so once when iterating.",
         "lines": [
-          14,
-          14
+          15,
+          15
         ],
-        "anchor": "3. Run `npx live-tokens generate-theme scratch/<slug>-brief."
+        "anchor": "Run `npx live-tokens generate-theme scratch/<slug>-brief.jso"
       },
       {
         "id": "gt-fonts",
         "row": 8,
         "kind": "hand",
-        "n": "4",
+        "n": "5",
         "title": "Hand the voice to pair-fonts",
         "desc": "Same voice sentence, so the type comes from the same reading of the brief. Skip only when the user asked for color specifically and said to leave the type alone.",
         "lines": [
-          15,
-          15
+          16,
+          16
         ],
-        "anchor": "4. Invoke **live-tokens-pair-fonts** with the same voice. Sk"
+        "anchor": "Invoke **live-tokens-pair-fonts** with the same voice. Skip "
       },
       {
         "id": "gt-geo",
         "row": 9,
         "kind": "hand",
-        "n": "5",
+        "n": "6",
         "title": "Hand the geometry to adjust-geometry",
         "desc": "Give it intent, not mechanics. The voice table is the fallback; an anchor entry's geometry wins over it.",
         "lines": [
-          16,
-          16
+          17,
+          17
         ],
-        "anchor": "5. Invoke **live-tokens-adjust-geometry** with the geometry "
+        "anchor": "Invoke **live-tokens-adjust-geometry** with the geometry the"
       },
       {
         "id": "gt-geotab",
@@ -271,8 +271,8 @@ export const skillTrees: Record<string, SkillTree> = {
           {
             "label": "Geometry from the voice",
             "lines": [
-              128,
-              139
+              129,
+              140
             ],
             "anchor": "## Geometry from the voice",
             "anchorEnd": "This table is the fallback. When the brief matched an entry "
@@ -280,16 +280,16 @@ export const skillTrees: Record<string, SkillTree> = {
           {
             "label": "Order is safe as written",
             "lines": [
-              19,
-              19
+              20,
+              20
             ],
             "anchor": "Order matters only for safety, and the order above is safe: "
           },
           {
             "label": "What each step writes",
             "lines": [
-              147,
-              149
+              148,
+              150
             ],
             "anchor": "## What each step writes",
             "anchorEnd": "Color writes `themes/<slug>.json` and opens it. Type and geo"
@@ -301,14 +301,14 @@ export const skillTrees: Record<string, SkillTree> = {
         "id": "gt-tell",
         "row": 11,
         "kind": "step",
-        "n": "6",
+        "n": "7",
         "title": "Tell the user to look, and that it is unsaved",
         "desc": "Type and geometry sit in the unsaved buffer until they save the open theme. Offer refinements as edits to the same brief.",
         "lines": [
-          17,
-          17
+          18,
+          18
         ],
-        "anchor": "6. Tell the user to look at the running app, and that type a"
+        "anchor": "Tell the user to look at the running app, and that type and "
       },
       {
         "id": "gt-ver",
@@ -317,11 +317,25 @@ export const skillTrees: Record<string, SkillTree> = {
         "title": "Verify",
         "desc": "Color CLI exits 0 with every check passing, both siblings report what they changed, the app shows the whole look after a reload. Load the named theme to go back.",
         "lines": [
-          151,
-          155
+          152,
+          156
         ],
         "anchor": "## Verify",
         "anchorEnd": "- To return to the previous look, load the theme the CLI out"
+      },
+      {
+        "id": "gt-refine",
+        "row": 13,
+        "kind": "step",
+        "tag": "Follow-up",
+        "title": "\"Warmer\", \"calmer\", \"more contrast\"",
+        "desc": "A refinement is a new brief, not a hand-edit. Edit scratch/<slug>-brief.json, or recover the ten seeds from the theme file's editorConfigs. One adjective moves one dial; every seed the user did not name stays put.",
+        "lines": [
+          142,
+          146
+        ],
+        "anchor": "## Refining a theme that exists",
+        "anchorEnd": "One adjective moves one dial. Warmer and cooler rotate hue; "
       }
     ],
     "edges": [
@@ -405,6 +419,15 @@ export const skillTrees: Record<string, SkillTree> = {
       [
         "gt-tell",
         "gt-ver"
+      ],
+      [
+        "gt-ver",
+        "gt-refine"
+      ],
+      [
+        "gt-refine",
+        "gt-cli",
+        "back"
       ]
     ]
   },
@@ -601,7 +624,7 @@ export const skillTrees: Record<string, SkillTree> = {
           12,
           12
         ],
-        "anchor": "1. Choose the pairing with the framework below and write a b"
+        "anchor": "Choose the pairing with the framework below and write a brie"
       },
       {
         "id": "pf-shape",
@@ -648,7 +671,7 @@ export const skillTrees: Record<string, SkillTree> = {
           13,
           13
         ],
-        "anchor": "2. Run `npx live-tokens set-fonts scratch/font-brief.json`. ",
+        "anchor": "Run `npx live-tokens set-fonts scratch/font-brief.json`. It ",
         "command": "npx live-tokens set-fonts scratch/font-brief.json"
       },
       {
@@ -661,7 +684,7 @@ export const skillTrees: Record<string, SkillTree> = {
           14,
           14
         ],
-        "anchor": "3. Read the report. A weight gap is a quality note: name it "
+        "anchor": "Read the report. A weight gap is a quality note: name it and"
       },
       {
         "id": "pf-gap",
@@ -674,7 +697,7 @@ export const skillTrees: Record<string, SkillTree> = {
           14,
           14
         ],
-        "anchor": "3. Read the report. A weight gap is a quality note: name it "
+        "anchor": "Read the report. A weight gap is a quality note: name it and"
       },
       {
         "id": "pf-tell",
@@ -687,7 +710,7 @@ export const skillTrees: Record<string, SkillTree> = {
           15,
           15
         ],
-        "anchor": "4. Tell the user to reload the editor page before saving. A "
+        "anchor": "Tell the user to reload the editor page before saving. A run"
       },
       {
         "id": "pf-scope",
@@ -1032,7 +1055,7 @@ export const skillTrees: Record<string, SkillTree> = {
           12,
           12
         ],
-        "anchor": "1. Write the ops file to `scratch/adjust-ops.json`."
+        "anchor": "Write the ops file to `scratch/adjust-ops.json`."
       },
       {
         "id": "ag-shapes",
@@ -1085,7 +1108,7 @@ export const skillTrees: Record<string, SkillTree> = {
           13,
           13
         ],
-        "anchor": "2. Run `npx live-tokens adjust scratch/adjust-ops.json`. It ",
+        "anchor": "Run `npx live-tokens adjust scratch/adjust-ops.json`. It wri",
         "command": "npx live-tokens adjust scratch/adjust-ops.json"
       },
       {
@@ -1098,7 +1121,7 @@ export const skillTrees: Record<string, SkillTree> = {
           14,
           14
         ],
-        "anchor": "3. Read the report card: every changed alias old → new, plus"
+        "anchor": "Read the report card: every changed alias old → new, plus sk"
       },
       {
         "id": "ag-card",
@@ -1111,7 +1134,7 @@ export const skillTrees: Record<string, SkillTree> = {
           14,
           14
         ],
-        "anchor": "3. Read the report card: every changed alias old → new, plus"
+        "anchor": "Read the report card: every changed alias old → new, plus sk"
       },
       {
         "id": "ag-tell",
@@ -1124,7 +1147,7 @@ export const skillTrees: Record<string, SkillTree> = {
           15,
           15
         ],
-        "anchor": "4. Tell the user to reload the page before saving. The edito"
+        "anchor": "Tell the user to reload the page before saving. The editor k"
       },
       {
         "id": "ag-scope",
@@ -1485,7 +1508,7 @@ export const skillTrees: Record<string, SkillTree> = {
           10,
           10
         ],
-        "anchor": "1. **Use a shipped component if one fits.** Import from `@mo"
+        "anchor": "**Use a shipped component if one fits.** Import from `@motio"
       },
       {
         "id": "bp-pick",
@@ -1497,7 +1520,7 @@ export const skillTrees: Record<string, SkillTree> = {
           10,
           10
         ],
-        "anchor": "1. **Use a shipped component if one fits.** Import from `@mo"
+        "anchor": "**Use a shipped component if one fits.** Import from `@motio"
       },
       {
         "id": "bp-make",
@@ -1509,7 +1532,7 @@ export const skillTrees: Record<string, SkillTree> = {
           10,
           10
         ],
-        "anchor": "1. **Use a shipped component if one fits.** Import from `@mo"
+        "anchor": "**Use a shipped component if one fits.** Import from `@motio"
       },
       {
         "id": "bp-tok",
@@ -1522,7 +1545,7 @@ export const skillTrees: Record<string, SkillTree> = {
           11,
           11
         ],
-        "anchor": "2. **Use theme tokens for every value.** Every color, spacin"
+        "anchor": "**Use theme tokens for every value.** Every color, spacing, "
       },
       {
         "id": "bp-text",
@@ -1768,7 +1791,7 @@ export const skillTrees: Record<string, SkillTree> = {
           26
         ],
         "anchor": "## The recipe",
-        "anchorEnd": "1. **Runtime file** — `src/system/components/MyWidget.svelte"
+        "anchorEnd": "**Runtime file** — `src/system/components/MyWidget.svelte`. "
       },
       {
         "id": "cc-ed",
@@ -1781,7 +1804,7 @@ export const skillTrees: Record<string, SkillTree> = {
           27,
           27
         ],
-        "anchor": "2. **Editor file** — `src/system/components/MyWidgetEditor.s"
+        "anchor": "**Editor file** — `src/system/components/MyWidgetEditor.svel"
       },
       {
         "id": "cc-ext",
@@ -1833,7 +1856,7 @@ export const skillTrees: Record<string, SkillTree> = {
           28,
           45
         ],
-        "anchor": "3. **Register** — pass the component to `bootLiveTokens` in ",
+        "anchor": "**Register** — pass the component to `bootLiveTokens` in `sr",
         "anchorEnd": "The schema side-effect happens inside `registerComponent` (w"
       },
       {
@@ -1847,7 +1870,7 @@ export const skillTrees: Record<string, SkillTree> = {
           46,
           46
         ],
-        "anchor": "4. **Tell the picker** — open `.claude/skills/live-tokens-pi"
+        "anchor": "**Tell the picker** — open `.claude/skills/live-tokens-pick-"
       },
       {
         "id": "cc-sk",
@@ -1860,7 +1883,7 @@ export const skillTrees: Record<string, SkillTree> = {
           47,
           54
         ],
-        "anchor": "5. **Join the sketch layer** — the effect draws a fixed set ",
+        "anchor": "**Join the sketch layer** — the effect draws a fixed set of ",
         "anchorEnd": "`references/sketch-mode.md`."
       },
       {
@@ -1965,7 +1988,7 @@ export const skillTrees: Record<string, SkillTree> = {
               55,
               55
             ],
-            "anchor": "6. **Verify** with the checklist at the bottom of this file,"
+            "anchor": "**Verify** with the checklist at the bottom of this file, th"
           }
         ],
         "command": "npx live-tokens check-component <id>"

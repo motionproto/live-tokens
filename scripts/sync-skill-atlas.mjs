@@ -26,7 +26,11 @@ const SKILLS = join(ROOT, '.claude/skills');
 const ANCHOR_LENGTH = 60;
 
 const write = process.argv.slice(2).includes('--write');
-const anchorOf = (line) => line.trim().slice(0, ANCHOR_LENGTH);
+// A workflow step carries its own number, and renumbering one is the most
+// common edit these files see. Anchoring on the prose after the marker lets a
+// step move without re-anchoring, while still breaking when its words change.
+const normalize = (line) => line.trim().replace(/^\d+\.\s+/, '');
+const anchorOf = (line) => normalize(line).slice(0, ANCHOR_LENGTH);
 
 const source = readFileSync(ATLAS, 'utf8');
 const open = source.indexOf('= {', source.indexOf('skillTrees')) + 2;
@@ -50,7 +54,7 @@ let anchored = 0;
 function locate(lines, anchor, hint, from = 0) {
   const hits = [];
   for (let i = from; i < lines.length; i += 1) {
-    if (lines[i].trim().startsWith(anchor)) hits.push(i + 1);
+    if (normalize(lines[i]).startsWith(anchor)) hits.push(i + 1);
   }
   if (hits.length === 0) return null;
   return hits.reduce((best, n) => (Math.abs(n - hint) < Math.abs(best - hint) ? n : best));
@@ -64,6 +68,12 @@ function sync(node, id, label) {
   if (typeof node.anchor !== 'string') {
     if (!write) {
       errors.push(`${label}: no anchor; run \`npm run sync:skill-atlas\` to record one`);
+      return;
+    }
+    // A blank line normalizes to the empty string, which would match every
+    // line in the file and silently anchor the node to nothing.
+    if (anchorOf(lines[start - 1]) === '' || (end > start && anchorOf(lines[end - 1]) === '')) {
+      errors.push(`${label}: lines ${start}-${end} of ${id}/SKILL.md open or close on a blank line; point the range at the text it means`);
       return;
     }
     rebuild(node, { anchor: anchorOf(lines[start - 1]), ...(end > start ? { anchorEnd: anchorOf(lines[end - 1]) } : {}) });
