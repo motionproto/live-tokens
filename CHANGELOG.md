@@ -4,6 +4,13 @@
 
 ### Added
 
+- **`flush` on `Card`.** A card holding full-bleed media has to reach its own
+  border, but the body's inset stood in the way and the only way around it was
+  for the page to zero the five `--card-default-body-padding*` tokens at its own
+  scope — reaching around the component to undo something the component did, and
+  repeating it at every such card. `flush` drops the inset from the body alone,
+  outweighs `size="compact"` so it holds at either size, and pairs with
+  `prose={false}`: a flush body is a frame, not a column of text.
 - **`sketch-container` and `sketch-chip`, beside the existing `sketch-surface`
   and `sketch-rule`.** The sketch layer draws a fixed set of selectors, so a
   consumer-authored component stayed crisp while the page around it went

@@ -49,7 +49,7 @@ All four pick one option from a set. The right one depends on **option count**, 
 | `Dialog`              | Modal, blocks page  | Confirmations, focused tasks the page can't continue around |
 | `Panel`               | Inline, fixed stage | A demo or preview surface whose height must not reflow     |
 
-- Default to `Card`. It's the workhorse.
+- Default to `Card`. It's the workhorse. For full-bleed media — cover art, a poster, a chart that reaches its own border — pass `flush` (with `prose={false}`) rather than zeroing its padding tokens from the page.
 - Reach for `CollapsibleSection` only when the content is *legitimately secondary* (advanced users open it; most skip). Don't use collapse as a styling choice when the content matters.
 - `Panel` is a stage, not a content container. It pins its own height so what it shows can resize without moving the page, which is what a component preview or a live example needs and what article content does not. Content goes in `Card`.
 - **Don't use `Dialog` for routine forms.** Reach for it only when the page cannot meaningfully continue until the user decides (destructive confirmations, payment, sign-in). Routine forms go inline in a `Card`.

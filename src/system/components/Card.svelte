@@ -6,6 +6,9 @@
     size?: 'default' | 'compact';
     /** false → the card stops pinning body typography so the consumer fully owns slotted content's styling. */
     prose?: boolean;
+    /** true → the body drops its inset so slotted media runs to the card's edge.
+        Pair with `prose={false}`: a flush body is a frame, not a column of text. */
+    flush?: boolean;
     /** Apply hover styling on pointer-over. `undefined` inherits the editor's global "Use hover"
         default; `true`/`false` force this instance on/off. */
     hover?: boolean | undefined;
@@ -19,6 +22,7 @@
     title = '',
     size = 'default',
     prose = true,
+    flush = false,
     hover = undefined,
     class: className = '',
     children
@@ -50,7 +54,7 @@
       {/if}
     </div>
   {/if}
-  <div class="card-body" class:prose>
+  <div class="card-body" class:prose class:flush>
     {@render children?.()}
   </div>
 </div>
@@ -177,5 +181,12 @@
 
   .card.compact .card-body {
     font-size: var(--font-size-sm);
+  }
+
+  /* Last, and at the same weight as the compact override, so a flush card is
+     flush at either size. Full-bleed media has to reach the border the card
+     already clips it against. */
+  .card-body.flush {
+    padding: var(--space-0);
   }
 </style>
