@@ -1341,6 +1341,20 @@ export const skillTrees: Record<string, SkillTree> = {
         "anchorEnd": "- **Don't pick `SegmentedControl` when option labels are lon"
       },
       {
+        "id": "pk-text",
+        "row": 3,
+        "kind": "ask",
+        "tag": "text entry",
+        "title": "Enumerable answers, or free text",
+        "desc": "If you can list the answers it is the selection family: a short set inline, a long one MenuSelect. Anything you cannot write down is Input, which ships its own label, hint, and error parts rather than needing text stacked under a bare field. Yes or no is Toggle.",
+        "lines": [
+          41,
+          46
+        ],
+        "anchor": "## Text entry: Input vs the selection family",
+        "anchorEnd": "- Its four variants are `default`, `focused`, `disabled`, an"
+      },
+      {
         "id": "pk-con",
         "row": 3,
         "kind": "ask",
@@ -1381,6 +1395,20 @@ export const skillTrees: Record<string, SkillTree> = {
         ],
         "anchor": "## Toggle vs SegmentedControl vs RadioButton (for on/off)",
         "anchorEnd": "- `Toggle` flips immediately; `RadioButton` pair is for form"
+      },
+      {
+        "id": "pk-disp",
+        "row": 3,
+        "kind": "ask",
+        "tag": "display",
+        "title": "Shown rather than asked",
+        "desc": "Image for a picture in the flow, ImageLightbox when the detail is the point, Table for records, ProgressBar as a read-out and never a control, CodeSnippet for something the reader runs. SideNavigation changes the URL; switching panels inside one page is TabBar.",
+        "lines": [
+          77,
+          84
+        ],
+        "anchor": "## Display family: what the page shows rather than what it a",
+        "anchorEnd": "- `SectionDivider` separates sections of one page. `SideNavi"
       },
       {
         "id": "pk-fits",
@@ -1476,6 +1504,22 @@ export const skillTrees: Record<string, SkillTree> = {
       [
         "pk-fits",
         "pk-make"
+      ],
+      [
+        "pk-fam",
+        "pk-text"
+      ],
+      [
+        "pk-text",
+        "pk-fits"
+      ],
+      [
+        "pk-fam",
+        "pk-disp"
+      ],
+      [
+        "pk-disp",
+        "pk-fits"
       ]
     ]
   },
