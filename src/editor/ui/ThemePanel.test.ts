@@ -13,6 +13,7 @@ import { mutate, setComponentAlias, __resetForTests } from '../core/store/editor
 import { CURRENT_COMPONENT_SCHEMA_VERSION } from '../core/themes/migrations';
 import { liveMovedSinceBake, productionTheme } from '../core/productionPulse';
 import { isPreviewing, __resetPreviewForTests } from '../core/preview/lookPreview';
+import { editorView } from '../core/store/editorViewStore';
 import ThemePanel from './ThemePanel.svelte';
 
 const COLORS_AND_TYPE = {
@@ -118,8 +119,8 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
-async function mountPanel() {
-  component = mount(ThemePanel, { target, props: { showComponentsLink: false } });
+async function mountPanel(showComponentsLink = false) {
+  component = mount(ThemePanel, { target, props: { showComponentsLink } });
   flushSync();
   await settle();
   calls.length = 0;
@@ -441,5 +442,32 @@ describe('Load preview', () => {
       'PUT /colors-and-type/working',
     ]);
     expect(isPreviewing()).toBe(false);
+  });
+});
+
+describe('Look-part Open pills', () => {
+  const pill = (title: string) => target.querySelector<HTMLButtonElement>(`button[title="${title}"]`);
+  const components = () => pill('Open the component editors');
+  const sketchStyle = () => pill('Open the Sketchstyle view');
+
+  afterEach(() => editorView.set('tokens'));
+
+  it('hides both where the panel renders outside the view switcher', async () => {
+    await mountPanel(false);
+    expect(components()).toBeNull();
+    expect(sketchStyle()).toBeNull();
+  });
+
+  it('shows both inside the editor shell', async () => {
+    await mountPanel(true);
+    expect(components()).not.toBeNull();
+    expect(sketchStyle()).not.toBeNull();
+  });
+
+  it('hides only the pill for the view already open', async () => {
+    editorView.set('sketch');
+    await mountPanel(true);
+    expect(sketchStyle()).toBeNull();
+    expect(components()).not.toBeNull();
   });
 });
