@@ -9,6 +9,7 @@ import {
   openThemeSketch,
   saveCurrentAsSketchPreset,
   selectSketchPreset,
+  selectUserSketchPreset,
   setSketchEnabled,
   setSketchPageRoot,
   sketchDirty,
@@ -172,6 +173,22 @@ describe('liveMovedSinceBake follows the gesture boundary', () => {
     selectSketchPreset('napkin');
 
     expect(get(liveMovedSinceBake)).toBe(false);
+  });
+
+  it('is not set by a dial move while the effect is off', () => {
+    updateSketchSettings({ strokeWidth: 9 });
+
+    expect(get(liveMovedSinceBake)).toBe(false);
+  });
+
+  it('is not set by a user-preset pick while the effect is off', async () => {
+    vi.stubGlobal('fetch', async () =>
+      new Response(JSON.stringify({ name: 'Mine', settings: SKETCH_PRESETS.napkin }), { status: 200 }));
+
+    await selectUserSketchPreset('mine');
+
+    expect(get(liveMovedSinceBake)).toBe(false);
+    vi.unstubAllGlobals();
   });
 
   it('is not set by re-enabling an effect that is already on', () => {
