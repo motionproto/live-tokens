@@ -294,6 +294,50 @@ function render(enabled: boolean, settings: SketchStyle): void {
   setSketchScope(pageRoot, settings);
 }
 
+/** Paint one look on the two roots `render` owns, and on nothing else.
+
+    `render(false, ...)` reaches further: it clears every `[data-sketch]` in
+    the document. The scopes it takes with it belong to `$effect`s that paint
+    from the live stores, which a preview deliberately never ticks, so those
+    never come back. Previewing a theme carrying no sketchstyle left the
+    Sketchstyle view's own stage crisp for good, Cancel included. */
+function paintPreviewRoots(style: SketchStyle | undefined): void {
+  if (typeof document === 'undefined') return;
+  if (style) {
+    applySketchLayer(style);
+    installed = true;
+  }
+  setSketchScope(hostRoot(), style ?? null);
+  setSketchScope(pageRoot, style ?? null);
+}
+
+/** Paint a sketchstyle for the Theme Picker preview, bypassing the live
+    buffer entirely: going through `sketchSettings`/`sketchEnabled` would
+    `share()` the previewed dials into localStorage and overwrite whatever
+    the user had live, which is right for Apply (RJC 6) but would destroy
+    unsaved work the moment the picker opened a row. The paint reaches the
+    host page across the iframe boundary the same way Apply's does; only the
+    store write and the persistence are skipped. Pass `undefined` for a theme
+    that carries no sketchstyle. */
+export function previewSketchStyle(style: SketchStyle | undefined): void {
+  paintPreviewRoots(style);
+}
+
+/** Undo a sketchstyle preview by repainting the live buffer, which the
+    preview never touched. Re-deriving from the current stores rather than a
+    scraped snapshot means it can't drift from what they actually hold by the
+    time the picker closes. */
+export function revertSketchStylePreview(): void {
+  if (get(sketchEnabled)) {
+    paintPreviewRoots(get(sketchSettings));
+    return;
+  }
+  // The one case with nodes to take down: a sketched preview over a crisp live
+  // state injected the sheet. `render`'s sweep is safe here because every
+  // component scope answers to `sketchEnabled`, which is false.
+  render(false, get(sketchSettings));
+}
+
 export function setSketchPageRoot(el: HTMLElement | null): void {
   if (el === pageRoot) return;
   setSketchScope(pageRoot, null);

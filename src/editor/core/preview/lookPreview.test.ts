@@ -5,7 +5,7 @@ import type { ComponentConfig, Theme, ColorsAndType } from '../themes/themeTypes
 import { CURRENT_COMPONENT_SCHEMA_VERSION } from '../themes/migrations';
 import { THEME_SCHEMA_VERSION } from '../themes/themeTypes';
 import { API_BASE } from '../storage/apiBase';
-import { CSS_VAR_CHANGE_EVENT, CSS_VARS_CHANGE_EVENT } from '../cssVarSync';
+import { CSS_VAR_CHANGE_EVENT, CSS_VARS_CHANGE_EVENT, __resetCssVarSyncForTests } from '../cssVarSync';
 import {
   editorState,
   loadFromFile,
@@ -23,6 +23,17 @@ import {
   isPreviewing,
   __resetPreviewForTests,
 } from './lookPreview';
+import { SKETCH_STYLES, type SketchStyle } from '../sketch/sketchStyles';
+import { setSketchScope } from '../sketch/sketchLayer';
+import { liveMovedSinceBake } from '../productionPulse';
+import {
+  openThemeSketchStyle,
+  setSketchPageRoot,
+  sketchEnabled,
+  sketchOffLook,
+  sketchSettings,
+  updateSketchSettings,
+} from '../sketch/sketchStore';
 
 // A font-face source, not a google one: applyFontSources injects the real node
 // and happy-dom would go to the network for a <link href>.
@@ -445,5 +456,117 @@ describe('previewColorsAndType', () => {
     loadFromFile(royalVelvet);
     expect(read('--preview-only')).toBe('');
     expect(read('--surface-canvas')).toBe('#2b1b45');
+  });
+});
+
+describe('previewTheme and the sketch layer', () => {
+  function sketchedTheme(name: string, sketchStyle: SketchStyle | undefined): Theme {
+    const t = theme(name, colorsAndType({ '--surface-canvas': '#222222' }), {});
+    t.sketchStyle = sketchStyle;
+    return t;
+  }
+
+  beforeEach(() => {
+    __resetForTests();
+    __resetPreviewForTests();
+    document.documentElement.removeAttribute('style');
+    document.documentElement.removeAttribute('data-sketch');
+    document.documentElement.removeAttribute('data-sketch-fill');
+    document.documentElement.removeAttribute('data-sketch-passes');
+    document.head.querySelectorAll('style[data-sketch-style]').forEach((n) => n.remove());
+    document.body.querySelectorAll('svg[data-sketch-defs]').forEach((n) => n.remove());
+    setSketchPageRoot(document.documentElement);
+    openThemeSketchStyle(undefined); // a known, crisp live baseline for every case
+    vi.stubGlobal('fetch', async () =>
+      new Response(JSON.stringify(defaults), { headers: { 'Content-Type': 'application/json' } }));
+    loadFromFile(colorsAndType({ '--surface-canvas': '#111111' }));
+    seedComponentsFromApi({ card: { aliases: { '--card-default-radius': '--radius-md' } } });
+  });
+
+  afterEach(() => {
+    revertPreview();
+    setSketchPageRoot(null);
+    vi.unstubAllGlobals();
+  });
+
+  it('paints a previewed theme\'s sketchstyle, and paints crisp for one with none even though the applied theme is sketched', async () => {
+    openThemeSketchStyle(SKETCH_STYLES.napkin); // what an already-applied sketched theme leaves live
+
+    await previewTheme(sketchedTheme('inked', SKETCH_STYLES.hatched));
+    expect(document.documentElement.getAttribute('data-sketch-fill')).toBe('hatched');
+
+    await previewTheme(sketchedTheme('bare', undefined));
+    expect(document.documentElement.hasAttribute('data-sketch')).toBe(false);
+  });
+
+  it('restores the exact pre-preview sketch state on revert, an unsaved dial included', async () => {
+    openThemeSketchStyle(SKETCH_STYLES.napkin);
+    updateSketchSettings({ strokeWidth: 9 }); // an unsaved move the open theme does not hold
+    const before = get(sketchSettings);
+
+    await previewTheme(sketchedTheme('inked', SKETCH_STYLES.hatched));
+    expect(document.documentElement.getAttribute('data-sketch-fill')).toBe('hatched');
+
+    revertPreview();
+
+    expect(get(sketchEnabled)).toBe(true);
+    expect(get(sketchSettings)).toEqual(before);
+    expect(document.documentElement.getAttribute('data-sketch-fill')).toBe('solid');
+    expect(document.documentElement.getAttribute('data-sketch-passes')).toBe('double');
+  });
+
+  // A crisp preview used to clear every [data-sketch] in the document. Only the
+  // two roots render() owns come back: a component's stage is painted by an
+  // $effect on the live stores, which the preview never ticks.
+  it('leaves a component-owned scope alone through a crisp preview and back', async () => {
+    openThemeSketchStyle(SKETCH_STYLES.napkin);
+    const stage = document.createElement('div'); // stands in for the Sketchstyle view's own
+    document.body.appendChild(stage);
+    setSketchScope(stage, get(sketchSettings));
+
+    await previewTheme(sketchedTheme('bare', undefined));
+    expect(document.documentElement.hasAttribute('data-sketch')).toBe(false);
+    expect(stage.getAttribute('data-sketch-fill')).toBe('solid');
+
+    revertPreview();
+    expect(stage.getAttribute('data-sketch-fill')).toBe('solid');
+    stage.remove();
+  });
+
+  it('does not move liveMovedSinceBake or sketchOffLook, since browsing the picker is not a gesture', async () => {
+    openThemeSketchStyle(SKETCH_STYLES.napkin);
+    liveMovedSinceBake.set(false);
+    const offLookBefore = get(sketchOffLook);
+
+    await previewTheme(sketchedTheme('inked', SKETCH_STYLES.hatched));
+    expect(get(liveMovedSinceBake)).toBe(false);
+    expect(get(sketchOffLook)).toBe(offLookBefore);
+
+    revertPreview();
+    expect(get(liveMovedSinceBake)).toBe(false);
+    expect(get(sketchOffLook)).toBe(offLookBefore);
+  });
+
+  it('paints the host page across the iframe boundary, the way applying a theme does', async () => {
+    setSketchPageRoot(null); // this document is the overlay iframe's own chrome, not a page
+    const hostDocument = document.implementation.createHTMLDocument('host');
+    const originalParent = Object.getOwnPropertyDescriptor(window, 'parent');
+    Object.defineProperty(window, 'parent', { configurable: true, value: { document: hostDocument } });
+    __resetCssVarSyncForTests();
+
+    try {
+      await previewTheme(sketchedTheme('inked', SKETCH_STYLES.hatched));
+      expect(hostDocument.documentElement.getAttribute('data-sketch-fill')).toBe('hatched');
+      // The iframe's own document never opts in: setSketchPageRoot(null) above
+      // is what keeps the editor's own chrome from picking the effect up.
+      expect(document.documentElement.hasAttribute('data-sketch')).toBe(false);
+
+      revertPreview();
+      expect(hostDocument.documentElement.hasAttribute('data-sketch')).toBe(false);
+    } finally {
+      if (originalParent) Object.defineProperty(window, 'parent', originalParent);
+      else Reflect.deleteProperty(window, 'parent');
+      __resetCssVarSyncForTests();
+    }
   });
 });

@@ -103,16 +103,18 @@ to it, and the editor never overwrites it, so start your own with **Save As**.
 ## Switching
 
 **Load**—or clicking the active theme's name—opens the Theme Picker. Picking a
-theme shows it on the page as a preview with nothing written to disk, so you can
-try each look and compare. **Save** in that window opens and adopts the previewed
-theme in one step: the active pointer changes, the buffers clear, the editor
-works on it, and production ships it. **Cancel** returns you to where you were.
-Previewing alone never changes what your site ships.
+theme shows it on the page as a preview with nothing written to disk, sketch
+layer included, so you can try each look and compare. **Save** in that window
+opens and adopts the previewed theme in one step: the active pointer changes,
+the buffers clear, the editor works on it, and production ships it. **Cancel**
+returns you to where you were, unsaved sketch dials included. Previewing alone
+never changes what your site ships.
 
 **Colors and type only. Keep my shapes.** narrows the load to the palette and
-the fonts: your component settings stay as they are and the theme you have open
-stays open. Saved colors and type files are listed there too, marked *colors &
-type*, and picking one is always that narrower load.
+the fonts: your component settings and your sketch layer stay as they are, and
+the theme you have open stays open. Saved colors and type files are listed
+there too, marked *colors & type*, and picking one is always that narrower
+load.
 
 ## Shipping
 

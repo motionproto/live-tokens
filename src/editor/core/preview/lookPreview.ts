@@ -6,6 +6,7 @@ import { batchCssVarChanges, setCssVar, removeCssVar } from '../cssVarSync';
 import { applyFontSources } from '../fonts/fontLoader';
 import { migrateColorsAndTypeFonts } from '../fonts/fontMigration';
 import { loadTheme } from '../themes/themeService';
+import { previewSketchStyle, revertSketchStylePreview } from '../sketch/sketchStore';
 
 /**
  * Client-side rendering of a saved file, for browsing looks without committing
@@ -19,6 +20,11 @@ import { loadTheme } from '../themes/themeService';
  * store state (`deriveCssVars`), so a preview cannot drift from what an Apply
  * of the same theme produces, and a revert re-derives from the live store
  * rather than replaying DOM values scraped before the preview.
+ *
+ * A theme's sketchstyle rides along the same way: `previewTheme` paints it
+ * through `previewSketchStyle`, which reaches the page without touching the
+ * live sketch buffer, and a revert re-derives from that buffer exactly as the
+ * CSS vars do.
  *
  * One preview is live at a time, whichever kind it is: painting reverts first,
  * so every look is a diff against the user's real state.
@@ -76,6 +82,10 @@ export function liveLook(): RenderedLook {
 
 let livePreview: RenderedLook | null = null;
 let defaultsPromise: Promise<Theme> | null = null;
+// Whether the current preview session has a sketchstyle painted over the live
+// buffer, so a colors-only preview (which never previews sketch) and revert
+// know whether there is anything to hand back.
+let sketchPreviewActive = false;
 
 function loadDefaults(): Promise<Theme> {
   // A rejected promise must not be memoized, or one failed fetch (a dev-server
@@ -109,15 +119,24 @@ function applyPreview(look: RenderedLook): void {
   livePreview = look;
 }
 
-/** Paint a whole look: the theme's colors and type and every component config
- *  it carries. */
+/** Paint a whole look: the theme's colors and type, every component config
+ *  it carries, and its sketchstyle — present or not, since a theme with none
+ *  paints crisp regardless of what is live (invariant 3). */
 export async function previewTheme(theme: Theme): Promise<void> {
   applyPreview(themeLook(theme, await loadDefaults()));
+  previewSketchStyle(theme.sketchStyle);
+  sketchPreviewActive = true;
 }
 
-/** Paint colors and type over the components as they stand. */
+/** Paint colors and type over the components as they stand. Not a whole
+ *  look, so the sketchstyle stays live too — reverting a sketch preview a
+ *  prior row left painted, if one is running. */
 export function previewColorsAndType(colorsAndType: ColorsAndType): void {
   applyPreview(colorsAndTypeLook(colorsAndType));
+  if (sketchPreviewActive) {
+    revertSketchStylePreview();
+    sketchPreviewActive = false;
+  }
 }
 
 /** Restore the live editor state. No-op when no preview is running. */
@@ -125,14 +144,21 @@ export function revertPreview(): void {
   if (!livePreview) return;
   paint(liveLook(), livePreview);
   livePreview = null;
+  if (sketchPreviewActive) {
+    revertSketchStylePreview();
+    sketchPreviewActive = false;
+  }
 }
 
 /** Release the preview without repainting. The caller must immediately load
  * the exact look being previewed into the store. This is the Save handoff: the
  * selected theme is already on screen, so restoring the old live look before
- * applying it would add work and create a visible flash across the request. */
+ * applying it would add work and create a visible flash across the request.
+ * The sketchstyle stays painted for the same reason: `openThemeSketchStyle`
+ * repaints it from the same values right after, so nothing flashes. */
 export function commitPreview(): void {
   livePreview = null;
+  sketchPreviewActive = false;
 }
 
 export function isPreviewing(): boolean {
@@ -143,4 +169,5 @@ export function isPreviewing(): boolean {
 export function __resetPreviewForTests(): void {
   livePreview = null;
   defaultsPromise = null;
+  sketchPreviewActive = false;
 }
