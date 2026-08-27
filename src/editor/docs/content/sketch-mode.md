@@ -4,10 +4,9 @@ Sketch mode redraws your whole page as if it had been drawn by hand. Every
 component keeps its own colours, spacing and corners; what changes is the line
 they are drawn with.
 
-It is an effect layer, not a set of token values. It reads nothing from your
-theme and writes nothing back, so it never touches a token, never lands in a
-theme file, and never reaches the CSS you ship. Turn it off and every trace of
-it goes.
+It is an effect layer, not a set of token values. It never touches a token
+itself, so turning it off returns every component to exactly what its tokens
+already say. A production build never carries the drawing.
 
 Open the **Sketch Style** view in the editor and switch **Sketch mode** on. The effect
 applies to the page behind the editor as well as to the preview, so what you see
@@ -39,9 +38,10 @@ than a style name:
 - **Napkin.** Ballpoint in a hurry. Everything loose at once.
 - **Dry marker.** Ink that ran out. One scratchy pass over a mostly eaten fill.
 
-Pick one, then move whatever you like. **Save** keeps your dials under a name of
-your own, alongside the shipped seven, as a file under
-`src/live-tokens/data/sketch-presets/`.
+Pick one, then move whatever you like. **Save current** keeps your dials under
+a name of your own, alongside the shipped seven, as a file under
+`src/live-tokens/data/sketch-presets/`. That is a different gesture from
+saving a theme; see "Where the settings live" below.
 
 ## The dials
 
@@ -70,14 +70,25 @@ your own, alongside the shipped seven, as a file under
 
 ## Where the settings live
 
-The dials you are moving live in your browser, so the effect follows you across
-reloads and stays off everyone else's screen. **Save** writes a named preset to
-`src/live-tokens/data/sketch-presets/`, which is the only thing that reaches
-disk.
+The sketch layer is part of the theme, the same way colors and type are.
+**Save** in the Theme panel folds your dials into the open theme; **Load**
+applies whatever a theme carries, and turns the effect off for a theme that
+carries none.
+
+Until you save, the dials sit in your browser only. The Theme panel calls
+that state off the theme, the same word it uses for an unsaved color or
+component change. The built-in **Motion Proto** theme is read-only, so Save
+is disabled there; use **Save As** to fold the dials into a theme of your
+own.
+
+**Save current** in the Sketch tab is a different gesture. It writes a named
+preset to `src/live-tokens/data/sketch-presets/`, a look you can pick from
+any theme. It never touches the open theme, and it never marks the look off
+the theme.
 
 Sketch mode is a tool for looking at the page, not a layer the page can ship.
-Nothing is written into a theme, `tokens.generated.css` never sees it, and a
-production build has no sketch layer in it at all.
+The theme records the dials, but nothing bakes them: `tokens.generated.css`
+never sees them, and a production build has no sketch layer in it at all.
 
 ## Drawing your own elements
 
