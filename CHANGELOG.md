@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.64.2 — A stack can gain a second font
 
 ### Fixed
 
