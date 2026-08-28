@@ -40,8 +40,14 @@ than just a name:
 
 Pick one, then move whatever you like. **Save as sketchstyle…** keeps your
 dials under a name of your own, alongside the shipped seven, as a file under
-`src/live-tokens/data/sketch-styles/`. That is a different gesture from
-saving a theme; see "Where the settings live" below.
+`src/live-tokens/data/sketch-styles/`. **Save** writes the dials back over the
+sketchstyle you have selected; it is offered for your own, since the shipped
+seven ship with the package and have no file to write. Both are a different
+gesture from saving a theme; see "Where the settings live" below.
+
+Your sketchstyles and the shipped ones are one list. A sketchstyle named after
+a shipped one replaces it, keeping its place in the list, so a project that
+wants its own Pencil saves one and every picker shows that one instead.
 
 ## The dials
 
@@ -111,11 +117,38 @@ A visitor who has picked a look of their own keeps it, None included. The theme
 seeds a browser that has decided nothing and never overwrites one that has, so
 calling this on every boot is safe.
 
-If your site offers a sketch picker, `themeSketchLook` is the theme's own look
-as one more row. It is null when the theme carries none, and null when what it
-carries is one of the shipped seven, since that row already names it. Give the
-row `setSketch(look.id)` like any other, and a visitor who wanders off the
-theme's look can come back to it.
+### Your own sketchstyles
+
+The dev server lists the files in `sketch-styles/`. A built site has no server
+to ask, so it hands them over at boot, the way it hands over components:
+
+```ts
+const files = import.meta.glob<{ name?: string; settings: unknown }>(
+  './live-tokens/data/sketch-styles/*.json',
+  { eager: true, import: 'default' },
+);
+
+await bootLiveTokens(App, '#app', {
+  sketchLooks: Object.entries(files).map(([path, file]) => {
+    const id = path.split('/').pop()!.replace('.json', '');
+    return { id, label: file.name || id, settings: file.settings };
+  }),
+});
+```
+
+Projects made with `create` ship this already. The file's slug is the look's
+id, so a sketchstyle picked in the editor keeps working once the site is built.
+
+### Building a picker
+
+`sketchLooks` is every look on offer, shipped and your own, as a store. Give
+each row `setSketch(look.id)`, and add your own **None** row: off is a state of
+the effect rather than one of the looks.
+
+`themeSketchLook` is the theme's own look as one more row. It is null when the
+theme carries none, and null when what it carries is a look already in
+`sketchLooks`, since that row names it. Its id goes to `setSketch` like any
+other, so a visitor who wanders off the theme's look can come back to it.
 
 ## Drawing your own elements
 

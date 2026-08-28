@@ -10,12 +10,14 @@ import {
   type SketchStyle,
 } from './sketchStyles';
 import { liveMovedSinceBake } from '../productionPulse';
+import { sketchLooks } from './sketchRegistry';
 import {
   liveSketchStyle,
   openThemeSketchStyle,
   saveCurrentSketchStyle,
+  refreshSavedSketchStyles,
+  saveSelectedSketchStyle,
   selectSketchStyle,
-  selectSavedSketchStyle,
   setSketchEnabled,
   setSketchPageRoot,
   sketchDirty,
@@ -26,6 +28,20 @@ import {
   themeSketchStyle,
   updateSketchSettings,
 } from './sketchStore';
+
+/** `refreshSavedSketchStyles` lists, then loads each file it listed, so a stub
+    has to answer both shapes. Returns once the pool holds them. */
+async function stubFiles(files: { fileName: string; name: string; settings: SketchStyle }[]) {
+  vi.stubGlobal('fetch', async (url: string, init?: RequestInit) => {
+    if (init?.method === 'PUT' || init?.method === 'DELETE') return new Response(null, { status: 200 });
+    const match = files.find((f) => String(url).endsWith(`/${f.fileName}`));
+    if (match) return new Response(JSON.stringify({ name: match.name, settings: match.settings }), { status: 200 });
+    return new Response(JSON.stringify({
+      files: files.map((f) => ({ fileName: f.fileName, name: f.name, updatedAt: '' })),
+    }), { status: 200 });
+  });
+  await refreshSavedSketchStyles();
+}
 
 describe('sketchstyle selection', () => {
   beforeEach(() => {
@@ -192,11 +208,11 @@ describe('liveMovedSinceBake follows the gesture boundary', () => {
   });
 
   it('is not set by a saved-sketchstyle pick while the effect is off', async () => {
-    vi.stubGlobal('fetch', async () =>
-      new Response(JSON.stringify({ name: 'Mine', settings: SKETCH_STYLES.napkin }), { status: 200 }));
+    await stubFiles([{ fileName: 'mine', name: 'Mine', settings: SKETCH_STYLES.napkin }]);
 
-    await selectSavedSketchStyle('mine');
+    selectSketchStyle('mine');
 
+    expect(get(sketchStyleName)).toBe('mine');
     expect(get(liveMovedSinceBake)).toBe(false);
   });
 
@@ -253,6 +269,60 @@ describe('saveCurrentSketchStyle', () => {
 
     expect(get(liveMovedSinceBake)).toBe(false);
     expect(get(sketchOffLook)).toBe(false);
+  });
+});
+
+describe('saveSelectedSketchStyle', () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it('refuses a shipped selection, which owns no file to write', async () => {
+    selectSketchStyle('pencil');
+
+    await expect(saveSelectedSketchStyle()).rejects.toThrow(/No saved sketchstyle/);
+  });
+
+  it('writes over the selected file and re-baselines, so the dials read clean', async () => {
+    await stubFiles([{ fileName: 'mine', name: 'Mine', settings: SKETCH_STYLES.napkin }]);
+    selectSketchStyle('mine');
+    updateSketchSettings({ strokeWidth: 9 });
+    expect(get(sketchDirty)).toBe(true);
+
+    await saveSelectedSketchStyle();
+
+    expect(get(sketchDirty)).toBe(false);
+    expect(get(sketchSettings).strokeWidth).toBe(9);
+  });
+});
+
+describe('the sketchstyle pool', () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it('lets a file replace the shipped look it is named after, in its position', async () => {
+    // The pool is module state, so an earlier test's files may still be in it.
+    await stubFiles([]);
+    const before = get(sketchLooks).map((l) => l.id);
+
+    await stubFiles([{ fileName: 'pencil', name: 'My Pencil', settings: SKETCH_STYLES.napkin }]);
+
+    expect(get(sketchLooks).map((l) => l.id)).toEqual(before);
+    const pencil = get(sketchLooks).find((l) => l.id === 'pencil')!;
+    expect(pencil).toMatchObject({ label: 'My Pencil', source: 'file' });
+    expect(pencil.settings.strokeWidth).toBe(SKETCH_STYLES.napkin.strokeWidth);
+  });
+
+  it('hands a shadowed id back to its shipped look when the file goes', async () => {
+    await stubFiles([{ fileName: 'pencil', name: 'My Pencil', settings: SKETCH_STYLES.napkin }]);
+
+    await stubFiles([]);
+
+    expect(get(sketchLooks).find((l) => l.id === 'pencil')).toMatchObject({
+      label: 'Pencil',
+      source: 'shipped',
+    });
   });
 });
 

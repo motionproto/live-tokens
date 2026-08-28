@@ -10,7 +10,6 @@
   import UIPillButton from '../UIPillButton.svelte';
   import UIReveal, { REVEAL_MS } from '../UIReveal.svelte';
   import { scrollSectionIntoView } from '../scrollSection';
-  import { SKETCH_STYLES } from '../../core/sketch/sketchStyles';
   import { openThemeSlug } from '../../core/store/editorConfigStore';
   import {
     sketchEnabled,
@@ -21,13 +20,12 @@
     sketchSettings,
     selectSketchStyle,
     updateSketchSettings,
-    savedSketchStyles,
     refreshSavedSketchStyles,
-    selectSavedSketchStyle,
     saveCurrentSketchStyle,
+    saveSelectedSketchStyle,
     deleteSavedSketchStyle,
-    USER_STYLE_PREFIX,
   } from '../../core/sketch/sketchStore';
+  import { sketchLooks } from '../../core/sketch/sketchRegistry';
 
   interface Props {
     /** The rail's last jump. A fresh object per click, not a bare id, so
@@ -130,6 +128,19 @@
       : { name: s.label, blurb: s.blurb || 'Your saved sketchstyle.' },
   );
 
+  let selectedLook = $derived($sketchLooks.find((l) => l.id === $sketchStyleName));
+  /** Offered only for a look backed by a file in this project. A shipped look
+      is a frozen constant compiled into the package, and one handed to
+      `bootLiveTokens` owns no file either; neither has anything to write. */
+  let canSaveInPlace = $derived(selectedLook?.source === 'file' && $sketchDirty);
+  let saveTitle = $derived(
+    selectedLook?.source !== 'file'
+      ? 'Pick a saved sketchstyle to save over'
+      : $sketchDirty
+        ? `Save over ${selectedLook.label}`
+        : 'No changes to save',
+  );
+
   let naming = $state(false);
   let draftName = $state('');
   let styleError = $state('');
@@ -141,7 +152,7 @@
   });
 
   function startNaming() {
-    draftName = s.label && $sketchStyleName.startsWith(USER_STYLE_PREFIX) ? s.label : '';
+    draftName = '';
     styleError = '';
     naming = true;
   }
@@ -285,24 +296,43 @@
       </div>
 
       <div class="presets">
-        {#each Object.entries(SKETCH_STYLES) as [name, style] (name)}
-          <label class="preset">
-            <input
-              type="radio"
-              name={STYLE_RADIO_GROUP}
-              value={name}
-              checked={$sketchStyleName === name}
-              onchange={() => selectSketchStyle(name)}
-            />
-            <span class="preset-name">{style.label}</span>
-          </label>
+        {#each $sketchLooks as look (look.id)}
+          <div class="saved-item">
+            <label class="preset">
+              <input
+                type="radio"
+                name={STYLE_RADIO_GROUP}
+                value={look.id}
+                checked={$sketchStyleName === look.id}
+                onchange={() => selectSketchStyle(look.id)}
+              />
+              <span class="preset-name">{look.label}</span>
+            </label>
+            {#if look.source === 'file'}
+              <button
+                type="button"
+                class="saved-delete"
+                title="Delete {look.label}"
+                aria-label="Delete {look.label}"
+                onclick={() => runStyleAction(deleteSavedSketchStyle(look.id))}
+              ><i class="fas fa-xmark"></i></button>
+            {/if}
+          </div>
         {/each}
       </div>
 
       <div class="saved">
-        <div class="saved-head">
-          <span class="band-label">Saved sketchstyles</span>
-          <UIPillButton size="compact" icon="fa-floppy-disk" onclick={startNaming}>
+        <div class="saved-actions">
+          <UIPillButton
+            size="compact"
+            icon="fa-floppy-disk"
+            disabled={!canSaveInPlace}
+            title={saveTitle}
+            onclick={() => runStyleAction(saveSelectedSketchStyle())}
+          >
+            Save
+          </UIPillButton>
+          <UIPillButton size="compact" icon="fa-plus" onclick={startNaming}>
             Save as sketchstyle…
           </UIPillButton>
         </div>
@@ -320,32 +350,6 @@
             <UIPillButton size="compact" variant="primary" type="submit">Save</UIPillButton>
             <UIPillButton size="compact" onclick={() => (naming = false)}>Cancel</UIPillButton>
           </form>
-        {/if}
-
-        {#if $savedSketchStyles.length > 0}
-          <div class="presets">
-            {#each $savedSketchStyles as saved (saved.fileName)}
-              <div class="saved-item">
-                <label class="preset">
-                  <input
-                    type="radio"
-                    name={STYLE_RADIO_GROUP}
-                    value={USER_STYLE_PREFIX + saved.fileName}
-                    checked={$sketchStyleName === USER_STYLE_PREFIX + saved.fileName}
-                    onchange={() => runStyleAction(selectSavedSketchStyle(saved.fileName))}
-                  />
-                  <span class="preset-name">{saved.name}</span>
-                </label>
-                <button
-                  type="button"
-                  class="saved-delete"
-                  title="Delete {saved.name}"
-                  aria-label="Delete {saved.name}"
-                  onclick={() => runStyleAction(deleteSavedSketchStyle(saved.fileName))}
-                ><i class="fas fa-xmark"></i></button>
-              </div>
-            {/each}
-          </div>
         {/if}
 
         {#if styleError}
@@ -916,18 +920,11 @@
     border-top: 1px solid var(--ui-border-low);
   }
 
-  .saved-head {
+  .saved-actions {
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    gap: var(--ui-space-8);
+    gap: var(--ui-space-6);
     min-height: 1.75rem;
-  }
-
-  .band-label {
-    font-size: var(--ui-font-size-xs);
-    font-weight: var(--ui-font-weight-semibold);
-    color: var(--ui-text-tertiary);
   }
 
   .save-row {
@@ -953,8 +950,8 @@
     outline-offset: 1px;
   }
 
-  /* The row is one control with a delete affordance, so the border lives here
-     and the inner .preset label drops its own. */
+  /* A row is one control, with a delete affordance on the ones this project
+     owns, so the border lives here and the inner .preset label drops its own. */
   .saved-item {
     display: flex;
     align-items: stretch;

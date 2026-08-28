@@ -1,5 +1,6 @@
 import { derived, get, type Readable } from 'svelte/store';
-import { SKETCH_STYLES, THEME_SKETCH_ID } from './sketchStyles';
+import { THEME_SKETCH_ID } from './sketchStyles';
+import { lookById, sketchLooks, type SketchLook } from './sketchRegistry';
 import {
   sameLook,
   selectSketchStyle,
@@ -10,19 +11,12 @@ import {
   themeSketchStyle,
 } from './sketchStore';
 
-export interface SketchLook {
-  /** What `setSketch` takes. */
-  id: string;
-  label: string;
-  blurb: string;
-}
+export { sketchLooks, registerSketchLook } from './sketchRegistry';
+export type { SketchLook, SketchLookSource, RegisterSketchLookInput } from './sketchRegistry';
 
-/** The shipped sketchstyles. A picker adds its own "None" row: off is a state
-    of the effect, not one of the looks. A theme's own look is not here either,
-    since it is not shipped; `themeSketchLook` carries that one row. */
-export const SKETCH_LOOKS: readonly SketchLook[] = Object.entries(SKETCH_STYLES).map(
-  ([id, style]) => ({ id, label: style.label, blurb: style.blurb }),
-);
+/** A look as one picker row. The theme's own look is offered this way too, and
+    it belongs to no pool entry, so the fields only a pool entry has are off. */
+export type SketchLookRow = Omit<SketchLook, 'settings' | 'source'>;
 
 /**
  * The look the open theme carries, as one more row for a picker: same shape as
@@ -36,11 +30,14 @@ export const SKETCH_LOOKS: readonly SketchLook[] = Object.entries(SKETCH_STYLES)
  * `marker` still carries the label "Marker", so a row built from the style's
  * own label would sit beside the shipped Marker claiming to be it.
  */
-export const themeSketchLook: Readable<SketchLook | null> = derived(themeSketchStyle, (style) => {
-  if (!style) return null;
-  if (Object.values(SKETCH_STYLES).some((shipped) => sameLook(shipped, style))) return null;
-  return { id: THEME_SKETCH_ID, label: 'Theme', blurb: 'The look this theme carries.' };
-});
+export const themeSketchLook: Readable<SketchLookRow | null> = derived(
+  [themeSketchStyle, sketchLooks],
+  ([style, looks]) => {
+    if (!style) return null;
+    if (looks.some((look) => sameLook(look.settings, style))) return null;
+    return { id: THEME_SKETCH_ID, label: 'Theme', blurb: 'The look this theme carries.' };
+  },
+);
 
 /**
  * What the page is drawing with. Three states, not two: the effect can be on
@@ -54,21 +51,20 @@ export const themeSketchLook: Readable<SketchLook | null> = derived(themeSketchS
  */
 export type SketchPick =
   | { state: 'off' }
-  | { state: 'look'; look: SketchLook }
+  | { state: 'look'; look: SketchLookRow }
   | { state: 'adjusted' };
 
 export const sketchPick: Readable<SketchPick> = derived(
-  [sketchEnabled, sketchStyleName, themeSketchLook],
-  ([on, name, themeLook]): SketchPick => {
+  [sketchEnabled, sketchStyleName, sketchLooks, themeSketchLook],
+  ([on, name, looks, themeLook]): SketchPick => {
     if (!on) return { state: 'off' };
-    const look =
-      SKETCH_LOOKS.find((l) => l.id === name) ?? (themeLook && themeLook.id === name ? themeLook : undefined);
-    return look ? { state: 'look', look } : { state: 'adjusted' };
+    const look = looks.find((l) => l.id === name) ?? (themeLook?.id === name ? themeLook : undefined);
+    return look ? { state: 'look', look: { id: look.id, label: look.label, blurb: look.blurb } } : { state: 'adjusted' };
   },
 );
 
 /**
- * Draw the page with one of the shipped looks, or `null` for none.
+ * Draw the page with one of the looks in the pool, or `null` for none.
  *
  * The only supported way for a consumer to drive the effect. Reaching for
  * `applySketchLayer` instead paints a stylesheet the store does not know it
@@ -88,8 +84,8 @@ export function setSketch(id: string | null): void {
     setSketchEnabled(true);
     return;
   }
-  if (!(id in SKETCH_STYLES)) {
-    throw new Error(`Unknown sketchstyle "${id}". Ids come from SKETCH_LOOKS and themeSketchLook.`);
+  if (!lookById(id)) {
+    throw new Error(`Unknown sketchstyle "${id}". Ids come from sketchLooks and themeSketchLook.`);
   }
   selectSketchStyle(id);
   setSketchEnabled(true);

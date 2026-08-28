@@ -3,9 +3,10 @@
 import { get } from 'svelte/store';
 import { beforeEach, describe, expect, it } from 'vitest';
 import {
-  SKETCH_LOOKS,
+  sketchLooks,
   hasPersistedSketchState,
   seedSketchFromTheme,
+  registerSketchLook,
   setSketch,
   sketchPick,
   themeSketchLook,
@@ -41,17 +42,24 @@ beforeEach(() => {
   themeSketchStyle.set(undefined);
 });
 
-describe('SKETCH_LOOKS', () => {
-  it('offers every shipped sketchstyle and nothing else', () => {
-    expect(SKETCH_LOOKS.map((l) => l.id).sort()).toEqual(Object.keys(SKETCH_STYLES).sort());
+describe('sketchLooks', () => {
+  it('offers every shipped sketchstyle when nothing has registered', () => {
+    expect(get(sketchLooks).map((l) => l.id).sort()).toEqual(Object.keys(SKETCH_STYLES).sort());
   });
 
   it('carries an id setSketch accepts', () => {
-    for (const look of SKETCH_LOOKS) expect(() => setSketch(look.id)).not.toThrow();
+    for (const look of get(sketchLooks)) expect(() => setSketch(look.id)).not.toThrow();
   });
 
   it('leaves the theme id unclaimed, so a theme look can never be shadowed', () => {
-    expect(SKETCH_LOOKS.map((l) => l.id)).not.toContain(THEME_SKETCH_ID);
+    expect(get(sketchLooks).map((l) => l.id)).not.toContain(THEME_SKETCH_ID);
+  });
+
+  it('takes a registered look, which setSketch then paints', () => {
+    registerSketchLook({ id: 'chalk', label: 'Chalk', settings: SKETCH_STYLES.napkin });
+
+    expect(() => setSketch('chalk')).not.toThrow();
+    expect(get(sketchStyleName)).toBe('chalk');
   });
 });
 

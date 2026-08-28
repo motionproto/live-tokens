@@ -1,19 +1,7 @@
 <script lang="ts">
-  import { onMount } from 'svelte';
   import LabeledSelect from './LabeledSelect.svelte';
-  import { SKETCH_STYLES, THEME_SKETCH_ID } from '../editor/core/sketch/sketchStyles';
-  import { themeSketchLook } from '../editor/core/sketch';
-  import {
-    sketchEnabled,
-    sketchStyleName,
-    savedSketchStyles,
-    refreshSavedSketchStyles,
-    selectSketchStyle,
-    selectSavedSketchStyle,
-    selectThemeSketchStyle,
-    setSketchEnabled,
-    USER_STYLE_PREFIX,
-  } from '../editor/core/sketch/sketchStore';
+  import { setSketch, sketchLooks, themeSketchLook } from '../editor/core/sketch';
+  import { sketchEnabled, sketchStyleName } from '../editor/core/sketch/sketchStore';
 
   const NONE = '';
 
@@ -22,15 +10,11 @@
 
   const items = $derived([
     { value: NONE, label: 'None' },
-    /* The look the open theme carries, when no shipped one names it. Without
-       the row the select reads None over a drawn page, and a visitor who picks
-       something else cannot get back. */
+    /* The look the open theme carries, when nothing in the pool names it.
+       Without the row the select reads None over a drawn page, and a visitor
+       who picks something else cannot get back. */
     ...($themeSketchLook ? [{ value: $themeSketchLook.id, label: $themeSketchLook.label }] : []),
-    ...Object.entries(SKETCH_STYLES).map(([value, style]) => ({ value, label: style.label })),
-    ...$savedSketchStyles.map(({ fileName, name }) => ({
-      value: USER_STYLE_PREFIX + fileName,
-      label: name || fileName,
-    })),
+    ...$sketchLooks.map((look) => ({ value: look.id, label: look.label })),
   ]);
 
   /* Off is its own choice here, so the picked sketchstyle only shows while the
@@ -38,29 +22,12 @@
      sketchstyle selected there; this reads as None until it is switched back on. */
   const value = $derived($sketchEnabled ? $sketchStyleName : NONE);
 
-  onMount(() => {
-    // No dev plugin (a built preview, say) means no saved sketchstyles. That is
-    // a missing door, not a fault worth reporting here.
-    refreshSavedSketchStyles().catch(() => {});
-  });
-
-  async function changeSketch(next: string) {
+  function changeSketch(next: string) {
     if (busy) return;
     busy = true;
     error = '';
     try {
-      if (next === NONE) {
-        setSketchEnabled(false);
-        return;
-      }
-      if (next === THEME_SKETCH_ID) {
-        selectThemeSketchStyle();
-      } else if (next.startsWith(USER_STYLE_PREFIX)) {
-        await selectSavedSketchStyle(next.slice(USER_STYLE_PREFIX.length));
-      } else {
-        selectSketchStyle(next);
-      }
-      setSketchEnabled(true);
+      setSketch(next === NONE ? null : next);
     } catch (reason) {
       error = reason instanceof Error ? reason.message : 'Could not apply that sketchstyle';
     } finally {

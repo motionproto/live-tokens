@@ -8,4 +8,17 @@ import '../system/styles/fonts.css';
 import { bootLiveTokens } from '../editor/bootstrap';
 import App from './App.svelte';
 
-bootLiveTokens(App, '#app');
+/** The sketchstyles saved in this project, registered so they reach a built
+    site. The editor re-reads the directory over the dev API; this snapshot is
+    what a build has instead. */
+const sketchFiles = import.meta.glob<{ name?: string; settings: unknown }>(
+  '../live-tokens/data/sketch-styles/*.json',
+  { eager: true, import: 'default' },
+);
+
+const sketchLooks = Object.entries(sketchFiles).map(([path, file]) => {
+  const id = path.split('/').pop()!.replace('.json', '');
+  return { id, label: file.name || id, settings: file.settings };
+});
+
+bootLiveTokens(App, '#app', { sketchLooks });

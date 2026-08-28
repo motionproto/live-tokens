@@ -22,10 +22,16 @@ import * as editorStore from './core/store/editorStore';
 import * as themeDocumentSync from './core/themes/themeDocumentSync';
 import { initializeTheme } from './core/themes/themeInit';
 import { registerComponent, type RegisterComponentEntry } from './component-editor/registry';
+import { registerSketchLook, type RegisterSketchLookInput } from './core/sketch/sketchRegistry';
 
 export interface BootLiveTokensOptions {
   /** Consumer-authored components to register with the editor before mount. Dev-only. */
   components?: RegisterComponentEntry[];
+  /** Sketchstyles this project ships, joining the shipped looks in every
+      picker. Registered in a build as well as in dev: carrying a customized
+      sketchstyle to a published site is the whole point, so these must not sit
+      behind the DEV guard `components` sits behind. */
+  sketchLooks?: RegisterSketchLookInput[];
 }
 
 export async function bootLiveTokens(
@@ -37,6 +43,12 @@ export async function bootLiveTokens(
   router.init();
   columnsOverlay.init();
   editorStore.init();
+
+  // Before the DEV block: `initializeTheme` recovers the open theme's look by
+  // name against the pool, so the pool has to be whole by the time it runs.
+  if (opts.sketchLooks) {
+    for (const look of opts.sketchLooks) registerSketchLook(look);
+  }
 
   if (import.meta.env.DEV) {
     themeDocumentSync.init();

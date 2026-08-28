@@ -1,5 +1,66 @@
 # Changelog
 
+## Unreleased — Your own sketchstyles reach the built site
+
+### Added
+
+- **A saved sketchstyle ships with your site.** 0.66.0 carried the look a theme
+  holds into a build, which covers one look per theme. Everything else a project
+  saved in the Sketchstyle view stayed behind: the files live in
+  `src/live-tokens/data/sketch-styles/` and only the dev server could read them,
+  so a picker on a built site silently listed the shipped seven and nothing
+  else. Hand them to `bootLiveTokens` and they are real everywhere:
+
+  ```ts
+  const files = import.meta.glob('./live-tokens/data/sketch-styles/*.json', {
+    eager: true,
+    import: 'default',
+  });
+
+  await bootLiveTokens(App, '#app', {
+    sketchLooks: Object.entries(files).map(([path, file]) => {
+      const id = path.split('/').pop().replace('.json', '');
+      return { id, label: file.name || id, settings: file.settings };
+    }),
+  });
+  ```
+
+  Unlike `components`, these register in a build as well as in dev. Reaching a
+  published site is the whole point of them.
+
+  `create` writes this into `src/main.ts`, so a new project publishes what it
+  saves without wiring anything.
+
+- **A Save pill in the Sketchstyle view**, which writes the dials back over the
+  sketchstyle you have selected. Updating a saved sketchstyle used to run
+  through the naming form: open it, accept the pre-filled label, submit, and
+  nothing on screen said a file had been replaced rather than created. Save is
+  offered for a look backed by a file in your project, and disabled with a
+  reason otherwise. **Save as sketchstyle…** now always creates, and starts its
+  form empty to say so.
+
+### Changed
+
+- **Shipped and saved sketchstyles are one list, in one id namespace.** A
+  sketchstyle named after a shipped one replaces it and keeps its place, so a
+  project that wants its own Pencil saves one. The Sketchstyle view shows a
+  single grid; the ✕ marks the rows your project owns.
+
+### Breaking
+
+Pre-1.0, and the sketch API is days old. Every consumer we know of is in this
+repo or in a site we own.
+
+- `SKETCH_LOOKS` is now the `sketchLooks` store, since looks register after the
+  module is imported and a constant array would be stale. A picker reads
+  `$sketchLooks` the way it already reads `$themeSketchLook`.
+- `USER_STYLE_PREFIX` and `selectSavedSketchStyle` are gone. A saved
+  sketchstyle's id is its file slug, so `setSketch(id)` and
+  `selectSketchStyle(id)` take it like any other.
+- A `user:` id already in a browser's storage is stripped on read, so no
+  migration is needed and nobody loses their selection. Themes need nothing at
+  all: a theme has always stored its `sketchStyle` by value, never by id.
+
 ## 0.66.0 — A theme's sketchstyle reaches the built site
 
 ### Added

@@ -6,6 +6,7 @@ import {
   hydrateSketchStyle,
   type SketchStyle,
 } from './sketchStyles';
+import { lookById, replaceRegisteredLooks, sketchLooks } from './sketchRegistry';
 import {
   applySketchLayer,
   hostRoot,
@@ -102,18 +103,21 @@ function readBaseline(): SketchStyle | null {
   return null;
 }
 
-/** Marks a saved sketchstyle in `sketchStyleName`, so a user file named `pencil`
-    and the shipped `pencil` stay distinguishable in one string. */
-export const USER_STYLE_PREFIX = 'user:';
+/** Retired. Saved sketchstyles and shipped ones share one id namespace now, so
+    a file named `pencil` replaces the shipped Pencil rather than sitting beside
+    it. Stripped on read below; delete a release after that ships. */
+const RETIRED_USER_PREFIX = 'user:';
 
+/** Deliberately unvalidated. Looks are registered after this module is
+    imported, so an id it has never heard of is the normal case rather than a
+    fault: `selectSketchStyle` no-ops on one, and `sketchPick` already reports
+    a look nothing names as `adjusted`. Only a browser that has stored nothing
+    falls back. */
 function readStyleName(): string {
   try {
     const name = localStorage.getItem(STYLE_NAME_KEY);
-    if (
-      name === '' ||
-      (name && (name in SKETCH_STYLES || name === THEME_SKETCH_ID || name.startsWith(USER_STYLE_PREFIX)))
-    ) {
-      return name;
+    if (name !== null) {
+      return name.startsWith(RETIRED_USER_PREFIX) ? name.slice(RETIRED_USER_PREFIX.length) : name;
     }
   } catch {
     // fall through
@@ -126,9 +130,9 @@ function readStyleName(): string {
 export const sketchEnabled = writable<boolean>(readEnabled());
 export const sketchSettings = writable<SketchStyle>(readSettings());
 /** The sketchstyle the dials started from. It survives dial moves, so the grid
-    keeps showing what the current look is closest to. A shipped id, a `user:`
-    file, or `THEME_SKETCH_ID` for the look the open theme carries; empty only
-    when nothing was picked, or the picked file was deleted. */
+    keeps showing what the current look is closest to. Any id in the pool, or
+    `THEME_SKETCH_ID` for the look the open theme carries; empty only when
+    nothing was picked, or the picked file was deleted. */
 export const sketchStyleName = writable<string>(readStyleName());
 
 /** The settings as the selected sketchstyle defined them. Kept beside the live
@@ -175,9 +179,9 @@ export const themeSketchStyle = writable<SketchStyle | undefined>(undefined);
 
 /** Open a theme's sketchstyle: the dials, the on/off state, and the name
     recovered by comparison (RJC 3). Overwrites the live buffer, which
-    is what opening a theme means everywhere else (RJC 6). Never writes a
-    `user:` name here: a saved sketchstyle is a file this look may not have come
-    from, and the only thing that can name one is picking it. */
+    is what opening a theme means everywhere else (RJC 6). The name is recovered
+    over the whole pool, so a theme carrying a look a saved file also holds is
+    named by that file rather than falling back to `THEME_SKETCH_ID`. */
 export function openThemeSketchStyle(sketchStyle: SketchStyle | undefined): void {
   themeSketchStyle.set(sketchStyle);
   if (!sketchStyle) {
@@ -186,7 +190,7 @@ export function openThemeSketchStyle(sketchStyle: SketchStyle | undefined): void
     sketchStyleName.set('');
     return;
   }
-  const matched = (Object.keys(SKETCH_STYLES) as string[]).find((name) => sameLook(SKETCH_STYLES[name], sketchStyle));
+  const matched = get(sketchLooks).find((look) => sameLook(look.settings, sketchStyle))?.id;
   sketchSettings.set({ ...sketchStyle });
   sketchBaseline.set({ ...sketchStyle });
   sketchStyleName.set(matched ?? THEME_SKETCH_ID);
@@ -249,14 +253,17 @@ export const sketchOffLook = derived(
   },
 );
 
-export function selectSketchStyle(name: string): void {
-  const style = SKETCH_STYLES[name];
-  if (!style) return;
+/** Takes any id in the pool: shipped, or registered from a file or a consumer.
+    Silent for an id nothing knows, the way it has always been for an unknown
+    shipped name. */
+export function selectSketchStyle(id: string): void {
+  const look = lookById(id);
+  if (!look) return;
   markSketchTouched();
   if (get(sketchEnabled)) liveMovedSinceBake.set(true);
-  sketchStyleName.set(name);
-  sketchBaseline.set({ ...style });
-  sketchSettings.set({ ...style });
+  sketchStyleName.set(id);
+  sketchBaseline.set({ ...look.settings });
+  sketchSettings.set({ ...look.settings });
 }
 
 /** Saved sketchstyles, listed from the data tree. Empty until
@@ -264,17 +271,21 @@ export function selectSketchStyle(name: string): void {
     the network. */
 export const savedSketchStyles = writable<SketchStyleMeta[]>([]);
 
+/** Lists the files and registers them in one gesture, so the editor's grid and
+    a built site's picker read the same pool. Loading every file to list them is
+    affordable: a sketchstyle is a few dozen numbers, and the alternative is a
+    grid that cannot paint a row until it is picked. */
 export async function refreshSavedSketchStyles(): Promise<void> {
-  savedSketchStyles.set(await listSketchStyles());
-}
-
-export async function selectSavedSketchStyle(fileName: string): Promise<void> {
-  const file = await loadSketchStyle(fileName);
-  markSketchTouched();
-  if (get(sketchEnabled)) liveMovedSinceBake.set(true);
-  sketchStyleName.set(USER_STYLE_PREFIX + fileName);
-  sketchBaseline.set({ ...file.settings });
-  sketchSettings.set(file.settings);
+  const files = await listSketchStyles();
+  const loaded = await Promise.all(files.map((f) => loadSketchStyle(f.fileName)));
+  savedSketchStyles.set(files);
+  replaceRegisteredLooks(
+    files.map((file, i) => ({
+      id: file.fileName,
+      label: file.name || file.fileName,
+      settings: loaded[i].settings,
+    })),
+  );
 }
 
 /** Writes whatever the dials currently say to a named file and selects it, so
@@ -291,15 +302,34 @@ export async function saveCurrentSketchStyle(name: string): Promise<string> {
   await refreshSavedSketchStyles();
   sketchSettings.set(settings);
   sketchBaseline.set({ ...settings });
-  sketchStyleName.set(USER_STYLE_PREFIX + fileName);
+  sketchStyleName.set(fileName);
   return fileName;
+}
+
+/** Overwrite the selected saved sketchstyle. The file name comes from the
+    selection rather than from re-slugifying the label, because the two can
+    disagree: a file hand-edited to a new display name would otherwise be saved
+    beside itself under a fresh slug instead of over itself. The label comes
+    from the look for the same reason, so the name the grid shows survives.
+
+    No `markSketchTouched`: the button only lights once a dial has moved, and
+    every dial goes through `updateSketchSettings`, which marks it. */
+export async function saveSelectedSketchStyle(): Promise<void> {
+  const look = lookById(get(sketchStyleName));
+  if (look?.source !== 'file') throw new Error('No saved sketchstyle is selected');
+  const settings = { ...get(sketchSettings) };
+  await saveSketchStyle(look.id, look.label, settings);
+  await refreshSavedSketchStyles();
+  // Re-baselining is what disables the button again and returns the readout
+  // from "Modified from X" to the saved blurb.
+  sketchBaseline.set(settings);
 }
 
 export async function deleteSavedSketchStyle(fileName: string): Promise<void> {
   await deleteSketchStyle(fileName);
   await refreshSavedSketchStyles();
   // The dials keep their values; only the name stops naming a file that exists.
-  if (get(sketchStyleName) === USER_STYLE_PREFIX + fileName) {
+  if (get(sketchStyleName) === fileName) {
     sketchStyleName.set('');
     sketchBaseline.set(null);
   }
