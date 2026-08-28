@@ -1,3 +1,11 @@
+import pencil from '../../../live-tokens/data/sketch-styles/pencil.json';
+import marker from '../../../live-tokens/data/sketch-styles/marker.json';
+import whiteboard from '../../../live-tokens/data/sketch-styles/whiteboard.json';
+import hatched from '../../../live-tokens/data/sketch-styles/hatched.json';
+import dashed from '../../../live-tokens/data/sketch-styles/dashed.json';
+import napkin from '../../../live-tokens/data/sketch-styles/napkin.json';
+import dry from '../../../live-tokens/data/sketch-styles/dry.json';
+
 export interface SketchStyle {
   label: string;
   blurb: string;
@@ -133,101 +141,25 @@ export interface SketchStyle {
   iconMaskScale: number;
 }
 
-const base: SketchStyle = {
-  label: '', blurb: '',
-  fillTravel: 1.5, strokeTravel: 1.5, wobble: 45, roughness: 3,
-  borderWavelength: 1, waveform: 1,
-  strokeWidth: 1.5, doubleStroke: false, retraceOffset: 1.2, retracePass: 'copy',
-  fillStyle: 'solid', hatchInk: 0.4, strokeStyle: 'solid',
-  pressure: 0.25, pressureMod: 0.35, pooling: 1.2, strokeInk: 1,
-  maskOn: true, maskBlobX: 100, maskBlobY: 100, maskBlobLinked: true, maskAngle: 0,
-  maskOutputMin: 0.45, maskOutputMax: 1,
-  maskOctaves: 2, maskGrain: 'fractal', maskPosterize: 1, maskSoftness: 1.5,
-  jitterX: 2.5, jitterY: 2.5, jitterRot: 0.6, jitterScale: 0.035,
-  cornerSpread: 10, cornerTravel: 8,
-  iconTravel: 1.25, iconWavelength: 0.625, iconMaskOn: true, iconMaskScale: 1,
-};
+/**
+ * The shipped sketchstyles, read from the files the package distributes. The
+ * files are the source: a project shadows one by saving a sketchstyle under the
+ * same id, the editor restores a shipped look by deleting that file, and
+ * `themeFileApi` serves these as the read-only fallback behind the project's own
+ * directory. Editing a look here means editing its JSON, which is what the
+ * Sketchstyle view already writes.
+ *
+ * Each file carries every dial, so there is nothing to merge a default into.
+ * `sketchStyles.test.ts` pins that: the seven key sets have to match, and a dial
+ * added to `SketchStyle` has to reach all seven before the suite goes green.
+ *
+ * Order is picker order.
+ */
+const SHIPPED_FILES = { pencil, marker, whiteboard, hatched, dashed, napkin, dry };
 
-export const SKETCH_STYLES: Record<string, SketchStyle> = {
-  pencil: {
-    ...base, label: 'Pencil',
-    blurb: 'Two graphite passes on their own seeds, so the outline disagrees with itself the way a hand coming back round does. Tight grain, little else.',
-    fillTravel: 0.75, strokeTravel: 1.25, wobble: 30, roughness: 3, waveform: 1,
-    strokeWidth: 1.25, doubleStroke: true, retracePass: 'reseeded', retraceOffset: 1.5, strokeInk: 0.85,
-    maskBlobX: 40, maskBlobY: 40, maskOutputMin: 0.62, maskOutputMax: 1, maskOctaves: 3, maskPosterize: 1, maskSoftness: 0,
-    jitterX: 1.5, jitterY: 1.5, jitterRot: 0.35, jitterScale: 0.022,
-    cornerSpread: 6, cornerTravel: 4.5,
-    pressure: 0.15, pressureMod: 0.3, pooling: 0, iconTravel: 0.75,
-  },
-
-  marker: {
-    ...base, label: 'Marker',
-    blurb: 'Broad translucent nib gone round twice on the same line, so the overlap darkens and the ink pools where it slows.',
-    fillTravel: 2, strokeTravel: 1.5, wobble: 56, waveform: 1.4, borderWavelength: 1.3,
-    strokeWidth: 4, doubleStroke: true, retracePass: 'copy', strokeInk: 0.52, retraceOffset: 2.2,
-    maskBlobX: 115, maskBlobY: 115, maskOutputMin: 0.42, maskOutputMax: 1, maskOctaves: 3, maskPosterize: 4, maskSoftness: 4,
-    jitterX: 3, jitterY: 3, jitterRot: 0.8, jitterScale: 0.045,
-    cornerSpread: 10, cornerTravel: 8,
-    pressure: 0.2, pressureMod: 0.25, pooling: 2, iconTravel: 1.25, iconMaskScale: 4,
-  },
-
-  whiteboard: {
-    ...base, label: 'Whiteboard',
-    blurb: 'The fattest nib on glass. One long smooth undulation, and a veined mask that streaks the fill like a half-wiped board.',
-    fillTravel: 2.5, strokeTravel: 2.5, wobble: 90, roughness: 1, waveform: 1, borderWavelength: 1.5,
-    strokeWidth: 5.5, doubleStroke: true, retracePass: 'copy', strokeInk: 0.66, retraceOffset: 3,
-    maskGrain: 'turbulence', maskBlobX: 180, maskBlobY: 180, maskOutputMin: 0.42, maskOutputMax: 1,
-    maskOctaves: 1, maskPosterize: 3, maskSoftness: 8,
-    jitterX: 4.5, jitterY: 4.5, jitterRot: 1.2, jitterScale: 0.07,
-    cornerSpread: 14, cornerTravel: 11,
-    pressure: 0.15, pressureMod: 0.15, pooling: 3.5, iconTravel: 1.75, iconMaskScale: 1.5,
-  },
-
-  hatched: {
-    ...base, label: 'Hatched',
-    blurb: 'An etching. The fill is angled shading, the outline a single hard-edged scratch that chatters along its length. No mask: the hatch is the texture.',
-    fillTravel: 1.25, strokeTravel: 1.5, wobble: 24, roughness: 3, waveform: 3,
-    strokeWidth: 1.5, fillStyle: 'hatched', hatchInk: 0.5, doubleStroke: false,
-    maskOn: false, iconMaskOn: false,
-    jitterX: 1.5, jitterY: 1.5, jitterRot: 0.4, jitterScale: 0.03,
-    cornerSpread: 6, cornerTravel: 6,
-    pressure: 0.3, pressureMod: 0.45, pooling: 0.8, iconTravel: 1.25, iconWavelength: 0.5,
-  },
-
-  dashed: {
-    ...base, label: 'Dashed',
-    blurb: 'A drafting outline. One slow drift along the ruler, broken into strokes, with jitter, mask and pressure all off. The clean pole.',
-    strokeStyle: 'dashed', strokeTravel: 1, fillTravel: 0.5, wobble: 120, roughness: 1, waveform: 1,
-    strokeWidth: 1.5, doubleStroke: false,
-    maskOn: false, iconMaskOn: false,
-    jitterX: 0, jitterY: 0, jitterRot: 0, jitterScale: 0,
-    cornerSpread: 4, cornerTravel: 3,
-    pressure: 0, pressureMod: 0, pooling: 0, iconTravel: 0,
-  },
-
-  napkin: {
-    ...base, label: 'Napkin',
-    blurb: 'Ballpoint in a hurry. Everything loose at once: a square wave sends every edge to full travel, and the second pass lands wherever it lands.',
-    fillTravel: 3, strokeTravel: 2.25, wobble: 50, roughness: 3, waveform: 2.5,
-    strokeWidth: 2.25, doubleStroke: true, retracePass: 'reseeded', retraceOffset: 4, strokeInk: 1,
-    maskBlobX: 150, maskBlobY: 150, maskOutputMin: 0.43, maskOutputMax: 0.95, maskOctaves: 2, maskPosterize: 2, maskSoftness: 10,
-    jitterX: 6, jitterY: 6, jitterRot: 1.8, jitterScale: 0.1,
-    cornerSpread: 20, cornerTravel: 17,
-    pressure: 0.45, pressureMod: 0.6, pooling: 2.5, iconTravel: 2.25, iconMaskScale: 3.6,
-  },
-
-  dry: {
-    ...base, label: 'Dry marker',
-    blurb: 'Ink that ran out. One scratchy pass that breaks up along its length, over a fill the mask has worn nearly through in patches.',
-    fillTravel: 2.25, strokeTravel: 1.75, wobble: 50, waveform: 2, borderWavelength: 0.5,
-    strokeWidth: 3.5, doubleStroke: false, strokeInk: 0.4,
-    maskBlobX: 150, maskBlobY: 150, maskOutputMin: 0.24, maskOutputMax: 0.91,
-    maskOctaves: 2, maskPosterize: 4, maskSoftness: 1.75,
-    jitterX: 5, jitterY: 5, jitterRot: 1.4, jitterScale: 0.08,
-    cornerSpread: 16, cornerTravel: 13,
-    pressure: 0.4, pressureMod: 0.8, pooling: 1.5, iconTravel: 1.75, iconMaskScale: 3.8,
-  },
-};
+export const SKETCH_STYLES: Record<string, SketchStyle> = Object.fromEntries(
+  Object.entries(SHIPPED_FILES).map(([id, file]) => [id, file.settings as unknown as SketchStyle]),
+);
 
 export const DEFAULT_SKETCH_STYLE = 'marker';
 

@@ -31,13 +31,17 @@ import {
 
 /** `refreshSavedSketchStyles` lists, then loads each file it listed, so a stub
     has to answer both shapes. Returns once the pool holds them. */
-async function stubFiles(files: { fileName: string; name: string; settings: SketchStyle }[]) {
+async function stubFiles(
+  files: { fileName: string; name: string; settings: SketchStyle; isPackage?: boolean }[],
+) {
   vi.stubGlobal('fetch', async (url: string, init?: RequestInit) => {
     if (init?.method === 'PUT' || init?.method === 'DELETE') return new Response(null, { status: 200 });
     const match = files.find((f) => String(url).endsWith(`/${f.fileName}`));
     if (match) return new Response(JSON.stringify({ name: match.name, settings: match.settings }), { status: 200 });
     return new Response(JSON.stringify({
-      files: files.map((f) => ({ fileName: f.fileName, name: f.name, updatedAt: '' })),
+      files: files.map((f) => ({
+        fileName: f.fileName, name: f.name, updatedAt: '', isPackage: f.isPackage ?? false,
+      })),
     }), { status: 200 });
   });
   await refreshSavedSketchStyles();
@@ -325,6 +329,16 @@ describe('the sketchstyle pool', () => {
     const pencil = get(sketchLooks).find((l) => l.id === 'pencil')!;
     expect(pencil).toMatchObject({ label: 'My Pencil', source: 'file' });
     expect(pencil.settings.strokeWidth).toBe(SKETCH_STYLES.napkin.strokeWidth);
+  });
+
+  it('keeps a listed package look shipped, so the grid offers no delete for it', async () => {
+    await stubFiles([
+      { fileName: 'pencil', name: 'Pencil', settings: SKETCH_STYLES.pencil, isPackage: true },
+      { fileName: 'mine', name: 'Mine', settings: SKETCH_STYLES.napkin },
+    ]);
+
+    expect(get(sketchLooks).find((l) => l.id === 'pencil')).toMatchObject({ source: 'shipped' });
+    expect(get(sketchLooks).find((l) => l.id === 'mine')).toMatchObject({ source: 'file' });
   });
 
   it('hands a shadowed id back to its shipped look when the file goes', async () => {

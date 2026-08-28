@@ -352,10 +352,3 @@
 :where(:root) {
   color-scheme: dark;
 }
-
-/* Component aliases (production configs differing from defaults) */
-:root:root {
-  /* iconbutton */
-  --iconbutton-primary-surface: var(--surface-brand-high);
-  --iconbutton-secondary-surface: var(--surface-neutral-high);
-}

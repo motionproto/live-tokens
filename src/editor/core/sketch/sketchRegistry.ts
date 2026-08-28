@@ -2,11 +2,11 @@ import { derived, get, writable, type Readable } from 'svelte/store';
 import { SKETCH_STYLES, hydrateSketchStyle, type SketchStyle } from './sketchStyles';
 
 /** Where a look came from, which is what decides the affordances on offer.
-    `shipped` is the frozen constant compiled into the package, so there is
-    nothing to write or delete. `file` lives in this project's data tree, so the
-    editor can save over it and delete it. `registered` was handed to
-    `bootLiveTokens`, so it is real on a built site but owns no file the editor
-    could touch. */
+    `shipped` is served by the package: it has a file, but not one in this
+    project, so there is nothing here to save over or delete until the editor
+    writes a copy. `file` lives in this project's data tree, so the editor can
+    save over it and delete it. `registered` was handed to `bootLiveTokens`, so
+    it is real on a built site but owns no file the editor could touch. */
 export type SketchLookSource = 'shipped' | 'file' | 'registered';
 
 export interface SketchLook {
@@ -24,6 +24,10 @@ export interface RegisterSketchLookInput {
   label: string;
   blurb?: string;
   settings: unknown;
+  /** Only `replaceRegisteredLooks` sets this. A listing carries the package's
+      own sketchstyles as well as the project's, and the two differ in what the
+      editor may do to them, so the row's origin has to survive the trip. */
+  source?: SketchLookSource;
 }
 
 const SHIPPED: ReadonlyMap<string, SketchLook> = new Map(
@@ -87,7 +91,7 @@ export function replaceRegisteredLooks(next: RegisterSketchLookInput[]): void {
       if (shipped) out.set(id, shipped);
       else out.delete(id);
     }
-    for (const look of next) put(out, look, 'file');
+    for (const look of next) put(out, look, look.source ?? 'file');
     return out;
   });
   fromFiles = next.map((l) => l.id);

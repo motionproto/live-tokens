@@ -38,13 +38,17 @@ than just a name:
 - **Napkin.** Ballpoint in a hurry. Everything loose at once.
 - **Dry marker.** Ink that ran out. One scratchy pass over a mostly eaten fill.
 
+All seven ship as files, one per look, under
+`src/live-tokens/data/sketch-styles/` in the package. There is no look that
+exists only as code, so every one of them can be read, copied and edited.
+
 Pick one, then move whatever you like. **Save As** keeps your dials under a name
 of your own, alongside the shipped seven, as a file under
-`src/live-tokens/data/sketch-styles/`. **Save** writes them back over the
-sketchstyle you have selected, and lights as soon as the dials leave it. On one
-of your own it writes that file. On a shipped one it writes your project's own
-copy under the same name, which takes its place in the list; the shipped look is
-a constant in the package, so deleting your file brings it back. Both are a
+`src/live-tokens/data/sketch-styles/` in your project. **Save** writes them back
+over the sketchstyle you have selected, and lights as soon as the dials leave
+it. On one of your own it writes that file. On a shipped one it writes your
+project's own copy under the same name, which takes its place in the list;
+delete that copy and the shipped file behind it comes back. Both are a
 different gesture from saving a theme; see "Where the settings live" below.
 
 Your sketchstyles and the shipped ones are one list. A sketchstyle named after

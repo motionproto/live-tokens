@@ -56,6 +56,10 @@ async function request(method: string, url: string, body?: unknown) {
 
 const SETTINGS = { mode: 'layered', strokeWidth: 2.25, jitterX: 4, label: 'Blueprint' };
 
+/** The package ships every look as a file, so an empty project data dir still
+    lists seven. A user file joins them, and shadows one that takes its name. */
+const SHIPPED = ['pencil', 'marker', 'whiteboard', 'hatched', 'dashed', 'napkin', 'dry'];
+
 beforeEach(() => {
   tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'ltsk-'));
   componentsDir = path.join(tmp, 'components');
@@ -83,10 +87,11 @@ afterEach(() => {
 });
 
 describe('sketchstyles', () => {
-  it('lists nothing before anything is saved', async () => {
+  it('lists the shipped sketchstyles before anything is saved', async () => {
     const res = await request('GET', `${API}/sketch-styles`);
     expect(res.status).toBe(200);
-    expect(res.json.files).toEqual([]);
+    expect(res.json.files.map((f: any) => f.fileName).sort()).toEqual([...SHIPPED].sort());
+    expect(res.json.files.every((f: any) => f.isPackage)).toBe(true);
   });
 
   it('round-trips a saved sketchstyle and lists its display name', async () => {
@@ -101,8 +106,10 @@ describe('sketchstyles', () => {
     expect(got.json._fileName).toBe('blueprint');
 
     const list = await request('GET', `${API}/sketch-styles`);
-    expect(list.json.files).toHaveLength(1);
-    expect(list.json.files[0]).toMatchObject({ name: 'Blueprint', fileName: 'blueprint' });
+    expect(list.json.files).toHaveLength(SHIPPED.length + 1);
+    expect(list.json.files.find((f: any) => f.fileName === 'blueprint')).toMatchObject({
+      name: 'Blueprint', fileName: 'blueprint', isPackage: false,
+    });
   });
 
   it('keeps createdAt when a sketchstyle is overwritten', async () => {
@@ -140,7 +147,7 @@ describe('sketchstyles', () => {
     expect(del.status).toBe(200);
 
     const list = await request('GET', `${API}/sketch-styles`);
-    expect(list.json.files).toEqual([]);
+    expect(list.json.files.map((f: any) => f.fileName).sort()).toEqual([...SHIPPED].sort());
     expect((await request('GET', `${API}/sketch-styles/blueprint`)).status).toBe(404);
   });
 

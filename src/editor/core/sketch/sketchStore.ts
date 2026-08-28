@@ -284,6 +284,7 @@ export async function refreshSavedSketchStyles(): Promise<void> {
       id: file.fileName,
       label: file.name || file.fileName,
       settings: loaded[i].settings,
+      source: file.isPackage ? ('shipped' as const) : ('file' as const),
     })),
   );
 }

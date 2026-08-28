@@ -137,12 +137,12 @@
 
   let selectedLook = $derived($sketchLooks.find((l) => l.id === $sketchStyleName));
   /** Offered whenever the dials have moved off the sketchstyle they name. A
-      look backed by a file is written over. A shipped one owns no file to
-      write, so saving it writes this project's own under the same name, which
-      is how a project comes to own its Pencil: the id is the same, so the new
-      file takes the shipped one's place in the grid rather than sitting beside
-      it. Nothing is lost either way, since the shipped look is a constant in
-      the package and deleting the file brings it back. */
+      look backed by a project file is written over. A shipped one's file lives
+      in the package, so saving it writes this project's own under the same
+      name, which is how a project comes to own its Pencil: the id is the same,
+      so the new file takes the shipped one's place in the grid rather than
+      sitting beside it. Nothing is lost either way, since deleting that file
+      uncovers the packaged one again. */
   let canSave = $derived(!!selectedLook && $sketchDirty);
   let saveTitle = $derived(
     !selectedLook

@@ -190,16 +190,18 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
   const packageColorsAndTypeDir = path.join(packageDataDir, 'colors-and-type');
   const packageThemesDir = path.join(packageDataDir, 'themes');
   const packageComponentConfigsDir = path.join(packageDataDir, 'component-configs');
+  const packageSketchStylesDir = path.join(packageDataDir, 'sketch-styles');
 
-  /** Colors-and-type basenames the package ships, read from its own `files` listing. */
-  function shippedColorsAndTypeNames(dataDir: string): string[] {
+  /** Basenames the package ships under one data subdirectory, read from its own
+      `files` listing. The library repo's local dir IS the package dir, so this
+      is the only thing that can tell a shipped file from a user's there. */
+  function shippedNames(dataDir: string, subdir: string): string[] {
     try {
       const pkgRoot = path.resolve(dataDir, '..', '..', '..');
       const pkg = JSON.parse(fs.readFileSync(path.join(pkgRoot, 'package.json'), 'utf-8'));
       const files: string[] = Array.isArray(pkg.files) ? pkg.files : [];
-      return files
-        .filter((f) => /^src\/live-tokens\/data\/colors-and-type\/[^/]+\.json$/.test(f))
-        .map((f) => path.basename(f, '.json'));
+      const owned = new RegExp(`^src/live-tokens/data/${subdir}/[^/]+\\.json$`);
+      return files.filter((f) => owned.test(f)).map((f) => path.basename(f, '.json'));
     } catch {
       return [];
     }
@@ -224,7 +226,7 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
   const colorsAndTypeResource = versionedFileResourceServer({
     dir: COLORS_AND_TYPE_DIR,
     packageDir: packageColorsAndTypeDir,
-    packageOwnedNames: shippedColorsAndTypeNames(packageDataDir),
+    packageOwnedNames: shippedNames(packageDataDir, 'colors-and-type'),
   });
 
   // Per-component resources are constructed on demand because the set of
@@ -260,12 +262,17 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
     packageDir: packageThemesDir,
   });
 
-  // Sketchstyles — the dials a user saved from the Sketchstyle view. No
-  // packageDir: the shipped sketchstyles are code (`sketchStyles.ts`), so this
-  // directory holds nothing but user files. No pointer pair either: a
-  // sketchstyle is a library file, not the active document, so there is no
-  // active/production to name.
-  const sketchStylesResource = versionedFileResourceServer({ dir: SKETCH_STYLES_DIR });
+  // Sketchstyles — the shipped looks plus whatever the project saved. The
+  // package ships all seven as files, so a shipped look is editable the same way
+  // a shipped colors-and-type is: saving over one writes a project file that
+  // shadows it, and deleting that file falls back through packageDir to the
+  // shipped copy. No pointer pair: a sketchstyle is a library file, not the
+  // active document, so there is no active/production to name.
+  const sketchStylesResource = versionedFileResourceServer({
+    dir: SKETCH_STYLES_DIR,
+    packageDir: packageSketchStylesDir,
+    packageOwnedNames: shippedNames(packageDataDir, 'sketch-styles'),
+  });
 
   function ensureColorsAndTypeDir() {
     // No local default.json is written: `default` resolves to the shipped
@@ -1491,6 +1498,7 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
         name: data?.name || fileName,
         fileName,
         updatedAt: data?.updatedAt || '',
+        isPackage: sketchStylesResource.isPackageFile(fileName),
       };
     });
     jsonResponse(res, 200, { component: comp, files });
@@ -1917,6 +1925,7 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
         name: data?.name || fileName,
         fileName,
         updatedAt: data?.updatedAt || '',
+        isPackage: sketchStylesResource.isPackageFile(fileName),
       };
     });
     jsonResponse(res, 200, { files });
@@ -1959,7 +1968,19 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
     }
 
     if (req.method === 'DELETE') {
-      if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+      if (fs.existsSync(filePath)) {
+        // Deleting a local file that shadows a shipped sketchstyle restores the
+        // package version, which is how a look is reset to what it ships as.
+        fs.unlinkSync(filePath);
+      } else if (sketchStylesResource.existingPath(fileName)) {
+        // Only the package ships this one. Without the guard the delete would
+        // report ok while the look stays listed.
+        jsonResponse(res, 403, {
+          error: 'Cannot delete a sketchstyle shipped with the package. Saving it creates a local copy; deleting that copy restores the shipped version.',
+          code: 'PACKAGE_SKETCH_STYLE',
+        });
+        return;
+      }
       jsonResponse(res, 200, { ok: true });
       return;
     }

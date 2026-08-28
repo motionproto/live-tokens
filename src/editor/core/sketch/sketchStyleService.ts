@@ -12,6 +12,9 @@ export interface SketchStyleMeta {
   name: string;
   fileName: string;
   updatedAt: string;
+  /** Served from the package rather than this project, so there is no local
+      file to write over or delete. Saving over one creates that file. */
+  isPackage: boolean;
 }
 
 const BASE = `${API_BASE}/sketch-styles`;

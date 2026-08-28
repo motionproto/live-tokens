@@ -43,6 +43,26 @@
 
 ### Changed
 
+- **Every sketchstyle ships as a file.** The seven looks were a constant in
+  `sketchStyles.ts`. The Sketchstyle view could save over one, but the thing it
+  saved over had no file to read, copy or compare against, so "restore the
+  shipped Pencil" meant trusting that a deleted file fell back to something
+  nobody could open. They now ship as JSON under
+  `src/live-tokens/data/sketch-styles/`, one per look, and the module reads
+  them: the file is the look.
+
+  A shipped sketchstyle behaves like a shipped colors-and-type. Save over one
+  and your project gets its own copy that shadows it; delete that copy and the
+  packaged file comes back. The listing marks which is which (`isPackage`), and
+  deleting a look that only the package ships answers 403 rather than reporting
+  success and leaving it on screen.
+
+  Pencil, Marker and Whiteboard ship with reworked ink coverage. Pencil's grain
+  is now stretched and turned rather than square (`maskBlobX` 40 to 525 at 67
+  degrees, on turbulence), Marker's blobs are twice the size over a much higher
+  floor with the softness off, and Whiteboard's streak is finer and harder with
+  more rotation on the jitter. The other four are unchanged.
+
 - **Primary and secondary buttons rest one rung lower.**
   `--button-primary-surface` moves from `--surface-brand-high` to
   `--surface-brand` and `--button-secondary-surface` from
