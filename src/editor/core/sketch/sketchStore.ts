@@ -2,6 +2,7 @@ import { derived, get, writable } from 'svelte/store';
 import {
   SKETCH_STYLES,
   DEFAULT_SKETCH_STYLE,
+  THEME_SKETCH_ID,
   hydrateSketchStyle,
   type SketchStyle,
 } from './sketchStyles';
@@ -108,7 +109,10 @@ export const USER_STYLE_PREFIX = 'user:';
 function readStyleName(): string {
   try {
     const name = localStorage.getItem(STYLE_NAME_KEY);
-    if (name === '' || (name && (name in SKETCH_STYLES || name.startsWith(USER_STYLE_PREFIX)))) {
+    if (
+      name === '' ||
+      (name && (name in SKETCH_STYLES || name === THEME_SKETCH_ID || name.startsWith(USER_STYLE_PREFIX)))
+    ) {
       return name;
     }
   } catch {
@@ -122,8 +126,9 @@ function readStyleName(): string {
 export const sketchEnabled = writable<boolean>(readEnabled());
 export const sketchSettings = writable<SketchStyle>(readSettings());
 /** The sketchstyle the dials started from. It survives dial moves, so the grid
-    keeps showing what the current look is closest to; empty only when nothing
-    was picked, or the picked file was deleted. */
+    keeps showing what the current look is closest to. A shipped id, a `user:`
+    file, or `THEME_SKETCH_ID` for the look the open theme carries; empty only
+    when nothing was picked, or the picked file was deleted. */
 export const sketchStyleName = writable<string>(readStyleName());
 
 /** The settings as the selected sketchstyle defined them. Kept beside the live
@@ -134,7 +139,7 @@ export const sketchBaseline = writable<SketchStyle | null>(readBaseline());
 
 /** Dial-set fields only. `label` and `blurb` name the sketchstyle rather than
     describe the look, and no dial writes them. */
-function sameLook(a: SketchStyle, b: SketchStyle): boolean {
+export function sameLook(a: SketchStyle, b: SketchStyle): boolean {
   return (Object.keys(a) as (keyof SketchStyle)[])
     .filter((k) => k !== 'label' && k !== 'blurb')
     .every((k) => a[k] === b[k]);
@@ -184,8 +189,51 @@ export function openThemeSketchStyle(sketchStyle: SketchStyle | undefined): void
   const matched = (Object.keys(SKETCH_STYLES) as string[]).find((name) => sameLook(SKETCH_STYLES[name], sketchStyle));
   sketchSettings.set({ ...sketchStyle });
   sketchBaseline.set({ ...sketchStyle });
-  sketchStyleName.set(matched ?? '');
+  sketchStyleName.set(matched ?? THEME_SKETCH_ID);
   sketchEnabled.set(true);
+}
+
+/**
+ * Take the sketchstyle a theme carries as this browser's own, unless this
+ * browser has already decided for itself.
+ *
+ * The rule boot has always followed in dev, and the only one a built site has:
+ * a visitor who picked a look, or picked None, keeps it, and `themeSketchStyle`
+ * still learns what the theme holds so the panel can call the difference
+ * unsaved. Both branches set it, so a picker can offer the theme's look as a
+ * row either way.
+ *
+ * Takes the raw field rather than a `SketchStyle`, and hydrates it here: a
+ * built site reads its theme JSON straight off disk with no dev server to run
+ * `normalizeTheme` over it first, so this is the only place a look stored under
+ * a retired dial name gets carried forward. Anything that is not an object is
+ * the absent case, which is off (invariant 3).
+ */
+export function seedSketchFromTheme(sketchStyle: unknown): void {
+  const style =
+    typeof sketchStyle === 'object' && sketchStyle !== null && !Array.isArray(sketchStyle)
+      ? hydrateSketchStyle(sketchStyle)
+      : undefined;
+  if (hasPersistedSketchState()) {
+    themeSketchStyle.set(style);
+    return;
+  }
+  openThemeSketchStyle(style);
+}
+
+/** Go back to the look the theme carries, after picking something else. The
+    theme's is the one look a picker can offer that this module did not ship, so
+    it needs a door of its own beside `selectSketchStyle`; `setSketch` gives the
+    two the same face. Silent when the theme carries none, the way
+    `selectSketchStyle` is for a name it does not know. */
+export function selectThemeSketchStyle(): void {
+  const style = get(themeSketchStyle);
+  if (!style) return;
+  markSketchTouched();
+  if (get(sketchEnabled)) liveMovedSinceBake.set(true);
+  sketchStyleName.set(THEME_SKETCH_ID);
+  sketchBaseline.set({ ...style });
+  sketchSettings.set({ ...style });
 }
 
 /** The live sketch differs from what the open theme carries. Presence is

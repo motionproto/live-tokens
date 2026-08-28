@@ -216,6 +216,12 @@ export const SKETCH_STYLES: Record<string, SketchStyle> = {
 
 export const DEFAULT_SKETCH_STYLE = 'marker';
 
+/** The id of the look a theme carries, in the same id namespace as the shipped
+    sketchstyles so one picker row and one `setSketch` call cover both. Never a
+    key of `SKETCH_STYLES`: a shipped style claiming it would shadow the theme's
+    own look in every picker. `index.test.ts` pins that. */
+export const THEME_SKETCH_ID = 'theme';
+
 /** Reconciled against a full sketchstyle in both directions: a value stored before a
     control existed picks up the default, and a value stored for a control since
     retired is dropped. Without the drop, a stale key survives every spread and

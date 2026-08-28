@@ -1,6 +1,14 @@
-import { derived, type Readable } from 'svelte/store';
-import { SKETCH_STYLES } from './sketchStyles';
-import { selectSketchStyle, setSketchEnabled, sketchEnabled, sketchStyleName } from './sketchStore';
+import { derived, get, type Readable } from 'svelte/store';
+import { SKETCH_STYLES, THEME_SKETCH_ID } from './sketchStyles';
+import {
+  sameLook,
+  selectSketchStyle,
+  selectThemeSketchStyle,
+  setSketchEnabled,
+  sketchEnabled,
+  sketchStyleName,
+  themeSketchStyle,
+} from './sketchStore';
 
 export interface SketchLook {
   /** What `setSketch` takes. */
@@ -10,10 +18,29 @@ export interface SketchLook {
 }
 
 /** The shipped sketchstyles. A picker adds its own "None" row: off is a state
-    of the effect, not one of the looks. */
+    of the effect, not one of the looks. A theme's own look is not here either,
+    since it is not shipped; `themeSketchLook` carries that one row. */
 export const SKETCH_LOOKS: readonly SketchLook[] = Object.entries(SKETCH_STYLES).map(
   ([id, style]) => ({ id, label: style.label, blurb: style.blurb }),
 );
+
+/**
+ * The look the open theme carries, as one more row for a picker: same shape as
+ * a shipped look, and `setSketch` takes its id like any other. Null when the
+ * theme carries no sketchstyle, and null when what it carries IS one of the
+ * shipped looks, since that look's own row already names it.
+ *
+ * Without this row the theme's look is a one-way door: a visitor lands on it,
+ * picks Pencil, and nothing can take them back. It is also the only thing that
+ * can name that look, which no shipped label can do honestly. A theme tuned off
+ * `marker` still carries the label "Marker", so a row built from the style's
+ * own label would sit beside the shipped Marker claiming to be it.
+ */
+export const themeSketchLook: Readable<SketchLook | null> = derived(themeSketchStyle, (style) => {
+  if (!style) return null;
+  if (Object.values(SKETCH_STYLES).some((shipped) => sameLook(shipped, style))) return null;
+  return { id: THEME_SKETCH_ID, label: 'Theme', blurb: 'The look this theme carries.' };
+});
 
 /**
  * What the page is drawing with. Three states, not two: the effect can be on
@@ -31,10 +58,11 @@ export type SketchPick =
   | { state: 'adjusted' };
 
 export const sketchPick: Readable<SketchPick> = derived(
-  [sketchEnabled, sketchStyleName],
-  ([on, name]): SketchPick => {
+  [sketchEnabled, sketchStyleName, themeSketchLook],
+  ([on, name, themeLook]): SketchPick => {
     if (!on) return { state: 'off' };
-    const look = SKETCH_LOOKS.find((l) => l.id === name);
+    const look =
+      SKETCH_LOOKS.find((l) => l.id === name) ?? (themeLook && themeLook.id === name ? themeLook : undefined);
     return look ? { state: 'look', look } : { state: 'adjusted' };
   },
 );
@@ -52,8 +80,16 @@ export function setSketch(id: string | null): void {
     setSketchEnabled(false);
     return;
   }
+  if (id === THEME_SKETCH_ID) {
+    if (!get(themeSketchStyle)) {
+      throw new Error('No theme sketchstyle to draw with. `themeSketchLook` is null unless a theme carries one.');
+    }
+    selectThemeSketchStyle();
+    setSketchEnabled(true);
+    return;
+  }
   if (!(id in SKETCH_STYLES)) {
-    throw new Error(`Unknown sketchstyle "${id}". Ids come from SKETCH_LOOKS.`);
+    throw new Error(`Unknown sketchstyle "${id}". Ids come from SKETCH_LOOKS and themeSketchLook.`);
   }
   selectSketchStyle(id);
   setSketchEnabled(true);
@@ -68,3 +104,28 @@ export function setSketch(id: string | null): void {
  * key directly is not an option worth offering — it is ours to rename.
  */
 export { hasPersistedSketchState } from './sketchStore';
+
+/**
+ * Draw the page with the sketchstyle a theme carries, unless this browser has
+ * already decided for itself.
+ *
+ * The route from a saved theme to a built page. Hand it the theme's
+ * `sketchStyle` field, raw: a built site has no theme API, so it reads its own
+ * theme JSON and this hydrates what it finds. Absent, `null`, or anything that
+ * is not an object all mean the same thing, which is no sketch.
+ *
+ * Call it before mounting, the way dev boot does (`bootstrap.ts` awaits
+ * `initializeTheme` first), so the look is up on the first frame rather than
+ * arriving over a crisp page.
+ *
+ * A visitor who has recorded a pick of their own keeps it, None included: this
+ * seeds an undecided browser and never overwrites a decided one, so it is safe
+ * to call on every boot. `themeSketchLook` is populated either way, so a picker
+ * can offer the theme's look as a row whether or not this painted it.
+ */
+export { seedSketchFromTheme } from './sketchStore';
+
+/** The dial set a theme's `sketchStyle` field holds, for a consumer typing the
+    value it pulled out of its own theme JSON. `seedSketchFromTheme` takes it
+    raw, so nothing has to be cast to hand it over. */
+export type { SketchStyle } from './sketchStyles';

@@ -5,7 +5,7 @@ import { loadFromFile, seedComponentsFromApi } from '../store/editorStore';
 import { getActiveComponentConfig, type ComponentSummary } from '../components/componentConfigService';
 import { safeFetch } from '../storage/storage';
 import { API_BASE } from '../storage/apiBase';
-import { hasPersistedSketchState, openThemeSketchStyle, themeSketchStyle } from '../sketch/sketchStore';
+import { seedSketchFromTheme } from '../sketch/sketchStore';
 
 interface ListComponentsDto {
   components: ComponentSummary[];
@@ -67,16 +67,7 @@ export async function initializeTheme(): Promise<void> {
   // A failed fetch is not "the theme carries no sketchstyle": treating null as
   // absent would tell the panel the look is off the theme, or hand a fresh
   // browser a blank buffer, over a fetch that will likely succeed next time.
-  if (active) {
-    if (hasPersistedSketchState()) {
-      // The buffer already painted on the first frame; boot only learns what
-      // the theme holds so unsaved dial work reads as unsaved rather than
-      // getting silently overwritten (that overwrite is what Apply is for).
-      themeSketchStyle.set(active.sketchStyle);
-    } else {
-      // Nothing was ever recorded in this browser: the theme's value becomes
-      // the live value, the same reconciliation opening a theme performs.
-      openThemeSketchStyle(active.sketchStyle);
-    }
-  }
+  // The same call a built site makes (`@motion-proto/live-tokens/sketch`), so
+  // one rule decides what a theme's sketchstyle means at boot in both.
+  if (active) seedSketchFromTheme(active.sketchStyle);
 }

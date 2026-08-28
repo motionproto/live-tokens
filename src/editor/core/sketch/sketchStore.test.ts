@@ -2,7 +2,13 @@
 
 import { get } from 'svelte/store';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { DEFAULT_SKETCH_STYLE, hydrateSketchStyle, SKETCH_STYLES, type SketchStyle } from './sketchStyles';
+import {
+  DEFAULT_SKETCH_STYLE,
+  hydrateSketchStyle,
+  SKETCH_STYLES,
+  THEME_SKETCH_ID,
+  type SketchStyle,
+} from './sketchStyles';
 import { liveMovedSinceBake } from '../productionPulse';
 import {
   liveSketchStyle,
@@ -78,12 +84,12 @@ describe('openThemeSketchStyle', () => {
     expect(get(sketchDirty)).toBe(false);
   });
 
-  it('selects no sketchstyle when the theme dials match none of the shipped set, and still reads clean', () => {
+  it('names the theme itself when its dials match none of the shipped set, and still reads clean', () => {
     const custom: SketchStyle = { ...SKETCH_STYLES.napkin, fillTravel: 9.5 };
 
     openThemeSketchStyle(custom);
 
-    expect(get(sketchStyleName)).toBe('');
+    expect(get(sketchStyleName)).toBe(THEME_SKETCH_ID);
     expect(get(sketchDirty)).toBe(false);
   });
 });

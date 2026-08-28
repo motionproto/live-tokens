@@ -1,5 +1,57 @@
 # Changelog
 
+## 0.66.0 — A theme's sketchstyle reaches the built site
+
+### Added
+
+- **`seedSketchFromTheme` carries a theme's sketchstyle into a build.** A theme
+  saved from the Sketchstyle view carries its dials, and 0.63.0 said in as many
+  words that a built site ships no sketch. That left a theme half applied: the
+  page in dev drew with the look the theme records, the page a visitor gets drew
+  with whatever shipped preset the bundle happened to hold. Three links dropped
+  it, and only one of them was a decision. `initializeTheme` runs behind
+  `import.meta.env.DEV`, so nothing in a build ever read the field; the entry
+  point exported no way to apply a look it had not shipped; and there was
+  nothing for the field to be baked into, since the layer is an SVG filter bank
+  rather than a set of custom properties.
+
+  The new export is the whole route. Hand it the theme's `sketchStyle` field
+  before mounting and the built page draws with it:
+
+  ```ts
+  import { seedSketchFromTheme } from '@motion-proto/live-tokens/sketch';
+
+  seedSketchFromTheme(theme.sketchStyle);
+  await bootLiveTokens(App, '#app');
+  ```
+
+  It takes the field raw and hydrates it, because a built site reads its theme
+  JSON with no dev server to run `normalizeTheme` over it first. Absent, `null`,
+  and anything that is not an object all mean no sketch, which is what absence
+  has always meant.
+
+  It is the rule boot already followed, not a second one: `initializeTheme` now
+  calls it too, so one piece of code decides what a theme's sketchstyle means at
+  boot in dev and in production. A visitor who has recorded a pick keeps it,
+  None included. The theme seeds a browser that has decided nothing and never
+  overwrites one that has, so calling it on every boot is safe.
+
+  Adopt still bakes nothing, and `tokens.generated.css` still holds token values
+  only. That half of 0.63.0's note stands; what it said about a built site
+  shipping no sketch does not.
+
+- **`themeSketchLook` is the theme's own look, as a picker row.** A seeded look
+  that no shipped sketchstyle names read as `adjusted` through `sketchPick`, so
+  a picker could only label a look it had just booted into "Adjusted", and a
+  visitor who moved off it had no way back. The new store carries the same
+  `id`/`label`/`blurb` shape a shipped look has, `setSketch` takes its id, and
+  `sketchPick` reports it as the look it is. It is null when the theme carries
+  no sketchstyle, and null when what it carries is one of the shipped looks,
+  since that look's own row already names it.
+
+- **`SketchStyle` is exported from `@motion-proto/live-tokens/sketch`**, so a
+  site can type the field it pulled out of its own theme JSON.
+
 ## 0.65.1 — applyFontStacks returns what it wrote
 
 ### Changed

@@ -6,7 +6,7 @@ they are drawn with.
 
 It is an effect layer, not a set of token values. It never touches a token
 itself, so turning it off returns every component to exactly what its tokens
-already say. A production build never carries the drawing.
+already say.
 
 Open the **Sketchstyle** view in the editor and switch **Sketch mode** on. The effect
 applies to the page behind the editor as well as to the preview, so what you see
@@ -86,9 +86,36 @@ writes a named sketchstyle to `src/live-tokens/data/sketch-styles/`, a look you
 can pick from any theme. It never touches the open theme, and it never marks
 the look off the theme.
 
-Sketch mode is a tool for looking at the page, not a layer the page can ship.
-The theme records the dials, but nothing bakes them: `tokens.generated.css`
-never sees them, and a production build has no sketch layer in it at all.
+## Shipping the layer
+
+The dev server reads the open theme and paints whatever it carries. A built site
+has no server to ask, so it hands the field over itself:
+
+```ts
+import { seedSketchFromTheme } from '@motion-proto/live-tokens/sketch';
+import theme from './live-tokens/data/themes/sketchy.json';
+
+seedSketchFromTheme(theme.sketchStyle);
+await bootLiveTokens(App, '#app');
+```
+
+Call it before mounting, so the look is up on the first frame. Pass the field
+raw. A theme written against older dial names is carried forward on the way in,
+the same reconciliation the dev server runs on every theme it reads.
+
+Nothing is baked. `tokens.generated.css` still holds token values only, and the
+layer stays JavaScript the page runs, because it builds an SVG filter bank
+rather than a set of custom properties.
+
+A visitor who has picked a look of their own keeps it, None included. The theme
+seeds a browser that has decided nothing and never overwrites one that has, so
+calling this on every boot is safe.
+
+If your site offers a sketch picker, `themeSketchLook` is the theme's own look
+as one more row. It is null when the theme carries none, and null when what it
+carries is one of the shipped seven, since that row already names it. Give the
+row `setSketch(look.id)` like any other, and a visitor who wanders off the
+theme's look can come back to it.
 
 ## Drawing your own elements
 

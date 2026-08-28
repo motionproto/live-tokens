@@ -1,7 +1,8 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import LabeledSelect from './LabeledSelect.svelte';
-  import { SKETCH_STYLES } from '../editor/core/sketch/sketchStyles';
+  import { SKETCH_STYLES, THEME_SKETCH_ID } from '../editor/core/sketch/sketchStyles';
+  import { themeSketchLook } from '../editor/core/sketch';
   import {
     sketchEnabled,
     sketchStyleName,
@@ -9,6 +10,7 @@
     refreshSavedSketchStyles,
     selectSketchStyle,
     selectSavedSketchStyle,
+    selectThemeSketchStyle,
     setSketchEnabled,
     USER_STYLE_PREFIX,
   } from '../editor/core/sketch/sketchStore';
@@ -20,6 +22,10 @@
 
   const items = $derived([
     { value: NONE, label: 'None' },
+    /* The look the open theme carries, when no shipped one names it. Without
+       the row the select reads None over a drawn page, and a visitor who picks
+       something else cannot get back. */
+    ...($themeSketchLook ? [{ value: $themeSketchLook.id, label: $themeSketchLook.label }] : []),
     ...Object.entries(SKETCH_STYLES).map(([value, style]) => ({ value, label: style.label })),
     ...$savedSketchStyles.map(({ fileName, name }) => ({
       value: USER_STYLE_PREFIX + fileName,
@@ -47,7 +53,9 @@
         setSketchEnabled(false);
         return;
       }
-      if (next.startsWith(USER_STYLE_PREFIX)) {
+      if (next === THEME_SKETCH_ID) {
+        selectThemeSketchStyle();
+      } else if (next.startsWith(USER_STYLE_PREFIX)) {
         await selectSavedSketchStyle(next.slice(USER_STYLE_PREFIX.length));
       } else {
         selectSketchStyle(next);
