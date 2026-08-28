@@ -18,8 +18,6 @@
     selectedSketchStyleId,
     sketchDirty,
     sketchSettings,
-    selectSketchStyle,
-    selectUnsavedSketchStyle,
     updateSketchSettings,
     refreshSavedSketchStyles,
     saveCurrentSketchStyle,
@@ -27,7 +25,7 @@
     deleteSavedSketchStyle,
   } from '../../core/sketch/sketchStore';
   import { sketchStyles } from '../../core/sketch/sketchRegistry';
-  import { unsavedSketchStyle } from '../../core/sketch';
+  import { setSketch, unsavedSketchStyle } from '../../core/sketch';
   import { THEME_SKETCH_ID } from '../../core/sketch/sketchStyles';
 
   interface Props {
@@ -132,7 +130,12 @@
   });
 
   /** Shipped and saved sketchstyles are one choice, so they share one radio
-      group: picking a saved one clears the shipped selection natively. */
+      group: picking a saved one clears the shipped selection natively.
+
+      Picks go through `setSketch`, the same door a page picker uses, so one is
+      the whole gesture: the style is applied, the effect comes on, and the
+      page's own picker follows. Selecting without applying would leave the two
+      pickers disagreeing about what the page is drawn with. */
   const STYLE_RADIO_GROUP = 'sketchstyle';
 
   /** What the readout under the grid says. The selection survives a dial move,
@@ -362,7 +365,7 @@
                 name={STYLE_RADIO_GROUP}
                 value={$unsavedSketchStyle.id}
                 checked={onUnsavedSketchStyle}
-                onchange={selectUnsavedSketchStyle}
+                onchange={() => setSketch(THEME_SKETCH_ID)}
               />
               <span class="preset-name">{$unsavedSketchStyle.label}</span>
             </label>
@@ -376,7 +379,7 @@
                 name={STYLE_RADIO_GROUP}
                 value={style.id}
                 checked={$selectedSketchStyleId === style.id}
-                onchange={() => selectSketchStyle(style.id)}
+                onchange={() => setSketch(style.id)}
               />
               <span class="preset-name">{style.label}</span>
             </label>
@@ -688,7 +691,7 @@
               />
             </div>
           </div>
-          {#if !s.maskBlobLinked}
+          {#if s.maskBlobX !== s.maskBlobY}
             <SketchDial
               label="Rotation" value={s.maskAngle} min={0} max={180} step={1}
               readout={`${blobAngle}°`}

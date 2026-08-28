@@ -1,0 +1,3962 @@
+{
+  "name": "Motion ProtoB",
+  "createdAt": "2026-08-28T21:17:51.681Z",
+  "updatedAt": "2026-08-28T21:17:51.685Z",
+  "schemaVersion": 5,
+  "colorsAndType": {
+    "name": "Motion Proto",
+    "createdAt": "2026-04-01T11:00:38.342Z",
+    "updatedAt": "2026-08-14T19:14:47.000Z",
+    "editorConfigs": {
+      "Neutral": {
+        "baseColor": "#70787e",
+        "lightnessCurve": [
+          {
+            "x": 0,
+            "y": 92,
+            "inDx": 0,
+            "inDy": 0,
+            "outDx": 13.33,
+            "outDy": -11.74
+          },
+          {
+            "x": 40,
+            "y": 56.79,
+            "inDx": -13.33,
+            "inDy": 11.84,
+            "outDx": 20,
+            "outDy": -17.76
+          },
+          {
+            "x": 100,
+            "y": 3,
+            "inDx": -20,
+            "inDy": 17.93,
+            "outDx": 0,
+            "outDy": 0
+          }
+        ],
+        "saturationCurve": [
+          {
+            "x": 0,
+            "y": 100,
+            "inDx": 0,
+            "inDy": 0,
+            "outDx": 13.33,
+            "outDy": 0
+          },
+          {
+            "x": 40,
+            "y": 100,
+            "inDx": -13.33,
+            "inDy": 0,
+            "outDx": 20,
+            "outDy": 0
+          },
+          {
+            "x": 100,
+            "y": 100,
+            "inDx": -20,
+            "inDy": 0,
+            "outDx": 0,
+            "outDy": 0
+          }
+        ],
+        "scaleCurves": {
+          "Surfaces": {
+            "lightness": [
+              {
+                "x": 0,
+                "y": 15,
+                "inDx": 0,
+                "inDy": 0,
+                "outDx": 0,
+                "outDy": 0
+              },
+              {
+                "x": 100,
+                "y": 67,
+                "inDx": 0,
+                "inDy": 0,
+                "outDx": 0,
+                "outDy": 0
+              }
+            ],
+            "saturation": [
+              {
+                "x": 0,
+                "y": 156,
+                "inDx": 0,
+                "inDy": 0,
+                "outDx": 0,
+                "outDy": 0
+              },
+              {
+                "x": 100,
+                "y": 65,
+                "inDx": 0,
+                "inDy": 0,
+                "outDx": 0,
+                "outDy": 0
+              }
+            ]
+          },
+          "Borders": {
+            "lightness": [
+              {
+                "x": 0,
+                "y": 25,
+                "inDx": 0,
+                "inDy": 0,
+                "outDx": 0,
+                "outDy": 0
+              },
+              {
+                "x": 100,
+                "y": 73,
+                "inDx": 0,
+                "inDy": 0,
+                "outDx": 0,
+                "outDy": 0
+              }
+            ],
+            "saturation": [
+              {
+                "x": 0,
+                "y": 100,
+                "inDx": 0,
+                "inDy": 0,
+                "outDx": 33.33,
+                "outDy": 0
+              },
+              {
+                "x": 100,
+                "y": 100,
+                "inDx": -33.33,
+                "inDy": 0,
+                "outDx": 0,
+                "outDy": 0
+              }
+            ]
+          },
+          "Text": {
+            "lightness": [
+              {
+                "x": 0,
+                "y": 197,
+                "inDx": 0,
+                "inDy": 0,
+                "outDx": 33.33,
+                "outDy": -45.67
+              },
+              {
+                "x": 100,
+                "y": 60,
+                "inDx": -33.33,
+                "inDy": 45.67,
+                "outDx": 0,
+                "outDy": 0
+              }
+            ],
+            "saturation": [
+              {
+                "x": 0,
+                "y": 127,
+                "inDx": 0,
+                "inDy": 0,
+                "outDx": 0,
+                "outDy": 0
+              },
+              {
+                "x": 100,
+                "y": 2,
+                "inDx": -33.33,
+                "inDy": 41.67,
+                "outDx": 0,
+                "outDy": 0
+              }
+            ]
+          }
+        },
+        "curveOffset": {
+          "lightness": 0,
+          "saturation": 0
+        },
+        "overrides": {},
+        "snappedScales": [],
+        "anchorToBase": true,
+        "anchorPlacement": {
+          "step": 4,
+          "priorLightnessEndpoints": [
+            {
+              "x": 0,
+              "y": 92,
+              "inDx": 0,
+              "inDy": 0,
+              "outDx": 33.33,
+              "outDy": -29.67
+            },
+            {
+              "x": 100,
+              "y": 3,
+              "inDx": -33.33,
+              "inDy": 29.67,
+              "outDx": 0,
+              "outDy": 0
+            }
+          ],
+          "priorSaturationEndpoints": [
+            {
+              "x": 0,
+              "y": 100,
+              "inDx": 0,
+              "inDy": 0,
+              "outDx": 33.33,
+              "outDy": 0
+            },
+            {
+              "x": 100,
+              "y": 100,
+              "inDx": -33.33,
+              "inDy": 0,
+              "outDx": 0,
+              "outDy": 0
+            }
+          ]
+        }
+      },
+      "Alternate": {
+        "baseColor": "#817b78",
+        "lightnessCurve": [
+          {
+            "x": 0,
+            "y": 92,
+            "inDx": 0,
+            "inDy": 0,
+            "outDx": 13.33,
+            "outDy": -11.09
+          },
+          {
+            "x": 40,
+            "y": 58.73,
+            "inDx": -13.33,
+            "inDy": 11.66,
+            "outDx": 20,
+            "outDy": -17.49
+          },
+          {
+            "x": 100,
+            "y": 3,
+            "inDx": -20,
+            "inDy": 18.58,
+            "outDx": 0,
+            "outDy": 0
+          }
+        ],
+        "saturationCurve": [
+          {
+            "x": 0,
+            "y": 100,
+            "inDx": 0,
+            "inDy": 0,
+            "outDx": 13.33,
+            "outDy": 0
+          },
+          {
+            "x": 40,
+            "y": 100,
+            "inDx": -13.33,
+            "inDy": 0,
+            "outDx": 20,
+            "outDy": 0
+          },
+          {
+            "x": 100,
+            "y": 100,
+            "inDx": -20,
+            "inDy": 0,
+            "outDx": 0,
+            "outDy": 0
+          }
+        ],
+        "scaleCurves": {
+          "Surfaces": {
+            "lightness": [
+              {
+                "x": 0,
+                "y": 15,
+                "inDx": 0,
+                "inDy": 0,
+                "outDx": 0,
+                "outDy": 0
+              },
+              {
+                "x": 100,
+                "y": 67,
+                "inDx": 0,
+                "inDy": 0,
+                "outDx": 0,
+                "outDy": 0
+              }
+            ],
+            "saturation": [
+              {
+                "x": 0,
+                "y": 156,
+                "inDx": 0,
+                "inDy": 0,
+                "outDx": 0,
+                "outDy": 0
+              },
+              {
+                "x": 100,
+                "y": 65,
+                "inDx": 0,
+                "inDy": 0,
+                "outDx": 0,
+                "outDy": 0
+              }
+            ]
+          },
+          "Borders": {
+            "lightness": [
+              {
+                "x": 0,
+                "y": 25,
+                "inDx": 0,
+                "inDy": 0,
+                "outDx": 0,
+                "outDy": 0
+              },
+              {
+                "x": 100,
+                "y": 73,
+                "inDx": 0,
+                "inDy": 0,
+                "outDx": 0,
+                "outDy": 0
+              }
+            ],
+            "saturation": [
+              {
+                "x": 0,
+                "y": 100,
+                "inDx": 0,
+                "inDy": 0,
+                "outDx": 33.33,
+                "outDy": 0
+              },
+              {
+                "x": 100,
+                "y": 100,
+                "inDx": -33.33,
+                "inDy": 0,
+                "outDx": 0,
+                "outDy": 0
+              }
+            ]
+          },
+          "Text": {
+            "lightness": [
+              {
+                "x": 0,
+                "y": 197,
+                "inDx": 0,
+                "inDy": 0,
+                "outDx": 33.33,
+                "outDy": -45.67
+              },
+              {
+                "x": 100,
+                "y": 60,
+                "inDx": -33.33,
+                "inDy": 45.67,
+                "outDx": 0,
+                "outDy": 0
+              }
+            ],
+            "saturation": [
+              {
+                "x": 0,
+                "y": 127,
+                "inDx": 0,
+                "inDy": 0,
+                "outDx": 0,
+                "outDy": 0
+              },
+              {
+                "x": 100,
+                "y": 2,
+                "inDx": -33.33,
+                "inDy": 41.67,
+                "outDx": 0,
+                "outDy": 0
+              }
+            ]
+          }
+        },
+        "curveOffset": {
+          "Text-lightness": 0,
+          "lightness": 0,
+          "saturation": 0
+        },
+        "overrides": {},
+        "snappedScales": [],
+        "anchorToBase": true,
+        "anchorPlacement": {
+          "step": 4,
+          "priorLightnessEndpoints": [
+            {
+              "x": 0,
+              "y": 92,
+              "inDx": 0,
+              "inDy": 0,
+              "outDx": 33.33,
+              "outDy": -29.67
+            },
+            {
+              "x": 100,
+              "y": 3,
+              "inDx": -33.33,
+              "inDy": 29.67,
+              "outDx": 0,
+              "outDy": 0
+            }
+          ],
+          "priorSaturationEndpoints": [
+            {
+              "x": 0,
+              "y": 100,
+              "inDx": 0,
+              "inDy": 0,
+              "outDx": 33.33,
+              "outDy": 0
+            },
+            {
+              "x": 100,
+              "y": 100,
+              "inDx": -33.33,
+              "inDy": 0,
+              "outDx": 0,
+              "outDy": 0
+            }
+          ]
+        }
+      },
+      "Brand": {
+        "baseColor": "#fb2898",
+        "lightnessCurve": [
+          {
+            "x": 0,
+            "y": 95,
+            "inDx": 0,
+            "inDy": 0,
+            "outDx": 10,
+            "outDy": -9.76
+          },
+          {
+            "x": 30,
+            "y": 65.72,
+            "inDx": -10,
+            "inDy": 9.04,
+            "outDx": 23.33,
+            "outDy": -21.09
+          },
+          {
+            "x": 100,
+            "y": 8,
+            "inDx": -23.33,
+            "inDy": 19.24,
+            "outDx": 0,
+            "outDy": 0
+          }
+        ],
+        "saturationCurve": [
+          {
+            "x": 0,
+            "y": 100,
+            "inDx": 0,
+            "inDy": 0,
+            "outDx": 10,
+            "outDy": 0
+          },
+          {
+            "x": 30,
+            "y": 100,
+            "inDx": -10,
+            "inDy": 0,
+            "outDx": 23.33,
+            "outDy": 0
+          },
+          {
+            "x": 100,
+            "y": 100,
+            "inDx": -23.33,
+            "inDy": 0,
+            "outDx": 0,
+            "outDy": 0
+          }
+        ],
+        "scaleCurves": {
+          "Surfaces": {
+            "lightness": [
+              {
+                "x": 0,
+                "y": 15,
+                "inDx": 0,
+                "inDy": 0,
+                "outDx": 0,
+                "outDy": 0
+              },
+              {
+                "x": 100,
+                "y": 67,
+                "inDx": 0,
+                "inDy": 0,
+                "outDx": 0,
+                "outDy": 0
+              }
+            ],
+            "saturation": [
+              {
+                "x": 0,
+                "y": 156,
+                "inDx": 0,
+                "inDy": 0,
+                "outDx": 0,
+                "outDy": 0
+              },
+              {
+                "x": 100,
+                "y": 65,
+                "inDx": 0,
+                "inDy": 0,
+                "outDx": 0,
+                "outDy": 0
+              }
+            ]
+          },
+          "Borders": {
+            "lightness": [
+              {
+                "x": 0,
+                "y": 25,
+                "inDx": 0,
+                "inDy": 0,
+                "outDx": 0,
+                "outDy": 0
+              },
+              {
+                "x": 100,
+                "y": 73,
+                "inDx": 0,
+                "inDy": 0,
+                "outDx": 0,
+                "outDy": 0
+              }
+            ],
+            "saturation": [
+              {
+                "x": 0,
+                "y": 100,
+                "inDx": 0,
+                "inDy": 0,
+                "outDx": 33.33,
+                "outDy": 0
+              },
+              {
+                "x": 100,
+                "y": 100,
+                "inDx": -33.33,
+                "inDy": 0,
+                "outDx": 0,
+                "outDy": 0
+              }
+            ]
+          },
+          "Text": {
+            "lightness": [
+              {
+                "x": 0,
+                "y": 113,
+                "inDx": 0,
+                "inDy": 0,
+                "outDx": 0,
+                "outDy": 0
+              },
+              {
+                "x": 100,
+                "y": 51,
+                "inDx": -33.33,
+                "inDy": 20.67,
+                "outDx": 0,
+                "outDy": 0
+              }
+            ],
+            "saturation": [
+              {
+                "x": 0,
+                "y": 127,
+                "inDx": 0,
+                "inDy": 0,
+                "outDx": 0,
+                "outDy": 0
+              },
+              {
+                "x": 100,
+                "y": 2,
+                "inDx": -33.33,
+                "inDy": 41.67,
+                "outDx": 0,
+                "outDy": 0
+              }
+            ]
+          }
+        },
+        "curveOffset": {
+          "lightness": 0,
+          "saturation": 0,
+          "Text-saturation": 6,
+          "Text-lightness": 0
+        },
+        "overrides": {},
+        "snappedScales": [],
+        "anchorToBase": true,
+        "anchorPlacement": {
+          "step": 3,
+          "priorLightnessEndpoints": [
+            {
+              "x": 0,
+              "y": 95,
+              "inDx": 0,
+              "inDy": 0,
+              "outDx": 33.33,
+              "outDy": -29
+            },
+            {
+              "x": 100,
+              "y": 8,
+              "inDx": -33.33,
+              "inDy": 29,
+              "outDx": 0,
+              "outDy": 0
+            }
+          ],
+          "priorSaturationEndpoints": [
+            {
+              "x": 0,
+              "y": 100,
+              "inDx": 0,
+              "inDy": 0,
+              "outDx": 33.33,
+              "outDy": 0
+            },
+            {
+              "x": 100,
+              "y": 100,
+              "inDx": -33.33,
+              "inDy": 0,
+              "outDx": 0,
+              "outDy": 0
+            }
+          ]
+        }
+      },
+      "Accent": {
+        "baseColor": "#008582",
+        "lightnessCurve": [
+          {
+            "x": 0,
+            "y": 95,
+            "inDx": 0,
+            "inDy": 0,
+            "outDx": 16.67,
+            "outDy": -13.09
+          },
+          {
+            "x": 50,
+            "y": 55.72,
+            "inDx": -16.67,
+            "inDy": 14.36,
+            "outDx": 16.67,
+            "outDy": -14.36
+          },
+          {
+            "x": 100,
+            "y": 8,
+            "inDx": -16.67,
+            "inDy": 15.91,
+            "outDx": 0,
+            "outDy": 0
+          }
+        ],
+        "saturationCurve": [
+          {
+            "x": 0,
+            "y": 100,
+            "inDx": 0,
+            "inDy": 0,
+            "outDx": 16.67,
+            "outDy": 0
+          },
+          {
+            "x": 50,
+            "y": 100,
+            "inDx": -16.67,
+            "inDy": 0,
+            "outDx": 16.67,
+            "outDy": 0
+          },
+          {
+            "x": 100,
+            "y": 100,
+            "inDx": -16.67,
+            "inDy": 0,
+            "outDx": 0,
+            "outDy": 0
+          }
+        ],
+        "scaleCurves": {
+          "Surfaces": {
+            "lightness": [
+              {
+                "x": 0,
+                "y": 15,
+                "inDx": 0,
+                "inDy": 0,
+                "outDx": 0,
+                "outDy": 0
+              },
+              {
+                "x": 100,
+                "y": 67,
+                "inDx": 0,
+                "inDy": 0,
+                "outDx": 0,
+                "outDy": 0
+              }
+            ],
+            "saturation": [
+              {
+                "x": 0,
+                "y": 156,
+                "inDx": 0,
+                "inDy": 0,
+                "outDx": 0,
+                "outDy": 0
+              },
+              {
+                "x": 100,
+                "y": 65,
+                "inDx": 0,
+                "inDy": 0,
+                "outDx": 0,
+                "outDy": 0
+              }
+            ]
+          },
+          "Borders": {
+            "lightness": [
+              {
+                "x": 0,
+                "y": 25,
+                "inDx": 0,
+                "inDy": 0,
+                "outDx": 0,
+                "outDy": 0
+              },
+              {
+                "x": 100,
+                "y": 73,
+                "inDx": 0,
+                "inDy": 0,
+                "outDx": 0,
+                "outDy": 0
+              }
+            ],
+            "saturation": [
+              {
+                "x": 0,
+                "y": 100,
+                "inDx": 0,
+                "inDy": 0,
+                "outDx": 33.33,
+                "outDy": 0
+              },
+              {
+                "x": 100,
+                "y": 100,
+                "inDx": -33.33,
+                "inDy": 0,
+                "outDx": 0,
+                "outDy": 0
+              }
+            ]
+          },
+          "Text": {
+            "lightness": [
+              {
+                "x": 0,
+                "y": 157,
+                "inDx": 0,
+                "inDy": 0,
+                "outDx": 0,
+                "outDy": 0
+              },
+              {
+                "x": 100,
+                "y": 57,
+                "inDx": -33.33,
+                "inDy": 33.33,
+                "outDx": 0,
+                "outDy": 0
+              }
+            ],
+            "saturation": [
+              {
+                "x": 0,
+                "y": 127,
+                "inDx": 0,
+                "inDy": 0,
+                "outDx": 0,
+                "outDy": 0
+              },
+              {
+                "x": 100,
+                "y": 2,
+                "inDx": -33.33,
+                "inDy": 41.67,
+                "outDx": 0,
+                "outDy": 0
+              }
+            ]
+          }
+        },
+        "curveOffset": {
+          "lightness": 0,
+          "saturation": 0
+        },
+        "overrides": {},
+        "snappedScales": [],
+        "anchorToBase": true,
+        "anchorPlacement": {
+          "step": 5,
+          "priorLightnessEndpoints": [
+            {
+              "x": 0,
+              "y": 95,
+              "inDx": 0,
+              "inDy": 0,
+              "outDx": 33.33,
+              "outDy": -29
+            },
+            {
+              "x": 100,
+              "y": 8,
+              "inDx": -33.33,
+              "inDy": 29,
+              "outDx": 0,
+              "outDy": 0
+            }
+          ],
+          "priorSaturationEndpoints": [
+            {
+              "x": 0,
+              "y": 100,
+              "inDx": 0,
+              "inDy": 0,
+              "outDx": 33.33,
+              "outDy": 0
+            },
+            {
+              "x": 100,
+              "y": 100,
+              "inDx": -33.33,
+              "inDy": 0,
+              "outDx": 0,
+              "outDy": 0
+            }
+          ]
+        }
+      },
+      "Special": {
+        "baseColor": "#8b5cf6",
+        "lightnessCurve": [
+          {
+            "x": 0,
+            "y": 95,
+            "inDx": 0,
+            "inDy": 0,
+            "outDx": 13.33,
+            "outDy": -11.48
+          },
+          {
+            "x": 40,
+            "y": 60.56,
+            "inDx": -13.33,
+            "inDy": 11.57,
+            "outDx": 20,
+            "outDy": -17.36
+          },
+          {
+            "x": 100,
+            "y": 8,
+            "inDx": -20,
+            "inDy": 17.52,
+            "outDx": 0,
+            "outDy": 0
+          }
+        ],
+        "saturationCurve": [
+          {
+            "x": 0,
+            "y": 100,
+            "inDx": 0,
+            "inDy": 0,
+            "outDx": 13.33,
+            "outDy": 0
+          },
+          {
+            "x": 40,
+            "y": 100,
+            "inDx": -13.33,
+            "inDy": 0,
+            "outDx": 20,
+            "outDy": 0
+          },
+          {
+            "x": 100,
+            "y": 100,
+            "inDx": -20,
+            "inDy": 0,
+            "outDx": 0,
+            "outDy": 0
+          }
+        ],
+        "scaleCurves": {
+          "Surfaces": {
+            "lightness": [
+              {
+                "x": 0,
+                "y": 15,
+                "inDx": 0,
+                "inDy": 0,
+                "outDx": 0,
+                "outDy": 0
+              },
+              {
+                "x": 100,
+                "y": 67,
+                "inDx": 0,
+                "inDy": 0,
+                "outDx": 0,
+                "outDy": 0
+              }
+            ],
+            "saturation": [
+              {
+                "x": 0,
+                "y": 156,
+                "inDx": 0,
+                "inDy": 0,
+                "outDx": 0,
+                "outDy": 0
+              },
+              {
+                "x": 100,
+                "y": 65,
+                "inDx": 0,
+                "inDy": 0,
+                "outDx": 0,
+                "outDy": 0
+              }
+            ]
+          },
+          "Borders": {
+            "lightness": [
+              {
+                "x": 0,
+                "y": 25,
+                "inDx": 0,
+                "inDy": 0,
+                "outDx": 0,
+                "outDy": 0
+              },
+              {
+                "x": 100,
+                "y": 73,
+                "inDx": 0,
+                "inDy": 0,
+                "outDx": 0,
+                "outDy": 0
+              }
+            ],
+            "saturation": [
+              {
+                "x": 0,
+                "y": 100,
+                "inDx": 0,
+                "inDy": 0,
+                "outDx": 33.33,
+                "outDy": 0
+              },
+              {
+                "x": 100,
+                "y": 100,
+                "inDx": -33.33,
+                "inDy": 0,
+                "outDx": 0,
+                "outDy": 0
+              }
+            ]
+          },
+          "Text": {
+            "lightness": [
+              {
+                "x": 0,
+                "y": 129,
+                "inDx": 0,
+                "inDy": 0,
+                "outDx": 0,
+                "outDy": 0
+              },
+              {
+                "x": 25,
+                "y": 99,
+                "inDx": -8.33,
+                "inDy": 7.33,
+                "outDx": 25,
+                "outDy": -21.98
+              },
+              {
+                "x": 100,
+                "y": 51,
+                "inDx": -25,
+                "inDy": 16,
+                "outDx": 0,
+                "outDy": 0
+              }
+            ],
+            "saturation": [
+              {
+                "x": 0,
+                "y": 127,
+                "inDx": 0,
+                "inDy": 0,
+                "outDx": 0,
+                "outDy": 0
+              },
+              {
+                "x": 100,
+                "y": 2,
+                "inDx": -33.33,
+                "inDy": 41.67,
+                "outDx": 0,
+                "outDy": 0
+              }
+            ]
+          }
+        },
+        "curveOffset": {
+          "lightness": 0,
+          "saturation": 0
+        },
+        "overrides": {},
+        "snappedScales": [],
+        "anchorToBase": true,
+        "anchorPlacement": {
+          "step": 4,
+          "priorLightnessEndpoints": [
+            {
+              "x": 0,
+              "y": 95,
+              "inDx": 0,
+              "inDy": 0,
+              "outDx": 33.33,
+              "outDy": -29
+            },
+            {
+              "x": 100,
+              "y": 8,
+              "inDx": -33.33,
+              "inDy": 29,
+              "outDx": 0,
+              "outDy": 0
+            }
+          ],
+          "priorSaturationEndpoints": [
+            {
+              "x": 0,
+              "y": 100,
+              "inDx": 0,
+              "inDy": 0,
+              "outDx": 33.33,
+              "outDy": 0
+            },
+            {
+              "x": 100,
+              "y": 100,
+              "inDx": -33.33,
+              "inDy": 0,
+              "outDx": 0,
+              "outDy": 0
+            }
+          ]
+        }
+      },
+      "Success": {
+        "baseColor": "#009c45",
+        "lightnessCurve": [
+          {
+            "x": 0,
+            "y": 95,
+            "inDx": 0,
+            "inDy": 0,
+            "outDx": 13.33,
+            "outDy": -11.49
+          },
+          {
+            "x": 40,
+            "y": 60.52,
+            "inDx": -13.33,
+            "inDy": 11.58,
+            "outDx": 20,
+            "outDy": -17.36
+          },
+          {
+            "x": 100,
+            "y": 8,
+            "inDx": -20,
+            "inDy": 17.51,
+            "outDx": 0,
+            "outDy": 0
+          }
+        ],
+        "saturationCurve": [
+          {
+            "x": 0,
+            "y": 100,
+            "inDx": 0,
+            "inDy": 0,
+            "outDx": 13.33,
+            "outDy": 0
+          },
+          {
+            "x": 40,
+            "y": 100,
+            "inDx": -13.33,
+            "inDy": 0,
+            "outDx": 20,
+            "outDy": 0
+          },
+          {
+            "x": 100,
+            "y": 100,
+            "inDx": -20,
+            "inDy": 0,
+            "outDx": 0,
+            "outDy": 0
+          }
+        ],
+        "scaleCurves": {
+          "Surfaces": {
+            "lightness": [
+              {
+                "x": 0,
+                "y": 15,
+                "inDx": 0,
+                "inDy": 0,
+                "outDx": 0,
+                "outDy": 0
+              },
+              {
+                "x": 100,
+                "y": 67,
+                "inDx": 0,
+                "inDy": 0,
+                "outDx": 0,
+                "outDy": 0
+              }
+            ],
+            "saturation": [
+              {
+                "x": 0,
+                "y": 156,
+                "inDx": 0,
+                "inDy": 0,
+                "outDx": 0,
+                "outDy": 0
+              },
+              {
+                "x": 100,
+                "y": 65,
+                "inDx": 0,
+                "inDy": 0,
+                "outDx": 0,
+                "outDy": 0
+              }
+            ]
+          },
+          "Borders": {
+            "lightness": [
+              {
+                "x": 0,
+                "y": 25,
+                "inDx": 0,
+                "inDy": 0,
+                "outDx": 0,
+                "outDy": 0
+              },
+              {
+                "x": 100,
+                "y": 73,
+                "inDx": 0,
+                "inDy": 0,
+                "outDx": 0,
+                "outDy": 0
+              }
+            ],
+            "saturation": [
+              {
+                "x": 0,
+                "y": 100,
+                "inDx": 0,
+                "inDy": 0,
+                "outDx": 33.33,
+                "outDy": 0
+              },
+              {
+                "x": 100,
+                "y": 100,
+                "inDx": -33.33,
+                "inDy": 0,
+                "outDx": 0,
+                "outDy": 0
+              }
+            ]
+          },
+          "Text": {
+            "lightness": [
+              {
+                "x": 0,
+                "y": 145,
+                "inDx": 0,
+                "inDy": 0,
+                "outDx": 0,
+                "outDy": 0
+              },
+              {
+                "x": 25,
+                "y": 99,
+                "inDx": -8.33,
+                "inDy": 8.61,
+                "outDx": 25,
+                "outDy": -25.82
+              },
+              {
+                "x": 100,
+                "y": 51,
+                "inDx": -25,
+                "inDy": 16,
+                "outDx": 0,
+                "outDy": 0
+              }
+            ],
+            "saturation": [
+              {
+                "x": 0,
+                "y": 90,
+                "inDx": 0,
+                "inDy": 0,
+                "outDx": 0,
+                "outDy": 0
+              },
+              {
+                "x": 26,
+                "y": 84,
+                "inDx": -8.67,
+                "inDy": 2.92,
+                "outDx": 24.67,
+                "outDy": -8.3
+              },
+              {
+                "x": 100,
+                "y": 16,
+                "inDx": -24.67,
+                "inDy": 22.67,
+                "outDx": 0,
+                "outDy": 0
+              }
+            ]
+          }
+        },
+        "curveOffset": {
+          "lightness": 0,
+          "saturation": 0,
+          "Text-lightness": 0
+        },
+        "overrides": {},
+        "snappedScales": [],
+        "anchorToBase": true,
+        "anchorPlacement": {
+          "step": 4,
+          "priorLightnessEndpoints": [
+            {
+              "x": 0,
+              "y": 95,
+              "inDx": 0,
+              "inDy": 0,
+              "outDx": 33.33,
+              "outDy": -29
+            },
+            {
+              "x": 100,
+              "y": 8,
+              "inDx": -33.33,
+              "inDy": 29,
+              "outDx": 0,
+              "outDy": 0
+            }
+          ],
+          "priorSaturationEndpoints": [
+            {
+              "x": 0,
+              "y": 100,
+              "inDx": 0,
+              "inDy": 0,
+              "outDx": 33.33,
+              "outDy": 0
+            },
+            {
+              "x": 100,
+              "y": 100,
+              "inDx": -33.33,
+              "inDy": 0,
+              "outDx": 0,
+              "outDy": 0
+            }
+          ]
+        }
+      },
+      "Warning": {
+        "baseColor": "#ffb01f",
+        "lightnessCurve": [
+          {
+            "x": 0,
+            "y": 95,
+            "inDx": 0,
+            "inDy": 0,
+            "outDx": 6.67,
+            "outDy": -4.56
+          },
+          {
+            "x": 20,
+            "y": 81.31,
+            "inDx": -6.67,
+            "inDy": 5.08,
+            "outDx": 26.67,
+            "outDy": -20.31
+          },
+          {
+            "x": 100,
+            "y": 8,
+            "inDx": -26.67,
+            "inDy": 24.44,
+            "outDx": 0,
+            "outDy": 0
+          }
+        ],
+        "saturationCurve": [
+          {
+            "x": 0,
+            "y": 100,
+            "inDx": 0,
+            "inDy": 0,
+            "outDx": 6.67,
+            "outDy": 0
+          },
+          {
+            "x": 20,
+            "y": 100,
+            "inDx": -6.67,
+            "inDy": 0,
+            "outDx": 26.67,
+            "outDy": 0
+          },
+          {
+            "x": 100,
+            "y": 100,
+            "inDx": -26.67,
+            "inDy": 0,
+            "outDx": 0,
+            "outDy": 0
+          }
+        ],
+        "scaleCurves": {
+          "Surfaces": {
+            "lightness": [
+              {
+                "x": 0,
+                "y": 15,
+                "inDx": 0,
+                "inDy": 0,
+                "outDx": 0,
+                "outDy": 0
+              },
+              {
+                "x": 100,
+                "y": 89,
+                "inDx": 0,
+                "inDy": 0,
+                "outDx": 0,
+                "outDy": 0
+              }
+            ],
+            "saturation": [
+              {
+                "x": 0,
+                "y": 116,
+                "inDx": 0,
+                "inDy": 0,
+                "outDx": 0,
+                "outDy": 0
+              },
+              {
+                "x": 100,
+                "y": 180,
+                "inDx": 0,
+                "inDy": 0,
+                "outDx": 0,
+                "outDy": 0
+              }
+            ]
+          },
+          "Borders": {
+            "lightness": [
+              {
+                "x": 0,
+                "y": 25,
+                "inDx": 0,
+                "inDy": 0,
+                "outDx": 0,
+                "outDy": 0
+              },
+              {
+                "x": 100,
+                "y": 73,
+                "inDx": 0,
+                "inDy": 0,
+                "outDx": 0,
+                "outDy": 0
+              }
+            ],
+            "saturation": [
+              {
+                "x": 0,
+                "y": 100,
+                "inDx": 0,
+                "inDy": 0,
+                "outDx": 33.33,
+                "outDy": 0
+              },
+              {
+                "x": 100,
+                "y": 100,
+                "inDx": -33.33,
+                "inDy": 0,
+                "outDx": 0,
+                "outDy": 0
+              }
+            ]
+          },
+          "Text": {
+            "lightness": [
+              {
+                "x": 0,
+                "y": 117,
+                "inDx": 0,
+                "inDy": 0,
+                "outDx": 0,
+                "outDy": 0
+              },
+              {
+                "x": 100,
+                "y": 51,
+                "inDx": -33.33,
+                "inDy": 22,
+                "outDx": 0,
+                "outDy": 0
+              }
+            ],
+            "saturation": [
+              {
+                "x": 0,
+                "y": 137,
+                "inDx": 0,
+                "inDy": 0,
+                "outDx": 0,
+                "outDy": 0
+              },
+              {
+                "x": 100,
+                "y": 2,
+                "inDx": -33.33,
+                "inDy": 45,
+                "outDx": 0,
+                "outDy": 0
+              }
+            ]
+          }
+        },
+        "curveOffset": {
+          "lightness": 0,
+          "saturation": 0
+        },
+        "overrides": {},
+        "snappedScales": [],
+        "anchorToBase": true,
+        "anchorPlacement": {
+          "step": 2,
+          "priorLightnessEndpoints": [
+            {
+              "x": 0,
+              "y": 95,
+              "inDx": 0,
+              "inDy": 0,
+              "outDx": 33.33,
+              "outDy": -29
+            },
+            {
+              "x": 100,
+              "y": 8,
+              "inDx": -33.33,
+              "inDy": 29,
+              "outDx": 0,
+              "outDy": 0
+            }
+          ],
+          "priorSaturationEndpoints": [
+            {
+              "x": 0,
+              "y": 100,
+              "inDx": 0,
+              "inDy": 0,
+              "outDx": 33.33,
+              "outDy": 0
+            },
+            {
+              "x": 100,
+              "y": 100,
+              "inDx": -33.33,
+              "inDy": 0,
+              "outDx": 0,
+              "outDy": 0
+            }
+          ]
+        }
+      },
+      "Info": {
+        "baseColor": "#00bbff",
+        "lightnessCurve": [
+          {
+            "x": 0,
+            "y": 95,
+            "inDx": 0,
+            "inDy": 0,
+            "outDx": 6.67,
+            "outDy": -6.8
+          },
+          {
+            "x": 20,
+            "y": 74.61,
+            "inDx": -6.67,
+            "inDy": 6.24,
+            "outDx": 26.67,
+            "outDy": -24.95
+          },
+          {
+            "x": 100,
+            "y": 8,
+            "inDx": -26.67,
+            "inDy": 22.2,
+            "outDx": 0,
+            "outDy": 0
+          }
+        ],
+        "saturationCurve": [
+          {
+            "x": 0,
+            "y": 100,
+            "inDx": 0,
+            "inDy": 0,
+            "outDx": 6.67,
+            "outDy": 0
+          },
+          {
+            "x": 20,
+            "y": 100,
+            "inDx": -6.67,
+            "inDy": 0,
+            "outDx": 26.67,
+            "outDy": 0
+          },
+          {
+            "x": 100,
+            "y": 100,
+            "inDx": -26.67,
+            "inDy": 0,
+            "outDx": 0,
+            "outDy": 0
+          }
+        ],
+        "scaleCurves": {
+          "Surfaces": {
+            "lightness": [
+              {
+                "x": 0,
+                "y": 15,
+                "inDx": 0,
+                "inDy": 0,
+                "outDx": 0,
+                "outDy": 0
+              },
+              {
+                "x": 100,
+                "y": 67,
+                "inDx": 0,
+                "inDy": 0,
+                "outDx": 0,
+                "outDy": 0
+              }
+            ],
+            "saturation": [
+              {
+                "x": 0,
+                "y": 156,
+                "inDx": 0,
+                "inDy": 0,
+                "outDx": 0,
+                "outDy": 0
+              },
+              {
+                "x": 100,
+                "y": 65,
+                "inDx": 0,
+                "inDy": 0,
+                "outDx": 0,
+                "outDy": 0
+              }
+            ]
+          },
+          "Borders": {
+            "lightness": [
+              {
+                "x": 0,
+                "y": 25,
+                "inDx": 0,
+                "inDy": 0,
+                "outDx": 0,
+                "outDy": 0
+              },
+              {
+                "x": 100,
+                "y": 73,
+                "inDx": 0,
+                "inDy": 0,
+                "outDx": 0,
+                "outDy": 0
+              }
+            ],
+            "saturation": [
+              {
+                "x": 0,
+                "y": 100,
+                "inDx": 0,
+                "inDy": 0,
+                "outDx": 33.33,
+                "outDy": 0
+              },
+              {
+                "x": 100,
+                "y": 100,
+                "inDx": -33.33,
+                "inDy": 0,
+                "outDx": 0,
+                "outDy": 0
+              }
+            ]
+          },
+          "Text": {
+            "lightness": [
+              {
+                "x": 0,
+                "y": 129,
+                "inDx": 0,
+                "inDy": 0,
+                "outDx": 0,
+                "outDy": 0
+              },
+              {
+                "x": 25,
+                "y": 99,
+                "inDx": -8.33,
+                "inDy": 7.33,
+                "outDx": 25,
+                "outDy": -21.98
+              },
+              {
+                "x": 100,
+                "y": 51,
+                "inDx": -25,
+                "inDy": 16,
+                "outDx": 0,
+                "outDy": 0
+              }
+            ],
+            "saturation": [
+              {
+                "x": 0,
+                "y": 127,
+                "inDx": 0,
+                "inDy": 0,
+                "outDx": 0,
+                "outDy": 0
+              },
+              {
+                "x": 100,
+                "y": 2,
+                "inDx": -33.33,
+                "inDy": 41.67,
+                "outDx": 0,
+                "outDy": 0
+              }
+            ]
+          }
+        },
+        "curveOffset": {
+          "lightness": 0,
+          "saturation": 0,
+          "Surfaces-lightness": 0,
+          "Surfaces-saturation": -44,
+          "Text-lightness": -22
+        },
+        "overrides": {},
+        "snappedScales": [],
+        "anchorToBase": true,
+        "anchorPlacement": {
+          "step": 2,
+          "priorLightnessEndpoints": [
+            {
+              "x": 0,
+              "y": 95,
+              "inDx": 0,
+              "inDy": 0,
+              "outDx": 33.33,
+              "outDy": -29
+            },
+            {
+              "x": 100,
+              "y": 8,
+              "inDx": -33.33,
+              "inDy": 29,
+              "outDx": 0,
+              "outDy": 0
+            }
+          ],
+          "priorSaturationEndpoints": [
+            {
+              "x": 0,
+              "y": 100,
+              "inDx": 0,
+              "inDy": 0,
+              "outDx": 33.33,
+              "outDy": 0
+            },
+            {
+              "x": 100,
+              "y": 100,
+              "inDx": -33.33,
+              "inDy": 0,
+              "outDx": 0,
+              "outDy": 0
+            }
+          ]
+        }
+      },
+      "Danger": {
+        "baseColor": "#d10023",
+        "lightnessCurve": [
+          {
+            "x": 0,
+            "y": 95,
+            "inDx": 0,
+            "inDy": 0,
+            "outDx": 16.67,
+            "outDy": -13.59
+          },
+          {
+            "x": 50,
+            "y": 54.23,
+            "inDx": -16.67,
+            "inDy": 14.44,
+            "outDx": 16.67,
+            "outDy": -14.44
+          },
+          {
+            "x": 100,
+            "y": 8,
+            "inDx": -16.67,
+            "inDy": 15.41,
+            "outDx": 0,
+            "outDy": 0
+          }
+        ],
+        "saturationCurve": [
+          {
+            "x": 0,
+            "y": 100,
+            "inDx": 0,
+            "inDy": 0,
+            "outDx": 16.67,
+            "outDy": 0
+          },
+          {
+            "x": 50,
+            "y": 100,
+            "inDx": -16.67,
+            "inDy": 0,
+            "outDx": 16.67,
+            "outDy": 0
+          },
+          {
+            "x": 100,
+            "y": 100,
+            "inDx": -16.67,
+            "inDy": 0,
+            "outDx": 0,
+            "outDy": 0
+          }
+        ],
+        "scaleCurves": {
+          "Surfaces": {
+            "lightness": [
+              {
+                "x": 0,
+                "y": 15,
+                "inDx": 0,
+                "inDy": 0,
+                "outDx": 0,
+                "outDy": 0
+              },
+              {
+                "x": 100,
+                "y": 67,
+                "inDx": 0,
+                "inDy": 0,
+                "outDx": 0,
+                "outDy": 0
+              }
+            ],
+            "saturation": [
+              {
+                "x": 0,
+                "y": 156,
+                "inDx": 0,
+                "inDy": 0,
+                "outDx": 0,
+                "outDy": 0
+              },
+              {
+                "x": 100,
+                "y": 65,
+                "inDx": 0,
+                "inDy": 0,
+                "outDx": 0,
+                "outDy": 0
+              }
+            ]
+          },
+          "Borders": {
+            "lightness": [
+              {
+                "x": 0,
+                "y": 25,
+                "inDx": 0,
+                "inDy": 0,
+                "outDx": 0,
+                "outDy": 0
+              },
+              {
+                "x": 100,
+                "y": 73,
+                "inDx": 0,
+                "inDy": 0,
+                "outDx": 0,
+                "outDy": 0
+              }
+            ],
+            "saturation": [
+              {
+                "x": 0,
+                "y": 100,
+                "inDx": 0,
+                "inDy": 0,
+                "outDx": 33.33,
+                "outDy": 0
+              },
+              {
+                "x": 100,
+                "y": 100,
+                "inDx": -33.33,
+                "inDy": 0,
+                "outDx": 0,
+                "outDy": 0
+              }
+            ]
+          },
+          "Text": {
+            "lightness": [
+              {
+                "x": 0,
+                "y": 129,
+                "inDx": 0,
+                "inDy": 0,
+                "outDx": 0,
+                "outDy": 0
+              },
+              {
+                "x": 25,
+                "y": 96,
+                "inDx": -8.33,
+                "inDy": 5.87,
+                "outDx": 25,
+                "outDy": -17.62
+              },
+              {
+                "x": 100,
+                "y": 64,
+                "inDx": -25,
+                "inDy": 10.67,
+                "outDx": 0,
+                "outDy": 0
+              }
+            ],
+            "saturation": [
+              {
+                "x": 0,
+                "y": 149,
+                "inDx": 0,
+                "inDy": 0,
+                "outDx": 0,
+                "outDy": 0
+              },
+              {
+                "x": 26,
+                "y": 81,
+                "inDx": -8.67,
+                "inDy": 14.09,
+                "outDx": 24.67,
+                "outDy": -40.1
+              },
+              {
+                "x": 100,
+                "y": 2,
+                "inDx": -24.67,
+                "inDy": 26.33,
+                "outDx": 0,
+                "outDy": 0
+              }
+            ]
+          }
+        },
+        "curveOffset": {
+          "lightness": 0,
+          "saturation": 0
+        },
+        "overrides": {},
+        "snappedScales": [],
+        "anchorToBase": true,
+        "anchorPlacement": {
+          "step": 5,
+          "priorLightnessEndpoints": [
+            {
+              "x": 0,
+              "y": 95,
+              "inDx": 0,
+              "inDy": 0,
+              "outDx": 33.33,
+              "outDy": -29
+            },
+            {
+              "x": 100,
+              "y": 8,
+              "inDx": -33.33,
+              "inDy": 29,
+              "outDx": 0,
+              "outDy": 0
+            }
+          ],
+          "priorSaturationEndpoints": [
+            {
+              "x": 0,
+              "y": 100,
+              "inDx": 0,
+              "inDy": 0,
+              "outDx": 33.33,
+              "outDy": 0
+            },
+            {
+              "x": 100,
+              "y": 100,
+              "inDx": -33.33,
+              "inDy": 0,
+              "outDx": 0,
+              "outDy": 0
+            }
+          ]
+        }
+      },
+      "Canvas": {
+        "baseColor": "#3c3c53",
+        "lightnessCurve": [
+          {
+            "x": 0,
+            "y": 95,
+            "inDx": 0,
+            "inDy": 0,
+            "outDx": 23.33,
+            "outDy": -19.46
+          },
+          {
+            "x": 70,
+            "y": 36.61,
+            "inDx": -23.33,
+            "inDy": 20.95,
+            "outDx": 10,
+            "outDy": -8.98
+          },
+          {
+            "x": 100,
+            "y": 8,
+            "inDx": -10,
+            "inDy": 9.54,
+            "outDx": 0,
+            "outDy": 0
+          }
+        ],
+        "saturationCurve": [
+          {
+            "x": 0,
+            "y": 100,
+            "inDx": 0,
+            "inDy": 0,
+            "outDx": 23.33,
+            "outDy": 0
+          },
+          {
+            "x": 70,
+            "y": 100,
+            "inDx": -23.33,
+            "inDy": 0,
+            "outDx": 10,
+            "outDy": 0
+          },
+          {
+            "x": 100,
+            "y": 100,
+            "inDx": -10,
+            "inDy": 0,
+            "outDx": 0,
+            "outDy": 0
+          }
+        ],
+        "scaleCurves": {
+          "Surfaces": {
+            "lightness": [
+              {
+                "x": 0,
+                "y": 15,
+                "inDx": 0,
+                "inDy": 0,
+                "outDx": 0,
+                "outDy": 0
+              },
+              {
+                "x": 100,
+                "y": 67,
+                "inDx": 0,
+                "inDy": 0,
+                "outDx": 0,
+                "outDy": 0
+              }
+            ],
+            "saturation": [
+              {
+                "x": 0,
+                "y": 156,
+                "inDx": 0,
+                "inDy": 0,
+                "outDx": 0,
+                "outDy": 0
+              },
+              {
+                "x": 100,
+                "y": 65,
+                "inDx": 0,
+                "inDy": 0,
+                "outDx": 0,
+                "outDy": 0
+              }
+            ]
+          },
+          "Borders": {
+            "lightness": [
+              {
+                "x": 0,
+                "y": 25,
+                "inDx": 0,
+                "inDy": 0,
+                "outDx": 0,
+                "outDy": 0
+              },
+              {
+                "x": 100,
+                "y": 73,
+                "inDx": 0,
+                "inDy": 0,
+                "outDx": 0,
+                "outDy": 0
+              }
+            ],
+            "saturation": [
+              {
+                "x": 0,
+                "y": 100,
+                "inDx": 0,
+                "inDy": 0,
+                "outDx": 33.33,
+                "outDy": 0
+              },
+              {
+                "x": 100,
+                "y": 100,
+                "inDx": -33.33,
+                "inDy": 0,
+                "outDx": 0,
+                "outDy": 0
+              }
+            ]
+          },
+          "Text": {
+            "lightness": [
+              {
+                "x": 0,
+                "y": 188,
+                "inDx": 0,
+                "inDy": 0,
+                "outDx": 33.33,
+                "outDy": -33
+              },
+              {
+                "x": 100,
+                "y": 89,
+                "inDx": -33.33,
+                "inDy": 33,
+                "outDx": 0,
+                "outDy": 0
+              }
+            ],
+            "saturation": [
+              {
+                "x": 0,
+                "y": 180,
+                "inDx": 0,
+                "inDy": 0,
+                "outDx": 0,
+                "outDy": 0
+              },
+              {
+                "x": 100,
+                "y": 2,
+                "inDx": -33.33,
+                "inDy": 59.33,
+                "outDx": 0,
+                "outDy": 0
+              }
+            ]
+          }
+        },
+        "curveOffset": {
+          "lightness": 0,
+          "saturation": 0
+        },
+        "overrides": {},
+        "snappedScales": [],
+        "anchorToBase": true,
+        "emptyMode": "solid",
+        "emptyStep": "850",
+        "gradientStyle": "linear",
+        "gradientAngle": 180,
+        "gradientReverse": false,
+        "gradientStops": [
+          {
+            "position": 0,
+            "paletteLabel": "800"
+          },
+          {
+            "position": 100,
+            "paletteLabel": "950"
+          }
+        ],
+        "gradientSize": "page",
+        "anchorPlacement": {
+          "step": 7,
+          "priorLightnessEndpoints": [
+            {
+              "x": 0,
+              "y": 95,
+              "inDx": 0,
+              "inDy": 0,
+              "outDx": 33.33,
+              "outDy": -29
+            },
+            {
+              "x": 100,
+              "y": 8,
+              "inDx": -33.33,
+              "inDy": 29,
+              "outDx": 0,
+              "outDy": 0
+            }
+          ],
+          "priorSaturationEndpoints": [
+            {
+              "x": 0,
+              "y": 100,
+              "inDx": 0,
+              "inDy": 0,
+              "outDx": 33.33,
+              "outDy": 0
+            },
+            {
+              "x": 100,
+              "y": 100,
+              "inDx": -33.33,
+              "inDy": 0,
+              "outDx": 0,
+              "outDy": 0
+            }
+          ]
+        }
+      }
+    },
+    "cssVariables": {
+      "--gradient-1": "linear-gradient(90deg, var(--color-brand-500) 0%, var(--color-accent-500) 100%)",
+      "--gradient-2": "linear-gradient(135deg, var(--color-brand-500) 0%, var(--color-special-500) 100%)",
+      "--gradient-3": "linear-gradient(90deg, var(--color-success-500) 0%, var(--color-info-500) 100%)",
+      "--gradient-4": "linear-gradient(45deg, var(--color-danger-500) 0%, var(--color-warning-500) 100%)",
+      "--badge-trait-surface": "var(--surface-brand)",
+      "--badge-trait-text": "var(--text-brand)",
+      "--badge-trait-text-font-family": "var(--font-sans)",
+      "--badge-trait-text-font-size": "var(--font-size-sm)",
+      "--badge-trait-text-font-weight": "var(--font-weight-light)",
+      "--badge-trait-text-line-height": "var(--line-height-none)",
+      "--badge-trait-border": "var(--border-brand-medium)",
+      "--badge-trait-border-width": "var(--border-width-1)",
+      "--badge-trait-shadow": "transparent",
+      "--sectiondivider-title": "var(--text-primary)",
+      "--sectiondivider-title-font-family": "var(--font-display)",
+      "--sectiondivider-title-font-size": "var(--font-size-5xl)",
+      "--sectiondivider-title-font-weight": "var(--font-weight-normal)",
+      "--sectiondivider-title-line-height": "var(--line-height-none)",
+      "--sectiondivider-title-border-width": "var(--border-width-4)",
+      "--sectiondivider-title-stroke-color": "var(--surface-canvas-lowest)",
+      "--sectiondivider-description": "var(--text-secondary)",
+      "--sectiondivider-description-font-family": "var(--font-sans)",
+      "--sectiondivider-description-font-size": "var(--font-size-md)",
+      "--sectiondivider-description-font-weight": "var(--font-weight-normal)",
+      "--sectiondivider-description-line-height": "var(--line-height-normal)",
+      "--dialog-primary-default-surface": "var(--surface-neutral-high)",
+      "--dialog-primary-default-text": "var(--text-primary)",
+      "--dialog-primary-default-border": "var(--border-neutral-medium)",
+      "--dialog-primary-default-border-width": "var(--border-width-1)",
+      "--dialog-primary-hover-surface": "var(--surface-neutral-higher)",
+      "--dialog-primary-hover-text": "var(--text-primary)",
+      "--dialog-primary-hover-border": "var(--border-neutral-strong)",
+      "--dialog-primary-hover-border-width": "var(--border-width-1)",
+      "--dialog-secondary-default-text": "var(--text-primary)",
+      "--dialog-secondary-default-border": "var(--border-neutral-medium)",
+      "--dialog-secondary-default-border-width": "var(--border-width-1)",
+      "--dialog-secondary-hover-surface": "var(--surface-neutral-lower)",
+      "--dialog-secondary-hover-text": "var(--text-primary)",
+      "--dialog-secondary-hover-border": "var(--border-neutral-strong)",
+      "--dialog-secondary-hover-border-width": "var(--border-width-1)",
+      "--columns-count": "12",
+      "--columns-max-width": "1440px",
+      "--columns-gutter": "32px",
+      "--columns-margin": "0px",
+      "--overlay-low": "color-mix(in srgb, var(--surface-neutral-lowest) 38%, transparent)",
+      "--overlay": "color-mix(in srgb, var(--surface-neutral-lowest) 51%, transparent)",
+      "--overlay-high": "color-mix(in srgb, var(--surface-neutral-lowest) 64%, transparent)",
+      "--hover-low": "color-mix(in srgb, var(--text-primary) 5%, transparent)",
+      "--hover": "color-mix(in srgb, var(--text-primary) 10%, transparent)",
+      "--hover-high": "color-mix(in srgb, var(--text-primary) 15%, transparent)",
+      "--shadow-sm": "1px 1px 2px hsla(237, 18%, 3%, 0.9)",
+      "--shadow-md": "3px 3px 6px hsla(237, 18%, 3%, 0.9)",
+      "--shadow-lg": "5px 5px 9px hsla(237, 18%, 3%, 0.9)",
+      "--shadow-xl": "6px 7px 13px hsla(237, 18%, 3%, 0.9)",
+      "--shadow-2xl": "8px 9px 16px hsla(237, 18%, 3%, 0.9)"
+    },
+    "fontSources": [
+      {
+        "id": "src_typekit_jes8oow",
+        "kind": "typekit",
+        "url": "https://use.typekit.net/jes8oow.css",
+        "label": "Adobe Typekit",
+        "families": [
+          {
+            "id": "src_typekit_jes8oow:fira-code",
+            "name": "fira-code",
+            "cssName": "\"fira-code\""
+          }
+        ]
+      },
+      {
+        "id": "src_manrope_local",
+        "kind": "google",
+        "label": "Google Fonts",
+        "families": [
+          {
+            "id": "src_manrope_local:manrope",
+            "name": "Manrope",
+            "cssName": "\"Manrope\"",
+            "weights": [
+              200,
+              300,
+              400,
+              500,
+              600,
+              700,
+              800
+            ]
+          }
+        ],
+        "url": "https://fonts.googleapis.com/css2?family=Manrope:wght@200..800&display=swap"
+      },
+      {
+        "id": "src_google_arvo",
+        "kind": "google",
+        "url": "https://fonts.googleapis.com/css2?family=Arvo:ital,wght@0,400;0,700;1,400;1,700&display=swap",
+        "label": "Google Fonts",
+        "families": [
+          {
+            "id": "src_google_arvo:arvo",
+            "name": "Arvo",
+            "cssName": "\"Arvo\"",
+            "weights": [
+              400,
+              700
+            ]
+          }
+        ]
+      },
+      {
+        "id": "src_google_eck6qp6s",
+        "kind": "google",
+        "url": "https://fonts.googleapis.com/css2?family=GFS+Didot&display=swap",
+        "label": "Google Fonts",
+        "families": [
+          {
+            "id": "src_google_eck6qp6s:gfs-didot",
+            "name": "GFS Didot",
+            "cssName": "\"GFS Didot\"",
+            "weights": [
+              400
+            ]
+          }
+        ]
+      }
+    ],
+    "fontStacks": [
+      {
+        "variable": "--font-display",
+        "slots": [
+          {
+            "kind": "project",
+            "familyId": "src_google_arvo:arvo"
+          },
+          {
+            "kind": "generic",
+            "value": "serif"
+          }
+        ]
+      },
+      {
+        "variable": "--font-sans",
+        "slots": [
+          {
+            "kind": "project",
+            "familyId": "src_manrope_local:manrope"
+          },
+          {
+            "kind": "system",
+            "preset": "system-ui-sans"
+          },
+          {
+            "kind": "generic",
+            "value": "sans-serif"
+          }
+        ]
+      },
+      {
+        "variable": "--font-serif",
+        "slots": [
+          {
+            "kind": "project",
+            "familyId": "src_google_eck6qp6s:gfs-didot"
+          },
+          {
+            "kind": "generic",
+            "value": "serif"
+          }
+        ]
+      },
+      {
+        "variable": "--font-mono",
+        "slots": [
+          {
+            "kind": "project",
+            "familyId": "src_typekit_jes8oow:fira-code"
+          },
+          {
+            "kind": "system",
+            "preset": "system-ui-mono"
+          },
+          {
+            "kind": "generic",
+            "value": "monospace"
+          }
+        ]
+      },
+      {
+        "variable": "--font-editorial",
+        "slots": [
+          {
+            "kind": "project",
+            "familyId": "src_manrope_local:manrope"
+          },
+          {
+            "kind": "system",
+            "preset": "system-ui-sans"
+          },
+          {
+            "kind": "generic",
+            "value": "sans-serif"
+          }
+        ]
+      }
+    ],
+    "schemaVersion": 3
+  },
+  "componentConfigs": {
+    "badge": {
+      "name": "default",
+      "component": "badge",
+      "createdAt": "2026-05-01T08:28:00.345Z",
+      "updatedAt": "2026-07-21T19:44:56.530Z",
+      "aliases": {
+        "--badge-primary-surface": "--surface-brand",
+        "--badge-primary-text": "--text-brand",
+        "--badge-primary-border": "--border-brand",
+        "--badge-primary-text-font-family": "--font-sans",
+        "--badge-primary-text-font-size": "--font-size-md",
+        "--badge-primary-text-font-weight": "--font-weight-normal",
+        "--badge-primary-text-line-height": "--line-height-none",
+        "--badge-primary-border-width": "--border-width-1",
+        "--badge-primary-radius": "--radius-full",
+        "--badge-primary-padding": "--space-6",
+        "--badge-primary-shadow": "--shadow-none",
+        "--badge-primary-blur": "--blur-none",
+        "--badge-primary-icon-size": "--icon-size-sm",
+        "--badge-accent-surface": "--surface-accent",
+        "--badge-accent-text": "--text-accent",
+        "--badge-accent-border": "--border-accent",
+        "--badge-accent-text-font-family": "--font-sans",
+        "--badge-accent-text-font-size": "--font-size-md",
+        "--badge-accent-text-font-weight": "--font-weight-normal",
+        "--badge-accent-text-line-height": "--line-height-none",
+        "--badge-accent-border-width": "--border-width-1",
+        "--badge-accent-radius": "--radius-full",
+        "--badge-accent-padding": "--space-6",
+        "--badge-accent-shadow": "--shadow-none",
+        "--badge-accent-blur": "--blur-none",
+        "--badge-accent-icon-size": "--icon-size-sm",
+        "--badge-neutral-surface": "--surface-neutral",
+        "--badge-neutral-text": "--text-primary",
+        "--badge-neutral-border": "--border-neutral",
+        "--badge-neutral-text-font-family": "--font-sans",
+        "--badge-neutral-text-font-size": "--font-size-md",
+        "--badge-neutral-text-font-weight": "--font-weight-normal",
+        "--badge-neutral-text-line-height": "--line-height-none",
+        "--badge-neutral-border-width": "--border-width-1",
+        "--badge-neutral-radius": "--radius-full",
+        "--badge-neutral-padding": "--space-6",
+        "--badge-neutral-shadow": "--shadow-none",
+        "--badge-neutral-blur": "--blur-none",
+        "--badge-neutral-icon-size": "--icon-size-sm",
+        "--badge-alternate-surface": "--surface-alternate",
+        "--badge-alternate-text": "--text-alternate",
+        "--badge-alternate-border": "--border-alternate",
+        "--badge-alternate-text-font-family": "--font-sans",
+        "--badge-alternate-text-font-size": "--font-size-md",
+        "--badge-alternate-text-font-weight": "--font-weight-normal",
+        "--badge-alternate-text-line-height": "--line-height-none",
+        "--badge-alternate-border-width": "--border-width-1",
+        "--badge-alternate-radius": "--radius-full",
+        "--badge-alternate-padding": "--space-6",
+        "--badge-alternate-shadow": "--shadow-none",
+        "--badge-alternate-blur": "--blur-none",
+        "--badge-alternate-icon-size": "--icon-size-sm",
+        "--badge-canvas-surface": "--surface-canvas",
+        "--badge-canvas-text": "--text-canvas",
+        "--badge-canvas-border": "--border-canvas",
+        "--badge-canvas-text-font-family": "--font-sans",
+        "--badge-canvas-text-font-size": "--font-size-md",
+        "--badge-canvas-text-font-weight": "--font-weight-normal",
+        "--badge-canvas-text-line-height": "--line-height-none",
+        "--badge-canvas-border-width": "--border-width-1",
+        "--badge-canvas-radius": "--radius-full",
+        "--badge-canvas-padding": "--space-6",
+        "--badge-canvas-shadow": "--shadow-none",
+        "--badge-canvas-blur": "--blur-none",
+        "--badge-canvas-icon-size": "--icon-size-sm",
+        "--badge-special-surface": "--surface-special",
+        "--badge-special-text": "--text-special",
+        "--badge-special-border": "--border-special",
+        "--badge-special-text-font-family": "--font-sans",
+        "--badge-special-text-font-size": "--font-size-md",
+        "--badge-special-text-font-weight": "--font-weight-normal",
+        "--badge-special-text-line-height": "--line-height-none",
+        "--badge-special-border-width": "--border-width-1",
+        "--badge-special-radius": "--radius-full",
+        "--badge-special-padding": "--space-6",
+        "--badge-special-shadow": "--shadow-none",
+        "--badge-special-blur": "--blur-none",
+        "--badge-special-icon-size": "--icon-size-sm",
+        "--badge-success-surface": "--surface-success",
+        "--badge-success-text": "--text-success",
+        "--badge-success-border": "--border-success",
+        "--badge-success-text-font-family": "--font-sans",
+        "--badge-success-text-font-size": "--font-size-md",
+        "--badge-success-text-font-weight": "--font-weight-normal",
+        "--badge-success-text-line-height": "--line-height-none",
+        "--badge-success-border-width": "--border-width-1",
+        "--badge-success-radius": "--radius-full",
+        "--badge-success-padding": "--space-6",
+        "--badge-success-shadow": "--shadow-none",
+        "--badge-success-blur": "--blur-none",
+        "--badge-success-icon-size": "--icon-size-sm",
+        "--badge-warning-surface": "--surface-warning",
+        "--badge-warning-text": "--text-warning",
+        "--badge-warning-border": "--border-warning",
+        "--badge-warning-text-font-family": "--font-sans",
+        "--badge-warning-text-font-size": "--font-size-md",
+        "--badge-warning-text-font-weight": "--font-weight-normal",
+        "--badge-warning-text-line-height": "--line-height-none",
+        "--badge-warning-border-width": "--border-width-1",
+        "--badge-warning-radius": "--radius-full",
+        "--badge-warning-padding": "--space-6",
+        "--badge-warning-shadow": "--shadow-none",
+        "--badge-warning-blur": "--blur-none",
+        "--badge-warning-icon-size": "--icon-size-sm",
+        "--badge-danger-surface": "--surface-danger",
+        "--badge-danger-text": "--text-danger",
+        "--badge-danger-border": "--border-danger",
+        "--badge-danger-text-font-family": "--font-sans",
+        "--badge-danger-text-font-size": "--font-size-md",
+        "--badge-danger-text-font-weight": "--font-weight-normal",
+        "--badge-danger-text-line-height": "--line-height-none",
+        "--badge-danger-border-width": "--border-width-1",
+        "--badge-danger-radius": "--radius-full",
+        "--badge-danger-padding": "--space-6",
+        "--badge-danger-shadow": "--shadow-none",
+        "--badge-danger-blur": "--blur-none",
+        "--badge-danger-icon-size": "--icon-size-sm",
+        "--badge-info-surface": "--surface-info",
+        "--badge-info-text": "--text-info",
+        "--badge-info-border": "--border-info",
+        "--badge-info-text-font-family": "--font-sans",
+        "--badge-info-text-font-size": "--font-size-md",
+        "--badge-info-text-font-weight": "--font-weight-normal",
+        "--badge-info-text-line-height": "--line-height-none",
+        "--badge-info-border-width": "--border-width-1",
+        "--badge-info-radius": "--radius-full",
+        "--badge-info-padding": "--space-6",
+        "--badge-info-shadow": "--shadow-none",
+        "--badge-info-blur": "--blur-none",
+        "--badge-info-icon-size": "--icon-size-sm"
+      }
+    },
+    "button": {
+      "name": "default",
+      "component": "button",
+      "createdAt": "2026-05-10T19:28:06.893Z",
+      "updatedAt": "2026-06-01T11:45:06.042Z",
+      "aliases": {
+        "--button-primary-surface": "--surface-brand",
+        "--button-primary-text": "--text-primary",
+        "--button-primary-text-font-family": "--font-sans",
+        "--button-primary-text-font-size": "--font-size-lg",
+        "--button-primary-text-font-weight": "--font-weight-semibold",
+        "--button-primary-text-line-height": "--line-height-tighter",
+        "--button-primary-border": "--border-brand",
+        "--button-primary-border-width": "--border-width-1",
+        "--button-primary-radius": "--radius-xl",
+        "--button-primary-padding": "--space-8",
+        "--button-primary-hover-surface": "--surface-brand-higher",
+        "--button-primary-hover-text": "--text-primary",
+        "--button-primary-hover-border": "--border-brand-strong",
+        "--button-primary-disabled-surface": "--color-neutral-700",
+        "--button-primary-disabled-text": "--text-tertiary",
+        "--button-primary-disabled-border": "--border-neutral-faint",
+        "--button-primary-icon-size": "--icon-size-md",
+        "--button-secondary-surface": "--surface-neutral",
+        "--button-secondary-text": "--text-primary",
+        "--button-secondary-text-font-family": "--font-sans",
+        "--button-secondary-text-font-size": "--font-size-lg",
+        "--button-secondary-text-font-weight": "--font-weight-semibold",
+        "--button-secondary-text-line-height": "--line-height-tighter",
+        "--button-secondary-border": "--border-neutral",
+        "--button-secondary-border-width": "--border-width-1",
+        "--button-secondary-radius": "--radius-xl",
+        "--button-secondary-padding": "--space-8",
+        "--button-secondary-hover-surface": "--surface-neutral-higher",
+        "--button-secondary-hover-text": "--text-primary",
+        "--button-secondary-hover-border": "--border-neutral-strong",
+        "--button-secondary-disabled-surface": "--color-neutral-700",
+        "--button-secondary-disabled-text": "--text-tertiary",
+        "--button-secondary-disabled-border": "--border-neutral-faint",
+        "--button-secondary-icon-size": "--icon-size-md",
+        "--button-outline-surface": "--color-transparent",
+        "--button-outline-text": "--text-primary",
+        "--button-outline-text-font-family": "--font-sans",
+        "--button-outline-text-font-size": "--font-size-lg",
+        "--button-outline-text-font-weight": "--font-weight-semibold",
+        "--button-outline-text-line-height": "--line-height-tighter",
+        "--button-outline-border": "--border-neutral",
+        "--button-outline-border-width": "--border-width-1",
+        "--button-outline-radius": "--radius-xl",
+        "--button-outline-padding": "--space-8",
+        "--button-outline-hover-surface": "--surface-neutral-lower",
+        "--button-outline-hover-text": "--text-primary",
+        "--button-outline-hover-border": "--border-neutral-strong",
+        "--button-outline-active-surface": "--hover",
+        "--button-outline-disabled-surface": "--color-transparent",
+        "--button-outline-disabled-text": "--text-tertiary",
+        "--button-outline-disabled-border": "--border-neutral-faint",
+        "--button-outline-icon-size": "--icon-size-md",
+        "--button-success-surface": "--surface-success-low",
+        "--button-success-text": "--text-success",
+        "--button-success-text-font-family": "--font-sans",
+        "--button-success-text-font-size": "--font-size-lg",
+        "--button-success-text-font-weight": "--font-weight-semibold",
+        "--button-success-text-line-height": "--line-height-tighter",
+        "--button-success-border": "--border-success",
+        "--button-success-border-width": "--border-width-1",
+        "--button-success-radius": "--radius-xl",
+        "--button-success-padding": "--space-8",
+        "--button-success-hover-surface": "--surface-success-higher",
+        "--button-success-hover-text": "--text-primary",
+        "--button-success-hover-border": "--border-success-strong",
+        "--button-success-disabled-surface": "--color-neutral-700",
+        "--button-success-disabled-text": "--text-tertiary",
+        "--button-success-disabled-border": "--border-neutral-faint",
+        "--button-success-icon-size": "--icon-size-md",
+        "--button-danger-surface": "--surface-danger-low",
+        "--button-danger-text": "--text-danger",
+        "--button-danger-text-font-family": "--font-sans",
+        "--button-danger-text-font-size": "--font-size-lg",
+        "--button-danger-text-font-weight": "--font-weight-semibold",
+        "--button-danger-text-line-height": "--line-height-tighter",
+        "--button-danger-border": "--border-danger",
+        "--button-danger-border-width": "--border-width-1",
+        "--button-danger-radius": "--radius-xl",
+        "--button-danger-padding": "--space-8",
+        "--button-danger-hover-surface": "--surface-danger-high",
+        "--button-danger-hover-text": "--text-primary",
+        "--button-danger-hover-border": "--border-danger-medium",
+        "--button-danger-disabled-surface": "--color-neutral-700",
+        "--button-danger-disabled-text": "--text-tertiary",
+        "--button-danger-disabled-border": "--border-neutral-faint",
+        "--button-danger-icon-size": "--icon-size-md",
+        "--button-warning-surface": "--surface-warning-low",
+        "--button-warning-text": "--text-warning",
+        "--button-warning-text-font-family": "--font-sans",
+        "--button-warning-text-font-size": "--font-size-lg",
+        "--button-warning-text-font-weight": "--font-weight-semibold",
+        "--button-warning-text-line-height": "--line-height-tighter",
+        "--button-warning-border": "--border-warning",
+        "--button-warning-border-width": "--border-width-1",
+        "--button-warning-radius": "--radius-xl",
+        "--button-warning-padding": "--space-8",
+        "--button-warning-hover-surface": "--surface-warning-high",
+        "--button-warning-hover-text": "--text-primary",
+        "--button-warning-hover-border": "--border-warning-medium",
+        "--button-warning-disabled-surface": "--color-neutral-700",
+        "--button-warning-disabled-text": "--text-tertiary",
+        "--button-warning-disabled-border": "--border-neutral-faint",
+        "--button-warning-icon-size": "--icon-size-md",
+        "--button-small-padding": "--space-6",
+        "--button-small-text-font-size": "--font-size-sm",
+        "--button-small-text-font-weight": "--font-weight-normal",
+        "--button-small-text-line-height": "--line-height-tighter",
+        "--button-small-icon-size": "--font-size-xs"
+      }
+    },
+    "callout": {
+      "name": "default",
+      "component": "callout",
+      "createdAt": "2026-05-12T00:00:00.000Z",
+      "updatedAt": "2026-05-30T00:00:00.000Z",
+      "aliases": {
+        "--callout-info-surface": "--surface-info-lowest",
+        "--callout-info-border": "--border-info-medium",
+        "--callout-info-border-width": "--border-width-1",
+        "--callout-info-accent-width": "--border-width-4",
+        "--callout-info-radius": "--radius-lg",
+        "--callout-info-padding": "--space-12",
+        "--callout-info-label": "--text-primary",
+        "--callout-info-label-font-family": "--font-sans",
+        "--callout-info-label-font-size": "--font-size-lg",
+        "--callout-info-label-font-weight": "--font-weight-bold",
+        "--callout-info-label-line-height": "--line-height-normal",
+        "--callout-info-text": "--text-info",
+        "--callout-info-text-font-family": "--font-sans",
+        "--callout-info-text-font-size": "--font-size-lg",
+        "--callout-info-text-font-weight": "--font-weight-normal",
+        "--callout-info-text-line-height": "--line-height-normal",
+        "--callout-success-surface": "--surface-success-lowest",
+        "--callout-success-border": "--border-success-subtle",
+        "--callout-success-border-width": "--border-width-1",
+        "--callout-success-accent-width": "--border-width-4",
+        "--callout-success-radius": "--radius-lg",
+        "--callout-success-padding": "--space-12",
+        "--callout-success-label": "--text-primary",
+        "--callout-success-label-font-family": "--font-sans",
+        "--callout-success-label-font-size": "--font-size-lg",
+        "--callout-success-label-font-weight": "--font-weight-bold",
+        "--callout-success-label-line-height": "--line-height-normal",
+        "--callout-success-text": "--text-success",
+        "--callout-success-text-font-family": "--font-sans",
+        "--callout-success-text-font-size": "--font-size-lg",
+        "--callout-success-text-font-weight": "--font-weight-normal",
+        "--callout-success-text-line-height": "--line-height-normal",
+        "--callout-warning-surface": "--surface-warning-lowest",
+        "--callout-warning-border": "--border-warning-subtle",
+        "--callout-warning-border-width": "--border-width-1",
+        "--callout-warning-accent-width": "--border-width-4",
+        "--callout-warning-radius": "--radius-lg",
+        "--callout-warning-padding": "--space-12",
+        "--callout-warning-label": "--text-primary",
+        "--callout-warning-label-font-family": "--font-sans",
+        "--callout-warning-label-font-size": "--font-size-lg",
+        "--callout-warning-label-font-weight": "--font-weight-bold",
+        "--callout-warning-label-line-height": "--line-height-normal",
+        "--callout-warning-text": "--text-warning",
+        "--callout-warning-text-font-family": "--font-sans",
+        "--callout-warning-text-font-size": "--font-size-lg",
+        "--callout-warning-text-font-weight": "--font-weight-normal",
+        "--callout-warning-text-line-height": "--line-height-normal",
+        "--callout-danger-surface": "--surface-danger-lowest",
+        "--callout-danger-border": "--border-danger-subtle",
+        "--callout-danger-border-width": "--border-width-1",
+        "--callout-danger-accent-width": "--border-width-4",
+        "--callout-danger-radius": "--radius-lg",
+        "--callout-danger-padding": "--space-12",
+        "--callout-danger-label": "--text-primary",
+        "--callout-danger-label-font-family": "--font-sans",
+        "--callout-danger-label-font-size": "--font-size-lg",
+        "--callout-danger-label-font-weight": "--font-weight-bold",
+        "--callout-danger-label-line-height": "--line-height-normal",
+        "--callout-danger-text": "--text-danger",
+        "--callout-danger-text-font-family": "--font-sans",
+        "--callout-danger-text-font-size": "--font-size-lg",
+        "--callout-danger-text-font-weight": "--font-weight-normal",
+        "--callout-danger-text-line-height": "--line-height-normal"
+      }
+    },
+    "card": {
+      "name": "default",
+      "component": "card",
+      "createdAt": "2026-05-10T19:26:31.704Z",
+      "updatedAt": "2026-08-27T16:42:48.301Z",
+      "aliases": {
+        "--card-default-surface": "color-mix(in srgb, var(--surface-neutral-lower) 70%, transparent)",
+        "--card-default-border": "--border-neutral",
+        "--card-default-border-width": "--border-width-1",
+        "--card-default-radius": "--radius-lg",
+        "--card-default-header-padding": "--space-16",
+        "--card-default-header-padding-top": "--card-default-header-padding",
+        "--card-default-header-padding-right": "--card-default-header-padding",
+        "--card-default-header-padding-bottom": "--card-default-header-padding",
+        "--card-default-header-padding-left": "--card-default-header-padding",
+        "--card-default-header-gap": "--space-8",
+        "--card-default-body-padding": "--space-16",
+        "--card-default-body-padding-top": "--card-default-body-padding",
+        "--card-default-body-padding-right": "--card-default-body-padding",
+        "--card-default-body-padding-bottom": "--card-default-body-padding",
+        "--card-default-body-padding-left": "--card-default-body-padding",
+        "--card-default-shadow": "--shadow-sm",
+        "--card-default-blur": "--blur-none",
+        "--card-default-header-surface": "color-mix(in srgb, var(--surface-neutral-lowest) 80%, transparent)",
+        "--card-default-title": "--text-primary",
+        "--card-default-title-font-family": "--font-sans",
+        "--card-default-title-font-size": "--font-size-2xl",
+        "--card-default-title-font-weight": "--font-weight-medium",
+        "--card-default-title-line-height": "--line-height-normal",
+        "--card-default-icon-size": "--icon-size-2xl",
+        "--card-default-body": "--text-secondary",
+        "--card-default-body-font-family": "--font-sans",
+        "--card-default-body-font-size": "--font-size-xl",
+        "--card-default-body-font-weight": "--font-weight-normal",
+        "--card-default-body-line-height": "--line-height-normal",
+        "--card-hover-border": "--border-neutral-strong",
+        "--card-hover-shadow": "--shadow-md",
+        "--card-hover-border-active": "--card-default-border",
+        "--card-hover-shadow-active": "--card-default-shadow"
+      }
+    },
+    "codesnippet": {
+      "name": "default",
+      "component": "codesnippet",
+      "createdAt": "2026-05-27T13:22:54.228Z",
+      "updatedAt": "2026-05-30T23:35:06.635Z",
+      "aliases": {
+        "--codesnippet-surface": "color-mix(in srgb, var(--surface-neutral-lowest) 76%, transparent)",
+        "--codesnippet-border": "--border-neutral",
+        "--codesnippet-border-width": "--border-width-1",
+        "--codesnippet-radius": "--radius-md",
+        "--codesnippet-padding": "--space-16",
+        "--codesnippet-gap": "--space-16",
+        "--codesnippet-code-text": "--text-brand",
+        "--codesnippet-code-font-family": "--font-mono",
+        "--codesnippet-code-font-size": "--font-size-md",
+        "--codesnippet-code-font-weight": "--font-weight-normal",
+        "--codesnippet-code-line-height": "--line-height-normal",
+        "--codesnippet-icon": "--text-secondary",
+        "--codesnippet-icon-size": "--font-size-md",
+        "--codesnippet-hover-icon": "--text-primary",
+        "--codesnippet-scrollbar-border-width": "--border-width-6",
+        "--codesnippet-scrollbar-thumb": "--text-tertiary"
+      }
+    },
+    "collapsiblesection": {
+      "name": "default",
+      "component": "collapsiblesection",
+      "createdAt": "2026-05-10T20:40:17.048Z",
+      "updatedAt": "2026-07-21T19:44:56.533Z",
+      "aliases": {
+        "--collapsiblesection-chromeless-default-surface": "--color-transparent",
+        "--collapsiblesection-chromeless-default-padding": "--space-4",
+        "--collapsiblesection-chromeless-default-label": "--text-primary",
+        "--collapsiblesection-chromeless-default-label-font-family": "--font-sans",
+        "--collapsiblesection-chromeless-default-label-font-size": "--font-size-md",
+        "--collapsiblesection-chromeless-default-label-font-weight": "--font-weight-normal",
+        "--collapsiblesection-chromeless-default-label-line-height": "--line-height-normal",
+        "--collapsiblesection-chromeless-default-icon": "--text-primary",
+        "--collapsiblesection-chromeless-default-icon-size": "--icon-size-xs",
+        "--collapsiblesection-chromeless-hover-surface": "--color-transparent",
+        "--collapsiblesection-chromeless-hover-padding": "--space-4",
+        "--collapsiblesection-chromeless-hover-label": "--text-primary",
+        "--collapsiblesection-chromeless-hover-label-font-family": "--font-sans",
+        "--collapsiblesection-chromeless-hover-label-font-size": "--font-size-md",
+        "--collapsiblesection-chromeless-hover-label-font-weight": "--font-weight-normal",
+        "--collapsiblesection-chromeless-hover-label-line-height": "--line-height-normal",
+        "--collapsiblesection-chromeless-hover-icon": "--text-primary",
+        "--collapsiblesection-chromeless-hover-icon-size": "--icon-size-xs",
+        "--collapsiblesection-chromeless-expanded-padding": "--space-4",
+        "--collapsiblesection-divider-default-surface": "--color-transparent",
+        "--collapsiblesection-divider-default-border": "--border-brand",
+        "--collapsiblesection-divider-default-border-width": "--border-width-1",
+        "--collapsiblesection-divider-default-padding": "--space-4",
+        "--collapsiblesection-divider-default-label": "--text-primary",
+        "--collapsiblesection-divider-default-label-font-family": "--font-sans",
+        "--collapsiblesection-divider-default-label-font-size": "--font-size-md",
+        "--collapsiblesection-divider-default-label-font-weight": "--font-weight-normal",
+        "--collapsiblesection-divider-default-label-line-height": "--line-height-normal",
+        "--collapsiblesection-divider-default-icon": "--text-primary",
+        "--collapsiblesection-divider-default-icon-size": "--icon-size-xs",
+        "--collapsiblesection-divider-hover-surface": "--color-transparent",
+        "--collapsiblesection-divider-hover-border": "--border-neutral",
+        "--collapsiblesection-divider-hover-border-width": "--border-width-1",
+        "--collapsiblesection-divider-hover-padding": "--space-4",
+        "--collapsiblesection-divider-hover-label": "--text-primary",
+        "--collapsiblesection-divider-hover-label-font-family": "--font-sans",
+        "--collapsiblesection-divider-hover-label-font-size": "--font-size-md",
+        "--collapsiblesection-divider-hover-label-font-weight": "--font-weight-normal",
+        "--collapsiblesection-divider-hover-label-line-height": "--line-height-normal",
+        "--collapsiblesection-divider-hover-icon": "--text-primary",
+        "--collapsiblesection-divider-hover-icon-size": "--icon-size-xs",
+        "--collapsiblesection-divider-expanded-padding": "--space-4",
+        "--collapsiblesection-container-frame-border": "--border-neutral",
+        "--collapsiblesection-container-frame-border-width": "--border-width-1",
+        "--collapsiblesection-container-frame-radius": "--radius-md",
+        "--collapsiblesection-container-default-surface": "--surface-neutral",
+        "--collapsiblesection-container-default-padding": "--space-4",
+        "--collapsiblesection-container-default-label": "--text-primary",
+        "--collapsiblesection-container-default-label-font-family": "--font-sans",
+        "--collapsiblesection-container-default-label-font-size": "--font-size-md",
+        "--collapsiblesection-container-default-label-font-weight": "--font-weight-normal",
+        "--collapsiblesection-container-default-label-line-height": "--line-height-normal",
+        "--collapsiblesection-container-default-icon": "--text-primary",
+        "--collapsiblesection-container-default-icon-size": "--icon-size-xs",
+        "--collapsiblesection-container-hover-surface": "--surface-neutral-high",
+        "--collapsiblesection-container-hover-padding": "--space-4",
+        "--collapsiblesection-container-hover-label": "--text-primary",
+        "--collapsiblesection-container-hover-label-font-family": "--font-sans",
+        "--collapsiblesection-container-hover-label-font-size": "--font-size-md",
+        "--collapsiblesection-container-hover-label-font-weight": "--font-weight-normal",
+        "--collapsiblesection-container-hover-label-line-height": "--line-height-normal",
+        "--collapsiblesection-container-hover-icon": "--text-primary",
+        "--collapsiblesection-container-hover-icon-size": "--icon-size-xs",
+        "--collapsiblesection-container-expanded-surface": "--surface-neutral-higher",
+        "--collapsiblesection-container-expanded-padding": "--space-4"
+      }
+    },
+    "cornerbadge": {
+      "name": "default",
+      "component": "cornerbadge",
+      "createdAt": "2026-05-12T15:31:06.313Z",
+      "updatedAt": "2026-05-25T01:43:35.000Z",
+      "aliases": {
+        "--corner-badge-margin": "--space-0",
+        "--corner-badge-outer-radius": "--radius-none",
+        "--corner-badge-inner-radius": "--radius-none",
+        "--corner-badge-h-axis-radius": "--radius-none",
+        "--corner-badge-v-axis-radius": "--radius-none",
+        "--corner-badge-padding": "--space-6",
+        "--corner-badge-text-font-family": "--font-sans",
+        "--corner-badge-text-font-size": "--font-size-sm",
+        "--corner-badge-text-font-weight": "--font-weight-medium",
+        "--corner-badge-text-line-height": "--line-height-none",
+        "--corner-badge-primary-surface": "--surface-brand",
+        "--corner-badge-primary-border": "--border-brand",
+        "--corner-badge-primary-text": "--text-brand",
+        "--corner-badge-accent-surface": "--surface-accent",
+        "--corner-badge-accent-border": "--border-accent",
+        "--corner-badge-accent-text": "--text-accent",
+        "--corner-badge-neutral-surface": "--surface-neutral",
+        "--corner-badge-neutral-border": "--border-neutral",
+        "--corner-badge-neutral-text": "--text-primary",
+        "--corner-badge-alternate-surface": "--surface-alternate",
+        "--corner-badge-alternate-border": "--border-alternate",
+        "--corner-badge-alternate-text": "--text-alternate",
+        "--corner-badge-canvas-surface": "--surface-canvas",
+        "--corner-badge-canvas-border": "--border-canvas",
+        "--corner-badge-canvas-text": "--text-canvas",
+        "--corner-badge-special-surface": "--surface-special",
+        "--corner-badge-special-border": "--border-special",
+        "--corner-badge-special-text": "--text-special",
+        "--corner-badge-success-surface": "--surface-success",
+        "--corner-badge-success-border": "--border-success",
+        "--corner-badge-success-text": "--text-success",
+        "--corner-badge-warning-surface": "--surface-warning",
+        "--corner-badge-warning-border": "--border-warning",
+        "--corner-badge-warning-text": "--text-warning",
+        "--corner-badge-danger-surface": "--surface-danger",
+        "--corner-badge-danger-border": "--border-danger",
+        "--corner-badge-danger-text": "--text-danger",
+        "--corner-badge-info-surface": "--surface-info",
+        "--corner-badge-info-border": "--border-info",
+        "--corner-badge-info-text": "--text-info"
+      }
+    },
+    "dialog": {
+      "name": "default",
+      "component": "dialog",
+      "createdAt": "2026-05-10T20:05:24.719Z",
+      "updatedAt": "2026-05-18T15:58:43.830Z",
+      "aliases": {
+        "--dialog-overlay-surface": "--overlay-high",
+        "--dialog-surface": "--surface-neutral-lowest",
+        "--dialog-border": "--border-neutral-strong",
+        "--dialog-border-width": "--border-width-2",
+        "--dialog-radius": "--radius-lg",
+        "--dialog-shadow": "--shadow-2xl",
+        "--dialog-blur": "--blur-none",
+        "--dialog-header-surface": "--surface-neutral-lower",
+        "--dialog-header-border": "--border-neutral-subtle",
+        "--dialog-header-border-width": "--border-width-1",
+        "--dialog-header-padding": "--space-8",
+        "--dialog-title": "--text-primary",
+        "--dialog-title-font-family": "--font-sans",
+        "--dialog-title-font-size": "--font-size-2xl",
+        "--dialog-title-font-weight": "--font-weight-normal",
+        "--dialog-title-line-height": "--line-height-tighter",
+        "--dialog-close-icon": "--text-secondary",
+        "--dialog-close-icon-size": "--icon-size-xl",
+        "--dialog-body-padding": "--space-16",
+        "--dialog-body": "--text-secondary",
+        "--dialog-body-font-family": "--font-sans",
+        "--dialog-body-font-size": "--font-size-md",
+        "--dialog-body-font-weight": "--font-weight-normal",
+        "--dialog-body-line-height": "--line-height-normal",
+        "--dialog-footer-border": "--border-neutral-subtle",
+        "--dialog-footer-border-width": "--border-width-1",
+        "--dialog-footer-padding": "--space-16"
+      }
+    },
+    "iconbutton": {
+      "name": "default",
+      "component": "iconbutton",
+      "createdAt": "2026-06-14T00:00:00.000Z",
+      "updatedAt": "2026-06-14T00:00:00.000Z",
+      "aliases": {
+        "--iconbutton-primary-surface": "--surface-brand",
+        "--iconbutton-primary-icon": "--text-primary",
+        "--iconbutton-primary-border": "--border-brand",
+        "--iconbutton-primary-border-width": "--border-width-1",
+        "--iconbutton-primary-radius": "--radius-xl",
+        "--iconbutton-primary-padding": "--space-8",
+        "--iconbutton-primary-icon-size": "--icon-size-md",
+        "--iconbutton-primary-hover-surface": "--surface-brand-higher",
+        "--iconbutton-primary-hover-icon": "--text-primary",
+        "--iconbutton-primary-hover-border": "--border-brand-strong",
+        "--iconbutton-primary-disabled-surface": "--color-neutral-700",
+        "--iconbutton-primary-disabled-icon": "--text-tertiary",
+        "--iconbutton-primary-disabled-border": "--border-neutral-faint",
+        "--iconbutton-secondary-surface": "--surface-neutral",
+        "--iconbutton-secondary-icon": "--text-primary",
+        "--iconbutton-secondary-border": "--border-neutral",
+        "--iconbutton-secondary-border-width": "--border-width-1",
+        "--iconbutton-secondary-radius": "--radius-xl",
+        "--iconbutton-secondary-padding": "--space-8",
+        "--iconbutton-secondary-icon-size": "--icon-size-md",
+        "--iconbutton-secondary-hover-surface": "--surface-neutral-higher",
+        "--iconbutton-secondary-hover-icon": "--text-primary",
+        "--iconbutton-secondary-hover-border": "--border-neutral-strong",
+        "--iconbutton-secondary-disabled-surface": "--color-neutral-700",
+        "--iconbutton-secondary-disabled-icon": "--text-tertiary",
+        "--iconbutton-secondary-disabled-border": "--border-neutral-faint",
+        "--iconbutton-outline-surface": "--color-transparent",
+        "--iconbutton-outline-icon": "--text-primary",
+        "--iconbutton-outline-border": "--border-neutral",
+        "--iconbutton-outline-border-width": "--border-width-1",
+        "--iconbutton-outline-radius": "--radius-xl",
+        "--iconbutton-outline-padding": "--space-8",
+        "--iconbutton-outline-icon-size": "--icon-size-md",
+        "--iconbutton-outline-hover-surface": "--surface-neutral-lower",
+        "--iconbutton-outline-hover-icon": "--text-primary",
+        "--iconbutton-outline-hover-border": "--border-neutral-strong",
+        "--iconbutton-outline-active-surface": "--hover",
+        "--iconbutton-outline-disabled-surface": "--color-transparent",
+        "--iconbutton-outline-disabled-icon": "--text-tertiary",
+        "--iconbutton-outline-disabled-border": "--border-neutral-faint",
+        "--iconbutton-success-surface": "--surface-success-low",
+        "--iconbutton-success-icon": "--text-success",
+        "--iconbutton-success-border": "--border-success",
+        "--iconbutton-success-border-width": "--border-width-1",
+        "--iconbutton-success-radius": "--radius-xl",
+        "--iconbutton-success-padding": "--space-8",
+        "--iconbutton-success-icon-size": "--icon-size-md",
+        "--iconbutton-success-hover-surface": "--surface-success-higher",
+        "--iconbutton-success-hover-icon": "--text-primary",
+        "--iconbutton-success-hover-border": "--border-success-strong",
+        "--iconbutton-success-disabled-surface": "--color-neutral-700",
+        "--iconbutton-success-disabled-icon": "--text-tertiary",
+        "--iconbutton-success-disabled-border": "--border-neutral-faint",
+        "--iconbutton-danger-surface": "--surface-danger-low",
+        "--iconbutton-danger-icon": "--text-danger",
+        "--iconbutton-danger-border": "--border-danger",
+        "--iconbutton-danger-border-width": "--border-width-1",
+        "--iconbutton-danger-radius": "--radius-xl",
+        "--iconbutton-danger-padding": "--space-8",
+        "--iconbutton-danger-icon-size": "--icon-size-md",
+        "--iconbutton-danger-hover-surface": "--surface-danger-high",
+        "--iconbutton-danger-hover-icon": "--text-primary",
+        "--iconbutton-danger-hover-border": "--border-danger-medium",
+        "--iconbutton-danger-disabled-surface": "--color-neutral-700",
+        "--iconbutton-danger-disabled-icon": "--text-tertiary",
+        "--iconbutton-danger-disabled-border": "--border-neutral-faint",
+        "--iconbutton-warning-surface": "--surface-warning-low",
+        "--iconbutton-warning-icon": "--text-warning",
+        "--iconbutton-warning-border": "--border-warning",
+        "--iconbutton-warning-border-width": "--border-width-1",
+        "--iconbutton-warning-radius": "--radius-xl",
+        "--iconbutton-warning-padding": "--space-8",
+        "--iconbutton-warning-icon-size": "--icon-size-md",
+        "--iconbutton-warning-hover-surface": "--surface-warning-high",
+        "--iconbutton-warning-hover-icon": "--text-primary",
+        "--iconbutton-warning-hover-border": "--border-warning-medium",
+        "--iconbutton-warning-disabled-surface": "--color-neutral-700",
+        "--iconbutton-warning-disabled-icon": "--text-tertiary",
+        "--iconbutton-warning-disabled-border": "--border-neutral-faint",
+        "--iconbutton-small-padding": "--space-6",
+        "--iconbutton-small-icon-size": "--icon-size-sm"
+      }
+    },
+    "image": {
+      "name": "default",
+      "component": "image",
+      "createdAt": "2026-04-26T00:00:00.000Z",
+      "updatedAt": "2026-06-02T22:49:34.556Z",
+      "aliases": {
+        "--image-default-radius": "--radius-2xl",
+        "--image-default-border": "--border-neutral",
+        "--image-default-border-width": "--border-width-1",
+        "--image-default-shadow": "--shadow-md",
+        "--image-zoom-scale": "--scale-sm"
+      }
+    },
+    "imagelightbox": {
+      "name": "default",
+      "component": "imagelightbox",
+      "createdAt": "2026-05-26T02:03:38.863Z",
+      "updatedAt": "2026-05-30T11:49:02.844Z",
+      "aliases": {
+        "--imagelightbox-tile-surface": "--color-transparent",
+        "--imagelightbox-tile-radius": "--radius-2xl",
+        "--imagelightbox-tile-border": "--color-transparent",
+        "--imagelightbox-tile-border-width": "--border-width-0",
+        "--imagelightbox-tile-shadow": "--shadow-md",
+        "--imagelightbox-overlay-surface": "color-mix(in srgb, var(--color-neutral-950) 76%, transparent)",
+        "--imagelightbox-chrome-surface": "--surface-neutral-low",
+        "--imagelightbox-chrome-border": "--border-brand",
+        "--imagelightbox-chrome-border-width": "--border-width-1",
+        "--imagelightbox-chrome-radius": "--radius-full",
+        "--imagelightbox-chrome-icon": "--text-primary",
+        "--imagelightbox-chrome-hover-surface": "--surface-brand-high"
+      }
+    },
+    "inlineeditactions": {
+      "name": "default",
+      "component": "inlineeditactions",
+      "createdAt": "2026-05-01T08:34:39.325Z",
+      "updatedAt": "2026-05-10T16:59:16.436Z",
+      "aliases": {
+        "--inlineeditactions-save-default-surface": "--surface-success-low",
+        "--inlineeditactions-save-default-text": "--text-success",
+        "--inlineeditactions-save-default-border": "--border-success",
+        "--inlineeditactions-save-default-border-width": "--border-width-0",
+        "--inlineeditactions-save-default-radius": "--radius-md",
+        "--inlineeditactions-save-default-padding": "--space-4",
+        "--inlineeditactions-save-default-icon-size": "--icon-size-md",
+        "--inlineeditactions-save-hover-surface": "--surface-success-high",
+        "--inlineeditactions-save-hover-text": "--text-success",
+        "--inlineeditactions-save-hover-border": "--border-success",
+        "--inlineeditactions-save-hover-border-width": "--border-width-0",
+        "--inlineeditactions-save-hover-radius": "--radius-md",
+        "--inlineeditactions-save-hover-padding": "--space-4",
+        "--inlineeditactions-save-hover-icon-size": "--icon-size-md",
+        "--inlineeditactions-cancel-default-surface": "--surface-danger-low",
+        "--inlineeditactions-cancel-default-text": "--text-danger",
+        "--inlineeditactions-cancel-default-border": "--border-danger",
+        "--inlineeditactions-cancel-default-border-width": "--border-width-0",
+        "--inlineeditactions-cancel-default-radius": "--radius-md",
+        "--inlineeditactions-cancel-default-padding": "--space-4",
+        "--inlineeditactions-cancel-default-icon-size": "--icon-size-md",
+        "--inlineeditactions-cancel-hover-surface": "--surface-danger-high",
+        "--inlineeditactions-cancel-hover-text": "--text-danger",
+        "--inlineeditactions-cancel-hover-border": "--border-danger",
+        "--inlineeditactions-cancel-hover-border-width": "--border-width-0",
+        "--inlineeditactions-cancel-hover-radius": "--radius-md",
+        "--inlineeditactions-cancel-hover-padding": "--space-4",
+        "--inlineeditactions-cancel-hover-icon-size": "--icon-size-md"
+      }
+    },
+    "input": {
+      "name": "default",
+      "component": "input",
+      "createdAt": "2026-05-24T14:28:03.860Z",
+      "updatedAt": "2026-05-24T14:47:22.691Z",
+      "aliases": {
+        "--input-radius": "--radius-md",
+        "--input-padding": "--space-8",
+        "--input-border-width": "--border-width-1",
+        "--input-gap": "--space-6",
+        "--input-default-surface": "--surface-neutral-lower",
+        "--input-default-border": "--border-neutral",
+        "--input-default-text": "--text-primary",
+        "--input-default-text-font-family": "--font-sans",
+        "--input-default-text-font-size": "--font-size-sm",
+        "--input-default-text-font-weight": "--font-weight-normal",
+        "--input-default-text-line-height": "--line-height-tighter",
+        "--input-default-icon": "--text-tertiary",
+        "--input-default-icon-size": "--icon-size-sm",
+        "--input-default-placeholder": "--text-tertiary",
+        "--input-focused-surface": "--surface-neutral-lower",
+        "--input-focused-border": "--border-brand",
+        "--input-focused-border-width": "--border-width-2",
+        "--input-focused-text": "--text-primary",
+        "--input-focused-text-font-family": "--font-sans",
+        "--input-focused-text-font-size": "--font-size-sm",
+        "--input-focused-text-font-weight": "--font-weight-normal",
+        "--input-focused-text-line-height": "--line-height-tighter",
+        "--input-focused-icon": "--text-secondary",
+        "--input-focused-icon-size": "--icon-size-sm",
+        "--input-disabled-surface": "--surface-neutral",
+        "--input-disabled-border": "--border-neutral-faint",
+        "--input-disabled-text": "--text-tertiary",
+        "--input-disabled-text-font-family": "--font-sans",
+        "--input-disabled-text-font-size": "--font-size-sm",
+        "--input-disabled-text-font-weight": "--font-weight-normal",
+        "--input-disabled-text-line-height": "--line-height-tighter",
+        "--input-disabled-icon": "--text-tertiary",
+        "--input-disabled-icon-size": "--icon-size-sm",
+        "--input-label": "--text-secondary",
+        "--input-label-font-family": "--font-sans",
+        "--input-label-font-size": "--font-size-sm",
+        "--input-label-font-weight": "--font-weight-semibold",
+        "--input-label-line-height": "--line-height-tighter",
+        "--input-hint": "--text-tertiary",
+        "--input-hint-font-family": "--font-sans",
+        "--input-hint-font-size": "--font-size-xs",
+        "--input-hint-font-weight": "--font-weight-normal",
+        "--input-hint-line-height": "--line-height-tighter",
+        "--input-error-border": "--border-danger",
+        "--input-error-border-width": "--border-width-2",
+        "--input-error": "--text-danger",
+        "--input-error-font-family": "--font-sans",
+        "--input-error-font-size": "--font-size-xs",
+        "--input-error-font-weight": "--font-weight-medium",
+        "--input-error-line-height": "--line-height-tighter"
+      }
+    },
+    "menuselect": {
+      "name": "default",
+      "component": "menuselect",
+      "createdAt": "2026-05-16T00:00:00.000Z",
+      "updatedAt": "2026-05-25T01:43:35.000Z",
+      "aliases": {
+        "--menuselect-menu-surface": "color-mix(in srgb, var(--surface-neutral-lower) 95%, transparent)",
+        "--menuselect-menu-border": "--border-neutral-medium",
+        "--menuselect-menu-border-width": "--border-width-1",
+        "--menuselect-menu-radius": "--radius-md",
+        "--menuselect-menu-padding": "--space-4",
+        "--menuselect-menu-gap": "--space-2",
+        "--menuselect-menu-shadow": "--shadow-md",
+        "--menuselect-item-radius": "--radius-sm",
+        "--menuselect-item-padding": "--space-8",
+        "--menuselect-default-surface": "--color-transparent",
+        "--menuselect-default-text": "--text-secondary",
+        "--menuselect-default-text-font-family": "--font-sans",
+        "--menuselect-default-text-font-size": "--font-size-sm",
+        "--menuselect-default-text-font-weight": "--font-weight-normal",
+        "--menuselect-default-text-line-height": "--line-height-tighter",
+        "--menuselect-default-icon": "--text-tertiary",
+        "--menuselect-default-icon-size": "--icon-size-sm",
+        "--menuselect-hover-surface": "--surface-neutral-higher",
+        "--menuselect-hover-text": "--text-primary",
+        "--menuselect-hover-text-font-family": "--font-sans",
+        "--menuselect-hover-text-font-size": "--font-size-sm",
+        "--menuselect-hover-text-font-weight": "--font-weight-normal",
+        "--menuselect-hover-text-line-height": "--line-height-tighter",
+        "--menuselect-hover-icon": "--text-primary",
+        "--menuselect-hover-icon-size": "--icon-size-sm",
+        "--menuselect-selected-surface": "--surface-brand-low",
+        "--menuselect-selected-text": "--text-primary",
+        "--menuselect-selected-text-font-family": "--font-sans",
+        "--menuselect-selected-text-font-size": "--font-size-sm",
+        "--menuselect-selected-text-font-weight": "--font-weight-semibold",
+        "--menuselect-selected-text-line-height": "--line-height-tighter",
+        "--menuselect-selected-icon": "--text-brand",
+        "--menuselect-selected-icon-size": "--icon-size-sm",
+        "--menuselect-selected-indicator": "--text-brand",
+        "--menuselect-disabled-surface": "--color-transparent",
+        "--menuselect-disabled-text": "--text-tertiary",
+        "--menuselect-disabled-text-font-family": "--font-sans",
+        "--menuselect-disabled-text-font-size": "--font-size-sm",
+        "--menuselect-disabled-text-font-weight": "--font-weight-normal",
+        "--menuselect-disabled-text-line-height": "--line-height-tighter",
+        "--menuselect-disabled-icon": "--text-tertiary",
+        "--menuselect-disabled-icon-size": "--icon-size-sm"
+      }
+    },
+    "notification": {
+      "name": "default",
+      "component": "notification",
+      "createdAt": "2026-04-18T02:43:11.330Z",
+      "updatedAt": "2026-05-25T01:43:35.000Z",
+      "aliases": {
+        "--notification-info-surface": "--surface-info",
+        "--notification-info-action-surface": "--surface-neutral-lowest",
+        "--notification-info-border": "--border-info",
+        "--notification-info-border-width": "--border-width-1",
+        "--notification-info-radius": "--radius-md",
+        "--notification-info-padding": "--space-12",
+        "--notification-info-icon": "--text-info",
+        "--notification-info-icon-size": "--icon-size-md",
+        "--notification-info-title": "--text-info",
+        "--notification-info-title-font-family": "--font-sans",
+        "--notification-info-title-font-size": "--font-size-lg",
+        "--notification-info-title-font-weight": "--font-weight-bold",
+        "--notification-info-title-line-height": "--line-height-tighter",
+        "--notification-info-text": "--text-primary",
+        "--notification-info-text-font-family": "--font-sans",
+        "--notification-info-text-font-size": "--font-size-md",
+        "--notification-info-text-font-weight": "--font-weight-normal",
+        "--notification-info-text-line-height": "--line-height-normal",
+        "--notification-success-surface": "--surface-success",
+        "--notification-success-action-surface": "--surface-neutral-lowest",
+        "--notification-success-border": "--border-success",
+        "--notification-success-border-width": "--border-width-1",
+        "--notification-success-radius": "--radius-md",
+        "--notification-success-padding": "--space-12",
+        "--notification-success-icon": "--text-success",
+        "--notification-success-icon-size": "--icon-size-md",
+        "--notification-success-title": "--text-success",
+        "--notification-success-title-font-family": "--font-sans",
+        "--notification-success-title-font-size": "--font-size-lg",
+        "--notification-success-title-font-weight": "--font-weight-bold",
+        "--notification-success-title-line-height": "--line-height-tighter",
+        "--notification-success-text": "--text-primary",
+        "--notification-success-text-font-family": "--font-sans",
+        "--notification-success-text-font-size": "--font-size-md",
+        "--notification-success-text-font-weight": "--font-weight-normal",
+        "--notification-success-text-line-height": "--line-height-normal",
+        "--notification-warning-surface": "--surface-warning",
+        "--notification-warning-action-surface": "--surface-neutral-lowest",
+        "--notification-warning-border": "--border-warning",
+        "--notification-warning-border-width": "--border-width-1",
+        "--notification-warning-radius": "--radius-md",
+        "--notification-warning-padding": "--space-12",
+        "--notification-warning-icon": "--text-warning",
+        "--notification-warning-icon-size": "--icon-size-md",
+        "--notification-warning-title": "--text-warning",
+        "--notification-warning-title-font-family": "--font-sans",
+        "--notification-warning-title-font-size": "--font-size-lg",
+        "--notification-warning-title-font-weight": "--font-weight-bold",
+        "--notification-warning-title-line-height": "--line-height-tighter",
+        "--notification-warning-text": "--text-primary",
+        "--notification-warning-text-font-family": "--font-sans",
+        "--notification-warning-text-font-size": "--font-size-md",
+        "--notification-warning-text-font-weight": "--font-weight-normal",
+        "--notification-warning-text-line-height": "--line-height-normal",
+        "--notification-danger-surface": "--surface-danger",
+        "--notification-danger-action-surface": "--surface-neutral-lowest",
+        "--notification-danger-border": "--border-danger",
+        "--notification-danger-border-width": "--border-width-1",
+        "--notification-danger-radius": "--radius-md",
+        "--notification-danger-padding": "--space-12",
+        "--notification-danger-icon": "--text-danger",
+        "--notification-danger-icon-size": "--icon-size-md",
+        "--notification-danger-title": "--text-danger",
+        "--notification-danger-title-font-family": "--font-sans",
+        "--notification-danger-title-font-size": "--font-size-lg",
+        "--notification-danger-title-font-weight": "--font-weight-bold",
+        "--notification-danger-title-line-height": "--line-height-tighter",
+        "--notification-danger-text": "--text-primary",
+        "--notification-danger-text-font-family": "--font-sans",
+        "--notification-danger-text-font-size": "--font-size-md",
+        "--notification-danger-text-font-weight": "--font-weight-normal",
+        "--notification-danger-text-line-height": "--line-height-normal"
+      }
+    },
+    "panel": {
+      "name": "default",
+      "component": "panel",
+      "createdAt": "2026-06-01T09:34:52.417Z",
+      "updatedAt": "2026-06-01T12:38:47.484Z",
+      "aliases": {
+        "--panel-frame-border": "--border-neutral",
+        "--panel-frame-border-width": "--border-width-1",
+        "--panel-frame-radius": "--radius-2xl",
+        "--panel-stage-padding": "--space-16",
+        "--panel-stage-inline-padding": "--space-16",
+        "--panel-stage-gap": "--space-16",
+        "--panel-stage-surface": {
+          "kind": "gradient",
+          "value": {
+            "type": "linear",
+            "angle": 0,
+            "stops": [
+              {
+                "position": 0.5,
+                "color": "--surface-neutral-low",
+                "opacity": 40
+              },
+              {
+                "position": 100,
+                "color": "--surface-neutral-lowest",
+                "opacity": 75
+              }
+            ]
+          }
+        }
+      }
+    },
+    "progressbar": {
+      "name": "default",
+      "component": "progressbar",
+      "createdAt": "2026-05-10T20:42:26.726Z",
+      "updatedAt": "2026-07-21T19:44:56.535Z",
+      "aliases": {
+        "--progressbar-track-surface": "--surface-neutral-lowest",
+        "--progressbar-track-border": "--border-neutral-subtle",
+        "--progressbar-track-border-width": "--border-width-1",
+        "--progressbar-track-height": "--space-16",
+        "--progressbar-radius": "--radius-full",
+        "--progressbar-fill": "--surface-special-highest",
+        "--progressbar-label-gap": "--space-6",
+        "--progressbar-label": "--text-secondary",
+        "--progressbar-label-font-family": "--font-sans",
+        "--progressbar-label-font-size": "--font-size-md",
+        "--progressbar-label-font-weight": "--font-weight-normal",
+        "--progressbar-label-line-height": "--line-height-normal",
+        "--progressbar-value": "--text-tertiary",
+        "--progressbar-value-font-family": "--font-mono",
+        "--progressbar-value-font-size": "--font-size-md",
+        "--progressbar-value-font-weight": "--font-weight-normal",
+        "--progressbar-value-line-height": "--line-height-normal"
+      }
+    },
+    "radiobutton": {
+      "name": "default",
+      "component": "radiobutton",
+      "createdAt": "2026-05-10T20:44:44.372Z",
+      "updatedAt": "2026-05-17T14:23:21.109Z",
+      "aliases": {
+        "--radiobutton-default-dot-border-color": "--border-neutral",
+        "--radiobutton-default-dot-border-width": "--border-width-2",
+        "--radiobutton-default-dot-fill": "--text-secondary",
+        "--radiobutton-default-dot-size": "--dot-size-0",
+        "--radiobutton-default-label": "--text-primary",
+        "--radiobutton-default-label-font-family": "--font-sans",
+        "--radiobutton-default-label-font-size": "--font-size-md",
+        "--radiobutton-default-label-font-weight": "--font-weight-semibold",
+        "--radiobutton-default-label-line-height": "--line-height-none",
+        "--radiobutton-hover-dot-border-color": "--border-neutral",
+        "--radiobutton-hover-dot-border-width": "--border-width-2",
+        "--radiobutton-hover-dot-fill": "--text-secondary",
+        "--radiobutton-hover-dot-size": "--dot-size-50",
+        "--radiobutton-hover-label": "--text-primary",
+        "--radiobutton-hover-label-font-family": "--font-sans",
+        "--radiobutton-hover-label-font-size": "--font-size-md",
+        "--radiobutton-hover-label-font-weight": "--font-weight-semibold",
+        "--radiobutton-hover-label-line-height": "--line-height-none",
+        "--radiobutton-active-dot-border-color": "--border-neutral",
+        "--radiobutton-active-dot-border-width": "--border-width-2",
+        "--radiobutton-active-dot-fill": "--text-secondary",
+        "--radiobutton-active-dot-size": "--dot-size-50",
+        "--radiobutton-active-label": "--text-primary",
+        "--radiobutton-active-label-font-family": "--font-sans",
+        "--radiobutton-active-label-font-size": "--font-size-md",
+        "--radiobutton-active-label-font-weight": "--font-weight-semibold",
+        "--radiobutton-active-label-line-height": "--line-height-none"
+      }
+    },
+    "sectiondivider": {
+      "name": "default",
+      "component": "sectiondivider",
+      "createdAt": "2026-05-10T22:09:00.336Z",
+      "updatedAt": "2026-06-01T12:24:21.355Z",
+      "aliases": {
+        "--sectiondivider-lg-title-font-family": "--font-display",
+        "--sectiondivider-lg-title-font-weight": "--font-weight-bold",
+        "--sectiondivider-lg-title-font-size": "--font-size-5xl",
+        "--sectiondivider-lg-title-line-height": "--line-height-normal",
+        "--sectiondivider-lg-title-letter-spacing": "--letter-spacing-normal",
+        "--sectiondivider-lg-title-outline-width": "--border-width-4",
+        "--sectiondivider-lg-description-font-family": "--font-sans",
+        "--sectiondivider-lg-description-font-weight": "--font-weight-medium",
+        "--sectiondivider-lg-description-font-size": "--font-size-lg",
+        "--sectiondivider-lg-description-line-height": "--line-height-normal",
+        "--sectiondivider-lg-eyebrow-font-family": "--font-sans",
+        "--sectiondivider-lg-eyebrow-font-weight": "--font-weight-medium",
+        "--sectiondivider-lg-eyebrow-font-size": "--font-size-md",
+        "--sectiondivider-lg-eyebrow-letter-spacing": "--letter-spacing-normal",
+        "--sectiondivider-lg-padding": "--space-0",
+        "--sectiondivider-lg-title-padding": "--space-2",
+        "--sectiondivider-lg-description-padding": "--space-0",
+        "--sectiondivider-lg-eyebrow-padding": "--space-0",
+        "--sectiondivider-lg-radius": "--radius-lg",
+        "--sectiondivider-lg-border-width": "--border-width-1",
+        "--sectiondivider-lg-shadow": "--shadow-none",
+        "--sectiondivider-lg-hairline-thickness": "--border-width-1",
+        "--sectiondivider-lg-background": "--color-transparent",
+        "--sectiondivider-lg-title": "--text-primary",
+        "--sectiondivider-lg-description": "--text-alternate",
+        "--sectiondivider-lg-eyebrow": "--text-brand",
+        "--sectiondivider-lg-border": "--color-transparent",
+        "--sectiondivider-lg-title-outline-color": "--color-transparent",
+        "--sectiondivider-lg-hairline-color": "--border-brand-medium",
+        "--sectiondivider-md-title-font-family": "--font-display",
+        "--sectiondivider-md-title-font-weight": "--font-weight-bold",
+        "--sectiondivider-md-title-font-size": "--font-size-4xl",
+        "--sectiondivider-md-title-line-height": "--line-height-normal",
+        "--sectiondivider-md-title-letter-spacing": "--letter-spacing-normal",
+        "--sectiondivider-md-title-outline-width": "--border-width-4",
+        "--sectiondivider-md-description-font-family": "--font-sans",
+        "--sectiondivider-md-description-font-weight": "--font-weight-medium",
+        "--sectiondivider-md-description-font-size": "--font-size-lg",
+        "--sectiondivider-md-description-line-height": "--line-height-normal",
+        "--sectiondivider-md-eyebrow-font-family": "--font-sans",
+        "--sectiondivider-md-eyebrow-font-weight": "--font-weight-medium",
+        "--sectiondivider-md-eyebrow-font-size": "--font-size-sm",
+        "--sectiondivider-md-eyebrow-letter-spacing": "--letter-spacing-normal",
+        "--sectiondivider-md-padding": "--space-0",
+        "--sectiondivider-md-title-padding": "--space-2",
+        "--sectiondivider-md-description-padding": "--space-0",
+        "--sectiondivider-md-eyebrow-padding": "--space-0",
+        "--sectiondivider-md-radius": "--radius-lg",
+        "--sectiondivider-md-border-width": "--border-width-1",
+        "--sectiondivider-md-shadow": "--shadow-none",
+        "--sectiondivider-md-hairline-thickness": "--border-width-1",
+        "--sectiondivider-md-background": "--color-transparent",
+        "--sectiondivider-md-title": "--text-primary",
+        "--sectiondivider-md-description": "--text-secondary",
+        "--sectiondivider-md-eyebrow": "--text-tertiary",
+        "--sectiondivider-md-border": "--color-transparent",
+        "--sectiondivider-md-title-outline-color": "--color-transparent",
+        "--sectiondivider-md-hairline-color": "--border-brand-medium",
+        "--sectiondivider-sm-title-font-family": "--font-display",
+        "--sectiondivider-sm-title-font-weight": "--font-weight-medium",
+        "--sectiondivider-sm-title-font-size": "--font-size-3xl",
+        "--sectiondivider-sm-title-line-height": "--line-height-normal",
+        "--sectiondivider-sm-title-letter-spacing": "--letter-spacing-normal",
+        "--sectiondivider-sm-title-outline-width": "--border-width-4",
+        "--sectiondivider-sm-description-font-family": "--font-sans",
+        "--sectiondivider-sm-description-font-weight": "--font-weight-medium",
+        "--sectiondivider-sm-description-font-size": "--font-size-5xl",
+        "--sectiondivider-sm-description-line-height": "--line-height-normal",
+        "--sectiondivider-sm-eyebrow-font-family": "--font-sans",
+        "--sectiondivider-sm-eyebrow-font-weight": "--font-weight-medium",
+        "--sectiondivider-sm-eyebrow-font-size": "--font-size-xs",
+        "--sectiondivider-sm-eyebrow-letter-spacing": "--letter-spacing-normal",
+        "--sectiondivider-sm-padding": "--space-0",
+        "--sectiondivider-sm-title-padding": "--space-2",
+        "--sectiondivider-sm-description-padding": "--space-0",
+        "--sectiondivider-sm-eyebrow-padding": "--space-0",
+        "--sectiondivider-sm-radius": "--radius-lg",
+        "--sectiondivider-sm-border-width": "--border-width-1",
+        "--sectiondivider-sm-shadow": "--shadow-none",
+        "--sectiondivider-sm-hairline-thickness": "--border-width-1",
+        "--sectiondivider-sm-background": "--color-transparent",
+        "--sectiondivider-sm-title": "--text-brand",
+        "--sectiondivider-sm-description": "--text-secondary",
+        "--sectiondivider-sm-eyebrow": "--text-tertiary",
+        "--sectiondivider-sm-border": "--color-transparent",
+        "--sectiondivider-sm-title-outline-color": "--color-transparent",
+        "--sectiondivider-sm-hairline-color": "color-mix(in srgb, var(--border-brand-medium) 50%, transparent)"
+      }
+    },
+    "segmentedcontrol": {
+      "name": "default",
+      "component": "segmentedcontrol",
+      "createdAt": "2026-04-28T21:13:17.669Z",
+      "updatedAt": "2026-07-21T19:44:56.536Z",
+      "aliases": {
+        "--segmentedcontrol-bar-surface": "color-mix(in srgb, var(--surface-neutral-lowest) 75%, transparent)",
+        "--segmentedcontrol-bar-border": "--border-neutral",
+        "--segmentedcontrol-bar-border-width": "--border-width-1",
+        "--segmentedcontrol-bar-radius": "--radius-lg",
+        "--segmentedcontrol-bar-padding": "--space-4",
+        "--segmentedcontrol-bar-gap": "--space-8",
+        "--segmentedcontrol-divider-color": "--border-neutral",
+        "--segmentedcontrol-divider-thickness": "--border-width-1",
+        "--segmentedcontrol-divider-inset": "--space-6",
+        "--segmentedcontrol-option-padding": "--space-8",
+        "--segmentedcontrol-option-gap": "--space-8",
+        "--segmentedcontrol-option-text": "--text-primary",
+        "--segmentedcontrol-option-text-font-family": "--font-sans",
+        "--segmentedcontrol-option-text-font-size": "--font-size-md",
+        "--segmentedcontrol-option-text-font-weight": "--font-weight-normal",
+        "--segmentedcontrol-option-text-line-height": "--line-height-normal",
+        "--segmentedcontrol-option-icon": "--text-secondary",
+        "--segmentedcontrol-option-icon-size": "--icon-size-md",
+        "--segmentedcontrol-option-hover-surface": "--surface-neutral",
+        "--segmentedcontrol-option-hover-text": "--text-primary",
+        "--segmentedcontrol-option-hover-text-font-family": "--font-sans",
+        "--segmentedcontrol-option-hover-text-font-size": "--font-size-md",
+        "--segmentedcontrol-option-hover-text-font-weight": "--font-weight-normal",
+        "--segmentedcontrol-option-hover-text-line-height": "--line-height-normal",
+        "--segmentedcontrol-option-hover-icon": "--text-primary",
+        "--segmentedcontrol-selected-surface": "--surface-brand",
+        "--segmentedcontrol-selected-text": "--text-primary",
+        "--segmentedcontrol-selected-text-font-family": "--font-sans",
+        "--segmentedcontrol-selected-text-font-size": "--font-size-md",
+        "--segmentedcontrol-selected-text-font-weight": "--font-weight-normal",
+        "--segmentedcontrol-selected-text-line-height": "--line-height-normal",
+        "--segmentedcontrol-selected-icon": "--text-secondary",
+        "--segmentedcontrol-selected-border": "--border-brand",
+        "--segmentedcontrol-selected-border-width": "--border-width-1",
+        "--segmentedcontrol-selected-radius": "--radius-md",
+        "--segmentedcontrol-disabled-surface": "--color-transparent",
+        "--segmentedcontrol-disabled-text": "--text-secondary",
+        "--segmentedcontrol-disabled-text-font-family": "--font-sans",
+        "--segmentedcontrol-disabled-text-font-size": "--font-size-md",
+        "--segmentedcontrol-disabled-text-font-weight": "--font-weight-normal",
+        "--segmentedcontrol-disabled-text-line-height": "--line-height-normal",
+        "--segmentedcontrol-disabled-icon": "--text-secondary",
+        "--segmentedcontrol-bar-small-padding": "--space-2",
+        "--segmentedcontrol-bar-small-radius": "--radius-md",
+        "--segmentedcontrol-small-divider-inset": "--space-4",
+        "--segmentedcontrol-small-divider-thickness": "--border-width-1",
+        "--segmentedcontrol-option-small-padding": "--space-6",
+        "--segmentedcontrol-option-small-gap": "--space-6",
+        "--segmentedcontrol-option-small-icon-size": "--icon-size-sm",
+        "--segmentedcontrol-option-small-text-font-size": "--font-size-sm",
+        "--segmentedcontrol-option-small-text-line-height": "--line-height-tighter",
+        "--segmentedcontrol-selected-small-radius": "--radius-sm"
+      }
+    },
+    "sidenavigation": {
+      "name": "default",
+      "component": "sidenavigation",
+      "createdAt": "2026-05-25T19:34:09.771Z",
+      "updatedAt": "2026-06-01T23:57:08.086Z",
+      "aliases": {
+        "--sidenavigation-panel-surface": "--surface-canvas-lower",
+        "--sidenavigation-panel-border": "--border-canvas-faint",
+        "--sidenavigation-panel-border-width": "--border-width-1",
+        "--sidenavigation-panel-padding": "--space-16",
+        "--sidenavigation-panel-section-gap": "--space-4",
+        "--sidenavigation-panel-item-padding": "--space-32",
+        "--sidenavigation-panel-footer-gap": "--space-16",
+        "--sidenavigation-open-duration": "--duration-200",
+        "--sidenavigation-open-easing": "--ease-out-quart",
+        "--sidenavigation-close-duration": "--duration-150",
+        "--sidenavigation-close-easing": "--ease-out-quart",
+        "--sidenavigation-title-gap": "--space-8",
+        "--sidenavigation-title-radius": "--radius-md",
+        "--sidenavigation-title-label-surface": "--color-transparent",
+        "--sidenavigation-title-label-border": "--border-canvas-faint",
+        "--sidenavigation-title-label-border-width": "--border-width-1",
+        "--sidenavigation-title-label-radius": "--radius-md",
+        "--sidenavigation-title-label-padding": "--space-6",
+        "--sidenavigation-title-default-surface": "--color-transparent",
+        "--sidenavigation-title-default-border": "--border-canvas-faint",
+        "--sidenavigation-title-default-border-width": "--border-width-1",
+        "--sidenavigation-title-default-padding": "--space-12",
+        "--sidenavigation-title-default-accent": "--color-transparent",
+        "--sidenavigation-title-default-accent-width": "--border-width-3",
+        "--sidenavigation-title-default-label": "--text-primary",
+        "--sidenavigation-title-default-label-font-family": "--font-display",
+        "--sidenavigation-title-default-label-font-size": "--font-size-2xl",
+        "--sidenavigation-title-default-label-font-weight": "--font-weight-bold",
+        "--sidenavigation-title-default-label-line-height": "--line-height-tighter",
+        "--sidenavigation-title-hover-surface": "--color-transparent",
+        "--sidenavigation-title-hover-border": "--border-canvas-faint",
+        "--sidenavigation-title-hover-border-width": "--border-width-1",
+        "--sidenavigation-title-hover-padding": "--space-12",
+        "--sidenavigation-title-hover-accent": "--color-transparent",
+        "--sidenavigation-title-hover-accent-width": "--border-width-3",
+        "--sidenavigation-title-hover-label": "--text-primary",
+        "--sidenavigation-title-hover-label-font-family": "--font-display",
+        "--sidenavigation-title-hover-label-font-size": "--font-size-2xl",
+        "--sidenavigation-title-hover-label-font-weight": "--font-weight-bold",
+        "--sidenavigation-title-hover-label-line-height": "--line-height-tighter",
+        "--sidenavigation-title-active-surface": "--surface-canvas-low",
+        "--sidenavigation-title-active-border": "--border-canvas-faint",
+        "--sidenavigation-title-active-border-width": "--border-width-1",
+        "--sidenavigation-title-active-padding": "--space-12",
+        "--sidenavigation-title-active-accent": "--border-brand-medium",
+        "--sidenavigation-title-active-accent-width": "--border-width-3",
+        "--sidenavigation-title-active-label": "--text-primary",
+        "--sidenavigation-title-active-label-font-family": "--font-display",
+        "--sidenavigation-title-active-label-font-size": "--font-size-2xl",
+        "--sidenavigation-title-active-label-font-weight": "--font-weight-bold",
+        "--sidenavigation-title-active-label-line-height": "--line-height-tighter",
+        "--sidenavigation-toggle-default-surface": "--color-transparent",
+        "--sidenavigation-toggle-default-border": "--border-brand-medium",
+        "--sidenavigation-toggle-default-border-width": "--border-width-1",
+        "--sidenavigation-toggle-default-radius": "--radius-md",
+        "--sidenavigation-toggle-default-padding": "--space-8",
+        "--sidenavigation-toggle-default-icon": "--text-primary",
+        "--sidenavigation-toggle-default-icon-size": "--icon-size-md",
+        "--sidenavigation-toggle-hover-surface": "--surface-brand-lowest",
+        "--sidenavigation-toggle-hover-border": "--border-brand",
+        "--sidenavigation-toggle-hover-border-width": "--border-width-1",
+        "--sidenavigation-toggle-hover-radius": "--radius-md",
+        "--sidenavigation-toggle-hover-padding": "--space-8",
+        "--sidenavigation-toggle-hover-icon": "--text-brand",
+        "--sidenavigation-toggle-hover-icon-size": "--icon-size-md",
+        "--sidenavigation-section-default-surface": "--color-transparent",
+        "--sidenavigation-section-default-accent": "--color-transparent",
+        "--sidenavigation-section-default-accent-width": "--border-width-3",
+        "--sidenavigation-section-default-text": "--text-primary",
+        "--sidenavigation-section-default-text-font-family": "--font-sans",
+        "--sidenavigation-section-default-text-font-size": "--font-size-lg",
+        "--sidenavigation-section-default-text-font-weight": "--font-weight-medium",
+        "--sidenavigation-section-default-text-line-height": "--line-height-normal",
+        "--sidenavigation-section-hover-surface": "--surface-canvas",
+        "--sidenavigation-section-hover-accent": "--color-transparent",
+        "--sidenavigation-section-hover-accent-width": "--border-width-3",
+        "--sidenavigation-section-hover-text": "--text-primary",
+        "--sidenavigation-section-hover-text-font-family": "--font-sans",
+        "--sidenavigation-section-hover-text-font-size": "--font-size-lg",
+        "--sidenavigation-section-hover-text-font-weight": "--font-weight-medium",
+        "--sidenavigation-section-hover-text-line-height": "--line-height-normal",
+        "--sidenavigation-section-active-surface": "--surface-canvas-low",
+        "--sidenavigation-section-active-accent": "--border-brand-medium",
+        "--sidenavigation-section-active-accent-width": "--border-width-3",
+        "--sidenavigation-section-active-text": "--text-primary",
+        "--sidenavigation-section-active-text-font-family": "--font-sans",
+        "--sidenavigation-section-active-text-font-size": "--font-size-lg",
+        "--sidenavigation-section-active-text-font-weight": "--font-weight-medium",
+        "--sidenavigation-section-active-text-line-height": "--line-height-normal",
+        "--sidenavigation-item-default-surface": "--color-transparent",
+        "--sidenavigation-item-default-padding": "--space-6",
+        "--sidenavigation-item-default-accent": "--color-transparent",
+        "--sidenavigation-item-default-accent-width": "--border-width-3",
+        "--sidenavigation-item-default-text": "--text-tertiary",
+        "--sidenavigation-item-default-text-font-family": "--font-sans",
+        "--sidenavigation-item-default-text-font-size": "--font-size-md",
+        "--sidenavigation-item-default-text-font-weight": "--font-weight-semibold",
+        "--sidenavigation-item-default-text-line-height": "--line-height-normal",
+        "--sidenavigation-item-hover-surface": "--surface-canvas",
+        "--sidenavigation-item-hover-padding": "--space-6",
+        "--sidenavigation-item-hover-accent": "--color-transparent",
+        "--sidenavigation-item-hover-accent-width": "--border-width-3",
+        "--sidenavigation-item-hover-text": "--text-secondary",
+        "--sidenavigation-item-hover-text-font-family": "--font-sans",
+        "--sidenavigation-item-hover-text-font-size": "--font-size-md",
+        "--sidenavigation-item-hover-text-font-weight": "--font-weight-light",
+        "--sidenavigation-item-hover-text-line-height": "--line-height-normal",
+        "--sidenavigation-item-active-surface": "--surface-canvas-low",
+        "--sidenavigation-item-active-padding": "--space-6",
+        "--sidenavigation-item-active-accent": "--border-brand-medium",
+        "--sidenavigation-item-active-accent-width": "--border-width-3",
+        "--sidenavigation-item-active-text": "--text-primary",
+        "--sidenavigation-item-active-text-font-family": "--font-sans",
+        "--sidenavigation-item-active-text-font-size": "--font-size-md",
+        "--sidenavigation-item-active-text-font-weight": "--font-weight-normal",
+        "--sidenavigation-item-active-text-line-height": "--line-height-normal",
+        "--sidenavigation-footer-default-surface": "--color-transparent",
+        "--sidenavigation-footer-default-padding": "--space-8",
+        "--sidenavigation-footer-default-gap": "--space-8",
+        "--sidenavigation-footer-default-accent": "--color-transparent",
+        "--sidenavigation-footer-default-accent-width": "--border-width-3",
+        "--sidenavigation-footer-default-icon": "--text-muted",
+        "--sidenavigation-footer-default-icon-size": "--icon-size-xs",
+        "--sidenavigation-footer-default-text": "--text-tertiary",
+        "--sidenavigation-footer-default-text-font-family": "--font-sans",
+        "--sidenavigation-footer-default-text-font-size": "--font-size-sm",
+        "--sidenavigation-footer-default-text-font-weight": "--font-weight-light",
+        "--sidenavigation-footer-default-text-line-height": "--line-height-normal",
+        "--sidenavigation-footer-hover-surface": "--surface-canvas",
+        "--sidenavigation-footer-hover-padding": "--space-8",
+        "--sidenavigation-footer-hover-gap": "--space-8",
+        "--sidenavigation-footer-hover-accent": "--color-transparent",
+        "--sidenavigation-footer-hover-accent-width": "--border-width-3",
+        "--sidenavigation-footer-hover-icon": "--text-secondary",
+        "--sidenavigation-footer-hover-icon-size": "--icon-size-xs",
+        "--sidenavigation-footer-hover-text": "--text-secondary",
+        "--sidenavigation-footer-hover-text-font-family": "--font-sans",
+        "--sidenavigation-footer-hover-text-font-size": "--font-size-sm",
+        "--sidenavigation-footer-hover-text-font-weight": "--font-weight-light",
+        "--sidenavigation-footer-hover-text-line-height": "--line-height-normal",
+        "--sidenavigation-footer-active-surface": "--surface-canvas-low",
+        "--sidenavigation-footer-active-padding": "--space-8",
+        "--sidenavigation-footer-active-gap": "--space-8",
+        "--sidenavigation-footer-active-accent": "--border-brand-medium",
+        "--sidenavigation-footer-active-accent-width": "--border-width-3",
+        "--sidenavigation-footer-active-icon": "--text-primary",
+        "--sidenavigation-footer-active-icon-size": "--icon-size-xs",
+        "--sidenavigation-footer-active-text": "--text-primary",
+        "--sidenavigation-footer-active-text-font-family": "--font-sans",
+        "--sidenavigation-footer-active-text-font-size": "--font-size-sm",
+        "--sidenavigation-footer-active-text-font-weight": "--font-weight-normal",
+        "--sidenavigation-footer-active-text-line-height": "--line-height-normal"
+      }
+    },
+    "tabbar": {
+      "name": "default",
+      "component": "tabbar",
+      "createdAt": "2026-05-12T01:57:26.390Z",
+      "updatedAt": "2026-05-29T19:12:28.023Z",
+      "aliases": {
+        "--tabbar-bar-divider": "--border-neutral-subtle",
+        "--tabbar-bar-divider-thickness": "--border-width-1",
+        "--tabbar-bar-top-margin": "--space-0",
+        "--tabbar-bar-bottom-padding": "--space-0",
+        "--tabbar-bar-bottom-margin": "--space-0",
+        "--tabbar-tab-gap": "--space-2",
+        "--tabbar-default-text": "--text-tertiary",
+        "--tabbar-default-text-font-family": "--font-sans",
+        "--tabbar-default-text-font-size": "--font-size-md",
+        "--tabbar-default-text-font-weight": "--font-weight-light",
+        "--tabbar-default-text-line-height": "--line-height-normal",
+        "--tabbar-default-icon-size": "--icon-size-md",
+        "--tabbar-default-padding": "--space-8",
+        "--tabbar-default-border": "--color-transparent",
+        "--tabbar-default-surface": "--color-transparent",
+        "--tabbar-default-tab-border-color": "--color-transparent",
+        "--tabbar-default-tab-border-width": "--border-width-0",
+        "--tabbar-default-tab-top-radius": "--radius-none",
+        "--tabbar-default-tab-bottom-radius": "--radius-none",
+        "--tabbar-default-indicator-border-width": "--border-width-2",
+        "--tabbar-hover-text": "--text-secondary",
+        "--tabbar-hover-surface": "--surface-neutral-lower",
+        "--tabbar-hover-text-font-family": "--font-sans",
+        "--tabbar-hover-text-font-size": "--font-size-md",
+        "--tabbar-hover-text-font-weight": "--font-weight-light",
+        "--tabbar-hover-text-line-height": "--line-height-normal",
+        "--tabbar-hover-icon-size": "--icon-size-md",
+        "--tabbar-hover-padding": "--space-8",
+        "--tabbar-hover-border": "--color-transparent",
+        "--tabbar-hover-tab-border-color": "--color-transparent",
+        "--tabbar-hover-tab-border-width": "--border-width-0",
+        "--tabbar-hover-tab-top-radius": "--radius-none",
+        "--tabbar-hover-tab-bottom-radius": "--radius-none",
+        "--tabbar-hover-indicator-border-width": "--border-width-2",
+        "--tabbar-active-text": "--text-primary",
+        "--tabbar-active-border": "--color-brand-500",
+        "--tabbar-active-surface": "--overlay-low",
+        "--tabbar-active-text-font-family": "--font-sans",
+        "--tabbar-active-text-font-size": "--font-size-md",
+        "--tabbar-active-text-font-weight": "--font-weight-light",
+        "--tabbar-active-text-line-height": "--line-height-normal",
+        "--tabbar-active-icon-size": "--icon-size-md",
+        "--tabbar-active-padding": "--space-8",
+        "--tabbar-active-tab-border-color": "--color-transparent",
+        "--tabbar-active-tab-border-width": "--border-width-0",
+        "--tabbar-active-tab-top-radius": "--radius-none",
+        "--tabbar-active-tab-bottom-radius": "--radius-none",
+        "--tabbar-active-indicator-border-width": "--border-width-2",
+        "--tabbar-disabled-text": "--text-disabled",
+        "--tabbar-disabled-text-font-family": "--font-sans",
+        "--tabbar-disabled-text-font-size": "--font-size-md",
+        "--tabbar-disabled-text-font-weight": "--font-weight-light",
+        "--tabbar-disabled-text-line-height": "--line-height-normal",
+        "--tabbar-disabled-icon-size": "--icon-size-md",
+        "--tabbar-disabled-padding": "--space-8",
+        "--tabbar-disabled-border": "--color-transparent",
+        "--tabbar-disabled-surface": "--color-transparent",
+        "--tabbar-disabled-tab-border-color": "--color-transparent",
+        "--tabbar-disabled-tab-border-width": "--border-width-0",
+        "--tabbar-disabled-tab-top-radius": "--radius-none",
+        "--tabbar-disabled-tab-bottom-radius": "--radius-none",
+        "--tabbar-disabled-indicator-border-width": "--border-width-2"
+      }
+    },
+    "table": {
+      "name": "default",
+      "component": "table",
+      "createdAt": "2026-05-12T00:00:00.000Z",
+      "updatedAt": "2026-05-30T12:14:53.467Z",
+      "aliases": {
+        "--table-default-radius": "--radius-md",
+        "--table-default-surface": "color-mix(in srgb, var(--surface-neutral-lower) 57%, transparent)",
+        "--table-default-border": "--border-neutral",
+        "--table-default-border-width": "--border-width-2",
+        "--table-default-shadow": "--shadow-md",
+        "--table-default-header-surface": "--surface-neutral-lowest",
+        "--table-default-header-text": "--text-primary",
+        "--table-default-header-font-family": "--font-sans",
+        "--table-default-header-font-size": "--font-size-lg",
+        "--table-default-header-font-weight": "--font-weight-semibold",
+        "--table-default-header-line-height": "--line-height-none",
+        "--table-default-header-padding": "--space-12",
+        "--table-default-header-border": "--border-neutral",
+        "--table-default-header-border-width": "--border-width-1",
+        "--table-default-cell-text": "--text-secondary",
+        "--table-default-cell-font-family": "--font-sans",
+        "--table-default-cell-font-size": "--font-size-md",
+        "--table-default-cell-font-weight": "--font-weight-medium",
+        "--table-default-cell-line-height": "--line-height-normal",
+        "--table-default-cell-padding": "--space-8",
+        "--table-default-row-surface": "--color-transparent",
+        "--table-default-row-divider": "--border-neutral-subtle",
+        "--table-default-row-divider-width": "--border-width-1",
+        "--table-default-row-stripe-surface": "--color-transparent",
+        "--table-default-column-divider": "--border-neutral-faint",
+        "--table-default-column-divider-width": "--border-width-1"
+      }
+    },
+    "toggle": {
+      "name": "default",
+      "component": "toggle",
+      "createdAt": "2026-04-18T02:43:11.333Z",
+      "updatedAt": "2026-05-29T20:51:21.628Z",
+      "aliases": {
+        "--toggle-track-surface": "--surface-neutral",
+        "--toggle-track-border": "--border-neutral",
+        "--toggle-track-border-width": "--border-width-1",
+        "--toggle-track-radius": "--radius-full",
+        "--toggle-track-padding": "--space-2",
+        "--toggle-thumb-surface": "--surface-neutral-highest",
+        "--toggle-thumb-border": "--border-neutral-strong",
+        "--toggle-thumb-size": "--font-size-md",
+        "--toggle-label-text": "--text-primary",
+        "--toggle-label-font-family": "--font-sans",
+        "--toggle-label-font-size": "--font-size-sm",
+        "--toggle-label-font-weight": "--font-weight-normal",
+        "--toggle-gap": "--space-8",
+        "--toggle-hover-track-surface": "--surface-neutral-high",
+        "--toggle-hover-thumb-surface": "--text-primary",
+        "--toggle-on-track-surface": "--surface-brand-high",
+        "--toggle-on-track-border": "--border-brand",
+        "--toggle-on-thumb-surface": "--text-primary",
+        "--toggle-on-thumb-border": "--border-brand-strong",
+        "--toggle-on-hover-track-surface": "--surface-brand-higher",
+        "--toggle-on-hover-thumb-surface": "--text-primary",
+        "--toggle-disabled-track-surface": "--surface-neutral-lower",
+        "--toggle-disabled-thumb-surface": "--surface-neutral",
+        "--toggle-disabled-label-text": "--text-disabled"
+      }
+    },
+    "tooltip": {
+      "name": "default",
+      "component": "tooltip",
+      "createdAt": "2026-04-18T02:43:11.333Z",
+      "updatedAt": "2026-05-30T11:49:02.845Z",
+      "aliases": {
+        "--tooltip-surface": "color-mix(in srgb, var(--surface-canvas-lowest) 75%, transparent)",
+        "--tooltip-text": "--text-primary",
+        "--tooltip-text-font-family": "--font-sans",
+        "--tooltip-text-font-size": "--font-size-sm",
+        "--tooltip-text-font-weight": "--font-weight-normal",
+        "--tooltip-text-line-height": "--line-height-normal",
+        "--tooltip-border": "--border-neutral",
+        "--tooltip-border-width": "--border-width-1",
+        "--tooltip-radius": "--radius-md",
+        "--tooltip-padding": "--space-6",
+        "--tooltip-shadow": "--shadow-md"
+      }
+    }
+  },
+  "componentSchemaVersion": 21,
+  "sketchSettings": {
+    "label": "Hatched",
+    "blurb": "An etching. The fill is angled shading, the outline a single hard-edged scratch that chatters along its length. No mask: the hatch is the texture.",
+    "fillTravel": 1.25,
+    "strokeTravel": 1.5,
+    "wobble": 24,
+    "roughness": 3,
+    "borderWavelength": 1,
+    "waveform": 3,
+    "strokeWidth": 1.5,
+    "doubleStroke": false,
+    "retraceOffset": 1.2,
+    "retracePass": "copy",
+    "fillStyle": "hatched",
+    "hatchInk": 0.5,
+    "strokeStyle": "solid",
+    "pressure": 0.3,
+    "pressureMod": 0.45,
+    "pooling": 0.8,
+    "strokeInk": 1,
+    "maskOn": true,
+    "maskBlobX": 10,
+    "maskBlobY": 600,
+    "maskBlobLinked": false,
+    "maskAngle": 150,
+    "maskOutputMin": 0.35,
+    "maskOutputMax": 1,
+    "maskOctaves": 2,
+    "maskGrain": "turbulence",
+    "maskPosterize": 1,
+    "maskSoftness": 1.5,
+    "jitterX": 1.5,
+    "jitterY": 1.5,
+    "jitterRot": 0.4,
+    "jitterScale": 0.03,
+    "cornerSpread": 6,
+    "cornerTravel": 6,
+    "iconTravel": 1.25,
+    "iconWavelength": 0.5,
+    "iconMaskOn": false,
+    "iconMaskScale": 1
+  }
+}
