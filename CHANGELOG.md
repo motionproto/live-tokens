@@ -1,5 +1,37 @@
 # Changelog
 
+## 0.68.0 — A look is a Theme, or it's a sketch style
+
+### Changed
+
+- **"Look" is gone from the public surface.** The word covered two different
+  things, a whole design identity and the hand-drawn sketch effect, and every
+  export now names the one it means. `adoptLook` is `adoptTheme`,
+  `AdoptLookResult` is `AdoptThemeResult`. From `@motion-proto/live-tokens/sketch`,
+  `registerSketchLook` is `registerSketchStyle`, `SketchLook` is `SketchStyle`,
+  `SketchLookSource` is `SketchStyleSource`, `RegisterSketchLookInput` is
+  `RegisterSketchStyleInput`, the `sketchLooks` store is `sketchStyles`, and
+  `themeSketchLook` is `unsavedSketchStyle`. `bootLiveTokens`'s `sketchLooks`
+  option is `sketchStyles`.
+
+- **A theme's embedded sketch settings moved from `sketchStyle` to
+  `sketchSettings`.** The field holds a sketchstyle's settings, not a
+  sketchstyle, so it is named for what it holds. Reading a theme accepts
+  either key, so nothing breaks on upgrade; the boot migration rewrites the
+  file to the new key the next time it saves. Schema version 5.
+
+### Fixed
+
+- **Picking a sketchstyle in the Sketchstyle view now updates a page's own
+  picker.** Selection went through `selectSketchStyle`/`selectUnsavedSketchStyle`,
+  separate from the door a page picker calls, so the two could disagree about
+  what was on screen. Both go through `setSketch` now: one call applies the
+  style, turns the effect on, and keeps every picker in step.
+
+- **The mask's Rotation dial appears whenever its two axes differ**, not only
+  when they were never linked. Un-linking the axes and moving just one used to
+  leave Rotation hidden even though the mask was no longer round.
+
 ## 0.67.1 — The Napkin you tuned is the Napkin that ships
 
 ### Changed
