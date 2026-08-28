@@ -37,7 +37,7 @@ test('a primitive token edit flows through semantic and component aliases to the
     const target = document.querySelector<HTMLElement>('.hero-actions .button.primary')!;
     return {
       primitive: root.getPropertyValue('--color-brand-500').trim(),
-      semantic: root.getPropertyValue('--surface-brand-high').trim(),
+      semantic: root.getPropertyValue('--surface-brand').trim(),
       alias: root.getPropertyValue('--button-primary-surface').trim(),
       rendered: getComputedStyle(target).backgroundColor,
     };
@@ -56,11 +56,11 @@ test('a primitive token edit flows through semantic and component aliases to the
     const read = (root: HTMLElement, name: string) => root.style.getPropertyValue(name).trim();
     const self = document.documentElement;
     const host = window.parent.document.documentElement;
-    const names = ['--color-brand-500', '--surface-brand-high', '--button-primary-surface'];
+    const names = ['--color-brand-500', '--surface-brand', '--button-primary-surface'];
     return {
       same: names.every((name) => read(self, name) === read(host, name)),
       primitive: read(host, '--color-brand-500'),
-      semantic: read(host, '--surface-brand-high'),
+      semantic: read(host, '--surface-brand'),
       alias: read(host, '--button-primary-surface'),
     };
   });
@@ -68,8 +68,8 @@ test('a primitive token edit flows through semantic and component aliases to the
   expect(after.same).toBe(true);
   expect(after.primitive).not.toBe(before.primitive);
   expect(after.semantic).not.toBe(before.semantic);
-  expect(after.alias).toBe('var(--surface-brand-high)');
-  expect(before.alias).toBe('var(--surface-brand-high)');
+  expect(after.alias).toBe('var(--surface-brand)');
+  expect(before.alias).toBe('var(--surface-brand)');
 });
 
 test('component controls repaint the host without save, adopt, or reload', async ({ page }) => {
