@@ -15,7 +15,7 @@
  *   data-sketch   present = on, absent = off
  */
 import { getSyncedDocuments } from '../cssVarSync';
-import { buildMaskUri, MASK_TILE } from './maskField';
+import { buildMaskUri, maskTile } from './maskField';
 import type { SketchStyle } from './sketchStyles';
 
 const DEFS_ATTR = 'data-sketch-defs';
@@ -664,6 +664,10 @@ export function buildStylesheet(s: SketchStyle): string {
   // can no longer flatten the corners of every other one.
   const registrations = `@property --sketch-radius{syntax:"<length>";inherits:true;initial-value:0px;}`;
 
+  // Two sizes, not one: the field is painted at whatever the blob dials
+  // multiply out to, and they part company as soon as the pair is unlinked.
+  const tile = maskTile(s);
+
   const vars =
     `${on}{` +
       `--sketch-stroke-width:${s.strokeWidth}px;` +
@@ -674,7 +678,8 @@ export function buildStylesheet(s: SketchStyle): string {
       `--sketch-fill-filter:url(#${ID}-fill-0);` +
       `--sketch-stroke-filter:url(#${ID}-stroke-0);` +
       `--sketch-mask:${s.maskOn || s.iconMaskOn ? buildMaskUri(s) : 'none'};` +
-      `--sketch-mask-tile:${MASK_TILE}px;` +
+      `--sketch-mask-tile-w:${Number(tile.w.toFixed(2))}px;` +
+      `--sketch-mask-tile-h:${Number(tile.h.toFixed(2))}px;` +
       `--sketch-icon-mask-tile:${Math.round(s.iconMaskScale * 100)}%;` +
       // Named here rather than on the icons themselves, so an ancestor asking
       // for the soft bank resolves it against a value it can actually see.
@@ -852,7 +857,7 @@ export function buildStylesheet(s: SketchStyle): string {
       // width of the bleed; every other part's token is --shadow-none anyway.
       (bleed === 0 ? 'box-shadow:var(--sketch-shadow, none);' : '') +
       `filter:var(--sketch-fill-filter);` +
-      (s.maskOn ? coverage('var(--sketch-mask-tile) var(--sketch-mask-tile)', '--sketch-mask-pos') : '') +
+      (s.maskOn ? coverage('var(--sketch-mask-tile-w) var(--sketch-mask-tile-h)', '--sketch-mask-pos') : '') +
       `transform:translate(` +
         `calc(var(--sketch-jx, 0) * var(--sketch-jit-x, 0px)),` +
         `calc(var(--sketch-jy, 0) * var(--sketch-jit-y, 0px))` +
@@ -1008,7 +1013,8 @@ export function buildStylesheet(s: SketchStyle): string {
       // lands wholly inside a patch and comes out either untouched or gone.
       // Shrinking the tile puts several blotches across it, which is the same
       // move the icon mask makes for a glyph.
-      `--sketch-mask-tile:${Math.round(MASK_TILE * 0.3)}px;` +
+      `--sketch-mask-tile-w:${Math.round(tile.w * 0.3)}px;` +
+      `--sketch-mask-tile-h:${Math.round(tile.h * 0.3)}px;` +
       `--sketch-jit-rot:calc(var(--sketch-jit-rot-base) * 1.6);` +
       `--sketch-jit-x:calc(var(--sketch-jit-x-base) * 0.5);` +
       `--sketch-jit-y:calc(var(--sketch-jit-y-base) * 0.5);` +

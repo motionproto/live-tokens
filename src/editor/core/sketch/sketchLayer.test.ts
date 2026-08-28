@@ -10,7 +10,7 @@ import {
   setSketchScope,
   PART_SELECTORS,
 } from './sketchLayer';
-import { MASK_TILE } from './maskField';
+import { maskTile } from './maskField';
 import { SKETCH_STYLES } from './sketchStyles';
 
 const marker = SKETCH_STYLES.marker;
@@ -120,9 +120,11 @@ describe('sketch layer', () => {
   it('names one field for the fill and the icons to share', () => {
     const css = buildStylesheet(marker);
     expect(css.match(/--sketch-mask:url/g)).toHaveLength(1);
-    expect(css).toContain(`--sketch-mask-tile:${MASK_TILE}px;`);
+    const tile = maskTile(marker);
+    expect(css).toContain(`--sketch-mask-tile-w:${tile.w}px;`);
+    expect(css).toContain(`--sketch-mask-tile-h:${tile.h}px;`);
     // A chip narrower than one blob would come out wholly inked or wholly bare.
-    expect(css).toMatch(/\.badge[^{]*\{--sketch-mask-tile:\d+px;/);
+    expect(css).toMatch(/\.badge[^{]*\{--sketch-mask-tile-w:\d+px;/);
     // Nothing to build a field from, so nothing is built.
     expect(buildStylesheet({ ...marker, maskOn: false, iconMaskOn: false }))
       .toContain('--sketch-mask:none;');
@@ -300,7 +302,7 @@ describe('icons', () => {
     expect(css).toContain('--sketch-icon-mask-tile:100%;');
     expect(css).toContain('mask-size:auto var(--sketch-icon-mask-tile);');
     // The fill keeps its px tile: a component does have a size to state one in.
-    expect(css).toContain(`--sketch-mask-tile:${MASK_TILE}px;`);
+    expect(css).toContain(`--sketch-mask-tile-w:${maskTile(marker).w}px;`);
   });
 
   it('moves the icon tile the whole way the dial does', () => {

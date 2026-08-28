@@ -1,9 +1,41 @@
 import { describe, expect, it } from 'vitest';
-import { buildMaskField, buildMaskUri, MASK_TILE } from './maskField';
-import { SKETCH_STYLES } from './sketchStyles';
+import { buildMaskField, buildMaskUri, maskLattice, maskTile } from './maskField';
+import { SKETCH_STYLES, type SketchStyle } from './sketchStyles';
 
 const marker = SKETCH_STYLES.marker;
 const flat = { ...marker, maskOutputMin: 0, maskOutputMax: 1, maskPosterize: 1, maskSoftness: 0 };
+
+/**
+ * The turn the pattern runs along, in page degrees from level, measured off the
+ * field rather than off the dials: the average gradient direction, turned a
+ * quarter to face along the streaks instead of across them.
+ *
+ * Page px per sample differs between the axes as soon as the blob sizes do, so
+ * both gradients are taken in page px. Read in samples, every field would come
+ * out at whatever angle the raster happened to squash it to.
+ */
+function streak(s: SketchStyle): number {
+  const { field, raster } = buildMaskField(s, 9, 'noise');
+  const tile = maskTile(s);
+  const stepX = tile.w / raster, stepY = tile.h / raster;
+  const at = (x: number, y: number) => field[((y + raster) % raster) * raster + ((x + raster) % raster)];
+  let jxx = 0, jyy = 0, jxy = 0;
+  for (let y = 0; y < raster; y++) {
+    for (let x = 0; x < raster; x++) {
+      const gx = (at(x + 1, y) - at(x - 1, y)) / (2 * stepX);
+      const gy = (at(x, y + 1) - at(x, y - 1)) / (2 * stepY);
+      jxx += gx * gx; jyy += gy * gy; jxy += gx * gy;
+    }
+  }
+  const across = 0.5 * Math.atan2(2 * jxy, jxx - jyy) * (180 / Math.PI);
+  return (((across + 90) % 180) + 180) % 180;
+}
+
+/** Two turns apart, where 179 and 1 are two degrees apart. */
+function turnGap(a: number, b: number): number {
+  const off = Math.abs(a - b) % 180;
+  return Math.min(off, 180 - off);
+}
 
 /** Share of the field in each fifth, blackest first. */
 function bands(field: Float32Array): number[] {
@@ -144,6 +176,88 @@ describe('mask field', () => {
     expect(seam).toBeLessThanOrEqual(inside);
   });
 
+  // The dial used to be fitted to a fixed 600px tile, so it could only reach
+  // the sizes that divide 600: it said 250px and painted 300px.
+  it('paints the tile at the blob size the dials state', () => {
+    for (const blob of [8, 37, 100, 250, 600]) {
+      const tile = maskTile({ ...marker, maskBlobX: blob, maskBlobY: blob });
+      expect(tile.w % blob).toBe(0);
+      expect(tile.w / blob).toBeGreaterThanOrEqual(2);
+    }
+  });
+
+  // Unlinking the two is the whole point of the split: the same field comes out
+  // stretched, and a run across it is longer than a run down it.
+  it('stretches the field when the two blob sizes part', () => {
+    const runs = (s: typeof marker) => {
+      const { field, raster } = buildMaskField(s, 9, 'noise');
+      const crossings = (stride: number, lines: number, steps: number) => {
+        let n = 0;
+        for (let l = 0; l < lines; l++) {
+          const base = stride === 1 ? l * raster : l;
+          for (let i = 1; i < steps; i++) {
+            const a = field[base + (i - 1) * stride], b = field[base + i * stride];
+            if ((a < 0.5) !== (b < 0.5)) n++;
+          }
+        }
+        return n;
+      };
+      return { across: crossings(1, raster, raster), down: crossings(raster, raster, raster) };
+    };
+
+    const square = runs({ ...flat, maskBlobX: 100, maskBlobY: 100 });
+    expect(square.across / square.down).toBeGreaterThan(0.6);
+    expect(square.across / square.down).toBeLessThan(1.6);
+
+    // Wide and short: fewer blobs across the tile than down it.
+    const wide = runs({ ...flat, maskBlobX: 300, maskBlobY: 40 });
+    expect(wide.across).toBeLessThan(wide.down / 2);
+  });
+
+  // The dial's whole purpose: the stretch runs the way it is pointed. Measured
+  // off the finished field, since the lattice can report a turn it did not
+  // manage to draw.
+  it('runs the stretch at the angle the dial asks for', () => {
+    for (const ask of [0, 30, 45, 60, 90, 120, 150]) {
+      const s = { ...flat, maskBlobX: 300, maskBlobY: 40, maskAngle: ask };
+      expect(turnGap(streak(s), maskLattice(s).angle)).toBeLessThan(4);
+      expect(turnGap(maskLattice(s).angle, ask)).toBeLessThan(4);
+    }
+  });
+
+  // A field the same in every direction is the same field turned, so the dial
+  // is dropped rather than spending the fit on a turn nobody can see.
+  it('leaves an unstretched field square on', () => {
+    const turned = { ...flat, maskBlobX: 100, maskBlobY: 100, maskAngle: 45 };
+    expect(maskLattice(turned).angle).toBe(0);
+    expect([...buildMaskField(turned, 9).field])
+      .toEqual([...buildMaskField({ ...turned, maskAngle: 0 }, 9).field]);
+  });
+
+  // A turned pattern only meets itself where the turn lands the page's own axes
+  // back on whole cells, which is what the lattice fit is for. Every angle the
+  // dial offers has to come back tileable, or the page draws a line across
+  // itself everywhere the mask repeats.
+  it('wraps at both edges with the axes apart and turned', () => {
+    for (const maskAngle of [0, 15, 30, 45, 60, 90, 135, 165]) {
+      const { field, raster } = buildMaskField(
+        { ...flat, maskBlobX: 300, maskBlobY: 40, maskAngle }, 9,
+      );
+      let seam = 0, inside = 0;
+      for (let i = 0; i < raster; i++) {
+        seam = Math.max(seam,
+          Math.abs(field[i * raster + raster - 1] - field[i * raster]),
+          Math.abs(field[(raster - 1) * raster + i] - field[i]));
+        for (let j = 1; j < raster; j++) {
+          inside = Math.max(inside,
+            Math.abs(field[i * raster + j - 1] - field[i * raster + j]),
+            Math.abs(field[(j - 1) * raster + i] - field[j * raster + i]));
+        }
+      }
+      expect(seam).toBeLessThanOrEqual(inside);
+    }
+  });
+
   // The tab shows the three stages beside the finished field. A step that ran
   // after the last of them made that strip a liar: the composite came out paler
   // than every tile above it and nothing on screen said why.
@@ -163,8 +277,10 @@ describe('mask field', () => {
     const png = Uint8Array.from(atob(uri.slice(27, -2)), (c) => c.charCodeAt(0));
     expect([...png.subarray(0, 8)]).toEqual([137, 80, 78, 71, 13, 10, 26, 10]);
     const head = new DataView(png.buffer, 16);
+    // Square whatever the blobs measure, and small: the tile is stretched back
+    // to page px by `mask-size`, and every sample is a byte in a data URI.
     expect(head.getUint32(0)).toBe(head.getUint32(4));
-    expect(head.getUint32(0)).toBeLessThanOrEqual(MASK_TILE);
+    expect(head.getUint32(0)).toBeLessThanOrEqual(512);
     expect(png[24]).toBe(8); // bit depth
     expect(png[25]).toBe(0); // greyscale, which is what mask-mode:luminance reads
   });

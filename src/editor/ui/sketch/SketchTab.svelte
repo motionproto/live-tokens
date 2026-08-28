@@ -4,7 +4,7 @@
   import UISegmentedControl from '../UISegmentedControl.svelte';
   import SketchDial from './SketchDial.svelte';
   import SketchRange from './SketchRange.svelte';
-  import { buildMaskUri } from '../../core/sketch/maskField';
+  import { buildMaskUri, maskLattice } from '../../core/sketch/maskField';
   import SketchPreview from './SketchPreview.svelte';
   import { onMount } from 'svelte';
   import UIPillButton from '../UIPillButton.svelte';
@@ -98,6 +98,13 @@
 
   const layers = (n: number) => (n === 1 ? '1 layer' : `${n} layers`);
 
+  /** One number while the blob dials are linked, both once they are not: a
+      stretched field is the thing you would open the section to check. */
+  const blobSummary = () =>
+    s.maskBlobX === s.maskBlobY
+      ? `${s.maskBlobX}px`
+      : `${s.maskBlobX}×${s.maskBlobY}px${blobAngle === 0 ? '' : ` at ${blobAngle}°`}`;
+
   /** Trigger-row summaries: the settings you would open the section to check. */
   let summary = $derived({
     border: `${s.strokeWidth}px · ${s.strokeStyle} · ${passLabel(s.doubleStroke)}`
@@ -105,7 +112,7 @@
       + (s.borderWavelength === 1 ? '' : ` · ${against(s.borderWavelength)} wave`)
       + (s.strokeInk < 1 ? ` · ${Math.round(s.strokeInk * 100)}% ink` : ''),
     fill: `${s.fillStyle} · ${s.jitterX === 0 && s.jitterY === 0 && s.jitterRot === 0 ? 'aligned' : `±${s.jitterX}, ${s.jitterY}px`}`
-      + (s.maskOn ? ` · ${s.maskBlob}px · ${layers(s.maskOctaves)}` : ' · no mask'),
+      + (s.maskOn ? ` · ${blobSummary()} · ${layers(s.maskOctaves)}` : ' · no mask'),
     shape: s.cornerSpread === 0 && s.cornerTravel === 0
       ? 'true to the theme'
       : `±${s.cornerSpread}px corners · ${px(s.cornerTravel)} travel`,
@@ -205,11 +212,11 @@
 
   // The mask's dials are the stages the field is built in, in the order they
   // run: make the noise, level it, soften it.
-  /** Blobs much bigger than a component stop reading as coverage: one patch
-      spans a whole button, so it is either untouched or gone entirely. The
-      ceiling is a few blobs across a card, which is where it still reads as
-      uneven ink. */
-  const SIZE = { min: 20, max: 250 };
+  /** The field is painted at whatever the dials say now, rather than fitted to
+      a fixed tile, so the travel is only bounded by what still reads: speckle
+      finer than 8px is a texture rather than coverage, and a blob past 600px
+      covers a whole card in one patch, which the stretched end wants. */
+  const SIZE = { min: 8, max: 600 };
   const BLUR_MAX = 64;
   /** Squared response. A blur only reads as a different blur while it is small,
       so a linear walk to 64px would spend a tenth of the dial on everything
@@ -231,9 +238,36 @@
   const logVal = (t: number, r: { min: number; max: number }) =>
     r.min * Math.pow(r.max / r.min, Math.min(1, Math.max(0, t)));
 
-  let scalePos = $derived(logPos(s.maskBlob, SIZE));
-  const setScale = (v: number) =>
-    updateSketchSettings({ maskBlob: Math.round(logVal(v / 100, SIZE) / 5) * 5 });
+  let scaleXPos = $derived(logPos(s.maskBlobX, SIZE));
+  let scaleYPos = $derived(logPos(s.maskBlobY, SIZE));
+  /** Rounded to a whole px, and to fives above a hundred, where a single px is
+      under half a percent of the blob and only makes the readout twitch. */
+  const scaleVal = (t: number) => {
+    const px = logVal(t / 100, SIZE);
+    return px < 100 ? Math.round(px) : Math.round(px / 5) * 5;
+  };
+  const setScaleX = (v: number) => {
+    const maskBlobX = scaleVal(v);
+    updateSketchSettings(s.maskBlobLinked ? { maskBlobX, maskBlobY: maskBlobX } : { maskBlobX });
+  };
+  const setScaleY = (v: number) => {
+    const maskBlobY = scaleVal(v);
+    updateSketchSettings(s.maskBlobLinked ? { maskBlobX: maskBlobY, maskBlobY } : { maskBlobY });
+  };
+  /** The turn the tile can actually hold, which is not always the one asked
+      for: only the angles that land the page's axes back on whole noise cells
+      leave a tile that meets itself. */
+  let blobAngle = $derived(Math.round(maskLattice(s).angle));
+
+  /** Linking again squares the field off on the width, which is the axis the
+      pair reads from left to right. Leaving them apart would make the chain a
+      claim the dials contradict. */
+  const toggleBlobLink = () =>
+    updateSketchSettings(
+      s.maskBlobLinked
+        ? { maskBlobLinked: false }
+        : { maskBlobLinked: true, maskBlobY: s.maskBlobX },
+    );
   let outputMin = $derived(Math.round(s.maskOutputMin * 100));
   let outputMax = $derived(Math.round(s.maskOutputMax * 100));
   let stepPos = $derived(Math.max(0, STEP_TONES.indexOf(s.maskPosterize)));
@@ -581,13 +615,44 @@
               onchange={(v) => updateSketchSettings({ maskGrain: v as 'fractal' | 'turbulence' })}
             />
           </div>
-          <SketchDial
-            label="Scale" value={scalePos} min={0} max={100} step={1}
-            readout={`${s.maskBlob}px`}
-            ends={['speckle', 'patches']}
-            hint="Blob size on the page. Small reads as speckle, large as patches."
-            onchange={setScale}
-          />
+          <div class="pair" class:linked={s.maskBlobLinked}>
+            <button
+              type="button"
+              class="pair-link"
+              aria-pressed={s.maskBlobLinked}
+              aria-label={s.maskBlobLinked ? 'Unlink the two scales' : 'Link the two scales'}
+              title={s.maskBlobLinked
+                ? 'Both axes move together. Click to scale them on their own.'
+                : 'Each axis on its own. Click to move them together.'}
+              onclick={toggleBlobLink}
+            >
+              <i class="fas" class:fa-link={s.maskBlobLinked} class:fa-link-slash={!s.maskBlobLinked}
+                 aria-hidden="true"></i>
+            </button>
+            <div class="pair-dials">
+              <SketchDial
+                label="Scale across" value={scaleXPos} min={0} max={100} step={1}
+                readout={`${s.maskBlobX}px`}
+                hint="Blob width on the page. Small reads as speckle, large as patches."
+                onchange={setScaleX}
+              />
+              <SketchDial
+                label="Scale down" value={scaleYPos} min={0} max={100} step={1}
+                readout={`${s.maskBlobY}px`}
+                ends={['speckle', 'patches']}
+                hint="Blob height. Unlink the two to stretch the field: wide and short reads as ink dragged sideways."
+                onchange={setScaleY}
+              />
+            </div>
+          </div>
+          {#if !s.maskBlobLinked}
+            <SketchDial
+              label="Rotation" value={s.maskAngle} min={0} max={180} step={1}
+              readout={`${blobAngle}°`}
+              hint="Which way the stretch runs. The tile has to meet itself, so the turn lands on the nearest angle that does."
+              onchange={(v) => updateSketchSettings({ maskAngle: v })}
+            />
+          {/if}
           <SketchDial
             label="Detail" value={s.maskOctaves} min={1} max={4} step={1}
             readout={layers(s.maskOctaves)}
@@ -1150,6 +1215,69 @@
     flex: 1;
     height: 1px;
     background: var(--ui-border-high);
+  }
+
+  /* Two dials under one chain: the bracket is drawn on the gutter, and the
+     button sits on top of it with a punched-out background so the line reads as
+     running behind the glyph rather than into it. */
+  .pair {
+    display: grid;
+    grid-template-columns: var(--ui-space-24) 1fr;
+    gap: var(--ui-space-10);
+  }
+
+  .pair-dials {
+    display: grid;
+    gap: var(--ui-space-12);
+  }
+
+  .pair-link {
+    position: relative;
+    align-self: center;
+    justify-self: stretch;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    height: 100%;
+    background: none;
+    border: none;
+    color: var(--ui-text-tertiary);
+    cursor: pointer;
+  }
+
+  /* The bracket. Right-hand side open, so it reaches for the dials it holds. */
+  .pair-link::before {
+    content: '';
+    position: absolute;
+    inset: var(--ui-space-8) 0 var(--ui-space-8) var(--ui-space-4);
+    border: 1px solid var(--ui-border);
+    border-right: none;
+    border-radius: var(--ui-radius-sm) 0 0 var(--ui-radius-sm);
+  }
+
+  .pair-link i {
+    position: relative;
+    padding: var(--ui-space-4) 0;
+    background: var(--ui-surface-low);
+    font-size: var(--ui-font-size-sm);
+  }
+
+  .pair-link:hover,
+  .pair-link:focus-visible {
+    color: var(--ui-text-primary);
+  }
+
+  /* Broken chain, broken bracket: the two dials are no longer held together. */
+  .pair:not(.linked) .pair-link::before {
+    border-color: var(--ui-border-low);
+    border-style: dashed;
+  }
+
+  .pair-link:focus-visible {
+    outline: 2px solid var(--ui-highlight);
+    outline-offset: 2px;
+    border-radius: var(--ui-radius-sm);
   }
 
   .phase h5 {

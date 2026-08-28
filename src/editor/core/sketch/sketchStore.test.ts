@@ -386,11 +386,22 @@ describe('hydrateSketchStyle', () => {
     expect(hydrateSketchStyle({ iconMaskTile: 60 }).iconMaskScale).toBe(0.67);
   });
 
+  // The blob size is a size per axis now, and a look drawn before the split was
+  // drawn with one field, not a stretched one.
+  it('reads a stored blob size back onto both axes, linked', () => {
+    const out = hydrateSketchStyle({ maskBlob: 70 });
+    expect(out.maskBlobX).toBe(70);
+    expect(out.maskBlobY).toBe(70);
+    expect(out.maskBlobLinked).toBe(true);
+    expect('maskBlob' in out).toBe(false);
+  });
+
   it('converts a tiled mask into page-px blobs', () => {
     const out = hydrateSketchStyle({
       maskScale: 1100, maskFrequency: 0.009, maskContrast: 2.2, maskFloor: 0.35, maskSoftness: 1.5,
     });
-    expect(out.maskBlob).toBe(204);
+    expect(out.maskBlobX).toBe(204);
+    expect(out.maskBlobY).toBe(204);
     expect(out.maskSoftness).toBe(2.8);
     expect('maskScale' in out).toBe(false);
   });

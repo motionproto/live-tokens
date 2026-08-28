@@ -41,6 +41,28 @@
 
 ### Changed
 
+- **Ink coverage scales on two axes, and the px it states are the px it
+  paints.** The Scale dial fitted a whole number of blobs to a fixed 600px tile,
+  so it could only reach the sizes that divide 600: it read 250px at the top of
+  its travel and painted 300px, there was nothing above that at all, and every
+  reading in between was the nearest fit rather than the number on the dial. The
+  tile is now painted at whatever the dial says, which makes the px exact and
+  opens the travel to 8px speckle and 600px patches.
+
+  The dial is a pair, **Scale across** and **Scale down**, held together by a
+  chain. Click it and the two part company: blobs wider than they are tall read
+  as ink dragged sideways, taller than wide as a vertical grain, and the fill
+  keeps the same field underneath either way. Sketchstyles stored before the
+  split come back square and linked, which is the look they had.
+
+  Unlinked, a **Rotation** dial appears with them and points the stretch
+  wherever you like. It is offered only there because a field the same in every
+  direction is the same field turned. The tile still meets itself at every
+  setting: a turned pattern repeats seamlessly only at the angles that land the
+  page's own axes back on whole noise cells, so the dial takes the nearest of
+  those and reads back the turn it landed on, usually within a degree or two of
+  the one you asked for.
+
 - **Shipped and saved sketchstyles are one list, in one id namespace.** A
   sketchstyle named after a shipped one replaces it and keeps its place, so a
   project that wants its own Pencil saves one. The Sketchstyle view shows a
