@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased — Your own sketchstyles reach the built site
+## 0.67.0 — Every sketchstyle is a file
 
 ### Added
 
