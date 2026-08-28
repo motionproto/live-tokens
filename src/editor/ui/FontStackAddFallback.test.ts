@@ -168,7 +168,7 @@ describe('FontStackEditor add fallback', () => {
     flushSync();
 
     const add = stackEl(target, 'Font Editorial').querySelector<HTMLButtonElement>('button.add-fallback')!;
-    expect(add.textContent?.trim()).toBe('+ add Domine');
+    expect(add.textContent?.trim()).toBe('+ add font');
     add.click();
     flushSync();
 

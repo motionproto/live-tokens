@@ -1,5 +1,15 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+- **The add button names the act, not the font.** It read `+ add Domine` — the
+  next family it would reach for — so the label changed under the pointer as a
+  stack filled up, and a control that renames itself between clicks is hard to
+  aim at. It now reads `+ add font`, and still falls back to `+ add fallback`
+  once every project font is in the stack.
+
 ## 0.64.2 — A stack can gain a second font
 
 ### Fixed

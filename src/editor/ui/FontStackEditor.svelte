@@ -193,8 +193,7 @@
   }
 
   function addLabel(variable: FontStackVariable): string {
-    const next = nextAddableSlot(variable);
-    return next?.kind === 'project' ? `+ add ${slotDisplayName(next)}` : '+ add fallback';
+    return nextAddableSlot(variable)?.kind === 'project' ? '+ add font' : '+ add fallback';
   }
 
   /** A font joins the other fonts, above the fallbacks; a fallback lands just
