@@ -58,3 +58,13 @@ export function setSketch(id: string | null): void {
   selectSketchStyle(id);
   setSketchEnabled(true);
 }
+
+/**
+ * Whether the store has recorded a decision of its own in this browser.
+ *
+ * For a consumer carrying visitors over from its own storage key: a one-time
+ * carry has to be guarded on this, or it overwrites a pick the visitor has
+ * since made in the editor's Sketchstyle view with the stale one. Reading the
+ * key directly is not an option worth offering — it is ours to rename.
+ */
+export { hasPersistedSketchState } from './sketchStore';

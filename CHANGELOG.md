@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.64.1 — The sketch entry point carries its last symbol
+
+### Added
+
+- **`hasPersistedSketchState` joins `@motion-proto/live-tokens/sketch`.** A site
+  moving its visitors off its own storage key has to guard that one-time carry
+  on whether the store has already recorded a decision, or it overwrites a pick
+  the visitor has since made in the Sketchstyle view with the stale one. It was
+  the only symbol that errand still needed and the only one 0.64.0 left inside,
+  so the bundler alias the entry point set out to retire survived for it alone.
+  Reading `lt.sketchTouched` directly was never the answer: the key is ours to
+  rename.
+
 ## 0.64.0 — A site picks the sketch through the front door
 
 ### Added

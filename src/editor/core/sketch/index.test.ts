@@ -2,7 +2,7 @@
 
 import { get } from 'svelte/store';
 import { beforeEach, describe, expect, it } from 'vitest';
-import { SKETCH_LOOKS, setSketch, sketchPick } from './index';
+import { SKETCH_LOOKS, hasPersistedSketchState, setSketch, sketchPick } from './index';
 import { SKETCH_STYLES } from './sketchStyles';
 import {
   openThemeSketchStyle,
@@ -92,5 +92,22 @@ describe('the layer the store did not install', () => {
 
     setSketchEnabled(false);
     expect(sketchLayerInstalled()).toBe(false);
+  });
+});
+
+describe('hasPersistedSketchState', () => {
+  it('reads true once a pick has been made, so a carry knows to stand down', () => {
+    setSketch(SKETCH_LOOKS[0].id);
+    expect(hasPersistedSketchState()).toBe(true);
+  });
+
+  // The `beforeEach` switch is itself a decision, so "never touched" is not
+  // reachable here; what matters is that the read goes to the key and not to
+  // the value the module cached at import, which is what lets a peer
+  // document's write land between import and a caller's await.
+  it('reads the key fresh rather than the value it cached at import', () => {
+    setSketch(SKETCH_LOOKS[0].id);
+    localStorage.setItem('lt.sketchTouched', 'false');
+    expect(hasPersistedSketchState()).toBe(false);
   });
 });
