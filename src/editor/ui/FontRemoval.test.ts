@@ -175,7 +175,8 @@ describe('FontStackEditor terminal fallback', () => {
       (g) => g.label === 'Generic',
     )!;
     const values = Array.from(genericGroup.querySelectorAll('option')).map((o) => o.value);
-    expect(values).toEqual(['generic:sans-serif', 'generic:serif', 'generic:monospace']);
+    // sans-serif is missing because the terminal row holds it.
+    expect(values).toEqual(['generic:serif', 'generic:monospace']);
     unmount(component);
   });
 

@@ -105,7 +105,7 @@ describe('FontStackEditor add fallback', () => {
     unmount(component);
   });
 
-  it('renders a stack that already carries a duplicate instead of throwing', () => {
+  it('drops a duplicate a persisted stack already carries', () => {
     __resetForTests();
     seedFontsFromColorsAndType(sources, [
       {
@@ -123,7 +123,62 @@ describe('FontStackEditor add fallback', () => {
     const component = mount(FontStackEditor, { target, props: {} });
     flushSync();
 
-    expect(stackEl(target, 'Font Editorial').querySelectorAll('.slot-row').length).toBe(3);
+    const rows = stackEl(target, 'Font Editorial').querySelectorAll<HTMLElement>('.slot-row');
+    expect(rows.length).toBe(2);
+    expect(
+      Array.from(rows).map((r) => r.querySelector<HTMLSelectElement>('select.slot-select')!.value),
+    ).toEqual(['system:system-ui-sans', 'generic:sans-serif']);
+    unmount(component);
+  });
+
+  it('no row offers a value another row in the same stack holds', () => {
+    const target = document.createElement('div');
+    document.body.appendChild(target);
+    const component = mount(FontStackEditor, { target, props: {} });
+    flushSync();
+
+    const rows = stackEl(target, 'Font Editorial').querySelectorAll<HTMLElement>('.slot-row');
+    const primary = Array.from(
+      rows[0].querySelectorAll<HTMLOptionElement>('option'),
+    ).map((o) => o.value);
+    expect(primary).toContain('project:src_inter:inter');
+    expect(primary).not.toContain('system:system-ui-sans');
+    expect(primary).not.toContain('generic:sans-serif');
+    unmount(component);
+  });
+
+  it('adds a project font the stack lacks before any fallback', () => {
+    __resetForTests();
+    seedFontsFromColorsAndType(
+      [
+        ...sources,
+        {
+          id: 'src_domine',
+          kind: 'font-face',
+          label: 'Domine',
+          cssText: '@font-face { font-family: "Domine"; src: local("Domine"); }',
+          families: [{ id: 'src_domine:domine', name: 'Domine', cssName: '"Domine"' }],
+        },
+      ],
+      stacks,
+    );
+    const target = document.createElement('div');
+    document.body.appendChild(target);
+    const component = mount(FontStackEditor, { target, props: {} });
+    flushSync();
+
+    const add = stackEl(target, 'Font Editorial').querySelector<HTMLButtonElement>('button.add-fallback')!;
+    expect(add.textContent?.trim()).toBe('+ add Domine');
+    add.click();
+    flushSync();
+
+    // Joins the other fonts, above the fallbacks.
+    expect(slotsOf('--font-editorial')).toEqual([
+      { kind: 'project', familyId: 'src_inter:inter' },
+      { kind: 'project', familyId: 'src_domine:domine' },
+      { kind: 'system', preset: 'system-ui-sans' },
+      { kind: 'generic', value: 'sans-serif' },
+    ]);
     unmount(component);
   });
 });

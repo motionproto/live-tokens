@@ -64,11 +64,25 @@
     return slots;
   }
 
+  /** A repeated slot contributes nothing to the CSS list, and two identical
+   *  rows are indistinguishable — dragging one past the other looks like a
+   *  dead control. Stacks written by the pre-0.64 "+ add fallback" bug are
+   *  still in localStorage, so drop repeats on the way in. */
+  function dedupeSlots(slots: FontStackSlot[]): FontStackSlot[] {
+    const seen = new Set<string>();
+    return slots.filter((slot) => {
+      const key = slotKey(slot);
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+  }
+
   function ensureAllStacksPresent(current: FontStack[]): FontStack[] {
     const byVar = new Map(current.map((s) => [s.variable, s]));
     return STACK_VARIABLES.map((v) => {
       const stack = byVar.get(v);
-      const slots = withTerminalFallback(v, stack?.slots ?? []);
+      const slots = withTerminalFallback(v, dedupeSlots(stack?.slots ?? []));
       return stack ? { ...stack, slots } : { variable: v, slots };
     });
   }
@@ -136,21 +150,38 @@
     });
   }
 
-  /** Fallbacks offered by "+ add fallback", best match for the variable first.
-   *  Every stack already ships with its preferred generic *and* its preferred
-   *  preset, so both leading candidates are usually taken; the ladder gives the
-   *  button something unused to reach for. */
+  /** What the add button reaches for, in order of preference: a project font
+   *  the stack doesn't carry yet, then the variable's preferred generic and
+   *  preset, then the rest of the system-and-generic ladder. Project fonts lead
+   *  because a stack that already holds every fallback otherwise had no way to
+   *  gain a second font — the row's own <select> could only retarget a row that
+   *  the button had to create first. */
   function addCandidates(variable: FontStackVariable): FontStackSlot[] {
     const generic: GenericFamily =
       variable === '--font-mono' ? 'monospace' : variable === '--font-serif' ? 'serif' : 'sans-serif';
     const preset: SystemCascadePreset =
       variable === '--font-mono' ? 'system-ui-mono' : variable === '--font-serif' ? 'system-ui-serif' : 'system-ui-sans';
     return [
+      ...allFamilies.map((f) => ({ kind: 'project' as const, familyId: f.id })),
       { kind: 'generic', value: generic },
       { kind: 'system', preset },
       ...SYSTEM_PRESETS.map((p) => ({ kind: 'system' as const, preset: p })),
       ...GENERIC_VALUES.map((g) => ({ kind: 'generic' as const, value: g })),
     ];
+  }
+
+  /** The terminal row offers its stack's matching preset and generic, minus
+   *  whatever a row above holds — plus its own current value whatever that is.
+   *  A <select> with no option matching its value renders the first option
+   *  instead, so the row would read as a slot the stack doesn't have. */
+  function terminalOptions(variable: FontStackVariable, slot: FontStackSlot, taken: Set<string>): FontStackSlot[] {
+    const current = slotKey(slot);
+    const pair: FontStackSlot[] = [
+      { kind: 'system', preset: TERMINAL_SYSTEM_BY_VAR[variable] },
+      { kind: 'generic', value: TERMINAL_FALLBACK_BY_VAR[variable] },
+    ];
+    const offered = pair.filter((c) => slotKey(c) === current || !taken.has(slotKey(c)));
+    return offered.some((c) => slotKey(c) === current) ? offered : [slot, ...offered];
   }
 
   /** A slot duplicated within a stack collides with itself in the keyed each,
@@ -161,14 +192,23 @@
     return addCandidates(variable).find((c) => !existing.has(slotKey(c))) ?? null;
   }
 
+  function addLabel(variable: FontStackVariable): string {
+    const next = nextAddableSlot(variable);
+    return next?.kind === 'project' ? `+ add ${slotDisplayName(next)}` : '+ add fallback';
+  }
+
+  /** A font joins the other fonts, above the fallbacks; a fallback lands just
+   *  above the terminal, which stays at the bottom. */
+  function insertIndexFor(slots: FontStackSlot[], slot: FontStackSlot): number {
+    if (slot.kind !== 'project') return Math.max(0, slots.length - 1);
+    return slots.reduce((acc, s, i) => (s.kind === 'project' ? i : acc), -1) + 1;
+  }
+
   function addSlot(variable: FontStackVariable) {
     const newSlot = nextAddableSlot(variable);
     if (!newSlot) return;
     updateStack(variable, (slots) => {
-      // Insert above the terminal fallback (always the last slot) so the
-      // terminal stays at the bottom.
-      const insertAt = Math.max(0, slots.length - 1);
-      slots.splice(insertAt, 0, newSlot);
+      slots.splice(insertIndexFor(slots, newSlot), 0, newSlot);
       return slots;
     });
   }
@@ -265,6 +305,9 @@
       <div class="font-stack-list">
         {#each keyedSlots(stack.slots) as { slot, key }, i (key)}
           {@const isTerminal = i === stack.slots.length - 1}
+          <!-- A value another row already holds is off this row's menu, so the
+               stack can't be edited back into the duplicate state. -->
+          {@const taken = new Set(stack.slots.filter((_, j) => j !== i).map(slotKey))}
           <!-- svelte-ignore a11y_no_static_element_interactions -->
           <div
             class="slot-row"
@@ -296,28 +339,34 @@
                 onchange={(e) => onSelectChange(e, stack.variable, i)}
               >
                 {#if isTerminal}
-                  {@const sys = TERMINAL_SYSTEM_BY_VAR[stack.variable]}
-                  {@const gen = TERMINAL_FALLBACK_BY_VAR[stack.variable]}
-                  <option value={`system:${sys}`}>{sys === 'system-ui-sans' ? 'System UI (sans)' : sys === 'system-ui-serif' ? 'System UI (serif)' : 'System UI (mono)'}</option>
-                  <option value={`generic:${gen}`}>{gen}</option>
+                  {#each terminalOptions(stack.variable, slot, taken) as opt}
+                    <option value={slotKey(opt)}>{slotDisplayName(opt)}</option>
+                  {/each}
                 {:else}
-                  {#if allFamilies.length > 0}
+                  {@const families = allFamilies.filter((f) => !taken.has(`project:${f.id}`))}
+                  {@const presets = SYSTEM_PRESETS.filter((p) => !taken.has(`system:${p}`))}
+                  {@const generics = GENERIC_VALUES.filter((g) => !taken.has(`generic:${g}`))}
+                  {#if families.length > 0}
                     <optgroup label="Project fonts">
-                      {#each allFamilies as fam}
+                      {#each families as fam}
                         <option value={`project:${fam.id}`}>{fam.name}</option>
                       {/each}
                     </optgroup>
                   {/if}
-                  <optgroup label="System cascade">
-                    {#each SYSTEM_PRESETS as p}
-                      <option value={`system:${p}`}>{p === 'system-ui-sans' ? 'System UI (sans)' : p === 'system-ui-serif' ? 'System UI (serif)' : 'System UI (mono)'}</option>
-                    {/each}
-                  </optgroup>
-                  <optgroup label="Generic">
-                    {#each GENERIC_VALUES as g}
-                      <option value={`generic:${g}`}>{g}</option>
-                    {/each}
-                  </optgroup>
+                  {#if presets.length > 0}
+                    <optgroup label="System cascade">
+                      {#each presets as p}
+                        <option value={`system:${p}`}>{p === 'system-ui-sans' ? 'System UI (sans)' : p === 'system-ui-serif' ? 'System UI (serif)' : 'System UI (mono)'}</option>
+                      {/each}
+                    </optgroup>
+                  {/if}
+                  {#if generics.length > 0}
+                    <optgroup label="Generic">
+                      {#each generics as g}
+                        <option value={`generic:${g}`}>{g}</option>
+                      {/each}
+                    </optgroup>
+                  {/if}
                 {/if}
               </select>
               {#if isTerminal}
@@ -343,10 +392,10 @@
         type="button"
         class="add-fallback"
         disabled={nextAddableSlot(stack.variable) === null}
-        title={nextAddableSlot(stack.variable) === null ? 'Every system and generic fallback is already in this stack' : undefined}
+        title={nextAddableSlot(stack.variable) === null ? 'Every project font and fallback is already in this stack' : undefined}
         onclick={() => addSlot(stack.variable)}
       >
-        + add fallback
+        {addLabel(stack.variable)}
       </button>
     </div>
   {/each}

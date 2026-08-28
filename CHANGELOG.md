@@ -1,5 +1,24 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+
+- **A stack could not gain a second font.** "+ add fallback" only ever walked
+  the system-and-generic ladder, and the row `<select>` could only retarget a
+  row that already existed — so the one path to a font was to add a fallback
+  and then change it, and once every fallback was in use the button disabled
+  itself and the path closed. The add button now leads with any project font
+  the stack doesn't carry, names it (`+ add Domine`), and drops it in with the
+  other fonts above the fallbacks.
+
+- **Duplicate slots survived 0.64 and made a stack look frozen.** 0.64 kept a
+  stack persisted by the old add bug renderable, but left the repeats in place:
+  two identical rows are indistinguishable, so dragging one past the other
+  changed nothing on screen, and each repeat ate a rung of the add ladder.
+  Repeats are now dropped as the stack is read, and no row offers a value
+  another row in the same stack holds, so the state can't be re-entered.
+
 ## 0.64.1 — The sketch entry point carries its last symbol
 
 ### Added
