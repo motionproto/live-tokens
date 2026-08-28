@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.68.0 — A look is a Theme, or it's a sketch style
+## 0.68.1 — A look is a Theme, or it's a sketch style
 
 ### Changed
 
