@@ -105,3 +105,38 @@ describe('resolveGoogleFont', () => {
     await expect(resolveGoogleFont('Notafont Xyzzy', fetch)).rejects.toThrow(/not on Google Fonts/);
   });
 });
+
+describe('resolveGoogleFont over a browser fetch', () => {
+  /** Google sends no `Access-Control-Allow-Origin` on a 400, so the browser
+   *  rejects rather than handing back the response. */
+  function corsFetcher(serve: Record<string, string>): { fetch: CssFetcher; calls: string[] } {
+    const calls: string[] = [];
+    return {
+      calls,
+      fetch: async (url: string) => {
+        calls.push(url);
+        const body = serve[url];
+        if (body === undefined) throw new TypeError('Failed to fetch');
+        return { ok: true, status: 200, text: async () => body };
+      },
+    };
+  }
+
+  it('reports a missing family instead of leaking the CORS rejection', async () => {
+    const { fetch } = corsFetcher({});
+    await expect(resolveGoogleFont('Notafont Xyzzy', fetch)).rejects.toThrow(/not on Google Fonts/);
+  });
+
+  it('retries a lower-cased family in the casing Google matches', async () => {
+    const probe = discoveryUrl('Domine');
+    const served = css('Domine', [400, 500, 600, 700].map((weight) => ({ weight })));
+    const persist = persistUrlFor('Domine', [400, 500, 600, 700], false);
+    const { fetch, calls } = corsFetcher({ [probe]: served, [persist]: served });
+
+    const found = await resolveGoogleFont('domine', fetch);
+
+    expect(found).toMatchObject({ name: 'Domine', url: persist });
+    expect(calls[0]).toBe(discoveryUrl('domine'));
+    expect(calls[1]).toBe(probe);
+  });
+})

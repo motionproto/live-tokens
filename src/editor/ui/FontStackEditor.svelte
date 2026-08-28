@@ -136,23 +136,54 @@
     });
   }
 
-  function addSlot(variable: FontStackVariable) {
-    const stack = stacks.find((s) => s.variable === variable);
+  /** Fallbacks offered by "+ add fallback", best match for the variable first.
+   *  Every stack already ships with its preferred generic *and* its preferred
+   *  preset, so both leading candidates are usually taken; the ladder gives the
+   *  button something unused to reach for. */
+  function addCandidates(variable: FontStackVariable): FontStackSlot[] {
     const generic: GenericFamily =
       variable === '--font-mono' ? 'monospace' : variable === '--font-serif' ? 'serif' : 'sans-serif';
+    const preset: SystemCascadePreset =
+      variable === '--font-mono' ? 'system-ui-mono' : variable === '--font-serif' ? 'system-ui-serif' : 'system-ui-sans';
+    return [
+      { kind: 'generic', value: generic },
+      { kind: 'system', preset },
+      ...SYSTEM_PRESETS.map((p) => ({ kind: 'system' as const, preset: p })),
+      ...GENERIC_VALUES.map((g) => ({ kind: 'generic' as const, value: g })),
+    ];
+  }
+
+  /** A slot duplicated within a stack collides with itself in the keyed each,
+   *  so only one the stack doesn't already hold may be added. */
+  function nextAddableSlot(variable: FontStackVariable): FontStackSlot | null {
+    const stack = stacks.find((s) => s.variable === variable);
     const existing = new Set((stack?.slots ?? []).map(slotKey));
-    let newSlot: FontStackSlot = { kind: 'generic', value: generic };
-    if (existing.has(slotKey(newSlot))) {
-      const preset: SystemCascadePreset =
-        variable === '--font-mono' ? 'system-ui-mono' : variable === '--font-serif' ? 'system-ui-serif' : 'system-ui-sans';
-      newSlot = { kind: 'system', preset };
-    }
+    return addCandidates(variable).find((c) => !existing.has(slotKey(c))) ?? null;
+  }
+
+  function addSlot(variable: FontStackVariable) {
+    const newSlot = nextAddableSlot(variable);
+    if (!newSlot) return;
     updateStack(variable, (slots) => {
       // Insert above the terminal fallback (always the last slot) so the
       // terminal stays at the bottom.
       const insertAt = Math.max(0, slots.length - 1);
       slots.splice(insertAt, 0, newSlot);
       return slots;
+    });
+  }
+
+  /** Two identical slots in one stack would collide in the keyed each and throw
+   *  `each_key_duplicate`, taking the whole tab down — and the bad stack is
+   *  already persisted by then, so the crash repeats on every reload. Suffix
+   *  repeats so such a stack renders and can be edited back into shape. */
+  function keyedSlots(slots: FontStackSlot[]): { slot: FontStackSlot; key: string }[] {
+    const seen = new Map<string, number>();
+    return slots.map((slot) => {
+      const base = slotKey(slot);
+      const n = seen.get(base) ?? 0;
+      seen.set(base, n + 1);
+      return { slot, key: n === 0 ? base : `${base}#${n}` };
     });
   }
 
@@ -232,7 +263,7 @@
         <span class="stack-variable">{variableLabel(stack.variable)}</span>
       </div>
       <div class="font-stack-list">
-        {#each stack.slots as slot, i (slotKey(slot))}
+        {#each keyedSlots(stack.slots) as { slot, key }, i (key)}
           {@const isTerminal = i === stack.slots.length - 1}
           <!-- svelte-ignore a11y_no_static_element_interactions -->
           <div
@@ -308,7 +339,13 @@
           </div>
         {/each}
       </div>
-      <button type="button" class="add-fallback" onclick={() => addSlot(stack.variable)}>
+      <button
+        type="button"
+        class="add-fallback"
+        disabled={nextAddableSlot(stack.variable) === null}
+        title={nextAddableSlot(stack.variable) === null ? 'Every system and generic fallback is already in this stack' : undefined}
+        onclick={() => addSlot(stack.variable)}
+      >
         + add fallback
       </button>
     </div>
@@ -493,8 +530,9 @@
     border-radius: var(--ui-radius-sm);
     cursor: pointer;
   }
-  .add-fallback:hover {
+  .add-fallback:hover:not(:disabled) {
     color: var(--ui-text-primary);
     border-color: var(--ui-border);
   }
+  .add-fallback:disabled { opacity: 0.35; cursor: not-allowed; }
 </style>

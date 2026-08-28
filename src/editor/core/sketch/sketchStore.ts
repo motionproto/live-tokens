@@ -5,7 +5,13 @@ import {
   hydrateSketchStyle,
   type SketchStyle,
 } from './sketchStyles';
-import { applySketchLayer, hostRoot, removeSketchLayer, setSketchScope } from './sketchLayer';
+import {
+  applySketchLayer,
+  hostRoot,
+  removeSketchLayer,
+  setSketchScope,
+  sketchLayerInstalled,
+} from './sketchLayer';
 import { liveMovedSinceBake } from '../productionPulse';
 import {
   deleteSketchStyle,
@@ -276,17 +282,13 @@ function persist(key: string, value: string): void {
     itself between import and first render. */
 let pageRoot: HTMLElement | null = null;
 
-let installed = false;
-
 function render(enabled: boolean, settings: SketchStyle): void {
   if (typeof document === 'undefined') return;
   if (!enabled) {
-    if (installed) removeSketchLayer();
-    installed = false;
+    if (sketchLayerInstalled()) removeSketchLayer();
     return;
   }
   applySketchLayer(settings);
-  installed = true;
   // The editor's own chrome must never pick the effect up. Two roots qualify:
   // the host page behind the overlay iframe, and this document while it is
   // showing a page. The preview container scopes itself.
@@ -303,10 +305,7 @@ function render(enabled: boolean, settings: SketchStyle): void {
     Sketchstyle view's own stage crisp for good, Cancel included. */
 function paintPreviewRoots(style: SketchStyle | undefined): void {
   if (typeof document === 'undefined') return;
-  if (style) {
-    applySketchLayer(style);
-    installed = true;
-  }
+  if (style) applySketchLayer(style);
   setSketchScope(hostRoot(), style ?? null);
   setSketchScope(pageRoot, style ?? null);
 }

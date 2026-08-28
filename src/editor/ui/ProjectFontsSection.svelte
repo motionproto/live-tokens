@@ -118,6 +118,12 @@
       nameError = 'Enter a family name';
       return;
     }
+    // Pasting the whole embed snippet here would otherwise be sent to Google as
+    // a family name, and the 400 comes back as an opaque CORS failure.
+    if (extractFontsUrl(nameInput) || /@font-face/i.test(nameInput)) {
+      nameError = 'That looks like an embed — use Paste instead of a family name';
+      return;
+    }
     nameDiscovering = true;
     try {
       nameResolved = await resolveGoogleFont(nameInput, (url) => fetch(url));

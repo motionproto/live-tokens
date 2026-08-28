@@ -1101,6 +1101,17 @@ export function applySketchLayer(settings: SketchStyle): void {
   }
 }
 
+/**
+ * Whether the effect's nodes are in place. Read from the DOM for the reason
+ * `applySketchLayer` compares against it: two instances of this module render
+ * into one page while the overlay is open, so a flag held in either one cannot
+ * see what the other installed.
+ */
+export function sketchLayerInstalled(): boolean {
+  if (typeof document === 'undefined') return false;
+  return getSyncedDocuments().some((doc) => doc.head.querySelector(`style[${STYLE_ATTR}]`) !== null);
+}
+
 /** Remove the injected nodes and every scope attribute from all synced documents. */
 export function removeSketchLayer(): void {
   for (const doc of getSyncedDocuments()) {

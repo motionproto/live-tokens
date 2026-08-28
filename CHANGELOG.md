@@ -1,5 +1,64 @@
 # Changelog
 
+## 0.64.0 — A site picks the sketch through the front door
+
+### Added
+
+- **A public entry point for the sketch layer, `@motion-proto/live-tokens/sketch`.**
+  A site that wants to offer its visitors a sketchstyle picker had nothing to
+  build one from: nothing sketch-related was exported, so the only route to the
+  looks was a bundler alias aimed at `src/editor/core/sketch/`. The new entry
+  carries `SKETCH_LOOKS` (the shipped looks, with the label and blurb a picker
+  shows), `setSketch(id | null)`, and the `sketchPick` store. All of it routes
+  through `sketchStore`, which stays the one owner of the live look, so a pick
+  made on the page and a dial moved in the Sketchstyle view are the same state.
+  `setSketch` throws on an id it does not know rather than returning quietly.
+
+  `sketchPick` reports three states, not two. The effect can be on under a look
+  no shipped sketchstyle names — one saved to a file, or one a theme carried —
+  and a picker that folds that into "off" tells the visitor the page is crisp
+  while it is visibly drawn. A dial moved off a shipped look still names it,
+  which is `selectSketchStyle`'s own rule: the pick says where the look came
+  from and `sketchDirty` says it has since drifted.
+
+### Fixed
+
+- **"+ add fallback" took the Variables tab down.** The button offered a stack
+  its preferred generic, and substituted the matching System UI preset when that
+  generic was already present — but never checked whether the preset was there
+  too. Every shipped stack carries both, so the click appended a slot the stack
+  already held. Slot rows are keyed by their own content, so the duplicate threw
+  `each_key_duplicate` and killed the tab; the mutation had already been
+  debounce-written to localStorage by then, so a reload crashed on the same key
+  rather than recovering, and font editing was over until storage was cleared by
+  hand. The button now walks the whole system-and-generic ladder for a fallback
+  the stack lacks, and disables itself once every one is in use. Rows are also
+  keyed to survive a repeat, so a stack already persisted in the broken state
+  renders and the extra row can be removed with its own X.
+
+- **A family Google Fonts rejected reported nothing useful.** Google omits
+  `Access-Control-Allow-Origin` from its error responses, so in a browser a 400
+  rejects the fetch rather than arriving as `ok: false` — which left the
+  `not on Google Fonts` branch unreachable and put a bare CORS failure in its
+  place. Both shapes now read as "no CSS came back". The retry that follows is
+  why it matters: the CSS2 API matches family names case-sensitively, and
+  `domine` 400s where `Domine` resolves, so a lower-cased typing is tried again
+  in Google's own casing before the family is called missing.
+
+- **The by-name field accepted a pasted embed.** The whole `<link>` snippet went
+  to Google as a family name, and the 400 it earned came back as the same opaque
+  CORS failure. The field now recognises an embed or an `@font-face` block and
+  points at the Paste tab, which has parsed both all along.
+
+- **The Sketchstyle view's dials went dead against a layer the store did not
+  install.** `installed` was a module-local flag, so a layer painted by anything
+  but `render` left the store believing the page was crisp: the on/off switch
+  had nothing to take down, and every dial wrote settings that reached no
+  document — silently, since the page was drawn the whole time. It is now read
+  from the DOM, for the reason `applySketchLayer` already compares against it:
+  with the overlay open two instances of the module render into one page, and
+  the document is the only ground they share.
+
 ## 0.63.0 — A theme carries its sketchstyle
 
 ### Added
