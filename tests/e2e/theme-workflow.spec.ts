@@ -69,7 +69,7 @@ test('clicking the active name opens the picker and Save loads and adopts in one
   await trigger.click();
   const dialog = frame.getByRole('dialog', { name: 'Theme Picker' });
   await expect(dialog).toBeVisible();
-  await dialog.locator(`[data-file-name="look:${target.slug}"] .load-name-btn`).click();
+  await dialog.locator(`[data-file-name="theme:${target.slug}"] .load-name-btn`).click();
   await expect(dialog.getByRole('button', { name: 'Save', exact: true })).toBeVisible();
   // Selection exposes Save before the async preview paint necessarily finishes.
   // Wait for that paint before counting the subsequent preview-to-store handoff.
