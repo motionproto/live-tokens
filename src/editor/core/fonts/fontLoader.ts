@@ -129,12 +129,27 @@ export function resolveFontStackValues(
  * Compose each stack into its resolved "family1, family2, ..." string and
  * write it to the matching --font-* variable on :root (and parent :root when
  * in an iframe) via the same pipeline used for color variables.
+ *
+ * Returns the variables it set, so a caller tracking what it has applied — to
+ * tear those vars down when switching looks — can record them without keeping
+ * its own copy of the stack list. A hand-maintained copy silently falls behind
+ * whenever a stack is added here, leaving the missed variable stuck at the
+ * outgoing look's value; `--font-editorial` did exactly that.
  */
-export function applyFontStacks(stacks: FontStack[], sources: FontSource[]): void {
+export function applyFontStacks(
+  stacks: FontStack[],
+  sources: FontSource[],
+): FontStackVariable[] {
   const resolved = resolveFontStackValues(stacks, sources);
+  const applied: FontStackVariable[] = [];
   for (const name of FONT_STACK_VARIABLES) {
     const value = resolved[name];
-    if (value) setCssVar(name, value);
-    else removeCssVar(name);
+    if (value) {
+      setCssVar(name, value);
+      applied.push(name);
+    } else {
+      removeCssVar(name);
+    }
   }
+  return applied;
 }

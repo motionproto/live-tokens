@@ -1,5 +1,21 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+- **`applyFontStacks` returns the variables it wrote.** It writes the `--font-*`
+  stacks from a list it kept to itself, so a consumer tracking what it had
+  applied — to tear those vars down when switching looks — had to hand-maintain
+  a copy of that list. A copy falls behind silently the moment a stack is added
+  here, and the missed variable stays stuck at the outgoing look's value:
+  `--font-editorial` did exactly that to a site that had listed the original
+  four. The return value is additive, so existing calls keep working.
+
+  ```ts
+  applied = [...applied, ...applyFontStacks(theme.fontStacks, theme.fontSources)];
+  ```
+
 ## 0.65.0 — A link the router cannot serve is the browser's
 
 ### Fixed
