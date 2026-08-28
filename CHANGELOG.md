@@ -1,5 +1,30 @@
 # Changelog
 
+## 0.65.0 — A link the router cannot serve is the browser's
+
+### Fixed
+
+- **The router hijacked links it could not serve.** Its click interception
+  claimed every anchor whose `href` began with `/`, reading neither `target`,
+  `download`, `rel`, nor whether any route rendered the path. So a link to a
+  file the origin serves — a PDF or an image under `public/`, a download, a
+  server endpoint — had its click cancelled and its path pushed at a router with
+  nothing to show for it, and the link silently did nothing. A left-click is now
+  claimed only when the anchor asks for ordinary same-tab navigation and a route
+  actually renders the path; everything else loads for real. Protocol-relative
+  hrefs (`//host/x`) are no longer mistaken for local paths either — they start
+  with `/`, and `pushState` throws on a cross-origin URL.
+
+### Changed (breaking)
+
+- **An unrouted path now performs a real navigation.** `pages['/']` is a
+  fallback for *rendering* an unmatched path, not a claim on it, so the router
+  no longer intercepts clicks on paths no route declares. On an SPA-rewriting
+  host the page still lands on the `pages['/']` fallback, now via a page load
+  rather than a client-side swap; on a host without the rewrite the URL 404s
+  instead of quietly rendering the home page. Return your own entry from
+  `resolve()` to keep claiming such paths.
+
 ## 0.64.3 — The add button names the act
 
 ### Changed

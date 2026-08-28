@@ -84,6 +84,8 @@ bootLiveTokens(App, '#app');
 
 For routes you cannot enumerate ahead of time (a `/:id`, a path prefix, a page shown only under some condition), add a `resolve` function from the current path to a `RouteEntry` and return `null` to fall through. Resolution order is `pages[path]`, then `resolve(path)`, then the `pages['/']` fallback, so adding `resolve` never changes how existing entries match. A resolved entry can carry `props`, letting one component serve many paths, and its `source` gives the dynamic route a working "Page Source" button.
 
+Link-click interception follows the same route table. A left-click becomes an in-app `navigate()` only when the anchor asks for ordinary same-tab navigation — no `target`, `download`, `rel="external"`, or modifier key — and `pages` or `resolve` claims the path. Anything else keeps the browser's own handling, so a link to a PDF or an image under `public/`, to a download, or to a path no route declares loads for real. Note that the `pages['/']` fallback renders an unmatched path without claiming it: link to a path no route declares and you get a page load, not a client-side swap.
+
 ```svelte
 <LiveTokensRouter
   pages={{ '/': { lazy: () => import('./Home.svelte'), label: 'Home' } }}

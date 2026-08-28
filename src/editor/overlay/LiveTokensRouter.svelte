@@ -64,6 +64,67 @@
   ): RouteEntry | null {
     return pages[route] ?? resolve?.(route) ?? pages['/'] ?? null;
   }
+
+  /** The click facts the interception decision reads, so it can be tested
+      without constructing a DOM MouseEvent. */
+  export interface LinkClick {
+    button: number;
+    ctrlKey: boolean;
+    metaKey: boolean;
+    shiftKey: boolean;
+    altKey: boolean;
+    defaultPrevented: boolean;
+  }
+
+  /**
+   * The path a left-click on `anchor` should navigate to in-app, or `null` to
+   * leave the click to the browser.
+   *
+   * Interception cancels the click, so every link this claims and cannot serve
+   * is a link that silently does nothing. It therefore claims a link only when
+   * the anchor asks for ordinary same-tab navigation *and* `claimsRoute` says a
+   * route renders that path — which leaves anything else the origin serves (a
+   * PDF or an image under `public/`, a download, a server-rendered endpoint) to
+   * load for real.
+   *
+   * `pages['/']` is a fallback for *rendering* an unmatched path, not a claim on
+   * it: treating it as one is what made every unrouted URL look interceptable.
+   */
+  export function resolveLinkNavigation(
+    anchor: Pick<Element, 'getAttribute' | 'hasAttribute'>,
+    e: LinkClick,
+    claimsRoute: (pathname: string) => boolean,
+    base: string,
+  ): string | null {
+    if (e.defaultPrevented) return null;
+    // Middle- and right-clicks reach `auxclick`, not `click`, in current
+    // browsers; the guard costs nothing and keeps the contract explicit.
+    if (e.button !== 0) return null;
+    if (e.ctrlKey || e.metaKey || e.shiftKey || e.altKey) return null;
+
+    const target = anchor.getAttribute('target');
+    if (target && target !== '_self') return null;
+    if (anchor.hasAttribute('download')) return null;
+    if (anchor.getAttribute('rel')?.split(/\s+/).includes('external')) return null;
+
+    const href = anchor.getAttribute('href');
+    // Relative and absolute-URL hrefs stay the browser's; only root-relative
+    // paths are candidates. `//host/x` starts with `/` and is cross-origin, and
+    // pushState would throw on it, so the origin check below has to run too.
+    if (!href?.startsWith('/')) return null;
+
+    let url: URL;
+    try {
+      url = new URL(href, base);
+    } catch {
+      return null;
+    }
+    if (url.origin !== new URL(base).origin) return null;
+
+    if (!claimsRoute(url.pathname)) return null;
+
+    return url.pathname + url.search + url.hash;
+  }
 </script>
 
 <script lang="ts">
@@ -176,17 +237,29 @@
     return Promise.resolve({ default: null as unknown as Component<any, any, any> });
   });
 
-  // In-app link interception: turn left-clicks on internal `/...` anchors into
-  // navigate() calls so router state updates without a full reload. Modifier
-  // keys (cmd/ctrl/shift/alt) pass through to the browser's default handling.
+  // Which paths this router can actually render. The `pages['/']` fallback in
+  // resolveRoute is deliberately not consulted: it renders an unmatched path,
+  // it does not claim one.
+  function claimsRoute(pathname: string): boolean {
+    if (pathname in pages) return true;
+    if (isDev && editorEnabled && pathname === editorPath) return true;
+    if (isDev && componentsEnabled && pathname === componentsPath) return true;
+    if (isDev && colorsEnabled && pathname === colorsPath) return true;
+    if (isDev && docsEnabled && pathname === docsPath) return true;
+    return !!resolve?.(pathname);
+  }
+
+  // In-app link interception: turn left-clicks on anchors this router can serve
+  // into navigate() calls, so route state updates without a full reload.
+  // Everything else — a new tab, a download, a file under `public/`, another
+  // origin — keeps the browser's own handling.
   function handleClick(e: MouseEvent) {
-    const anchor = (e.target as HTMLElement).closest('a[href]');
+    const anchor = (e.target as Element | null)?.closest?.('a[href]');
     if (!anchor) return;
-    const href = anchor.getAttribute('href');
-    if (!href || !href.startsWith('/')) return;
-    if (e.ctrlKey || e.metaKey || e.shiftKey || e.altKey) return;
+    const path = resolveLinkNavigation(anchor, e, claimsRoute, window.location.href);
+    if (!path) return;
     e.preventDefault();
-    navigate(href);
+    navigate(path);
   }
 </script>
 

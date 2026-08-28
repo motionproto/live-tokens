@@ -7,7 +7,7 @@
 // scope here.
 
 import { describe, expect, it } from 'vitest';
-import { resolveRoute, type RouteEntry } from './LiveTokensRouter.svelte';
+import { resolveLinkNavigation, resolveRoute, type RouteEntry } from './LiveTokensRouter.svelte';
 
 function fakeComponent(): NonNullable<RouteEntry['component']> {
   return (() => {}) as unknown as NonNullable<RouteEntry['component']>;
@@ -64,5 +64,96 @@ describe('resolveRoute — path to RouteEntry precedence', () => {
   it("returns null when nothing matches and there is no '/' fallback", () => {
     expect(resolveRoute({}, undefined, '/x')).toBeNull();
     expect(resolveRoute({}, () => null, '/x')).toBeNull();
+  });
+});
+
+describe('resolveLinkNavigation — which clicks the router claims', () => {
+  const BASE = 'https://site.test/current';
+  const ROUTES = ['/', '/about', '/essays/taste'];
+  const claimsRoute = (pathname: string) => ROUTES.includes(pathname);
+
+  const plainClick = {
+    button: 0,
+    ctrlKey: false,
+    metaKey: false,
+    shiftKey: false,
+    altKey: false,
+    defaultPrevented: false,
+  };
+
+  function link(attrs: Record<string, string>) {
+    return {
+      getAttribute: (name: string) => attrs[name] ?? null,
+      hasAttribute: (name: string) => name in attrs,
+    };
+  }
+
+  function claim(attrs: Record<string, string>, click: Partial<typeof plainClick> = {}) {
+    return resolveLinkNavigation(link(attrs), { ...plainClick, ...click }, claimsRoute, BASE);
+  }
+
+  it('claims a plain left-click on a declared route', () => {
+    expect(claim({ href: '/about' })).toBe('/about');
+  });
+
+  it('carries the query and hash through to navigate', () => {
+    expect(claim({ href: '/essays/taste?x=1#refs' })).toBe('/essays/taste?x=1#refs');
+  });
+
+  // The reported bug: a PDF in public/ opened in a new tab was cancelled and
+  // pushed through the router, which has no such route, so nothing opened.
+  it('leaves a target="_blank" PDF to the browser', () => {
+    expect(claim({ href: '/slides.pdf', target: '_blank', rel: 'noopener noreferrer' })).toBeNull();
+  });
+
+  it('leaves a same-tab static file to the browser', () => {
+    expect(claim({ href: '/slides.pdf' })).toBeNull();
+  });
+
+  it('claims a route whose path happens to look like a file', () => {
+    expect(resolveLinkNavigation(link({ href: '/v1.2' }), plainClick, (p) => p === '/v1.2', BASE)).toBe('/v1.2');
+  });
+
+  it('leaves a download to the browser', () => {
+    expect(claim({ href: '/about', download: '' })).toBeNull();
+  });
+
+  it('leaves rel="external" to the browser', () => {
+    expect(claim({ href: '/about', rel: 'noopener external' })).toBeNull();
+  });
+
+  it('treats target="_self" as ordinary same-tab navigation', () => {
+    expect(claim({ href: '/about', target: '_self' })).toBe('/about');
+  });
+
+  it('leaves modified clicks, non-left buttons, and handled clicks alone', () => {
+    expect(claim({ href: '/about' }, { metaKey: true })).toBeNull();
+    expect(claim({ href: '/about' }, { ctrlKey: true })).toBeNull();
+    expect(claim({ href: '/about' }, { shiftKey: true })).toBeNull();
+    expect(claim({ href: '/about' }, { altKey: true })).toBeNull();
+    expect(claim({ href: '/about' }, { button: 1 })).toBeNull();
+    expect(claim({ href: '/about' }, { defaultPrevented: true })).toBeNull();
+  });
+
+  // `//host/x` starts with '/', and pushState throws on a cross-origin URL.
+  it('leaves a protocol-relative cross-origin href to the browser', () => {
+    expect(claim({ href: '//evil.test/about' })).toBeNull();
+  });
+
+  it('leaves hash, relative, and absolute-URL hrefs alone', () => {
+    expect(claim({ href: '#refs' })).toBeNull();
+    expect(claim({ href: 'about' })).toBeNull();
+    expect(claim({ href: 'https://site.test/about' })).toBeNull();
+  });
+
+  it('consults resolve()-style dynamic routes through claimsRoute', () => {
+    const claims = (p: string) => /^\/module\/.+$/.test(p);
+    expect(resolveLinkNavigation(link({ href: '/module/abc' }), plainClick, claims, BASE)).toBe('/module/abc');
+  });
+
+  // pages['/'] renders an unmatched path; it does not claim one. Cancelling
+  // these clicks is what hid every non-route the origin serves.
+  it("does not claim an unrouted path just because pages['/'] would render it", () => {
+    expect(claim({ href: '/no/such/page' })).toBeNull();
   });
 });
