@@ -14,6 +14,7 @@ const REPO_ROOT = process.cwd();
 
 let tmp: string;
 let componentsDir: string;
+let plugin: any;
 let mw: (req: any, res: any, next: any) => any;
 
 function makeReq(method: string, url: string, body?: unknown) {
@@ -59,7 +60,7 @@ beforeEach(() => {
   tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'ltsk-'));
   componentsDir = path.join(tmp, 'components');
   fs.mkdirSync(componentsDir, { recursive: true });
-  const plugin = themeFileApi({
+  plugin = themeFileApi({
     dataDir: tmp,
     colorsAndTypeDir: path.join(tmp, 'colors-and-type'),
     componentConfigsDir: path.join(tmp, 'component-configs'),
@@ -70,7 +71,7 @@ beforeEach(() => {
     tokensGeneratedCssPath: path.join(tmp, 'tokens.generated.css'),
   });
   const captured: any[] = [];
-  (plugin as any).configureServer({
+  plugin.configureServer({
     middlewares: { use: (fn: any) => captured.push(fn) },
     config: { logger: { warn: () => {} } },
   });
@@ -146,5 +147,32 @@ describe('sketchstyles', () => {
   it('rejects POST to the collection', async () => {
     const res = await request('POST', `${API}/sketch-styles`, {});
     expect(res.status).toBe(405);
+  });
+});
+
+// Saving used to reload the page. A project registers this directory with
+// `import.meta.glob` — `create` writes that into `main.ts` — so writing a file
+// in it invalidates the entry module, and Vite answers an entry it cannot hot
+// update with a full reload. The Sketchstyle view the save came from went with
+// it, mid-edit.
+describe('the dev watcher', () => {
+  it('lets the editor write its own JSON without reloading the page', () => {
+    const ignored = plugin.config().server.watch.ignored[0];
+
+    expect(ignored(path.join(tmp, 'sketch-styles', 'mine.json'))).toBe(true);
+    expect(ignored(path.join(tmp, 'themes', 'brand.json'))).toBe(true);
+    expect(ignored(path.join(tmp, '_working.json'))).toBe(true);
+  });
+
+  it('keeps watching the stylesheets the page really imports', () => {
+    const ignored = plugin.config().server.watch.ignored[0];
+
+    // CSS updates in place, so these cost no reload and carry an Adopt to the
+    // page. A source file is nobody else's business.
+    expect(ignored(path.join(tmp, 'tokens.generated.css'))).toBe(false);
+    expect(ignored(path.join(tmp, 'fonts.css'))).toBe(false);
+    expect(ignored(path.join(REPO_ROOT, 'src/app/main.ts'))).toBe(false);
+    // A directory whose name merely starts the same way is not the data one.
+    expect(ignored(`${tmp}-elsewhere/brand.json`)).toBe(false);
   });
 });

@@ -2088,6 +2088,27 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
     { method: 'DELETE', pattern: PRODUCTION_ROUTE,        handler: methodNotAllowed },
   ];
 
+  /**
+   * A file the editor owns and rewrites as you work: every JSON under the data
+   * directory.
+   *
+   * Kept off the dev server's watcher, because a project that registers its
+   * saved sketchstyles with `import.meta.glob` — which is what `create` writes
+   * into `main.ts` — puts that directory in the module graph. Saving one then
+   * invalidates the entry module, Vite reloads the page, and the Sketchstyle
+   * view the save came from is torn down and rebuilt mid-edit. The same holds
+   * for a theme JSON a built site imports by name.
+   *
+   * Nothing is lost by not watching them. The editor reads this directory over
+   * its own API and re-lists after every write, so the page already holds what
+   * a reload would fetch. A file changed from outside — a CLI run, a branch
+   * switch — needs the page reloaded by hand, which is what the CLIs already
+   * ask for. `tokens.generated.css` and `fonts.css` stay watched: they are
+   * stylesheets the page really does import, and CSS updates without a reload.
+   */
+  const isEditorOwnedJson = (file: string): boolean =>
+    file.endsWith('.json') && path.resolve(file).startsWith(dataDirs.dataDir + path.sep);
+
   return {
     name: 'theme-file-api',
     config() {
@@ -2101,6 +2122,7 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
           __APP_VERSION__: JSON.stringify(PKG_VERSION),
           __LIVE_TOKENS_API_BASE__: JSON.stringify(API_BASE),
         },
+        server: { watch: { ignored: [isEditorOwnedJson] } },
       };
     },
     configureServer(server) {

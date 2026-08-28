@@ -270,6 +270,19 @@ describe('saveCurrentSketchStyle', () => {
     expect(get(liveMovedSinceBake)).toBe(false);
     expect(get(sketchOffLook)).toBe(false);
   });
+
+  // Save on a shipped selection writes this project's own copy of it. The file
+  // has to land on the id it shadows, or the grid grows a second Pencil beside
+  // the shipped one instead of the project taking that one over.
+  it('lands a shipped look saved under its own label on the id it shadows', async () => {
+    await stubFiles([]);
+    selectSketchStyle('pencil');
+    updateSketchSettings({ strokeWidth: 9 });
+
+    expect(await saveCurrentSketchStyle(SKETCH_STYLES.pencil.label)).toBe('pencil');
+    expect(get(sketchStyleName)).toBe('pencil');
+    expect(get(sketchDirty)).toBe(false);
+  });
 });
 
 describe('saveSelectedSketchStyle', () => {

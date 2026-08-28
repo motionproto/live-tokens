@@ -136,17 +136,32 @@
   );
 
   let selectedLook = $derived($sketchLooks.find((l) => l.id === $sketchStyleName));
-  /** Offered only for a look backed by a file in this project. A shipped look
-      is a frozen constant compiled into the package, and one handed to
-      `bootLiveTokens` owns no file either; neither has anything to write. */
-  let canSaveInPlace = $derived(selectedLook?.source === 'file' && $sketchDirty);
+  /** Offered whenever the dials have moved off the sketchstyle they name. A
+      look backed by a file is written over. A shipped one owns no file to
+      write, so saving it writes this project's own under the same name, which
+      is how a project comes to own its Pencil: the id is the same, so the new
+      file takes the shipped one's place in the grid rather than sitting beside
+      it. Nothing is lost either way, since the shipped look is a constant in
+      the package and deleting the file brings it back. */
+  let canSave = $derived(!!selectedLook && $sketchDirty);
   let saveTitle = $derived(
-    selectedLook?.source !== 'file'
-      ? 'Pick a saved sketchstyle to save over'
-      : $sketchDirty
-        ? `Save over ${selectedLook.label}`
-        : 'No changes to save',
+    !selectedLook
+      ? 'Pick a sketchstyle to save over'
+      : !$sketchDirty
+        ? 'No changes to save'
+        : selectedLook.source === 'file'
+          ? `Save over ${selectedLook.label}`
+          : `Keep these dials as this project's ${selectedLook.label}`,
   );
+
+  function saveInPlace() {
+    if (!selectedLook) return;
+    runStyleAction(
+      selectedLook.source === 'file'
+        ? saveSelectedSketchStyle()
+        : saveCurrentSketchStyle(selectedLook.label),
+    );
+  }
 
   let naming = $state(false);
   let draftName = $state('');
@@ -360,14 +375,19 @@
           <UIPillButton
             size="compact"
             icon="fa-floppy-disk"
-            disabled={!canSaveInPlace}
+            disabled={!canSave}
             title={saveTitle}
-            onclick={() => runStyleAction(saveSelectedSketchStyle())}
+            onclick={saveInPlace}
           >
             Save
           </UIPillButton>
-          <UIPillButton size="compact" icon="fa-plus" onclick={startNaming}>
-            Save as sketchstyle…
+          <UIPillButton
+            size="compact"
+            icon="fa-plus"
+            title="Keep these dials under a name of your own"
+            onclick={startNaming}
+          >
+            Save As
           </UIPillButton>
         </div>
 

@@ -74,7 +74,7 @@
       --button-shimmer: block;
 
       /* Primary */
-      --button-primary-surface: var(--surface-brand-high);
+      --button-primary-surface: var(--surface-brand);
       --button-primary-text: var(--text-primary);
       --button-primary-text-font-family: var(--font-sans);
       --button-primary-text-font-size: var(--font-size-lg);
@@ -93,7 +93,7 @@
       --button-primary-icon-size: var(--icon-size-md);
 
       /* Secondary */
-      --button-secondary-surface: var(--surface-neutral-high);
+      --button-secondary-surface: var(--surface-neutral);
       --button-secondary-text: var(--text-primary);
       --button-secondary-text-font-family: var(--font-sans);
       --button-secondary-text-font-size: var(--font-size-lg);

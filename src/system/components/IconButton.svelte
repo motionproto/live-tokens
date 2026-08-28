@@ -49,7 +49,7 @@
 
    :global(:root) {
       /* Primary */
-      --iconbutton-primary-surface: var(--surface-brand-high);
+      --iconbutton-primary-surface: var(--surface-brand);
       --iconbutton-primary-icon: var(--text-primary);
       --iconbutton-primary-border: var(--border-brand);
       --iconbutton-primary-border-width: var(--border-width-1);
@@ -64,7 +64,7 @@
       --iconbutton-primary-disabled-border: var(--border-neutral-faint);
 
       /* Secondary */
-      --iconbutton-secondary-surface: var(--surface-neutral-high);
+      --iconbutton-secondary-surface: var(--surface-neutral);
       --iconbutton-secondary-icon: var(--text-primary);
       --iconbutton-secondary-border: var(--border-neutral);
       --iconbutton-secondary-border-width: var(--border-width-1);

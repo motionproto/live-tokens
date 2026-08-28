@@ -1,8 +1,8 @@
 {
-  "name": "default",
+  "name": "Motion Proto",
   "component": "button",
-  "createdAt": "2026-05-10T19:28:06.893Z",
-  "updatedAt": "2026-06-01T11:45:06.042Z",
+  "createdAt": "2026-08-28T15:03:42.711Z",
+  "updatedAt": "2026-08-28T15:03:42.711Z",
   "aliases": {
     "--button-primary-surface": "--surface-brand",
     "--button-primary-text": "--text-primary",
@@ -113,5 +113,6 @@
     "--button-small-text-line-height": "--line-height-tighter",
     "--button-small-icon-size": "--font-size-xs"
   },
+  "config": {},
   "schemaVersion": 21
 }

@@ -34,12 +34,26 @@
 - **A Save pill in the Sketchstyle view**, which writes the dials back over the
   sketchstyle you have selected. Updating a saved sketchstyle used to run
   through the naming form: open it, accept the pre-filled label, submit, and
-  nothing on screen said a file had been replaced rather than created. Save is
-  offered for a look backed by a file in your project, and disabled with a
-  reason otherwise. **Save as sketchstyle…** now always creates, and starts its
-  form empty to say so.
+  nothing on screen said a file had been replaced rather than created. Save
+  lights as soon as the dials leave the sketchstyle they name. On one of your
+  own it writes that file; on a shipped one it writes your project's own copy
+  under the same name, which takes its place in the list, and deleting that file
+  brings the shipped look back. **Save As** always creates, and starts its form
+  empty to say so.
 
 ### Changed
+
+- **Primary and secondary buttons rest one rung lower.**
+  `--button-primary-surface` moves from `--surface-brand-high` to
+  `--surface-brand` and `--button-secondary-surface` from
+  `--surface-neutral-high` to `--surface-neutral`, with `--iconbutton-*`
+  following. The border scale runs at the same lightness as the `-high` surface
+  rung, so a filled button was outlined in its own fill colour: the sketch
+  effect's hatch, which inks itself from the part's stroke, came out invisible
+  on exactly these two variants while Danger, Success, and Warning shaded
+  normally. Those three already rest on `-low`. This puts Primary and Secondary
+  on the rung Badge and CornerBadge already use, and lifts white text off the
+  surface by a further step. The eight preset themes carry the new value.
 
 - **Ink coverage scales on two axes, and the px it states are the px it
   paints.** The Scale dial fitted a whole number of blobs to a fixed 600px tile,
@@ -67,6 +81,21 @@
   sketchstyle named after a shipped one replaces it and keeps its place, so a
   project that wants its own Pencil saves one. The Sketchstyle view shows a
   single grid; the ✕ marks the rows your project owns.
+
+### Fixed
+
+- **Saving no longer reloads the page.** A project registers its saved
+  sketchstyles with `import.meta.glob`, which is what `create` writes into
+  `main.ts`, so writing one invalidated the entry module and Vite answered with
+  a full reload. The Sketchstyle view the save came from was torn down and
+  rebuilt mid-edit, which read as the editor closing itself every time you
+  pressed Save. The dev server now keeps every JSON under the data directory off
+  its watcher: the editor reads that directory over its own API and re-lists
+  after each write, so the page already holds what the reload would fetch.
+  `tokens.generated.css` and `fonts.css` stay watched, since the page really
+  does import them and CSS updates without a reload. A data file changed from
+  outside the editor, by a CLI run or a branch switch, now needs the page
+  reloaded by hand.
 
 ### Breaking
 

@@ -38,12 +38,14 @@ than just a name:
 - **Napkin.** Ballpoint in a hurry. Everything loose at once.
 - **Dry marker.** Ink that ran out. One scratchy pass over a mostly eaten fill.
 
-Pick one, then move whatever you like. **Save as sketchstyle…** keeps your
-dials under a name of your own, alongside the shipped seven, as a file under
-`src/live-tokens/data/sketch-styles/`. **Save** writes the dials back over the
-sketchstyle you have selected; it is offered for your own, since the shipped
-seven ship with the package and have no file to write. Both are a different
-gesture from saving a theme; see "Where the settings live" below.
+Pick one, then move whatever you like. **Save As** keeps your dials under a name
+of your own, alongside the shipped seven, as a file under
+`src/live-tokens/data/sketch-styles/`. **Save** writes them back over the
+sketchstyle you have selected, and lights as soon as the dials leave it. On one
+of your own it writes that file. On a shipped one it writes your project's own
+copy under the same name, which takes its place in the list; the shipped look is
+a constant in the package, so deleting your file brings it back. Both are a
+different gesture from saving a theme; see "Where the settings live" below.
 
 Your sketchstyles and the shipped ones are one list. A sketchstyle named after
 a shipped one replaces it, keeping its place in the list, so a project that
@@ -90,9 +92,9 @@ change. The built-in **Motion Proto** theme is read-only, so Save
 is disabled there; use **Save As** to fold the dials into a theme of your
 own.
 
-**Save as sketchstyle…** in the **Sketchstyle** view is a different gesture. It
-writes a named sketchstyle to `src/live-tokens/data/sketch-styles/`, a look you
-can pick from any theme. It never touches the open theme, and it never marks
+**Save** and **Save As** in the **Sketchstyle** view are a different gesture.
+They write a named sketchstyle to `src/live-tokens/data/sketch-styles/`, a look
+you can pick from any theme. Neither touches the open theme, and neither marks
 the look off the theme.
 
 ## Shipping the layer
