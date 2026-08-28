@@ -6,7 +6,7 @@
 //
 // Refuses when `themes/<slug>.json` already exists, unless `--force`. There is
 // no sweep-all mode (RJC 7, docs/plans/theme-completeness.md Wave 5): once a
-// preset is seeded the file is the record of the whole look, and nothing ever
+// preset is seeded the file is the record of the whole theme, and nothing ever
 // re-derives it from a moving baseline again. `npm run check:preset-themes`
 // guards the committed files instead of a regeneration re-running the
 // arithmetic.
@@ -34,7 +34,7 @@ const ENGINE_SOURCES = [
 
 // Source of truth: vite-plugin/themes/normalizeTheme.ts. This copy cannot
 // import TS, so `check:preset-themes` (Wave 5) is what catches a drift.
-const THEME_SCHEMA_VERSION = 4;
+const THEME_SCHEMA_VERSION = 5;
 
 /** Shape personality per preset, from the plan's addendum 2 table. Global ops
  *  come first and targeted `set` ops last, so a targeted corner wins over the
@@ -172,7 +172,7 @@ const { configs: next } = adjustAliases(defaults, preset.ops, now);
 // whenever a preset's ops never include `border-width`. `next` already
 // carries every component regardless — `adjustAliases` seeds it as
 // `{ ...configs }` — so it is the complete source. Ops that move nothing
-// still produce a full config: the theme is the record of the whole look, not
+// still produce a full config: the theme is the record of the whole theme, not
 // of a diff.
 const componentConfigs = {};
 let aliasCount = 0;

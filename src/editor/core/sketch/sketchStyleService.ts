@@ -1,11 +1,11 @@
 import { API_BASE } from '../storage/apiBase';
-import { hydrateSketchStyle, type SketchStyle } from './sketchStyles';
+import { hydrateSketchSettings, type SketchStyleSettings } from './sketchStyles';
 
 export interface SketchStyleFile {
   name: string;
   createdAt?: string;
   updatedAt?: string;
-  settings: SketchStyle;
+  settings: SketchStyleSettings;
 }
 
 export interface SketchStyleMeta {
@@ -40,13 +40,13 @@ export async function loadSketchStyle(fileName: string): Promise<SketchStyleFile
   const res = await fetch(`${BASE}/${encodeURIComponent(fileName)}`);
   if (!res.ok) throw new Error(`Failed to load sketchstyle: ${fileName}`);
   const body = await res.json();
-  return { ...body, settings: hydrateSketchStyle(body.settings) };
+  return { ...body, settings: hydrateSketchSettings(body.settings) };
 }
 
 export async function saveSketchStyle(
   fileName: string,
   name: string,
-  settings: SketchStyle,
+  settings: SketchStyleSettings,
 ): Promise<void> {
   const res = await fetch(`${BASE}/${encodeURIComponent(fileName)}`, {
     method: 'PUT',

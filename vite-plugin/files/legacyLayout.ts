@@ -2,7 +2,7 @@
  * The pre-0.48 directory layout, and the two renames that carry it forward.
  *
  * Through 0.47.1 `data/themes/` held the colors-and-type files and
- * `data/manifests/` held the whole-look files. 0.48 gave both names new
+ * `data/manifests/` held the whole-theme files. 0.48 gave both names new
  * meanings: `data/colors-and-type/` for the inner layer, `data/themes/` for the
  * documents. A tree that still carries the old layout therefore reads as a
  * themes directory full of files that are not themes, and every writer aimed at
@@ -18,14 +18,14 @@ export interface LegacyLayoutInput {
   colorsAndTypeDir: string;
   themesDir: string;
   /** The retired `manifestsDir` config key, when the consumer set it. It named
-   *  the whole-look directory through 0.47.1 and names nothing now, so it is
+   *  the whole-theme directory through 0.47.1 and names nothing now, so it is
    *  read here alone: to find the directory, and to refuse to guess when it
    *  points somewhere the rename cannot reason about. */
   configuredManifestsDir?: string;
 }
 
 export interface LegacyLayout {
-  /** `<dataDir>/manifests`: the pre-0.48 whole-look directory. */
+  /** `<dataDir>/manifests`: the pre-0.48 whole-theme directory. */
   manifestsDir: string;
   /** What identified the tree, for the boot warning and the migrate plan. */
   evidence: string;
@@ -64,7 +64,7 @@ function parseJsonFile(file: string): unknown {
   }
 }
 
-/** A theme carries its look under `colorsAndType` (v3) or names it as `theme`
+/** A theme carries its colors and type under `colorsAndType` (v3) or names it as `theme`
  *  (v1 and v2). One of these in the themes directory says the rename has run. */
 function holdsATheme(themesDir: string): boolean {
   return jsonFiles(themesDir).some((file) => {
@@ -89,16 +89,16 @@ function holdsATheme(themesDir: string): boolean {
  *    emptiness counts as absence.
  * 3. A colors-and-type file in the themes directory.
  * 4. The old layer's pointer files in the themes directory with no theme beside
- *    them and no colors-and-type directory at all. That tree names its look
+ *    them and no colors-and-type directory at all. That tree names its colors and type
  *    with a slug the package now ships as a *theme* of the same name, so boot
- *    would bake someone else's look over the consumer's.
+ *    would bake someone else's theme over the consumer's.
  */
 export function detectLegacyLayout(input: LegacyLayoutInput): LegacyLayout | null {
   const manifestsDir = input.configuredManifestsDir ?? path.join(input.dataDir, 'manifests');
   const themesHoldAThemeFile = holdsATheme(input.themesDir);
 
   if (isDirectory(manifestsDir) && !themesHoldAThemeFile) {
-    return { manifestsDir, evidence: `${manifestsDir} is the pre-0.48 whole-look directory` };
+    return { manifestsDir, evidence: `${manifestsDir} is the pre-0.48 whole-theme directory` };
   }
 
   if (jsonFiles(input.colorsAndTypeDir).length > 0) return null;
@@ -129,7 +129,7 @@ export function detectLegacyLayout(input: LegacyLayoutInput): LegacyLayout | nul
  *
  * Throws when the resolved directories are not the package defaults. The
  * mapping is positional, and only the default layout says where the old
- * whole-look directory sits: a consumer who moved either one has to move both
+ * whole-theme directory sits: a consumer who moved either one has to move both
  * by hand.
  */
 export function planLegacyRenames(
@@ -145,7 +145,7 @@ export function planLegacyRenames(
     throw new Error(
       `This project uses the pre-0.48 data layout (${layout.evidence}), and live-tokens.config.json ` +
         `sets the retired "manifestsDir" key to ${input.configuredManifestsDir}. That directory holds ` +
-        `the whole looks, which now belong in ${input.themesDir}. Move it there by hand, drop the ` +
+        `the whole themes, which now belong in ${input.themesDir}. Move it there by hand, drop the ` +
         `"manifestsDir" key, then run the migration again.`,
     );
   }
@@ -158,7 +158,7 @@ export function planLegacyRenames(
         `directories are configured to custom paths (colorsAndTypeDir=${input.colorsAndTypeDir}, ` +
         `themesDir=${input.themesDir}). The migration cannot tell which directory holds what. ` +
         `Move the old colors-and-type directory to ${input.colorsAndTypeDir} and the old ` +
-        `whole-look directory to ${input.themesDir} by hand, then run the migration again.`,
+        `whole-theme directory to ${input.themesDir} by hand, then run the migration again.`,
     );
   }
 

@@ -1,6 +1,6 @@
 /**
  * The heal on a tree from 0.47.1 or earlier: `themes/` still holds the colors
- * and type, `manifests/` still holds the whole-look files, and
+ * and type, `manifests/` still holds the whole-theme files, and
  * `colors-and-type/` does not exist. The directories have to be renamed before
  * a single theme is read, or every saved palette reads as a corrupt theme.
  */
@@ -61,7 +61,7 @@ function dirs(root: string) {
 }
 
 /**
- * The sunset look was applied under the old model and then the card was left
+ * The sunset theme was applied under the old model and then the card was left
  * off it, so the card's live state has drifted from what the manifest carries.
  */
 function preRenameTree(): string {
@@ -262,7 +262,7 @@ describe('migrateData on a pre-0.48 layout', () => {
 
   it('refuses to guess when the retired manifestsDir key names a custom path', () => {
     const root = preRenameTree();
-    const moved = path.join(root, 'looks');
+    const moved = path.join(root, 'themes');
     fs.renameSync(at(root, 'manifests'), moved);
 
     expect(() => migrateData({ ...dirs(root), legacyManifestsDir: moved })).toThrow(

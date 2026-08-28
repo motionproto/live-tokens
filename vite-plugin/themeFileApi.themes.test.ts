@@ -13,7 +13,7 @@ import os from 'os';
 import path from 'path';
 import { themeFileApi } from './themeFileApi';
 import { THEME_SCHEMA_VERSION } from './themes/normalizeTheme';
-import { SKETCH_STYLES } from '../src/editor/core/sketch/sketchStyles';
+import { SHIPPED_SKETCH_SETTINGS } from '../src/editor/core/sketch/sketchStyles';
 
 const API = '/api/live-tokens';
 const REPO_ROOT = process.cwd();
@@ -134,8 +134,8 @@ const BUTTON_CONFIG = {
 function seedPointerTheme() {
   writeJson(path.join(colorsAndTypeDir, 'custom.json'), COLORS_AND_TYPE);
   writeJson(path.join(configsDir, 'button', 'fancy.json'), BUTTON_CONFIG);
-  writeJson(path.join(themesDir, 'look.json'), {
-    name: 'look',
+  writeJson(path.join(themesDir, 'sample.json'), {
+    name: 'sample',
     createdAt: '2026-01-01T00:00:00.000Z',
     updatedAt: '2026-01-01T00:00:00.000Z',
     theme: 'custom',
@@ -156,7 +156,7 @@ afterEach(() => {
 });
 
 describe('a tree still on the pre-working-set model', () => {
-  const SHIPPED = '/* the look this consumer ships */\n';
+  const SHIPPED = '/* the theme this consumer ships */\n';
 
   function seedLegacyTree() {
     seedPointerTheme();
@@ -199,7 +199,7 @@ describe('a tree still on the pre-working-set model', () => {
 describe('boot reconciliation of 0.48 working copies', () => {
   it('removes buffers that exactly match the active theme', () => {
     seedPointerTheme();
-    writeJson(path.join(themesDir, '_active.json'), { activeFile: 'look' });
+    writeJson(path.join(themesDir, '_active.json'), { activeFile: 'sample' });
     writeJson(path.join(colorsAndTypeDir, '_working.json'), COLORS_AND_TYPE);
     writeJson(path.join(configsDir, 'button', '_working.json'), BUTTON_CONFIG);
 
@@ -207,12 +207,12 @@ describe('boot reconciliation of 0.48 working copies', () => {
 
     expect(fs.existsSync(path.join(colorsAndTypeDir, '_working.json'))).toBe(false);
     expect(fs.existsSync(path.join(configsDir, 'button', '_working.json'))).toBe(false);
-    expect(readJson(path.join(themesDir, '_active.json')).activeFile).toBe('look');
+    expect(readJson(path.join(themesDir, '_active.json')).activeFile).toBe('sample');
   });
 
   it('preserves buffers that differ from the active theme', () => {
     seedPointerTheme();
-    writeJson(path.join(themesDir, '_active.json'), { activeFile: 'look' });
+    writeJson(path.join(themesDir, '_active.json'), { activeFile: 'sample' });
     writeJson(path.join(colorsAndTypeDir, '_working.json'), {
       ...COLORS_AND_TYPE,
       name: 'Unsaved colors',
@@ -247,7 +247,7 @@ describe('boot migration', () => {
     seedPointerTheme();
     boot();
 
-    const migrated = readJson(path.join(themesDir, 'look.json'));
+    const migrated = readJson(path.join(themesDir, 'sample.json'));
     expect(migrated.schemaVersion).toBe(THEME_SCHEMA_VERSION);
     expect(migrated.colorsAndType.name).toBe('Custom');
     expect(migrated.componentConfigs.button.aliases).toEqual(BUTTON_CONFIG.aliases);
@@ -258,7 +258,7 @@ describe('boot migration', () => {
     seedPointerTheme();
     boot();
 
-    const migrated = readJson(path.join(themesDir, 'look.json'));
+    const migrated = readJson(path.join(themesDir, 'sample.json'));
     expect(warnings.join('\n')).toContain('panel/deleted-config');
     // `card` (pinned to 'default') and `panel` (its named config gone) both
     // start with no embedded entry from the pointer-resolution pass, but the
@@ -463,10 +463,10 @@ describe('read doors', () => {
   it('GET active returns the encapsulated form', async () => {
     seedPointerTheme();
     boot();
-    await request('PUT', `${API}/themes/active`, { name: 'look' });
+    await request('PUT', `${API}/themes/active`, { name: 'sample' });
 
     const { json } = await request('GET', `${API}/themes/active`);
-    expect(json._fileName).toBe('look');
+    expect(json._fileName).toBe('sample');
     expect(json.colorsAndType.name).toBe('Custom');
   });
 
@@ -486,7 +486,7 @@ describe('read doors', () => {
     expect(written.componentConfigs.button.aliases).toEqual(BUTTON_CONFIG.aliases);
   });
 
-  // Wave 1 of docs/plans/sketch-in-the-theme.md, invariant 1: `sketchStyle`
+  // Wave 1 of docs/plans/sketch-in-the-theme.md, invariant 1: `sketchSettings`
   // must be named on `EncapsulatedTheme`'s whitelist, or a PUT normalizes it
   // away and the next GET reads back a theme with no sketchstyle at all.
   it('PUT a theme carrying a sketchstyle, and GET it back with the dials intact', async () => {
@@ -496,11 +496,11 @@ describe('read doors', () => {
       name: 'sketched',
       theme: 'custom',
       componentConfigs: { button: 'fancy' },
-      sketchStyle: SKETCH_STYLES.marker,
+      sketchSettings: SHIPPED_SKETCH_SETTINGS.marker,
     });
 
     const { json } = await request('GET', `${API}/themes/sketched`);
-    expect(json.sketchStyle).toEqual(SKETCH_STYLES.marker);
+    expect(json.sketchSettings).toEqual(SHIPPED_SKETCH_SETTINGS.marker);
   });
 
   it('leaves a corrupt theme out of the list instead of failing the door', async () => {
@@ -511,7 +511,7 @@ describe('read doors', () => {
     const { status, json } = await request('GET', `${API}/themes`);
     expect(status).toBe(200);
     const names = json.files.map((f: any) => f.fileName);
-    expect(names).toContain('look');
+    expect(names).toContain('sample');
     expect(names).not.toContain('broken');
   });
 
@@ -530,34 +530,34 @@ describe('the live layer doors', () => {
   it('serves the open theme\'s copy, named by the theme it belongs to', async () => {
     seedPointerTheme();
     boot();
-    await request('PUT', `${API}/themes/look/apply`);
+    await request('PUT', `${API}/themes/sample/apply`);
     await request('DELETE', `${API}/colors-and-type/working`);
 
     const { status, json } = await request('GET', `${API}/colors-and-type/active`);
     expect(status).toBe(200);
     expect(json.name).toBe('Custom');
-    expect(json._fileName).toBe('look');
+    expect(json._fileName).toBe('sample');
     expect(json._source).toBe('theme');
   });
 
   it('serves the buffer over the theme once one exists', async () => {
     seedPointerTheme();
     boot();
-    await request('PUT', `${API}/themes/look/apply`);
+    await request('PUT', `${API}/themes/sample/apply`);
     await request('PUT', `${API}/colors-and-type/working`, { ...COLORS_AND_TYPE, name: 'Edited' });
 
     const { json } = await request('GET', `${API}/colors-and-type/active`);
     expect(json.name).toBe('Edited');
-    expect(json._fileName).toBe('look');
+    expect(json._fileName).toBe('sample');
     expect(json._source).toBe('working');
   });
 
   it('falls back to the shipped default when the open theme is deleted outside the file manager', async () => {
     seedPointerTheme();
     boot();
-    await request('PUT', `${API}/themes/look/apply`);
+    await request('PUT', `${API}/themes/sample/apply`);
     await request('DELETE', `${API}/colors-and-type/working`);
-    fs.rmSync(path.join(themesDir, 'look.json'));
+    fs.rmSync(path.join(themesDir, 'sample.json'));
 
     const { status, json } = await request('GET', `${API}/colors-and-type/active`);
     expect(status).toBe(200);
@@ -568,15 +568,15 @@ describe('the live layer doors', () => {
   it('resolves each component from the theme or a working override', async () => {
     seedPointerTheme();
     boot();
-    await request('PUT', `${API}/themes/look/apply`);
+    await request('PUT', `${API}/themes/sample/apply`);
     await request('DELETE', `${API}/component-configs/button/working`);
 
     const button = await request('GET', `${API}/component-configs/button/active`);
     expect(button.json.aliases).toEqual(BUTTON_CONFIG.aliases);
     expect(button.json._source).toBe('theme');
-    expect(button.json._fileName).toBe('look');
+    expect(button.json._fileName).toBe('sample');
 
-    // `look.json` pointed `card` at its own default (a v1 delta encoding), so
+    // `sample.json` pointed `card` at its own default (a v1 delta encoding), so
     // it carried no embedded entry — but Wave 2's completeness fill
     // (docs/plans/theme-completeness.md) fills it in from the local default,
     // by value, the moment the theme is read. It resolves as `'theme'` too,
@@ -596,12 +596,12 @@ describe('the live layer doors', () => {
   it('lists every component with the source its live config comes from', async () => {
     seedPointerTheme();
     boot();
-    await request('PUT', `${API}/themes/look/apply`);
+    await request('PUT', `${API}/themes/sample/apply`);
 
     const { json } = await request('GET', `${API}/component-configs`);
     const byName = Object.fromEntries(json.components.map((c: any) => [c.name, c.source]));
     expect(byName.button).toBe('theme');
-    // `card` was on `look.json`'s default pointer, but the completeness fill
+    // `card` was on `sample.json`'s default pointer, but the completeness fill
     // (Wave 2, docs/plans/theme-completeness.md) embeds it in the theme by
     // value on read, so it now resolves as `'theme'` too.
     expect(byName.card).toBe('theme');
@@ -610,7 +610,7 @@ describe('the live layer doors', () => {
   it('resolves every component as theme-sourced once the fill has run, with no buffers open', async () => {
     seedPointerTheme();
     boot();
-    await request('PUT', `${API}/themes/look/apply`);
+    await request('PUT', `${API}/themes/sample/apply`);
 
     const { json: list } = await request('GET', `${API}/component-configs`);
     const names: string[] = list.components.map((c: any) => c.name);
@@ -627,15 +627,15 @@ describe('deletability', () => {
   it('deleting a named colors-and-type preset touches nothing else', async () => {
     seedPointerTheme();
     boot();
-    await request('PUT', `${API}/themes/look/apply`);
+    await request('PUT', `${API}/themes/sample/apply`);
     const cssBefore = fs.readFileSync(path.join(tmp, 'tokens.generated.css'), 'utf-8');
 
     const { status } = await request('DELETE', `${API}/colors-and-type/custom`);
     expect(status).toBe(200);
     expect(fs.existsSync(path.join(colorsAndTypeDir, 'custom.json'))).toBe(false);
-    // The look carries its colors by value, so the preset it was built from is
+    // The theme carries its colors by value, so the preset it was built from is
     // just a file the user can throw away.
-    expect(readJson(path.join(themesDir, 'look.json')).colorsAndType.name).toBe('Custom');
+    expect(readJson(path.join(themesDir, 'sample.json')).colorsAndType.name).toBe('Custom');
     expect(fs.existsSync(path.join(colorsAndTypeDir, '_working.json'))).toBe(false);
     expect((await request('GET', `${API}/colors-and-type/active`)).json.name).toBe('Custom');
     expect(fs.readFileSync(path.join(tmp, 'tokens.generated.css'), 'utf-8')).toBe(cssBefore);
@@ -655,26 +655,26 @@ describe('deletability', () => {
   it('refuses to delete the theme that is in production', async () => {
     seedPointerTheme();
     boot();
-    await request('PUT', `${API}/themes/look/apply`);
+    await request('PUT', `${API}/themes/sample/apply`);
     await request('PUT', `${API}/production`);
 
-    const { status, json } = await request('DELETE', `${API}/themes/look`);
+    const { status, json } = await request('DELETE', `${API}/themes/sample`);
     expect(status).toBe(403);
     expect(json.code).toBe('PRODUCTION_THEME');
-    expect(fs.existsSync(path.join(themesDir, 'look.json'))).toBe(true);
+    expect(fs.existsSync(path.join(themesDir, 'sample.json'))).toBe(true);
   });
 
   it('deleting the active theme heals the pointer and materialises preserving deltas', async () => {
     seedPointerTheme();
     boot();
-    await request('PUT', `${API}/themes/look/apply`);
+    await request('PUT', `${API}/themes/sample/apply`);
 
-    const { status } = await request('DELETE', `${API}/themes/look`);
+    const { status } = await request('DELETE', `${API}/themes/sample`);
     expect(status).toBe(200);
-    expect(fs.existsSync(path.join(themesDir, 'look.json'))).toBe(false);
+    expect(fs.existsSync(path.join(themesDir, 'sample.json'))).toBe(false);
     expect(readJson(path.join(themesDir, '_active.json')).activeFile).toBe('default');
     // The theme supplied this content before deletion, so the server writes
-    // only the deltas required to preserve that visible look over Default.
+    // only the deltas required to preserve that visible theme over Default.
     expect(readJson(path.join(colorsAndTypeDir, '_working.json')).name).toBe('Custom');
     expect(readJson(path.join(configsDir, 'button', '_working.json')).aliases).toEqual(
       BUTTON_CONFIG.aliases,
@@ -702,18 +702,18 @@ describe('apply', () => {
   it('clears the buffers and opens the theme through the active pointer', async () => {
     seedPointerTheme();
     boot();
-    const { status, json } = await request('PUT', `${API}/themes/look/apply`);
+    const { status, json } = await request('PUT', `${API}/themes/sample/apply`);
     expect(status).toBe(200);
 
     expect(workingSet()).toEqual([]);
-    expect(json.theme._fileName).toBe('look');
+    expect(json.theme._fileName).toBe('sample');
     expect(json.colorsAndType._source).toBe('theme');
     expect(json.componentConfigs.button._source).toBe('theme');
-    // `look.json` pointed `card` at its default; the completeness fill
+    // `sample.json` pointed `card` at its default; the completeness fill
     // (Wave 2, docs/plans/theme-completeness.md) embeds it in the theme by
     // value on read, so it resolves as `'theme'` rather than `'default'`.
     expect(json.componentConfigs.card._source).toBe('theme');
-    expect(readJson(path.join(themesDir, '_active.json')).activeFile).toBe('look');
+    expect(readJson(path.join(themesDir, '_active.json')).activeFile).toBe('sample');
   });
 
   it('writes no named file and leaves production alone', async () => {
@@ -722,12 +722,12 @@ describe('apply', () => {
     const cssBefore = fs.readFileSync(path.join(tmp, 'tokens.generated.css'), 'utf-8');
     const namedBefore = fs.readdirSync(colorsAndTypeDir).sort();
 
-    await request('PUT', `${API}/themes/look/apply`);
+    await request('PUT', `${API}/themes/sample/apply`);
 
     expect(fs.readdirSync(colorsAndTypeDir).filter((f) => !f.startsWith('_')).sort()).toEqual(
       namedBefore.filter((f) => !f.startsWith('_')),
     );
-    expect(fs.existsSync(path.join(configsDir, 'button', 'look.json'))).toBe(false);
+    expect(fs.existsSync(path.join(configsDir, 'button', 'sample.json'))).toBe(false);
     expect(readJson(path.join(themesDir, '_production.json')).productionFile).toBe('default');
     expect(fs.readFileSync(path.join(tmp, 'tokens.generated.css'), 'utf-8')).toBe(cssBefore);
   });
@@ -744,7 +744,7 @@ describe('apply', () => {
     });
     boot();
 
-    await request('PUT', `${API}/themes/look/apply`);
+    await request('PUT', `${API}/themes/sample/apply`);
     expect(workingSet()).toEqual([]);
 
     await request('PUT', `${API}/themes/other/apply`);
@@ -755,7 +755,7 @@ describe('apply', () => {
   it('leaves no buffer at all when the default theme is applied', async () => {
     seedPointerTheme();
     boot();
-    await request('PUT', `${API}/themes/look/apply`);
+    await request('PUT', `${API}/themes/sample/apply`);
     expect(workingSet()).toEqual([]);
 
     const { status, json } = await request('PUT', `${API}/themes/default/apply`);
@@ -783,7 +783,7 @@ describe('apply', () => {
   it('does not allocate a buffer for content equal to the active theme layer', async () => {
     seedPointerTheme();
     boot();
-    await request('PUT', `${API}/themes/look/apply`);
+    await request('PUT', `${API}/themes/sample/apply`);
 
     await request('PUT', `${API}/colors-and-type/working`, COLORS_AND_TYPE);
     await request('PUT', `${API}/component-configs/button/working`, BUTTON_CONFIG);
@@ -794,7 +794,7 @@ describe('apply', () => {
   it('removes matching working deltas after the active theme is saved', async () => {
     seedPointerTheme();
     boot();
-    await request('PUT', `${API}/themes/look/apply`);
+    await request('PUT', `${API}/themes/sample/apply`);
     const editedColors = { ...COLORS_AND_TYPE, name: 'Edited' };
     const editedButton = {
       ...BUTTON_CONFIG,
@@ -804,10 +804,10 @@ describe('apply', () => {
     await request('PUT', `${API}/component-configs/button/working`, editedButton);
     expect(workingSet()).toEqual(['button', 'colors-and-type']);
 
-    const look = readJson(path.join(themesDir, 'look.json'));
-    look.colorsAndType = editedColors;
-    look.componentConfigs.button = editedButton;
-    await request('PUT', `${API}/themes/look`, look);
+    const sample = readJson(path.join(themesDir, 'sample.json'));
+    sample.colorsAndType = editedColors;
+    sample.componentConfigs.button = editedButton;
+    await request('PUT', `${API}/themes/sample`, sample);
 
     expect(workingSet()).toEqual([]);
     expect((await request('GET', `${API}/colors-and-type/active`)).json._source).toBe('theme');
@@ -819,7 +819,7 @@ describe('export and import', () => {
   it('exports the envelope alone', async () => {
     seedPointerTheme();
     boot();
-    const { status, json } = await request('GET', `${API}/themes/look/export`);
+    const { status, json } = await request('GET', `${API}/themes/sample/export`);
     expect(status).toBe(200);
     expect(json.kind).toBe('theme-bundle');
     expect(json.schemaVersion).toBe(THEME_SCHEMA_VERSION);
@@ -831,14 +831,14 @@ describe('export and import', () => {
   it('imports a v2 bundle as one file, renamed past the collision', async () => {
     seedPointerTheme();
     boot();
-    const exported = (await request('GET', `${API}/themes/look/export`)).json;
+    const exported = (await request('GET', `${API}/themes/sample/export`)).json;
     const colorsAndTypeFilesBefore = fs.readdirSync(colorsAndTypeDir).length;
 
     const { status, json } = await request('POST', `${API}/themes/import`, exported);
     expect(status).toBe(200);
-    expect(json.theme).toBe('look-2');
-    expect(json.renames).toEqual({ 'theme:look': 'look-2' });
-    expect(readJson(path.join(themesDir, 'look-2.json')).colorsAndType.name).toBe('Custom');
+    expect(json.theme).toBe('sample-2');
+    expect(json.renames).toEqual({ 'theme:sample': 'sample-2' });
+    expect(readJson(path.join(themesDir, 'sample-2.json')).colorsAndType.name).toBe('Custom');
     expect(fs.readdirSync(colorsAndTypeDir).length).toBe(colorsAndTypeFilesBefore);
   });
 
@@ -853,14 +853,14 @@ describe('export and import', () => {
       name: 'sketched',
       theme: 'custom',
       componentConfigs: { button: 'fancy' },
-      sketchStyle: SKETCH_STYLES.marker,
+      sketchSettings: SHIPPED_SKETCH_SETTINGS.marker,
     });
     const exported = (await request('GET', `${API}/themes/sketched/export`)).json;
-    expect(exported.manifest.sketchStyle).toEqual(SKETCH_STYLES.marker);
+    expect(exported.manifest.sketchSettings).toEqual(SHIPPED_SKETCH_SETTINGS.marker);
 
     const { json } = await request('POST', `${API}/themes/import`, exported);
     const written = readJson(path.join(themesDir, `${json.theme}.json`));
-    expect(written.sketchStyle).toEqual(SKETCH_STYLES.marker);
+    expect(written.sketchSettings).toEqual(SHIPPED_SKETCH_SETTINGS.marker);
   });
 
   it('imports a v1 bundle by embedding what the bundle carries, filled complete from the local defaults', async () => {
@@ -961,29 +961,29 @@ describe('export and import', () => {
   });
 });
 
-describe('adopting the whole look', () => {
+describe('adopting the whole theme', () => {
   const generatedCss = () => fs.readFileSync(path.join(tmp, 'tokens.generated.css'), 'utf-8');
 
-  async function bootWithOpenLook() {
+  async function bootWithOpenTheme() {
     seedPointerTheme();
     boot();
-    await request('PUT', `${API}/themes/look/apply`);
+    await request('PUT', `${API}/themes/sample/apply`);
   }
 
   it('names the open theme as production and bakes its content', async () => {
-    await bootWithOpenLook();
+    await bootWithOpenTheme();
 
     const { status, json } = await request('PUT', `${API}/production`);
     expect(status).toBe(200);
-    expect(json.productionTheme.fileName).toBe('look');
-    expect(json.productionTheme.name).toBe('look');
-    expect(readJson(path.join(themesDir, '_production.json')).productionFile).toBe('look');
-    expect(generatedCss()).toContain('/* Production theme: look */');
+    expect(json.productionTheme.fileName).toBe('sample');
+    expect(json.productionTheme.name).toBe('sample');
+    expect(readJson(path.join(themesDir, '_production.json')).productionFile).toBe('sample');
+    expect(generatedCss()).toContain('/* Production theme: sample */');
     expect(generatedCss()).toContain('--button-primary-radius: 99px');
   });
 
   it('bakes the theme, not the buffer: later edits wait for the next save', async () => {
-    await bootWithOpenLook();
+    await bootWithOpenTheme();
     await request('PUT', `${API}/production`);
 
     await request('PUT', `${API}/colors-and-type/working`, {
@@ -1002,35 +1002,35 @@ describe('adopting the whole look', () => {
   });
 
   it('refuses to bake a production theme it cannot read', async () => {
-    await bootWithOpenLook();
+    await bootWithOpenTheme();
     await request('PUT', `${API}/production`);
     const baked = generatedCss();
 
-    fs.writeFileSync(path.join(themesDir, 'look.json'), '{ not json');
+    fs.writeFileSync(path.join(themesDir, 'sample.json'), '{ not json');
 
-    expect(() => boot()).toThrow(/look/);
+    expect(() => boot()).toThrow(/sample/);
     expect(generatedCss()).toBe(baked);
   });
 
   it('re-bakes what the theme now says once the client saves it', async () => {
-    await bootWithOpenLook();
+    await bootWithOpenTheme();
     await request('PUT', `${API}/production`);
 
-    const look = readJson(path.join(themesDir, 'look.json'));
-    look.componentConfigs.button.aliases = { '--button-primary-radius': '1px' };
-    await request('PUT', `${API}/themes/look`, look);
+    const sample = readJson(path.join(themesDir, 'sample.json'));
+    sample.componentConfigs.button.aliases = { '--button-primary-radius': '1px' };
+    await request('PUT', `${API}/themes/sample`, sample);
     await request('PUT', `${API}/production`);
 
     expect(generatedCss()).toContain('--button-primary-radius: 1px');
   });
 
   it('writes the generated CSS once and no theme file at all', async () => {
-    await bootWithOpenLook();
+    await bootWithOpenTheme();
 
     const { written } = await trackWrites(() => request('PUT', `${API}/production`));
 
     expect(written.filter((p) => p === path.join(tmp, 'tokens.generated.css'))).toHaveLength(1);
-    expect(written.filter((p) => p === path.join(themesDir, 'look.json'))).toEqual([]);
+    expect(written.filter((p) => p === path.join(themesDir, 'sample.json'))).toEqual([]);
   });
 
   it('refuses while the protected Default theme is open, before any write', async () => {
@@ -1044,12 +1044,12 @@ describe('adopting the whole look', () => {
   });
 
   it('serves the production theme whole', async () => {
-    await bootWithOpenLook();
+    await bootWithOpenTheme();
     await request('PUT', `${API}/production`);
 
     const { status, json } = await request('GET', `${API}/themes/production`);
     expect(status).toBe(200);
-    expect(json._fileName).toBe('look');
+    expect(json._fileName).toBe('sample');
     expect(json.colorsAndType.name).toBe('Custom');
   });
 });
@@ -1065,16 +1065,16 @@ describe('component-config migration and orphan handling reach the bake', () => 
   const generatedCss = () => fs.readFileSync(path.join(tmp, 'tokens.generated.css'), 'utf-8');
 
   function seedProductionTheme(componentConfigs: Record<string, unknown>) {
-    writeJson(path.join(themesDir, 'look.json'), {
-      name: 'look',
+    writeJson(path.join(themesDir, 'sample.json'), {
+      name: 'sample',
       createdAt: '2026-01-01T00:00:00.000Z',
       updatedAt: '2026-01-01T00:00:00.000Z',
       schemaVersion: 3,
       colorsAndType: COLORS_AND_TYPE,
       componentConfigs,
     });
-    writeJson(path.join(themesDir, '_active.json'), { activeFile: 'look' });
-    writeJson(path.join(themesDir, '_production.json'), { productionFile: 'look' });
+    writeJson(path.join(themesDir, '_active.json'), { activeFile: 'sample' });
+    writeJson(path.join(themesDir, '_production.json'), { productionFile: 'sample' });
   }
 
   it('bakes the post-rename key for an embedded config written before the rename', () => {
@@ -1083,7 +1083,7 @@ describe('component-config migration and orphan handling reach the bake', () => 
     // `componentSchemaVersion` on this theme, so it migrates off 0.
     seedProductionTheme({
       progressbar: {
-        name: 'look',
+        name: 'sample',
         component: 'progressbar',
         aliases: { '--progressbar-track-bg': '--surface-accent' },
       },
@@ -1098,7 +1098,7 @@ describe('component-config migration and orphan handling reach the bake', () => 
   it('skips an orphaned alias key the current default no longer declares, while a real override still emits', () => {
     seedProductionTheme({
       card: {
-        name: 'look',
+        name: 'sample',
         component: 'card',
         aliases: {
           // Not declared by card/default.json under any name a migration

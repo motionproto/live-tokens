@@ -1,12 +1,12 @@
 # Themes
 
-Save your work, switch between looks, and ship one to production.
+Save your work, switch between themes, and ship one to production.
 
 ## The Theme panel
 
-The **Theme** panel at the foot of the editor sidebar holds the whole look:
+The **Theme** panel at the foot of the editor sidebar holds the whole theme:
 colors, type, a setting for every component, and the sketch layer, in one
-file. It carries the name the look ships under, whether production is running
+file. It carries the name the theme ships under, whether production is running
 it, and **Adopt**. Three parts sit under it, each a read-out rather than a
 file to manage.
 
@@ -14,7 +14,7 @@ file to manage.
   define their appearance. It names the two faces the page is showing.
 - **Components** counts how many components have an unsaved edit that has not
   been saved into the theme, and opens the component editors.
-- **Sketchstyle** names the look the theme's sketch layer carries: its label, or
+- **Sketchstyle** names the sketchstyle the theme's sketch layer carries: its label, or
   off the theme when what's on screen no longer matches what was saved, or
   none when the theme carries no sketch layer. It travels with the theme
   like colors and type do, but never reaches a production build.
@@ -26,7 +26,7 @@ A theme holds its own copy of every part, so one theme can never break another.
 A theme is a document, and the editor works the way any editor does.
 
 - **A theme** is a named JSON file in `src/live-tokens/data/themes/`. It carries
-  the whole look: the colors and type, a setting for every component, and the
+  the whole theme: the colors and type, a setting for every component, and the
   sketch layer.
 - **The open theme** is the one the editor is working on, named in
   `themes/_active.json`. One at a time.
@@ -40,11 +40,11 @@ A theme is a document, and the editor works the way any editor does.
   Picker performs that Adopt for you.
 
 Absence is the answer for anything untouched: a buffer exists only where the
-live look diverges from the active theme, so a newly opened theme has none.
+live theme diverges from the active theme, so a newly opened theme has none.
 
 ## Fonts
 
-Type is part of the look, so it saves, loads and ships with the theme rather
+Type is part of the theme, so it saves, loads and ships with the theme rather
 than on its own. Four named stacks carry it:
 
 | Stack | Used by |
@@ -85,7 +85,7 @@ what writes the font imports your site ships, into `fonts.css`.
 
 In the Theme panel:
 
-- **Save** captures the look on screen into the open theme. Your colors and type
+- **Save** captures the theme on screen into the open theme. Your colors and type
   go in as part of it, so there is nothing to save first.
 - **Save As** names a new theme. Use it for your first save and for forking.
 
@@ -104,7 +104,7 @@ to it, and the editor never overwrites it, so start your own with **Save As**.
 
 **Load**—or clicking the active theme's name—opens the Theme Picker. Picking a
 theme shows it on the page as a preview with nothing written to disk, sketch
-layer included, so you can try each look and compare. **Save** in that window
+layer included, so you can try each theme and compare. **Save** in that window
 opens and adopts the previewed theme in one step: the active pointer changes,
 the buffers clear, the editor works on it, and production ships it. **Cancel**
 returns you to where you were, unsaved sketch dials included. Previewing alone
@@ -125,10 +125,10 @@ then bakes the colors and type plus every component the theme carries into
 it stays a preview. Fonts regenerate to match. The line under the theme name
 says whether production is running this theme.
 
-Production is one saved theme, so nothing else publishes. Trying a look, moving
+Production is one saved theme, so nothing else publishes. Trying a theme, moving
 a token, saving a theme: all of it leaves the generated CSS alone until you
 Adopt. A component editor's Adopt runs the same save-then-bake step, because a
-component never ships alone. Adopting while Motion Proto is open saves your look
+component never ships alone. Adopting while Motion Proto is open saves your theme
 as a theme of your own first, since the built-in one is read-only.
 
 Production builds (`npm run build`) ship only that plain CSS and your

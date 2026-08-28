@@ -14,18 +14,21 @@
   import {
     sketchEnabled,
     setSketchEnabled,
-    sketchOffLook,
-    sketchStyleName,
+    sketchOffTheme,
+    selectedSketchStyleId,
     sketchDirty,
     sketchSettings,
     selectSketchStyle,
+    selectUnsavedSketchStyle,
     updateSketchSettings,
     refreshSavedSketchStyles,
     saveCurrentSketchStyle,
     saveSelectedSketchStyle,
     deleteSavedSketchStyle,
   } from '../../core/sketch/sketchStore';
-  import { sketchLooks } from '../../core/sketch/sketchRegistry';
+  import { sketchStyles } from '../../core/sketch/sketchRegistry';
+  import { unsavedSketchStyle } from '../../core/sketch';
+  import { THEME_SKETCH_ID } from '../../core/sketch/sketchStyles';
 
   interface Props {
     /** The rail's last jump. A fresh object per click, not a bare id, so
@@ -38,8 +41,13 @@
 
   let s = $derived($sketchSettings);
 
+  /** The theme's own style sits in the grid like any other row, but it is the
+      one row with no file behind it, so Save has nothing to write over. Save As
+      is what gives it one, after which it is an ordinary sketchstyle. */
+  let onUnsavedSketchStyle = $derived($selectedSketchStyleId === THEME_SKETCH_ID);
+
   // Save is disabled for the protected Default theme (ThemePanel.svelte);
-  // Save As is the gesture actually on offer there, so the off-look copy has
+  // Save As is the gesture actually on offer there, so the off-style copy has
   // to name it instead.
   let activeIsProtected = $derived($openThemeSlug === 'default');
 
@@ -50,7 +58,7 @@
 
   /** All closed to start: twenty-odd dials in one scroll is a wall, and the
       summary on each trigger row answers most questions without opening
-      anything. Each section then stands alone, because shaping a look means
+      anything. Each section then stands alone, because shaping a style means
       reaching between them — the border's detail against the noise it
       multiplies, the fill's travel against the border's.
 
@@ -131,36 +139,37 @@
       so the base keeps its name here and the blurb reports the drift instead. */
   let active = $derived(
     $sketchDirty
-      ? { name: s.label, blurb: `Modified from ${s.label}. Save it to keep it.` }
+      ? {
+          name: s.label,
+          blurb: onUnsavedSketchStyle
+            ? 'Modified from settings this theme carries. Save As keeps them as a sketchstyle.'
+            : `Modified from ${s.label}. Save it to keep it.`,
+        }
       : { name: s.label, blurb: s.blurb || 'Your saved sketchstyle.' },
   );
 
-  let selectedLook = $derived($sketchLooks.find((l) => l.id === $sketchStyleName));
+  let selectedSketchStyle = $derived($sketchStyles.find((l) => l.id === $selectedSketchStyleId));
   /** Offered whenever the dials have moved off the sketchstyle they name. A
-      look backed by a project file is written over. A shipped one's file lives
+      style backed by a project file is written over. A shipped one's file lives
       in the package, so saving it writes this project's own under the same
       name, which is how a project comes to own its Pencil: the id is the same,
       so the new file takes the shipped one's place in the grid rather than
       sitting beside it. Nothing is lost either way, since deleting that file
       uncovers the packaged one again. */
-  let canSave = $derived(!!selectedLook && $sketchDirty);
+  let canSave = $derived(!!selectedSketchStyle && $sketchDirty);
   let saveTitle = $derived(
-    !selectedLook
-      ? 'Pick a sketchstyle to save over'
-      : !$sketchDirty
-        ? 'No changes to save'
-        : selectedLook.source === 'file'
-          ? `Save over ${selectedLook.label}`
-          : `Keep these dials as this project's ${selectedLook.label}`,
+    onUnsavedSketchStyle
+      ? 'These settings belong to no sketchstyle file. Save As keeps them as one.'
+      : !selectedSketchStyle
+        ? 'Pick a sketchstyle to save over'
+        : !$sketchDirty
+          ? 'No changes to save'
+          : `Save over ${selectedSketchStyle.label}`,
   );
 
   function saveInPlace() {
-    if (!selectedLook) return;
-    runStyleAction(
-      selectedLook.source === 'file'
-        ? saveSelectedSketchStyle()
-        : saveCurrentSketchStyle(selectedLook.label),
-    );
+    if (!selectedSketchStyle) return;
+    runStyleAction(saveSelectedSketchStyle());
   }
 
   let naming = $state(false);
@@ -324,9 +333,9 @@
       <div class="readout" aria-live="polite">
         <span class="readout-name">{active.name}</span>
         <p class="readout-blurb">{active.blurb}</p>
-        {#if $sketchOffLook}
+        {#if $sketchOffTheme}
           {#if $sketchEnabled}
-            <p class="readout-off-look">
+            <p class="readout-off-style">
               {#if activeIsProtected}
                 Motion Proto is read-only, and these dials are ahead of it. Use Save As in the
                 Theme panel to keep them in a new theme.
@@ -336,7 +345,7 @@
               {/if}
             </p>
           {:else}
-            <p class="readout-off-look">
+            <p class="readout-off-style">
               The theme carries a sketchstyle this page is not painting. Saving now would drop
               it.
             </p>
@@ -345,25 +354,39 @@
       </div>
 
       <div class="presets">
-        {#each $sketchLooks as look (look.id)}
+        {#if $unsavedSketchStyle}
           <div class="saved-item">
             <label class="preset">
               <input
                 type="radio"
                 name={STYLE_RADIO_GROUP}
-                value={look.id}
-                checked={$sketchStyleName === look.id}
-                onchange={() => selectSketchStyle(look.id)}
+                value={$unsavedSketchStyle.id}
+                checked={onUnsavedSketchStyle}
+                onchange={selectUnsavedSketchStyle}
               />
-              <span class="preset-name">{look.label}</span>
+              <span class="preset-name">{$unsavedSketchStyle.label}</span>
             </label>
-            {#if look.source === 'file'}
+          </div>
+        {/if}
+        {#each $sketchStyles as style (style.id)}
+          <div class="saved-item">
+            <label class="preset">
+              <input
+                type="radio"
+                name={STYLE_RADIO_GROUP}
+                value={style.id}
+                checked={$selectedSketchStyleId === style.id}
+                onchange={() => selectSketchStyle(style.id)}
+              />
+              <span class="preset-name">{style.label}</span>
+            </label>
+            {#if style.source === 'file'}
               <button
                 type="button"
                 class="saved-delete"
-                title="Delete {look.label}"
-                aria-label="Delete {look.label}"
-                onclick={() => runStyleAction(deleteSavedSketchStyle(look.id))}
+                title="Delete {style.label}"
+                aria-label="Delete {style.label}"
+                onclick={() => runStyleAction(deleteSavedSketchStyle(style.id))}
               ><i class="fas fa-xmark"></i></button>
             {/if}
           </div>
@@ -1097,7 +1120,7 @@
     color: var(--ui-text-secondary);
   }
 
-  .readout-off-look {
+  .readout-off-style {
     margin: var(--ui-space-2) 0 0;
     font-size: var(--ui-font-size-sm);
     font-weight: var(--ui-font-weight-medium);

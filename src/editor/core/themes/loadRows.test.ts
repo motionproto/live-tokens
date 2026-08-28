@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import type { ThemeMeta, ColorsAndTypeMeta } from './themeTypes';
 import { buildLoadRows, colorsOnlyIsForced, isColorsOnly, loadRowId } from './loadRows';
 
-const look = (fileName: string, isProtected = false): ThemeMeta => ({
+const theme = (fileName: string, isProtected = false): ThemeMeta => ({
   name: fileName,
   fileName,
   updatedAt: '',
@@ -19,49 +19,49 @@ const layer = (fileName: string, isPackage: boolean): ColorsAndTypeMeta => ({
 });
 
 describe('buildLoadRows', () => {
-  it('lists every look, then the layer files a local copy backs', () => {
+  it('lists every theme, then the layer files a local copy backs', () => {
     const rows = buildLoadRows(
-      [look('default', true), look('ocean')],
+      [theme('default', true), theme('ocean')],
       [layer('default', true), layer('ocean', true), layer('my-colors', false)],
     );
-    expect(rows.map((r) => r.fileName)).toEqual(['look:default', 'look:ocean', 'layer:my-colors']);
+    expect(rows.map((r) => r.fileName)).toEqual(['theme:default', 'theme:ocean', 'layer:my-colors']);
   });
 
   it('keeps a local copy of a preset layer, which holds the user edits', () => {
-    const rows = buildLoadRows([look('ocean')], [layer('ocean', false), layer('sunset', true)]);
-    expect(rows.map((r) => r.fileName)).toEqual(['look:ocean', 'layer:ocean']);
+    const rows = buildLoadRows([theme('ocean')], [layer('ocean', false), layer('sunset', true)]);
+    expect(rows.map((r) => r.fileName)).toEqual(['theme:ocean', 'layer:ocean']);
   });
 
-  it('puts the protected default look first', () => {
-    const rows = buildLoadRows([look('autumn'), look('default', true), look('ocean')], []);
-    expect(rows.map((r) => r.fileName)).toEqual(['look:default', 'look:autumn', 'look:ocean']);
+  it('puts the protected default theme first', () => {
+    const rows = buildLoadRows([theme('autumn'), theme('default', true), theme('ocean')], []);
+    expect(rows.map((r) => r.fileName)).toEqual(['theme:default', 'theme:autumn', 'theme:ocean']);
   });
 
-  it('carries the protected flag on looks and never on layers', () => {
-    const rows = buildLoadRows([look('default', true)], [layer('default', false)]);
+  it('carries the protected flag on themes and never on layers', () => {
+    const rows = buildLoadRows([theme('default', true)], [layer('default', false)]);
     expect(rows.map((r) => r.isProtected)).toEqual([true, false]);
   });
 
   it('keeps the slug alongside the namespaced id', () => {
-    const [row] = buildLoadRows([look('ocean')], []);
+    const [row] = buildLoadRows([theme('ocean')], []);
     expect(row.slug).toBe('ocean');
-    expect(row.fileName).toBe(loadRowId('look', 'ocean'));
+    expect(row.fileName).toBe(loadRowId('theme', 'ocean'));
   });
 });
 
 describe('isColorsOnly', () => {
-  const lookRow = buildLoadRows([look('ocean')], [])[0];
+  const themeRow = buildLoadRows([theme('ocean')], [])[0];
   const layerRow = buildLoadRows([], [layer('my-colors', false)])[0];
 
-  it('follows the toggle for a look', () => {
-    expect(isColorsOnly(lookRow, false)).toBe(false);
-    expect(isColorsOnly(lookRow, true)).toBe(true);
+  it('follows the toggle for a theme', () => {
+    expect(isColorsOnly(themeRow, false)).toBe(false);
+    expect(isColorsOnly(themeRow, true)).toBe(true);
   });
 
   it('is always on for a layer file', () => {
     expect(isColorsOnly(layerRow, false)).toBe(true);
     expect(colorsOnlyIsForced(layerRow)).toBe(true);
-    expect(colorsOnlyIsForced(lookRow)).toBe(false);
+    expect(colorsOnlyIsForced(themeRow)).toBe(false);
   });
 
   it('keeps the user setting with nothing picked', () => {

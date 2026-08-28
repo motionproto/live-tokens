@@ -1,7 +1,9 @@
 <script lang="ts">
+  import Button from '../../system/components/Button.svelte';
   import CodeSnippet from '../../system/components/CodeSnippet.svelte';
   import SectionDivider from '../../system/components/SectionDivider.svelte';
   import Panel from '../../system/components/Panel.svelte';
+  import { navigate } from '../../editor/core/routing/router';
 
   const skills = [
     { icon: 'fas fa-list-check', name: 'pick-component' },
@@ -40,6 +42,15 @@
     <div class="install">
       <CodeSnippet code="npx @motion-proto/live-tokens setup-claude" />
       <p class="install-caption">Run this once to copy them into your project.</p>
+    </div>
+
+    <div class="atlas">
+      <Button variant="primary" onclick={() => navigate('/skills')} icon="fas fa-diagram-project" iconPosition="left">
+        How do skills work?
+      </Button>
+      <p class="install-caption">
+        Each skill as a decision tree, next to the lines of SKILL.md that decide it.
+      </p>
     </div>
   </div>
 </section>
@@ -114,6 +125,13 @@
      for long lines still works. */
   .install :global(.codesnippet .code) {
     overflow-y: hidden;
+  }
+
+  .atlas {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-8);
   }
 
   .skills {

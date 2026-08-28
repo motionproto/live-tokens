@@ -19,7 +19,7 @@
  * Everything is integer maths on a Float32Array with no DOM, so what a test
  * asserts is what the browser paints.
  */
-import type { SketchStyle } from './sketchStyles';
+import type { SketchStyleSettings } from './sketchStyles';
 
 /** Samples across the tile, on both axes. Fixed, whatever the blobs measure:
     the field is blobs and gradients, so the browser stretching the tile back to
@@ -69,7 +69,7 @@ export interface MaskLattice {
   angle: number;
 }
 
-export function maskLattice(s: SketchStyle): MaskLattice {
+export function maskLattice(s: SketchStyleSettings): MaskLattice {
   const ask = s.maskBlobX === s.maskBlobY ? 0 : s.maskAngle;
   const rad = ask * (Math.PI / 180);
   const cos = Math.cos(rad), sin = Math.sin(rad);
@@ -78,7 +78,7 @@ export function maskLattice(s: SketchStyle): MaskLattice {
   const vx = fit(dx, ask, (v) => turnOf(-v[1] * s.maskBlobY, v[0] * s.maskBlobX));
   let vy = fit(dy, ask, (v) => turnOf(v[0] * s.maskBlobX, v[1] * s.maskBlobY));
   // Two vectors along one line describe no tile at all. The turn of the first
-  // is the whole look, so the second is the one that gives way.
+  // fixes the tile, so the second is the one that gives way.
   if (vx[0] * vy[1] - vx[1] * vy[0] === 0) vy = [-vx[1], vx[0]];
   return {
     vx,
@@ -131,7 +131,7 @@ function fit(d: Vec, ask: number, turn: (v: Vec) => number): Vec {
  * fitted to it, which meant the dial could only reach the sizes that divide
  * 600: it said 250px and painted 300px, and there was nothing above that.
  */
-export function maskTile(s: SketchStyle): { w: number; h: number } {
+export function maskTile(s: SketchStyleSettings): { w: number; h: number } {
   const { w, h } = maskLattice(s);
   return { w, h };
 }
@@ -228,11 +228,11 @@ function makePerlin(seed: number): (x: number, y: number, w: Wrap) => number {
  * the one before, stretched onto its own measured range.
  *
  * `veined` folds each octave at zero before summing. The fold puts a crease
- * wherever the octave crossed zero, which is the marbled look; plain sum is
+ * wherever the octave crossed zero, which is the marbled effect; plain sum is
  * cloud.
  */
 function rawField(
-  s: SketchStyle, seed: number, raster: number, lattice: MaskLattice,
+  s: SketchStyleSettings, seed: number, raster: number, lattice: MaskLattice,
 ): Float32Array {
   const noise = makePerlin(seed);
   const veined = s.maskGrain === 'turbulence';
@@ -388,7 +388,7 @@ function boxPass(f: Float32Array, n: number, radius: number, stride: number): Fl
     all four; the levels, the posterising and the blur are one pass each. */
 let rawCache: { key: string; field: Float32Array } | null = null;
 
-function cachedRaw(s: SketchStyle, seed: number): Float32Array {
+function cachedRaw(s: SketchStyleSettings, seed: number): Float32Array {
   const lattice = maskLattice(s);
   // Keyed on the tile vectors rather than the blob sizes: most of the Scale
   // dial's travel paints the same lattice at another size, and the field is
@@ -407,7 +407,7 @@ function cachedRaw(s: SketchStyle, seed: number): Float32Array {
  * pass did.
  */
 export function buildMaskField(
-  s: SketchStyle, seed = 9, through?: MaskStage,
+  s: SketchStyleSettings, seed = 9, through?: MaskStage,
 ): { field: Float32Array; raster: number } {
   const raw = cachedRaw(s, seed);
   if (through === 'noise') return { field: raw, raster: RASTER };
@@ -544,7 +544,7 @@ const CACHE_MAX = 6;
 const cache = new Map<string, string>();
 
 /** The field as a `url(...)` for `mask-image`. */
-export function buildMaskUri(s: SketchStyle, seed = 9, through?: MaskStage): string {
+export function buildMaskUri(s: SketchStyleSettings, seed = 9, through?: MaskStage): string {
   const key = [...KEYS.map((k) => s[k]), seed, through ?? 'all'].join('|');
   const hit = cache.get(key);
   if (hit) return hit;

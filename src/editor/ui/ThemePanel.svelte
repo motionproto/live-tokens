@@ -1,5 +1,5 @@
 <script lang="ts">
-  // The root of the look hierarchy: one Theme panel that owns the open theme,
+  // The root of the theme hierarchy: one Theme panel that owns the open theme,
   // with the colors and type and the components as parts that report rather
   // than manage.
   //
@@ -15,7 +15,7 @@
     getProductionTheme,
     loadTheme,
     applyTheme,
-    adoptLook,
+    adoptTheme,
     freshName,
     saveAsTheme,
     saveActiveTheme,
@@ -27,8 +27,8 @@
     THEME_APPLIED_EVENT,
     type AppliedThemeDetail,
   } from '../core/themes/themeDocumentSync';
-  import { countComponentsOffLook, lookProductionState } from '../core/themes/lookSummary';
-  import { commitPreview, previewTheme, previewColorsAndType, revertPreview } from '../core/preview/lookPreview';
+  import { countComponentsOffTheme, themeProductionState } from '../core/themes/themeSummary';
+  import { commitPreview, previewTheme, previewColorsAndType, revertPreview } from '../core/preview/themePreview';
   import {
     deleteColorsAndType,
     hydrateColorsAndType,
@@ -58,7 +58,7 @@
     markComponentSaved,
   } from '../core/store/editorStore';
   import { openThemeSlug } from '../core/store/editorConfigStore';
-  import { sketchOffLook, themeSketchStyle } from '../core/sketch/sketchStore';
+  import { sketchOffTheme, themeSketchSettings } from '../core/sketch/sketchStore';
   import { editorView } from '../core/store/editorViewStore';
   import {
     componentActiveRevision,
@@ -100,7 +100,7 @@
 
   let currentDisplayName = $state('Motion Proto');
   let activeIsProtected = $derived($openThemeSlug === 'default');
-  let activeRowId = $derived(loadRowId('look', $openThemeSlug));
+  let activeRowId = $derived(loadRowId('theme', $openThemeSlug));
 
   type SaveState = 'idle' | 'saving' | 'saved' | 'error';
   const setSaveStatus = (s: SaveState) => (saveStatus = s);
@@ -108,7 +108,7 @@
   let dirtyComponentCount = $derived(
     Object.values($componentDirty).filter(Boolean).length,
   );
-  let unsavedEdits = $derived($colorsAndTypeDirty || dirtyComponentCount > 0 || $sketchOffLook);
+  let unsavedEdits = $derived($colorsAndTypeDirty || dirtyComponentCount > 0 || $sketchOffTheme);
 
   async function refreshFiles() {
     try {
@@ -127,7 +127,7 @@
         // Deleting the open theme repoints active without going through Load
         // or Save, both of which already set this; this is the path that
         // makes sketchStore's "set by every path that opens a theme" true.
-        themeSketchStyle.set(active.sketchStyle);
+        themeSketchSettings.set(active.sketchSettings);
       }
     } catch {
       // silent
@@ -161,7 +161,7 @@
 
   let components: ComponentSummary[] = $state([]);
 
-  let componentsOffLook = $derived(countComponentsOffLook(components));
+  let componentsOffTheme = $derived(countComponentsOffTheme(components));
 
   async function refreshComponents() {
     try {
@@ -314,7 +314,7 @@
     }
   }
 
-  // ── Adopt: ship the whole look ────────────────────────────────────────
+  // ── Adopt: ship the whole theme ────────────────────────────────────────
   //
   // One action at the root, because production is one saved theme: Adopt saves
   // the open one and publishes it whole. The component editors' Adopt runs the
@@ -325,7 +325,7 @@
   const setAdoptStatus = (s: AdoptStatus) => (adoptStatus = s);
 
   let production = $derived(
-    lookProductionState({
+    themeProductionState({
       openTheme: $openThemeSlug,
       productionTheme: $productionTheme?._fileName ?? null,
       unpublished: unsavedEdits || $liveMovedSinceBake,
@@ -346,7 +346,7 @@
   /**
    * Adopt publishes what is saved, so the flow is flush, save, ship. The
    * protected Default theme cannot record what shipped: the user clicked
-   * Adopt, and which file holds the look is bookkeeping they should not have
+   * Adopt, and which file holds the theme is bookkeeping they should not have
    * to think about, so it forks to a theme of their own first.
    */
   async function runAdopt(saveComponents = false) {
@@ -362,7 +362,7 @@
       } else {
         await saveActiveTheme(currentDisplayName);
       }
-      await adoptLook();
+      await adoptTheme();
       // The panel's own production pulse re-reads identity, the production
       // theme and the component summary.
       bumpProductionRevision();
@@ -388,7 +388,7 @@
   let previewRow: LoadRow | null = $state(null);
   // `$state.raw`: the preview engine structuredClones these, and a deep `$state`
   // proxy is not cloneable. Both are only ever reassigned whole.
-  let previewLook: Theme | null = $state.raw(null);
+  let previewedTheme: Theme | null = $state.raw(null);
   let previewLayer: ColorsAndType | null = $state.raw(null);
   let colorsOnly = $state(false);
   let effectiveColorsOnly = $derived(isColorsOnly(previewRow, colorsOnly));
@@ -397,47 +397,47 @@
   function cancelPreview() {
     revertPreview();
     previewRow = null;
-    previewLook = null;
+    previewedTheme = null;
     previewLayer = null;
   }
 
   function acceptPreview() {
     commitPreview();
     previewRow = null;
-    previewLook = null;
+    previewedTheme = null;
     previewLayer = null;
   }
 
   /** Paint whatever is selected, through the engine the mode calls for. A
-   *  theme's colors and type are the slice embedded in it, so one look
+   *  theme's colors and type are the slice embedded in it, so one theme
    *  previews either way. */
   async function repaint(): Promise<void> {
     if (previewLayer) {
       previewColorsAndType(previewLayer);
       return;
     }
-    if (!previewLook) return;
-    if (effectiveColorsOnly) previewColorsAndType(previewLook.colorsAndType);
-    else await previewTheme(previewLook);
+    if (!previewedTheme) return;
+    if (effectiveColorsOnly) previewColorsAndType(previewedTheme.colorsAndType);
+    else await previewTheme(previewedTheme);
   }
 
   async function handleSelect(row: LoadRow) {
     if (row.fileName === previewRow?.fileName) return;
-    // The open theme in whole-look mode is what the page already shows. In
+    // The open theme in whole-theme mode is what the page already shows. In
     // colors-only mode it is a real operation: it puts the theme's own colors
     // back over whatever the user has edited.
-    if (row.kind === 'look' && row.slug === $openThemeSlug && !isColorsOnly(row, colorsOnly)) {
+    if (row.kind === 'theme' && row.slug === $openThemeSlug && !isColorsOnly(row, colorsOnly)) {
       cancelPreview();
       return;
     }
     try {
-      const look = row.kind === 'look' ? await loadTheme(row.slug) : null;
+      const theme = row.kind === 'theme' ? await loadTheme(row.slug) : null;
       const layer = row.kind === 'layer' ? await loadColorsAndType(row.slug) : null;
       // The window may have closed during the fetch; painting then would leave
       // a preview on screen with no Save or Cancel in sight.
       if (!showFileList) return;
       previewRow = row;
-      previewLook = look;
+      previewedTheme = theme;
       previewLayer = layer;
       await repaint();
     } catch (err) {
@@ -457,7 +457,7 @@
       await commitColorsOnly();
       return;
     }
-    await commitWholeLook();
+    await commitWholeTheme();
   }
 
   function filledNote(filled: ThemeFillReport): string | null {
@@ -467,7 +467,7 @@
       + `The editor filled them from the current defaults.`;
   }
 
-  async function commitWholeLook() {
+  async function commitWholeTheme() {
     const row = previewRow;
     if (!row) return;
     if (unsavedEdits) {
@@ -477,7 +477,7 @@
       if (!ok) return;
     }
     // The exact theme being opened is already painted. Hand that preview to
-    // the store load without restoring the old look across the request.
+    // the store load without restoring the old theme across the request.
     acceptPreview();
     let result: Awaited<ReturnType<typeof applyTheme>>;
     try {
@@ -501,8 +501,8 @@
       // The selection remains visible after a failed request; put its preview
       // back so the dialog and page continue to agree.
       previewRow = row;
-      previewLook = row.kind === 'look' ? await loadTheme(row.slug).catch(() => null) : null;
-      if (previewLook) await repaint();
+      previewedTheme = row.kind === 'theme' ? await loadTheme(row.slug).catch(() => null) : null;
+      if (previewedTheme) await repaint();
       return;
     }
 
@@ -517,7 +517,7 @@
         await saveAsTheme(freshName('my-theme', taken), 'My Theme');
         await refreshActive();
       }
-      await adoptLook();
+      await adoptTheme();
       bumpProductionRevision();
       flashStatus(setAdoptStatus, 'done');
     } catch (err) {
@@ -537,7 +537,7 @@
     const row = previewRow;
     // Read the payload before the revert clears it. The read doors mark where
     // they answered from; the buffer holds content alone.
-    const picked = previewLayer ?? previewLook?.colorsAndType ?? null;
+    const picked = previewLayer ?? previewedTheme?.colorsAndType ?? null;
     if (!row || !picked) return;
     const { _fileName, _source, ...buffer } = picked;
     if (unsavedEdits) {
@@ -548,7 +548,7 @@
     }
     // Hand the page back to the store before loading. The renderer diffs
     // against its own last-applied set, which never saw the preview's direct
-    // writes; starting from the live look makes the load land exactly as it
+    // writes; starting from the live theme makes the load land exactly as it
     // does with no preview in play.
     cancelPreview();
     showFileList = false;
@@ -633,14 +633,14 @@
     if (row.isProtected) return;
     if (row.kind === 'layer') return deleteColorsFile(row);
     // Deleting the open theme is legal: the server materialises only the
-    // deltas needed to keep the look on screen. Where open lands depends on
+    // deltas needed to keep the theme on screen. Where open lands depends on
     // something the client can't see — deleting a local copy that shadows a
     // shipped theme restores the shipped one and keeps naming it, while
     // deleting a local-only theme sends open back to Motion Proto.
     const wasActive = row.slug === $openThemeSlug;
     const ok = window.confirm(
       wasActive
-        ? `Delete theme "${row.name}"? The editor moves to the version shipped with the package if there is one, otherwise Motion Proto. The look on screen stays as it is.`
+        ? `Delete theme "${row.name}"? The editor moves to the version shipped with the package if there is one, otherwise Motion Proto. What is on screen stays as it is.`
         : `Delete theme "${row.name}"?`,
     );
     if (!ok) return;
@@ -687,18 +687,18 @@
   }
 </script>
 
-<div class="look-panel">
+<div class="theme-panel">
   <div class="mfm-header">
     <span class="mfm-header-label">Theme</span>
     <UIInfoPopover title="Theme" ariaLabel="About the theme">
       <p>
-        A <strong>theme</strong> is a whole look in one file: the colors and type plus a setting for every component.
+        A <strong>theme</strong> is a whole theme in one file: the colors and type plus a setting for every component.
       </p>
       <p>
-        It holds its own copy of that data, so the theme you open is the whole look, and one theme can never break another.
+        It holds its own copy of that data, so the theme you open is the whole theme, and one theme can never break another.
       </p>
       <p>
-        <strong>Load</strong> opens the list. Picking a theme shows it on the page as a preview, so you can try each look with nothing written to disk. Pick another to compare, or <strong>Cancel</strong> to go back to where you were.
+        <strong>Load</strong> opens the list. Picking a theme shows it on the page as a preview, so you can try each theme with nothing written to disk. Pick another to compare, or <strong>Cancel</strong> to go back to where you were.
       </p>
       <p>
         <strong>Save</strong> opens and adopts the previewed theme: the editor works on it from then on and production ships it immediately. Previewing and cancelling never change what your site ships.
@@ -781,7 +781,7 @@
         disabled={activeIsProtected || saveStatus === 'saving'}
         title={activeIsProtected
           ? 'Motion Proto is read-only. Use Save As to capture under a new name.'
-          : 'Update this theme from the look on screen'}
+          : 'Update this theme from the theme on screen'}
       >
         <i
           class="fas"
@@ -794,7 +794,7 @@
           {#if saveStatus === 'idle'}Save{:else if saveStatus === 'saving'}Saving{:else if saveStatus === 'saved'}Saved{:else}Error{/if}
         </span>
       </button>
-      <button class="mfm-btn mfm-btn-row" onclick={openSaveAs} title="Save the current look as a new theme">
+      <button class="mfm-btn mfm-btn-row" onclick={openSaveAs} title="Save the theme on screen as a new theme">
         <i class="fas fa-copy"></i>
         <span>Save As…</span>
       </button>
@@ -818,8 +818,8 @@
     </div>
   </div>
 
-  <!-- Parts of the look: what each holds now, no lifecycle of its own. -->
-  <div class="look-parts">
+  <!-- Parts of the theme: what each holds now, no lifecycle of its own. -->
+  <div class="theme-parts">
     <div class="part-head part-static">
       <span class="part-label">Colors &amp; Type</span>
       <span class="part-summary">
@@ -845,8 +845,8 @@
       <span class="part-label">Components</span>
       <span class="part-summary">
         <span class="part-summary-sep">·</span>
-        {#if componentsOffLook > 0}
-          <span class="part-summary-count">{componentsOffLook}</span>
+        {#if componentsOffTheme > 0}
+          <span class="part-summary-count">{componentsOffTheme}</span>
           <span>off the theme</span>
         {:else}
           <span>in sync</span>
@@ -868,10 +868,10 @@
       <span class="part-label">Sketchstyle</span>
       <span class="part-summary">
         <span class="part-summary-sep">·</span>
-        {#if $sketchOffLook}
+        {#if $sketchOffTheme}
           <span>off the theme</span>
-        {:else if $themeSketchStyle}
-          <span class="part-summary-text">{$themeSketchStyle.label}</span>
+        {:else if $themeSketchSettings}
+          <span class="part-summary-text">{$themeSketchSettings.label}</span>
         {:else}
           <span>none</span>
         {/if}
@@ -892,7 +892,7 @@
           It travels with the theme when you save, load or share it.
         </p>
         <p>
-          It does not reach a production build. Adopt publishes the crisp look; the drawing
+          It does not reach a production build. Adopt publishes the crisp theme; the drawing
           stays a preview.
         </p>
       </UIInfoPopover>
@@ -939,7 +939,7 @@
   onload={handleSelect}
   ondelete={handleDelete}
   onexport={(row) => handleExport(row)}
-  canExport={(row) => row.kind === 'look'}
+  canExport={(row) => row.kind === 'theme'}
   exportTitle={(row) => `Export "${row.name}" as a file you can share`}
 >
   {#snippet options()}
@@ -979,7 +979,7 @@
     line-height: 1.5;
   }
 
-  .look-panel {
+  .theme-panel {
     --mfm-active: #5aa85e;
     --mfm-rail-neutral: var(--ui-border);
     --mfm-rail-active: var(--mfm-active);
@@ -1081,7 +1081,7 @@
     font-size: 0.8em;
   }
 
-  /* Production state of the whole look, under the name it ships as. */
+  /* Production state of the whole theme, under the name it ships as. */
   .mfm-prod-status {
     display: inline-flex;
     align-items: center;
@@ -1214,7 +1214,7 @@
 
   /* Parts. Each reads as a row belonging to the card above, so they sit inside
      the panel with the same left inset the card's rail gives its content. */
-  .look-parts {
+  .theme-parts {
     display: flex;
     flex-direction: column;
     gap: var(--ui-space-4);

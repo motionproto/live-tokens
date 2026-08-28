@@ -33,10 +33,11 @@ if (!existsSync(ENGINE)) {
 // engine's arithmetic against these files.
 const { CURRENT_COMPONENT_SCHEMA_VERSION } = await import(ENGINE);
 
-// Source of truth: vite-plugin/themes/normalizeTheme.ts. This script cannot
-// import TS; `presetThemes.test.ts` imports the real constant and pins each
-// shipped file against it, so a drift there is still caught.
-const THEME_SCHEMA_VERSION = 4;
+// Source of truth: src/editor/core/themes/themeTypes.ts, which
+// normalizeTheme.ts re-exports. This script cannot import TS;
+// `presetThemes.test.ts` imports the real constant and pins each shipped file
+// against it, so a drift there is still caught.
+const THEME_SCHEMA_VERSION = 5;
 
 const PRESETS = [
   'autumn', 'halloween', 'midnight-study', 'ocean', 'royal-velvet',

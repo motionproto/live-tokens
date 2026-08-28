@@ -11,9 +11,9 @@ import {
   PART_SELECTORS,
 } from './sketchLayer';
 import { maskTile } from './maskField';
-import { SKETCH_STYLES } from './sketchStyles';
+import { SHIPPED_SKETCH_SETTINGS } from './sketchStyles';
 
-const marker = SKETCH_STYLES.marker;
+const marker = SHIPPED_SKETCH_SETTINGS.marker;
 
 /** Alpha at the middle of a straight run of the border once the pool blur has
     spread it, by numeric integration rather than by the layer's own maths. */
@@ -63,7 +63,7 @@ describe('sketch layer', () => {
   // mask image to be decoded again: a flash of the raw component. Two of them
   // per settings change, since the overlay's copy of the store renders into
   // this page as well as its own.
-  it('leaves the injected nodes alone when nothing about the look has moved', () => {
+  it('leaves the injected nodes alone when nothing about the style has moved', () => {
     applySketchLayer(marker);
     const filter = document.querySelector('filter')!;
     const style = document.head.querySelector('style[data-sketch-style]')!;
@@ -84,7 +84,7 @@ describe('sketch layer', () => {
   });
 
   it('defines every filter the stylesheet references', () => {
-    for (const preset of Object.values(SKETCH_STYLES)) {
+    for (const preset of Object.values(SHIPPED_SKETCH_SETTINGS)) {
       const defined = new Set(
         [...buildDefsMarkup(preset).matchAll(/<filter id="([^"]+)"/g)].map((m) => m[1]),
       );
@@ -141,7 +141,7 @@ describe('sketch layer', () => {
 
   it('rewrites one style and one defs node rather than stacking them', () => {
     applySketchLayer(marker);
-    applySketchLayer(SKETCH_STYLES.napkin);
+    applySketchLayer(SHIPPED_SKETCH_SETTINGS.napkin);
 
     expect(document.head.querySelectorAll('style[data-sketch-style]')).toHaveLength(1);
     expect(document.body.querySelectorAll('svg[data-sketch-defs]')).toHaveLength(1);
@@ -165,7 +165,7 @@ describe('sketch layer', () => {
 
   it('carries the fill style and pass count onto the scope element', () => {
     const stage = document.createElement('div');
-    setSketchScope(stage, { ...SKETCH_STYLES.hatched, doubleStroke: true });
+    setSketchScope(stage, { ...SHIPPED_SKETCH_SETTINGS.hatched, doubleStroke: true });
 
     expect(stage.getAttribute('data-sketch')).toBe('');
     expect(stage.getAttribute('data-sketch-fill')).toBe('hatched');
@@ -288,7 +288,7 @@ describe('icons', () => {
     expect(off).not.toContain('[class*="fa-"]');
   });
 
-  // The two are independent: ink coverage with no displacement is a look.
+  // The two are independent: ink coverage with no displacement is a style.
   it('still masks icons when displacement is zero', () => {
     const css = buildStylesheet({ ...marker, iconTravel: 0, iconMaskOn: true });
     expect(css).toContain('[class*="fa-"]');
@@ -574,18 +574,18 @@ describe('ink pooling', () => {
   // different on every INSTANCE, because pen weight is a cycle: one card came
   // out a wet blur and the next one two clean passes off the same dials.
   it('lands every instance at the same point on its own ramp', () => {
-    const looks = [
+    const styles = [
       marker,
-      SKETCH_STYLES.whiteboard,
+      SHIPPED_SKETCH_SETTINGS.whiteboard,
       { ...marker, strokeWidth: 1.25, pooling: 4, strokeInk: 1, pressure: 0.3 },
       { ...marker, strokeWidth: 0.5, pooling: 6, strokeInk: 0.3, pressure: 0.7 },
     ];
-    for (const look of looks) {
-      const drawn = instances(look);
+    for (const style of styles) {
+      const drawn = instances(style);
       expect(drawn).toHaveLength(11);
       for (const inst of drawn) {
-        const respond = poolRamp(look, inst.bank);
-        expect(respond(straightRun(inst.width, look.pooling, inst.ink))).toBeCloseTo(0.2, 2);
+        const respond = poolRamp(style, inst.bank);
+        expect(respond(straightRun(inst.width, style.pooling, inst.ink))).toBeCloseTo(0.2, 2);
       }
     }
   });

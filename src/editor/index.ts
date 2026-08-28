@@ -63,11 +63,11 @@ export {
   setActiveTheme,
   getProductionTheme,
   applyTheme,
-  adoptLook,
+  adoptTheme,
   saveAsTheme,
   saveActiveTheme,
 } from './core/themes/themeService';
-export type { AdoptLookResult, ApplyThemeResult } from './core/themes/themeService';
+export type { AdoptThemeResult, ApplyThemeResult } from './core/themes/themeService';
 
 export {
   applyFontSources,

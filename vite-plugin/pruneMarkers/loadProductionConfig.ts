@@ -103,7 +103,7 @@ export function loadProductionConfig(
     raw = embedded as ProductionConfigOnDisk;
   } else {
     // Pre-v3 themes named a config file instead of carrying one. Those files
-    // are deletable now, so guessing here could prune against a look that no
+    // are deletable now, so guessing here could prune against a config that no
     // longer exists.
     throw new Error(
       `[prune-markers] Theme "${productionTheme}" names component "${component}" by reference. ` +

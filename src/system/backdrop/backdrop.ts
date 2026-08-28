@@ -16,7 +16,7 @@ export const BACKDROP_ATTRIBUTE = 'data-backdrop';
 
 /** Relative luminance at or above which a backdrop counts as light. Sits
     between the palest shipped dark theme (~0.03) and the darkest light one
-    (~0.6), so no shipped look lands near the line. */
+    (~0.6), so no shipped sketchstyle lands near the line. */
 export const LIGHT_BACKDROP = 0.2;
 
 /** A fill this see-through says nothing about what shows through it, so the

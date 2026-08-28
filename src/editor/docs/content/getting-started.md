@@ -54,7 +54,7 @@ the editor swaps live.
 To ship, click **Adopt** in the Theme panel. That saves the open theme and bakes
 it into `src/live-tokens/data/tokens.generated.css`, which your build bundles
 alongside `tokens.css`. Adopt is the only action that changes what your site
-ships, so try any look you like first. The editor itself never reaches
+ships, so try any theme you like first. The editor itself never reaches
 production.
 
 Already have a Svelte 5 + Vite app? The

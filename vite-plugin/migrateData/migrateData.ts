@@ -45,7 +45,7 @@ const RECOVERED_NAME = 'Recovered production';
 const MARKER_KEYS = ['_fileName', '_source'];
 
 /** Ignored when comparing two copies of the same content: a save door stamps
- *  `updatedAt` without changing the look. */
+ *  `updatedAt` without changing the theme. */
 const VOLATILE_KEYS = [...MARKER_KEYS, 'updatedAt'];
 
 type Json = Record<string, unknown>;
@@ -111,7 +111,7 @@ function sortDeep(value: unknown): unknown {
   return out;
 }
 
-/** Key order and the volatile fields say nothing about the look. */
+/** Key order and the volatile fields say nothing about the theme. */
 function comparable(value: unknown): string {
   if (!isObject(value)) return JSON.stringify(sortDeep(value));
   const stable: Json = {};
@@ -186,7 +186,7 @@ export function migrateData(opts: MigrateDataOptions): MigrateDataResult {
   const packageDataDir = opts.packageDataDir;
 
   // Step zero, before anything reads a theme: a tree on the pre-0.48 layout
-  // keeps its colors and type in `themes/` and its looks in `manifests/`, so
+  // keeps its colors and type in `themes/` and its whole themes in `manifests/`, so
   // the heal below would read every palette as a corrupt theme. Move the
   // directories first and the rest of the pass runs on the layout it expects.
   const layoutInput = {
@@ -320,7 +320,7 @@ export function migrateData(opts: MigrateDataOptions): MigrateDataResult {
     themes.push({ slug, theme });
     // A pre-v3 theme names its slices by file. One naming a file that no longer
     // resolves takes the shipped default in its place, which is a different
-    // look than the one saved. Silent is what makes that bad, so say it.
+    // theme than the one saved. Silent is what makes that bad, so say it.
     for (const ref of dropped) {
       droppedRefs.push(
         `theme "${slug}": the reference ${ref} resolved to nothing, so it carries the shipped default instead`,

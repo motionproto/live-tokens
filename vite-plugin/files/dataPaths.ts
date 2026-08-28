@@ -9,7 +9,7 @@ export interface LiveTokensFileConfig {
   /**
    * Retired in 0.48, where `themesDir` took over the meaning. Still recognised
    * so an unmigrated project is not told its key is a typo, and so the
-   * migration can find (or refuse to guess at) a whole-look directory the
+   * migration can find (or refuse to guess at) a whole-theme directory the
    * consumer moved.
    */
   manifestsDir?: string;

@@ -28,17 +28,17 @@ export function bumpComponentActiveRevision(): void {
 }
 
 /**
- * The live look has moved past the last bake. Only Adopt bakes the CSS, so a
+ * The live theme has moved past the last bake. Only Adopt bakes the CSS, so a
  * buffer write or a theme save after one leaves production a version behind,
  * and no pointer file records when the bake happened. Every surface reads the
  * one signal: a component save has to reach the theme panel's Adopt, and a
  * component editor's Adopt has to clear it for the panel.
  *
- * Set by the client writes that move the live look (`writeWorkingColorsAndType`,
+ * Set by the client writes that move the live theme (`writeWorkingColorsAndType`,
  * `writeWorkingComponentConfig`, `saveActiveTheme`, `saveAsTheme`, and every
  * sketch gesture that changes what the effect paints: `setSketchEnabled`,
  * `updateSketchSettings`, `selectSketchStyle`);
- * cleared by `adoptLook` and by `hydrateAppliedTheme`, on this document and on
+ * cleared by `adoptTheme` and by `hydrateAppliedTheme`, on this document and on
  * every peer an Apply broadcasts to. Module-level, so it survives the
  * remounts a view switch causes.
  */

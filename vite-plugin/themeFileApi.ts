@@ -262,8 +262,8 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
     packageDir: packageThemesDir,
   });
 
-  // Sketchstyles — the shipped looks plus whatever the project saved. The
-  // package ships all seven as files, so a shipped look is editable the same way
+  // Sketchstyles — the shipped sketchstyles plus whatever the project saved. The
+  // package ships all seven as files, so a shipped sketchstyle is editable the same way
   // a shipped colors-and-type is: saving over one writes a project file that
   // shadows it, and deleting that file falls back through packageDir to the
   // shipped copy. No pointer pair: a sketchstyle is a library file, not the
@@ -400,8 +400,8 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
     // `readTheme` answers `null` for a file that will not parse, and
     // `normalizeTheme` drops a colors ref that resolves nowhere. Either way the
     // bake below would emit a header alone and report success, replacing the
-    // look the site ships with nothing. A document that is on disk and
-    // unreadable is a failure to name, not an empty look.
+    // theme the site ships with nothing. A document that is on disk and
+    // unreadable is a failure to name, not an empty theme.
     if (themesResource.existingPath(productionThemeName) !== null && !productionTheme?.colorsAndType) {
       const tail = `${path.basename(GENERATED_CSS_PATH)} was left as it was.`;
       throw new Error(
@@ -439,7 +439,7 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
     }
 
     // Section 1b: the theme's own polarity. `--page-bg` is the only thing that
-    // says which way a look leans — no saved theme records it — so the scheme
+    // says which way a theme leans — no saved theme records it — so the scheme
     // is measured from it here and baked, rather than probed at runtime with a
     // flash of the wrong half. `light-dark()` anywhere on the page answers to
     // this; a section that states its own `data-backdrop` overrides it.
@@ -802,7 +802,7 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
   function warnOnLegacyLayout(evidence: string, warn: (msg: string) => void): void {
     warn(
       `[live-tokens] This project still uses the data layout from 0.47 and earlier: ${evidence}. ` +
-        'Since 0.48 the whole-look theme files live in `themes/` and the colors and type live in ' +
+        'Since 0.48 the whole-theme theme files live in `themes/` and the colors and type live in ' +
         '`colors-and-type/`. Nothing in the data directory was written, the editor cannot save, and ' +
         `${path.basename(GENERATED_CSS_PATH)} is left exactly as it is. Run ` +
         '`npx live-tokens migrate` to move the directories and heal the tree, then restart the dev server.',
@@ -1007,7 +1007,7 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
     // A tree still carrying the pre-working-set per-layer pointers has never
     // chosen a production theme; `live-tokens migrate` derives it from what
     // those pointers resolve to. Writing `default` here would let the boot bake
-    // replace the look the consumer ships before they can run the heal, so the
+    // replace the theme the consumer ships before they can run the heal, so the
     // pointer waits. Reads resolve a missing pointer to `default` anyway.
     const productionPointerHeld =
       !fs.existsSync(themesResource.productionPath) && listLegacyPointers().length > 0;
@@ -1347,7 +1347,7 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
       }
       if (fs.existsSync(filePath)) {
         // A named file is a preset: nothing live points at it, so deleting it
-        // cannot strand the running look. Deleting a local file that shadows a
+        // cannot strand the running theme. Deleting a local file that shadows a
         // shipped preset restores the package version.
         fs.unlinkSync(filePath);
       } else if (colorsAndTypeResource.existingPath(fileName)) {
@@ -1673,7 +1673,7 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
    * one payload; the client hydrates that payload directly into its editor
    * store and host-page CSS variables.
    *
-   * Nothing else moves. Production is a theme of its own, so trying a look
+   * Nothing else moves. Production is a theme of its own, so trying a theme
    * cannot rewrite what the site ships, and no named file is written, so
    * sampling themes cannot litter the tree. Live reads fall through the empty
    * working slots to the active theme and then to component defaults.
@@ -1873,7 +1873,7 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
   // ── /api/production ──────────────────────────────────────────────────────
 
   /**
-   * Adopt the whole look: publish the open theme. Production names one saved
+   * Adopt the whole theme: publish the open theme. Production names one saved
    * document, so adopting is a pointer move plus a rebake of the generated CSS
    * and fonts from that document's embedded content.
    *
@@ -1882,7 +1882,7 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
    * The client saves first. The protected Default theme cannot record what
    * shipped, so it 409s and the client forks it and retries.
    */
-  async function handleAdoptLook({ res }: any) {
+  async function handleAdoptTheme({ res }: any) {
     const activeName = themesResource.getActiveName();
     if (activeName === 'default') {
       jsonResponse(res, 409, {
@@ -1970,11 +1970,11 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
     if (req.method === 'DELETE') {
       if (fs.existsSync(filePath)) {
         // Deleting a local file that shadows a shipped sketchstyle restores the
-        // package version, which is how a look is reset to what it ships as.
+        // package version, which is how a sketchstyle is reset to what it ships as.
         fs.unlinkSync(filePath);
       } else if (sketchStylesResource.existingPath(fileName)) {
         // Only the package ships this one. Without the guard the delete would
-        // report ok while the look stays listed.
+        // report ok while the theme stays listed.
         jsonResponse(res, 403, {
           error: 'Cannot delete a sketchstyle shipped with the package. Saving it creates a local copy; deleting that copy restores the shipped version.',
           code: 'PACKAGE_SKETCH_STYLE',
@@ -2093,7 +2093,7 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
     { method: 'PUT',    pattern: THEME_BY_NAME_REGEX,     handler: handleThemeByName },
     { method: 'DELETE', pattern: THEME_BY_NAME_REGEX,     handler: handleThemeByName },
 
-    // Production — the whole-look adopt door
+    // Production — the whole-theme adopt door
     { method: 'GET',    pattern: SKETCH_STYLES_ROUTE,        handler: handleListSketchStyles },
     { method: 'PUT',    pattern: SKETCH_STYLES_ROUTE,        handler: methodNotAllowed },
     { method: 'POST',   pattern: SKETCH_STYLES_ROUTE,        handler: methodNotAllowed },
@@ -2103,7 +2103,7 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
     { method: 'DELETE', pattern: SKETCH_STYLE_BY_NAME_REGEX, handler: handleSketchStyleByName },
     { method: 'POST',   pattern: SKETCH_STYLE_BY_NAME_REGEX, handler: methodNotAllowed },
 
-    { method: 'PUT',    pattern: PRODUCTION_ROUTE,        handler: handleAdoptLook },
+    { method: 'PUT',    pattern: PRODUCTION_ROUTE,        handler: handleAdoptTheme },
     { method: 'GET',    pattern: PRODUCTION_ROUTE,        handler: methodNotAllowed },
     { method: 'POST',   pattern: PRODUCTION_ROUTE,        handler: methodNotAllowed },
     { method: 'DELETE', pattern: PRODUCTION_ROUTE,        handler: methodNotAllowed },
@@ -2176,7 +2176,7 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
         // fresh checkout would import a stale (or missing) generated file. An
         // unhealed tree is the exception: baking there would answer a question it
         // has not been asked yet — unless the file is absent, in which case there
-        // is no shipped look to preserve and the default beats nothing at all.
+        // is no shipped sketchstyle to preserve and the default beats nothing at all.
         if (!productionPointerHeld || !fs.existsSync(GENERATED_CSS_PATH)) regenerateTokensCss();
 
         // Opt-in: bring tokens.css up to date with additive migrations first, so

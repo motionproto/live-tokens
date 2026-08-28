@@ -22,7 +22,7 @@ separately wobbled boxes.
 
 ## The sketchstyles
 
-Seven looks ship with the package, and each is a complete set of dials rather
+Seven sketchstyles ship with the package, and each is a complete set of dials rather
 than just a name:
 
 - **Pencil.** Two graphite passes on their own seeds, so the outline disagrees
@@ -38,8 +38,8 @@ than just a name:
 - **Napkin.** Ballpoint in a hurry. Everything loose at once.
 - **Dry marker.** Ink that ran out. One scratchy pass over a mostly eaten fill.
 
-All seven ship as files, one per look, under
-`src/live-tokens/data/sketch-styles/` in the package. There is no look that
+All seven ship as files, one per sketchstyle, under
+`src/live-tokens/data/sketch-styles/` in the package. There is no sketchstyle that
 exists only as code, so every one of them can be read, copied and edited.
 
 Pick one, then move whatever you like. **Save As** keeps your dials under a name
@@ -50,6 +50,11 @@ it. On one of your own it writes that file. On a shipped one it writes your
 project's own copy under the same name, which takes its place in the list;
 delete that copy and the shipped file behind it comes back. Both are a
 different gesture from saving a theme; see "Where the settings live" below.
+
+A theme carries its sketch settings by value, so it can hold a set that belongs
+to no file. The list shows that set as **Unsaved**. It owns no file, so there is
+nothing for Save to write over; **Save As** turns it into a sketchstyle like any
+other, which you can then save over and delete.
 
 Your sketchstyles and the shipped ones are one list. A sketchstyle named after
 a shipped one replaces it, keeping its place in the list, so a project that
@@ -97,9 +102,9 @@ is disabled there; use **Save As** to fold the dials into a theme of your
 own.
 
 **Save** and **Save As** in the **Sketchstyle** view are a different gesture.
-They write a named sketchstyle to `src/live-tokens/data/sketch-styles/`, a look
+They write a named sketchstyle to `src/live-tokens/data/sketch-styles/`, a sketchstyle
 you can pick from any theme. Neither touches the open theme, and neither marks
-the look off the theme.
+the theme as changed.
 
 ## Shipping the layer
 
@@ -110,11 +115,11 @@ has no server to ask, so it hands the field over itself:
 import { seedSketchFromTheme } from '@motion-proto/live-tokens/sketch';
 import theme from './live-tokens/data/themes/sketchy.json';
 
-seedSketchFromTheme(theme.sketchStyle);
+seedSketchFromTheme(theme.sketchSettings);
 await bootLiveTokens(App, '#app');
 ```
 
-Call it before mounting, so the look is up on the first frame. Pass the field
+Call it before mounting, so the sketch layer is up on the first frame. Pass the field
 raw. A theme written against older dial names is carried forward on the way in,
 the same reconciliation the dev server runs on every theme it reads.
 
@@ -122,7 +127,7 @@ Nothing is baked. `tokens.generated.css` still holds token values only, and the
 layer stays JavaScript the page runs, because it builds an SVG filter bank
 rather than a set of custom properties.
 
-A visitor who has picked a look of their own keeps it, None included. The theme
+A visitor who has picked a sketchstyle of their own keeps it, None included. The theme
 seeds a browser that has decided nothing and never overwrites one that has, so
 calling this on every boot is safe.
 
@@ -138,26 +143,26 @@ const files = import.meta.glob<{ name?: string; settings: unknown }>(
 );
 
 await bootLiveTokens(App, '#app', {
-  sketchLooks: Object.entries(files).map(([path, file]) => {
+  sketchStyles: Object.entries(files).map(([path, file]) => {
     const id = path.split('/').pop()!.replace('.json', '');
     return { id, label: file.name || id, settings: file.settings };
   }),
 });
 ```
 
-Projects made with `create` ship this already. The file's slug is the look's
+Projects made with `create` ship this already. The file's slug is the sketchstyle's
 id, so a sketchstyle picked in the editor keeps working once the site is built.
 
 ### Building a picker
 
-`sketchLooks` is every look on offer, shipped and your own, as a store. Give
-each row `setSketch(look.id)`, and add your own **None** row: off is a state of
-the effect rather than one of the looks.
+`sketchStyles` is every sketchstyle on offer, shipped and your own, as a store. Give
+each row `setSketch(style.id)`, and add your own **None** row: off is a state of
+the effect rather than one of the sketchstyles.
 
-`themeSketchLook` is the theme's own look as one more row. It is null when the
-theme carries none, and null when what it carries is a look already in
-`sketchLooks`, since that row names it. Its id goes to `setSketch` like any
-other, so a visitor who wanders off the theme's look can come back to it.
+`unsavedSketchStyle` is the settings the theme carries as one more row. It is null when the
+theme carries none, and null when what it carries matches a sketchstyle already in
+`sketchStyles`, since that row names it. Its id goes to `setSketch` like any
+other, so a visitor who wanders off the theme's own settings can come back to it.
 
 ## Drawing your own elements
 

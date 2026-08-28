@@ -131,10 +131,10 @@ export function resolveFontStackValues(
  * in an iframe) via the same pipeline used for color variables.
  *
  * Returns the variables it set, so a caller tracking what it has applied — to
- * tear those vars down when switching looks — can record them without keeping
+ * tear those vars down when switching themes — can record them without keeping
  * its own copy of the stack list. A hand-maintained copy silently falls behind
  * whenever a stack is added here, leaving the missed variable stuck at the
- * outgoing look's value; `--font-editorial` did exactly that.
+ * outgoing theme's value; `--font-editorial` did exactly that.
  */
 export function applyFontStacks(
   stacks: FontStack[],

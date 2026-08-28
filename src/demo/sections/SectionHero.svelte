@@ -4,7 +4,6 @@
   import FloatingTokenTags from '../../system/components/FloatingTokenTags.svelte';
   import { setEditorView } from '../../editor/core/store/editorViewStore';
   import { overlayOpen } from '../../editor/overlay/overlayState';
-  import ThemeSelect from '../../app/ThemeSelect.svelte';
   import SourceLinks from '../SourceLinks.svelte';
 
   const isDev = import.meta.env.DEV;
@@ -36,25 +35,27 @@
 
   <div class="hero-actions">
     {#if isDev}
-      <ThemeSelect />
-      <Button variant="secondary" onclick={() => openOverlay('components')} icon="fas fa-puzzle-piece" iconPosition="left">
-        Browse Components
-      </Button>
-      <Button onclick={() => openOverlay('tokens')} icon="fas fa-sliders" iconPosition="left">
-        Open Token Editor
-      </Button>
+      <div class="hero-controls">
+        <Button variant="secondary" onclick={() => openOverlay('components')} icon="fas fa-puzzle-piece" iconPosition="left">
+          Browse Components
+        </Button>
+        <Button onclick={() => openOverlay('tokens')} icon="fas fa-sliders" iconPosition="left">
+          Open Token Editor
+        </Button>
+      </div>
     {:else}
-      <Button variant="outline" disabled>Editor &nbsp;·&nbsp; dev only</Button>
+      <div class="hero-controls">
+        <Button variant="outline" disabled>Editor &nbsp;·&nbsp; dev only</Button>
+      </div>
     {/if}
-  </div>
 
-  <div class="hero-footer">
-    <SourceLinks compact />
-
-    <p class="hero-byline">
-      by <a href="mailto:hello@motionproto.com">Mark</a> at
-      <a href="https://motionproto.com/" target="_blank" rel="noopener">MotionProto</a>
-    </p>
+    <div class="hero-meta">
+      <SourceLinks compact />
+      <p class="hero-byline">
+        by <a href="mailto:hello@motionproto.com">Mark</a> at
+        <a href="https://motionproto.com/" target="_blank" rel="noopener">MotionProto</a>
+      </p>
+    </div>
   </div>
 </header>
 
@@ -114,34 +115,40 @@
     margin: var(--space-8) 0 0;
   }
 
+  /* One row: the CTAs on the left rail, the credits on the right, sharing a
+     top edge so the buttons sit on the brand-mark line. */
   .hero-actions {
     grid-column: 2 / -2;
     grid-row: 2;
-    display: flex;
-    /* The theme select carries a label above its trigger; bottom alignment
-       keeps every control in the row sitting on one line. */
-    align-items: flex-end;
-    gap: var(--space-12);
-    flex-wrap: wrap;
+    display: grid;
+    grid-template-columns: max-content 1fr;
+    align-items: start;
+    column-gap: var(--space-32);
     margin-top: var(--space-16);
   }
 
-  .hero-actions > :global(.labeled-select) {
-    margin-right: var(--space-20);
+  /* Two cells of one width. Equal `1fr` tracks floored at `max-content` take
+     the wider button's size in an indefinitely-sized parent, so the pair stays
+     even as a theme swap changes the label metrics. */
+  .hero-controls {
+    grid-column: 1;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(max-content, 1fr));
+    column-gap: var(--space-12);
   }
 
-  .hero-footer {
-    grid-column: 2 / span 5;
-    grid-row: 3;
+  .hero-meta {
+    grid-column: 2;
     display: flex;
     flex-direction: column;
-    gap: var(--space-12);
-    margin-top: var(--space-40);
+    align-items: flex-end;
+    gap: var(--space-16);
+    text-align: right;
   }
 
   .hero-byline {
     font-family: var(--font-sans);
-    font-size: var(--font-size-xl);
+    font-size: var(--font-size-md);
     font-weight: var(--font-weight-normal);
     line-height: var(--line-height-normal);
     color: var(--text-secondary);
@@ -171,17 +178,24 @@
     .hero-actions {
       grid-column: 1 / -1;
       grid-row: 3;
+      grid-template-columns: minmax(0, 1fr);
+      row-gap: var(--space-16);
       margin-top: var(--space-12);
     }
-    .hero-footer {
-      grid-column: 1 / -1;
-      grid-row: 4;
+    .hero-meta {
+      grid-column: 1;
+      align-items: flex-start;
+      text-align: left;
     }
   }
 
   @media (max-width: 600px) {
     .hero-title {
       font-size: var(--font-size-5xl);
+    }
+    .hero-controls {
+      grid-template-columns: minmax(0, 1fr);
+      row-gap: var(--space-12);
     }
   }
 </style>

@@ -3,30 +3,30 @@
 import { get } from 'svelte/store';
 import { beforeEach, describe, expect, it } from 'vitest';
 import {
-  sketchLooks,
+  sketchStyles,
   hasPersistedSketchState,
   seedSketchFromTheme,
-  registerSketchLook,
+  registerSketchStyle,
   setSketch,
   sketchPick,
-  themeSketchLook,
+  unsavedSketchStyle,
 } from './index';
-import { SKETCH_STYLES, THEME_SKETCH_ID } from './sketchStyles';
+import { SHIPPED_SKETCH_SETTINGS, THEME_SKETCH_ID } from './sketchStyles';
 import {
-  openThemeSketchStyle,
+  openThemeSketchSettings,
   setSketchEnabled,
   setSketchPageRoot,
   sketchEnabled,
   sketchSettings,
-  sketchStyleName,
-  themeSketchStyle,
+  selectedSketchStyleId,
+  themeSketchSettings,
   updateSketchSettings,
 } from './sketchStore';
 import { buildStylesheet, sketchLayerInstalled } from './sketchLayer';
 
-/** A theme's own look: marker with one dial moved off it, which is the shape
+/** A theme's own style: marker with one dial moved off it, which is the shape
     the field takes on a real site. */
-const TUNED = { ...SKETCH_STYLES.marker, maskOutputMin: 0.71 };
+const TUNED = { ...SHIPPED_SKETCH_SETTINGS.marker, maskOutputMin: 0.71 };
 
 /** The two browsers `seedSketchFromTheme` tells apart, set through the key
     rather than through a gesture. `markSketchTouched` writes it once per module
@@ -39,36 +39,36 @@ const decided = () => localStorage.setItem('lt.sketchTouched', 'true');
 beforeEach(() => {
   setSketchPageRoot(document.documentElement);
   setSketchEnabled(false);
-  themeSketchStyle.set(undefined);
+  themeSketchSettings.set(undefined);
 });
 
-describe('sketchLooks', () => {
+describe('sketchStyles', () => {
   it('offers every shipped sketchstyle when nothing has registered', () => {
-    expect(get(sketchLooks).map((l) => l.id).sort()).toEqual(Object.keys(SKETCH_STYLES).sort());
+    expect(get(sketchStyles).map((l) => l.id).sort()).toEqual(Object.keys(SHIPPED_SKETCH_SETTINGS).sort());
   });
 
   it('carries an id setSketch accepts', () => {
-    for (const look of get(sketchLooks)) expect(() => setSketch(look.id)).not.toThrow();
+    for (const style of get(sketchStyles)) expect(() => setSketch(style.id)).not.toThrow();
   });
 
-  it('leaves the theme id unclaimed, so a theme look can never be shadowed', () => {
-    expect(get(sketchLooks).map((l) => l.id)).not.toContain(THEME_SKETCH_ID);
+  it('leaves the theme id unclaimed, so a theme style can never be shadowed', () => {
+    expect(get(sketchStyles).map((l) => l.id)).not.toContain(THEME_SKETCH_ID);
   });
 
-  it('takes a registered look, which setSketch then paints', () => {
-    registerSketchLook({ id: 'chalk', label: 'Chalk', settings: SKETCH_STYLES.napkin });
+  it('takes a registered style, which setSketch then paints', () => {
+    registerSketchStyle({ id: 'chalk', label: 'Chalk', settings: SHIPPED_SKETCH_SETTINGS.napkin });
 
     expect(() => setSketch('chalk')).not.toThrow();
-    expect(get(sketchStyleName)).toBe('chalk');
+    expect(get(selectedSketchStyleId)).toBe('chalk');
   });
 });
 
 describe('setSketch', () => {
-  it('paints the page and names the look it painted', () => {
+  it('paints the page and names the style it painted', () => {
     setSketch('pencil');
 
     expect(get(sketchEnabled)).toBe(true);
-    expect(get(sketchStyleName)).toBe('pencil');
+    expect(get(selectedSketchStyleId)).toBe('pencil');
     expect(document.documentElement.hasAttribute('data-sketch')).toBe(true);
     expect(sketchLayerInstalled()).toBe(true);
   });
@@ -92,60 +92,60 @@ describe('sketchPick', () => {
     expect(get(sketchPick)).toEqual({ state: 'off' });
   });
 
-  it('reads the look the page is drawing with', () => {
+  it('reads the style the page is drawing with', () => {
     setSketch('pencil');
 
     expect(get(sketchPick)).toEqual({
-      state: 'look',
-      look: { id: 'pencil', label: SKETCH_STYLES.pencil.label, blurb: SKETCH_STYLES.pencil.blurb },
+      state: 'style',
+      style: { id: 'pencil', label: SHIPPED_SKETCH_SETTINGS.pencil.label, blurb: SHIPPED_SKETCH_SETTINGS.pencil.blurb },
     });
   });
 
-  it('keeps naming the look a dial has drifted from', () => {
+  it('keeps naming the style a dial has drifted from', () => {
     setSketch('pencil');
     updateSketchSettings({ strokeWidth: 9 });
 
-    expect(get(sketchPick)).toMatchObject({ state: 'look' });
+    expect(get(sketchPick)).toMatchObject({ state: 'style' });
   });
 
-  it('names the look the theme carries rather than calling it adjusted', () => {
-    openThemeSketchStyle(TUNED);
+  it('names the style the theme carries rather than calling it adjusted', () => {
+    openThemeSketchSettings(TUNED);
 
-    expect(get(sketchPick)).toEqual({ state: 'look', look: get(themeSketchLook) });
+    expect(get(sketchPick)).toEqual({ state: 'style', style: get(unsavedSketchStyle) });
   });
 
-  it('reads adjusted for a look neither the shipped set nor the theme names', () => {
-    openThemeSketchStyle({ ...SKETCH_STYLES.pencil, strokeWidth: 9 });
-    themeSketchStyle.set(undefined);
+  it('reads adjusted for a style neither the shipped set nor the theme names', () => {
+    openThemeSketchSettings({ ...SHIPPED_SKETCH_SETTINGS.pencil, strokeWidth: 9 });
+    themeSketchSettings.set(undefined);
 
     expect(get(sketchPick)).toEqual({ state: 'adjusted' });
   });
 });
 
-describe('themeSketchLook', () => {
+describe('unsavedSketchStyle', () => {
   it('is a row a picker can render and setSketch accepts', () => {
     undecided();
     seedSketchFromTheme(TUNED);
-    const look = get(themeSketchLook);
+    const style = get(unsavedSketchStyle);
 
-    expect(look).toMatchObject({ id: THEME_SKETCH_ID, label: expect.any(String) });
+    expect(style).toMatchObject({ id: THEME_SKETCH_ID, label: expect.any(String) });
     setSketch('pencil');
-    expect(() => setSketch(look!.id)).not.toThrow();
+    expect(() => setSketch(style!.id)).not.toThrow();
     expect(get(sketchSettings)).toEqual(TUNED);
   });
 
-  it('stays null for a theme whose look is one of the shipped ones', () => {
+  it('stays null for a theme whose style is one of the shipped ones', () => {
     undecided();
-    seedSketchFromTheme({ ...SKETCH_STYLES.whiteboard });
+    seedSketchFromTheme({ ...SHIPPED_SKETCH_SETTINGS.whiteboard });
 
-    expect(get(themeSketchLook)).toBeNull();
-    expect(get(sketchPick)).toMatchObject({ state: 'look', look: { id: 'whiteboard' } });
+    expect(get(unsavedSketchStyle)).toBeNull();
+    expect(get(sketchPick)).toMatchObject({ state: 'style', style: { id: 'whiteboard' } });
   });
 
   it('is null for a theme carrying no sketchstyle', () => {
     seedSketchFromTheme(undefined);
 
-    expect(get(themeSketchLook)).toBeNull();
+    expect(get(unsavedSketchStyle)).toBeNull();
   });
 
   it('names the id it cannot honour rather than drawing nothing', () => {
@@ -154,7 +154,7 @@ describe('themeSketchLook', () => {
 });
 
 describe('seedSketchFromTheme', () => {
-  it('draws the theme look on a browser that has decided nothing', () => {
+  it('draws the theme style on a browser that has decided nothing', () => {
     undecided();
     seedSketchFromTheme(TUNED);
 
@@ -170,7 +170,7 @@ describe('seedSketchFromTheme', () => {
 
     const painted = document.head.querySelector('style[data-sketch-style]')?.textContent;
     expect(painted).toBe(buildStylesheet(TUNED));
-    expect(painted).not.toBe(buildStylesheet(SKETCH_STYLES.marker));
+    expect(painted).not.toBe(buildStylesheet(SHIPPED_SKETCH_SETTINGS.marker));
   });
 
   it('leaves a recorded pick alone, and still learns what the theme holds', () => {
@@ -179,8 +179,8 @@ describe('seedSketchFromTheme', () => {
 
     seedSketchFromTheme(TUNED);
 
-    expect(get(sketchSettings)).toEqual(SKETCH_STYLES.pencil);
-    expect(get(themeSketchLook)).toMatchObject({ id: THEME_SKETCH_ID });
+    expect(get(sketchSettings)).toEqual(SHIPPED_SKETCH_SETTINGS.pencil);
+    expect(get(unsavedSketchStyle)).toMatchObject({ id: THEME_SKETCH_ID });
   });
 
   it('leaves a recorded None alone, so a theme cannot re-sketch a crisp page', () => {
@@ -192,7 +192,7 @@ describe('seedSketchFromTheme', () => {
     expect(get(sketchEnabled)).toBe(false);
   });
 
-  it('carries a look stored under a retired dial name, the way the dev server does', () => {
+  it('carries a style stored under a retired dial name, the way the dev server does', () => {
     // No `normalizeTheme` runs over a built site's theme JSON, so this is the
     // only thing that halves the old full-swing `fillScale`.
     undecided();
@@ -208,7 +208,7 @@ describe('seedSketchFromTheme', () => {
       undecided();
       seedSketchFromTheme(absent);
       expect(get(sketchEnabled)).toBe(false);
-      expect(get(themeSketchLook)).toBeNull();
+      expect(get(unsavedSketchStyle)).toBeNull();
     }
   });
 });

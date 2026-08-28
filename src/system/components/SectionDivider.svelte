@@ -3,7 +3,7 @@
 
   import { onMount, tick } from 'svelte';
 
-  /** Size variant. Each variant owns everything that defines its look:
+  /** Size variant. Each variant owns everything that defines its style:
    *  typography, geometry, colors AND the intrinsic display properties
    *  (alignment, eyebrow visibility, description visibility, hairline
    *  position). Every intrinsic flows through `:root` CSS vars so a designer

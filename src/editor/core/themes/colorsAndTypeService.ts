@@ -65,7 +65,7 @@ export const sanitizeFileName = sanitizeFileNameImpl;
 
 /** Flush the editor state to the buffer under `displayName`, the name of the
  *  theme the buffer belongs to, and clear the dirty flag. A capture reads the
- *  buffer back, so this is what makes Save and Adopt mean the look on screen. */
+ *  buffer back, so this is what makes Save and Adopt mean the theme on screen. */
 export async function persistColorsAndType(
   state: EditorState,
   displayName: string,

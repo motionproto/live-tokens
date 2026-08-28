@@ -65,9 +65,9 @@ export async function initializeTheme(): Promise<void> {
 
   const active = await safeFetch<Theme>(`${API_BASE}/themes/active`);
   // A failed fetch is not "the theme carries no sketchstyle": treating null as
-  // absent would tell the panel the look is off the theme, or hand a fresh
+  // absent would tell the panel the sketchstyle is off the theme, or hand a fresh
   // browser a blank buffer, over a fetch that will likely succeed next time.
   // The same call a built site makes (`@motion-proto/live-tokens/sketch`), so
   // one rule decides what a theme's sketchstyle means at boot in both.
-  if (active) seedSketchFromTheme(active.sketchStyle);
+  if (active) seedSketchFromTheme(active.sketchSettings);
 }

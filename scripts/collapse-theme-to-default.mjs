@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // Collapse the active theme's customizations down into the shipped defaults,
-// then clear the custom definitions. The theme carries the look by value, so
+// then clear the custom definitions. The theme carries the theme by value, so
 // it is the source for every bake, and the buffers it filled are the fixed
 // `_working.json` slots:
 //

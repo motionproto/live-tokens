@@ -1,33 +1,33 @@
 import { describe, expect, it } from 'vitest';
 import type { LiveSource } from './themeTypes';
-import { countComponentsOffLook, lookProductionState } from './lookSummary';
+import { countComponentsOffTheme, themeProductionState } from './themeSummary';
 
 const comp = (name: string, source: LiveSource) => ({ name, source });
 
-describe('countComponentsOffLook', () => {
+describe('countComponentsOffTheme', () => {
   it('counts a buffered component', () => {
     const components = [comp('card', 'working'), comp('button', 'theme')];
-    expect(countComponentsOffLook(components)).toBe(1);
+    expect(countComponentsOffTheme(components)).toBe(1);
   });
 
   it('counts every buffered component', () => {
     const components = [comp('card', 'working'), comp('button', 'working'), comp('badge', 'theme')];
-    expect(countComponentsOffLook(components)).toBe(2);
+    expect(countComponentsOffTheme(components)).toBe(2);
   });
 
   it('reports nothing off the theme right after an apply', () => {
     const components = [comp('card', 'theme'), comp('button', 'theme')];
-    expect(countComponentsOffLook(components)).toBe(0);
+    expect(countComponentsOffTheme(components)).toBe(0);
   });
 
   it('reports zero for an empty list', () => {
-    expect(countComponentsOffLook([])).toBe(0);
+    expect(countComponentsOffTheme([])).toBe(0);
   });
 });
 
-describe('lookProductionState', () => {
-  it('reports the look in production when production names the open theme', () => {
-    const state = lookProductionState({
+describe('themeProductionState', () => {
+  it('reports the theme in production when production names the open theme', () => {
+    const state = themeProductionState({
       openTheme: 'ocean',
       productionTheme: 'ocean',
       unpublished: false,
@@ -36,7 +36,7 @@ describe('lookProductionState', () => {
   });
 
   it('reports out of sync when production ships another theme', () => {
-    const state = lookProductionState({
+    const state = themeProductionState({
       openTheme: 'my-theme',
       productionTheme: 'ocean',
       unpublished: false,
@@ -46,7 +46,7 @@ describe('lookProductionState', () => {
   });
 
   it('reports out of sync while the open theme has moved past the bake', () => {
-    const state = lookProductionState({
+    const state = themeProductionState({
       openTheme: 'ocean',
       productionTheme: 'ocean',
       unpublished: true,
@@ -56,7 +56,7 @@ describe('lookProductionState', () => {
   });
 
   it('claims neither state until production answers', () => {
-    const state = lookProductionState({
+    const state = themeProductionState({
       openTheme: 'my-theme',
       productionTheme: null,
       unpublished: false,

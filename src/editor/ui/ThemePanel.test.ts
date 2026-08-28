@@ -12,7 +12,7 @@ import { openThemeSlug } from '../core/store/editorConfigStore';
 import { mutate, setComponentAlias, __resetForTests } from '../core/store/editorStore';
 import { CURRENT_COMPONENT_SCHEMA_VERSION } from '../core/themes/migrations';
 import { liveMovedSinceBake, productionTheme } from '../core/productionPulse';
-import { isPreviewing, __resetPreviewForTests } from '../core/preview/lookPreview';
+import { isPreviewing, __resetPreviewForTests } from '../core/preview/themePreview';
 import { editorView } from '../core/store/editorViewStore';
 import ThemePanel from './ThemePanel.svelte';
 
@@ -66,7 +66,7 @@ function server(url: string, init?: RequestInit): Response {
       return json(LOOK);
     case 'GET /colors-and-type/active':
       return json({ ...COLORS_AND_TYPE, _fileName: 'my-theme', _source: 'working' });
-    // A theme other than the open one, so the look reads out of sync and Adopt
+    // A theme other than the open one, so the theme reads out of sync and Adopt
     // is live.
     case 'GET /themes/production':
       return json({ ...LOOK, _fileName: 'shipped', name: 'Shipped' });
@@ -362,7 +362,7 @@ describe('Load preview', () => {
   });
 
   // Selecting the OPEN theme is a designed no-op, so this previews another one.
-  it('paints a look row', async () => {
+  it('paints a theme row', async () => {
     overrides['GET /themes'] = () =>
       json({ files: [{ fileName: 'my-theme', name: 'My Theme' }, { fileName: 'ocean', name: 'Ocean' }] });
     overrides['GET /themes/ocean'] = () => json({ ...LOOK, _fileName: 'ocean', name: 'Ocean' });
@@ -445,29 +445,29 @@ describe('Load preview', () => {
   });
 });
 
-describe('Look-part Open pills', () => {
+describe('Theme-part Open pills', () => {
   const pill = (title: string) => target.querySelector<HTMLButtonElement>(`button[title="${title}"]`);
   const components = () => pill('Open the component editors');
-  const sketchStyle = () => pill('Open the Sketchstyle view');
+  const sketchSettings = () => pill('Open the Sketchstyle view');
 
   afterEach(() => editorView.set('tokens'));
 
   it('hides both where the panel renders outside the view switcher', async () => {
     await mountPanel(false);
     expect(components()).toBeNull();
-    expect(sketchStyle()).toBeNull();
+    expect(sketchSettings()).toBeNull();
   });
 
   it('shows both inside the editor shell', async () => {
     await mountPanel(true);
     expect(components()).not.toBeNull();
-    expect(sketchStyle()).not.toBeNull();
+    expect(sketchSettings()).not.toBeNull();
   });
 
   it('hides only the pill for the view already open', async () => {
     editorView.set('sketch');
     await mountPanel(true);
-    expect(sketchStyle()).toBeNull();
+    expect(sketchSettings()).toBeNull();
     expect(components()).not.toBeNull();
   });
 });

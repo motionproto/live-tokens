@@ -4,7 +4,7 @@
   export const component = 'imagelightbox';
 
   // Three parts: tile (closed inline + animated modal surface), overlay (scrim),
-  // chrome (shared toolbar + close-button look). Chrome carries a hover state
+  // chrome (shared toolbar + close-button styling). Chrome carries a hover state
   // for the interactive controls. No second variant.
   const states: Record<string, Token[]> = {
     tile: [

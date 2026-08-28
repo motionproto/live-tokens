@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { buildMaskField, buildMaskUri, maskLattice, maskTile } from './maskField';
-import { SKETCH_STYLES, type SketchStyle } from './sketchStyles';
+import { SHIPPED_SKETCH_SETTINGS, type SketchStyleSettings } from './sketchStyles';
 
-const marker = SKETCH_STYLES.marker;
+const marker = SHIPPED_SKETCH_SETTINGS.marker;
 const flat = { ...marker, maskOutputMin: 0, maskOutputMax: 1, maskPosterize: 1, maskSoftness: 0 };
 
 /**
@@ -14,7 +14,7 @@ const flat = { ...marker, maskOutputMin: 0, maskOutputMax: 1, maskPosterize: 1, 
  * both gradients are taken in page px. Read in samples, every field would come
  * out at whatever angle the raster happened to squash it to.
  */
-function streak(s: SketchStyle): number {
+function streak(s: SketchStyleSettings): number {
   const { field, raster } = buildMaskField(s, 9, 'noise');
   const tile = maskTile(s);
   const stepX = tile.w / raster, stepY = tile.h / raster;
@@ -290,7 +290,7 @@ describe('mask field', () => {
 // a bare patch reads as a hole in the component rather than as ink. Dry marker
 // runs the thinnest of them and still keeps ink everywhere.
 describe('preset coverage', () => {
-  for (const [name, preset] of Object.entries(SKETCH_STYLES)) {
+  for (const [name, preset] of Object.entries(SHIPPED_SKETCH_SETTINGS)) {
     if (!preset.maskOn) continue;
     it(`${name} keeps the fill`, () => {
       const { field } = buildMaskField(preset, 9);

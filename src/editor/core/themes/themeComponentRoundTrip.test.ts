@@ -44,7 +44,7 @@ describe('bundled theme component snapshots', () => {
     .filter((name) =>
       name.endsWith('.json')
       && !name.startsWith('_')
-      && name !== 'package-fixture-look.json'
+      && name !== 'package-fixture-theme.json'
     )
     .sort();
 

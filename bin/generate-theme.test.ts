@@ -114,7 +114,7 @@ describe('runGenerateTheme', () => {
     expect(existsSync(join(root, 'themes', '_production.json'))).toBe(false);
   });
 
-  it('carries the live look forward: buffers first, then the open theme', async () => {
+  it('carries the live theme forward: buffers first, then the open theme', async () => {
     const root = project();
     openTheme(root, 'sunset', {
       name: 'Sunset',

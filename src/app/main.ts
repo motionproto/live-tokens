@@ -16,9 +16,9 @@ const sketchFiles = import.meta.glob<{ name?: string; settings: unknown }>(
   { eager: true, import: 'default' },
 );
 
-const sketchLooks = Object.entries(sketchFiles).map(([path, file]) => {
+const sketchStyles = Object.entries(sketchFiles).map(([path, file]) => {
   const id = path.split('/').pop()!.replace('.json', '');
   return { id, label: file.name || id, settings: file.settings };
 });
 
-bootLiveTokens(App, '#app', { sketchLooks });
+bootLiveTokens(App, '#app', { sketchStyles });

@@ -4,8 +4,13 @@
   import SegmentedControl from '../../system/components/SegmentedControl.svelte';
   import Panel from '../../system/components/Panel.svelte';
   import Section from '../Section.svelte';
+  import ThemeSelect from '../../app/ThemeSelect.svelte';
+  import SketchSelect from '../../app/SketchSelect.svelte';
 
   let { prose = true }: { prose?: boolean } = $props();
+
+  // Both selects drive the editor's API, which the package only serves in dev.
+  const isDev = import.meta.env.DEV;
 
   type Override = 'shape' | 'color';
 
@@ -111,8 +116,8 @@
   gap="var(--space-8)"
 >
   <div class="kit-grid">
-    <div class="kit-item kit-lead sketch-surface">
-      <div class="kit-head">
+    <div class="kit-item kit-lead sketch-container">
+      <div class="kit-head sketch-surface">
         <i class="fas fa-pen-ruler kit-icon"></i>
         <span class="kit-title">Live editor</span>
       </div>
@@ -172,6 +177,13 @@
           </div>
         </div>
       </Panel>
+
+      {#if isDev}
+        <div class="swap-pickers">
+          <ThemeSelect />
+          <SketchSelect />
+        </div>
+      {/if}
     </div>
   </div>
 </Section>
@@ -270,11 +282,17 @@
     --sketch-hatch-color: var(--color-brand-500);
   }
 
+  /* The head only carries a surface of its own when stacked (see the 960
+     breakpoint). Here it has none, and --sketch-fill inherits, so without this
+     the layer would draw the lead's wash a second time behind the head. */
   .kit-lead .kit-head {
     grid-column: 1 / span 3;
     justify-content: center;
     gap: var(--space-16);
     padding: var(--space-32) 0;
+    --sketch-fill: transparent;
+    --sketch-stroke: transparent;
+    --sketch-radius: 0px;
   }
 
   .kit-lead .kit-icon {
@@ -330,6 +348,17 @@
     --_divider-hairline: none;
   }
 
+  /* Two cells of one width, shrink-wrapped to the left. `width: max-content`
+     leaves the fr tracks an indefinite parent to resolve against, so both take
+     the wider select's size instead of splitting the block. */
+  .swap-pickers {
+    margin-top: var(--space-24);
+    width: max-content;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(max-content, 1fr));
+    column-gap: var(--space-12);
+  }
+
   .stage {
     display: flex;
     flex-direction: column;
@@ -382,12 +411,16 @@
       background: none;
       --sketch-fill: none;
     }
-    /* Stacked: the head gets its own tinted bar instead of the fade. */
+    /* Stacked: the head gets its own tinted bar instead of the fade. It draws
+       no outline, so the hatching takes the lead block's ink. */
     .kit-lead .kit-head {
       justify-content: flex-start;
       gap: var(--space-12);
       padding: var(--space-16) var(--space-20);
-      background: color-mix(in srgb, var(--color-brand-500) 12%, transparent);
+      --kit-head-tint: color-mix(in srgb, var(--color-brand-500) 12%, transparent);
+      background: var(--kit-head-tint);
+      --sketch-fill: var(--kit-head-tint);
+      --sketch-hatch-color: var(--color-brand-500);
     }
     .kit-lead .kit-body {
       padding: var(--space-16) var(--space-20);

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { normalizeTheme, THEME_SCHEMA_VERSION, type ThemeResolvers } from './normalizeTheme';
 import { CURRENT_COMPONENT_SCHEMA_VERSION } from '../../src/editor/core/themes/migrations';
-import { SKETCH_STYLES } from '../../src/editor/core/sketch/sketchStyles';
+import { SHIPPED_SKETCH_SETTINGS } from '../../src/editor/core/sketch/sketchStyles';
 
 const COLORS_AND_TYPE: Record<string, any> = {
   default: { name: 'Default Theme', cssVariables: { '--surface-default': 'white' } },
@@ -455,43 +455,77 @@ describe('normalizeTheme completeness fill', () => {
 // by value, resolved the same way a saved sketchstyle is (RJC 3). Presence
 // is the on state (RJC 1). Nothing here ever fills a sketchstyle in for a
 // theme that has none.
-describe('normalizeTheme sketchStyle field', () => {
+describe('normalizeTheme sketchSettings field', () => {
   const withSketch = {
-    name: 'Sketchy Look',
+    name: 'Sketchy',
     schemaVersion: THEME_SCHEMA_VERSION,
     colorsAndType: { name: 'Embedded' },
     componentConfigs: {},
     // napkin, not the DEFAULT_SKETCH_STYLE (marker): a fixture built from the
     // fallback sketchstyle would round-trip even if the theme's own dials
     // were ignored entirely.
-    sketchStyle: SKETCH_STYLES.napkin,
+    sketchSettings: SHIPPED_SKETCH_SETTINGS.napkin,
   };
 
   it('round-trips a full sketchstyle unchanged', () => {
     const { theme } = normalizeTheme(withSketch, resolvers());
-    expect(theme.sketchStyle).toEqual(SKETCH_STYLES.napkin);
+    expect(theme.sketchSettings).toEqual(SHIPPED_SKETCH_SETTINGS.napkin);
   });
 
-  it('carries no sketchStyle key at all when the input has none', () => {
-    const { sketchStyle: _omit, ...noSketch } = withSketch;
-    const { theme } = normalizeTheme(noSketch, resolvers());
+  // `sketchStyle` through 0.67. Read without a version gate, so a theme still
+  // claiming schemaVersion 4 under the old key loads either way.
+  it('reads the retired `sketchStyle` key and writes it back under the new name', () => {
+    const { sketchSettings: _omit, ...old } = withSketch;
+    const { theme } = normalizeTheme(
+      { ...old, sketchStyle: SHIPPED_SKETCH_SETTINGS.napkin },
+      resolvers(),
+    );
+
+    expect(theme.sketchSettings).toEqual(SHIPPED_SKETCH_SETTINGS.napkin);
     expect('sketchStyle' in theme).toBe(false);
+  });
+
+  // Re-reading its own output must not lose the field, which is what a
+  // version-gated key swap would do on the second pass.
+  it('round-trips its own output, so a re-read is idempotent', () => {
+    const once = normalizeTheme(
+      { ...withSketch, sketchSettings: undefined, sketchStyle: SHIPPED_SKETCH_SETTINGS.napkin },
+      resolvers(),
+    ).theme;
+    const twice = normalizeTheme(once, resolvers()).theme;
+
+    expect(twice.sketchSettings).toEqual(SHIPPED_SKETCH_SETTINGS.napkin);
+  });
+
+  it('prefers the new key when a theme carries both', () => {
+    const { theme } = normalizeTheme(
+      { ...withSketch, sketchStyle: SHIPPED_SKETCH_SETTINGS.marker },
+      resolvers(),
+    );
+
+    expect(theme.sketchSettings).toEqual(SHIPPED_SKETCH_SETTINGS.napkin);
+  });
+
+  it('carries no sketchSettings key at all when the input has none', () => {
+    const { sketchSettings: _omit, ...noSketch } = withSketch;
+    const { theme } = normalizeTheme(noSketch, resolvers());
+    expect('sketchSettings' in theme).toBe(false);
   });
 
   it.each([[null], ['napkin'], [[]]])('resolves %s to no sketchstyle', (value) => {
-    const { theme } = normalizeTheme({ ...withSketch, sketchStyle: value }, resolvers());
-    expect('sketchStyle' in theme).toBe(false);
+    const { theme } = normalizeTheme({ ...withSketch, sketchSettings: value }, resolvers());
+    expect('sketchSettings' in theme).toBe(false);
   });
 
   it('fills a sketchstyle missing a dial from the fallback sketchstyle and drops an unknown key', () => {
     // napkin's own fillTravel (3) differs from the fallback sketchstyle's
     // (marker, 2), so recovering marker's value (not 0, not undefined) pins
     // the fill rather than a coincidence of the two sketchstyles agreeing.
-    const { fillTravel: _dropped, ...withoutFillTravel } = SKETCH_STYLES.napkin;
+    const { fillTravel: _dropped, ...withoutFillTravel } = SHIPPED_SKETCH_SETTINGS.napkin;
     const partialSketch = { ...withoutFillTravel, notADial: 'ghost' };
-    const { theme } = normalizeTheme({ ...withSketch, sketchStyle: partialSketch }, resolvers());
-    expect(theme.sketchStyle?.fillTravel).toBe(SKETCH_STYLES.marker.fillTravel);
-    expect(theme.sketchStyle).not.toHaveProperty('notADial');
+    const { theme } = normalizeTheme({ ...withSketch, sketchSettings: partialSketch }, resolvers());
+    expect(theme.sketchSettings?.fillTravel).toBe(SHIPPED_SKETCH_SETTINGS.marker.fillTravel);
+    expect(theme.sketchSettings).not.toHaveProperty('notADial');
   });
 
   it('does not invent a sketchstyle for a theme that has none, even once the completeness fill runs', () => {
@@ -502,7 +536,7 @@ describe('normalizeTheme sketchStyle field', () => {
       componentConfigs: {},
     };
     const { theme } = normalizeTheme(gappedNoSketch, resolvers({ listComponentNames: () => ['card'] }));
-    expect('sketchStyle' in theme).toBe(false);
+    expect('sketchSettings' in theme).toBe(false);
   });
 });
 

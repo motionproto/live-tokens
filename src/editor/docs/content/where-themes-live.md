@@ -11,8 +11,8 @@ src/live-tokens/data/
   themes/
     _active.json         names the theme the editor has open
     _production.json     names the theme your site ships
-    default.json         Motion Proto, the built-in look, rewritten at boot
-    my-brand.json        a saved theme: the whole look in one file
+    default.json         Motion Proto, the built-in theme, rewritten at boot
+    my-brand.json        a saved theme: the whole theme in one file
   colors-and-type/
     _working.json        unsaved colors and type edits
   component-configs/
@@ -21,14 +21,14 @@ src/live-tokens/data/
       _working.json      unsaved Button edits
       my-button.json     a preset you saved from the Button editor
   sketch-styles/
-    my-look.json         a sketchstyle saved from the Sketchstyle view
+    my-style.json        a sketchstyle saved from the Sketchstyle view
   tokens.generated.css   the baked CSS your production build ships
 src/system/styles/
   tokens.css             your token vocabulary, hand-authored, never written
   fonts.css              font imports, rewritten when you Adopt
 ```
 
-A saved theme carries the whole look by value: the colors and type, a
+A saved theme carries everything by value: the colors and type, a
 setting for every component, and the sketch layer. It depends on no other
 file, so deleting anything else never breaks it.
 
@@ -40,11 +40,11 @@ file, so deleting anything else never breaks it.
   components, **Save all** writes those buffers together.
 - **Save** captures the buffers into the open theme's file, along with the
   sketch layer, which has no buffer of its own and lives only in the browser
-  until Save writes it. That file is the durable copy of your look; matching
+  until Save writes it. That file is the durable copy of your theme; matching
   buffers are then removed.
 - **Load** clears the buffers and points `themes/_active.json` at the theme you
   picked. Live reads fall through to that file. Nothing else changes, so trying
-  looks is free and ordinary switching changes only the pointer.
+  themes is free and ordinary switching changes only the pointer.
 - **Adopt** points `themes/_production.json` at the open theme, bakes it into
   `tokens.generated.css`, and rewrites `fonts.css` to match. It is the only
   action that changes what your site ships.

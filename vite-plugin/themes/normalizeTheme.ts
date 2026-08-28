@@ -2,8 +2,8 @@
  * Theme schema v1/v2/v3 → v4, in one pass. v1 themes pointed at a
  * colors-and-type file and a config file per component by basename; v2
  * carries that data by value, so deleting a working file can never break a
- * saved look; v3 spells the embedded layer `colorsAndType` instead of
- * `theme`, which now names the whole look; v4 makes the theme complete
+ * saved theme; v3 spells the embedded layer `colorsAndType` instead of
+ * `theme`, which now names the whole theme; v4 makes the theme complete
  * (`docs/plans/theme-completeness.md`, Wave 2) — every known component and
  * every alias key its `default.json` declares, by value.
  *
@@ -28,7 +28,7 @@ import { CURRENT_COMPONENT_SCHEMA_VERSION } from '../../src/editor/core/themes/m
 import type { AliasDiskValue, ThemeFillReport } from '../../src/editor/core/themes/themeTypes';
 import { THEME_SCHEMA_VERSION } from '../../src/editor/core/themes/themeTypes';
 import { KNOWN_COMPONENT_CONFIG_KEYS } from '../../src/editor/core/components/componentConfigKeys';
-import { hydrateSketchStyle, type SketchStyle } from '../../src/editor/core/sketch/sketchStyles';
+import { hydrateSketchSettings, type SketchStyleSettings } from '../../src/editor/core/sketch/sketchStyles';
 
 // Owned by `themeTypes.ts` so the editor can read it without importing build
 // tooling that the published tarball does not carry.
@@ -73,10 +73,10 @@ export interface EncapsulatedTheme {
    *  single global counter over every component migration, so a per-entry
    *  stamp would buy no isolation and the theme is rewritten wholesale anyway. */
   componentSchemaVersion: number;
-  /** The sketchstyle this look paints, by value. Absent means the look is
+  /** The sketchstyle this theme paints, by value. Absent means the theme is
    *  crisp: presence is the on state, so there is no separate flag that can
    *  disagree with the dials beside it (RJC 1). */
-  sketchStyle?: SketchStyle;
+  sketchSettings?: SketchStyleSettings;
 }
 
 export interface NormalizedTheme {
@@ -104,7 +104,7 @@ function asObject(value: unknown): Json | null {
  * Both file kinds carry a `schemaVersion`, and the two sequences overlap, so
  * the version says nothing. Left unchecked, `normalizeTheme` reads such a file
  * as a current theme whose colors resolve to the package default: the stale
- * file would list as a theme that paints the shipped look, and the boot
+ * file would list as a theme that paints the shipped sketchstyle, and the boot
  * migration would rewrite it, destroying the palette. Every door that reads a
  * theme off disk refuses it instead.
  */
@@ -275,12 +275,19 @@ export function normalizeTheme(
     }
   }
 
-  // Reconciled the way a saved sketchstyle is: a look stored before a dial
+  // Reconciled the way a saved sketchstyle is: a sketchstyle stored before a dial
   // existed picks that dial's default up, a retired key is dropped. A theme
-  // with no sketchStyle keeps none. Absent is the off state, not a value to
+  // with no sketchSettings keeps none. Absent is the off state, not a value to
   // fill (RJC 3).
-  const embeddedSketchStyle = asObject(src.sketchStyle);
-  const sketchStyle = embeddedSketchStyle ? hydrateSketchStyle(embeddedSketchStyle) : undefined;
+  //
+  // `sketchStyle` was the key through 0.67. The field holds a sketchstyle's
+  // settings rather than a sketchstyle, so it is named for what it holds now.
+  // Preferring the new key and falling through to the old is idempotent, which
+  // is why it needs no version gate: gating a key swap on the schema version is
+  // what nearly replaced every consumer's palette with the default (see
+  // `migrateEmbeddedKey`).
+  const embedded = asObject(src.sketchSettings) ?? asObject(src.sketchStyle);
+  const sketchSettings = embedded ? hydrateSketchSettings(embedded) : undefined;
 
   return {
     theme: {
@@ -291,7 +298,7 @@ export function normalizeTheme(
       colorsAndType,
       componentConfigs,
       componentSchemaVersion: CURRENT_COMPONENT_SCHEMA_VERSION,
-      ...(sketchStyle ? { sketchStyle } : {}),
+      ...(sketchSettings ? { sketchSettings } : {}),
     },
     dropped,
     migrated,

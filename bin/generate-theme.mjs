@@ -3,7 +3,7 @@
 // Reads a seed brief (JSON), builds a full validated colors-and-type layer via
 // the compiled engine (dist-plugin/generateColorsAndType — the CLI never imports
 // TS sources), enforces the AA contrast gate, and saves the result as a theme:
-// <themesDir>/<slug>.json, the document that carries the whole look by value.
+// <themesDir>/<slug>.json, the document that carries the whole theme by value.
 // Unless --no-activate it then opens that theme the way the dev server's apply
 // door does — existing `_working` buffers are cleared and
 // `themes/_active.json` names it. Nothing else moves, so generating a theme
@@ -21,9 +21,10 @@ import { fileURLToPath } from 'node:url';
 const pkgRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const ENGINE = resolve(pkgRoot, 'dist-plugin/generateColorsAndType/index.js');
 const packageDataDir = join(pkgRoot, 'src/live-tokens/data');
-// Source of truth: vite-plugin/themes/normalizeTheme.ts. This copy cannot
-// import TS, so `check:preset-themes` (Wave 5) is what catches a drift.
-const THEME_SCHEMA_VERSION = 4;
+// Source of truth: src/editor/core/themes/themeTypes.ts, which
+// normalizeTheme.ts re-exports. This copy cannot import TS, so
+// `check:preset-themes` and generate-theme.test.ts are what catch a drift.
+const THEME_SCHEMA_VERSION = 5;
 
 async function loadEngine() {
   if (!existsSync(ENGINE)) {

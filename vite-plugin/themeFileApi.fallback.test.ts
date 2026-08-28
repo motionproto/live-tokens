@@ -169,7 +169,7 @@ describe('package-default fallback on a fresh consumer', () => {
       JSON.parse(fs.readFileSync(path.join(themesDir, '_production.json'), 'utf-8')).productionFile,
     ).toBe('default');
 
-    // The client's recovery: save the live look as a theme of its own, open it,
+    // The client's recovery: save the live theme as a theme of its own, open it,
     // retry.
     await request('PUT', `${API}/themes/my-theme`, {
       name: 'My Theme',
@@ -258,7 +258,7 @@ describe('shipped preset colors and type on a fresh consumer', () => {
     expect(json.files.map((f: any) => f.fileName)).toContain('sunset');
   });
 
-  it('deleting a named preset leaves the live look and the generated CSS alone', async () => {
+  it('deleting a named preset leaves the live theme and the generated CSS alone', async () => {
     await request('PUT', `${API}/colors-and-type/local-only`, { name: 'Local Only', cssVariables: {} });
     const generatedBefore = fs.readFileSync(path.join(tmp, 'tokens.generated.css'), 'utf-8');
 
@@ -276,7 +276,7 @@ describe('shipped preset colors and type on a fresh consumer', () => {
  * example theme is staged by writing one there for the length of the suite.
  */
 describe('a package-shipped theme on a fresh consumer', () => {
-  const FIXTURE = 'package-fixture-look';
+  const FIXTURE = 'package-fixture-theme';
   const packageThemePath = path.join(
     REPO_ROOT,
     'src/live-tokens/data/themes',

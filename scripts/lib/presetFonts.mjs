@@ -1,7 +1,7 @@
 // Google Fonts pairing per preset theme, from the plan's addendum 2. Called by
 // seed-preset-theme.mjs, which stamps the pairing into the preset's
 // colors-and-type file before embedding it in the theme — so applying either
-// the colors and type alone or the whole look changes the type.
+// the colors and type alone or the whole theme changes the type.
 //
 // Every URL below was checked against fonts.googleapis.com. Note that a 200 is
 // not proof of weight coverage: the API drops enumerated weights a family

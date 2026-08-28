@@ -56,7 +56,7 @@ async function request(method: string, url: string, body?: unknown) {
 
 const SETTINGS = { mode: 'layered', strokeWidth: 2.25, jitterX: 4, label: 'Blueprint' };
 
-/** The package ships every look as a file, so an empty project data dir still
+/** The package ships every sketchstyle as a file, so an empty project data dir still
     lists seven. A user file joins them, and shadows one that takes its name. */
 const SHIPPED = ['pencil', 'marker', 'whiteboard', 'hatched', 'dashed', 'napkin', 'dry'];
 

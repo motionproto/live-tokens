@@ -1,7 +1,7 @@
 import type { ThemeMeta, ColorsAndTypeMeta } from './themeTypes';
 
 /**
- * The one Load list. A theme is the whole look; a colors and type file is a
+ * The one Load list. A theme is the whole theme; a colors and type file is a
  * preset holding that half of one. Both belong in the same window, told apart
  * by a badge rather than by living in separate managers.
  *
@@ -10,7 +10,7 @@ import type { ThemeMeta, ColorsAndTypeMeta } from './themeTypes';
  * that copy is exactly the file the list must keep reachable.
  */
 
-export type LoadRowKind = 'look' | 'layer';
+export type LoadRowKind = 'theme' | 'layer';
 
 export interface LoadRow {
   /** `<kind>:<slug>`. The two kinds are separate resources with separate name
@@ -25,12 +25,12 @@ export interface LoadRow {
 
 export const loadRowId = (kind: LoadRowKind, slug: string): string => `${kind}:${slug}`;
 
-export function buildLoadRows(looks: ThemeMeta[], layers: ColorsAndTypeMeta[]): LoadRow[] {
-  const lookRows: LoadRow[] = looks
+export function buildLoadRows(themes: ThemeMeta[], layers: ColorsAndTypeMeta[]): LoadRow[] {
+  const themeRows: LoadRow[] = themes
     .map((f): LoadRow => ({
-      fileName: loadRowId('look', f.fileName),
+      fileName: loadRowId('theme', f.fileName),
       slug: f.fileName,
-      kind: 'look',
+      kind: 'theme',
       name: f.name,
       updatedAt: f.updatedAt,
       isProtected: f.isProtected,
@@ -46,12 +46,12 @@ export function buildLoadRows(looks: ThemeMeta[], layers: ColorsAndTypeMeta[]): 
       updatedAt: f.updatedAt,
       isProtected: false,
     }));
-  return [...lookRows, ...layerRows];
+  return [...themeRows, ...layerRows];
 }
 
 /**
  * Whether picking this row loads colors and type alone. A layer file holds
- * nothing else, so it ignores the toggle; a look honors it.
+ * nothing else, so it ignores the toggle; a theme honors it.
  */
 export function isColorsOnly(row: LoadRow | null, colorsOnly: boolean): boolean {
   if (row?.kind === 'layer') return true;

@@ -123,9 +123,9 @@
     "./app/fonts.css": "./src/system/styles/fonts.css"
   },
   "scripts": {
-    "dev": "vite",
-    "build": "vite build",
-    "preview": "vite preview",
+    "dev": "VITE_CONFIG_NATIVE_IGNORE_WARNING=true vite",
+    "build": "VITE_CONFIG_NATIVE_IGNORE_WARNING=true vite build",
+    "preview": "VITE_CONFIG_NATIVE_IGNORE_WARNING=true vite preview",
     "check": "svelte-check --tsconfig ./tsconfig.json",
     "test": "vitest run",
     "test:watch": "vitest",

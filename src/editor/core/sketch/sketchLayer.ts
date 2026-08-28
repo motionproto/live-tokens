@@ -1,7 +1,7 @@
 /**
  * Sketch effect layer.
  *
- * Builds an SVG filter bank and a stylesheet from one SketchStyle and
+ * Builds an SVG filter bank and a stylesheet from one SketchStyleSettings and
  * injects both into every document cssVarSync tracks, so the host page behind
  * the overlay iframe gets the same effect the editor's preview shows.
  *
@@ -16,7 +16,7 @@
  */
 import { getSyncedDocuments } from '../cssVarSync';
 import { buildMaskUri, maskTile } from './maskField';
-import type { SketchStyle } from './sketchStyles';
+import type { SketchStyleSettings } from './sketchStyles';
 
 const DEFS_ATTR = 'data-sketch-defs';
 const STYLE_ATTR = 'data-sketch-style';
@@ -325,7 +325,7 @@ const UNCLIPPED = PART_SPECS.filter((p) => !p.clips).map((p) => p.sel).join(', '
 const CLIPPED = PART_SPECS.filter((p) => p.clips).map((p) => p.sel).join(', ');
 const UNMASKED = PART_SPECS.filter((p) => p.unmasked).map((p) => p.sel).join(', ');
 
-export function buildDefsMarkup(s: SketchStyle): string {
+export function buildDefsMarkup(s: SketchStyleSettings): string {
   /**
    * `warp` is the shape stage: one wave of noise whose wavelength spans a whole
    * component, so the four corners sample different parts of the field and the
@@ -559,7 +559,7 @@ const MASK_POS = ['0 0', '-137px -211px', '-311px -97px', '-73px -389px', '-419p
  * A hand holds a rough size and misses it by a bit each time, so half to full
  * is the shape of the error. The four land in a different order row to row.
  *
- * Added, never subtracted, because a hand-drawn look tends to sit on a theme
+ * Added, never subtracted, because a hand-drawn line tends to sit on a theme
  * whose corners are already tight: a coefficient set that swung both ways
  * spent half its range clamped at zero.
  */
@@ -584,7 +584,7 @@ const swing = (travel: number) => String(Number((travel * 2).toFixed(4)));
 /** Squares the displacement wave off around 0.5, its zero, so full amplitude is
     spent along the whole edge rather than only where the wave peaks. Both
     channels take it: the map reads x from R and y from G. */
-function squareOff(s: SketchStyle, from: string, to: string): string {
+function squareOff(s: SketchStyleSettings, from: string, to: string): string {
   if (s.waveform <= 1) return '';
   const slope = s.waveform.toFixed(2);
   const intercept = ((1 - s.waveform) / 2).toFixed(3);
@@ -594,7 +594,7 @@ function squareOff(s: SketchStyle, from: string, to: string): string {
   `</feComponentTransfer>`;
 }
 
-const squaredResult = (s: SketchStyle, from: string, to: string) =>
+const squaredResult = (s: SketchStyleSettings, from: string, to: string) =>
   (s.waveform > 1 ? to : from);
 
 /** Along-stroke pressure wavelength. Low, with a high floor in the transfer
@@ -650,7 +650,7 @@ const RETRACE_SEED = 53;
 const WARP_FREQUENCY = 0.08;
 
 
-export function buildStylesheet(s: SketchStyle): string {
+export function buildStylesheet(s: SketchStyleSettings): string {
   const on = '[data-sketch]';
   const parts = `:is(${PARTS})`;
   const el = `${on} ${parts}`;
@@ -1089,7 +1089,7 @@ function defsNode(doc: Document): SVGSVGElement {
  * This only makes the effect *available*. An element opts in by carrying
  * data-sketch, which is what `setSketchScope` writes.
  */
-export function applySketchLayer(settings: SketchStyle): void {
+export function applySketchLayer(settings: SketchStyleSettings): void {
   const defs = buildDefsMarkup(settings);
   const css = buildStylesheet(settings);
   for (const doc of getSyncedDocuments()) {
@@ -1132,7 +1132,7 @@ export function removeSketchLayer(): void {
  * The host page's root and the editor's own preview container are both scopes,
  * which is why this takes an element rather than assuming documentElement.
  */
-export function setSketchScope(el: HTMLElement | null, settings: SketchStyle | null): void {
+export function setSketchScope(el: HTMLElement | null, settings: SketchStyleSettings | null): void {
   if (!el) return;
   if (!settings) {
     el.removeAttribute('data-sketch');

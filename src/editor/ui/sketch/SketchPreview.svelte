@@ -6,10 +6,10 @@
   import Callout from '../../../system/components/Callout.svelte';
   import Toggle from '../../../system/components/Toggle.svelte';
   import { setSketchScope } from '../../core/sketch/sketchLayer';
-  import type { SketchStyle } from '../../core/sketch/sketchStyles';
+  import type { SketchStyleSettings } from '../../core/sketch/sketchStyles';
 
   interface Props {
-    settings: SketchStyle;
+    settings: SketchStyleSettings;
     enabled: boolean;
   }
 

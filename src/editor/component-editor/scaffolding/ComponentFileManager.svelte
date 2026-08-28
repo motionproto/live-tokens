@@ -29,7 +29,7 @@
     productionTheme,
   } from '../../core/productionPulse';
   import {
-    adoptLook,
+    adoptTheme,
     getActiveTheme,
     getProductionTheme,
     listThemes,
@@ -239,7 +239,7 @@
   }
 
   /**
-   * Adopt ships the whole look, because production is one saved theme: flush
+   * Adopt ships the whole theme, because production is one saved theme: flush
    * this component, save the open theme, publish it. The protected Default
    * theme cannot record what shipped, so it prompts for a theme name first and
    * retries.
@@ -261,7 +261,7 @@
     try {
       if (wasDirty) await persist();
       await saveActiveTheme();
-      await adoptLook();
+      await adoptTheme();
       await refreshProduction();
       bumpProductionRevision();
       adoptFeedback = wasDirty
@@ -401,7 +401,7 @@
         </UISquareButton>
         <UIInfoPopover title="Component Configuration" ariaLabel="About Save and Adopt">
           <p>
-            <strong>Save</strong> keeps your edits in the theme you have open. The theme carries a copy of every component you changed, so the look travels as one file.
+            <strong>Save</strong> keeps your edits in the theme you have open. The theme carries a copy of every component you changed, so the theme travels as one file.
           </p>
           <p>
             <strong>Save As</strong> writes the component's settings to a file of their own, ready to load into any theme.

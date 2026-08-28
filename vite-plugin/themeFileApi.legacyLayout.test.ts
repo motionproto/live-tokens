@@ -1,6 +1,6 @@
 /**
  * Boot against a tree from 0.47.1 or earlier, where `themes/` still holds the
- * colors and type and `manifests/` holds the whole-look files. Every writer in
+ * colors and type and `manifests/` holds the whole-theme files. Every writer in
  * the boot sequence would read those palettes as themes and rewrite them, so
  * the plugin has to recognise the layout and stop. The consumer's saved work
  * survives on the strength of this one test.

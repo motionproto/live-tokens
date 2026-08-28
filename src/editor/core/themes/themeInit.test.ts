@@ -9,7 +9,7 @@ import {
   setComponentAlias,
 } from '../store/editorStore';
 import { initializeTheme } from './themeInit';
-import { SKETCH_STYLES } from '../sketch/sketchStyles';
+import { SHIPPED_SKETCH_SETTINGS } from '../sketch/sketchStyles';
 
 beforeEach(() => {
   __resetForTests();
@@ -89,10 +89,10 @@ describe('initializeTheme component hydration', () => {
   });
 });
 
-function stubActiveTheme(sketchStyle: unknown) {
+function stubActiveTheme(sketchSettings: unknown) {
   vi.stubGlobal('fetch', async (url: string) => {
     if (url === `${API_BASE}/themes/active`) {
-      return new Response(JSON.stringify({ name: 'Sketchy', sketchStyle }), {
+      return new Response(JSON.stringify({ name: 'Sketchy', sketchSettings }), {
         status: 200,
         headers: { 'Content-Type': 'application/json' },
       });
@@ -112,44 +112,44 @@ describe('initializeTheme sketchstyle reconcile', () => {
   });
 
   it('seeds the live buffer from the theme when this browser never recorded a sketch decision', async () => {
-    stubActiveTheme(SKETCH_STYLES.napkin);
+    stubActiveTheme(SHIPPED_SKETCH_SETTINGS.napkin);
     const { initializeTheme } = await import('./themeInit');
-    const { sketchEnabled, sketchSettings, themeSketchStyle } = await import('../sketch/sketchStore');
+    const { sketchEnabled, sketchSettings, themeSketchSettings } = await import('../sketch/sketchStore');
 
     await initializeTheme();
 
     expect(get(sketchEnabled)).toBe(true);
-    expect(get(sketchSettings)).toEqual(SKETCH_STYLES.napkin);
-    expect(get(themeSketchStyle)).toEqual(SKETCH_STYLES.napkin);
+    expect(get(sketchSettings)).toEqual(SHIPPED_SKETCH_SETTINGS.napkin);
+    expect(get(themeSketchSettings)).toEqual(SHIPPED_SKETCH_SETTINGS.napkin);
   });
 
   it('leaves an unsaved buffer alone once this browser has recorded a decision, and only learns the theme', async () => {
     const { initializeTheme } = await import('./themeInit');
-    const { sketchEnabled, sketchSettings, themeSketchStyle, updateSketchSettings } = await import('../sketch/sketchStore');
+    const { sketchEnabled, sketchSettings, themeSketchSettings, updateSketchSettings } = await import('../sketch/sketchStore');
     updateSketchSettings({}); // records a decision without changing the dials
     sketchEnabled.set(true);
     const liveBefore = get(sketchSettings);
-    stubActiveTheme(SKETCH_STYLES.napkin);
+    stubActiveTheme(SHIPPED_SKETCH_SETTINGS.napkin);
 
     await initializeTheme();
 
     expect(get(sketchSettings)).toEqual(liveBefore);
     expect(get(sketchEnabled)).toBe(true);
-    expect(get(themeSketchStyle)).toEqual(SKETCH_STYLES.napkin);
+    expect(get(themeSketchSettings)).toEqual(SHIPPED_SKETCH_SETTINGS.napkin);
   });
 
   it('leaves the sketch state alone when the active-theme fetch fails, rather than reading that as no sketchstyle', async () => {
     const { initializeTheme } = await import('./themeInit');
-    const { sketchEnabled, sketchSettings, themeSketchStyle, updateSketchSettings } = await import('../sketch/sketchStore');
+    const { sketchEnabled, sketchSettings, themeSketchSettings, updateSketchSettings } = await import('../sketch/sketchStore');
     updateSketchSettings({});
     sketchEnabled.set(true);
     const liveBefore = get(sketchSettings);
-    themeSketchStyle.set(SKETCH_STYLES.pencil);
+    themeSketchSettings.set(SHIPPED_SKETCH_SETTINGS.pencil);
     vi.stubGlobal('fetch', async () => new Response(null, { status: 503 }));
 
     await initializeTheme();
 
     expect(get(sketchSettings)).toEqual(liveBefore);
-    expect(get(themeSketchStyle)).toEqual(SKETCH_STYLES.pencil);
+    expect(get(themeSketchSettings)).toEqual(SHIPPED_SKETCH_SETTINGS.pencil);
   });
 });

@@ -1,7 +1,7 @@
 <script lang="ts">
   import LabeledSelect from './LabeledSelect.svelte';
-  import { setSketch, sketchLooks, themeSketchLook } from '../editor/core/sketch';
-  import { sketchEnabled, sketchStyleName } from '../editor/core/sketch/sketchStore';
+  import { setSketch, sketchStyles, unsavedSketchStyle } from '../editor/core/sketch';
+  import { sketchEnabled, selectedSketchStyleId } from '../editor/core/sketch/sketchStore';
 
   const NONE = '';
 
@@ -10,17 +10,17 @@
 
   const items = $derived([
     { value: NONE, label: 'None' },
-    /* The look the open theme carries, when nothing in the pool names it.
+    /* The style the open theme carries, when nothing in the pool names it.
        Without the row the select reads None over a drawn page, and a visitor
        who picks something else cannot get back. */
-    ...($themeSketchLook ? [{ value: $themeSketchLook.id, label: $themeSketchLook.label }] : []),
-    ...$sketchLooks.map((look) => ({ value: look.id, label: look.label })),
+    ...($unsavedSketchStyle ? [{ value: $unsavedSketchStyle.id, label: $unsavedSketchStyle.label }] : []),
+    ...$sketchStyles.map((style) => ({ value: style.id, label: style.label })),
   ]);
 
   /* Off is its own choice here, so the picked sketchstyle only shows while the
      effect is on. Turning it off in the Sketchstyle view leaves that
      sketchstyle selected there; this reads as None until it is switched back on. */
-  const value = $derived($sketchEnabled ? $sketchStyleName : NONE);
+  const value = $derived($sketchEnabled ? $selectedSketchStyleId : NONE);
 
   function changeSketch(next: string) {
     if (busy) return;

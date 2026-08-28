@@ -7,15 +7,15 @@ import { getActiveColorsAndType } from './colorsAndTypeService';
 import { broadcastAppliedTheme, hydrateAppliedTheme } from './themeDocumentSync';
 import { CURRENT_COMPONENT_SCHEMA_VERSION } from './migrations';
 import { THEME_SCHEMA_VERSION } from './themeTypes';
-import { liveSketchStyle, themeSketchStyle } from '../sketch/sketchStore';
+import { liveSketchSettings, themeSketchSettings } from '../sketch/sketchStore';
 
 export type { ThemeFillReport };
 
 /**
  * REST client for theme files, the documents of the editor. A theme carries a
- * whole look by value: the colors and type plus a config for every component
+ * whole content by value: the colors and type plus a config for every component
  * this install has. One theme is open (`themes/_active.json`) and one is
- * published (`themes/_production.json`); the live look is the open theme plus
+ * published (`themes/_production.json`); the live content is the open theme plus
  * whatever the `_working` buffers hold over it.
  *
  * `default` is the protected baseline — cannot be overwritten or deleted, and
@@ -75,7 +75,7 @@ export interface ApplyThemeResult {
  * Open a theme: the server clears the `_working` buffers, points
  * `themes/_active.json` at it, and returns the resolved state in one payload.
  * Live reads then fall through to the theme's embedded layers.
- * Production is untouched, so trying a look cannot change what the site ships.
+ * Production is untouched, so trying a content cannot change what the site ships.
  * The resolved response hydrates the caller immediately, then broadcasts the
  * same typed state to every already-open same-origin host/editor document.
  * Each store renderer projects that state into its own document, so a theme
@@ -96,7 +96,7 @@ export async function applyTheme(fileName: string): Promise<ApplyThemeResult> {
   return result;
 }
 
-export interface AdoptLookResult {
+export interface AdoptThemeResult {
   ok: boolean;
   /** The theme production now ships. */
   productionTheme: { fileName: string; name: string; updatedAt: string };
@@ -111,7 +111,7 @@ export interface AdoptLookResult {
  * Answers 409 `ACTIVE_IS_PROTECTED` while the Default theme is open, which the
  * caller recovers from by forking it under a name of the user's own.
  */
-export async function adoptLook(): Promise<AdoptLookResult> {
+export async function adoptTheme(): Promise<AdoptThemeResult> {
   const res = await fetch(`${API_BASE}/production`, { method: 'PUT' });
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
@@ -135,7 +135,7 @@ function withoutLiveMarkers<T extends { _fileName?: string; _source?: unknown }>
 }
 
 /**
- * The look as it stands: the live colors and type plus the live config of
+ * The content as it stands: the live colors and type plus the live config of
  * every component this install has, all by value. A theme is a complete
  * document (`docs/plans/theme-completeness.md`), so the capture carries every
  * component, not just the ones off their default.
@@ -145,7 +145,7 @@ function withoutLiveMarkers<T extends { _fileName?: string; _source?: unknown }>
  * way out of `GET /colors-and-type/active`, which matters: the server trusts an
  * already-embedded copy and runs no migrations over it on write.
  */
-async function captureLook(): Promise<Pick<Theme, 'colorsAndType' | 'componentConfigs' | 'sketchStyle'>> {
+async function captureThemeContent(): Promise<Pick<Theme, 'colorsAndType' | 'componentConfigs' | 'sketchSettings'>> {
   const liveColorsAndType = await getActiveColorsAndType();
   if (!liveColorsAndType) {
     throw new Error('No live colors and type to capture');
@@ -159,11 +159,11 @@ async function captureLook(): Promise<Pick<Theme, 'colorsAndType' | 'componentCo
   });
   // Sketchstyle has no server door of its own (RJC 8): the live buffer, not a
   // fetch, is the source of truth for what the dials currently say.
-  return { colorsAndType: withoutLiveMarkers(liveColorsAndType), componentConfigs, sketchStyle: liveSketchStyle() };
+  return { colorsAndType: withoutLiveMarkers(liveColorsAndType), componentConfigs, sketchSettings: liveSketchSettings() };
 }
 
 /**
- * Capture the current look into a new theme file and open it. Used by the
+ * Capture the current content into a new theme file and open it. Used by the
  * theme panel's Save As action and by the fork-then-Adopt flow the protected
  * Default theme forces.
  */
@@ -171,7 +171,7 @@ export async function saveAsTheme(
   fileName: string,
   displayName: string,
 ): Promise<void> {
-  const look = await captureLook();
+  const content = await captureThemeContent();
   const now = new Date().toISOString();
   await saveTheme(fileName, {
     name: displayName,
@@ -179,15 +179,15 @@ export async function saveAsTheme(
     updatedAt: now,
     schemaVersion: THEME_SCHEMA_VERSION,
     componentSchemaVersion: CURRENT_COMPONENT_SCHEMA_VERSION,
-    ...look,
+    ...content,
   });
-  themeSketchStyle.set(look.sketchStyle);
+  themeSketchSettings.set(content.sketchSettings);
   liveMovedSinceBake.set(true);
   await setActiveTheme(fileName);
 }
 
 /**
- * Re-capture the current look into the open theme file. Used by the theme
+ * Re-capture the current content into the open theme file. Used by the theme
  * panel's Save action and by both Adopt paths, which publish what is saved.
  * The server rejects with 403 while the protected `default` theme is open.
  */
@@ -196,16 +196,16 @@ export async function saveActiveTheme(displayName?: string): Promise<void> {
   if (!active || !active._fileName) {
     throw new Error('No active theme');
   }
-  const look = await captureLook();
+  const content = await captureThemeContent();
   await saveTheme(active._fileName, {
     name: displayName ?? active.name,
     createdAt: active.createdAt,
     updatedAt: new Date().toISOString(),
     schemaVersion: THEME_SCHEMA_VERSION,
     componentSchemaVersion: CURRENT_COMPONENT_SCHEMA_VERSION,
-    ...look,
+    ...content,
   });
-  themeSketchStyle.set(look.sketchStyle);
+  themeSketchSettings.set(content.sketchSettings);
   liveMovedSinceBake.set(true);
 }
 

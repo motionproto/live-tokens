@@ -2,13 +2,17 @@ import type { CurveAnchor } from '../../ui/curveEngine';
 import type { GradientValue } from './parsers/gradient';
 import type { Oklch } from '../palettes/oklch';
 import type { HarmonyAxis } from '../palettes/colorHarmony';
-import type { SketchStyle } from '../sketch/sketchStyles';
+import type { SketchStyleSettings } from '../sketch/sketchStyles';
 /** Single source of truth for the theme schema version
  *  (docs/plans/theme-completeness.md, Wave 2 step 5). It lives here, on the
  *  shipped side: `vite-plugin/` is build tooling and is not in the tarball, so
  *  anything under `src/` that reaches into it resolves in this repo and
  *  nowhere else. `normalizeTheme.ts` re-exports this. */
-export const THEME_SCHEMA_VERSION = 4;
+/** 5 renamed the sketch field from `sketchStyle` to `sketchSettings`. The bump
+ *  is what makes the boot pass rewrite a theme still on the old key: the read
+ *  accepts both, but a built site reads its theme JSON raw and would see
+ *  `undefined` until the file itself was converted. */
+export const THEME_SCHEMA_VERSION = 5;
 
 /** What the completeness fill had to add to reach a whole theme. `components`
  *  names each component the input carried no entry for; `aliases` counts keys
@@ -240,7 +244,7 @@ export interface ComponentConfigMeta {
 }
 
 /**
- * A saved look, encapsulated: the colors and type plus a config for every
+ * A saved theme, encapsulated: the colors and type plus a config for every
  * component this install has, all carried by value. Themes are the documents
  * of the editor. Applying one opens it by clearing the reserved `_working`
  * buffers and updating `themes/_active.json`; live reads fall through to its
@@ -267,7 +271,7 @@ export interface Theme {
    *  component schema and then fills any gap from the local default, on every
    *  read (Waves 1 and 2 of `docs/plans/theme-completeness.md`); both the
    *  migration and the fill are persisted on the next write, so a theme is a
-   *  whole-look document rather than a diff against a moving baseline.
+   *  whole-theme document rather than a diff against a moving baseline.
    *  `component-configs/<id>/default.json` is the derivation product of that
    *  component's `:global(:root)`, not a resolution layer this map defers to
    *  — a config for a component this install does not have, or an alias key
@@ -280,10 +284,10 @@ export interface Theme {
    *  buy no isolation. `normalizeTheme` sets this on every read; an embedded
    *  config's own `schemaVersion` (if hand-authored) is ignored and stripped. */
   componentSchemaVersion: number;
-  /** The sketchstyle this look paints, by value. Absent means the look is
+  /** The sketchstyle this theme paints, by value. Absent means the theme is
    *  crisp: presence is the on state, so there is no separate flag that can
    *  disagree with the dials beside it (RJC 1). */
-  sketchStyle?: SketchStyle;
+  sketchSettings?: SketchStyleSettings;
   /** Server-attached file-name marker. Same role as `ColorsAndType._fileName`. */
   _fileName?: string;
 }

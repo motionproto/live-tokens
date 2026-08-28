@@ -13,24 +13,24 @@ import {
   __resetForTests,
 } from '../store/editorStore';
 import {
-  themeLook,
-  colorsAndTypeLook,
-  liveLook,
+  renderTheme,
+  renderColorsAndType,
+  liveTheme,
   previewTheme,
   previewColorsAndType,
   revertPreview,
   commitPreview,
   isPreviewing,
   __resetPreviewForTests,
-} from './lookPreview';
-import { SKETCH_STYLES, type SketchStyle } from '../sketch/sketchStyles';
+} from './themePreview';
+import { SHIPPED_SKETCH_SETTINGS, type SketchStyleSettings } from '../sketch/sketchStyles';
 import { setSketchScope } from '../sketch/sketchLayer';
 import { liveMovedSinceBake } from '../productionPulse';
 import {
-  openThemeSketchStyle,
+  openThemeSketchSettings,
   setSketchPageRoot,
   sketchEnabled,
-  sketchOffLook,
+  sketchOffTheme,
   sketchSettings,
   updateSketchSettings,
 } from '../sketch/sketchStore';
@@ -123,24 +123,24 @@ const yuletide = theme('yuletide', colorsAndType({ '--surface-canvas': '#0b3d2e'
   }),
 });
 
-describe('themeLook', () => {
+describe('renderTheme', () => {
   it('overlays the theme configs on the default set', () => {
-    const { vars } = themeLook(yuletide, defaults);
+    const { vars } = renderTheme(yuletide, defaults);
     expect(vars['--card-default-radius']).toBe('var(--radius-3xl)');
     expect(vars['--button-primary-radius']).toBe('var(--radius-full)');
     expect(vars['--surface-canvas']).toBe('#0b3d2e');
   });
 
   it('renders components the theme omits from their default config', () => {
-    const { vars } = themeLook(yuletide, defaults);
+    const { vars } = renderTheme(yuletide, defaults);
     expect(vars['--badge-default-radius']).toBe('var(--radius-sm)');
   });
 
   it('skips configs for components this install does not have', () => {
-    const withStat = theme('stat-look', colorsAndType({}), {
+    const withStat = theme('stat-theme', colorsAndType({}), {
       stat: config('stat', { '--stat-default-radius': '--radius-none' }),
     });
-    const { vars } = themeLook(withStat, defaults);
+    const { vars } = renderTheme(withStat, defaults);
     expect(vars).not.toHaveProperty('--stat-default-radius');
   });
 
@@ -148,12 +148,12 @@ describe('themeLook', () => {
     const stale = theme('stale', colorsAndType({}), {
       card: config('card', { '--card-default-title-line-height': '--line-height-md' }),
     });
-    const { vars } = themeLook(stale, defaults);
+    const { vars } = renderTheme(stale, defaults);
     expect(vars['--card-default-title-line-height']).toBe('var(--line-height-normal)');
   });
 
   it('resolves the embedded font stacks into --font-* values', () => {
-    const { vars, fontSources } = themeLook(yuletide, defaults);
+    const { vars, fontSources } = renderTheme(yuletide, defaults);
     expect(vars['--font-display']).toBe('"Mountains of Christmas", serif');
     expect(fontSources.map((s) => s.id)).toContain('src_preset_mountains');
   });
@@ -175,7 +175,7 @@ const royalVelvet = colorsAndType(
   },
 );
 
-describe('colorsAndTypeLook', () => {
+describe('renderColorsAndType', () => {
   beforeEach(() => {
     __resetForTests();
     __resetPreviewForTests();
@@ -186,31 +186,31 @@ describe('colorsAndTypeLook', () => {
   });
 
   it('swaps the colors-and-type vars and keeps the live component ones', () => {
-    const { vars } = colorsAndTypeLook(royalVelvet);
+    const { vars } = renderColorsAndType(royalVelvet);
     expect(vars['--surface-canvas']).toBe('#2b1b45');
     expect(vars['--card-default-radius']).toBe('var(--radius-md)');
   });
 
   it('resolves the candidate font stacks and reports its sources', () => {
-    const { vars, fontSources } = colorsAndTypeLook(royalVelvet);
+    const { vars, fontSources } = renderColorsAndType(royalVelvet);
     expect(vars['--font-display']).toBe('"Cinzel", serif');
     expect(fontSources.map((s) => s.id)).toEqual(['src_preset_cinzel']);
   });
 
   it('live component aliases win over values the colors-and-type file carries for them', () => {
-    const { vars } = colorsAndTypeLook(colorsAndType({ '--card-default-radius': 'var(--radius-none)' }));
+    const { vars } = renderColorsAndType(colorsAndType({ '--card-default-radius': 'var(--radius-none)' }));
     expect(vars['--card-default-radius']).toBe('var(--radius-md)');
   });
 
   it('paints colors-and-type vars for component names the live slice does not alias', () => {
-    const { vars } = colorsAndTypeLook(colorsAndType({ '--card-default-padding': 'var(--space-99)' }));
+    const { vars } = renderColorsAndType(colorsAndType({ '--card-default-padding': 'var(--space-99)' }));
     expect(vars['--card-default-padding']).toBe('var(--space-99)');
   });
 });
 
-// What the Load window's "colors and type only" toggle does to a look row: the
-// same look, through the other engine.
-describe('a look previewed colors and type only', () => {
+// What the Load window's "colors and type only" toggle does to a theme row: the
+// same theme, through the other engine.
+describe('a theme previewed colors and type only', () => {
   beforeEach(() => {
     __resetForTests();
     __resetPreviewForTests();
@@ -221,21 +221,21 @@ describe('a look previewed colors and type only', () => {
   });
 
   it('takes the colors-and-type half and leaves the components as the user has them', () => {
-    const { vars } = colorsAndTypeLook(yuletide.colorsAndType);
+    const { vars } = renderColorsAndType(yuletide.colorsAndType);
     expect(vars['--surface-canvas']).toBe('#0b3d2e');
     expect(vars['--card-default-radius']).toBe('var(--radius-md)');
   });
 
-  it('differs from the whole look on the component half alone', () => {
-    const whole = themeLook(yuletide, defaults).vars;
-    const colors = colorsAndTypeLook(yuletide.colorsAndType).vars;
+  it('differs from the whole theme on the component half alone', () => {
+    const whole = renderTheme(yuletide, defaults).vars;
+    const colors = renderColorsAndType(yuletide.colorsAndType).vars;
     expect(whole['--surface-canvas']).toBe(colors['--surface-canvas']);
     expect(whole['--font-display']).toBe(colors['--font-display']);
     expect(whole['--card-default-radius']).toBe('var(--radius-3xl)');
   });
 });
 
-describe('liveLook', () => {
+describe('liveTheme', () => {
   beforeEach(() => {
     __resetForTests();
     __resetPreviewForTests();
@@ -248,7 +248,7 @@ describe('liveLook', () => {
     });
     document.documentElement.style.setProperty('--card-default-radius', 'var(--radius-none)');
 
-    const { vars } = liveLook();
+    const { vars } = liveTheme();
     expect(vars['--card-default-radius']).toBe('var(--radius-md)');
     expect(vars['--surface-canvas']).toBe('#111111');
     expect(vars['--font-display']).toBe('"Mountains of Christmas", serif');
@@ -282,7 +282,7 @@ describe('previewTheme', () => {
 
   const read = (name: string) => document.documentElement.style.getPropertyValue(name);
 
-  it('paints the theme look and restores the live one on revert', async () => {
+  it('paints the theme and restores the live one on revert', async () => {
     await previewTheme(yuletide);
     expect(isPreviewing()).toBe(true);
     expect(read('--card-default-radius')).toBe('var(--radius-3xl)');
@@ -368,7 +368,7 @@ describe('previewTheme', () => {
     expect(read('--card-default-radius')).toBe('var(--radius-3xl)');
   });
 
-  it('reads only, so a capture of the look still sees the saved files', async () => {
+  it('reads only, so a capture of the theme still sees the saved files', async () => {
     await previewTheme(yuletide);
     expect(requests).toEqual([`GET ${API_BASE}/themes/default`]);
   });
@@ -460,9 +460,9 @@ describe('previewColorsAndType', () => {
 });
 
 describe('previewTheme and the sketch layer', () => {
-  function sketchedTheme(name: string, sketchStyle: SketchStyle | undefined): Theme {
+  function sketchedTheme(name: string, sketchSettings: SketchStyleSettings | undefined): Theme {
     const t = theme(name, colorsAndType({ '--surface-canvas': '#222222' }), {});
-    t.sketchStyle = sketchStyle;
+    t.sketchSettings = sketchSettings;
     return t;
   }
 
@@ -476,7 +476,7 @@ describe('previewTheme and the sketch layer', () => {
     document.head.querySelectorAll('style[data-sketch-style]').forEach((n) => n.remove());
     document.body.querySelectorAll('svg[data-sketch-defs]').forEach((n) => n.remove());
     setSketchPageRoot(document.documentElement);
-    openThemeSketchStyle(undefined); // a known, crisp live baseline for every case
+    openThemeSketchSettings(undefined); // a known, crisp live baseline for every case
     vi.stubGlobal('fetch', async () =>
       new Response(JSON.stringify(defaults), { headers: { 'Content-Type': 'application/json' } }));
     loadFromFile(colorsAndType({ '--surface-canvas': '#111111' }));
@@ -490,9 +490,9 @@ describe('previewTheme and the sketch layer', () => {
   });
 
   it('paints a previewed theme\'s sketchstyle, and paints crisp for one with none even though the applied theme is sketched', async () => {
-    openThemeSketchStyle(SKETCH_STYLES.napkin); // what an already-applied sketched theme leaves live
+    openThemeSketchSettings(SHIPPED_SKETCH_SETTINGS.napkin); // what an already-applied sketched theme leaves live
 
-    await previewTheme(sketchedTheme('inked', SKETCH_STYLES.hatched));
+    await previewTheme(sketchedTheme('inked', SHIPPED_SKETCH_SETTINGS.hatched));
     expect(document.documentElement.getAttribute('data-sketch-fill')).toBe('hatched');
 
     await previewTheme(sketchedTheme('bare', undefined));
@@ -500,11 +500,11 @@ describe('previewTheme and the sketch layer', () => {
   });
 
   it('restores the exact pre-preview sketch state on revert, an unsaved dial included', async () => {
-    openThemeSketchStyle(SKETCH_STYLES.napkin);
+    openThemeSketchSettings(SHIPPED_SKETCH_SETTINGS.napkin);
     updateSketchSettings({ strokeWidth: 9 }); // an unsaved move the open theme does not hold
     const before = get(sketchSettings);
 
-    await previewTheme(sketchedTheme('inked', SKETCH_STYLES.hatched));
+    await previewTheme(sketchedTheme('inked', SHIPPED_SKETCH_SETTINGS.hatched));
     expect(document.documentElement.getAttribute('data-sketch-fill')).toBe('hatched');
 
     revertPreview();
@@ -521,7 +521,7 @@ describe('previewTheme and the sketch layer', () => {
   // two roots render() owns come back: a component's stage is painted by an
   // $effect on the live stores, which the preview never ticks.
   it('leaves a component-owned scope alone through a crisp preview and back', async () => {
-    openThemeSketchStyle(SKETCH_STYLES.napkin);
+    openThemeSketchSettings(SHIPPED_SKETCH_SETTINGS.napkin);
     const stage = document.createElement('div'); // stands in for the Sketchstyle view's own
     document.body.appendChild(stage);
     setSketchScope(stage, get(sketchSettings));
@@ -536,8 +536,8 @@ describe('previewTheme and the sketch layer', () => {
   });
 
   it('hands the sketch layer back when a colors-and-type row follows a theme row', async () => {
-    openThemeSketchStyle(SKETCH_STYLES.napkin);
-    await previewTheme(sketchedTheme('inked', SKETCH_STYLES.hatched));
+    openThemeSketchSettings(SHIPPED_SKETCH_SETTINGS.napkin);
+    await previewTheme(sketchedTheme('inked', SHIPPED_SKETCH_SETTINGS.hatched));
     expect(document.documentElement.getAttribute('data-sketch-fill')).toBe('hatched');
 
     previewColorsAndType(colorsAndType({ '--surface-canvas': '#333333' }));
@@ -545,11 +545,11 @@ describe('previewTheme and the sketch layer', () => {
     expect(document.documentElement.getAttribute('data-sketch-fill')).toBe('solid');
   });
 
-  // The Load handoff: the previewed look is already on screen and the caller
+  // The Load handoff: the previewed theme is already on screen and the caller
   // applies it next, so taking it down first would only flash.
   it('leaves the previewed sketchstyle painted across commitPreview', async () => {
-    openThemeSketchStyle(SKETCH_STYLES.napkin);
-    await previewTheme(sketchedTheme('inked', SKETCH_STYLES.hatched));
+    openThemeSketchSettings(SHIPPED_SKETCH_SETTINGS.napkin);
+    await previewTheme(sketchedTheme('inked', SHIPPED_SKETCH_SETTINGS.hatched));
 
     commitPreview();
 
@@ -567,9 +567,9 @@ describe('previewTheme and the sketch layer', () => {
       await gate;
       return new Response(JSON.stringify(defaults), { headers: { 'Content-Type': 'application/json' } });
     });
-    openThemeSketchStyle(SKETCH_STYLES.napkin);
+    openThemeSketchSettings(SHIPPED_SKETCH_SETTINGS.napkin);
 
-    const inFlight = previewTheme(sketchedTheme('inked', SKETCH_STYLES.hatched));
+    const inFlight = previewTheme(sketchedTheme('inked', SHIPPED_SKETCH_SETTINGS.hatched));
     revertPreview();
     release();
     await inFlight;
@@ -578,18 +578,18 @@ describe('previewTheme and the sketch layer', () => {
     expect(document.documentElement.getAttribute('data-sketch-fill')).toBe('solid');
   });
 
-  it('does not move liveMovedSinceBake or sketchOffLook, since browsing the picker is not a gesture', async () => {
-    openThemeSketchStyle(SKETCH_STYLES.napkin);
+  it('does not move liveMovedSinceBake or sketchOffTheme, since browsing the picker is not a gesture', async () => {
+    openThemeSketchSettings(SHIPPED_SKETCH_SETTINGS.napkin);
     liveMovedSinceBake.set(false);
-    const offLookBefore = get(sketchOffLook);
+    const offThemeBefore = get(sketchOffTheme);
 
-    await previewTheme(sketchedTheme('inked', SKETCH_STYLES.hatched));
+    await previewTheme(sketchedTheme('inked', SHIPPED_SKETCH_SETTINGS.hatched));
     expect(get(liveMovedSinceBake)).toBe(false);
-    expect(get(sketchOffLook)).toBe(offLookBefore);
+    expect(get(sketchOffTheme)).toBe(offThemeBefore);
 
     revertPreview();
     expect(get(liveMovedSinceBake)).toBe(false);
-    expect(get(sketchOffLook)).toBe(offLookBefore);
+    expect(get(sketchOffTheme)).toBe(offThemeBefore);
   });
 
   it('paints the host page across the iframe boundary, the way applying a theme does', async () => {
@@ -600,7 +600,7 @@ describe('previewTheme and the sketch layer', () => {
     __resetCssVarSyncForTests();
 
     try {
-      await previewTheme(sketchedTheme('inked', SKETCH_STYLES.hatched));
+      await previewTheme(sketchedTheme('inked', SHIPPED_SKETCH_SETTINGS.hatched));
       expect(hostDocument.documentElement.getAttribute('data-sketch-fill')).toBe('hatched');
       // The iframe's own document never opts in: setSketchPageRoot(null) above
       // is what keeps the editor's own chrome from picking the effect up.
