@@ -8,15 +8,16 @@ npm install @motion-proto/live-tokens
 
 The editor is dev-only. Production builds get plain CSS variables and the components you used.
 
-## What you get
+## Features
 
 - **Live token editing.** Colors, typography, spacing, radii, shadows, motion, palettes, and gradients. Every input writes a CSS variable, so the page repaints with no reload and no build step.
 - **Live component editing.** 25 shipped Svelte components (Button, IconButton, Input, Card, Dialog, Badge, Callout, Table, Tooltip, Toggle, TabBar, SegmentedControl, RadioButton, MenuSelect, ProgressBar, CornerBadge, SectionDivider, CollapsibleSection, Notification, Image, ImageLightbox, CodeSnippet, SideNavigation, Panel, InlineEditActions) declare their design-token aliases in a `:global(:root)` block. Rewire an alias from the component's editor and it updates everywhere that component is used, on your real pages.
 - **Four dev-only routes.** `/live-tokens/editor` for tokens, `/live-tokens/colors` for palettes, `/live-tokens/components` for per-component aliases, `/live-tokens/docs` for the user guide.
 - **Editor overlay.** Pins to the top right of every dev page and opens the editor in a side panel or floating window, so you edit on the page you are styling. Its "Page Source" button opens the current page's `.svelte` file in VS Code.
 - **Themes.** A theme is a whole look in one file: colors and type plus a config for every component, stored by value. Loading one changes a single pointer file, and nothing your site ships changes until you Adopt. Export a theme and import it into another project to restore the look in one step.
-- **Seven example looks.** Autumn, Halloween, Midnight Study, Ocean, Royal Velvet, Spring Meadow, and Sunset each ship as a full theme: colors, a Google Fonts pairing, and a shape personality of radius, padding, gap, and border-width aliases. They ship inside the package, so trying one needs no local files. Load Motion Proto to return to the default. Saving over a preset writes a local copy that shadows the shipped one; delete the copy and the shipped version returns.
-- **Vite plugin.** Hosts the `/api/live-tokens/{colors-and-type,component-configs,themes}/*` routes the editor reads and writes through. The single namespace keeps these routes clear of anything your app serves under `/api`.
+- **Eight example looks.** Autumn, Halloween, Midnight Study, Ocean, Royal Velvet, Sketchy, Spring Meadow, and Sunset each ship as a full theme: colors, a Google Fonts pairing, and a shape personality of radius, padding, gap, and border-width aliases. They ship inside the package, so trying one needs no local files. Load Motion Proto to return to the default. Saving over a preset writes a local copy that shadows the shipped one; delete the copy and the shipped version returns.
+- **Sketch mode.** Redraws the page as if it had been drawn by hand. Seven looks ship as files, and the effect is a layer over your tokens rather than a change to them. See [Sketch mode](#sketch-mode).
+- **Vite plugin.** Hosts the `/api/live-tokens/{colors-and-type,component-configs,themes,sketch-styles}/*` routes the editor reads and writes through. The single namespace keeps these routes clear of anything your app serves under `/api`.
 - **Claude Code skills.** Six bundled skills that drive the package from plain English. See [Claude Code skills](#claude-code-skills).
 
 ## Install
@@ -84,7 +85,7 @@ bootLiveTokens(App, '#app');
 
 For routes you cannot enumerate ahead of time (a `/:id`, a path prefix, a page shown only under some condition), add a `resolve` function from the current path to a `RouteEntry` and return `null` to fall through. Resolution order is `pages[path]`, then `resolve(path)`, then the `pages['/']` fallback, so adding `resolve` never changes how existing entries match. A resolved entry can carry `props`, letting one component serve many paths, and its `source` gives the dynamic route a working "Page Source" button.
 
-Link-click interception follows the same route table. A left-click becomes an in-app `navigate()` only when the anchor asks for ordinary same-tab navigation — no `target`, `download`, `rel="external"`, or modifier key — and `pages` or `resolve` claims the path. Anything else keeps the browser's own handling, so a link to a PDF or an image under `public/`, to a download, or to a path no route declares loads for real. Note that the `pages['/']` fallback renders an unmatched path without claiming it: link to a path no route declares and you get a page load, not a client-side swap.
+Link-click interception follows the same route table. A left-click becomes an in-app `navigate()` only when the anchor asks for ordinary same-tab navigation (no `target`, `download`, `rel="external"`, or modifier key) and `pages` or `resolve` claims the path. Anything else keeps the browser's own handling, so a link to a PDF or an image under `public/`, to a download, or to a path no route declares loads for real. Note that the `pages['/']` fallback renders an unmatched path without claiming it: link to a path no route declares and you get a page load, not a client-side swap.
 
 ```svelte
 <LiveTokensRouter
@@ -131,11 +132,11 @@ Or copy `node_modules/@motion-proto/live-tokens/src/system/styles/tokens.css` in
 
 `bootLiveTokens` and `<LiveTokensRouter>` are wrappers. The individual init functions (`initCssVarSync`, `initRouter`, `initColumnsOverlay`, `initEditorStore`, `initializeTheme`), `<LiveEditorOverlay>`, `<ColumnsOverlay>`, and the editor page exports (`@motion-proto/live-tokens/editor`, `@motion-proto/live-tokens/component-editor-page`) are all exported. Use them to build a custom shell: arbitrary markup per route, a foreign matcher, or your own overlay wiring. Dynamic and gated routes do not need this; use `resolve` above, which keeps the overlay, nav rail, and page source intact.
 
-## Where data lands, and how to move it
+## The data directory
 
-The plugin reads and writes under one folder, `src/live-tokens/data/`, which holds three subdirectories it owns: `colors-and-type/`, `themes/`, and `component-configs/`.
+The plugin reads and writes under one folder, `src/live-tokens/data/`, which holds four subdirectories it owns: `colors-and-type/`, `themes/`, `component-configs/`, and `sketch-styles/`.
 
-`themes/` holds one file per whole look, plus `_active.json` naming the one the editor has open and `_production.json` naming the one your site ships. `colors-and-type/` and `component-configs/{comp}/` hold each layer's `default.json` baseline, any preset you save by name, and the `_working.json` buffer for edits you have not saved into the active theme. A buffer is a delta from the open theme, so ordinary theme switching leaves none behind.
+`themes/` holds one file per whole look, plus `_active.json` naming the one the editor has open and `_production.json` naming the one your site ships. `colors-and-type/` and `component-configs/{comp}/` hold each layer's `default.json` baseline, any preset you save by name, and the `_working.json` buffer for edits you have not saved into the active theme. A buffer is a delta from the open theme, so ordinary theme switching leaves none behind. `sketch-styles/` holds one file per look, shipped and your own alike.
 
 To move the data, create `live-tokens.config.json` at your project root:
 
@@ -256,6 +257,52 @@ bootLiveTokens(App, '#app', {
 
 The component appears on `/live-tokens/components` under a **CUSTOM** group. Token rows, linked-block sharing, per-component config persistence, and reset-to-default behave exactly as they do for the built-in set. Import only from `@motion-proto/live-tokens` or `@motion-proto/live-tokens/component-editor`; never deep-import from `src/`.
 
+## Sketch mode
+
+Sketch mode redraws the page as if it had been drawn by hand. Every component keeps its own colors, spacing, and corners; what changes is the line it is drawn with. The effect is a layer over your tokens and never touches a value, so switching it off returns every component to exactly what its tokens say.
+
+Seven looks ship with the package: Pencil, Marker, Whiteboard, Hatched, Dashed, Napkin, and Dry marker. Each is a full set of dials, and each ships as a file under `src/live-tokens/data/sketch-styles/`. Open the Sketchstyle view in the editor, move whatever you like, and Save writes your dials to a file. Saving over a shipped look writes a local copy that shadows it; delete the copy and the shipped file returns, the same way presets work.
+
+A theme carries a sketchstyle of its own, so a look travels with the theme that uses it.
+
+### Ship the layer with your site
+
+The dev server reads the open theme and paints what it carries. A built site has no server to ask, so hand it the field before mounting:
+
+```ts
+import { seedSketchFromTheme } from '@motion-proto/live-tokens/sketch';
+import theme from './live-tokens/data/themes/sketchy.json';
+
+seedSketchFromTheme(theme.sketchStyle);
+await bootLiveTokens(App, '#app');
+```
+
+Register your own sketchstyles at boot the way you register components:
+
+```ts
+const files = import.meta.glob('./live-tokens/data/sketch-styles/*.json', {
+  eager: true,
+  import: 'default',
+});
+
+await bootLiveTokens(App, '#app', {
+  sketchLooks: Object.entries(files).map(([path, file]) => {
+    const id = path.split('/').pop().replace('.json', '');
+    return { id, label: file.name || id, settings: file.settings };
+  }),
+});
+```
+
+The file's slug is the look's id, so a sketchstyle picked in the editor keeps working once the site is built. `create` writes this into `main.ts` already.
+
+### Build a picker
+
+`sketchLooks` is a store holding every look on offer, shipped and your own in one list. Give each row `setSketch(look.id)`, and add a None row yourself: off is a state of the effect rather than one of the looks. `themeSketchLook` carries the theme's own look as one more row, and reads null when the theme carries none.
+
+### Draw your own elements
+
+The layer redraws the shipped components and four classes it reserves for you: `sketch-surface` for a box, `sketch-container` for a large one, `sketch-chip` for a small one, and `sketch-rule` for a line. Pick by size, not by kind. The class opts an element in but names no colors, so state them yourself with `--sketch-fill`, `--sketch-stroke`, and `--sketch-radius`. The in-app guide at `/live-tokens/docs` covers every dial and the rules for images and icons.
+
 ## CLI
 
 ```bash
@@ -348,13 +395,13 @@ npx @motion-proto/live-tokens check-component <id>
 
 The validator checks the file layout, the `:global(:root)` block, the token-suffix vocabulary, the state-before-property rule, the no-raw-color-defaults rule, the public-imports rule, and the `registerComponent({ id })` call. Exit code 0 means the static contract is met. Use it after Claude generates a component, and as a pre-commit guard on hand-authored ones.
 
-## How the editor ships changes to production
+## From edit to production
 
 1. Edit on `/live-tokens/editor`, `/live-tokens/colors`, or `/live-tokens/components`. Edits sit in the working buffer (`_working.json`). **Save** in the Theme panel captures the buffer into the open theme at `<dataDir>/themes/{name}.json`.
 2. **Adopt** the theme. It becomes the production theme, and its variables are baked into `tokens.generated.css` next to your authored `tokens.css`. Nothing else writes that file, so trying a look never changes what you ship.
 3. `npm run build` bundles both as plain CSS. No editor code, no JSON lookups, no dev surfaces reach production.
 
-## File ownership: what the plugin writes
+## File ownership
 
 Knowing which files the plugin touches matters when you upgrade the package or work in a repo you do not want overwritten. For how a saved look stays safe across upgrades while `tokens.css` holds the building blocks, see [TOKENS.md](./TOKENS.md).
 
@@ -377,6 +424,7 @@ Knowing which files the plugin touches matters when you upgrade the package or w
 - `<dataDir>/colors-and-type/_working.json` and `<dataDir>/component-configs/{comp}/_working.json`, the buffers, written as you edit and cleared when a theme you open does not carry them.
 - `<dataDir>/themes/{name}.json`, on every Save and Save As in the Theme panel.
 - `<dataDir>/colors-and-type/{name}.json` and `<dataDir>/component-configs/{comp}/{name}.json`, only when you save a preset by name.
+- `<dataDir>/sketch-styles/{name}.json`, on every Save and Save As in the Sketchstyle view. Saving over a shipped look writes this project's own copy under the same name; deleting it restores the shipped file.
 - `tokens.generated.css` and `fonts.css`, regenerated from the production theme when you Adopt.
 
 The plugin never writes your authored `tokens.css`. It holds defaults you are free to hand-edit, and the editor's overrides land in `tokens.generated.css`, which the app imports immediately after it.
