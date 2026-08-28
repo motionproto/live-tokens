@@ -26,6 +26,14 @@ describe('shipped sketchstyles', () => {
     }
   });
 
+  it('carry the label and blurb the README prints for them', () => {
+    const readme = fs.readFileSync('README.md', 'utf-8');
+    for (const id of SHIPPED) {
+      const { label, blurb } = SKETCH_STYLES[id];
+      expect(readme, id).toContain(`- **${label}.** ${blurb}`);
+    }
+  });
+
   it('are all listed in the package files, so they reach the tarball', () => {
     const files: string[] = JSON.parse(fs.readFileSync('package.json', 'utf-8')).files;
     for (const id of SHIPPED) {

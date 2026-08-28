@@ -261,7 +261,16 @@ The component appears on `/live-tokens/components` under a **CUSTOM** group. Tok
 
 Sketch mode redraws the page as if it had been drawn by hand. Every component keeps its own colors, spacing, and corners; what changes is the line it is drawn with. The effect is a layer over your tokens and never touches a value, so switching it off returns every component to exactly what its tokens say.
 
-Seven looks ship with the package: Pencil, Marker, Whiteboard, Hatched, Dashed, Napkin, and Dry marker. Each is a full set of dials, and each ships as a file under `src/live-tokens/data/sketch-styles/`. Open the Sketchstyle view in the editor, move whatever you like, and Save writes your dials to a file. Saving over a shipped look writes a local copy that shadows it; delete the copy and the shipped file returns, the same way presets work.
+Seven looks ship with the package. Each is a full set of dials, and each ships as a file under `src/live-tokens/data/sketch-styles/`.
+
+- **Pencil.** Two graphite passes on their own seeds, so the outline disagrees with itself the way a hand coming back round does. The grain is drawn long and on the diagonal, the way a pencil shades.
+- **Marker.** Broad translucent nib gone round twice on the same line, so the overlap darkens and the ink pools where it slows.
+- **Whiteboard.** The fattest nib on glass. One long smooth undulation, and a veined mask that streaks the fill like a half-wiped board.
+- **Hatched.** An etching. The fill is angled shading, the outline a single hard-edged scratch that chatters along its length. No mask: the hatch is the texture.
+- **Dashed.** A drafting outline. One slow drift along the ruler, broken into strokes, with jitter, mask and pressure all off. The clean pole.
+- **Napkin.** Ballpoint in a hurry. Everything loose at once: a square wave sends every edge to full travel, and the second pass lands wherever it lands.
+- **Dry marker.** Ink that ran out. One scratchy pass that breaks up along its length, over a fill the mask has worn nearly through in patches.
+ Open the Sketchstyle view in the editor, move whatever you like, and Save writes your dials to a file. Saving over a shipped look writes a local copy that shadows it; delete the copy and the shipped file returns, the same way presets work.
 
 A theme carries a sketchstyle of its own, so a look travels with the theme that uses it.
 
