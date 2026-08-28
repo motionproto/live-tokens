@@ -270,7 +270,8 @@ Seven looks ship with the package. Each is a full set of dials, and each ships a
 - **Dashed.** A drafting outline. One slow drift along the ruler, broken into strokes, with jitter, mask and pressure all off. The clean pole.
 - **Napkin.** Ballpoint in a hurry. Everything loose at once: a square wave sends every edge to full travel, and the second pass lands wherever it lands.
 - **Dry marker.** Ink that ran out. One scratchy pass that breaks up along its length, over a fill the mask has worn nearly through in patches.
- Open the Sketchstyle view in the editor, move whatever you like, and Save writes your dials to a file. Saving over a shipped look writes a local copy that shadows it; delete the copy and the shipped file returns, the same way presets work.
+
+Open the Sketchstyle view in the editor, move whatever you like, and Save writes your dials to a file. Saving over a shipped look writes a local copy that shadows it; delete the copy and the shipped file returns, the same way presets work.
 
 A theme carries a sketchstyle of its own, so a look travels with the theme that uses it.
 

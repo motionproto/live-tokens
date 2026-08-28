@@ -1,5 +1,27 @@
 # Changelog
 
+## 0.67.1 — The Napkin you tuned is the Napkin that ships
+
+### Changed
+
+- **Napkin's shipped dials match the look it was tuned to.** Four dials moved on
+  a theme's own copy of the sketchstyle and never reached the file the package
+  ships, so a project loading Napkin from the shipped set got a paler, softer
+  ballpoint than the one on screen. The ink floor lifts to 0.62 over a harder
+  mask edge, coverage runs to full, and instances vary a little less in size.
+
+- **Pencil's blurb says what the grain does.** It is drawn long and on the
+  diagonal, the way a pencil shades, which the old sentence left out.
+
+### Documentation
+
+- **The README covers sketch mode.** What the layer is, the seven shipped looks
+  with the blurb each one carries, seeding a built site from a theme, registering
+  your own sketchstyles at boot, building a picker, and the four classes the
+  layer reserves for elements you draw yourself. A test pins each blurb to the
+  README, so a look renamed or reworded here fails the suite until the page
+  catches up.
+
 ## 0.67.0 — Every sketchstyle is a file
 
 ### Added
