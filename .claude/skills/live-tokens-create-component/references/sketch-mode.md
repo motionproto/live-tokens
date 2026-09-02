@@ -85,9 +85,16 @@ preview of the hover state, and a hover the sketch layer cannot paint reads as
 no hover at all once the real background is transparent.
 
 An inner part that carries its own surface (a header strip, a footer) takes its
-own class and its own five values. Where such a part draws no outline, bind the
+own class and its own five values. The class is easy to forget, because the part
+already has its own values and looks finished without it — a part carrying only
+the values is left crisp, and reads as a hard-edged rectangle dropped inside a
+drawn box. No checker sees it. Where such a part draws no outline, bind the
 hatch ink to the ink its **parent** is outlined in, so the component reads as one
 drawing rather than a shaded panel dropped into a box:
+
+```svelte
+<span class="mywidget-header sketch-chip">{label}</span>
+```
 
 ```css
 .mywidget-header {

@@ -110,24 +110,41 @@ The sketch worry did not materialise. The title was explicitly crisp before
 (`--sketch-icon-off: none` on the SVG) and is crisp now, because the layer
 leaves body type alone.
 
-## 3. The consumer sketch opt-in — mechanically done, visual pass owed
+## 3. The consumer sketch opt-in — DONE, walked in the browser
 
-A scaffolded app under the scratchpad (`create`, then the packed tarball as its
-dependency) carries a throwaway `StatTile`: `sketch-chip` on the root, the five
-`--sketch-*` values on the frame, the `:hover` / `.force-hover` pair repainting
-fill and stroke, and an inner `.stattile-header` with its own five, a
-`transparent` stroke and the frame's ink as its hatch colour.
-`check-component stattile --strict` was clean on the first run.
+A scaffolded app on the published 0.72.0 carries a throwaway `StatTile`
+(`sketch-chip` on the root, the five `--sketch-*` values, a `:hover` /
+`.force-hover` pair, an inner header part) and renders three of them on Home.
+The checklist at the end of `references/sketch-mode.md`, walked:
 
-Install from a packed tarball, not `file:` at the working tree. A link leaves
-the package outside the app's root, and Vite denies the registry's
-`Badge.svelte?raw` reads under `server.fs.allow`. That failure is an artifact of
-the link and would never reach a real consumer, so it is worth not chasing.
+- Drawn, not crisp, in every variant — yes, and each instance on its own seed.
+- Its own colours, inner parts included — the frame paints its own surface and
+  border, the header its own surface, and the header's hatch ink resolves to the
+  frame's stroke exactly as the reference prescribes.
+- Hover repaints, wobble holds still — the outline goes to the brand ink and the
+  drawn silhouette is unchanged between the two shots.
+- Hatched fill uses the component's own ink — under the Hatched sketchstyle the
+  tile hatches in its own neutral while the Button beside it hatches in brand,
+  and the header shares the frame's ink, so the tile reads as one drawing.
+- Media at the drawn corners — not applicable, `StatTile` carries none.
+- Nothing that has to stay exact is torn — the overlay chrome's chevron and
+  pause glyphs stay crisp, which is `--sketch-icon-off: none` on the overlay.
+- Switched off, every trace gone and the component unchanged.
 
-What is left is the checklist at the end of `references/sketch-mode.md`, which is
-seven visual assertions and needs the browser: drawn in every variant, wearing
-its own colours, hover repaints while the wobble holds still, hatch ink belongs
-to the component, nothing torn, and every trace gone when it is switched off.
+**The one finding, now fixed in the reference.** The inner part was authored
+with its five `--sketch-*` values but no reserved class, and rendered as a
+hard-edged rectangle inside a drawn box. The prose said "its own class and its
+own five values"; the example under it showed only the CSS block, so the code
+did not show what the prose said. Nothing caught it: `check-component --strict`
+was clean, the registry contract passed, and the component looked finished. The
+example now carries the markup line too. This is the class of defect the
+checklist exists for, and the first one it has actually caught.
+
+Two notes for whoever drives this next. The editor viewport was 1800px wide
+while screenshots come back at 1450, so coordinate clicks land at a 0.8 scale
+and drift off a 36×20 switch; read the element's rect and click it directly.
+And sketch state lives in `localStorage` under `lt.sketch*`, so it survives a
+reload and is per-viewer.
 
 ## 4. Upgrade the consumer and run the skills there — DONE, commit not made
 
