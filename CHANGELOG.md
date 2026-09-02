@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.72.0 — The contract a consumer can run
 
 ### Added
 
@@ -30,16 +30,7 @@
   and `componentDirs`, which the CLI has read for some time while the plugin
   warned they were unknown keys.
 
-### Changed
-
-- **`registered` is read from the registry for shipped components too.** The
-  query assumed a component under `src/system/components` was registered, so
-  `live-tokens components` could name one the editor cannot open and
-  pick-component does not list. It now reads the package's own
-  `builtInRegistry`, the same parse `check-component` uses, which the two now
-  share. A component that is discovered but registered nowhere reports
-  `registered: false`, prints `(NOT registered)`, and is counted out of the
-  catalogue in the summary line.
+### Changed (breaking)
 
 - **`FloatingTokenTags` is demo artwork, not a shipped component.** It moved to
   `src/demo/`, so it leaves the published package, the component query and the
@@ -48,9 +39,7 @@
   it was only ever the hero animation of the demo, and it never had a
   `:global(:root)` block, an editor, or a registry entry.
 
-### Removed
-
-- **The SectionDivider title outline.** It was the only reason the title was an
+- **The SectionDivider title outline is removed.** It was the only reason the title was an
   SVG `<text>` behind a `feMorphology` filter rather than an element, and that
   SVG carried a `getBBox()` viewBox, a per-instance `MutationObserver` on the
   document's inline style (filter primitives cannot read a CSS var, so the
@@ -64,6 +53,17 @@
   `-title-outline-color` are dropped by a component-config migration; the
   `outlineWidthVariable` / `outlineColorVariable` rows on `TypeGroupConfig` go
   with them, since nothing else declared one.
+
+### Changed
+
+- **`registered` is read from the registry for shipped components too.** The
+  query assumed a component under `src/system/components` was registered, so
+  `live-tokens components` could name one the editor cannot open and
+  pick-component does not list. It now reads the package's own
+  `builtInRegistry`, the same parse `check-component` uses, which the two now
+  share. A component that is discovered but registered nowhere reports
+  `registered: false`, prints `(NOT registered)`, and is counted out of the
+  catalogue in the summary line.
 
 ### Fixed
 
