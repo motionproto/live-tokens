@@ -215,7 +215,7 @@
       >
         {#snippet extraPropertyRows(stateName)}
           {#if stateName === 'hover'}
-            <div class="property-row">
+            <div class="property-row" data-token-variables="--button-hover-tint-enabled">
               <span class="property-label">tint layer</span>
               <Toggle checked={tintOn} onchange={setTintOn} />
             </div>
@@ -225,7 +225,7 @@
                 <UIPaletteSelector variable="--button-hover-tint" {component} showNone={false} />
               </div>
             {/if}
-            <div class="property-row">
+            <div class="property-row" data-token-variables="--button-shimmer">
               <span class="property-label">hover shimmer</span>
               <Toggle checked={shimmerEnabled} onchange={handleShimmerChange} />
             </div>

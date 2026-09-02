@@ -192,7 +192,7 @@
       >
         {#snippet extraPropertyRows(stateName)}
           {#if stateName === 'hover'}
-            <div class="property-row">
+            <div class="property-row" data-token-variables="--iconbutton-hover-tint-enabled">
               <span class="property-label">tint layer</span>
               <Toggle checked={tintOn} onchange={setTintOn} />
             </div>

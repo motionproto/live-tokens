@@ -43,9 +43,13 @@
     ];
   }
 
+  // The label and its gap are shared by both variants, so their rows render
+  // once, under the single variant beside the type groups.
+  const labelGapToken: Token = { label: 'label gap', element: 'label', groupKey: 'label-gap', variable: '--slider-label-gap' };
+
   function variantStates(v: Variant): Record<string, Token[]> {
     return {
-      default: variantDefaultTokens(v),
+      default: v === 'single' ? [...variantDefaultTokens(v), labelGapToken] : variantDefaultTokens(v),
       hover: variantHoverTokens(v),
       disabled: variantDisabledTokens(v),
     };
@@ -77,7 +81,6 @@
   };
 
   const typeGroupTokens: Token[] = [
-    { label: 'label gap', groupKey: 'label-gap', variable: '--slider-label-gap' },
     { label: 'font family', canBeLinked: true, groupKey: 'label-font-family', variable: '--slider-label-font-family' },
     { label: 'font size', canBeLinked: true, groupKey: 'label-font-size', variable: '--slider-label-font-size' },
     { label: 'font weight', canBeLinked: true, groupKey: 'label-font-weight', variable: '--slider-label-font-weight' },
