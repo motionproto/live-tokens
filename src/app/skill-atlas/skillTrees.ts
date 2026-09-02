@@ -1309,10 +1309,10 @@ export const skillTrees: Record<string, SkillTree> = {
         "desc": "A spacing step, a stroke width, a column count, a moved import are mechanical, with any visible shift named. A colour by role, a type style, a dropped prop are choices to state, not make. A finding that looks deliberate gets the config entry that would record it.",
         "lines": [
           39,
-          55
+          61
         ],
         "anchor": "## Read it",
-        "anchorEnd": "`live-tokens.config.json`. Recording it is the user's call, not yours."
+        "anchorEnd": "not yours."
       },
       {
         "id": "cc2-report",
@@ -1321,8 +1321,8 @@ export const skillTrees: Record<string, SkillTree> = {
         "title": "Report in six parts, counts on every line",
         "desc": "Migrations, what fails now, what --strict adds, components, usage, then the recommended fixes in the order fix-findings would take them.",
         "lines": [
-          57,
-          68
+          63,
+          74
         ],
         "anchor": "## Report",
         "anchorEnd": "warnings. Mark each as mechanical or judgement."
@@ -1334,8 +1334,8 @@ export const skillTrees: Record<string, SkillTree> = {
         "title": "Hand off, edit nothing",
         "desc": "Run live-tokens-fix-findings to apply these. Not even a one-line fix is made here, because the user asked how things stand.",
         "lines": [
-          70,
-          72
+          76,
+          78
         ],
         "anchor": "End with the hand-off:",
         "anchorEnd": "one line, because the user asked how things stand."
@@ -2323,13 +2323,13 @@ export const skillTrees: Record<string, SkillTree> = {
         "row": 10,
         "kind": "step",
         "title": "Run the registry contract test",
-        "desc": "Five per-component checks: registration resolves, schema variables are unique, every editable token is declared in the runtime style block and seeded in default.json, and setComponentAlias round-trips. A first-party component is auto-covered the moment it lands in builtInRegistry.",
+        "desc": "Six per-component checks: registration resolves, schema variables are unique, every editable token is declared in the runtime style block and seeded in default.json, a declared opacity floor is honoured, and setComponentAlias round-trips. checkRegistryEntry runs them for a consumer's own components; a first-party one is auto-covered the moment it lands in builtInRegistry.",
         "lines": [
           233,
           235
         ],
-        "anchor": "**Then run the registry contract test.** If you're authoring",
-        "anchorEnd": "A new first-party component is auto-covered the moment it la"
+        "anchor": "**Then run the registry contract test.** `checkRegistryEntry`",
+        "anchorEnd": "Inside the package, `src/editor/component-editor/registryCon"
       },
       {
         "id": "cc-intr",

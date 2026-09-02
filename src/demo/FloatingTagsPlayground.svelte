@@ -1,5 +1,5 @@
 <script lang="ts">
-  import FloatingTokenTags from '../system/components/FloatingTokenTags.svelte';
+  import FloatingTokenTags from './FloatingTokenTags.svelte';
   import Badge from '../system/components/Badge.svelte';
 </script>
 

@@ -12,7 +12,7 @@
 
 import { existsSync, readFileSync, statSync } from 'node:fs';
 import { join, relative, resolve, basename } from 'node:path';
-import { lineOf } from './lib/findings.mjs';
+import { isExcluded, lineOf } from './lib/findings.mjs';
 import { blankStrings, hasColorLiteral, hasDimensionLiteral, stripVarFallbacks } from './lib/cssValues.mjs';
 import { isContractToken, loadVocabulary, walk } from './lib/tokenVocabulary.mjs';
 import { resolveTokensCssPath } from './migrate.mjs';
@@ -382,6 +382,7 @@ export function discoverPages(root) {
   return walk(src, ['.svelte', '.css', '.ts', '.js']).filter((f) => {
     const rel = relative(root, f);
     if (NOT_PAGES.some((d) => rel.startsWith(`${d}/`))) return false;
+    if (isExcluded(rel, root)) return false;
     if (f === tokensCss || TOKEN_SOURCES.includes(basename(f))) return false;
     if (/\.(test|spec)\.[tj]s$/.test(rel)) return false;
     if (rel.endsWith('.ts') || rel.endsWith('.js')) return /main\.(ts|js)$/.test(rel);
@@ -396,7 +397,7 @@ export function checkPages(targets, { root = process.cwd(), vocabulary } = {}) {
     const full = resolve(root, t);
     if (!existsSync(full)) continue;
     if (statSync(full).isDirectory()) {
-      files.push(...walk(full, ['.svelte', '.css']));
+      files.push(...walk(full, ['.svelte', '.css']).filter((f) => !isExcluded(relative(root, f), root)));
     } else {
       files.push(full);
     }

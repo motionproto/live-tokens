@@ -19,6 +19,10 @@ export interface LiveTokensFileConfig {
    * migrate` CLI has no plugin options, so it reads this key to locate the file.
    */
   tokensCssPath?: string;
+  /** Extra directories the component checkers and the registry query discover. */
+  componentDirs?: string[];
+  /** Checker settings: `rules` per-rule severities, `exclude` paths to skip. */
+  checks?: Record<string, unknown>;
 }
 
 export interface ResolveDataDirsInput {
@@ -50,6 +54,8 @@ const KNOWN_CONFIG_KEYS = new Set<keyof LiveTokensFileConfig>([
   'themesDir',
   'manifestsDir',
   'tokensCssPath',
+  'componentDirs',
+  'checks',
 ]);
 
 /**

@@ -306,6 +306,37 @@ describe('discoverPages skips the files that define the vocabulary', () => {
   });
 });
 
+describe('checks.exclude', () => {
+  it('drops a declared path from discovery, and a directory covers what is under it', () => {
+    const dir = mkdtempSync(join(tmpdir(), 'lt-page-'));
+    roots.push(dir);
+    mkdirSync(join(dir, 'src/pages'), { recursive: true });
+    mkdirSync(join(dir, 'src/art'), { recursive: true });
+    writeFileSync(join(dir, 'src/pages/Home.svelte'), '<div />');
+    writeFileSync(join(dir, 'src/art/hero.css'), '.hero { color: #abc; }');
+    writeFileSync(join(dir, 'src/banner.css'), '.banner { color: #def; }');
+    writeFileSync(
+      join(dir, 'live-tokens.config.json'),
+      JSON.stringify({ checks: { exclude: ['src/art', 'src/banner.css'] } }),
+    );
+    const found = discoverPages(dir).map((f: string) => f.slice(dir.length + 1));
+    expect(found).toEqual(['src/pages/Home.svelte']);
+  });
+
+  it('still checks an excluded file the caller names outright', () => {
+    const dir = mkdtempSync(join(tmpdir(), 'lt-page-'));
+    roots.push(dir);
+    mkdirSync(join(dir, 'src'), { recursive: true });
+    writeFileSync(join(dir, 'src/banner.css'), '.banner { color: #def; }');
+    writeFileSync(
+      join(dir, 'live-tokens.config.json'),
+      JSON.stringify({ checks: { exclude: ['src/banner.css'] } }),
+    );
+    const { findings } = checkPages(['src/banner.css'], { root: dir });
+    expect(findings.map((f: { rule: string }) => f.rule)).toContain('color-literal');
+  });
+});
+
 describe('the create template', () => {
   it('passes check-page under --strict', () => {
     const root = join(process.cwd(), 'template');

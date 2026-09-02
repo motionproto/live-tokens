@@ -38,5 +38,5 @@
     "--card-hover-border-enabled": "--card-default-border",
     "--card-hover-shadow-enabled": "--card-default-shadow"
   },
-  "schemaVersion": 25
+  "schemaVersion": 26
 }

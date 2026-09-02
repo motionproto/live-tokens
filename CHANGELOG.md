@@ -1,5 +1,82 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+- **The registry contract is a function a consumer can run.** The six
+  per-component checks that hold this package's own components — registration
+  resolves, schema variables are unique, every editable token is declared in
+  the runtime `<style>` and seeded in `default.json`, a declared `minOpacity`
+  is honoured, `setComponentAlias` round-trips — are now `checkRegistryEntry`,
+  exported from `@motion-proto/live-tokens/component-editor/contract`. It takes
+  one registry entry and returns a violation line per failure, so a project
+  outside this package holds its own components to the same contract with a
+  `describe.each` and one call. Paths resolve against `process.cwd()` and
+  `src/live-tokens/data/component-configs`, or the `projectRoot` and
+  `componentConfigsDir` passed in. Node-only, hence its own subpath.
+  `live-tokens-create-component` carries the test file in
+  `references/contract-tests.md`; filtering the registry on
+  `origin === 'custom'` is the line that matters, since the shipped entries
+  name paths relative to the package root.
+
+- **`"checks": { "exclude": [...] }` in `live-tokens.config.json`.** Paths the
+  checkers skip when they discover their own targets: a project-relative path,
+  a directory covering what is under it. For a file that is not a themed
+  surface at all — hand-tuned artwork, vendored CSS — where the only other way
+  out was downgrading a rule for the whole project. Naming the file on the
+  command line still checks it, so the escape hatch cannot hide a file from
+  someone looking straight at it. The dev plugin now also recognises `checks`
+  and `componentDirs`, which the CLI has read for some time while the plugin
+  warned they were unknown keys.
+
+### Changed
+
+- **`registered` is read from the registry for shipped components too.** The
+  query assumed a component under `src/system/components` was registered, so
+  `live-tokens components` could name one the editor cannot open and
+  pick-component does not list. It now reads the package's own
+  `builtInRegistry`, the same parse `check-component` uses, which the two now
+  share. A component that is discovered but registered nowhere reports
+  `registered: false`, prints `(NOT registered)`, and is counted out of the
+  catalogue in the summary line.
+
+- **`FloatingTokenTags` is demo artwork, not a shipped component.** It moved to
+  `src/demo/`, so it leaves the published package, the component query and the
+  count, which now agree with the registry at 26. **Breaking for anyone
+  importing `@motion-proto/live-tokens/components/FloatingTokenTags.svelte`;**
+  it was only ever the hero animation of the demo, and it never had a
+  `:global(:root)` block, an editor, or a registry entry.
+
+### Removed
+
+- **The SectionDivider title outline.** It was the only reason the title was an
+  SVG `<text>` behind a `feMorphology` filter rather than an element, and that
+  SVG carried a `getBBox()` viewBox, a per-instance `MutationObserver` on the
+  document's inline style (filter primitives cannot read a CSS var, so the
+  resolved width and colour had to be read back and pushed onto them by hand),
+  font-load listeners to re-measure, and a title that was neither selectable nor
+  findable. It shipped transparent in the default and in all eight presets, and
+  the trap-out it was built for is done by the layout: the `through-label`
+  hairlines flank the title in a flex row, so no rule ever runs behind the
+  glyphs. The title is now a span that inherits typography like every other
+  component's. `--sectiondivider-{lg,md,sm}-title-outline-width` and
+  `-title-outline-color` are dropped by a component-config migration; the
+  `outlineWidthVariable` / `outlineColorVariable` rows on `TypeGroupConfig` go
+  with them, since nothing else declared one.
+
+### Fixed
+
+- **A bare `-width`, `-height` or `-size` no longer renders a colour picker.**
+  The three sat in `KIND_RULES` under `surface`, so `--widget-panel-width` drew
+  a palette while the naming vocabulary documented it as geometry. They are now
+  a `length` kind, matched last among the geometry rules so `-border-width`,
+  `-divider-height`, `-icon-size` and the rest still claim their token first,
+  and drawn with the `--space-*` picker `-gap` uses. The suffix vocabulary is
+  unchanged, so no token is renamed and no project has to migrate. `adjust`
+  does not take the kind: its ladders are density and shape, and a panel width
+  is neither.
+
 ## 0.71.0 — Check this project
 
 ### Added

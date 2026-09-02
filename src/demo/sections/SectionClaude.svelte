@@ -11,7 +11,9 @@
     { icon: 'fas fa-cube', name: 'create-component' },
     { icon: 'fas fa-palette', name: 'generate-theme' },
     { icon: 'fas fa-font', name: 'pair-fonts' },
-    { icon: 'fas fa-ruler-combined', name: 'adjust-geometry' }
+    { icon: 'fas fa-ruler-combined', name: 'adjust-geometry' },
+    { icon: 'fas fa-clipboard-list', name: 'check-compliance' },
+    { icon: 'fas fa-check-double', name: 'fix-findings' }
   ];
 </script>
 
@@ -36,7 +38,7 @@
 
   <div class="copy">
     <p class="intro">
-      LiveTokens includes six skills to build new components, themes, and pages.
+      LiveTokens includes eight skills to build new components, themes, and pages, and to check what you have and bring it back into line.
     </p>
 
     <div class="install">

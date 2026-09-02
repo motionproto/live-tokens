@@ -29,5 +29,5 @@
     "--toggle-disabled-thumb-surface": "--surface-neutral",
     "--toggle-disabled-label-text": "--text-disabled"
   },
-  "schemaVersion": 25
+  "schemaVersion": 26
 }

@@ -52,7 +52,7 @@ test('a host-initiated theme load hydrates an already-open editor', async ({ pag
     });
   });
   await expect.poll(() => page.locator('.section-divider.variant-md').first().evaluate((divider) =>
-    getComputedStyle(divider.querySelector('svg.divider-label text')!).fontSize,
+    getComputedStyle(divider.querySelector('.divider-label')!).fontSize,
   )).toBe('51px');
 });
 

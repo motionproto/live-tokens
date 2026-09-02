@@ -140,10 +140,6 @@
                 lineHeightLabel={tg.lineHeightLabel ?? 'line height'}
                 letterSpacingVariable={tg.letterSpacingVariable}
                 letterSpacingLabel={tg.letterSpacingLabel ?? 'letter spacing'}
-                outlineWidthVariable={tg.outlineWidthVariable}
-                outlineWidthLabel={tg.outlineWidthLabel ?? 'outline thickness'}
-                outlineColorVariable={tg.outlineColorVariable}
-                outlineColorLabel={tg.outlineColorLabel ?? 'outline color'}
                 {component}
                 {onchange}
               />
@@ -183,10 +179,6 @@
           lineHeightLabel={tg.lineHeightLabel ?? 'line height'}
           letterSpacingVariable={tg.letterSpacingVariable}
           letterSpacingLabel={tg.letterSpacingLabel ?? 'letter spacing'}
-          outlineWidthVariable={tg.outlineWidthVariable}
-          outlineWidthLabel={tg.outlineWidthLabel ?? 'outline thickness'}
-          outlineColorVariable={tg.outlineColorVariable}
-          outlineColorLabel={tg.outlineColorLabel ?? 'outline color'}
           {component}
           {onchange}
         />

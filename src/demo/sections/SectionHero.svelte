@@ -1,7 +1,7 @@
 <script lang="ts">
   import { get } from 'svelte/store';
   import Button from '../../system/components/Button.svelte';
-  import FloatingTokenTags from '../../system/components/FloatingTokenTags.svelte';
+  import FloatingTokenTags from '../FloatingTokenTags.svelte';
   import { setEditorView } from '../../editor/core/store/editorViewStore';
   import { overlayOpen } from '../../editor/overlay/overlayState';
   import SourceLinks from '../SourceLinks.svelte';

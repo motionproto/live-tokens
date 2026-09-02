@@ -1,8 +1,4 @@
 <script lang="ts">
-  import { run } from 'svelte/legacy';
-
-  import { onMount, tick } from 'svelte';
-
   /** Size variant. Each variant owns everything that defines its style:
    *  typography, geometry, colors AND the intrinsic display properties
    *  (alignment, eyebrow visibility, description visibility, hairline
@@ -23,69 +19,6 @@
     eyebrow = undefined,
     variant = 'md',
   }: Props = $props();
-
-  let svgEl: SVGSVGElement | undefined = $state();
-  let svgTextEl: SVGTextElement | undefined = $state();
-  let svgW = $state(0);
-  let svgH = $state(0);
-  let svgX = $state(0);
-  let svgY = $state(0);
-
-  // feMorphology radius and feFlood flood-color are non-presentation attributes
-  // and can't read CSS vars. Read resolved values off the SVG element and push
-  // them onto the filter primitives, refreshing on doc-level inline-var changes.
-  let outlineRadius = $state('0');
-  let outlineColor = $state('#000');
-  const filterId = `sd-outline-${Math.random().toString(36).slice(2, 10)}`;
-
-  function syncFilter(): void {
-    if (!svgEl) return;
-    const cs = getComputedStyle(svgEl);
-    const wPx = parseFloat(cs.getPropertyValue('--_divider-title-outline-width'));
-    outlineRadius = String(Number.isFinite(wPx) ? wPx / 2 : 0);
-    const c = cs.getPropertyValue('--_divider-title-outline-color').trim();
-    outlineColor = c || '#000';
-  }
-
-  function measure(): void {
-    if (!svgTextEl) return;
-    const bb = svgTextEl.getBBox();
-    svgX = bb.x;
-    svgY = bb.y;
-    svgW = Math.ceil(bb.width);
-    svgH = Math.ceil(bb.height);
-  }
-
-  run(() => {
-    if (title) {
-      tick().then(() => { measure(); syncFilter(); });
-    }
-  });
-
-  onMount(() => {
-    let mounted = true;
-    const sync = () => { measure(); syncFilter(); };
-    measure();
-    syncFilter();
-    const obs = new MutationObserver(sync);
-    obs.observe(document.documentElement, { attributes: true, attributeFilter: ['style'] });
-
-    // A font-family variable changes before its webfont necessarily finishes
-    // loading. Re-run getBBox when the real face becomes available so the SVG
-    // viewBox and outline do not stay sized for the fallback font.
-    const fonts = document.fonts;
-    const onFontsLoaded = () => {
-      if (mounted) sync();
-    };
-    fonts?.addEventListener('loadingdone', onFontsLoaded);
-    void fonts?.ready.then(onFontsLoaded);
-
-    return () => {
-      mounted = false;
-      obs.disconnect();
-      fonts?.removeEventListener('loadingdone', onFontsLoaded);
-    };
-  });
 </script>
 
 <!-- In dev, render every variant-controlled block so the editor can flip
@@ -101,31 +34,7 @@
     <div class="title-row">
       <span class="sd-hairline sd-hairline--side sd-hairline-through-label" aria-hidden="true"></span>
       <span class="title-inline">
-        <svg
-          bind:this={svgEl}
-          class="divider-label"
-          width={svgW || undefined}
-          height={svgH || undefined}
-          viewBox={svgW && svgH ? `${svgX} ${svgY} ${svgW} ${svgH}` : undefined}
-          aria-label={title}
-          role="img"
-        >
-          <defs>
-            <filter id={filterId} x="-50%" y="-50%" width="200%" height="200%">
-              <feMorphology in="SourceAlpha" operator="dilate" radius={outlineRadius} result="dilated" />
-              <feFlood flood-color={outlineColor} result="color" />
-              <feComposite in="color" in2="dilated" operator="in" result="outline" />
-              <feComposite in="SourceGraphic" in2="outline" operator="over" />
-            </filter>
-          </defs>
-          <text
-            bind:this={svgTextEl}
-            x="0"
-            y="0"
-            dominant-baseline="hanging"
-            filter="url(#{filterId})"
-          >{title}</text>
-        </svg>
+        <span class="divider-label">{title}</span>
       </span>
       <span class="sd-hairline sd-hairline--side sd-hairline-through-label" aria-hidden="true"></span>
     </div>
@@ -153,31 +62,7 @@
       <span class="sd-hairline sd-hairline--side sd-hairline-through-label" aria-hidden="true"></span>
       <!--END_PRUNE-->
       <span class="title-inline">
-        <svg
-          bind:this={svgEl}
-          class="divider-label"
-          width={svgW || undefined}
-          height={svgH || undefined}
-          viewBox={svgW && svgH ? `${svgX} ${svgY} ${svgW} ${svgH}` : undefined}
-          aria-label={title}
-          role="img"
-        >
-          <defs>
-            <filter id={filterId} x="-50%" y="-50%" width="200%" height="200%">
-              <feMorphology in="SourceAlpha" operator="dilate" radius={outlineRadius} result="dilated" />
-              <feFlood flood-color={outlineColor} result="color" />
-              <feComposite in="color" in2="dilated" operator="in" result="outline" />
-              <feComposite in="SourceGraphic" in2="outline" operator="over" />
-            </filter>
-          </defs>
-          <text
-            bind:this={svgTextEl}
-            x="0"
-            y="0"
-            dominant-baseline="hanging"
-            filter="url(#{filterId})"
-          >{title}</text>
-        </svg>
+        <span class="divider-label">{title}</span>
       </span>
       <!--PRUNE_FOR sectiondivider hairline == through-label default=none-->
       <span class="sd-hairline sd-hairline--side sd-hairline-through-label" aria-hidden="true"></span>
@@ -221,7 +106,6 @@
     --sectiondivider-lg-title-font-size: var(--font-size-5xl);
     --sectiondivider-lg-title-line-height: var(--line-height-normal);
     --sectiondivider-lg-title-letter-spacing: var(--letter-spacing-normal);
-    --sectiondivider-lg-title-outline-width: var(--border-width-4);
     --sectiondivider-lg-description-font-family: var(--font-sans);
     --sectiondivider-lg-description-font-weight: var(--font-weight-medium);
     --sectiondivider-lg-description-font-size: var(--font-size-lg);
@@ -243,7 +127,6 @@
     --sectiondivider-lg-description: var(--text-alternate);
     --sectiondivider-lg-eyebrow: var(--text-brand);
     --sectiondivider-lg-border: var(--color-transparent);
-    --sectiondivider-lg-title-outline-color: var(--color-transparent);
     --sectiondivider-lg-hairline-color: var(--border-brand-medium);
 
     /* Medium */
@@ -252,7 +135,6 @@
     --sectiondivider-md-title-font-size: var(--font-size-4xl);
     --sectiondivider-md-title-line-height: var(--line-height-normal);
     --sectiondivider-md-title-letter-spacing: var(--letter-spacing-normal);
-    --sectiondivider-md-title-outline-width: var(--border-width-4);
     --sectiondivider-md-description-font-family: var(--font-sans);
     --sectiondivider-md-description-font-weight: var(--font-weight-medium);
     --sectiondivider-md-description-font-size: var(--font-size-lg);
@@ -274,7 +156,6 @@
     --sectiondivider-md-description: var(--text-secondary);
     --sectiondivider-md-eyebrow: var(--text-tertiary);
     --sectiondivider-md-border: var(--color-transparent);
-    --sectiondivider-md-title-outline-color: var(--color-transparent);
     --sectiondivider-md-hairline-color: var(--border-brand-medium);
 
     /* Small */
@@ -283,7 +164,6 @@
     --sectiondivider-sm-title-font-size: var(--font-size-3xl);
     --sectiondivider-sm-title-line-height: var(--line-height-normal);
     --sectiondivider-sm-title-letter-spacing: var(--letter-spacing-normal);
-    --sectiondivider-sm-title-outline-width: var(--border-width-4);
     --sectiondivider-sm-description-font-family: var(--font-sans);
     --sectiondivider-sm-description-font-weight: var(--font-weight-medium);
     --sectiondivider-sm-description-font-size: var(--font-size-5xl);
@@ -305,7 +185,6 @@
     --sectiondivider-sm-description: var(--text-secondary);
     --sectiondivider-sm-eyebrow: var(--text-tertiary);
     --sectiondivider-sm-border: var(--color-transparent);
-    --sectiondivider-sm-title-outline-color: var(--color-transparent);
     --sectiondivider-sm-hairline-color: color-mix(in srgb, var(--border-brand-medium) 50%, transparent);
 
     /* Intrinsic defaults. These keys cascade to `:root` via the editor's
@@ -361,7 +240,6 @@
     --_divider-title-font-size: var(--sectiondivider-lg-title-font-size);
     --_divider-title-line-height: var(--sectiondivider-lg-title-line-height);
     --_divider-title-letter-spacing: var(--sectiondivider-lg-title-letter-spacing);
-    --_divider-title-outline-width: var(--sectiondivider-lg-title-outline-width);
     --_divider-description-font-family: var(--sectiondivider-lg-description-font-family);
     --_divider-description-font-weight: var(--sectiondivider-lg-description-font-weight);
     --_divider-description-font-size: var(--sectiondivider-lg-description-font-size);
@@ -383,7 +261,6 @@
     --_divider-description: var(--sectiondivider-lg-description);
     --_divider-eyebrow: var(--sectiondivider-lg-eyebrow);
     --_divider-border: var(--sectiondivider-lg-border);
-    --_divider-title-outline-color: var(--sectiondivider-lg-title-outline-color);
     --_divider-hairline-color: var(--sectiondivider-lg-hairline-color);
     --_divider-align: var(--sectiondivider-lg-align);
     --_divider-eyebrow-display: var(--sectiondivider-lg-eyebrow-display);
@@ -398,7 +275,6 @@
     --_divider-title-font-size: var(--sectiondivider-md-title-font-size);
     --_divider-title-line-height: var(--sectiondivider-md-title-line-height);
     --_divider-title-letter-spacing: var(--sectiondivider-md-title-letter-spacing);
-    --_divider-title-outline-width: var(--sectiondivider-md-title-outline-width);
     --_divider-description-font-family: var(--sectiondivider-md-description-font-family);
     --_divider-description-font-weight: var(--sectiondivider-md-description-font-weight);
     --_divider-description-font-size: var(--sectiondivider-md-description-font-size);
@@ -420,7 +296,6 @@
     --_divider-description: var(--sectiondivider-md-description);
     --_divider-eyebrow: var(--sectiondivider-md-eyebrow);
     --_divider-border: var(--sectiondivider-md-border);
-    --_divider-title-outline-color: var(--sectiondivider-md-title-outline-color);
     --_divider-hairline-color: var(--sectiondivider-md-hairline-color);
     --_divider-align: var(--sectiondivider-md-align);
     --_divider-eyebrow-display: var(--sectiondivider-md-eyebrow-display);
@@ -435,7 +310,6 @@
     --_divider-title-font-size: var(--sectiondivider-sm-title-font-size);
     --_divider-title-line-height: var(--sectiondivider-sm-title-line-height);
     --_divider-title-letter-spacing: var(--sectiondivider-sm-title-letter-spacing);
-    --_divider-title-outline-width: var(--sectiondivider-sm-title-outline-width);
     --_divider-description-font-family: var(--sectiondivider-sm-description-font-family);
     --_divider-description-font-weight: var(--sectiondivider-sm-description-font-weight);
     --_divider-description-font-size: var(--sectiondivider-sm-description-font-size);
@@ -457,7 +331,6 @@
     --_divider-description: var(--sectiondivider-sm-description);
     --_divider-eyebrow: var(--sectiondivider-sm-eyebrow);
     --_divider-border: var(--sectiondivider-sm-border);
-    --_divider-title-outline-color: var(--sectiondivider-sm-title-outline-color);
     --_divider-hairline-color: var(--sectiondivider-sm-hairline-color);
     --_divider-align: var(--sectiondivider-sm-align);
     --_divider-eyebrow-display: var(--sectiondivider-sm-eyebrow-display);
@@ -535,27 +408,14 @@
       var(--sectiondivider-sm-eyebrow-padding-left, var(--sectiondivider-sm-eyebrow-padding, 0));
   }
 
-  /* Title rendered as a single <text> through a feMorphology dilate + flood +
-     composite filter. Dilating the alpha treats all glyphs as one combined
-     shape, so neighbor-glyph overlaps (CQ, AC etc.) merge into a single
-     outline instead of double-stacking. */
-  svg.divider-label {
+  .divider-label {
     display: block;
-    overflow: visible;
     color: var(--_divider-title);
-    /* The title is type that happens to be drawn as an SVG, so Sketch mode
-       reads it as one glyph and pushes it as far as it pushes a 16px icon.
-       At heading size any travel pulls the letters apart, so it stays crisp.
-       `none` drops the ink mask along with the displacement. */
-    --sketch-icon-off: none;
-  }
-  svg.divider-label text {
     font-family: var(--_divider-title-font-family);
     font-weight: var(--_divider-title-font-weight);
     font-size: var(--_divider-title-font-size);
     line-height: var(--_divider-title-line-height);
     letter-spacing: var(--_divider-title-letter-spacing);
-    fill: currentColor;
   }
 
   .title-row {

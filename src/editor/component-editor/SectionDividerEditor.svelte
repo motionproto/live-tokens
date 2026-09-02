@@ -36,25 +36,18 @@
       { label: 'hairline thickness', canBeLinked: true, groupKey: 'hairline-thickness', variable: `--sectiondivider-${v}-hairline-thickness`, element: 'hairline' },
     ];
   }
-  function titleOutlineTokens(v: Variant): Token[] {
-    return [
-      { label: 'outline thickness', canBeLinked: true, groupKey: 'title-outline-width', variable: `--sectiondivider-${v}-title-outline-width`, element: 'title' },
-      { label: 'outline color', canBeLinked: true, groupKey: 'title-outline-color', variable: `--sectiondivider-${v}-title-outline-color`, element: 'title' },
-    ];
-  }
   function backgroundTokens(v: Variant): Token[] {
     return [
       { label: 'background', groupKey: 'background', variable: `--sectiondivider-${v}-background`, kind: 'gradient', family: variants.find((x) => x.key === v)!.family },
     ];
   }
   function variantTokens(v: Variant): Token[] {
-    return [...containerTokens(v), ...hairlineTokens(v), ...titleOutlineTokens(v), ...backgroundTokens(v), ...typePaddingTokens(v)];
+    return [...containerTokens(v), ...hairlineTokens(v), ...backgroundTokens(v), ...typePaddingTokens(v)];
   }
   function stateTokens(v: Variant): Token[] {
     return [
       ...containerTokens(v),
       ...hairlineTokens(v),
-      ...titleOutlineTokens(v).map((t) => ({ ...t, hidden: true })),
       ...backgroundTokens(v).map((t) => ({ ...t, hidden: true })),
       ...typePaddingTokens(v),
     ];
@@ -72,8 +65,6 @@
         weightVariable: `--sectiondivider-${v}-title-font-weight`,
         lineHeightVariable: `--sectiondivider-${v}-title-line-height`,
         letterSpacingVariable: `--sectiondivider-${v}-title-letter-spacing`,
-        outlineWidthVariable: `--sectiondivider-${v}-title-outline-width`,
-        outlineColorVariable: `--sectiondivider-${v}-title-outline-color`,
       },
       {
         legend: '',
@@ -127,7 +118,6 @@
   const LINKED_GROUP_KEYS = [
     'container-padding', 'radius', 'border', 'border-width', 'shadow',
     'hairline-color', 'hairline-thickness',
-    'title-outline-width', 'title-outline-color',
     'title-color', 'description-color', 'eyebrow-color',
     'title-padding', 'description-padding', 'eyebrow-padding',
     'title-font-family', 'title-font-weight', 'title-line-height', 'title-letter-spacing',

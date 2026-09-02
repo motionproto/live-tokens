@@ -1,13 +1,11 @@
 <script lang="ts">
   import UIPaletteSelector from '../../ui/UIPaletteSelector.svelte';
-  import UIVariantSelector from '../../ui/UIVariantSelector.svelte';
   import UIFontFamilySelector from '../../ui/UIFontFamilySelector.svelte';
   import UIFontSizeSelector from '../../ui/UIFontSizeSelector.svelte';
   import UIFontWeightSelector from '../../ui/UIFontWeightSelector.svelte';
   import UILineHeightSelector from '../../ui/UILineHeightSelector.svelte';
   import UILetterSpacingSelector from '../../ui/UILetterSpacingSelector.svelte';
   import FieldsetWrapper from './FieldsetWrapper.svelte';
-  import { BORDER_WIDTH } from '../../ui/variantScales';
 
   
   
@@ -26,13 +24,6 @@
     lineHeightLabel?: string;
     letterSpacingVariable?: string | undefined;
     letterSpacingLabel?: string;
-    /** Optional outline rows rendered under the typography rows so a text-with-
-      stroke group keeps stroke controls visually nested with the type they
-      drive (e.g. SectionDivider title outline). */
-    outlineWidthVariable?: string | undefined;
-    outlineWidthLabel?: string;
-    outlineColorVariable?: string | undefined;
-    outlineColorLabel?: string;
     /** When set, writes persist through the editor store under this component. */
     component?: string | undefined;
     /** Legend text for the fieldset. */
@@ -54,10 +45,6 @@
     lineHeightLabel = 'line-h',
     letterSpacingVariable = undefined,
     letterSpacingLabel = 'letter-sp',
-    outlineWidthVariable = undefined,
-    outlineWidthLabel = 'outline thickness',
-    outlineColorVariable = undefined,
-    outlineColorLabel = 'outline color',
     component = undefined,
     legend = 'type',
     onchange,
@@ -88,14 +75,6 @@
     {#if letterSpacingVariable}
       <span class="row-label">{letterSpacingLabel}</span>
       <UILetterSpacingSelector variable={letterSpacingVariable} {component} canBeLinked {onchange} />
-    {/if}
-    {#if outlineWidthVariable}
-      <span class="row-label">{outlineWidthLabel}</span>
-      <UIVariantSelector variable={outlineWidthVariable} {component} canBeLinked {...BORDER_WIDTH} {onchange} />
-    {/if}
-    {#if outlineColorVariable}
-      <span class="row-label">{outlineColorLabel}</span>
-      <UIPaletteSelector variable={outlineColorVariable} {component} canBeLinked {onchange} />
     {/if}
   </div>
 </FieldsetWrapper>

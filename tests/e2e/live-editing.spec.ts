@@ -100,10 +100,7 @@ test('component controls repaint the host without save, adopt, or reload', async
     const fontSize = getComputedStyle(probe).fontSize;
     const titleColor = getComputedStyle(probe).color;
     probe.remove();
-    const borderWidth = parseFloat(
-      getComputedStyle(document.documentElement).getPropertyValue('--border-width-12'),
-    );
-    return { fontSize, outlineRadius: String(borderWidth / 2), titleColor };
+    return { fontSize, titleColor };
   });
 
   const selectOption = async (variable: string, label: string) => {
@@ -113,58 +110,49 @@ test('component controls repaint the host without save, adopt, or reload', async
   };
 
   await page.evaluate(() => ((window as any).__playwrightLiveMarker = 'still-here'));
-  const beforeSvg = await page.locator('.section-divider.variant-md').first().evaluate((divider) => {
-    const svg = divider.querySelector<SVGSVGElement>('svg.divider-label')!;
-    const text = svg.querySelector<SVGTextElement>('text')!;
+  const beforeTitle = await page.locator('.section-divider.variant-md').first().evaluate((divider) => {
+    const label = divider.querySelector<HTMLElement>('.divider-label')!;
     return {
-      height: svg.getBoundingClientRect().height,
-      textBoxHeight: text.getBBox().height,
-      fontSize: getComputedStyle(text).fontSize,
-      fill: getComputedStyle(text).fill,
+      height: label.getBoundingClientRect().height,
+      fontSize: getComputedStyle(label).fontSize,
+      color: getComputedStyle(label).color,
     };
   });
 
   await selectOption('--sectiondivider-md-title', 'Black');
   await expect.poll(() => page.locator('.section-divider.variant-md').first().evaluate((divider) => {
-    const text = divider.querySelector('svg.divider-label text')!;
+    const label = divider.querySelector('.divider-label')!;
     return {
       root: document.documentElement.style.getPropertyValue('--sectiondivider-md-title').trim(),
-      fill: getComputedStyle(text).fill,
+      color: getComputedStyle(label).color,
     };
-  })).toEqual({ root: 'var(--color-black)', fill: expected.titleColor });
+  })).toEqual({ root: 'var(--color-black)', color: expected.titleColor });
 
   await selectOption('--sectiondivider-md-title-font-size', '6XL');
   await expect.poll(() => page.locator('.section-divider.variant-md').first().evaluate((divider) => {
-    const svg = divider.querySelector<SVGSVGElement>('svg.divider-label')!;
-    const text = svg.querySelector<SVGTextElement>('text')!;
+    const label = divider.querySelector<HTMLElement>('.divider-label')!;
     return {
       root: document.documentElement.style.getPropertyValue('--sectiondivider-md-title-font-size').trim(),
-      fontSize: getComputedStyle(text).fontSize,
-      height: svg.getBoundingClientRect().height,
-      textBoxHeight: text.getBBox().height,
+      fontSize: getComputedStyle(label).fontSize,
+      height: label.getBoundingClientRect().height,
     };
   })).toEqual({
     root: 'var(--font-size-6xl)',
     fontSize: expected.fontSize,
     height: expect.any(Number),
-    textBoxHeight: expect.any(Number),
   });
 
-  const afterSvg = await page.locator('.section-divider.variant-md').first().evaluate((divider) => {
-    const svg = divider.querySelector<SVGSVGElement>('svg.divider-label')!;
-    const text = svg.querySelector<SVGTextElement>('text')!;
-    return { height: svg.getBoundingClientRect().height, textBoxHeight: text.getBBox().height };
-  });
-  expect(afterSvg.height).toBeGreaterThan(0);
-  expect(afterSvg.textBoxHeight).toBeGreaterThan(0);
-  expect(afterSvg.height).not.toBe(beforeSvg.height);
-  expect(afterSvg.textBoxHeight).not.toBe(beforeSvg.textBoxHeight);
+  const afterTitle = await page.locator('.section-divider.variant-md').first().evaluate((divider) =>
+    divider.querySelector<HTMLElement>('.divider-label')!.getBoundingClientRect().height,
+  );
+  expect(afterTitle).toBeGreaterThan(0);
+  expect(afterTitle).not.toBe(beforeTitle.height);
 
   // Spring Meadow's display face is Comfortaa, which ships 300..700, so the
   // weight selector disables Black. Semibold is a real face and differs from
   // the theme's own Bold, which is what this assertion needs.
   await selectOption('--sectiondivider-md-title-font-weight', 'Semibold');
-  await selectOption('--sectiondivider-md-title-outline-width', '12px');
+  await selectOption('--sectiondivider-md-hairline-thickness', '12px');
 
   await expect.poll(() => page.evaluate(() => {
     const root = document.documentElement.style;
@@ -172,32 +160,27 @@ test('component controls repaint the host without save, adopt, or reload', async
       color: root.getPropertyValue('--sectiondivider-md-title').trim(),
       weight: root.getPropertyValue('--sectiondivider-md-title-font-weight').trim(),
       size: root.getPropertyValue('--sectiondivider-md-title-font-size').trim(),
-      outline: root.getPropertyValue('--sectiondivider-md-title-outline-width').trim(),
+      hairline: root.getPropertyValue('--sectiondivider-md-hairline-thickness').trim(),
     };
   })).toEqual({
     color: 'var(--color-black)',
     weight: 'var(--font-weight-semibold)',
     size: 'var(--font-size-6xl)',
-    outline: 'var(--border-width-12)',
+    hairline: 'var(--border-width-12)',
   });
 
   const rendered = await page.locator('.section-divider.variant-md').first().evaluate((divider) => {
-    const text = divider.querySelector('svg.divider-label text')!;
-    const morphology = divider.querySelector('feMorphology')!;
+    const label = divider.querySelector('.divider-label')!;
     return {
-      color: getComputedStyle(text).color,
-      fill: getComputedStyle(text).fill,
-      fontWeight: getComputedStyle(text).fontWeight,
-      fontSize: getComputedStyle(text).fontSize,
-      outlineRadius: morphology.getAttribute('radius'),
+      color: getComputedStyle(label).color,
+      fontWeight: getComputedStyle(label).fontWeight,
+      fontSize: getComputedStyle(label).fontSize,
     };
   });
   expect(rendered).toEqual({
     color: expected.titleColor,
-    fill: expected.titleColor,
     fontWeight: '600',
     fontSize: expected.fontSize,
-    outlineRadius: expected.outlineRadius,
   });
   expect(await page.evaluate(() => (window as any).__playwrightLiveMarker)).toBe('still-here');
   expect(await page.evaluate(() => performance.getEntriesByType('navigation').length)).toBe(1);
@@ -215,10 +198,7 @@ test('literal, token-opacity, gradient, intrinsic, padding, font, undo, and redo
     editor.setComponentAlias('sectiondivider', '--sectiondivider-md-title-font-size', {
       kind: 'literal', value: '52px',
     });
-    editor.setComponentAlias('sectiondivider', '--sectiondivider-md-title-outline-width', {
-      kind: 'literal', value: '12px',
-    });
-    editor.setComponentAlias('sectiondivider', '--sectiondivider-md-title-outline-color', {
+    editor.setComponentAlias('sectiondivider', '--sectiondivider-md-hairline-color', {
       kind: 'token', name: '--color-danger-600', opacity: 36,
     });
     editor.setComponentAlias('sectiondivider', '--sectiondivider-md-background', {
@@ -275,8 +255,7 @@ test('literal, token-opacity, gradient, intrinsic, padding, font, undo, and redo
     const names = [
       '--sectiondivider-md-title-font-weight',
       '--sectiondivider-md-title-font-size',
-      '--sectiondivider-md-title-outline-width',
-      '--sectiondivider-md-title-outline-color',
+      '--sectiondivider-md-hairline-color',
       '--sectiondivider-md-background',
       '--sectiondivider-md-description-display',
       '--font-display',
@@ -291,7 +270,7 @@ test('literal, token-opacity, gradient, intrinsic, padding, font, undo, and redo
   });
 
   expect(roots.same).toBe(true);
-  expect(roots.values['--sectiondivider-md-title-outline-color'])
+  expect(roots.values['--sectiondivider-md-hairline-color'])
     .toBe('color-mix(in srgb, var(--color-danger-600) 36%, transparent)');
   expect(roots.values['--sectiondivider-md-background']).toContain('linear-gradient(90deg');
   expect(roots.values['--sectiondivider-md-background']).toContain('40%');
@@ -300,22 +279,14 @@ test('literal, token-opacity, gradient, intrinsic, padding, font, undo, and redo
   expect(roots.selfFontNode && roots.hostFontNode).toBe(true);
   expect(roots.undoValue).not.toBe('7px');
 
-  const resolvedDanger = await page.evaluate(() =>
-    getComputedStyle(document.documentElement).getPropertyValue('--color-danger-600').trim(),
-  );
-
   await expect.poll(() => page.locator('.section-divider.variant-md').first().evaluate((divider) => {
-    const text = divider.querySelector('svg.divider-label text')!;
+    const label = divider.querySelector('.divider-label')!;
     const titleRow = divider.querySelector('.title-row')!;
     const description = divider.querySelector('.description-row')!;
-    const morphology = divider.querySelector('feMorphology')!;
-    const flood = divider.querySelector('feFlood')!;
     const style = getComputedStyle(divider);
     return {
-      fontWeight: getComputedStyle(text).fontWeight,
-      fontSize: getComputedStyle(text).fontSize,
-      outlineRadius: morphology.getAttribute('radius'),
-      outlineColor: flood.getAttribute('flood-color'),
+      fontWeight: getComputedStyle(label).fontWeight,
+      fontSize: getComputedStyle(label).fontSize,
       background: style.backgroundImage,
       padding: getComputedStyle(titleRow).padding,
       descriptionDisplay: getComputedStyle(description).display,
@@ -323,8 +294,6 @@ test('literal, token-opacity, gradient, intrinsic, padding, font, undo, and redo
   })).toEqual({
     fontWeight: '800',
     fontSize: '52px',
-    outlineRadius: '6',
-    outlineColor: `color-mix(in srgb, ${resolvedDanger} 36%, transparent)`,
     background: expect.stringContaining('linear-gradient'),
     padding: '11px 13px 17px 19px',
     descriptionDisplay: 'none',

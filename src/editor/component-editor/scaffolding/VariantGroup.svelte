@@ -105,7 +105,7 @@
 
   let activeTab: string = $state('');
 
-  const TYPE_PROPS = ['colorVariable', 'familyVariable', 'sizeVariable', 'weightVariable', 'lineHeightVariable', 'letterSpacingVariable', 'outlineWidthVariable', 'outlineColorVariable'] as const;
+  const TYPE_PROPS = ['colorVariable', 'familyVariable', 'sizeVariable', 'weightVariable', 'lineHeightVariable', 'letterSpacingVariable'] as const;
   // Carry per-side derived vars so split padding fully transfers; no-op when absent.
   const PADDING_SIDES = ['top', 'right', 'bottom', 'left'] as const;
 
@@ -147,7 +147,7 @@
 
   /** TypeGroup props whose values are color tokens; preserve-color-families
       skips these in the typeGroups copy loop. */
-  const COLOR_TYPE_PROPS = new Set(['colorVariable', 'outlineColorVariable']);
+  const COLOR_TYPE_PROPS = new Set(['colorVariable']);
 
   /** True iff `colorRef` is a CSS-var token whose slug contains `family`
       as a hyphen-delimited segment (e.g. `--surface-canvas-low` ∋ `canvas`). */
