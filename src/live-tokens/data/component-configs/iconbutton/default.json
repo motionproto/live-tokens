@@ -88,5 +88,5 @@
     "--iconbutton-small-padding": "--space-6",
     "--iconbutton-small-icon-size": "--icon-size-sm"
   },
-  "schemaVersion": 25
+  "schemaVersion": 26
 }

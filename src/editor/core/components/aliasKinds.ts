@@ -7,6 +7,7 @@ export type TokenKind =
   | 'divider-height'
   | 'divider-inset'
   | 'dot-size'
+  | 'length'
   | 'blur'
   | 'scale'
   | 'shadow'
@@ -60,11 +61,14 @@ export const KIND_RULES: ReadonlyArray<{
   { kind: 'border-width',   suffix: ['-border-width', '-accent-width', '-hairline-thickness', '-thickness'],
                             prefix: ['--border-width-'] },
   { kind: 'border',         suffix: ['-border'], prefix: ['--border-'] },
+  // A dimension with no more specific name behind it — a panel's width, an
+  // avatar's size. Last of the geometry rules, so every `-border-width`,
+  // `-divider-height`, `-icon-size` and the rest claim their token first.
+  { kind: 'length',         suffix: ['-width', '-height', '-size'] },
   // Fills. A tint is a wash over a surface, so it takes the surface picker: the
   // full palette with an alpha, not just the tint stops it defaults to.
   { kind: 'surface',        suffix: ['-surface', '-fill', '-divider', '-background', '-indicator',
-                                     '-thumb', '-accent', '-color', '-tint', '-opacity',
-                                     '-width', '-height', '-size'],
+                                     '-thumb', '-accent', '-color', '-tint', '-opacity'],
                             prefix: ['--surface-', '--tint', '--color-'] },
 ];
 

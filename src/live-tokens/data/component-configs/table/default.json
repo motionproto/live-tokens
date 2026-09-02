@@ -31,5 +31,5 @@
     "--table-default-column-divider": "--border-neutral-faint",
     "--table-default-column-divider-width": "--border-width-1"
   },
-  "schemaVersion": 25
+  "schemaVersion": 26
 }

@@ -31,6 +31,23 @@ export function readChecksConfig(root) {
 }
 
 /**
+ * `checks.exclude` in live-tokens.config.json: paths the checkers do not read
+ * when they discover their own targets. Each entry is a project-relative path;
+ * a directory entry covers everything under it. For a file that is not a themed
+ * surface — hand-tuned artwork, vendored CSS — where the alternative is
+ * downgrading a rule for the whole project. Naming the file explicitly on the
+ * command line still checks it.
+ */
+export function isExcluded(relPath, root) {
+  const list = readChecksConfig(root).exclude;
+  if (!Array.isArray(list)) return false;
+  return list.some((entry) => {
+    const e = String(entry).replace(/\/+$/, '');
+    return relPath === e || relPath.startsWith(`${e}/`);
+  });
+}
+
+/**
  * Parse `--off=a,b --warn=c --error=d --strict --json` out of argv.
  * Unrecognised flags are returned in `rest` for the caller to handle.
  */

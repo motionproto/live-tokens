@@ -52,5 +52,5 @@
     "--slider-value-font-weight": "--font-weight-normal",
     "--slider-value-line-height": "--line-height-normal"
   },
-  "schemaVersion": 25
+  "schemaVersion": 26
 }

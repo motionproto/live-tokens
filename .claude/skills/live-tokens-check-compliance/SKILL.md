@@ -52,7 +52,13 @@ in a line what the rule holds and which of two kinds the fix is:
 Where a finding looks deliberate, a translucent overlay on an app shell or a
 layout size the project owns, say so and name the config entry that would
 record the decision: `"checks": { "rules": { "<rule>": "warn" } }` in
-`live-tokens.config.json`. Recording it is the user's call, not yours.
+`live-tokens.config.json`. Where a whole file is not a themed surface at all,
+hand-tuned artwork or vendored CSS, the entry is
+`"checks": { "exclude": ["src/art/hero.css"] }` — a project-relative path, a
+directory covering what is under it, and naming the file on the command line
+still checks it. Prefer the narrower one: an exclusion drops one file, a
+severity change drops a rule everywhere. Recording either is the user's call,
+not yours.
 
 ## Report
 

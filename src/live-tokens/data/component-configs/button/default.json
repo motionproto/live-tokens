@@ -116,5 +116,5 @@
     "--button-small-text-line-height": "--line-height-tighter",
     "--button-small-icon-size": "--font-size-xs"
   },
-  "schemaVersion": 25
+  "schemaVersion": 26
 }

@@ -22,5 +22,5 @@
     "--progressbar-value-font-weight": "--font-weight-normal",
     "--progressbar-value-line-height": "--line-height-normal"
   },
-  "schemaVersion": 25
+  "schemaVersion": 26
 }

@@ -55,5 +55,5 @@
     "--input-error-font-weight": "--font-weight-medium",
     "--input-error-line-height": "--line-height-tighter"
   },
-  "schemaVersion": 25
+  "schemaVersion": 26
 }

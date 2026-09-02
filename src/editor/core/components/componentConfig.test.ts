@@ -176,7 +176,7 @@ describe('component config — load/save lifecycle', () => {
       '--sectiondivider-md-title-letter-spacing': '--letter-spacing-normal',
       '--sectiondivider-md-eyebrow-letter-spacing': '--letter-spacing-wide',
       '--sectiondivider-md-title': '--color-brand-700',
-      '--sectiondivider-md-title-outline-color': 'color-mix(in srgb, var(--color-white) 34%, transparent)',
+      '--sectiondivider-md-hairline-color': 'color-mix(in srgb, var(--color-white) 34%, transparent)',
     };
 
     // Embedded component snapshots written before schema stamps existed are

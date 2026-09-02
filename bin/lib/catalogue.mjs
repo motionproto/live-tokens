@@ -44,7 +44,7 @@ export function describeComponents(vocab, { root = process.cwd() } = {}) {
       name: entry.name,
       origin: entry.origin,
       file: relative(root, entry.file),
-      registered: entry.origin === 'shipped' || vocab.registered.has(entry.id),
+      registered: vocab.builtIn.has(entry.id) || vocab.registered.has(entry.id),
       description: descriptionOf(source),
       variants: entry.props?.enums.get('variant') ? [...entry.props.enums.get('variant')] : [],
       props,
@@ -99,7 +99,11 @@ export function formatComponents(list, { id } = {}) {
     if (c.description) lines.push(`${''.padEnd(29)} ${c.description}`);
   }
   lines.push('');
-  lines.push(`${list.length} component(s). \`live-tokens components <id>\` prints one with its props and tokens.`);
+  const unregistered = list.filter((c) => !c.registered).length;
+  lines.push(
+    `${list.length} component(s)${unregistered ? `, ${unregistered} not registered and so not in the catalogue` : ''}. ` +
+      '`live-tokens components <id>` prints one with its props and tokens.',
+  );
   return lines.join('\n');
 }
 

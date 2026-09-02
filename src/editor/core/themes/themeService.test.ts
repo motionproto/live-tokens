@@ -47,7 +47,7 @@ describe('applyTheme', () => {
         createdAt: 'x',
         updatedAt: 'x',
         aliases: {
-          '--sectiondivider-lg-title-outline-color': '--color-danger-600',
+          '--sectiondivider-lg-hairline-color': '--color-danger-600',
         },
       },
     };
@@ -80,10 +80,10 @@ describe('applyTheme', () => {
     expect(get(openThemeSlug)).toBe('spring-meadow');
     expect(get(liveMovedSinceBake)).toBe(false);
     expect(state.cssVars['--loaded-color']).toBe('#74c67a');
-    expect(state.components.sectiondivider.aliases['--sectiondivider-lg-title-outline-color'])
+    expect(state.components.sectiondivider.aliases['--sectiondivider-lg-hairline-color'])
       .toEqual({ kind: 'token', name: '--color-danger-600' });
     expect(document.documentElement.style.getPropertyValue('--loaded-color')).toBe('#74c67a');
-    expect(document.documentElement.style.getPropertyValue('--sectiondivider-lg-title-outline-color'))
+    expect(document.documentElement.style.getPropertyValue('--sectiondivider-lg-hairline-color'))
       .toBe('var(--color-danger-600)');
     expect(batches).toHaveBeenCalledTimes(1);
   });

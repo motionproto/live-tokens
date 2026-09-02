@@ -69,9 +69,7 @@ export type IntrinsicSpec = {
 
 /** Editor type-group: a fieldset containing a coordinated set of typography tokens
     (text color + font-family/size/weight/line-height) for a piece of content
-    (e.g. a card title, notification body). Optional outline rows let
-    text-with-stroke groups (e.g. SectionDivider title) keep their stroke
-    width/color visually nested with the typography that drives them. */
+    (e.g. a card title, notification body). */
 export type TypeGroupConfig = {
   legend?: string;
   colorVariable: string;
@@ -89,10 +87,6 @@ export type TypeGroupConfig = {
   lineHeightLabel?: string;
   letterSpacingVariable?: string;
   letterSpacingLabel?: string;
-  outlineWidthVariable?: string;
-  outlineWidthLabel?: string;
-  outlineColorVariable?: string;
-  outlineColorLabel?: string;
   /** Explicit groupKey for this group's color token. Wins over every derivation
       (structural or `groupKeyFor`) and is never recomputed — the durable, one-line
       fix when the derived key is wrong. */

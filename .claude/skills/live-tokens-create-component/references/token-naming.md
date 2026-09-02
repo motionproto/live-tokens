@@ -64,6 +64,12 @@ to that list, so the two cannot drift apart.
 | `-padding`      | Internal spacing                                              |
 | `-gap`          | Spacing between sibling elements                              |
 
+`-width`, `-height` and `-size` are the fall-through: any dimension with no
+more specific name behind it. They read the `--space-*` scale through the same
+picker `-gap` uses, and they match last, so `-border-width`, `-divider-height`,
+`-icon-size` and the rest claim their token first. Reach for the specific name
+when one fits; a stroke is `-border-width` even where the CSS says `outline:`.
+
 ## Typography
 
 | Suffix             | Meaning                  |

@@ -75,7 +75,8 @@ Both check commands accept:
   --strict                    Treat warnings as errors
   --off=<rule,...>            Silence rules; --warn=/--error= change severity
                               (or set "checks": { "rules": {...} } in
-                              live-tokens.config.json)
+                              live-tokens.config.json; "checks": { "exclude":
+                              [...] } drops paths from discovery entirely)
   generate-theme <brief.json> [--no-activate] [--dry-run] [--carry-from <name>]
                               Build a full theme from a 10-seed OKLCH brief
                               (see the live-tokens-generate-theme skill),

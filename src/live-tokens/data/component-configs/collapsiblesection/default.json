@@ -70,5 +70,5 @@
     "--collapsiblesection-container-expanded-surface": "--surface-neutral-higher",
     "--collapsiblesection-container-expanded-padding": "--space-4"
   },
-  "schemaVersion": 25
+  "schemaVersion": 26
 }

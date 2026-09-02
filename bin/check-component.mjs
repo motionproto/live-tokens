@@ -23,7 +23,7 @@ import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { extname, join, relative } from 'node:path';
 import { hasColorLiteral, hasDimensionLiteral, stripVarFallbacks } from './lib/cssValues.mjs';
 import { lineOf } from './lib/findings.mjs';
-import { PKG_ROOT, declaredCustomProperties, extractGlobalRootBlocks, isContractToken, loadVocabulary } from './lib/tokenVocabulary.mjs';
+import { PKG_ROOT, builtInIds, declaredCustomProperties, extractGlobalRootBlocks, isContractToken, loadVocabulary } from './lib/tokenVocabulary.mjs';
 
 export const COMPONENT_RULES = {
   'invalid-id': 'error',
@@ -71,18 +71,9 @@ function readKnownSuffixes(root) {
   return [];
 }
 
-const BUILT_IN_REGISTRY = 'src/editor/component-editor/registry.ts';
-
 /** True when `id` is one of the package's own components. */
 function isBuiltIn(id) {
-  for (const base of [PKG_ROOT, process.cwd()]) {
-    const path = join(base, BUILT_IN_REGISTRY);
-    if (!existsSync(path)) continue;
-    const src = readFileSync(path, 'utf8');
-    const block = src.match(/builtInRegistry[^=]*=\s*Object\.freeze\(\{([\s\S]*?)\n\}\);/);
-    if (block && new RegExp(`\\bid:\\s*'${id}'`).test(block[1])) return true;
-  }
-  return false;
+  return builtInIds(process.cwd(), PKG_ROOT).has(id);
 }
 
 // Per-side padding names (`--card-body-padding-top`) are written by the padding

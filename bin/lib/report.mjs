@@ -61,7 +61,7 @@ export function buildReport(vocab, { root = process.cwd() } = {}) {
       name: c.name,
       origin: c.origin,
       file: relative(root, c.file),
-      registered: c.origin === 'shipped' || vocab.registered.has(c.id),
+      registered: vocab.builtIn.has(c.id) || vocab.registered.has(c.id),
       described: /^\s*<!--[\s\S]*?-->/.test(source),
       tokens: c.tokens.size,
       unread: unreadTokens(source, c.tokens.keys()),

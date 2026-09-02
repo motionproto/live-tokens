@@ -72,6 +72,7 @@
     'divider-height',
     'divider-inset',
     'dot-size',
+    'length',
     'radius',
     'padding',
     'padding-split',
@@ -150,6 +151,9 @@
       extra: () => ({ mode: 'sides' }),
     },
     'gap': { component: UIPaddingSelector, extra: () => ({ mode: 'single', splittable: false }) },
+    /* A bare width/height/size is a length off the same `--space-*` scale gap
+       reads from, so it takes gap's picker rather than a scale of its own. */
+    'length': { component: UIPaddingSelector, extra: () => ({ mode: 'single', splittable: false }) },
     'duration': { component: UIVariantSelector, extra: () => ({ ...DURATION }) },
     'easing': { component: UIEasingSelector },
     'blur': { component: UIVariantSelector, extra: () => ({ ...BLUR }) },
@@ -176,6 +180,7 @@
       'divider-height',
       'divider-inset',
       'dot-size',
+      'length',
       'radius',
       'padding',
       'padding-split',

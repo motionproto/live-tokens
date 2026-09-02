@@ -72,6 +72,10 @@
       "types": "./src/editor/component-editor/index.ts",
       "default": "./src/editor/component-editor/index.ts"
     },
+    "./component-editor/contract": {
+      "types": "./src/editor/component-editor/contract.ts",
+      "default": "./src/editor/component-editor/contract.ts"
+    },
     "./ui": {
       "svelte": "./src/editor/ui/index.ts",
       "types": "./src/editor/ui/index.ts",

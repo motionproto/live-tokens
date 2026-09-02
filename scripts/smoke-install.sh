@@ -111,6 +111,11 @@ echo "→ Installing tarball + deps…"
 # if this install starts failing on peers again, that regression is back.)
 (cd "$SMOKE_DIR" && npm install --silent --no-audit --no-fund --loglevel=error)
 
+echo "→ Resolving the contract subpath…"
+# The registry contract is the one export a consumer reaches only from a test
+# file, so no build here would notice an exports-map typo.
+(cd "$SMOKE_DIR" && node -p "require.resolve('$PKG_NAME/component-editor/contract')" > /dev/null)
+
 echo "→ Building consumer…"
 (cd "$SMOKE_DIR" && npx --no-install vite build)
 

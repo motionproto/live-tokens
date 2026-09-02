@@ -176,8 +176,7 @@ inherits, so one declaration covers everything under it:
 
 Travel is stated in px against a glyph whose size the layer cannot know, so the
 dial that suits a card's worth of artwork tears a 16px icon apart. Reach for the
-soft bank before reaching for `none`. The shipped `SectionDivider` is the worked
-example.
+soft bank before reaching for `none`.
 
 ## First-party components
 

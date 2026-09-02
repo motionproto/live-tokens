@@ -164,6 +164,24 @@ function componentFiles(roots) {
   return files;
 }
 
+/** The package's own component ids, read from the frozen registry that declares
+    them. A shipped component is registered by the package rather than by the
+    project, so it never appears in the project's own `registerComponent` scan. */
+const BUILT_IN_REGISTRY = 'src/editor/component-editor/registry.ts';
+
+export function builtInIds(root = process.cwd(), pkgRoot = PKG_ROOT) {
+  const ids = new Set();
+  for (const base of [pkgRoot, root]) {
+    const path = join(base, BUILT_IN_REGISTRY);
+    if (!existsSync(path)) continue;
+    const block = readFileSync(path, 'utf8')
+      .match(/builtInRegistry[^=]*=\s*Object\.freeze\(\{([\s\S]*?)\n\}\);/);
+    if (!block) continue;
+    for (const m of block[1].matchAll(/\bid:\s*'([a-z][a-z0-9]*)'/g)) ids.add(m[1]);
+  }
+  return ids;
+}
+
 function registeredIds(root) {
   const ids = new Set();
   for (const file of walk(join(root, 'src'), ['.ts', '.js', '.mjs', '.svelte'])) {
@@ -223,12 +241,14 @@ export function loadVocabulary({ root = process.cwd(), pkgRoot = PKG_ROOT } = {}
     });
   }
   const registered = registeredIds(root);
+  const builtIn = builtInIds(root, pkgRoot);
 
   return {
     themeTokens,
     componentTokens,
     components,
     registered,
+    builtIn,
     tokensCssPath,
     /** True when `name` resolves to something real at runtime. */
     knows(name) {

@@ -651,8 +651,9 @@ describe('migration runner — schemaVersion gating', () => {
       expect(out[`--sectiondivider-${v}-title`]).toBe('--text-primary');
       expect(out[`--sectiondivider-${v}-title-font-family`]).toBe('--font-display');
       expect(out[`--sectiondivider-${v}-title-font-size`]).toBe('--font-size-5xl');
-      expect(out[`--sectiondivider-${v}-title-outline-width`]).toBe('--border-width-4'); // renamed from -title-border-width
-      expect(out[`--sectiondivider-${v}-title-outline-color`]).toBe('--surface-canvas-lowest'); // renamed from -title-stroke-color
+      // Seeded here, then dropped again by 2026-09-02-sectiondivider-drop-title-outline.
+      expect(out[`--sectiondivider-${v}-title-outline-width`]).toBeUndefined();
+      expect(out[`--sectiondivider-${v}-title-outline-color`]).toBeUndefined();
       expect(out[`--sectiondivider-${v}-description`]).toBe('--text-secondary');
       expect(out[`--sectiondivider-${v}-radius`]).toBe('--radius-lg');
       expect(out[`--sectiondivider-${v}-shadow`]).toBe('--shadow-none');
