@@ -1,5 +1,37 @@
 # Changelog
 
+## 0.72.1 — The compliance skills have a spine
+
+### Changed
+
+- **`live-tokens-check-compliance` and `live-tokens-fix-findings` open with a
+  numbered workflow**, the same spine the other six skills have: run the
+  command, read the result, apply the recipe, re-run, hand off. Both were
+  prose-first, so a reader (and the Skill Atlas that draws them) had no steps,
+  no gate, and no hand-off to find. fix-findings now also covers the four
+  wiring rules its table skipped (`invalid-id`, `no-tokens`,
+  `missing-component-const`, `missing-all-tokens`).
+
+- **`live-tokens-create-component` is 189 lines, down from 247.** The
+  standalone Toggle walkthrough is folded into the worked-examples list, the
+  verification checklist no longer restates the checker step, and the
+  registration caveat is shorter. Nothing a consumer needs to author a
+  component was removed.
+
+- **The sketch reference's inner-part example carries its reserved class.**
+  The prose said a drawn part takes its own class and its own five
+  `--sketch-*` values; the code under it showed only the CSS, so a part
+  authored from the example was left crisp inside a drawn box.
+
+### Fixed
+
+- **`live-tokens-build-page` no longer promises a Cmd+G shortcut.** There is
+  none; the columns overlay is the vertical-lines button in the overlay's
+  header.
+
+- **`live-tokens-pick-component` no longer lists `Slider` as a component the
+  catalogue lacks.** It shipped in 0.71.0.
+
 ## 0.72.0 — The contract a consumer can run
 
 ### Added
