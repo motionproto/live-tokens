@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.69.0 — Every value reads a token, and the build says so
 
 ### Changed
 
