@@ -23,9 +23,10 @@ export interface ShadowOverrideFlags {
   distance: boolean; blur: boolean; size: boolean;
 }
 
-/** Overlay stop: an aliased color token + an opacity. Emits as
- *  `color-mix(in srgb, var(<alias>) <opacity%>, transparent)`. */
-export interface OverlayToken {
+/** A wash: an aliased color token + an opacity. Emits as
+ *  `color-mix(in srgb, var(<alias>) <opacity%>, transparent)`. Scrims dim what
+ *  is behind them; tints shade the surface they sit on. */
+export interface WashToken {
   variable: string;
   label: string;
   alias: string;
@@ -111,9 +112,9 @@ export interface EditorState {
     tokens: ShadowToken[];
     overrides: Record<string, ShadowOverrideFlags>;
   };
-  overlays: {
-    tokens: OverlayToken[];
-    hoverTokens: OverlayToken[];
+  washes: {
+    scrims: WashToken[];
+    tints: WashToken[];
   };
   columns: ColumnsState;
   components: Record<string, ComponentSlice>;

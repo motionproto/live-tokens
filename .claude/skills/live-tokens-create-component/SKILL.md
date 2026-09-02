@@ -73,9 +73,11 @@ For pattern reference, read any shipped component's source directly from the con
 The editor picker is chosen by the token's suffix, so the suffix is the naming
 decision that matters. Color and surface: `-surface`, `-border`, `-text`,
 `-icon`, `-label`, `-fill`, `-divider`, `-color`, `-shadow`, `-opacity`,
-`-blur`. Geometry: `-radius`, `-border-width`, `-thickness`, `-width`, `-size`,
-`-padding`, `-gap`. Typography: `-font-family`, `-font-weight`, `-font-size`,
-`-line-height`, `-letter-spacing`.
+`-blur`, `-tint`. Geometry: `-radius`, `-border-width`, `-thickness`, `-width`,
+`-size`, `-padding`, `-gap`. Typography: `-font-family`, `-font-weight`,
+`-font-size`, `-line-height`, `-letter-spacing`. Gating an optional
+interaction: `-enabled`, never a state word, which would read as
+state-after-property and fail.
 
 Read `references/token-naming.md` for what each one means and when two of them
 compete. A suffix outside that list fails `check-component`.
@@ -84,7 +86,7 @@ compete. A suffix outside that list fails `check-component`.
 
 - **Fixed overlays must portal to `<body>`.** Any `position: fixed` layer is trapped by a transformed or `contain`ed ancestor, which real pages and the editor's preview pane both have. `check:overlay-portal` fails the build without it. Read `references/fixed-overlays.md` before authoring a modal, lightbox, or backdrop.
 - **State before property.** `--mywidget-button-hover-surface` ✓ — `--mywidget-button-surface-hover` ✗ (breaks sibling matching).
-- **Defaults reference theme tokens, never raw colours.** `var(--surface-primary)` ✓ — `#6a4ce8` ✗, and `check-component` fails the build on one. Composing a token counts and is common: `color-mix(in srgb, var(--surface-neutral-lower) 70%, transparent)`. A property with no theme token behind it takes a bare keyword (`contain`, `start`, `none`). Dimensions are the gap: a raw `16rem` passes the check, so reach for a token anyway unless the component genuinely owns that measurement.
+- **Every default resolves to a theme token.** A component token names a semantic property; its default is the theme token that property reads. That is what makes the component repaint when the theme changes. `var(--surface-primary)` ✓, `#6a4ce8` ✗, and `var(--surface-imaginary)` ✗: `check-component` fails on a colour literal and on a `var()` naming a token that does not exist. Composing tokens counts and is common: `color-mix(in srgb, var(--surface-neutral-lower) 70%, transparent)`. A property with no theme token behind it takes a bare keyword (`contain`, `start`, `none`), and then the editor must declare it in `intrinsics`; an undeclared keyword and a raw `16rem` are both warnings.
 - **No abbreviations.** `bg` → `surface`; `fg` → `text`; component ids are never abbreviated.
 - **Text aliases.** Neutral scale is `--text-primary` / `--text-secondary` / `--text-tertiary` / `--text-muted` / `--text-disabled`. Family-tinted is `--text-primary-color`, `--text-accent`, `--text-success`. There is no `--text-neutral`.
 - **Typography `groupKey` on multi-slot components must include the slot prefix.** `groupKey: 'value-font-family'` and `groupKey: 'label-font-family'` ✓ — bare `groupKey: 'font-family'` silently merges them into one link tree ✗. Single-slot components can use a bare typography `groupKey`; add the slot prefix the moment a second slot appears. The same trap applies to type-group **colors** (two slots ending in `-text` collapsing to one `text` key). Let the helpers handle both, below.
@@ -186,7 +188,11 @@ npx live-tokens check-component <id>
 # or: npx @motion-proto/live-tokens check-component <id>
 ```
 
-It enforces the file layout, the `:global(:root)` block, token-suffix vocabulary, state-before-property rule, theme-token defaults (no raw colour literals), public-imports rule, and that the id is registered — via either `bootLiveTokens({ components: [{ id }] })` or a direct `registerComponent({ id })` call. It also *warns* (non-fatal) when a type-group font helper is called bare across multiple slots, which would merge their fonts into one link tree. Exit code 0 means the static contract is met; resolve warnings before shipping.
+It enforces the file layout, the `:global(:root)` block, token-suffix vocabulary, state-before-property rule, public-imports rule, and that the id is registered, via either `bootLiveTokens({ components: [{ id }] })` or a direct `registerComponent({ id })` call. On the value side it fails on a raw colour literal and on a default reading a token that does not exist.
+
+It *warns* (non-fatal) when a default has no theme token behind it and the editor does not declare it an intrinsic, when a default pins a raw px or rem dimension, and when a type-group font helper is called bare across multiple slots, which would merge their fonts into one link tree.
+
+Exit code 0 means the static contract is met. Resolve warnings before shipping, or run with `--strict` to make them fail. `--json` prints findings with a stable `rule` id, so you can work through one rule at a time and re-run.
 
 **Then run the registry contract test.** If you're authoring inside the package itself, `src/editor/component-editor/registryContract.test.ts` runs `describe.each(getComponentRegistryEntries())` and verifies, per component:
 

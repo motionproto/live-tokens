@@ -1,5 +1,8 @@
 <script lang="ts">
    interface Props {
+    /** Wash the hovered surface with the theme's tint. `undefined` inherits the
+        global default; `true`/`false` force this instance on/off. */
+    hoverTint?: boolean | undefined;
       disabled?: boolean;
       type?: 'button' | 'submit' | 'reset';
       variant?: 'primary' | 'secondary' | 'outline' | 'success' | 'danger' | 'warning';
@@ -14,6 +17,7 @@
    }
 
    let {
+    hoverTint = undefined,
       disabled = false,
       type = 'button',
       variant = 'primary',
@@ -26,12 +30,18 @@
       onclick
    }: Props = $props();
 
+  // Per-instance override of the global hover-tint intrinsic; undefined leaves :root in charge.
+  let hoverTintValue = $derived(
+    hoverTint === undefined ? undefined : hoverTint ? 'var(--iconbutton-hover-tint)' : 'var(--color-transparent)',
+  );
+
    function handleClick(event: MouseEvent) {
       if (!disabled) onclick?.(event);
    }
 </script>
 
 <button
+  style:--iconbutton-hover-tint-enabled={hoverTintValue}
    bind:this={buttonRef}
    {type}
    class="icon-button {variant} {className}"
@@ -48,6 +58,11 @@
    @use '../styles/padding' as *;
 
    :global(:root) {
+     /* Hover tint: an optional wash over the hovered surface, one stop for the
+        whole component. Off by default; the gate holds the tint when enabled. */
+     --iconbutton-hover-tint: var(--tint);
+     --iconbutton-hover-tint-enabled: var(--color-transparent);
+
       /* Primary */
       --iconbutton-primary-surface: var(--surface-brand);
       --iconbutton-primary-icon: var(--text-primary);
@@ -89,7 +104,7 @@
       --iconbutton-outline-hover-surface: var(--surface-neutral-lower);
       --iconbutton-outline-hover-icon: var(--text-primary);
       --iconbutton-outline-hover-border: var(--border-neutral-strong);
-      --iconbutton-outline-active-surface: var(--hover);
+      --iconbutton-outline-active-surface: var(--surface-neutral-low);
       --iconbutton-outline-disabled-surface: var(--color-transparent);
       --iconbutton-outline-disabled-icon: var(--text-tertiary);
       --iconbutton-outline-disabled-border: var(--border-neutral-faint);
@@ -154,6 +169,7 @@
 
       &:hover:not(:disabled),
       &.force-hover:not(:disabled) {
+         background-image: linear-gradient(var(--iconbutton-hover-tint-enabled), var(--iconbutton-hover-tint-enabled));
          transform: translateY(-0.0625rem);
          box-shadow: var(--shadow-md);
       }
@@ -176,7 +192,7 @@
 
          &:hover:not(:disabled),
          &.force-hover:not(:disabled) {
-            background: var(--iconbutton-primary-hover-surface);
+            background-color: var(--iconbutton-primary-hover-surface);
             border-color: var(--iconbutton-primary-hover-border);
             color: var(--iconbutton-primary-hover-icon);
          }
@@ -202,7 +218,7 @@
 
          &:hover:not(:disabled),
          &.force-hover:not(:disabled) {
-            background: var(--iconbutton-secondary-hover-surface);
+            background-color: var(--iconbutton-secondary-hover-surface);
             border-color: var(--iconbutton-secondary-hover-border);
             color: var(--iconbutton-secondary-hover-icon);
          }
@@ -224,7 +240,7 @@
 
          &:hover:not(:disabled),
          &.force-hover:not(:disabled) {
-            background: var(--iconbutton-outline-hover-surface);
+            background-color: var(--iconbutton-outline-hover-surface);
             border-color: var(--iconbutton-outline-hover-border);
             color: var(--iconbutton-outline-hover-icon);
          }
@@ -251,7 +267,7 @@
 
          &:hover:not(:disabled),
          &.force-hover:not(:disabled) {
-            background: var(--iconbutton-success-hover-surface);
+            background-color: var(--iconbutton-success-hover-surface);
             border-color: var(--iconbutton-success-hover-border);
             color: var(--iconbutton-success-hover-icon);
          }
@@ -273,7 +289,7 @@
 
          &:hover:not(:disabled),
          &.force-hover:not(:disabled) {
-            background: var(--iconbutton-danger-hover-surface);
+            background-color: var(--iconbutton-danger-hover-surface);
             border-color: var(--iconbutton-danger-hover-border);
             color: var(--iconbutton-danger-hover-icon);
          }
@@ -295,7 +311,7 @@
 
          &:hover:not(:disabled),
          &.force-hover:not(:disabled) {
-            background: var(--iconbutton-warning-hover-surface);
+            background-color: var(--iconbutton-warning-hover-surface);
             border-color: var(--iconbutton-warning-hover-border);
             color: var(--iconbutton-warning-hover-icon);
          }

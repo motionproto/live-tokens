@@ -12,11 +12,11 @@
   const DEFAULT_CONFIRM: ButtonVariant = 'primary';
   const DEFAULT_CANCEL: ButtonVariant = 'outline';
 
-  // Frame-level tokens (the dialog box itself + overlay + header + body + footer + close icon).
+  // Frame-level tokens (the dialog box itself + scrim + header + body + footer + close icon).
   // Button styling lives in Button.svelte — the dialog only owns its own chrome.
   const frameStates: Record<string, Token[]> = {
-    overlay: [
-      { label: 'backdrop color', groupKey: 'surface', variable: '--dialog-overlay-surface' },
+    scrim: [
+      { label: 'scrim color', groupKey: 'surface', variable: '--dialog-scrim-surface' },
     ],
     dialog: [
       { label: 'surface color', variable: '--dialog-surface' },

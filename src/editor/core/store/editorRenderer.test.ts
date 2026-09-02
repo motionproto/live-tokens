@@ -44,7 +44,7 @@ describe('editor renderer reactive projection', () => {
     mutate('reactive matrix', (state) => {
       state.cssVars['--font-size-5xl'] = '52px';
       state.columns.count = 10;
-      state.overlays.tokens[0].opacity = 0.5;
+      state.washes.scrims[0].opacity = 0.5;
       state.shadows.tokens = [{
         variable: '--shadow-sm',
         x: 1,
@@ -76,7 +76,7 @@ describe('editor renderer reactive projection', () => {
     const style = document.documentElement.style;
     expect(style.getPropertyValue('--font-size-5xl')).toBe('52px');
     expect(style.getPropertyValue('--columns-count')).toBe('10');
-    expect(style.getPropertyValue('--overlay-low')).toContain('50%');
+    expect(style.getPropertyValue('--scrim-low')).toContain('50%');
     expect(style.getPropertyValue('--shadow-sm')).toBe('1px 2px 3px hsla(200, 20%, 10%, 0.25)');
     expect(style.getPropertyValue('--gradient-1')).toContain('22deg');
     expect(style.getPropertyValue('--sectiondivider-lg-title-font-size')).toBe('var(--font-size-5xl)');

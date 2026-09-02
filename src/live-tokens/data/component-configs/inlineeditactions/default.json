@@ -33,5 +33,5 @@
     "--inlineeditactions-cancel-hover-padding": "--space-4",
     "--inlineeditactions-cancel-hover-icon-size": "--icon-size-md"
   },
-  "schemaVersion": 21
+  "schemaVersion": 25
 }

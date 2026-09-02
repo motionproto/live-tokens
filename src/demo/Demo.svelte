@@ -53,7 +53,7 @@
   /* Inline code styling cascades into every section via :global descendants. */
   .kit :global(p > code),
   .kit :global(.callout code) {
-    background: var(--overlay-low);
+    background: var(--tint-low);
     padding: 1px 6px;
     border-radius: var(--radius-sm);
     font-family: var(--font-mono);

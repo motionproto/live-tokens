@@ -9,6 +9,9 @@
   };
 
   interface Props {
+    /** Wash the hovered surface with the theme's tint. `undefined` inherits the
+        global default; `true`/`false` force this instance on/off. */
+    hoverTint?: boolean | undefined;
     segments?: Segment[];
     value?: string;
     disabled?: boolean;
@@ -21,6 +24,7 @@
   }
 
   let {
+    hoverTint = undefined,
     segments = [],
     value = $bindable(''),
     disabled = false,
@@ -28,6 +32,11 @@
     size = 'default',
     onchange
   }: Props = $props();
+
+  // Per-instance override of the global hover-tint intrinsic; undefined leaves :root in charge.
+  let hoverTintValue = $derived(
+    hoverTint === undefined ? undefined : hoverTint ? 'var(--segmentedcontrol-hover-tint)' : 'var(--color-transparent)',
+  );
 
   // Dual-fire bridge — see Button.svelte for the deprecation timeline.
   const dispatch = createEventDispatcher<{ change: string }>();
@@ -39,7 +48,10 @@
   }
 </script>
 
-<div class="segmented-control" class:is-disabled={disabled} class:small={size === 'small'} role="radiogroup">
+<div
+  class="segmented-control" class:is-disabled={disabled} class:small={size === 'small'} role="radiogroup"
+  style:--segmentedcontrol-hover-tint-enabled={hoverTintValue}
+>
   {#each segments as seg, i (seg.value)}
     {#if i > 0}
       <span class="segment-divider" aria-hidden="true"></span>
@@ -64,6 +76,11 @@
   @use '../styles/padding' as *;
 
   :global(:root) {
+    /* Hover tint: an optional wash over the hovered surface, one stop for the
+       whole component. Off by default; the gate holds the tint when enabled. */
+    --segmentedcontrol-hover-tint: var(--tint);
+    --segmentedcontrol-hover-tint-enabled: var(--color-transparent);
+
     /* Bar (outer wrapper) */
     --segmentedcontrol-bar-surface: color-mix(in srgb, var(--surface-neutral-lowest) 75%, transparent);
     --segmentedcontrol-bar-border: var(--border-neutral);
@@ -252,13 +269,14 @@
 
   .segment:hover:not(:disabled):not(.selected),
   .segment.force-hover:not(:disabled):not(.selected) {
+    background-image: linear-gradient(var(--segmentedcontrol-hover-tint-enabled), var(--segmentedcontrol-hover-tint-enabled));
     --_text-color: var(--segmentedcontrol-option-hover-text);
     --_text-family: var(--segmentedcontrol-option-hover-text-font-family);
     --_text-size: var(--segmentedcontrol-option-hover-text-font-size);
     --_text-weight: var(--segmentedcontrol-option-hover-text-font-weight);
     --_text-line-height: var(--segmentedcontrol-option-hover-text-line-height);
     --_icon-color: var(--segmentedcontrol-option-hover-icon);
-    background: var(--segmentedcontrol-option-hover-surface);
+    background-color: var(--segmentedcontrol-option-hover-surface);
   }
 
   /* Outline (not border) so the selection ring sits outside the box model.

@@ -57,10 +57,12 @@ Numeric scales with a slider per step.
 
 Change a step and every element using it repaints.
 
-## Overlays and gradients
+## Washes and gradients
 
-- **Overlays** are translucent tints layered over surfaces, like the subtle
-  tint a card gets on hover. Set a colour and opacity per state.
+- **Scrims** are translucent layers that dim what sits behind them, like the
+  one a dialog draws over the page. Set a colour and opacity per stop.
+- **Tints** are the opposite operation: they shade the surface they sit on
+  rather than dimming what is behind it, which is what a hover needs.
 - **Gradients** are reusable gradient tokens with a stop list and direction, for
   hero panels and accent backgrounds.
 

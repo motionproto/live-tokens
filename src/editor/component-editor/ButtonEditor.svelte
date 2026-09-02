@@ -1,6 +1,6 @@
 <script module lang="ts">
   import { buildSiblings } from './scaffolding/siblings';
-  import type { Token } from './scaffolding/types';
+  import type { Token, IntrinsicSpec } from './scaffolding/types';
 
   export const component = 'button';
 
@@ -101,14 +101,27 @@
   );
 
   const variantOptions = variants.map((v) => ({ value: v, label: v.charAt(0).toUpperCase() + v.slice(1) }));
+
+  // The hover tint is off unless a project turns it on: the gate holds a
+  // transparent layer, a no-op, until it holds the tint itself.
+  export const intrinsics: IntrinsicSpec[] = [
+    {
+      key: 'hover-tint',
+      variants: ['default'],
+      variable: () => '--button-hover-tint-enabled',
+      values: ['var(--color-transparent)', 'var(--button-hover-tint)'],
+      default: { default: 'var(--color-transparent)' },
+    },
+  ];
 </script>
 
 <script lang="ts">
   import Button from '../../system/components/Button.svelte';
   import Toggle from '../ui/Toggle.svelte';
+  import UIPaletteSelector from '../ui/UIPaletteSelector.svelte';
   import VariantGroup from './scaffolding/VariantGroup.svelte';
   import ComponentEditorBase from './scaffolding/ComponentEditorBase.svelte';
-  import { editorState, setComponentAlias } from '../core/store/editorStore';
+  import { editorState, setComponentAlias, clearComponentAlias } from '../core/store/editorStore';
   import { computeLinkedBlock, withLinkedDisabled } from './scaffolding/linkedBlock';
 
   let shimmerRef = $derived($editorState.components.button?.aliases['--button-shimmer']);
@@ -118,12 +131,49 @@
     setComponentAlias('button', '--button-shimmer', { kind: 'token', name: checked ? '--shimmer-on' : '--shimmer-off' });
   }
 
+  // One switch. Turning the tint on also stands each hover surface down to its
+  // own base, so hover is the tint alone rather than a swap wearing a wash.
+  // Written as aliases rather than gated in CSS: a component token's value is
+  // substituted at :root, so it can never name a per-variant private var.
+  // Off clears the overrides, returning each surface to its shipped default.
+  const HOVER_SWAPS: readonly (readonly [hover: string, base: string])[] = [
+    ['--button-primary-hover-surface', '--button-primary-surface'],
+    ['--button-secondary-hover-surface', '--button-secondary-surface'],
+    ['--button-outline-hover-surface', '--button-outline-surface'],
+    ['--button-success-hover-surface', '--button-success-surface'],
+    ['--button-danger-hover-surface', '--button-danger-surface'],
+    ['--button-warning-hover-surface', '--button-warning-surface'],
+  ];
+  const TINT_ON = 'var(--button-hover-tint)';
+  const TINT_OFF = 'var(--color-transparent)';
+
+  let tintOn = $derived.by(() => {
+    const ref = $editorState.components.button?.aliases['--button-hover-tint-enabled'];
+    return (ref?.kind === 'literal' ? ref.value : TINT_OFF) === TINT_ON;
+  });
+
+  function setTintOn(checked: boolean) {
+    setComponentAlias('button', '--button-hover-tint-enabled', {
+      kind: 'literal',
+      value: checked ? TINT_ON : TINT_OFF,
+    });
+    for (const [hover, base] of HOVER_SWAPS) {
+      if (checked) setComponentAlias('button', hover, { kind: 'token', name: base });
+      else clearComponentAlias('button', hover);
+    }
+  }
+
   let previewSize = $state<'default' | 'small'>('default');
 
   let linked = $derived(computeLinkedBlock(component, linkableContexts, allTokens, $editorState));
 
   let visibleVariantStates = $derived((v: Variant) => Object.fromEntries(
-    Object.entries(variantStates(v)).map(([name, list]) => [name, withLinkedDisabled(list, linked.varSet)]),
+    Object.entries(variantStates(v)).map(([name, list]) => [
+      name,
+      withLinkedDisabled(list, linked.varSet).map((t) =>
+        tintOn && t.variable.endsWith('-hover-surface') ? { ...t, disabled: true } : t,
+      ),
+    ]),
   ) as Record<string, Token[]>);
 
   let visibleSmallStates = $derived(Object.fromEntries(
@@ -158,6 +208,16 @@
       >
         {#snippet extraPropertyRows(stateName)}
           {#if stateName === 'hover'}
+            <div class="property-row">
+              <span class="property-label">tint layer</span>
+              <Toggle checked={tintOn} onchange={setTintOn} />
+            </div>
+            {#if tintOn}
+              <div class="property-row">
+                <span class="property-label">tint color</span>
+                <UIPaletteSelector variable="--button-hover-tint" {component} showNone={false} />
+              </div>
+            {/if}
             <div class="property-row">
               <span class="property-label">hover shimmer</span>
               <Toggle checked={shimmerEnabled} onchange={handleShimmerChange} />

@@ -2,8 +2,10 @@
   "name": "default",
   "component": "sidenavigation",
   "createdAt": "2026-05-25T19:34:09.771Z",
-  "updatedAt": "2026-06-01T23:57:08.086Z",
+  "updatedAt": "2026-09-01T16:30:38.887Z",
   "aliases": {
+    "--sidenavigation-hover-tint": "--tint",
+    "--sidenavigation-hover-tint-enabled": "--color-transparent",
     "--sidenavigation-panel-surface": "--surface-canvas-lower",
     "--sidenavigation-panel-border": "--border-canvas-faint",
     "--sidenavigation-panel-border-width": "--border-width-1",
@@ -157,5 +159,5 @@
     "--sidenavigation-footer-active-text-font-weight": "--font-weight-normal",
     "--sidenavigation-footer-active-text-line-height": "--line-height-normal"
   },
-  "schemaVersion": 21
+  "schemaVersion": 25
 }

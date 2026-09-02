@@ -54,4 +54,15 @@ const pages = {
 
 ## Verify
 
-In dev: change a colour in `/live-tokens/editor` and confirm your page repaints (proves token usage). The overlay's "Page Source" button on the new route opens the page in VS Code (proves the route's `source`). `ColumnsOverlay` (Cmd+G) shows content sitting inside `--columns-max-width`.
+Run the checker and fix what it reports. Repeat until it exits 0:
+
+```sh
+npx live-tokens check-page src/pages/YourPage.svelte
+# or: npx @motion-proto/live-tokens check-page      (every page under src/)
+```
+
+It fails on a component outside the catalogue, a deep import, a `var()` that resolves to nothing, a colour literal, a route under `/live-tokens/*`, and `site.css` imported from `main.ts`. It warns on a raw px or rem dimension, a hardcoded column count, an absolute type value, and a route entry with no `source`.
+
+Warnings do not fail the run. `--strict` makes them fail, which is the setting to use when the page is meant to be fully tokenized. `--json` prints findings with a stable `rule` id, so you can work through one rule at a time and re-run. `--off=<rule>` silences a rule for a run; `"checks": { "rules": { ... } }` in `live-tokens.config.json` sets it for the project.
+
+Then in dev: change a colour in `/live-tokens/editor` and confirm your page repaints (proves token usage). The overlay's "Page Source" button on the new route opens the page in VS Code (proves the route's `source`). `ColumnsOverlay` (Cmd+G) shows content sitting inside `--columns-max-width`.

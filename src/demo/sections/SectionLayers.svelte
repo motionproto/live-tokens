@@ -41,7 +41,7 @@
     font-family: var(--font-mono);
     font-size: 0.9em;
     color: var(--text-primary);
-    background: var(--overlay-low);
+    background: var(--tint-low);
     padding: 2px 6px;
     border-radius: var(--radius-sm);
   }

@@ -2,8 +2,10 @@
   "name": "default",
   "component": "iconbutton",
   "createdAt": "2026-06-14T00:00:00.000Z",
-  "updatedAt": "2026-06-14T00:00:00.000Z",
+  "updatedAt": "2026-09-01T16:30:38.886Z",
   "aliases": {
+    "--iconbutton-hover-tint": "--tint",
+    "--iconbutton-hover-tint-enabled": "--color-transparent",
     "--iconbutton-primary-surface": "--surface-brand",
     "--iconbutton-primary-icon": "--text-primary",
     "--iconbutton-primary-border": "--border-brand",
@@ -40,7 +42,7 @@
     "--iconbutton-outline-hover-surface": "--surface-neutral-lower",
     "--iconbutton-outline-hover-icon": "--text-primary",
     "--iconbutton-outline-hover-border": "--border-neutral-strong",
-    "--iconbutton-outline-active-surface": "--hover",
+    "--iconbutton-outline-active-surface": "--surface-neutral-low",
     "--iconbutton-outline-disabled-surface": "--color-transparent",
     "--iconbutton-outline-disabled-icon": "--text-tertiary",
     "--iconbutton-outline-disabled-border": "--border-neutral-faint",
@@ -86,5 +88,5 @@
     "--iconbutton-small-padding": "--space-6",
     "--iconbutton-small-icon-size": "--icon-size-sm"
   },
-  "schemaVersion": 21
+  "schemaVersion": 25
 }

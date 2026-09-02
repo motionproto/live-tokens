@@ -9,6 +9,9 @@
   }
 
   interface Props {
+    /** Wash the hovered surface with the theme's tint. `undefined` inherits the
+        global default; `true`/`false` force this instance on/off. */
+    hoverTint?: boolean | undefined;
     tabs?: Tab[];
     selectedTab?: string;
     iconOnly?: boolean;
@@ -18,12 +21,18 @@
   }
 
   let {
+    hoverTint = undefined,
     tabs = [],
     selectedTab = '',
     iconOnly = false,
     class: className = '',
     ontabChange
   }: Props = $props();
+
+  // Per-instance override of the global hover-tint intrinsic; undefined leaves :root in charge.
+  let hoverTintValue = $derived(
+    hoverTint === undefined ? undefined : hoverTint ? 'var(--tabbar-hover-tint)' : 'var(--color-transparent)',
+  );
 
   // Dual-fire bridge — see Button.svelte for the deprecation timeline.
   const dispatch = createEventDispatcher<{
@@ -38,7 +47,10 @@
   }
 </script>
 
-<div class="tab-bar {className}">
+<div
+  class="tab-bar {className}"
+  style:--tabbar-hover-tint-enabled={hoverTintValue}
+>
   {#each tabs as tab}
     <button
       class="tab"
@@ -61,6 +73,11 @@
   @use '../styles/padding' as *;
 
   :global(:root) {
+    /* Hover tint: an optional wash over the hovered surface, one stop for the
+       whole component. Off by default; the gate holds the tint when enabled. */
+    --tabbar-hover-tint: var(--tint);
+    --tabbar-hover-tint-enabled: var(--color-transparent);
+
     /* Bar */
     --tabbar-bar-divider: var(--border-neutral-subtle);
     --tabbar-bar-divider-thickness: var(--border-width-1);
@@ -104,7 +121,7 @@
     /* Active tab */
     --tabbar-active-text: var(--text-primary);
     --tabbar-active-border: var(--color-brand-500);
-    --tabbar-active-surface: var(--overlay-low);
+    --tabbar-active-surface: var(--tint-low);
     --tabbar-active-text-font-family: var(--font-sans);
     --tabbar-active-text-font-size: var(--font-size-md);
     --tabbar-active-text-font-weight: var(--font-weight-light);
@@ -197,6 +214,7 @@
 
   .tab:hover:not(:disabled):not(.active),
   .tab-bar.force-hover .tab:not(:disabled):not(.active) {
+    background-image: linear-gradient(var(--tabbar-hover-tint-enabled), var(--tabbar-hover-tint-enabled));
     --_text-color: var(--tabbar-hover-text);
     --_text-family: var(--tabbar-hover-text-font-family);
     --_text-size: var(--tabbar-hover-text-font-size);

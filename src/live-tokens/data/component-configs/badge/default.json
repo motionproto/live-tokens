@@ -135,5 +135,5 @@
     "--badge-info-blur": "--blur-none",
     "--badge-info-icon-size": "--icon-size-sm"
   },
-  "schemaVersion": 21
+  "schemaVersion": 25
 }

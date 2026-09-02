@@ -39,7 +39,10 @@ function compiledRules(): Rule[] {
       .compileString(block[1], { loadPaths: [join(process.cwd(), 'src/system/styles')] })
       .css.replace(/\/\*[\s\S]*?\*\//g, '');
     for (const m of css.matchAll(/([^{}]+)\{([^{}]*)\}/g)) {
-      const selectors = m[1].trim();
+      // sass emits `@charset` ahead of the first rule, which would otherwise
+      // hide that rule — and the first rule is the `:global(:root)` block every
+      // component declares its tokens in.
+      const selectors = m[1].replace(/@charset[^;]*;/g, '').trim();
       if (!selectors || selectors.startsWith('@')) continue;
       const decls = [...m[2].matchAll(/([\w-]+)\s*:\s*([^;]+)/g)]
         .map((d) => [d[1], d[2].trim()] as [string, string]);
@@ -95,27 +98,40 @@ const tokensIn = (value: string) =>
 
 /**
  * Tokens the component may be painting this element with. A component that
- * rebinds through a private `--_name` (TabBar and SectionDivider both do, to
- * keep one painting rule across four states) counts under either name: the
- * private one, which the layer can name too because it inherits, and the public
- * token one hop behind it.
+ * rebinds through another variable counts under every name along the chain: the
+ * private `--_name` TabBar and SectionDivider use to keep one painting rule
+ * across four states, and the public gate Button and IconButton route their
+ * hover surface through so one switch can stand the whole swap down. Both are
+ * names the layer can use, because a custom property inherits.
+ *
+ * Resolution is transitive and cycle-safe: a chain can be more than one hop
+ * (`background-color` reads a gate, the gate reads a private var, the private
+ * var reads the variant's token).
  */
 function painted(rules: Rule[], partSel: string, props: RegExp): Set<string> {
   const applicable = rules.filter((r) => applies(r.sel, partSel));
-  const locals = new Map<string, string[]>();
-  for (const r of applicable) {
+  // `:root` declarations bind too: a custom property set there inherits to every
+  // element, which is how a component-wide gate reaches a per-variant token.
+  // Scoped to the same file, so one component's names never resolve another's.
+  const files = new Set(applicable.map((r) => r.file));
+  const isRoot = (sel: string) => /(^|\s):global\(:root\)$|(^|\s):root$/.test(sel.trim());
+  const binding = applicable.concat(rules.filter((r) => isRoot(r.sel) && files.has(r.file)));
+  const bindings = new Map<string, string[]>();
+  for (const r of binding) {
     for (const [prop, value] of r.decls) {
-      if (prop.startsWith('--_')) locals.set(prop, [...(locals.get(prop) ?? []), value]);
+      if (prop.startsWith('--')) bindings.set(prop, [...(bindings.get(prop) ?? []), value]);
     }
   }
   const found = new Set<string>();
+  const walk = (token: string) => {
+    if (found.has(token)) return;
+    found.add(token);
+    for (const bound of bindings.get(token) ?? []) tokensIn(bound).forEach(walk);
+  };
   for (const r of applicable) {
     for (const [prop, value] of r.decls) {
       if (!props.test(prop)) continue;
-      for (const token of tokensIn(value)) {
-        found.add(token);
-        for (const bound of locals.get(token) ?? []) tokensIn(bound).forEach((t) => found.add(t));
-      }
+      tokensIn(value).forEach(walk);
     }
   }
   return found;

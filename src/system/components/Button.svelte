@@ -2,6 +2,9 @@
    import { createEventDispatcher } from 'svelte';
 
    interface Props {
+    /** Wash the hovered surface with the theme's tint. `undefined` inherits the
+        global default; `true`/`false` force this instance on/off. */
+    hoverTint?: boolean | undefined;
       disabled?: boolean;
       type?: 'button' | 'submit' | 'reset';
       variant?: 'primary' | 'secondary' | 'outline' | 'success' | 'danger' | 'warning';
@@ -19,6 +22,7 @@
    }
 
    let {
+    hoverTint = undefined,
       disabled = false,
       type = 'button',
       variant = 'primary',
@@ -34,6 +38,11 @@
       children
    }: Props = $props();
 
+  // Per-instance override of the global hover-tint intrinsic; undefined leaves :root in charge.
+  let hoverTintValue = $derived(
+    hoverTint === undefined ? undefined : hoverTint ? 'var(--button-hover-tint)' : 'var(--color-transparent)',
+  );
+
    // Dual-fire bridge: keeps Svelte-4-style `<Button on:click={fn}>` consumers
    // working until 0.6.0. Remove the dispatcher and this comment in 0.6.0.
    const dispatch = createEventDispatcher();
@@ -47,6 +56,7 @@
 </script>
 
 <button
+  style:--button-hover-tint-enabled={hoverTintValue}
    bind:this={buttonRef}
    {type}
    class="button {variant} {className}"
@@ -70,6 +80,13 @@
    @use '../styles/padding' as *;
 
    :global(:root) {
+     /* Hover tint: an optional wash over the hovered surface, one stop for the
+        whole component. Off by default. Turning it on is one switch that moves
+        both gates: the tint gate takes the tint, and the swap gate falls back to
+        each variant's own base surface, so the tint owns hover on its own. */
+     --button-hover-tint: var(--tint);
+     --button-hover-tint-enabled: var(--color-transparent);
+
       /* Shared — set to `none` to disable the hover shimmer sweep */
       --button-shimmer: block;
 
@@ -125,7 +142,7 @@
       --button-outline-hover-surface: var(--surface-neutral-lower);
       --button-outline-hover-text: var(--text-primary);
       --button-outline-hover-border: var(--border-neutral-strong);
-      --button-outline-active-surface: var(--hover);
+      --button-outline-active-surface: var(--surface-neutral-low);
       --button-outline-disabled-surface: var(--color-transparent);
       --button-outline-disabled-text: var(--text-tertiary);
       --button-outline-disabled-border: var(--border-neutral-faint);
@@ -233,6 +250,7 @@
 
       &:hover:not(:disabled),
       &.force-hover:not(:disabled) {
+         background-image: linear-gradient(var(--button-hover-tint-enabled), var(--button-hover-tint-enabled));
          transform: translateY(-0.0625rem);
          box-shadow: var(--shadow-md);
       }
@@ -271,7 +289,7 @@
 
          &:hover:not(:disabled),
          &.force-hover:not(:disabled) {
-            background: var(--button-primary-hover-surface);
+            background-color: var(--button-primary-hover-surface);
             border-color: var(--button-primary-hover-border);
             color: var(--button-primary-hover-text);
          }
@@ -309,7 +327,7 @@
 
          &:hover:not(:disabled),
          &.force-hover:not(:disabled) {
-            background: var(--button-secondary-hover-surface);
+            background-color: var(--button-secondary-hover-surface);
             border-color: var(--button-secondary-hover-border);
             color: var(--button-secondary-hover-text);
          }
@@ -343,7 +361,7 @@
 
          &:hover:not(:disabled),
          &.force-hover:not(:disabled) {
-            background: var(--button-outline-hover-surface);
+            background-color: var(--button-outline-hover-surface);
             border-color: var(--button-outline-hover-border);
             color: var(--button-outline-hover-text);
          }
@@ -382,7 +400,7 @@
 
          &:hover:not(:disabled),
          &.force-hover:not(:disabled) {
-            background: var(--button-success-hover-surface);
+            background-color: var(--button-success-hover-surface);
             border-color: var(--button-success-hover-border);
             color: var(--button-success-hover-text);
          }
@@ -416,7 +434,7 @@
 
          &:hover:not(:disabled),
          &.force-hover:not(:disabled) {
-            background: var(--button-danger-hover-surface);
+            background-color: var(--button-danger-hover-surface);
             border-color: var(--button-danger-hover-border);
             color: var(--button-danger-hover-text);
          }
@@ -450,7 +468,7 @@
 
          &:hover:not(:disabled),
          &.force-hover:not(:disabled) {
-            background: var(--button-warning-hover-surface);
+            background-color: var(--button-warning-hover-surface);
             border-color: var(--button-warning-hover-border);
             color: var(--button-warning-hover-text);
          }
@@ -498,7 +516,7 @@
          font-size: var(--font-size-sm);
          opacity: 0.9;
          padding: var(--space-2) var(--space-6);
-         background: var(--overlay-low);
+         background: var(--tint-low);
          border-radius: var(--radius-sm);
          margin-left: var(--space-4);
       }

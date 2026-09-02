@@ -2264,12 +2264,12 @@
       "--columns-max-width": "1440px",
       "--columns-gutter": "32px",
       "--columns-margin": "0px",
-      "--overlay-low": "color-mix(in srgb, var(--surface-neutral-lowest) 38%, transparent)",
-      "--overlay": "color-mix(in srgb, var(--surface-neutral-lowest) 51%, transparent)",
-      "--overlay-high": "color-mix(in srgb, var(--surface-neutral-lowest) 64%, transparent)",
-      "--hover-low": "color-mix(in srgb, var(--text-primary) 5%, transparent)",
-      "--hover": "color-mix(in srgb, var(--text-primary) 10%, transparent)",
-      "--hover-high": "color-mix(in srgb, var(--text-primary) 15%, transparent)",
+      "--scrim-low": "color-mix(in srgb, var(--surface-neutral-lowest) 38%, transparent)",
+      "--scrim": "color-mix(in srgb, var(--surface-neutral-lowest) 51%, transparent)",
+      "--scrim-high": "color-mix(in srgb, var(--surface-neutral-lowest) 64%, transparent)",
+      "--tint-low": "color-mix(in srgb, var(--text-primary) 5%, transparent)",
+      "--tint": "color-mix(in srgb, var(--text-primary) 10%, transparent)",
+      "--tint-high": "color-mix(in srgb, var(--text-primary) 15%, transparent)",
       "--shadow-sm": "1px 1px 2px hsla(237, 18%, 3%, 0.25)",
       "--shadow-md": "3px 3px 6px hsla(237, 18%, 3%, 0.25)",
       "--shadow-lg": "5px 5px 9px hsla(237, 18%, 3%, 0.25)",
@@ -2655,6 +2655,8 @@
       "createdAt": "2026-05-10T19:28:06.893Z",
       "updatedAt": "2026-08-19T22:39:32.785Z",
       "aliases": {
+        "--button-hover-tint": "--tint",
+        "--button-hover-tint-enabled": "--color-transparent",
         "--button-primary-surface": "--surface-brand",
         "--button-primary-text": "--text-primary",
         "--button-primary-text-font-family": "--font-sans",
@@ -2702,7 +2704,7 @@
         "--button-outline-hover-surface": "--surface-neutral-lower",
         "--button-outline-hover-text": "--text-primary",
         "--button-outline-hover-border": "--border-neutral-strong",
-        "--button-outline-active-surface": "--hover",
+        "--button-outline-active-surface": "--tint",
         "--button-outline-disabled-surface": "--color-transparent",
         "--button-outline-disabled-text": "--text-tertiary",
         "--button-outline-disabled-border": "--border-neutral-faint",
@@ -2874,8 +2876,8 @@
         "--card-default-body-line-height": "--line-height-normal",
         "--card-hover-border": "--border-neutral-strong",
         "--card-hover-shadow": "--shadow-md",
-        "--card-hover-border-active": "--card-default-border",
-        "--card-hover-shadow-active": "--card-default-shadow"
+        "--card-hover-border-enabled": "--card-default-border",
+        "--card-hover-shadow-enabled": "--card-default-shadow"
       }
     },
     "codesnippet": {
@@ -3029,7 +3031,7 @@
       "createdAt": "2026-05-10T20:05:24.719Z",
       "updatedAt": "2026-08-19T22:39:32.785Z",
       "aliases": {
-        "--dialog-overlay-surface": "--overlay-high",
+        "--dialog-scrim-surface": "--scrim-high",
         "--dialog-surface": "--surface-neutral-lowest",
         "--dialog-border": "--border-neutral-strong",
         "--dialog-border-width": "--border-width-2",
@@ -3064,6 +3066,8 @@
       "createdAt": "2026-06-14T00:00:00.000Z",
       "updatedAt": "2026-08-19T22:39:32.785Z",
       "aliases": {
+        "--iconbutton-hover-tint": "--tint",
+        "--iconbutton-hover-tint-enabled": "--color-transparent",
         "--iconbutton-primary-surface": "--surface-brand",
         "--iconbutton-primary-icon": "--text-primary",
         "--iconbutton-primary-border": "--border-brand",
@@ -3100,7 +3104,7 @@
         "--iconbutton-outline-hover-surface": "--surface-neutral-lower",
         "--iconbutton-outline-hover-icon": "--text-primary",
         "--iconbutton-outline-hover-border": "--border-neutral-strong",
-        "--iconbutton-outline-active-surface": "--hover",
+        "--iconbutton-outline-active-surface": "--tint",
         "--iconbutton-outline-disabled-surface": "--color-transparent",
         "--iconbutton-outline-disabled-icon": "--text-tertiary",
         "--iconbutton-outline-disabled-border": "--border-neutral-faint",
@@ -3280,6 +3284,8 @@
       "createdAt": "2026-05-16T00:00:00.000Z",
       "updatedAt": "2026-08-19T22:39:32.785Z",
       "aliases": {
+        "--menuselect-hover-tint": "--tint",
+        "--menuselect-hover-tint-enabled": "--color-transparent",
         "--menuselect-menu-surface": "color-mix(in srgb, var(--surface-neutral-lower) 95%, transparent)",
         "--menuselect-menu-border": "--border-neutral-medium",
         "--menuselect-menu-border-width": "--border-width-1",
@@ -3598,6 +3604,8 @@
       "createdAt": "2026-04-28T21:13:17.669Z",
       "updatedAt": "2026-08-19T22:39:32.785Z",
       "aliases": {
+        "--segmentedcontrol-hover-tint": "--tint",
+        "--segmentedcontrol-hover-tint-enabled": "--color-transparent",
         "--segmentedcontrol-bar-surface": "color-mix(in srgb, var(--surface-neutral-lowest) 75%, transparent)",
         "--segmentedcontrol-bar-border": "--border-neutral",
         "--segmentedcontrol-bar-border-width": "--border-width-1",
@@ -3658,6 +3666,8 @@
       "createdAt": "2026-05-25T19:34:09.771Z",
       "updatedAt": "2026-08-19T22:39:32.785Z",
       "aliases": {
+        "--sidenavigation-hover-tint": "--tint",
+        "--sidenavigation-hover-tint-enabled": "--color-transparent",
         "--sidenavigation-panel-surface": "--surface-canvas-lower",
         "--sidenavigation-panel-border": "--border-canvas-faint",
         "--sidenavigation-panel-border-width": "--border-width-1",
@@ -3818,6 +3828,8 @@
       "createdAt": "2026-05-12T01:57:26.390Z",
       "updatedAt": "2026-08-19T22:39:32.785Z",
       "aliases": {
+        "--tabbar-hover-tint": "--tint",
+        "--tabbar-hover-tint-enabled": "--color-transparent",
         "--tabbar-bar-divider": "--border-neutral-subtle",
         "--tabbar-bar-divider-thickness": "--border-width-1",
         "--tabbar-bar-top-margin": "--space-4",
@@ -3854,7 +3866,7 @@
         "--tabbar-hover-indicator-border-width": "--border-width-2",
         "--tabbar-active-text": "--text-primary",
         "--tabbar-active-border": "--color-brand-500",
-        "--tabbar-active-surface": "--overlay-low",
+        "--tabbar-active-surface": "--tint-low",
         "--tabbar-active-text-font-family": "--font-sans",
         "--tabbar-active-text-font-size": "--font-size-md",
         "--tabbar-active-text-font-weight": "--font-weight-light",
@@ -3968,5 +3980,5 @@
       }
     }
   },
-  "componentSchemaVersion": 21
+  "componentSchemaVersion": 25
 }

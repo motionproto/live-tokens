@@ -5,11 +5,11 @@
  * so the store stays the single source of truth.
  */
 import { COLUMN_VAR_NAMES } from './columns';
-import { OVERLAY_VAR_NAMES } from './overlays';
+import { WASH_VAR_NAMES } from './washes';
 import { SHADOW_VAR_NAMES } from './shadows';
 
 export const DOMAIN_VAR_NAMES: readonly string[] = [
   ...COLUMN_VAR_NAMES,
-  ...OVERLAY_VAR_NAMES,
+  ...WASH_VAR_NAMES,
   ...SHADOW_VAR_NAMES,
 ];

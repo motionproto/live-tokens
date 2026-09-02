@@ -62,6 +62,16 @@ import {
   colorsAndTypeMigration_2026_08_15_lineHeightScaleRename,
   componentMigration_2026_08_15_lineHeightScaleRename,
 } from './2026-08-15-line-height-scale-rename';
+import {
+  colorsAndTypeMigration_2026_09_01_scrimRename,
+  componentMigration_2026_09_01_scrimRename,
+} from './2026-09-01-scrim-rename';
+import {
+  colorsAndTypeMigration_2026_09_01_tintRename,
+  componentMigration_2026_09_01_tintRename,
+} from './2026-09-01-tint-rename';
+import { componentMigration_2026_09_01_tabbarActiveTint } from './2026-09-01-tabbar-active-tint';
+import { componentMigration_2026_09_01_gateSuffixEnabled } from './2026-09-01-gate-suffix-enabled';
 
 /**
  * Registered migrations. Order in this array does not matter — the runner
@@ -94,6 +104,12 @@ export const MIGRATIONS: Migration[] = [
   colorsAndTypeMigration_2026_08_13_dropLegacyShapeSpaceKeys,
   colorsAndTypeMigration_2026_08_15_lineHeightScaleRename,
   componentMigration_2026_08_15_lineHeightScaleRename,
+  colorsAndTypeMigration_2026_09_01_scrimRename,
+  componentMigration_2026_09_01_scrimRename,
+  colorsAndTypeMigration_2026_09_01_tintRename,
+  componentMigration_2026_09_01_tintRename,
+  componentMigration_2026_09_01_tabbarActiveTint,
+  componentMigration_2026_09_01_gateSuffixEnabled,
 ];
 
 function countFor(kind: 'colors-and-type' | 'component-config'): number {

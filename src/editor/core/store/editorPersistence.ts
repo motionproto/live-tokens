@@ -20,6 +20,7 @@ import { store } from './editorCore';
 import { quietGet, quietSet } from '../storage/storage';
 import { isGradientSlot, makeDefaultGradients } from '../themes/slices/gradients';
 import { seedShadowsFromDom } from '../themes/slices/shadows';
+import { makeDefaultScrimTokens, makeDefaultTintTokens } from '../themes/slices/washes';
 import { sanitizeHarmonyAxes } from '../palettes/colorHarmony';
 import {
   renameBackgroundPaletteKey,
@@ -77,6 +78,48 @@ function migrateGradients(state: EditorState): EditorState {
 // calls `Object.entries(slice.config)` unconditionally, so backfill the
 // required fields and drop any non-object slice before the state reaches the
 // renderer. Spread preserves optional fields like `unlinked`.
+// The washes slice was `overlays: { tokens, hoverTokens }` before the scrim and
+// tint renames, and `hydrate` shallow-merges, so a persisted state from an
+// older build replaces `washes` wholesale and arrives without `tints`.
+// `washesToVars` iterates both lists unconditionally, so reshape here: carry the
+// stops across under their new names, and rewrite the variable each one carries.
+const WASH_VAR_RENAMES: Record<string, string> = {
+  '--overlay-low': '--scrim-low',
+  '--overlay': '--scrim',
+  '--overlay-high': '--scrim-high',
+  '--hover-low': '--tint-low',
+  '--hover': '--tint',
+  '--hover-high': '--tint-high',
+};
+
+type LegacyWashes = {
+  scrims?: unknown;
+  tints?: unknown;
+  hoverTokens?: unknown;
+  tokens?: unknown;
+};
+
+/** Carry a persisted stop list forward, or fall back to the shipped defaults. */
+function washList(raw: unknown, fallback: () => EditorState['washes']['scrims']) {
+  if (!Array.isArray(raw) || raw.length === 0) return fallback();
+  const carried = raw
+    .filter((t): t is EditorState['washes']['scrims'][number] => !!t && typeof t === 'object' && 'variable' in t)
+    .map((t) => ({ ...t, variable: WASH_VAR_RENAMES[t.variable] ?? t.variable }));
+  return carried.length > 0 ? carried : fallback();
+}
+
+export function normalizeWashes(state: EditorState): EditorState {
+  const washes = (state.washes ?? {}) as LegacyWashes;
+  const legacy = ((state as unknown as { overlays?: LegacyWashes }).overlays ?? {}) as LegacyWashes;
+  const next = { ...state } as EditorState & { overlays?: unknown };
+  next.washes = {
+    scrims: washList(washes.scrims ?? legacy.tokens, makeDefaultScrimTokens),
+    tints: washList(washes.tints ?? washes.hoverTokens ?? legacy.hoverTokens, makeDefaultTintTokens),
+  };
+  delete next.overlays;
+  return next;
+}
+
 export function normalizeComponents(state: EditorState): EditorState {
   const raw = state.components;
   if (!raw || typeof raw !== 'object') return { ...state, components: {} };
@@ -134,7 +177,7 @@ export function hydrate(): void {
     store.set(
       normalizeHarmonyAxes(
         normalizeBaseAnchors(
-          normalizePaletteBasis(normalizePaletteLabels(normalizeComponents(migrateGradients(merged)))),
+          normalizePaletteBasis(normalizePaletteLabels(normalizeComponents(normalizeWashes(migrateGradients(merged))))),
         ),
       ),
     );

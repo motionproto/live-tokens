@@ -65,8 +65,8 @@
   class="image"
   class:force-hover={forceHover}
   style:height={resolvedHeight}
-  style:--image-zoom-hover={contentHover}
-  style:--image-grow-hover={frameHover}
+  style:--image-zoom-enabled={contentHover}
+  style:--image-grow-enabled={frameHover}
 >
   <img {src} {alt} {srcset} {sizes} {loading} {decoding} />
 </div>
@@ -81,8 +81,8 @@
     /* Hover-scale targets. Contained mode (`overflowScaling`) scales the content within the
        masked frame; grow mode scales the whole frame so it grows past its box. Each is `none`
        (off) or `scale(var(--image-zoom-scale))` (on); only one is ever on at a time. */
-    --image-zoom-hover: none;
-    --image-grow-hover: none;
+    --image-zoom-enabled: none;
+    --image-grow-enabled: none;
   }
 
   .image {
@@ -106,11 +106,11 @@
 
   .image:hover,
   .image.force-hover {
-    transform: var(--image-grow-hover);
+    transform: var(--image-grow-enabled);
   }
 
   .image:hover img,
   .image.force-hover img {
-    transform: var(--image-zoom-hover);
+    transform: var(--image-zoom-enabled);
   }
 </style>

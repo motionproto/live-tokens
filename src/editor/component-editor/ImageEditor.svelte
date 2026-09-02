@@ -16,22 +16,22 @@
 
   export const allTokens: Token[] = Object.values(states).flat();
 
-  // Global zoom defaults. `none` = off; `scale(...)` = on. `--image-zoom-hover` scales the
-  // content within the masked frame (overflow scaling); `--image-grow-hover` scales the whole
+  // Global zoom defaults. `none` = off; `scale(...)` = on. `--image-zoom-enabled` scales the
+  // content within the masked frame (overflow scaling); `--image-grow-enabled` scales the whole
   // frame so it grows. At most one is ever `scale(...)`.
   const ZOOM_ON = 'scale(var(--image-zoom-scale))';
   export const intrinsics: IntrinsicSpec[] = [
     {
       key: 'zoom',
       variants: ['default'],
-      variable: () => '--image-zoom-hover',
+      variable: () => '--image-zoom-enabled',
       values: ['none', ZOOM_ON],
       default: { default: 'none' },
     },
     {
       key: 'grow',
       variants: ['default'],
-      variable: () => '--image-grow-hover',
+      variable: () => '--image-grow-enabled',
       values: ['none', ZOOM_ON],
       default: { default: 'none' },
     },
@@ -52,15 +52,15 @@
     const ref = aliases[variable];
     return ref?.kind === 'literal' ? ref.value : fallback;
   }
-  let contentOn = $derived(aliasValue('--image-zoom-hover', intrinsics[0].default.default) === ZOOM_ON);
-  let frameOn = $derived(aliasValue('--image-grow-hover', intrinsics[1].default.default) === ZOOM_ON);
+  let contentOn = $derived(aliasValue('--image-zoom-enabled', intrinsics[0].default.default) === ZOOM_ON);
+  let frameOn = $derived(aliasValue('--image-grow-enabled', intrinsics[1].default.default) === ZOOM_ON);
   let useZoom = $derived(contentOn || frameOn);
   // Overflow scaling = mask the zoom to the frame (the content path). Off = grow the frame.
   let overflowScaling = $derived(!frameOn);
 
   function applyZoom(zoomOn: boolean, masked: boolean) {
-    setComponentAlias(component, '--image-zoom-hover', { kind: 'literal', value: zoomOn && masked ? ZOOM_ON : 'none' });
-    setComponentAlias(component, '--image-grow-hover', { kind: 'literal', value: zoomOn && !masked ? ZOOM_ON : 'none' });
+    setComponentAlias(component, '--image-zoom-enabled', { kind: 'literal', value: zoomOn && masked ? ZOOM_ON : 'none' });
+    setComponentAlias(component, '--image-grow-enabled', { kind: 'literal', value: zoomOn && !masked ? ZOOM_ON : 'none' });
   }
   const setUseZoom = (checked: boolean) => applyZoom(checked, overflowScaling);
   const setOverflowScaling = (checked: boolean) => applyZoom(useZoom, checked);

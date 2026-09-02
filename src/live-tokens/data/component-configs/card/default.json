@@ -35,8 +35,8 @@
     "--card-default-body-line-height": "--line-height-normal",
     "--card-hover-border": "--border-neutral-strong",
     "--card-hover-shadow": "--shadow-md",
-    "--card-hover-border-active": "--card-default-border",
-    "--card-hover-shadow-active": "--card-default-shadow"
+    "--card-hover-border-enabled": "--card-default-border",
+    "--card-hover-shadow-enabled": "--card-default-shadow"
   },
-  "schemaVersion": 21
+  "schemaVersion": 25
 }

@@ -2,8 +2,10 @@
   "name": "default",
   "component": "button",
   "createdAt": "2026-05-10T19:28:06.893Z",
-  "updatedAt": "2026-06-01T11:45:06.042Z",
+  "updatedAt": "2026-09-01T16:30:38.885Z",
   "aliases": {
+    "--button-hover-tint": "--tint",
+    "--button-hover-tint-enabled": "--color-transparent",
     "--button-primary-surface": "--surface-brand",
     "--button-primary-text": "--text-primary",
     "--button-primary-text-font-family": "--font-sans",
@@ -51,7 +53,7 @@
     "--button-outline-hover-surface": "--surface-neutral-lower",
     "--button-outline-hover-text": "--text-primary",
     "--button-outline-hover-border": "--border-neutral-strong",
-    "--button-outline-active-surface": "--hover",
+    "--button-outline-active-surface": "--surface-neutral-low",
     "--button-outline-disabled-surface": "--color-transparent",
     "--button-outline-disabled-text": "--text-tertiary",
     "--button-outline-disabled-border": "--border-neutral-faint",
@@ -113,5 +115,5 @@
     "--button-small-text-line-height": "--line-height-tighter",
     "--button-small-icon-size": "--font-size-xs"
   },
-  "schemaVersion": 21
+  "schemaVersion": 25
 }

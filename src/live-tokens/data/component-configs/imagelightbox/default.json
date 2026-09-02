@@ -17,5 +17,5 @@
     "--imagelightbox-chrome-icon": "--text-primary",
     "--imagelightbox-chrome-hover-surface": "--surface-brand-high"
   },
-  "schemaVersion": 21
+  "schemaVersion": 25
 }

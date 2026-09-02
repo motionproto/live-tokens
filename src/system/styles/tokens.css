@@ -266,10 +266,18 @@
   --surface-danger-higher: oklch(0.5836 0.1757 24.75);
   --surface-danger-highest: oklch(0.6696 0.1423 24.72);
 
-  /* Overlays — semi-transparent washes for backdrops and pressed-state fills. */
-  --overlay-low: rgba(20, 3, 0, 0.38);
-  --overlay: rgba(20, 3, 0, 0.51);
-  --overlay-high: rgba(20, 3, 0, 0.64);
+  /* Scrims — translucent layers that dim what sits behind them. A scrim is not
+     a tint: it darkens the content underneath, it does not shade a surface. */
+  --scrim-low: rgba(20, 3, 0, 0.38);
+  --scrim: rgba(20, 3, 0, 0.51);
+  --scrim-high: rgba(20, 3, 0, 0.64);
+
+  /* Tints — translucent washes that shade the surface they sit on, for a hover
+     or an active row. The theme aliases these to the text color, so a tint
+     lightens a dark theme and darkens a light one without picking a direction. */
+  --tint-low: rgba(255, 255, 255, 0.05);
+  --tint: rgba(255, 255, 255, 0.1);
+  --tint-high: rgba(255, 255, 255, 0.15);
 
   /* BORDERS — 5-point scales, faint → strong. */
 

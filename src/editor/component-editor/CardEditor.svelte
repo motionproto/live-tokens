@@ -92,14 +92,14 @@
     {
       key: 'hover-border',
       variants: ['default'],
-      variable: () => '--card-hover-border-active',
+      variable: () => '--card-hover-border-enabled',
       values: [HOVER_OFF.border, HOVER_ON.border],
       default: { default: HOVER_OFF.border },
     },
     {
       key: 'hover-shadow',
       variants: ['default'],
-      variable: () => '--card-hover-shadow-active',
+      variable: () => '--card-hover-shadow-enabled',
       values: [HOVER_OFF.shadow, HOVER_ON.shadow],
       default: { default: HOVER_OFF.shadow },
     },
@@ -122,15 +122,15 @@
     ($editorState.components[component]?.aliases ?? {}) as Record<string, import('../core/store/editorTypes').CssVarRef>,
   );
   let hoverEnabled = $derived.by(() => {
-    const ref = aliases['--card-hover-border-active'];
+    const ref = aliases['--card-hover-border-enabled'];
     const raw = ref?.kind === 'literal' ? ref.value : HOVER_OFF.border;
     return raw === HOVER_ON.border;
   });
 
   function setHoverEnabled(checked: boolean) {
     const v = checked ? HOVER_ON : HOVER_OFF;
-    setComponentAlias(component, '--card-hover-border-active', { kind: 'literal', value: v.border });
-    setComponentAlias(component, '--card-hover-shadow-active', { kind: 'literal', value: v.shadow });
+    setComponentAlias(component, '--card-hover-border-enabled', { kind: 'literal', value: v.border });
+    setComponentAlias(component, '--card-hover-shadow-enabled', { kind: 'literal', value: v.shadow });
   }
 </script>
 
@@ -146,7 +146,7 @@
       {#if stateName === 'hover'}
         <div
           class="hover-control"
-          data-token-variables="--card-hover-border-active --card-hover-shadow-active"
+          data-token-variables="--card-hover-border-enabled --card-hover-shadow-enabled"
         >
           <label class="hover-enable">
             <input type="checkbox" checked={hoverEnabled} onchange={(e) => setHoverEnabled(e.currentTarget.checked)} />

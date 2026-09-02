@@ -30,5 +30,5 @@
     "--panel-stage-inline-padding": "--space-16",
     "--panel-stage-gap": "--space-16"
   },
-  "schemaVersion": 21
+  "schemaVersion": 25
 }

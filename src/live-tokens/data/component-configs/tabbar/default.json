@@ -2,8 +2,10 @@
   "name": "default",
   "component": "tabbar",
   "createdAt": "2026-05-12T01:57:26.390Z",
-  "updatedAt": "2026-05-29T19:12:28.023Z",
+  "updatedAt": "2026-09-01T17:11:51.825Z",
   "aliases": {
+    "--tabbar-hover-tint": "--tint",
+    "--tabbar-hover-tint-enabled": "--color-transparent",
     "--tabbar-bar-divider": "--border-neutral-subtle",
     "--tabbar-bar-divider-thickness": "--border-width-1",
     "--tabbar-bar-top-margin": "--space-0",
@@ -40,7 +42,7 @@
     "--tabbar-hover-indicator-border-width": "--border-width-2",
     "--tabbar-active-text": "--text-primary",
     "--tabbar-active-border": "--color-brand-500",
-    "--tabbar-active-surface": "--overlay-low",
+    "--tabbar-active-surface": "--tint-low",
     "--tabbar-active-text-font-family": "--font-sans",
     "--tabbar-active-text-font-size": "--font-size-md",
     "--tabbar-active-text-font-weight": "--font-weight-light",
@@ -67,5 +69,5 @@
     "--tabbar-disabled-tab-bottom-radius": "--radius-none",
     "--tabbar-disabled-indicator-border-width": "--border-width-2"
   },
-  "schemaVersion": 21
+  "schemaVersion": 25
 }

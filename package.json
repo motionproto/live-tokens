@@ -144,6 +144,7 @@
     "check:overlay-portal": "node scripts/check-overlay-portal.mjs",
     "check:editor-font-isolation": "node scripts/check-editor-font-isolation.mjs",
     "check:component-defaults": "node scripts/sync-component-defaults.mjs --check",
+    "check:pages": "node bin/cli.mjs check-page",
     "check:production-is-default": "node scripts/check-production-is-default.mjs",
     "check:docs-content": "node scripts/sync-docs.mjs --check",
     "check:token-contract": "node scripts/check-token-contract.mjs",
@@ -157,7 +158,7 @@
     "collapse:theme": "node scripts/collapse-theme-to-default.mjs",
     "check:smoke-install": "bash scripts/smoke-install.sh",
     "check:smoke-create": "bash scripts/smoke-create.sh",
-    "prepublishOnly": "npm run check:no-style-imports && npm run check:no-tooling-imports && npm run check:slot-prose && npm run check:overlay-portal && npm run check:editor-font-isolation && npm run check:component-defaults && npm run check:production-is-default && npm run check:docs-content && npm run build:lib && npm run check:token-contract && npm run check:preset-themes && npm run check:skills && npm run check:skill-atlas && npm run check:smoke-install && npm run check:smoke-create"
+    "prepublishOnly": "npm run check:no-style-imports && npm run check:no-tooling-imports && npm run check:slot-prose && npm run check:overlay-portal && npm run check:editor-font-isolation && npm run check:component-defaults && npm run check:pages && npm run check:production-is-default && npm run check:docs-content && npm run build:lib && npm run check:token-contract && npm run check:preset-themes && npm run check:skills && npm run check:skill-atlas && npm run check:smoke-install && npm run check:smoke-create"
   },
   "peerDependencies": {
     "@sveltejs/vite-plugin-svelte": "^7.0",

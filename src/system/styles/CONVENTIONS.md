@@ -57,11 +57,11 @@ Every theme token starts with a **category prefix**. The category tells you what
 | `--ring-*`     | Focus rings (separate namespace from shadows)                   |
 | `--border-width-*` | Stroke widths                                               |
 | `--transition-*`, `--opacity-*`, `--z-*` | Animation, opacity, z-index scales    |
-| `--overlay-*`, `--hover-*` | Semantic overlay tints                                |
+| `--scrim-*`, `--tint-*` | Scrims dim what is behind them; tints shade a surface |
 | `--gradient-*` | Named gradients                                                 |
 | `--columns-*`, `--page-*` | Page-level layout primitives                         |
 
-**Rule: a bare one-word token belongs to *some* category.** If you find yourself writing `--overlay` or `--border`, make sure the category is obvious and it's the canonical default. Otherwise pick a longer name that slots it into its family (e.g. `--border-neutral`).
+**Rule: a bare one-word token belongs to *some* category.** If you find yourself writing `--scrim` or `--border`, make sure the category is obvious and it's the canonical default. Otherwise pick a longer name that slots it into its family (e.g. `--border-neutral`).
 
 ### Families within a category
 

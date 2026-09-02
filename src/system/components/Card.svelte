@@ -54,8 +54,8 @@
   class:bare={variant === 'bare'}
   class:compact={size === 'compact'}
   style:--card-color={iconColor}
-  style:--card-hover-border-active={hoverBorder}
-  style:--card-hover-shadow-active={hoverShadow}
+  style:--card-hover-border-enabled={hoverBorder}
+  style:--card-hover-shadow-enabled={hoverShadow}
 >
   {#if showHeader}
     <div class="card-header">
@@ -121,8 +121,8 @@
     /* Global "Use hover" intrinsic: the active hover values default to the resting
        tokens (hover off). The editor checkbox / a per-instance `hover` prop swap
        these to the `--card-hover-*` tokens to turn hover on. */
-    --card-hover-border-active: var(--card-default-border);
-    --card-hover-shadow-active: var(--card-default-shadow);
+    --card-hover-border-enabled: var(--card-default-border);
+    --card-hover-shadow-enabled: var(--card-default-shadow);
   }
 
   .card {
@@ -138,8 +138,8 @@
   }
 
   .card:hover {
-    border-color: var(--card-hover-border-active);
-    box-shadow: var(--card-hover-shadow-active);
+    border-color: var(--card-hover-border-enabled);
+    box-shadow: var(--card-hover-shadow-enabled);
   }
 
   /* Editor preview hook: paint hover tokens directly, ignoring the on/off gate. */

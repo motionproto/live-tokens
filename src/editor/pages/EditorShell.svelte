@@ -22,7 +22,7 @@
     { id: 'typography', label: 'Typography', icon: 'fas fa-font' },
     { id: 'icon-sizes', label: 'Icon Sizes', icon: 'fas fa-expand' },
     { id: 'shadows', label: 'Shadows', icon: 'fas fa-cloud' },
-    { id: 'overlays', label: 'Overlays', icon: 'fas fa-layer-group' },
+    { id: 'washes', label: 'Washes', icon: 'fas fa-layer-group' },
     { id: 'gradients', label: 'Gradients', icon: 'fas fa-droplet' },
     { id: 'utility-tokens', label: 'Utility Tokens', icon: 'fas fa-sliders' }
   ];

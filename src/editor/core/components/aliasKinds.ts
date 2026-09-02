@@ -49,6 +49,9 @@ export const KIND_PATTERNS: ReadonlyArray<{ kind: TokenKind; matches: (v: string
   { kind: 'border-width',   matches: (v) => v.endsWith('-border-width') || v.endsWith('-accent-width') || v.endsWith('-hairline-thickness') || v.startsWith('--border-width-') },
   { kind: 'border',         matches: (v) => v.endsWith('-border') || v.startsWith('--border-') },
   { kind: 'surface',        matches: (v) => v.endsWith('-surface') || v.startsWith('--surface-') },
+  // A tint is a wash over a surface, so it takes the surface picker: the full
+  // palette with an alpha, not just the tint stops it defaults to.
+  { kind: 'surface',        matches: (v) => v.endsWith('-tint') || v.startsWith('--tint') },
 ];
 
 export function rawKind(variable: string): TokenKind {

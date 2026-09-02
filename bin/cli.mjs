@@ -4,6 +4,7 @@
 //   create <dir>             Scaffold a new app that depends on this package.
 //   setup-claude [--force]   Copy bundled Claude Code skills into ./.claude/skills/.
 //   check-component <id>     Validate a component against the add-component skill contract.
+//   check-page [paths...]    Validate pages against the build-page skill contract.
 //   generate-theme <brief>   Build a theme from a 10-seed OKLCH brief and open it.
 //   adjust <ops.json>        Apply radius/padding/gap/border-width ops to the open buffer.
 //   set-fonts <brief.json>   Bind Google Fonts families to the theme's font stacks.
@@ -13,7 +14,16 @@ import { cpSync, existsSync, mkdirSync, readdirSync, statSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import process from 'node:process';
-import { checkComponent, formatReport } from './check-component.mjs';
+import { COMPONENT_RULES, checkComponent, formatReport } from './check-component.mjs';
+import { PAGE_RULES, checkPages, discoverPages } from './check-page.mjs';
+import {
+  applySeverity,
+  countBySeverity,
+  formatFindings,
+  parseCheckFlags,
+  readChecksConfig,
+  toJson,
+} from './lib/findings.mjs';
 import {
   runMigrate,
   formatMigrateResult,
@@ -34,6 +44,18 @@ Commands:
   setup-claude [--force]      Install bundled Claude Code skills into ./.claude/skills/
   check-component <id>        Validate <id>'s runtime, editor, and registration
                               against the live-tokens-create-component contract
+  check-page [paths...]       Validate pages against the live-tokens-build-page
+                              contract: catalogue components only, and every CSS
+                              value a theme token. Checks every page under src/
+                              when given no paths.
+
+Both check commands accept:
+  --json                      Machine-readable findings, for a skill to iterate
+                              against until the exit code is 0
+  --strict                    Treat warnings as errors
+  --off=<rule,...>            Silence rules; --warn=/--error= change severity
+                              (or set "checks": { "rules": {...} } in
+                              live-tokens.config.json)
   generate-theme <brief.json> [--no-activate] [--dry-run] [--carry-from <name>]
                               Build a full theme from a 10-seed OKLCH brief
                               (see the live-tokens-generate-theme skill),
@@ -109,12 +131,33 @@ if (command === 'create' || command === 'init') {
   }
 }
 
+function reportChecks(label, findings, checked, rules, opts) {
+  const resolved = applySeverity(findings, rules, opts, readChecksConfig(process.cwd()));
+  console.log(
+    opts.json
+      ? toJson(resolved, { label, checked })
+      : formatFindings(resolved, { label, checked }),
+  );
+  process.exit(countBySeverity(resolved).errors === 0 ? 0 : 1);
+}
+
 if (command === 'check-component') {
-  const id = rest[0];
-  if (!id) fail(`Usage: npx @motion-proto/live-tokens check-component <id>`);
+  const opts = parseCheckFlags(rest);
+  const id = opts.rest[0];
+  if (!id) fail(`Usage: npx @motion-proto/live-tokens check-component <id> [--json] [--strict]`);
   const result = checkComponent(id);
-  console.log(formatReport(id, result));
-  process.exit(result.errors.length === 0 ? 0 : 1);
+  if (!opts.json && !opts.strict && opts.off.length + opts.warn.length + opts.error.length === 0) {
+    console.log(formatReport(id, result));
+    process.exit(result.errors.length === 0 ? 0 : 1);
+  }
+  reportChecks(`check-component ${id}`, result.findings, 1, COMPONENT_RULES, opts);
+}
+
+if (command === 'check-page') {
+  const opts = parseCheckFlags(rest);
+  const targets = opts.rest.length > 0 ? opts.rest : discoverPages(process.cwd());
+  const { findings, checked } = checkPages(targets, { root: process.cwd() });
+  reportChecks('check-page', findings, checked, PAGE_RULES, opts);
 }
 
 if (command === 'generate-theme') {

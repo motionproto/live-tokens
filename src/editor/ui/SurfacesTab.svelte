@@ -31,9 +31,9 @@
     {
       title: 'Overlays',
       swatches: [
-        { name: 'Low', variable: '--overlay-low', description: 'Light backdrop / pressed wash' },
-        { name: 'Overlay', variable: '--overlay', description: 'Standard backdrop' },
-        { name: 'High', variable: '--overlay-high', description: 'Strong backdrop' }
+        { name: 'Low', variable: '--scrim-low', description: 'Light scrim' },
+        { name: 'Scrim', variable: '--scrim', description: 'Standard scrim' },
+        { name: 'High', variable: '--scrim-high', description: 'Strong scrim' }
       ]
     },
     {

@@ -77,5 +77,5 @@
     "--notification-danger-text-font-weight": "--font-weight-normal",
     "--notification-danger-text-line-height": "--line-height-normal"
   },
-  "schemaVersion": 21
+  "schemaVersion": 25
 }

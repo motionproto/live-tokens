@@ -1,6 +1,6 @@
 <script module lang="ts">
   import { buildSiblings } from './scaffolding/siblings';
-  import type { Token } from './scaffolding/types';
+  import type { Token, IntrinsicSpec } from './scaffolding/types';
 
   export const component = 'iconbutton';
 
@@ -92,21 +92,72 @@
     danger: 'fas fa-trash',
     warning: 'fas fa-triangle-exclamation',
   };
+
+  // The hover tint is off unless a project turns it on: the gate holds a
+  // transparent layer, a no-op, until it holds the tint itself.
+  export const intrinsics: IntrinsicSpec[] = [
+    {
+      key: 'hover-tint',
+      variants: ['default'],
+      variable: () => '--iconbutton-hover-tint-enabled',
+      values: ['var(--color-transparent)', 'var(--iconbutton-hover-tint)'],
+      default: { default: 'var(--color-transparent)' },
+    },
+  ];
 </script>
 
 <script lang="ts">
   import IconButton from '../../system/components/IconButton.svelte';
   import VariantGroup from './scaffolding/VariantGroup.svelte';
   import ComponentEditorBase from './scaffolding/ComponentEditorBase.svelte';
-  import { editorState } from '../core/store/editorStore';
+  import { editorState, setComponentAlias, clearComponentAlias } from '../core/store/editorStore';
   import { computeLinkedBlock, withLinkedDisabled } from './scaffolding/linkedBlock';
+  import Toggle from '../ui/Toggle.svelte';
+  import UIPaletteSelector from '../ui/UIPaletteSelector.svelte';
+
+  // One switch. Turning the tint on also stands each hover surface down to its
+  // own base, so hover is the tint alone rather than a swap wearing a wash.
+  // Written as aliases rather than gated in CSS: a component token's value is
+  // substituted at :root, so it can never name a per-variant private var.
+  // Off clears the overrides, returning each surface to its shipped default.
+  const HOVER_SWAPS: readonly (readonly [hover: string, base: string])[] = [
+    ['--iconbutton-primary-hover-surface', '--iconbutton-primary-surface'],
+    ['--iconbutton-secondary-hover-surface', '--iconbutton-secondary-surface'],
+    ['--iconbutton-outline-hover-surface', '--iconbutton-outline-surface'],
+    ['--iconbutton-success-hover-surface', '--iconbutton-success-surface'],
+    ['--iconbutton-danger-hover-surface', '--iconbutton-danger-surface'],
+    ['--iconbutton-warning-hover-surface', '--iconbutton-warning-surface'],
+  ];
+  const TINT_ON = 'var(--iconbutton-hover-tint)';
+  const TINT_OFF = 'var(--color-transparent)';
+
+  let tintOn = $derived.by(() => {
+    const ref = $editorState.components.iconbutton?.aliases['--iconbutton-hover-tint-enabled'];
+    return (ref?.kind === 'literal' ? ref.value : TINT_OFF) === TINT_ON;
+  });
+
+  function setTintOn(checked: boolean) {
+    setComponentAlias('iconbutton', '--iconbutton-hover-tint-enabled', {
+      kind: 'literal',
+      value: checked ? TINT_ON : TINT_OFF,
+    });
+    for (const [hover, base] of HOVER_SWAPS) {
+      if (checked) setComponentAlias('iconbutton', hover, { kind: 'token', name: base });
+      else clearComponentAlias('iconbutton', hover);
+    }
+  }
 
   let previewSize = $state<'default' | 'small'>('default');
 
   let linked = $derived(computeLinkedBlock(component, linkableContexts, allTokens, $editorState));
 
   let visibleVariantStates = $derived((v: Variant) => Object.fromEntries(
-    Object.entries(variantStates(v)).map(([name, list]) => [name, withLinkedDisabled(list, linked.varSet)]),
+    Object.entries(variantStates(v)).map(([name, list]) => [
+      name,
+      withLinkedDisabled(list, linked.varSet).map((t) =>
+        tintOn && t.variable.endsWith('-hover-surface') ? { ...t, disabled: true } : t,
+      ),
+    ]),
   ) as Record<string, Token[]>);
 
   let visibleSmallStates = $derived(Object.fromEntries(
@@ -139,6 +190,20 @@
         siblings={buildSiblings(variants, v, variantStates)}
         previewActions={sizeAction}
       >
+        {#snippet extraPropertyRows(stateName)}
+          {#if stateName === 'hover'}
+            <div class="property-row">
+              <span class="property-label">tint layer</span>
+              <Toggle checked={tintOn} onchange={setTintOn} />
+            </div>
+            {#if tintOn}
+              <div class="property-row">
+                <span class="property-label">tint color</span>
+                <UIPaletteSelector variable="--iconbutton-hover-tint" {component} showNone={false} />
+              </div>
+            {/if}
+          {/if}
+        {/snippet}
         {#snippet children({ activeState })}
           {@const forceClass = activeState === 'hover' ? 'force-hover' : activeState === 'active' ? 'force-active' : ''}
           {@const isDisabled = activeState === 'disabled'}

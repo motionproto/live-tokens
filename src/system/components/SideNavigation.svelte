@@ -26,6 +26,9 @@
   };
 
   interface Props {
+    /** Wash the hovered surface with the theme's tint. `undefined` inherits the
+        global default; `true`/`false` force this instance on/off. */
+    hoverTint?: boolean | undefined;
     sections?: SideNavSection[];
     footer?: SideNavFooter | undefined;
     titleLabel?: string;
@@ -51,6 +54,7 @@
   }
 
   let {
+    hoverTint = undefined,
     sections = [],
     footer = undefined,
     titleLabel = '',
@@ -65,6 +69,11 @@
     lead,
     actions,
   }: Props = $props();
+
+  // Per-instance override of the global hover-tint intrinsic; undefined leaves :root in charge.
+  let hoverTintValue = $derived(
+    hoverTint === undefined ? undefined : hoverTint ? 'var(--sidenavigation-hover-tint)' : 'var(--color-transparent)',
+  );
 
   // Dual-fire bridge — see Button.svelte for the deprecation timeline.
   const dispatch = createEventDispatcher<{ toggle: void }>();
@@ -154,6 +163,7 @@
 </script>
 
 <aside
+  style:--sidenavigation-hover-tint-enabled={hoverTintValue}
   class="sidenavigation {className}"
   class:collapsed={!open}
   class:force-title-hover={forceHoverPart === 'title'}
@@ -241,6 +251,11 @@
   @use '../styles/padding' as *;
 
   :global(:root) {
+    /* Hover tint: an optional wash over the hovered surface, one stop for the
+       whole component. Off by default; the gate holds the tint when enabled. */
+    --sidenavigation-hover-tint: var(--tint);
+    --sidenavigation-hover-tint-enabled: var(--color-transparent);
+
     /* Panel — outer chrome + layout. No states. */
     --sidenavigation-panel-surface: var(--surface-canvas-lower);
     --sidenavigation-panel-border: var(--border-canvas-faint);
@@ -501,6 +516,7 @@
 
   .sn-title:hover:not(.active),
   .sidenavigation.force-title-hover .sn-title:not(.active) {
+    background-image: linear-gradient(var(--sidenavigation-hover-tint-enabled), var(--sidenavigation-hover-tint-enabled));
     --_surface: var(--sidenavigation-title-hover-surface);
     --_border: var(--sidenavigation-title-hover-border);
     --_border-width: var(--sidenavigation-title-hover-border-width);
@@ -603,6 +619,7 @@
 
   .sn-toggle:hover,
   .sidenavigation.force-toggle-hover .sn-toggle {
+    background-image: linear-gradient(var(--sidenavigation-hover-tint-enabled), var(--sidenavigation-hover-tint-enabled));
     --_surface: var(--sidenavigation-toggle-hover-surface);
     --_border: var(--sidenavigation-toggle-hover-border);
     --_border-width: var(--sidenavigation-toggle-hover-border-width);
@@ -658,6 +675,7 @@
   }
   .sn-section-header:hover:not(.active),
   .sn-section-header.force-hover:not(.active) {
+    background-image: linear-gradient(var(--sidenavigation-hover-tint-enabled), var(--sidenavigation-hover-tint-enabled));
     --_surface: var(--sidenavigation-section-hover-surface);
     --_indicator: var(--sidenavigation-section-hover-accent);
     --_indicator-width: var(--sidenavigation-section-hover-accent-width);
@@ -720,6 +738,7 @@
 
   .sn-item:hover:not(.active),
   .sn-item.force-hover:not(.active) {
+    background-image: linear-gradient(var(--sidenavigation-hover-tint-enabled), var(--sidenavigation-hover-tint-enabled));
     --_surface: var(--sidenavigation-item-hover-surface);
     --_padding: var(--sidenavigation-item-hover-padding);
     --_indicator: var(--sidenavigation-item-hover-accent);
@@ -781,6 +800,7 @@
 
   .sn-footer:hover:not(.active),
   .sidenavigation.force-footer-hover .sn-footer:not(.active) {
+    background-image: linear-gradient(var(--sidenavigation-hover-tint-enabled), var(--sidenavigation-hover-tint-enabled));
     --_surface: var(--sidenavigation-footer-hover-surface);
     --_padding: var(--sidenavigation-footer-hover-padding);
     --_gap: var(--sidenavigation-footer-hover-gap);

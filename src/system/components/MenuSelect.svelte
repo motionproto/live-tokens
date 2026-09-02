@@ -9,6 +9,9 @@
   };
 
   interface Props {
+    /** Wash the hovered surface with the theme's tint. `undefined` inherits the
+        global default; `true`/`false` force this instance on/off. */
+    hoverTint?: boolean | undefined;
     items?: Item[];
     value?: string;
     /** Editor preview: force-hover one item by value. */
@@ -22,6 +25,7 @@
   }
 
   let {
+    hoverTint = undefined,
     items = [],
     value = $bindable(''),
     forceHoverValue = null,
@@ -29,6 +33,11 @@
     role = 'listbox',
     onchange,
   }: Props = $props();
+
+  // Per-instance override of the global hover-tint intrinsic; undefined leaves :root in charge.
+  let hoverTintValue = $derived(
+    hoverTint === undefined ? undefined : hoverTint ? 'var(--menuselect-hover-tint)' : 'var(--color-transparent)',
+  );
 
   // Dual-fire bridge — see Button.svelte for the deprecation timeline.
   const dispatch = createEventDispatcher<{ change: string }>();
@@ -41,6 +50,7 @@
 </script>
 
 <ul
+  style:--menuselect-hover-tint-enabled={hoverTintValue}
   class="menuselect"
   {role}
   style:min-width={minWidth}
@@ -71,6 +81,11 @@
   @use '../styles/padding' as *;
 
   :global(:root) {
+    /* Hover tint: an optional wash over the hovered surface, one stop for the
+       whole component. Off by default; the gate holds the tint when enabled. */
+    --menuselect-hover-tint: var(--tint);
+    --menuselect-hover-tint-enabled: var(--color-transparent);
+
     /* Menu panel */
     --menuselect-menu-surface: color-mix(in srgb, var(--surface-neutral-lower) 95%, transparent);
     --menuselect-menu-border: var(--border-neutral-medium);
@@ -183,7 +198,8 @@
 
   .menuselect-item:hover:not(:disabled):not(.selected),
   .menuselect-item.force-hover:not(:disabled):not(.selected) {
-    background: var(--menuselect-hover-surface);
+    background-color: var(--menuselect-hover-surface);
+    background-image: linear-gradient(var(--menuselect-hover-tint-enabled), var(--menuselect-hover-tint-enabled));
     color: var(--menuselect-hover-text);
     font-family: var(--menuselect-hover-text-font-family);
     font-size: var(--menuselect-hover-text-font-size);

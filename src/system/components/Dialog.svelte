@@ -166,8 +166,8 @@
 
 <style>
   :global(:root) {
-    /* Overlay */
-    --dialog-overlay-surface: var(--overlay-high);
+    /* Scrim */
+    --dialog-scrim-surface: var(--scrim-high);
 
     /* Dialog frame */
     --dialog-surface: var(--surface-neutral-lowest);
@@ -214,7 +214,7 @@
     left: 0;
     width: 100%;
     height: 100%;
-    background: var(--dialog-overlay-surface);
+    background: var(--dialog-scrim-surface);
     display: flex;
     justify-content: center;
     align-items: center;

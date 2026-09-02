@@ -19,7 +19,7 @@ import {
   editorState,
   columnsToVars,
   columnsEqualsDefault,
-  overlaysToVars,
+  washesToVars,
   shadowsToVars,
   gradientsToVars,
   componentsToVars,
@@ -30,7 +30,7 @@ export function deriveCssVars(state: EditorState): Record<string, string> {
   if (!columnsEqualsDefault(state.columns)) {
     Object.assign(out, columnsToVars(state.columns));
   }
-  Object.assign(out, overlaysToVars(state.overlays));
+  Object.assign(out, washesToVars(state.washes));
   if (state.shadows.tokens.length > 0) {
     Object.assign(out, shadowsToVars(state.shadows));
   }

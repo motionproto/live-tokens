@@ -1,7 +1,7 @@
 /**
  * Central editor state store — the single mutation funnel.
  *
- * All editor state (palettes, fonts, shadows, overlays, columns, ad-hoc CSS
+ * All editor state (palettes, fonts, shadows, washes, columns, ad-hoc CSS
  * vars) lives in one `EditorState` tree. Every change must go through
  * `mutate` (or a transaction). History is captured automatically; the
  * renderer subscribes and writes derived CSS vars to :root via `cssVarSync`
@@ -62,10 +62,10 @@ import {
   loadColumnsFromVars,
 } from '../themes/slices/columns';
 import {
-  loadOverlaysFromVars,
-  makeDefaultOverlaysState,
-  overlaysToVars,
-} from '../themes/slices/overlays';
+  loadWashesFromVars,
+  makeDefaultWashesState,
+  washesToVars,
+} from '../themes/slices/washes';
 import {
   loadShadowsFromVars,
   shadowsToVars,
@@ -99,7 +99,7 @@ function emptyState(): EditorState {
       tokens: [],
       overrides: {},
     },
-    overlays: makeDefaultOverlaysState(),
+    washes: makeDefaultWashesState(),
     columns: { ...DEFAULT_COLUMNS },
     components: {},
     gradients: { tokens: makeDefaultGradients() },
@@ -150,15 +150,15 @@ export {
 } from '../themes/slices/columns';
 
 export {
-  overlaysToVars,
-  OVERLAY_VAR_NAMES,
-  applyOverlayVarsToState,
-  makeDefaultOverlaysState,
-  makeDefaultOverlayTokens,
-  makeDefaultHoverTokens,
-  overlayTokenToCss,
-  parseOverlayCss,
-} from '../themes/slices/overlays';
+  washesToVars,
+  WASH_VAR_NAMES,
+  applyWashVarsToState,
+  makeDefaultWashesState,
+  makeDefaultScrimTokens,
+  makeDefaultTintTokens,
+  washTokenToCss,
+  parseWashCss,
+} from '../themes/slices/washes';
 
 export {
   shadowsToVars,
@@ -364,7 +364,7 @@ type DomainLoader = (next: EditorState, rawVars: Record<string, string>) => void
 
 const domainLoaders: Record<string, DomainLoader> = {
   columns: loadColumnsFromVars,
-  overlays: loadOverlaysFromVars,
+  washes: loadWashesFromVars,
   shadows: loadShadowsFromVars,
   components: loadComponentsFromVars,
 };
@@ -428,7 +428,7 @@ function colorsAndTypeContent(state: EditorState): Omit<ColorsAndType, 'name' | 
   if (!columnsEqualsDefault(state.columns)) {
     Object.assign(cssVariables, columnsToVars(state.columns));
   }
-  Object.assign(cssVariables, overlaysToVars(state.overlays));
+  Object.assign(cssVariables, washesToVars(state.washes));
   if (state.shadows.tokens.length > 0) {
     Object.assign(cssVariables, shadowsToVars(state.shadows));
   }
@@ -450,7 +450,7 @@ function colorsAndTypeContent(state: EditorState): Omit<ColorsAndType, 'name' | 
 
 /**
  * Serialize current state for saving. Domains with their own typed state
- * (columns, overlays, shadows) fold derived vars into `cssVariables` only
+ * (columns, washes, shadows) fold derived vars into `cssVariables` only
  * when they diverge from defaults; the catch-all `cssVars` bag carries
  * everything not yet migrated to a typed domain.
  *

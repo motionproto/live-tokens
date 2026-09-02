@@ -22,6 +22,8 @@ to that list, so the two cannot drift apart.
 | `-shadow`   | Box-shadow                                                    |
 | `-opacity`  | Opacity (0–1)                                                 |
 | `-blur`     | Backdrop or filter blur radius                                |
+| `-tint`     | A wash over the surface, aliasing a `--tint-*` stop            |
+| `-enabled`  | Gate for an optional interaction: its off value, or its on one |
 
 ## Geometry
 

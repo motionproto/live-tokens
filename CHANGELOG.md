@@ -1,5 +1,120 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+- **TabBar's active tab and Button's inline-code badge are tints, not scrims.**
+  Both washed a surface rather than dimming what sat behind it, and only read a
+  scrim because no tint family existed. **They restyle**: a 38% near-black wash
+  becomes a 10% white one, so each reads lighter and softer. A theme that pointed
+  the TabBar alias somewhere else keeps its choice.
+
+- **Optional-interaction gates take `-enabled`, not a state word.**
+  `--card-hover-border-active`, `--card-hover-shadow-active`,
+  `--image-zoom-hover`, and `--image-grow-hover` read as state-after-property and
+  failed `check-component`, which meant the documented gate pattern was one a
+  consumer could not use. A gate is not a state: it says whether the interaction
+  is on at all. Values are unchanged.
+
+- **`--hover-*` is now `--tint-*`, and it has a baseline for the first time.** A
+  state is a segment of a property name (`--button-outline-hover-surface`), not
+  a token of its own, so the three stops are named for what they are: a tint
+  shades the surface it sits on. Values are unchanged.
+
+  The theme engine had always emitted these stops, but `tokens.css` never
+  declared them, so they resolved to nothing until a theme was adopted. That is
+  why `var(--hover)` painted no pressed state on a fresh install. `--tint-*` is
+  baselined, and that half of the migration is additive, so it auto-applies.
+
+- **`--overlay-*` is now `--scrim-*`.** A scrim is a translucent layer that dims
+  what sits behind it, which is what a dialog draws over the page. The old name
+  had spread to cover surface tints as well, which are the opposite operation,
+  and it collided with `backdrop`, the exported concept for what paints behind
+  an element and which way it leans. Each name now means one thing. Values are
+  unchanged, so nothing repaints.
+
+  `npx live-tokens migrate` renames the three tokens in a vendored `tokens.css`.
+  Token names are public API, so the migration is breaking and never
+  auto-applies. Saved themes and component configs migrate on load.
+
+  Dialog's part follows its token: `--dialog-overlay-surface` is
+  `--dialog-scrim-surface`, and the editor labels it "scrim color" rather than
+  the "backdrop color" that named a third thing again. The editor's Overlays
+  section is now Washes, holding Scrims and Tints.
+
+### Added
+
+- **An optional hover tint on Button, IconButton, TabBar, SegmentedControl,
+  MenuSelect, and SideNavigation.** One stop for the whole component rather than
+  one hover surface per variant: Button and IconButton carried 36 hover tokens
+  each, and every one was tuned by hand. `--<id>-hover-tint` aliases a `--tint-*`
+  stop, and `--<id>-hover-tint-enabled` gates it.
+
+  Off by default, so nothing changes until a project turns it on. The tint rides
+  as a `background-image` over the hover rule's own `background-color`, so it
+  needs no pseudo-element.
+
+  A **tint layer** switch in the component editor's hover state turns it on and
+  points every hover surface at its own base surface, so hover is the tint alone
+  rather than a swap wearing a wash. The hover-surface rows grey out while it is
+  on, since they no longer change anything. Switching it off clears those
+  overrides, returning each surface to its shipped default.
+
+  Switching it on reveals a **tint color** row beside it. It starts on `--tint`,
+  the theme's middle tint stop, and takes any colour token with an alpha, like
+  every other colour row. A `-tint` suffix now resolves to the surface picker
+  rather than falling through, so the row offers the whole palette, not only the
+  tint stops.
+
+  Per instance, the `hoverTint` prop overrides the global default (`undefined`
+  inherits, `true` and `false` force).
+
+- **`live-tokens check-page` validates a page against the build-page
+  contract.** It fails on a component outside the catalogue, a deep import into
+  package internals, a `var()` naming a token that does not exist, a colour
+  literal, a route under the reserved `/live-tokens/*` namespace, and `site.css`
+  imported from `main.ts`. It warns on a raw px or rem dimension, a hardcoded
+  column count, an absolute type value, and a route entry with no `source`.
+  Given no paths it checks every page under `src/`.
+
+- **Both check commands take `--json`, `--strict`, and per-rule severity
+  flags.** `--json` prints findings with a stable `rule` id and line number, so
+  a skill can fix one rule at a time and re-run until the exit code is 0.
+  `--strict` promotes warnings to errors. `--off=<rule>`, `--warn=<rule>`, and
+  `--error=<rule>` change a rule for one run; `"checks": { "rules": { ... } }`
+  in `live-tokens.config.json` sets it for the project.
+
+- **`check-component` now checks what a default *resolves to*, not just what it
+  is named.** A component token names a semantic property and its default is the
+  theme token that property reads, which is what makes the component repaint
+  when the theme changes. A default reading a token that does not exist is now
+  an error, including a `var()` naming a state word rather than the token that
+  state should paint. A default with no token behind it warns unless the editor declares
+  it in `intrinsics`, and a default pinning a raw px or rem dimension warns.
+  `check-component` also finds a shipped component's editor beside the other
+  editors, not only next to its runtime.
+
+- **`npm run check:pages` runs the page check over this repo and is part of
+  `prepublishOnly`.** The unit suite covers the same ground: pages carry no
+  errors, and every shipped component default resolves to a real token.
+
+### Fixed
+
+- **A persisted editor session from before the rename no longer breaks the
+  renderer.** `hydrate` shallow-merges persisted state, so a `washes` (or
+  `overlays`) slice saved by an older build replaced the current one wholesale
+  and arrived without its tint stops, throwing `w.tints is not iterable` out of
+  the render path on load. Hydration now reshapes the slice: it carries the
+  saved stops across under their new names and falls back to the shipped
+  defaults for anything unusable.
+
+- **The outline Button and IconButton pressed state had no colour.** Both read
+  `var(--hover)`, which names nothing: a state is a segment of a semantic
+  property name (`--button-outline-hover-surface`), never a token of its own.
+  They read `--surface-neutral-low` now, one step along the scale from their
+  hover surface. `check-component` catches this class of mistake by name.
+
 ## 0.68.1 — A look is a Theme, or it's a sketch style
 
 ### Changed
