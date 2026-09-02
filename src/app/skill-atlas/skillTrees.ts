@@ -1269,6 +1269,97 @@ export const skillTrees: Record<string, SkillTree> = {
       ]
     ]
   },
+  "check-compliance": {
+    "id": "live-tokens-check-compliance",
+    "title": "check-compliance",
+    "tagline": "One command gives the facts. The skill says what they mean, what fixing them costs, and hands the list on without touching a file.",
+    "nodes": [
+      {
+        "id": "cc2-trig",
+        "row": 0,
+        "kind": "trigger",
+        "title": "Check, audit, validate, review, how compliant, what would it take",
+        "desc": "A request to know how things stand. Making the changes is fix-findings; a single token is the editor.",
+        "lines": [
+          2,
+          3
+        ],
+        "anchor": "name: live-tokens-check-compliance",
+        "anchorEnd": "description: Check an existing @motion-proto/live-tokens proj"
+      },
+      {
+        "id": "cc2-run",
+        "row": 1,
+        "kind": "cli",
+        "title": "Run the report",
+        "desc": "Always exits 0: a reading, not a gate. Migrations, unread tokens, registration, descriptions, usage by page, and both checkers' findings under the project's severities and under --strict.",
+        "command": "npx live-tokens report --json",
+        "lines": [
+          14,
+          37
+        ],
+        "anchor": "## Run the report",
+        "anchorEnd": "component or one scale."
+      },
+      {
+        "id": "cc2-read",
+        "row": 2,
+        "kind": "decide",
+        "title": "Mechanical, or judgement?",
+        "desc": "A spacing step, a stroke width, a column count, a moved import are mechanical, with any visible shift named. A colour by role, a type style, a dropped prop are choices to state, not make. A finding that looks deliberate gets the config entry that would record it.",
+        "lines": [
+          39,
+          55
+        ],
+        "anchor": "## Read it",
+        "anchorEnd": "`live-tokens.config.json`. Recording it is the user's call, not yours."
+      },
+      {
+        "id": "cc2-report",
+        "row": 3,
+        "kind": "step",
+        "title": "Report in six parts, counts on every line",
+        "desc": "Migrations, what fails now, what --strict adds, components, usage, then the recommended fixes in the order fix-findings would take them.",
+        "lines": [
+          57,
+          68
+        ],
+        "anchor": "## Report",
+        "anchorEnd": "warnings. Mark each as mechanical or judgement."
+      },
+      {
+        "id": "cc2-done",
+        "row": 4,
+        "kind": "done",
+        "title": "Hand off, edit nothing",
+        "desc": "Run live-tokens-fix-findings to apply these. Not even a one-line fix is made here, because the user asked how things stand.",
+        "lines": [
+          70,
+          72
+        ],
+        "anchor": "End with the hand-off:",
+        "anchorEnd": "one line, because the user asked how things stand."
+      }
+    ],
+    "edges": [
+      [
+        "cc2-trig",
+        "cc2-run"
+      ],
+      [
+        "cc2-run",
+        "cc2-read"
+      ],
+      [
+        "cc2-read",
+        "cc2-report"
+      ],
+      [
+        "cc2-report",
+        "cc2-done"
+      ]
+    ]
+  },
   "fix-findings": {
     "id": "live-tokens-fix-findings",
     "title": "fix-findings",
@@ -1295,8 +1386,8 @@ export const skillTrees: Record<string, SkillTree> = {
         "desc": "Unknown command means the installed package predates the checkers: upgrade and migrate. No check:design script means the project was not scaffolded: add it, and gate the build once it passes.",
         "command": "npx live-tokens check-page --json",
         "lines": [
-          19,
-          35
+          22,
+          38
         ],
         "anchor": "## Reach the checkers",
         "anchorEnd": "`check-component <id>` scope a run when the user names one"
@@ -1308,8 +1399,8 @@ export const skillTrees: Record<string, SkillTree> = {
         "title": "One rule at a time, errors first, re-run after each",
         "desc": "Group by rule and take the biggest group of errors first, because one recipe clears it. New findings can surface as old ones clear.",
         "lines": [
-          37,
-          46
+          40,
+          49
         ],
         "anchor": "## The loop",
         "anchorEnd": "the user can decide whether warnings are worth clearing no"
@@ -1323,24 +1414,24 @@ export const skillTrees: Record<string, SkillTree> = {
           {
             "label": "Silence a rule to pass",
             "lines": [
-              50,
-              50
+              53,
+              53
             ],
             "anchor": "- **Silence a rule to pass.**"
           },
           {
             "label": "Mint a token",
             "lines": [
-              54,
-              54
+              57,
+              57
             ],
             "anchor": "- **Mint a token.**"
           },
           {
             "label": "Shift the look silently",
             "lines": [
-              58,
-              58
+              61,
+              61
             ],
             "anchor": "- **Change what the page looks like without saying so.**"
           }
@@ -1353,8 +1444,8 @@ export const skillTrees: Record<string, SkillTree> = {
         "title": "Colour: what does it do?",
         "desc": "The replacement is the token for the colour's role, never the nearest hue. Text, fill, stroke, a scrim behind, a tint on, transparent, gradient.",
         "lines": [
-          62,
-          83
+          65,
+          86
         ],
         "anchor": "## Colour by role, never by hue",
         "anchorEnd": "`rebeccapurple` are literals like any hex."
@@ -1366,8 +1457,8 @@ export const skillTrees: Record<string, SkillTree> = {
         "title": "Geometry: which scale?",
         "desc": "Spacing to the nearest --space-* step, strokes to --border-width-*, corners to --radius-*, whole shadows to --shadow-*. Sizing is layout and is never reported.",
         "lines": [
-          85,
-          101
+          88,
+          104
         ],
         "anchor": "## Geometry by scale",
         "anchorEnd": "though no rule reports them, and a `blur()` takes `--blur-*`."
@@ -1379,8 +1470,8 @@ export const skillTrees: Record<string, SkillTree> = {
         "title": "Every other rule has one row",
         "desc": "Unknown tokens, raw type, props, columns, site.css, routes, deep imports, and the component rules, each with its fix or the skill that owns it.",
         "lines": [
-          103,
-          120
+          106,
+          123
         ],
         "anchor": "## Every other rule",
         "anchorEnd": "| `missing-registration`, `missing-file`, `missing-root-block`"
@@ -1392,8 +1483,8 @@ export const skillTrees: Record<string, SkillTree> = {
         "title": "Both exit 0, then --strict once",
         "desc": "Stop at exit 0 under the project's severities. Run --strict once and report what it adds, so warnings are the user's call.",
         "lines": [
-          45,
-          45
+          48,
+          48
         ],
         "anchor": "Stop at exit 0. Then run once with `--strict` and report wha"
       },
@@ -1404,8 +1495,8 @@ export const skillTrees: Record<string, SkillTree> = {
         "title": "Report by rule, then repaint",
         "desc": "What changed with counts and visible shifts, what was left and why, the two exit codes. Then change a surface and a spacing step in the editor: a file that does not repaint is a checker gap worth reporting.",
         "lines": [
-          122,
-          133
+          125,
+          136
         ],
         "anchor": "## Report",
         "anchorEnd": "the checker rather than patching around."

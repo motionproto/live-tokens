@@ -325,6 +325,7 @@ npx @motion-proto/live-tokens <command>
 | `setup-claude [--force]` | Install the bundled Claude Code skills into `./.claude/skills/`. |
 | `components [id] [--json]` | List every component the project has, shipped and its own, with the props each takes; with an id, its props, variants, tokens, and defaults. |
 | `tokens [--family <name>] [--json]` | List every theme token the project's `tokens.css` declares, by family, with its value. |
+| `report [--json]` | The project as facts: pending migrations, tokens each component reads, which page renders which component, and both checkers' findings by rule. Always exits 0. |
 | `check-component [id]` | Validate a component's runtime, editor, and registration against the authoring contract; with no id, every component authored under `src/system/components`. |
 | `check-page [paths...]` | Validate pages against the build-page contract: catalogue components and their props, theme tokens over literals, route wiring. |
 | `generate-theme <brief.json> [--no-activate] [--dry-run] [--carry-from <name>]` | Build a full theme from a 10-seed OKLCH brief, enforce AA contrast, write `themes/<slug>.json`, and open it. |
@@ -336,7 +337,7 @@ Once installed in a project, the same commands are available as `npx live-tokens
 
 ## Claude Code skills
 
-The package bundles seven Claude Code skills. They encode the conventions this README cannot carry in full: which component fits a need, how a page is wired, what a valid theme looks like in OKLCH, how two typefaces sit together, how geometry moves along the token scales, and how an existing page or component is brought back into line with all of that. Each triggers from an ordinary request, so there are no slash commands to learn.
+The package bundles eight Claude Code skills. They encode the conventions this README cannot carry in full: which component fits a need, how a page is wired, what a valid theme looks like in OKLCH, how two typefaces sit together, how geometry moves along the token scales, how a project is checked against all of that, and how an existing page or component is brought back into line. Each triggers from an ordinary request, so there are no slash commands to learn.
 
 ### Install
 
@@ -399,6 +400,12 @@ Edits land in each affected component's `_working.json` buffer, which is what th
 Ask for something the catalogue lacks: "author a Rating component", "make my Chip component editable in the editor".
 
 The skill covers the recipe: the runtime `.svelte` file with its `:global(:root)` token block, the editor `.svelte` file exporting `allTokens` and its variant groups, the `registerComponent()` call, and the catalogue entry that keeps `live-tokens-pick-component` current. It carries the naming scheme, the token suffix vocabulary, the state model (component states such as selected and disabled are separate from interaction states such as hover), and the public-imports rule, and points at the shipped `Toggle` in `node_modules` as the worked example. Linked siblings, intrinsics, and the fixed-overlay portal rule sit in reference files the skill reads only when a component needs them.
+
+### `live-tokens-check-compliance`
+
+Ask how things stand: "check this project against the design system", "audit the pricing page", "what would it take to make the build pass?", "review this before I upgrade".
+
+The skill runs `npx live-tokens report --json`, which is the project as facts: pending `tokens.css` migrations, the tokens each component declares and reads, which page renders which component, and both checkers' findings by rule under the project's severities and under `--strict`. It presents the report, says what each rule holds, marks each recommended fix as mechanical or a judgement call, names any visible shift, and flags a finding that looks deliberate together with the config entry that would record the decision. It edits nothing and ends by handing the list to `live-tokens-fix-findings`.
 
 ### `live-tokens-fix-findings`
 

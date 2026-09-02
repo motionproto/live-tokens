@@ -135,6 +135,19 @@ catches a token no CSS reads or an editor row that renders nothing; a bare
 `-width`, `-height`, or `-size` token gets a colour picker; the consumer sketch
 opt-in through the reserved classes is untested.
 
+## The report, and the check before the fix
+
+The fix skill had claimed "audit" as a trigger, so a user asking how things
+stand would have had files edited. The reading is now deterministic code:
+`live-tokens report` states migrations, unread tokens, registration,
+descriptions, usage by page, and findings by rule, and always exits 0. The
+unread-token fact needed calibrating on the catalogue first: five components
+reach their tokens through SCSS interpolation and every padding token is read
+through a mixin's string argument, so a naive `var()` scan reported 392 dead
+tokens; the fact counts those forms and reports 0 of 1318 on the shipped set.
+`live-tokens-check-compliance` narrates the report and hands the recommended
+fixes to `live-tokens-fix-findings`, which is now the only skill that edits.
+
 ## Consumer reality
 
 `live-tokens-online` before the fixes: 39 errors, 50 warnings. After the checker

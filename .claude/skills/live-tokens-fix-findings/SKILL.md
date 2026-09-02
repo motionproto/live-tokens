@@ -1,6 +1,6 @@
 ---
 name: live-tokens-fix-findings
-description: Bring an existing @motion-proto/live-tokens project into line with its design system by running check-page and check-component, reading the findings, and fixing each by rule until both exit 0. Use when the user asks to make the build pass, fix the design-system errors or warnings, clean up the literals, replace hex or pixel values with tokens, make a page or component themeable, audit the site or a file against the design system, or asks why check:design fails. Not for building a new page (live-tokens-build-page) or a new component (live-tokens-create-component), which run the same gate as their last step, and not for a single token edit (use the editor).
+description: Bring an existing @motion-proto/live-tokens project into line with its design system by running check-page and check-component, reading the findings, and fixing each by rule until both exit 0. Use when the user asks to make the build pass, fix the design-system errors or warnings, clean up the literals, replace hex or pixel values with tokens, make a page or component themeable, or apply what a check reported. Not for the check itself (live-tokens-check-compliance reports and edits nothing), not for building a new page (live-tokens-build-page) or a new component (live-tokens-create-component), which run the same gate as their last step, and not for a single token edit (use the editor).
 ---
 
 # Fixing what the checkers report
@@ -14,7 +14,10 @@ passes repaints when the theme changes. One that does not has opted out of the
 system silently, and these findings are where.
 
 This skill is the loop for code that already exists. Run the checker, fix one
-rule at a time, run it again, and stop only when both exit 0.
+rule at a time, run it again, and stop only when both exit 0. When the user has
+not seen the state of the project yet, `npx live-tokens report --json` is the
+reading to start from, and **live-tokens-check-compliance** is the skill that
+presents it without editing; this one edits.
 
 ## Reach the checkers
 

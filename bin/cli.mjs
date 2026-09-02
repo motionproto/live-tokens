@@ -5,6 +5,7 @@
 //   setup-claude [--force]   Copy bundled Claude Code skills into ./.claude/skills/.
 //   components [id]          List every component the project has, shipped and its own, with props and tokens.
 //   tokens [--family <name>] List every theme token by family, with its value.
+//   report                   The project as facts: tokens read, components used, findings by rule. Always exits 0.
 //   check-component [id]     Validate a component (or every authored one) against the create-component skill contract.
 //   check-page [paths...]    Validate pages against the build-page skill contract.
 //   generate-theme <brief>   Build a theme from a 10-seed OKLCH brief and open it.
@@ -19,6 +20,7 @@ import process from 'node:process';
 import { COMPONENT_RULES, checkComponent, discoverComponents, formatReport } from './check-component.mjs';
 import { PAGE_RULES, checkPages, discoverPages } from './check-page.mjs';
 import { describeComponents, describeTokens, formatComponents, formatTokens } from './lib/catalogue.mjs';
+import { buildReport, formatReport as formatProjectReport } from './lib/report.mjs';
 import { loadVocabulary } from './lib/tokenVocabulary.mjs';
 import {
   applySeverity,
@@ -54,6 +56,12 @@ Commands:
   tokens [--family <name>] [--json]
                               List every theme token the project's tokens.css
                               declares, by family, with its value
+  report [--json]             The project as facts: pending migrations, tokens
+                              each component declares and reads, which page
+                              renders which component, and both checkers'
+                              findings by rule under the project's severities
+                              and under --strict. A reading, not a gate: always
+                              exits 0
   check-component [id]        Validate <id>'s runtime, editor, and registration
                               against the live-tokens-create-component contract
   check-page [paths...]       Validate pages against the live-tokens-build-page
@@ -187,6 +195,24 @@ if (command === 'tokens') {
       ? JSON.stringify(family ? desc.families.find((f) => f.family === family) : desc, null, 2)
       : formatTokens(desc, { family }),
   );
+  process.exit(0);
+}
+
+if (command === 'report') {
+  const opts = parseCheckFlags(rest);
+  const report = buildReport(loadVocabulary());
+  try {
+    const plan = await runMigrate({ check: true });
+    report.migrations =
+      plan.status === 'no-path'
+        ? { status: 'no tokens.css' }
+        : plan.status === 'would-change'
+          ? { status: 'pending', pending: plan.applied ?? plan.migrations ?? [] }
+          : { status: 'none pending' };
+  } catch {
+    report.migrations = { status: 'unavailable (compiled engine not built)' };
+  }
+  writeOut(opts.json ? JSON.stringify(report, null, 2) : formatProjectReport(report));
   process.exit(0);
 }
 
@@ -368,6 +394,7 @@ const SAMPLE_PROMPTS = {
   'live-tokens-adjust-geometry': 'make the buttons pill shaped',
   'live-tokens-pair-fonts': 'pair some fonts for this theme',
   'live-tokens-fix-findings': 'make check:design pass',
+  'live-tokens-check-compliance': 'check this project against the design system',
 };
 
 const installedSamples = skills

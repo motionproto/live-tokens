@@ -1,5 +1,28 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+- **`npx live-tokens report` is the project as facts.** Pending `tokens.css`
+  migrations, the tokens each component declares and how many its own CSS
+  reads (a read counts a `var()`, a `style:` directive, a padding mixin's
+  string, or an SCSS-interpolated pattern), whether a component is registered
+  and carries the description comment the picker reads, which page renders
+  which component and how many times, the shipped and custom components used
+  nowhere, and both checkers' findings by rule under the project's severities
+  and again under `--strict`. It always exits 0: a reading, not a gate. `--json`
+  for data.
+
+- **`live-tokens-check-compliance`, the eighth skill.** "Check this project"
+  runs the report and presents it without editing a file: what fails the
+  build now, what `--strict` would add, the components and usage facts, and a
+  list of recommended fixes marked mechanical or judgement with any visible
+  shift named, handed to `live-tokens-fix-findings`. A finding that looks
+  deliberate is flagged with the config entry that would record the decision,
+  which stays the user's call. `live-tokens-fix-findings` no longer claims the
+  audit wording, and starts from the report when the user has not seen it.
+
 ## 0.70.0 — The registry is a query
 
 ### Added
