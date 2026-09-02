@@ -7,7 +7,7 @@ caught by the two runtime contracts a consumer does not have. This records
 what is still open for a consumer authoring a component, in the order to take
 it. Background: `docs/design-system-compliance-audit.md`.
 
-## State at hand-off (v0.71.0)
+## State at hand-off (v0.72.0, released)
 
 - Static checker `check-component` holds naming, defaults, registration,
   imports, `disabled-is-terminal`, and `phantom-editor-token`.
@@ -170,12 +170,10 @@ The file was in the wrong place. It moved to `src/demo/`, which takes it out of
 the published package, the query and the count. That is a breaking removal of
 `@motion-proto/live-tokens/components/FloatingTokenTags.svelte`.
 
-**Owed at the next release:** live-tokens-online is the only importer, and it
-still imports it from the package. Vendoring it there now does not work —
-`checks.exclude` is unreleased, so its installed CLI would not honour the entry
-and `check:design` would fail on the vendored art. Vendor the two files into
-`src/showcase/`, repoint the `../system/backdrop` and `MenuSelect` imports at
-their public specifiers, and add the config entry, as part of that upgrade.
+**Done in 0.72.0.** live-tokens-online was the only importer. It vendors the two
+files into `src/showcase/`, with `../system/backdrop` and
+`../system/components/MenuSelect.svelte` repointed at their public specifiers,
+and carries the `checks.exclude` entry for the art stylesheet.
 
 The move had a consequence worth recording: `src/system` is exempt from page
 discovery and `src/demo` is not, so 284 lines of hand-tuned animation CSS met
@@ -191,6 +189,32 @@ Staging a component's release on `registered: false` does not follow from this.
 `missing-registration` is an error in `check-component`, so an unregistered
 component fails the gate rather than sitting quietly outside the catalogue.
 Making that a supported state is a separate decision about that rule.
+
+## 4b. The consumer on 0.72.0
+
+`../live-tokens-online` installs 0.72.0 and builds green through `check:design`.
+`report` there: 26 components, matching the registry for the first time; 1312 of
+1312 declared tokens read; both checkers 0/0 and 0 under `--strict`. The
+vendored `FloatingTokenTags.svelte` now reads as one of its pages rather than as
+a catalogue component, which is what it always was.
+
+Two upgrade signals its atlas is built to raise, both answered: `setup-claude
+--force` was needed for the changed skills, and `skillSources.ts` lists
+reference files one by one so a new one surfaces as a missing import —
+`references/contract-tests.md` was the new one. `cc-test`'s anchor and `desc`
+were re-pointed at the rewritten verification step.
+
+Its data tree is still at component-config v25 with the six dropped
+`-title-outline-*` keys. That is not an action: the migration applies the next
+time the editor loads that config, which is what it is for.
+
+Its atlas is behind on content in a way this upgrade did not cause and did not
+fix: no `check-compliance` tree at all, and a `fix-findings` tree from before
+the 0.71.0 rewrite. That drift dates from 0.70.0. Porting the two trees is its
+own pass, and its atlas is a fork of ours with a per-tree digest and
+`@lt-skills` imports, so it is a content merge rather than a file copy.
+
+Nothing is committed there.
 
 ## 5. The evals — still gated
 
