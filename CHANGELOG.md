@@ -5,8 +5,9 @@
 ### Changed
 
 - **SideNavigation's panel widths read the spacing scale.** `16rem` and `3rem`
-  were the only shipped defaults with no token behind them; they now read
-  `calc(var(--space-64) * 4)` and `var(--space-48)`. Values are unchanged.
+  were the only shipped defaults with no token behind them; both now derive
+  from the largest step, `calc(var(--space-64) * 4)` and
+  `calc(var(--space-64) * 0.75)`. Values are unchanged.
 
 - **The starter `site.css` is fully tokenized.** A paragraph margin and three
   rule and blockquote strokes were px literals; they read `--space-16` and
@@ -163,6 +164,17 @@
   package's own demo site, took three rounds and ended clean.
 
 ### Fixed
+
+- **The tint layer switch was unreachable in four editors.** SegmentedControl,
+  TabBar, MenuSelect, and SideNavigation gated the row on a state named
+  `hover`, and their hover states are `hover option`, `hover tab`,
+  `hover item`, and `<Part> / Hover`, so the switch and the tint colour row
+  never rendered. Each condition now names the state the editor has. The
+  render contract caught it once it learned to turn a gate on: a gate row
+  carries `data-token-variables` and the harness flips a `role="switch"`
+  Toggle the way it clicks a checkbox, then exercises the row the gate
+  revealed. A selector whose selections are locked carries a `locked` class,
+  which the harness skips instead of retrying a chip it can never click.
 
 - **`check-page` no longer reports a `var()` fallback as a colour literal.**
   `var(--surface-neutral, #111)` paints the token; the literal only renders

@@ -173,7 +173,7 @@
     {component}
   >
     {#snippet extraPropertyRows(stateName)}
-      {#if stateName === 'hover'}
+      {#if stateName === 'hover item'}
         <div class="property-row" data-token-variables="--menuselect-hover-tint-enabled">
           <span class="property-label">tint layer</span>
           <Toggle checked={tintOn} onchange={setTintOn} />

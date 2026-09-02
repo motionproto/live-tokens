@@ -382,7 +382,7 @@
     selectorLabel="Part"
   >
     {#snippet extraPropertyRows(stateName)}
-      {#if stateName === 'hover'}
+      {#if stateName.endsWith(' / Hover')}
         <div class="property-row" data-token-variables="--sidenavigation-hover-tint-enabled">
           <span class="property-label">tint layer</span>
           <Toggle checked={tintOn} onchange={setTintOn} />

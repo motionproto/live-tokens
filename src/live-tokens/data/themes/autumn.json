@@ -3676,7 +3676,6 @@
         "--sidenavigation-panel-section-gap": "--space-6",
         "--sidenavigation-panel-item-padding": "--space-48",
         "--sidenavigation-panel-footer-gap": "--space-20",
-        "--sidenavigation-panel-closed-width": "--space-48",
         "--sidenavigation-open-duration": "--duration-200",
         "--sidenavigation-open-easing": "--ease-out-quart",
         "--sidenavigation-close-duration": "--duration-150",

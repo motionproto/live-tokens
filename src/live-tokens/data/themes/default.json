@@ -1,7 +1,7 @@
 {
   "name": "Motion Proto",
   "createdAt": "2026-05-10T18:15:30.815Z",
-  "updatedAt": "2026-09-02T10:57:08.352Z",
+  "updatedAt": "2026-09-02T12:27:05.388Z",
   "schemaVersion": 5,
   "colorsAndType": {
     "name": "Motion Proto",
@@ -3613,7 +3613,7 @@
       "name": "default",
       "component": "sidenavigation",
       "createdAt": "2026-05-25T19:34:09.771Z",
-      "updatedAt": "2026-09-02T10:17:50.775Z",
+      "updatedAt": "2026-09-02T12:26:46.349Z",
       "aliases": {
         "--sidenavigation-hover-tint": "--tint",
         "--sidenavigation-hover-tint-enabled": "--color-transparent",
@@ -3624,7 +3624,6 @@
         "--sidenavigation-panel-section-gap": "--space-4",
         "--sidenavigation-panel-item-padding": "--space-32",
         "--sidenavigation-panel-footer-gap": "--space-16",
-        "--sidenavigation-panel-closed-width": "--space-48",
         "--sidenavigation-open-duration": "--duration-200",
         "--sidenavigation-open-easing": "--ease-out-quart",
         "--sidenavigation-close-duration": "--duration-150",

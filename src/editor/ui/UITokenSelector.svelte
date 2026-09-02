@@ -286,6 +286,7 @@
 <div
   class="ui-token-selector"
   class:disabled
+  class:locked={selectionsLocked}
   data-token-variable={variable}
   bind:this={container}
 >

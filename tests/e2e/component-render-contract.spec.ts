@@ -1,6 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import { expect, test, type Frame } from '@playwright/test';
+import { expect, test, type Frame, type Locator } from '@playwright/test';
 import { openOverlayEditor } from './support/editor';
 
 // Each test boots its own editor and asserts only over its own component's
@@ -60,14 +60,17 @@ async function exerciseVisibleTokenControls(
   const settle = () => frame.evaluate(() => new Promise<void>((resolve) =>
     requestAnimationFrame(() => requestAnimationFrame(() => resolve()))));
   await settle();
-  const variables = await group.locator('.ui-token-selector:visible[data-token-variable]')
+  // A disabled or locked selector (a hover surface stood down while the tint
+  // is on) opens a dropdown with nothing to pick from.
+  const variables = await group.locator('.ui-token-selector:visible[data-token-variable]:not(.disabled):not(.locked)')
     .evaluateAll((elements) => [...new Set(elements
       .map((element) => (element as HTMLElement).dataset.tokenVariable)
       .filter((value): value is string => !!value))]);
 
   for (const variable of variables) {
     if (!componentAliases.includes(variable) || exercised.has(variable)) continue;
-    const selector = group.locator(`.ui-token-selector:visible[data-token-variable="${variable}"]`).first();
+    const selector = group.locator(`.ui-token-selector:visible[data-token-variable="${variable}"]:not(.disabled):not(.locked)`).first();
+    if (await selector.count() === 0) continue;
     const before = await frame.evaluate((name) => ({
       editor: document.documentElement.style.getPropertyValue(name).trim(),
       host: window.parent.document.documentElement.style.getPropertyValue(name).trim(),
@@ -146,11 +149,16 @@ async function exerciseVisibleSplitPaddingControls(
 /** A single semantic control may intentionally own several CSS variables.
  * Every listed variable must change and reach both roots before the component
  * traversal can advance. */
+/** Returns the gate inputs it toggled, so the caller can put each one back
+ *  after probing: a gate left on locks rows behind it (a hover surface stood
+ *  down behind a tint), and those rows still have to be exercised in the
+ *  views that follow. */
 async function exerciseVisibleCompositeControls(
   frame: Frame,
   componentAliases: string[],
   exercised: Set<string>,
-): Promise<void> {
+): Promise<Locator[]> {
+  const toggled: Locator[] = [];
   const group = frame.locator('.variant-group:visible');
   const controls = group.locator('[data-token-variables]:visible');
   for (let index = 0; index < await controls.count(); index++) {
@@ -163,9 +171,11 @@ async function exerciseVisibleCompositeControls(
       editor: document.documentElement.style.getPropertyValue(name).trim(),
       host: window.parent.document.documentElement.style.getPropertyValue(name).trim(),
     }])), variables);
-    const input = control.locator('input[type="checkbox"], input[type="radio"]').first();
+    // A gate is a checkbox, a radio, or a Toggle, which is a `role="switch"`.
+    const input = control.locator('input[type="checkbox"], input[type="radio"], [role="switch"]').first();
     if (await input.count() === 0) continue;
     await input.click();
+    toggled.push(input);
     await frame.evaluate(() => new Promise<void>((resolve) =>
       requestAnimationFrame(() => requestAnimationFrame(() => resolve()))));
     const after = await frame.evaluate((names) => Object.fromEntries(names.map((name) => [name, {
@@ -182,6 +192,7 @@ async function exerciseVisibleCompositeControls(
       exercised.add(variable);
     }
   }
+  return toggled;
 }
 
 /** Component-owned gradients use a composite editor instead of a token
@@ -524,10 +535,15 @@ for (const [component, aliases] of aliasesByComponent) {
       if (await dialogAction.count()) await dialogAction.hover({ force: true });
 
       await exerciseVisibleTokenControls(frame, componentAliases, controlExercised);
-      await exerciseVisibleCompositeControls(frame, componentAliases, controlExercised);
+      const gates = await exerciseVisibleCompositeControls(frame, componentAliases, controlExercised);
+      // A gate that just opened may have revealed a row (the tint colour).
+      await exerciseVisibleTokenControls(frame, componentAliases, controlExercised);
       await exerciseVisibleSplitPaddingControls(frame, componentAliases, controlExercised);
       await exerciseVisibleGradientControls(frame, componentAliases, controlExercised);
       const result = await probeCurrentView(frame, componentAliases, remaining, [...covered]);
+      for (const gate of gates) {
+        if (await gate.count()) await gate.click();
+      }
       result.covered.forEach((variable) => covered.add(variable));
       result.covered.forEach((variable) => seen.add(variable));
       result.unchanged.forEach((variable) => {
@@ -644,7 +660,12 @@ for (const [component, aliases] of aliasesByComponent) {
       const hoverTargets = frame.locator('.variant-group:visible .tabs-preview *:visible');
       for (let index = 0; index < await hoverTargets.count(); index++) {
         if (forced.every((variable) => covered.has(variable))) return;
-        await hoverTargets.nth(index).hover({ force: true });
+        // The node list was read once; a probe above may have re-rendered it.
+        try {
+          await hoverTargets.nth(index).hover({ force: true, timeout: 2_000 });
+        } catch {
+          continue;
+        }
         await probe(componentAliases, forced);
       }
     };

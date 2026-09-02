@@ -97,6 +97,26 @@ package there is 0.68.1, so the checkers ran from this tree's `bin/` and no
 `check:design` script was added, and the consumer's own Skill Atlas cannot
 show the new skill until it installs the release that carries it.
 
+## What the release gate found
+
+CI runs the Playwright render contract before `npm publish`, and it fails on
+`origin/main` for six components: each `--<id>-hover-tint` never repaints.
+The tint work landed after the last contract fix and was never run against
+it. Two causes, one of them a real editor bug:
+
+- In SegmentedControl, TabBar, MenuSelect, and SideNavigation the tint
+  switch never rendered: the row was gated on a state named `hover`, and
+  those editors name their hover states `hover option`, `hover tab`,
+  `hover item`, and `<Part> / Hover`. A user could not turn the tint on in
+  four of the six components that offer it.
+- The harness had no step that turns a `role="switch"` Toggle on, so even
+  Button's reachable switch stayed off. It now treats a switch as a gate
+  control, re-exercises rows the gate reveals, and skips a selector whose
+  selections are locked rather than retrying a chip it can never click.
+
+The Slider's first contract run also failed: its thumb was a vendor
+pseudo-element the probe cannot read. The thumb is a real element now.
+
 ## Consumer reality
 
 `live-tokens-online` before the fixes: 39 errors, 50 warnings. After the checker
