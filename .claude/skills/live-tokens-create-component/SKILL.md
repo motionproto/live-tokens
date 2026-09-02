@@ -52,7 +52,22 @@ For pattern reference, read any shipped component's source directly from the con
    `border-color`, `box-shadow`, `overflow`, `position` and both pseudo-elements
    away from the element it draws, which constrains where the class can go. Read
    `references/sketch-mode.md`.
-6. **Verify** with the checklist at the bottom of this file, then place the component on a page with **live-tokens-build-page**.
+6. **Gate on the checker.** Run it, fix every error, and run it again. Do not
+   call the component done while it reports one:
+   ```bash
+   npx live-tokens check-component <id> --strict --json
+   ```
+   `--json` gives each finding a stable `rule` id and a line number, so work one
+   rule at a time and re-run rather than guessing. `--strict` fails on warnings
+   too, which is the right setting for a new component: every warning it raises
+   is a naming or token decision that is cheaper to make now than to migrate
+   later. Exit code 0 is the gate.
+
+   If it rejects a suffix, do not invent a new name for the role. Find a shipped
+   component that paints the same thing and use the name it uses: the catalogue
+   is the worked reference, and `bin/check-component.test.ts` holds all 26 of
+   them to this same contract.
+7. **Verify** with the checklist at the bottom of this file, then place the component on a page with **live-tokens-build-page**.
 
 ## Token discipline
 
@@ -73,14 +88,26 @@ For pattern reference, read any shipped component's source directly from the con
 The editor picker is chosen by the token's suffix, so the suffix is the naming
 decision that matters. Color and surface: `-surface`, `-border`, `-text`,
 `-icon`, `-label`, `-fill`, `-divider`, `-color`, `-shadow`, `-opacity`,
-`-blur`, `-tint`. Geometry: `-radius`, `-border-width`, `-thickness`, `-width`,
-`-size`, `-padding`, `-gap`. Typography: `-font-family`, `-font-weight`,
-`-font-size`, `-line-height`, `-letter-spacing`. Gating an optional
-interaction: `-enabled`, never a state word, which would read as
-state-after-property and fail.
+`-tint`, `-background`, `-accent`, `-indicator`, `-thumb`, and the
+element-named text roles `-title`, `-body`, `-eyebrow`, `-description`,
+`-hint`, `-error`, `-placeholder`, `-value`. Geometry: `-radius`,
+`-border-width`, `-accent-width`, `-hairline-thickness`, `-thickness`,
+`-width`, `-height`, `-size`, `-padding`, `-margin`, `-gap`, `-inset`,
+`-divider-width`, `-divider-thickness`, `-divider-height`, `-divider-inset`,
+`-track-height`, `-dot-size`, `-thumb-size`, `-icon-size`, `-scale`, `-blur`.
+Motion: `-duration`, `-easing`. Typography: `-font-family`, `-font-weight`,
+`-font-size`, `-line-height`, `-letter-spacing`.
+
+A token that carries a structural keyword rather than a value takes no suffix
+from this list. Declare it in the editor's `intrinsics` instead, which is what
+exempts it, and never end its name in a state word, which reads as
+state-after-property and fails.
 
 Read `references/token-naming.md` for what each one means and when two of them
-compete. A suffix outside that list fails `check-component`.
+compete. A suffix outside that list fails `check-component`. The list lives in
+`KIND_RULES` in the editor's `aliasKinds.ts`, which the picker, the `adjust`
+CLI, and `check-component` all read, so a name accepted here always has a
+control behind it.
 
 ### Rules that bite
 

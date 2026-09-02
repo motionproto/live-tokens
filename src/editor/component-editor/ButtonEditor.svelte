@@ -106,6 +106,13 @@
   // transparent layer, a no-op, until it holds the tint itself.
   export const intrinsics: IntrinsicSpec[] = [
     {
+      key: 'shimmer',
+      variants: ['default'],
+      variable: () => '--button-shimmer',
+      values: ['var(--shimmer-on)', 'var(--shimmer-off)'],
+      default: { default: 'var(--shimmer-on)' },
+    },
+    {
       key: 'hover-tint',
       variants: ['default'],
       variable: () => '--button-hover-tint-enabled',

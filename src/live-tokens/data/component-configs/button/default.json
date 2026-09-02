@@ -2,10 +2,11 @@
   "name": "default",
   "component": "button",
   "createdAt": "2026-05-10T19:28:06.893Z",
-  "updatedAt": "2026-09-01T16:30:38.885Z",
+  "updatedAt": "2026-09-02T09:44:13.272Z",
   "aliases": {
     "--button-hover-tint": "--tint",
     "--button-hover-tint-enabled": "--color-transparent",
+    "--button-shimmer": "--shimmer-on",
     "--button-primary-surface": "--surface-brand",
     "--button-primary-text": "--text-primary",
     "--button-primary-text-font-family": "--font-sans",

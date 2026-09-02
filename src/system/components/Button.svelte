@@ -87,8 +87,8 @@
      --button-hover-tint: var(--tint);
      --button-hover-tint-enabled: var(--color-transparent);
 
-      /* Shared — set to `none` to disable the hover shimmer sweep */
-      --button-shimmer: block;
+      /* Shared — the shimmer sweep's display, gated by the editor's switch. */
+      --button-shimmer: var(--shimmer-on);
 
       /* Primary */
       --button-primary-surface: var(--surface-brand);

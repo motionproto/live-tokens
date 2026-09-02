@@ -148,16 +148,20 @@ if (existsSync(pickerPath)) {
 }
 
 // A token's suffix is what picks its editor control, and the list now sits in
-// three places: KNOWN_SUFFIXES decides, references/token-naming.md explains, and
-// the skill's inline summary is what a model reads before it names anything.
+// three places: KIND_RULES in the editor's aliasKinds decides (check-component
+// reads the same table), references/token-naming.md explains, and the skill's
+// inline summary is what a model reads before it names anything.
 // Splitting the tables out of SKILL.md is what made this worth gating; while
 // they sat inline next to the rule they serve, drift had nowhere to hide.
 const suffixSources = [
   ['live-tokens-create-component/references/token-naming.md', (t) => t],
   ['live-tokens-create-component/SKILL.md', (t) => t.match(/^### Suffix vocabulary\n([\s\S]*?)\n### /m)?.[1] ?? ''],
 ];
+const ALIAS_KINDS = 'src/editor/core/components/aliasKinds.ts';
+const kindRules = read(join(ROOT, ALIAS_KINDS)).match(/KIND_RULES[^=]*=\s*\[([\s\S]*?)\n\];/)?.[1] ?? '';
 const knownSuffixes = new Set(
-  [...(read(CHECK_COMPONENT).match(/const KNOWN_SUFFIXES = \[([\s\S]*?)\];/)?.[1] ?? '').matchAll(/'([a-z-]+)'/g)].map((m) => m[1]),
+  [...kindRules.matchAll(/suffix:\s*\[([\s\S]*?)\]/g)]
+    .flatMap((m) => [...m[1].matchAll(/'-([a-z0-9-]+)'/g)].map((n) => n[1])),
 );
 for (const [path, scope] of suffixSources) {
   const full = join(SKILLS, path);

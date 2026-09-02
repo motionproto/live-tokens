@@ -1,5 +1,5 @@
 <script module lang="ts">
-  import type { Token } from './scaffolding/types';
+  import type { Token, IntrinsicSpec } from './scaffolding/types';
 
   export const component = 'imagelightbox';
 
@@ -28,6 +28,17 @@
   };
 
   export const allTokens: Token[] = Object.values(states).flat();
+
+  // How a tile crops inside its frame: a structural choice, not a themeable value.
+  export const intrinsics: IntrinsicSpec[] = [
+    {
+      key: 'tile-fit',
+      variants: ['default'],
+      variable: () => '--imagelightbox-tile-object-fit',
+      values: ['contain', 'cover'],
+      default: { default: 'contain' },
+    },
+  ];
 </script>
 
 <script lang="ts">

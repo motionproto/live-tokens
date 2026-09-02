@@ -22,7 +22,7 @@
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { extname, join, relative } from 'node:path';
 import { lineOf } from './lib/findings.mjs';
-import { isContractToken, loadVocabulary } from './lib/tokenVocabulary.mjs';
+import { PKG_ROOT, isContractToken, loadVocabulary } from './lib/tokenVocabulary.mjs';
 
 export const COMPONENT_RULES = {
   'invalid-id': 'error',
@@ -46,15 +46,45 @@ export const COMPONENT_RULES = {
 // consumer-authored one sits next to its runtime. Probe both.
 const EDITOR_DIRS = ['src/system/components', 'src/editor/component-editor'];
 
-// Property suffixes the editor picker recognises (KIND_PATTERNS in the editor).
-// Keep in sync with the skill's suffix vocabulary.
-const KNOWN_SUFFIXES = [
-  'surface', 'border', 'text', 'icon', 'label', 'fill',
-  'radius', 'border-width', 'font-family', 'font-weight',
-  'font-size', 'line-height', 'letter-spacing', 'padding',
-  'thickness', 'width', 'color', 'size', 'gap', 'opacity', 'enabled', 'tint',
-  'shadow', 'blur', 'divider',
-];
+// Property suffixes come from the editor's own kind table, so the checker and
+// the picker can never disagree about what a name means. Read as text rather
+// than imported: this module must load without the compiled engine (CI runs the
+// suite before the plugin is built).
+const ALIAS_KINDS = 'src/editor/core/components/aliasKinds.ts';
+
+function readKnownSuffixes(root) {
+  for (const base of [root, PKG_ROOT]) {
+    const path = join(base, ALIAS_KINDS);
+    if (!existsSync(path)) continue;
+    const src = readFileSync(path, 'utf8');
+    const block = src.match(/KIND_RULES[^=]*=\s*\[([\s\S]*?)\n\];/);
+    if (!block) continue;
+    const out = new Set();
+    for (const m of block[1].matchAll(/suffix:\s*\[([\s\S]*?)\]/g)) {
+      for (const n of m[1].matchAll(/'-([a-z0-9-]+)'/g)) out.add(n[1]);
+    }
+    if (out.size > 0) return [...out];
+  }
+  return [];
+}
+
+const BUILT_IN_REGISTRY = 'src/editor/component-editor/registry.ts';
+
+/** True when `id` is one of the package's own components. */
+function isBuiltIn(id) {
+  for (const base of [PKG_ROOT, process.cwd()]) {
+    const path = join(base, BUILT_IN_REGISTRY);
+    if (!existsSync(path)) continue;
+    const src = readFileSync(path, 'utf8');
+    const block = src.match(/builtInRegistry[^=]*=\s*Object\.freeze\(\{([\s\S]*?)\n\}\);/);
+    if (block && new RegExp(`\\bid:\\s*'${id}'`).test(block[1])) return true;
+  }
+  return false;
+}
+
+// Per-side padding names (`--card-body-padding-top`) are written by the padding
+// selector, never declared by hand, and belong with their parent.
+const SIDE_SUFFIXES = ['-top', '-right', '-bottom', '-left'];
 
 // State tokens that must come *before* the property, never after.
 const STATE_TOKENS = ['hover', 'disabled', 'selected', 'focus', 'active', 'focused'];
@@ -89,29 +119,47 @@ function extractGlobalRootBlocks(source) {
   return blocks;
 }
 
-function extractTokensForId(blocks, id) {
+/**
+ * `--<id>-*` tokens declared in the given blocks.
+ *
+ * The prefix may also be the hyphenated word form of the id: CornerBadge is
+ * registered as `cornerbadge` but names its tokens `--corner-badge-*`, and the
+ * whole system (config, theme, editor) follows that. Segments never end on a
+ * hyphen, so a trailing `-` cannot be mistaken for a token name.
+ */
+function extractTokensForId(blocks, id, kebab) {
   const tokens = new Set();
-  const re = new RegExp(`--${id}-[a-z0-9-]+`, 'g');
-  for (const block of blocks) {
-    const matches = block.match(re) ?? [];
-    for (const t of matches) tokens.add(t);
+  // Comments name tokens too (`the --card-hover-* tokens`); they are prose.
+  blocks = blocks.map((b) => b.replace(/\/\*[\s\S]*?\*\//g, ' '));
+  const prefixes = kebab && kebab !== id ? [id, kebab] : [id];
+  for (const prefix of prefixes) {
+    const re = new RegExp(`--${prefix}(?:-[a-z0-9]+)+`, 'g');
+    for (const block of blocks) {
+      for (const t of block.match(re) ?? []) tokens.add(t);
+    }
   }
   return [...tokens];
 }
 
-function tokenSuffix(token) {
-  for (const suffix of KNOWN_SUFFIXES) {
-    if (token.endsWith(`-${suffix}`)) return suffix;
+/** `CornerBadge` -> `corner-badge`; the other accepted token prefix. */
+function kebabOf(name) {
+  return name.replace(/([a-z0-9])([A-Z])/g, '$1-$2').toLowerCase();
+}
+
+function tokenSuffix(token, known) {
+  const bare = SIDE_SUFFIXES.find((x) => token.endsWith(x)) ? token.slice(0, token.lastIndexOf('-')) : token;
+  for (const suffix of known) {
+    if (bare.endsWith(`-${suffix}`)) return suffix;
   }
   return null;
 }
 
-function detectStateAfterProperty(token) {
+function detectStateAfterProperty(token, known) {
   // e.g. --comp-part-surface-hover (wrong) vs --comp-part-hover-surface (right)
   for (const state of STATE_TOKENS) {
     if (token.endsWith(`-${state}`)) {
       const head = token.slice(0, -(state.length + 1));
-      if (tokenSuffix(head)) return state;
+      if (tokenSuffix(head, known)) return state;
     }
   }
   return null;
@@ -254,8 +302,15 @@ export function checkComponent(id, root = process.cwd(), { vocabulary } = {}) {
     return done();
   }
 
-  const Id = capitalize(id);
-  const runtimePath = join(root, 'src/system/components', `${Id}.svelte`);
+  // Resolve the real filename rather than capitalising the id: `cornerbadge`
+  // ships as `CornerBadge.svelte`, and the casing is what gives the kebab form
+  // of its token prefix.
+  const dir = join(root, 'src/system/components');
+  const Id =
+    (existsSync(dir) ? readdirSync(dir) : [])
+      .find((f) => f.toLowerCase() === `${id}.svelte`)
+      ?.replace('.svelte', '') ?? capitalize(id);
+  const runtimePath = join(dir, `${Id}.svelte`);
   const editorPath =
     EDITOR_DIRS.map((d) => join(root, d, `${Id}Editor.svelte`)).find(existsSync) ??
     join(root, EDITOR_DIRS[0], `${Id}Editor.svelte`);
@@ -280,17 +335,23 @@ export function checkComponent(id, root = process.cwd(), { vocabulary } = {}) {
   }
 
   // Runtime: at least one --<id>-* token.
-  const tokens = extractTokensForId(blocks, id);
+  const tokens = extractTokensForId(blocks, id, kebabOf(Id));
   if (blocks.length > 0 && tokens.length === 0) {
     record('no-tokens', `${relative(root, runtimePath)}: no --${id}-* tokens declared in :global(:root)`);
   }
+
+  // A token the editor declares as an intrinsic carries a structural keyword,
+  // not a themeable value, so a property-suffix rule is the wrong test for it.
+  const intrinsic = intrinsicMatchers(editor);
+  const known = readKnownSuffixes(root);
 
   // Runtime: state-after-property anti-pattern. Report this first; if it fires
   // for a token, skip the unknown-suffix error for the same token (the state-
   // suffix wouldn't be in the suffix list anyway, so it's the same root cause).
   const stateAfterTokens = new Set();
   for (const token of tokens) {
-    const trailingState = detectStateAfterProperty(token);
+    if (intrinsic.some((re) => re.test(token))) continue;
+    const trailingState = detectStateAfterProperty(token, known);
     if (trailingState) {
       stateAfterTokens.add(token);
       record(
@@ -304,8 +365,8 @@ export function checkComponent(id, root = process.cwd(), { vocabulary } = {}) {
 
   // Runtime: every token ends in a known suffix.
   for (const token of tokens) {
-    if (stateAfterTokens.has(token)) continue;
-    if (!tokenSuffix(token)) {
+    if (stateAfterTokens.has(token) || intrinsic.some((re) => re.test(token))) continue;
+    if (!tokenSuffix(token, known)) {
       record(
         'unknown-suffix',
         `${relative(root, runtimePath)}: ${token} doesn't end in a known suffix`,
@@ -394,6 +455,11 @@ export function checkComponent(id, root = process.cwd(), { vocabulary } = {}) {
       // ignore unreadable files
     }
   }
+  // A first-party component is registered by membership in the package's own
+  // `builtInRegistry`, not by a `registerComponent` call, so look there too
+  // before calling it unregistered.
+  if (!registrationFile && isBuiltIn(id)) return done();
+
   if (!registrationFile) {
     record(
       'missing-registration',

@@ -2657,6 +2657,7 @@
       "aliases": {
         "--button-hover-tint": "--tint",
         "--button-hover-tint-enabled": "--color-transparent",
+        "--button-shimmer": "--shimmer-on",
         "--button-primary-surface": "--surface-brand",
         "--button-primary-text": "--text-primary",
         "--button-primary-text-font-family": "--font-sans",

@@ -1859,31 +1859,31 @@ export const skillTrees: Record<string, SkillTree> = {
           {
             "label": "Linked siblings",
             "lines": [
-              178,
-              178
+              205,
+              205
             ],
             "anchor": "- `references/linked-siblings.md`: variants that share base "
           },
           {
             "label": "Intrinsics",
             "lines": [
-              179,
-              179
+              206,
+              206
             ],
             "anchor": "- `references/intrinsics.md`: structural or display choices "
           },
           {
             "label": "Sketch mode (always)",
             "lines": [
-              180,
-              180
+              207,
+              207
             ],
             "anchor": "- `references/sketch-mode.md`: joining the sketch layer. **E"
           }
         ],
         "lines": [
-          174,
-          180
+          201,
+          207
         ],
         "anchor": "## Extensions",
         "anchorEnd": "- `references/sketch-mode.md`: joining the sketch layer. **E",
@@ -1940,8 +1940,8 @@ export const skillTrees: Record<string, SkillTree> = {
           {
             "label": "Naming scheme",
             "lines": [
-              57,
-              70
+              72,
+              72
             ],
             "anchor": "## Token discipline",
             "anchorEnd": ""
@@ -1949,8 +1949,8 @@ export const skillTrees: Record<string, SkillTree> = {
           {
             "label": "Suffix vocabulary",
             "lines": [
-              71,
-              83
+              86,
+              107
             ],
             "anchor": "### Suffix vocabulary",
             "anchorEnd": "compete. A suffix outside that list fails `check-component`."
@@ -1958,8 +1958,8 @@ export const skillTrees: Record<string, SkillTree> = {
           {
             "label": "Rules that bite",
             "lines": [
-              85,
-              91
+              112,
+              118
             ],
             "anchor": "### Rules that bite",
             "anchorEnd": "- **Text aliases.** Neutral scale is `--text-primary` / `--t"
@@ -1967,8 +1967,8 @@ export const skillTrees: Record<string, SkillTree> = {
           {
             "label": "Typography groupKey trap",
             "lines": [
-              92,
-              102
+              119,
+              129
             ],
             "anchor": "- **Typography `groupKey` on multi-slot components must incl",
             "anchorEnd": "The helper strips the `--<component>-` prefix and those segm"
@@ -1976,8 +1976,8 @@ export const skillTrees: Record<string, SkillTree> = {
           {
             "label": "State model",
             "lines": [
-              105,
-              148
+              132,
+              150
             ],
             "anchor": "## State model",
             "anchorEnd": "```"
@@ -1985,8 +1985,8 @@ export const skillTrees: Record<string, SkillTree> = {
           {
             "label": "User-facing copy",
             "lines": [
-              131,
-              135
+              158,
+              162
             ],
             "anchor": "## User-facing copy",
             "anchorEnd": "If you add custom chrome inside an editor snippet (rare — `C"
@@ -1994,8 +1994,8 @@ export const skillTrees: Record<string, SkillTree> = {
           {
             "label": "Public imports only",
             "lines": [
-              137,
-              152
+              164,
+              179
             ],
             "anchor": "## Public imports only",
             "anchorEnd": "**Never deep-import `node_modules/@motion-proto/live-tokens/"
@@ -2003,8 +2003,8 @@ export const skillTrees: Record<string, SkillTree> = {
           {
             "label": "Worked example: Toggle",
             "lines": [
-              154,
-              172
+              181,
+              199
             ],
             "anchor": "## Worked example: the shipped Toggle",
             "anchorEnd": "For your own component, copy the pattern and substitute your"
@@ -2020,8 +2020,8 @@ export const skillTrees: Record<string, SkillTree> = {
         "title": "npx live-tokens check-component <id>",
         "desc": "Enforces file layout, the :global(:root) block, suffix vocabulary, state-before-property, theme-token defaults, public imports, and that the id is registered. Exit 0 means the static contract is met; resolve warnings before shipping.",
         "lines": [
-          182,
-          191
+          209,
+          218
         ],
         "anchor": "## Verification checklist",
         "anchorEnd": "It enforces the file layout, the `:global(:root)` block, tok",
@@ -2029,8 +2029,8 @@ export const skillTrees: Record<string, SkillTree> = {
           {
             "label": "Step 6 in the recipe",
             "lines": [
-              55,
-              55
+              70,
+              70
             ],
             "anchor": "**Verify** with the checklist at the bottom of this file, th"
           }
@@ -2044,8 +2044,8 @@ export const skillTrees: Record<string, SkillTree> = {
         "title": "Run the registry contract test",
         "desc": "Five per-component checks: registration resolves, schema variables are unique, every editable token is declared in the runtime style block and seeded in default.json, and setComponentAlias round-trips. A first-party component is auto-covered the moment it lands in builtInRegistry.",
         "lines": [
-          197,
-          205
+          224,
+          232
         ],
         "anchor": "**Then run the registry contract test.** If you're authoring",
         "anchorEnd": "A new first-party component is auto-covered the moment it la"
@@ -2057,8 +2057,8 @@ export const skillTrees: Record<string, SkillTree> = {
         "title": "And the intrinsics contract test",
         "desc": "Only when the component declares intrinsics. Per (intrinsic, variant) it asserts the runtime declares a default, the default is one of the spec's values, and the editor's default equals the runtime default.",
         "lines": [
-          207,
-          207
+          234,
+          234
         ],
         "anchor": "**If your component declares `intrinsics`, the intrinsics co"
       },
@@ -2069,8 +2069,8 @@ export const skillTrees: Record<string, SkillTree> = {
         "title": "Walk the runtime checklist",
         "desc": "Seven things no static check can see, at /live-tokens/components: the CUSTOM group entry, token rows and pickers, linked-block broadcast, default.json derivation, Reset, clean boot validation, and the sketch-mode pass.",
         "lines": [
-          209,
-          217
+          236,
+          244
         ],
         "anchor": "Finally navigate to `/live-tokens/components` and confirm th",
         "anchorEnd": "- [ ] Switch Sketch mode on in the editor and walk the check"

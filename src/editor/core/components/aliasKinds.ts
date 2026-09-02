@@ -21,38 +21,58 @@ export type TokenKind =
   | 'easing'
   | 'text-color';
 
-/** Suffix/prefix patterns mapped to kinds — the one source of truth for the
-    editor's selector layout and the `adjust` CLI, so the two cannot drift.
-    Order matters: `-text` must run before `-border`/`-surface` because `--text-*`
-    would otherwise match `surface`/`border` if any pattern overlapped. Variables
-    that don't match any pattern fall through to `text-color` (renders as a palette
-    picker). Tokens with unconventional suffixes should be renamed. */
-export const KIND_PATTERNS: ReadonlyArray<{ kind: TokenKind; matches: (v: string) => boolean }> = [
-  { kind: 'font-family',    matches: (v) => v.endsWith('-font-family') },
-  { kind: 'font-weight',    matches: (v) => v.endsWith('-font-weight') },
-  { kind: 'font-size',      matches: (v) => v.endsWith('-font-size') || v.endsWith('-icon-size') || v.endsWith('-thumb-size') },
-  { kind: 'line-height',    matches: (v) => v.endsWith('-line-height') },
-  { kind: 'letter-spacing', matches: (v) => v.endsWith('-letter-spacing') },
-  { kind: 'text-color',     matches: (v) => v.endsWith('-text') || v.startsWith('--text-') },
-  { kind: 'radius',         matches: (v) => v.endsWith('-radius') || v.startsWith('--radius-') },
-  { kind: 'divider-width',  matches: (v) => v.endsWith('-divider-width') || v.endsWith('-divider-thickness') },
-  { kind: 'divider-height', matches: (v) => v.endsWith('-divider-height') || v.endsWith('-track-height') },
-  { kind: 'divider-inset',  matches: (v) => v.endsWith('-divider-inset') },
-  { kind: 'dot-size',       matches: (v) => v.endsWith('-dot-size') },
-  { kind: 'blur',           matches: (v) => v.endsWith('-blur') || v.startsWith('--blur-') },
-  { kind: 'scale',          matches: (v) => v.endsWith('-scale') || v.startsWith('--scale-') },
-  { kind: 'shadow',         matches: (v) => v.endsWith('-shadow') || v.startsWith('--shadow-') },
-  { kind: 'padding',        matches: (v) => v.endsWith('-padding') || v.endsWith('-margin') },
-  { kind: 'gap',            matches: (v) => v.endsWith('-gap') },
-  { kind: 'duration',       matches: (v) => v.endsWith('-duration') || v.startsWith('--duration-') },
-  { kind: 'easing',         matches: (v) => v.endsWith('-easing') || v.startsWith('--ease-') },
-  { kind: 'border-width',   matches: (v) => v.endsWith('-border-width') || v.endsWith('-accent-width') || v.endsWith('-hairline-thickness') || v.startsWith('--border-width-') },
-  { kind: 'border',         matches: (v) => v.endsWith('-border') || v.startsWith('--border-') },
-  { kind: 'surface',        matches: (v) => v.endsWith('-surface') || v.startsWith('--surface-') },
-  // A tint is a wash over a surface, so it takes the surface picker: the full
-  // palette with an alpha, not just the tint stops it defaults to.
-  { kind: 'surface',        matches: (v) => v.endsWith('-tint') || v.startsWith('--tint') },
+/** Suffix and prefix data mapped to kinds — the one source of truth for the
+    editor's selector layout, the `adjust` CLI, and `check-component`'s naming
+    rule, so the three cannot drift. `bin/check-component.mjs` reads the
+    `suffix:` arrays out of this file, which is why they are plain literals.
+
+    Order matters: `-text` must run before `-border`/`-surface`, and
+    `-accent-width` before `-accent`, because the first match wins. A variable
+    matching nothing falls through to `text-color` (a palette picker), but that
+    fall-through is a smell — `check-component` rejects an unrecognised suffix,
+    so add the name here rather than letting it drift. */
+export const KIND_RULES: ReadonlyArray<{
+  kind: TokenKind;
+  suffix?: readonly string[];
+  prefix?: readonly string[];
+}> = [
+  { kind: 'font-family',    suffix: ['-font-family'] },
+  { kind: 'font-weight',    suffix: ['-font-weight'] },
+  { kind: 'font-size',      suffix: ['-font-size', '-icon-size', '-thumb-size'] },
+  { kind: 'line-height',    suffix: ['-line-height'] },
+  { kind: 'letter-spacing', suffix: ['-letter-spacing'] },
+  // Element-named colour roles: the property *is* the element it paints.
+  { kind: 'text-color',     suffix: ['-text', '-label', '-icon', '-title', '-body', '-eyebrow',
+                                     '-description', '-hint', '-error', '-placeholder', '-value'],
+                            prefix: ['--text-'] },
+  { kind: 'radius',         suffix: ['-radius'], prefix: ['--radius-'] },
+  { kind: 'divider-width',  suffix: ['-divider-width', '-divider-thickness'] },
+  { kind: 'divider-height', suffix: ['-divider-height', '-track-height'] },
+  { kind: 'divider-inset',  suffix: ['-divider-inset', '-inset'] },
+  { kind: 'dot-size',       suffix: ['-dot-size'] },
+  { kind: 'blur',           suffix: ['-blur'], prefix: ['--blur-'] },
+  { kind: 'scale',          suffix: ['-scale'], prefix: ['--scale-'] },
+  { kind: 'shadow',         suffix: ['-shadow'], prefix: ['--shadow-'] },
+  { kind: 'padding',        suffix: ['-padding', '-margin'] },
+  { kind: 'gap',            suffix: ['-gap'] },
+  { kind: 'duration',       suffix: ['-duration'], prefix: ['--duration-'] },
+  { kind: 'easing',         suffix: ['-easing'], prefix: ['--ease-'] },
+  { kind: 'border-width',   suffix: ['-border-width', '-accent-width', '-hairline-thickness', '-thickness'],
+                            prefix: ['--border-width-'] },
+  { kind: 'border',         suffix: ['-border'], prefix: ['--border-'] },
+  // Fills. A tint is a wash over a surface, so it takes the surface picker: the
+  // full palette with an alpha, not just the tint stops it defaults to.
+  { kind: 'surface',        suffix: ['-surface', '-fill', '-divider', '-background', '-indicator',
+                                     '-thumb', '-accent', '-color', '-tint', '-opacity',
+                                     '-width', '-height', '-size'],
+                            prefix: ['--surface-', '--tint', '--color-'] },
 ];
+
+export const KIND_PATTERNS: ReadonlyArray<{ kind: TokenKind; matches: (v: string) => boolean }> =
+  KIND_RULES.map(({ kind, suffix = [], prefix = [] }) => ({
+    kind,
+    matches: (v: string) => suffix.some((s) => v.endsWith(s)) || prefix.some((p) => v.startsWith(p)),
+  }));
 
 export function rawKind(variable: string): TokenKind {
   for (const { kind, matches } of KIND_PATTERNS) {

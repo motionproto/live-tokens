@@ -1,5 +1,5 @@
 import { describe, it, expect, afterEach } from 'vitest';
-import { mkdtempSync, mkdirSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdtempSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 // @ts-expect-error — plain .mjs module, no types
@@ -188,6 +188,27 @@ describe('check-component semantic defaults', () => {
     const { findings } = checkComponent('widget', root);
     const resolved = applySeverity(findings, COMPONENT_RULES, {});
     expect(countBySeverity(resolved).errors).toBe(0);
+  });
+});
+
+/**
+ * The shipped catalogue is the checker's fixture. It is the only body of
+ * components written to this contract, so if the rule and the components ever
+ * disagree, one of them is wrong and this is where it shows. It caught the
+ * suffix vocabulary drifting narrower than the components it governs: 109
+ * errors across 26 components, none of them defects in the components.
+ */
+describe('the shipped catalogue satisfies the contract it documents', () => {
+  const root = process.cwd();
+  const registry = readFileSync(join(root, 'src/editor/component-editor/registry.ts'), 'utf8');
+  const ids = [...registry.matchAll(/^\s{4}id: '([a-z0-9]+)',$/gm)].map((m) => m[1]);
+
+  it('registers a catalogue to check', () => {
+    expect(ids.length).toBeGreaterThan(20);
+  });
+
+  it.each(ids)('%s', (id) => {
+    expect(checkComponent(id, root).errors).toEqual([]);
   });
 });
 

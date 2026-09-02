@@ -17,6 +17,11 @@
   consumer could not use. A gate is not a state: it says whether the interaction
   is on at all. Values are unchanged.
 
+- **Button's shimmer and ImageLightbox's tile fit are declared intrinsics.**
+  Both were bare keywords with no theme token and no declaration, which is the
+  thing `intrinsics` exists to record. `--button-shimmer` now defaults to
+  `var(--shimmer-on)`, the token that was already there for it.
+
 - **`--hover-*` is now `--tint-*`, and it has a baseline for the first time.** A
   state is a segment of a property name (`--button-outline-hover-surface`), not
   a token of its own, so the three stops are named for what they are: a tint
@@ -44,6 +49,24 @@
   section is now Washes, holding Scrims and Tints.
 
 ### Added
+
+- **The shipped catalogue is now the component contract's fixture.**
+  `check-component` reported 109 errors across all 26 shipped components, and
+  none of them were defects in the components: the checker's suffix list had
+  simply drifted narrower than the catalogue it governs, rejecting `-accent`,
+  `-title`, `-margin`, `-easing` and a dozen more names our own components use.
+  A test now runs the full contract over every registered component and requires
+  zero errors, so the rule and the components can never disagree again.
+
+  The suffix vocabulary moved to `KIND_RULES` in the editor's `aliasKinds.ts`.
+  The picker, the `adjust` CLI, `check-component`, and `check:skills` all read
+  that one table, so a name the checker accepts always has a control behind it.
+
+  Three rules got more accurate along the way. A token the editor declares in
+  `intrinsics` is exempt from the suffix check, because a structural keyword is
+  not a themeable value. Membership in the package's own `builtInRegistry`
+  counts as registration. And a component may prefix its tokens with the
+  hyphenated form of its id, which is what CornerBadge has always done.
 
 - **An optional hover tint on Button, IconButton, TabBar, SegmentedControl,
   MenuSelect, and SideNavigation.** One stop for the whole component rather than
