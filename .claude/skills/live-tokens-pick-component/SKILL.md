@@ -63,7 +63,7 @@ All four pick one option from a set. The right one depends on **option count**, 
 | `Dialog`              | Modal, blocks page  | Confirmations, focused tasks the page can't continue around |
 | `Panel`               | Inline, fixed stage | A demo or preview surface whose height must not reflow     |
 
-- Default to `Card`. It's the workhorse. For full-bleed media — cover art, a poster, a chart that reaches its own border — pass `flush` (with `prose={false}`) rather than zeroing its padding tokens from the page.
+- Default to `Card`. It's the workhorse. For full-bleed media (cover art, a poster, a chart that reaches its own border) pass `flush` (with `prose={false}`) rather than zeroing its padding tokens from the page.
 - Reach for `CollapsibleSection` only when the content is *legitimately secondary* (advanced users open it; most skip). Don't use collapse as a styling choice when the content matters.
 - `Panel` is a stage, not a content container. It pins its own height so what it shows can resize without moving the page, which is what a component preview or a live example needs and what article content does not. Content goes in `Card`.
 - **Don't use `Dialog` for routine forms.** Reach for it only when the page cannot meaningfully continue until the user decides (destructive confirmations, payment, sign-in). Routine forms go inline in a `Card`.
@@ -83,7 +83,7 @@ All four pick one option from a set. The right one depends on **option count**, 
 - `Tooltip` is for *what an element means*. **Don't use `Tooltip` as the primary location of important content;** it auto-dismisses and isn't accessible for must-read content.
 - `Badge` and `CornerBadge` differ only in positioning. `CornerBadge` lives at a `top-right` / `bottom-left` anchor on a parent (notification counts, "NEW" stickers).
 
-## Display family: what the page shows rather than what it asks
+## Display family: shown, not asked
 
 - `Image` frames a picture in the flow at one of four sizes, with an optional hover zoom. It is the default for any picture the page simply shows.
 - `ImageLightbox` adds click-to-open at full size and takes an array for a gallery. Use it when the detail is the point (screenshots, artwork, charts that need reading), and not for decoration: it puts a modal behind every picture it wraps.
@@ -108,4 +108,4 @@ All three can express a binary choice. The right one depends on what the choice 
 
 ---
 
-If nothing in the catalogue fits (a `Slider`, a `DatePicker`, a `Stepper`, a custom widget), author it via **live-tokens-create-component**. **Don't reach for a custom component before checking the catalogue;** a custom component is a maintenance commitment.
+If nothing in the catalogue fits (a `DatePicker`, a `Stepper`, a custom widget), author it via **live-tokens-create-component**. **Don't reach for a custom component before checking the catalogue;** a custom component is a maintenance commitment.

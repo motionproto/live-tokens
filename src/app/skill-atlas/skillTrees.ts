@@ -286,12 +286,12 @@ export const skillTrees: Record<string, SkillTree> = {
             "anchor": "Order matters only for safety, and the order above is safe: "
           },
           {
-            "label": "What each step writes",
+            "label": "Files each step writes",
             "lines": [
               148,
               150
             ],
-            "anchor": "## What each step writes",
+            "anchor": "## Files each step writes",
             "anchorEnd": "Color writes `themes/<slug>.json` and opens it. Type and geo"
           }
         ],
@@ -1269,287 +1269,6 @@ export const skillTrees: Record<string, SkillTree> = {
       ]
     ]
   },
-  "check-compliance": {
-    "id": "live-tokens-check-compliance",
-    "title": "check-compliance",
-    "tagline": "One command gives the facts. The skill says what they mean, what fixing them costs, and hands the list on without touching a file.",
-    "nodes": [
-      {
-        "id": "cc2-trig",
-        "row": 0,
-        "kind": "trigger",
-        "title": "Check, audit, validate, review, how compliant, what would it take",
-        "desc": "A request to know how things stand. Making the changes is fix-findings; a single token is the editor.",
-        "lines": [
-          2,
-          3
-        ],
-        "anchor": "name: live-tokens-check-compliance",
-        "anchorEnd": "description: Check an existing @motion-proto/live-tokens proj"
-      },
-      {
-        "id": "cc2-run",
-        "row": 1,
-        "kind": "cli",
-        "title": "Run the report",
-        "desc": "Always exits 0: a reading, not a gate. Migrations, unread tokens, registration, descriptions, usage by page, and both checkers' findings under the project's severities and under --strict.",
-        "command": "npx live-tokens report --json",
-        "lines": [
-          14,
-          37
-        ],
-        "anchor": "## Run the report",
-        "anchorEnd": "component or one scale."
-      },
-      {
-        "id": "cc2-read",
-        "row": 2,
-        "kind": "decide",
-        "title": "Mechanical, or judgement?",
-        "desc": "A spacing step, a stroke width, a column count, a moved import are mechanical, with any visible shift named. A colour by role, a type style, a dropped prop are choices to state, not make. A finding that looks deliberate gets the config entry that would record it.",
-        "lines": [
-          39,
-          61
-        ],
-        "anchor": "## Read it",
-        "anchorEnd": "not yours."
-      },
-      {
-        "id": "cc2-report",
-        "row": 3,
-        "kind": "step",
-        "title": "Report in six parts, counts on every line",
-        "desc": "Migrations, what fails now, what --strict adds, components, usage, then the recommended fixes in the order fix-findings would take them.",
-        "lines": [
-          63,
-          74
-        ],
-        "anchor": "## Report",
-        "anchorEnd": "warnings. Mark each as mechanical or judgement."
-      },
-      {
-        "id": "cc2-done",
-        "row": 4,
-        "kind": "done",
-        "title": "Hand off, edit nothing",
-        "desc": "Run live-tokens-fix-findings to apply these. Not even a one-line fix is made here, because the user asked how things stand.",
-        "lines": [
-          76,
-          78
-        ],
-        "anchor": "End with the hand-off:",
-        "anchorEnd": "one line, because the user asked how things stand."
-      }
-    ],
-    "edges": [
-      [
-        "cc2-trig",
-        "cc2-run"
-      ],
-      [
-        "cc2-run",
-        "cc2-read"
-      ],
-      [
-        "cc2-read",
-        "cc2-report"
-      ],
-      [
-        "cc2-report",
-        "cc2-done"
-      ]
-    ]
-  },
-  "fix-findings": {
-    "id": "live-tokens-fix-findings",
-    "title": "fix-findings",
-    "tagline": "The checkers say where a page or component opted out of the theme. This is the loop that brings it back.",
-    "nodes": [
-      {
-        "id": "ff-trig",
-        "row": 0,
-        "kind": "trigger",
-        "title": "Make the build pass, fix the warnings, replace the literals",
-        "desc": "Fires on an existing project's findings. A new page or component runs the same gate as the last step of its own skill; a single token goes to the editor.",
-        "lines": [
-          2,
-          3
-        ],
-        "anchor": "name: live-tokens-fix-findings",
-        "anchorEnd": "description: Bring an existing @motion-proto/live-tokens proj"
-      },
-      {
-        "id": "ff-reach",
-        "row": 1,
-        "kind": "cli",
-        "title": "Run both checkers with --json",
-        "desc": "Unknown command means the installed package predates the checkers: upgrade and migrate. No check:design script means the project was not scaffolded: add it, and gate the build once it passes.",
-        "command": "npx live-tokens check-page --json",
-        "lines": [
-          22,
-          38
-        ],
-        "anchor": "## Reach the checkers",
-        "anchorEnd": "`check-component <id>` scope a run when the user names one"
-      },
-      {
-        "id": "ff-loop",
-        "row": 2,
-        "kind": "step",
-        "title": "One rule at a time, errors first, re-run after each",
-        "desc": "Group by rule and take the biggest group of errors first, because one recipe clears it. New findings can surface as old ones clear.",
-        "lines": [
-          40,
-          49
-        ],
-        "anchor": "## The loop",
-        "anchorEnd": "the user can decide whether warnings are worth clearing no"
-      },
-      {
-        "id": "ff-never",
-        "row": 3,
-        "kind": "chipset",
-        "title": "Never",
-        "chips": [
-          {
-            "label": "Silence a rule to pass",
-            "lines": [
-              53,
-              53
-            ],
-            "anchor": "- **Silence a rule to pass.**"
-          },
-          {
-            "label": "Mint a token",
-            "lines": [
-              57,
-              57
-            ],
-            "anchor": "- **Mint a token.**"
-          },
-          {
-            "label": "Shift the look silently",
-            "lines": [
-              61,
-              61
-            ],
-            "anchor": "- **Change what the page looks like without saying so.**"
-          }
-        ]
-      },
-      {
-        "id": "ff-colour",
-        "row": 4,
-        "kind": "decide",
-        "title": "Colour: what does it do?",
-        "desc": "The replacement is the token for the colour's role, never the nearest hue. Text, fill, stroke, a scrim behind, a tint on, transparent, gradient.",
-        "lines": [
-          65,
-          86
-        ],
-        "anchor": "## Colour by role, never by hue",
-        "anchorEnd": "`rebeccapurple` are literals like any hex."
-      },
-      {
-        "id": "ff-geom",
-        "row": 4,
-        "kind": "decide",
-        "title": "Geometry: which scale?",
-        "desc": "Spacing to the nearest --space-* step, strokes to --border-width-*, corners to --radius-*, whole shadows to --shadow-*. Sizing is layout and is never reported.",
-        "lines": [
-          88,
-          104
-        ],
-        "anchor": "## Geometry by scale",
-        "anchorEnd": "though no rule reports them, and a `blur()` takes `--blur-*`."
-      },
-      {
-        "id": "ff-rest",
-        "row": 4,
-        "kind": "ref",
-        "title": "Every other rule has one row",
-        "desc": "Unknown tokens, raw type, props, columns, site.css, routes, deep imports, and the component rules, each with its fix or the skill that owns it.",
-        "lines": [
-          106,
-          123
-        ],
-        "anchor": "## Every other rule",
-        "anchorEnd": "| `missing-registration`, `missing-file`, `missing-root-block`"
-      },
-      {
-        "id": "ff-gate",
-        "row": 5,
-        "kind": "gate",
-        "title": "Both exit 0, then --strict once",
-        "desc": "Stop at exit 0 under the project's severities. Run --strict once and report what it adds, so warnings are the user's call.",
-        "lines": [
-          48,
-          48
-        ],
-        "anchor": "Stop at exit 0. Then run once with `--strict` and report wha"
-      },
-      {
-        "id": "ff-report",
-        "row": 6,
-        "kind": "done",
-        "title": "Report by rule, then repaint",
-        "desc": "What changed with counts and visible shifts, what was left and why, the two exit codes. Then change a surface and a spacing step in the editor: a file that does not repaint is a checker gap worth reporting.",
-        "lines": [
-          125,
-          136
-        ],
-        "anchor": "## Report",
-        "anchorEnd": "the checker rather than patching around."
-      }
-    ],
-    "edges": [
-      [
-        "ff-trig",
-        "ff-reach"
-      ],
-      [
-        "ff-reach",
-        "ff-loop"
-      ],
-      [
-        "ff-loop",
-        "ff-never"
-      ],
-      [
-        "ff-loop",
-        "ff-colour"
-      ],
-      [
-        "ff-loop",
-        "ff-geom"
-      ],
-      [
-        "ff-loop",
-        "ff-rest"
-      ],
-      [
-        "ff-colour",
-        "ff-gate"
-      ],
-      [
-        "ff-geom",
-        "ff-gate"
-      ],
-      [
-        "ff-rest",
-        "ff-gate"
-      ],
-      [
-        "ff-gate",
-        "ff-loop",
-        "back"
-      ],
-      [
-        "ff-gate",
-        "ff-report"
-      ]
-    ]
-  },
   "pick-component": {
     "id": "live-tokens-pick-component",
     "title": "pick-component",
@@ -1688,7 +1407,7 @@ export const skillTrees: Record<string, SkillTree> = {
           86,
           93
         ],
-        "anchor": "## Display family: what the page shows rather than what it a",
+        "anchor": "## Display family: shown, not asked",
         "anchorEnd": "- `SectionDivider` separates sections of one page. `SideNavi"
       },
       {
@@ -1702,7 +1421,7 @@ export const skillTrees: Record<string, SkillTree> = {
           111
         ],
         "anchor": "---",
-        "anchorEnd": "If nothing in the catalogue fits (a `Slider`, a `DatePicker`"
+        "anchorEnd": "If nothing in the catalogue fits (a `DatePicker`, a `Stepper"
       },
       {
         "id": "pk-place",
@@ -1726,7 +1445,7 @@ export const skillTrees: Record<string, SkillTree> = {
           111,
           111
         ],
-        "anchor": "If nothing in the catalogue fits (a `Slider`, a `DatePicker`"
+        "anchor": "If nothing in the catalogue fits (a `DatePicker`, a `Stepper"
       }
     ],
     "edges": [
@@ -2099,10 +1818,10 @@ export const skillTrees: Record<string, SkillTree> = {
         "desc": "Card and Badge for the simplest reads, Button and Input for multi-state, Dialog for multi-part, SegmentedControl for linked siblings. Read shipped files for pattern; ignore their location, because your two files co-locate in src/system/components/.",
         "lines": [
           10,
-          21
+          22
         ],
         "anchor": "## Worked examples ship inside the package",
-        "anchorEnd": "**File-location note.** Shipped editors live in `src/editor/"
+        "anchorEnd": "Shipped editors live in `src/editor/component-editor/` becau"
       },
       {
         "id": "cc-run",
@@ -2112,11 +1831,11 @@ export const skillTrees: Record<string, SkillTree> = {
         "title": "Runtime file",
         "desc": "Declare every editable slot as a CSS custom property inside :global(:root), defaulting to a theme token, never a raw value. The plugin parses that block to seed default.json; variables declared anywhere else cannot be edited.",
         "lines": [
-          23,
-          25
+          24,
+          26
         ],
         "anchor": "## The recipe",
-        "anchorEnd": "**Runtime file** — `src/system/components/MyWidget.svelte`. "
+        "anchorEnd": "**Runtime file**, `src/system/components/MyWidget.svelte`. D"
       },
       {
         "id": "cc-ed",
@@ -2126,10 +1845,10 @@ export const skillTrees: Record<string, SkillTree> = {
         "title": "Editor file",
         "desc": "In a script module block declare the component id, build states per VariantGroup, and export the flat union as allTokens. In the runtime script block mount ComponentEditorBase with one VariantGroup per variant.",
         "lines": [
-          26,
-          26
+          27,
+          27
         ],
-        "anchor": "**Editor file** — `src/system/components/MyWidgetEditor.svel"
+        "anchor": "**Editor file**, `src/system/components/MyWidgetEditor.svelt"
       },
       {
         "id": "cc-ext",
@@ -2140,31 +1859,31 @@ export const skillTrees: Record<string, SkillTree> = {
           {
             "label": "Linked siblings",
             "lines": [
-              214,
-              214
+              169,
+              169
             ],
             "anchor": "- `references/linked-siblings.md`: variants that share base "
           },
           {
             "label": "Intrinsics",
             "lines": [
-              215,
-              215
+              170,
+              170
             ],
             "anchor": "- `references/intrinsics.md`: structural or display choices "
           },
           {
             "label": "Sketch mode (always)",
             "lines": [
-              216,
-              216
+              171,
+              171
             ],
             "anchor": "- `references/sketch-mode.md`: joining the sketch layer. **E"
           }
         ],
         "lines": [
-          210,
-          216
+          165,
+          171
         ],
         "anchor": "## Extensions",
         "anchorEnd": "- `references/sketch-mode.md`: joining the sketch layer. **E",
@@ -2178,11 +1897,11 @@ export const skillTrees: Record<string, SkillTree> = {
         "title": "Register through bootLiveTokens",
         "desc": "It calls registerComponent internally at the right point: after the editor init hooks, before it seeds configs and mounts. Never place a standalone registerComponent before bootLiveTokens; that is the wrong window and can leave editor changes disconnected from the live page.",
         "lines": [
-          27,
-          44
+          28,
+          45
         ],
-        "anchor": "**Register** — pass the component to `bootLiveTokens` in `sr",
-        "anchorEnd": "The schema side-effect happens inside `registerComponent` (w"
+        "anchor": "**Register** by passing the component to `bootLiveTokens` in",
+        "anchorEnd": "`bootLiveTokens` calls `registerComponent` for you after its"
       },
       {
         "id": "cc-pick",
@@ -2192,8 +1911,8 @@ export const skillTrees: Record<string, SkillTree> = {
         "title": "Say what it is for",
         "desc": "The runtime file's header comment is the description `live-tokens components` prints beside the id, with props and variants read from the file. The picker weighs a custom component from that query, so no skill file is edited. First-party components are also added to the Catalogue line.",
         "lines": [
-          45,
-          45
+          46,
+          46
         ],
         "anchor": "**Say what it is for.** The runtime file's leading HTML comme"
       },
@@ -2205,11 +1924,10 @@ export const skillTrees: Record<string, SkillTree> = {
         "title": "Join the sketch layer",
         "desc": "The effect draws a fixed set of parts, so a new component stays crisp while the page goes hand-drawn until it opts in. One of four reserved classes on the root plus the five --sketch-* colours. The layer takes background, border-color, box-shadow, overflow, position and both pseudo-elements away from what it draws.",
         "lines": [
-          54,
-          61
+          47,
+          47
         ],
-        "anchor": "**Join the sketch layer** — the effect draws a fixed set of ",
-        "anchorEnd": "`references/sketch-mode.md`."
+        "anchor": "**Join the sketch layer.** The effect draws a fixed set of p"
       },
       {
         "id": "cc-disc",
@@ -2221,7 +1939,7 @@ export const skillTrees: Record<string, SkillTree> = {
           {
             "label": "Naming scheme",
             "lines": [
-              81,
+              57,
               81
             ],
             "anchor": "## Token discipline",
@@ -2230,8 +1948,8 @@ export const skillTrees: Record<string, SkillTree> = {
           {
             "label": "Suffix vocabulary",
             "lines": [
-              95,
-              116
+              71,
+              92
             ],
             "anchor": "### Suffix vocabulary",
             "anchorEnd": "compete. A suffix outside that list fails `check-component`."
@@ -2239,8 +1957,8 @@ export const skillTrees: Record<string, SkillTree> = {
           {
             "label": "Rules that bite",
             "lines": [
-              121,
-              127
+              97,
+              103
             ],
             "anchor": "### Rules that bite",
             "anchorEnd": "- **Text aliases.** Neutral scale is `--text-primary` / `--t"
@@ -2248,8 +1966,8 @@ export const skillTrees: Record<string, SkillTree> = {
           {
             "label": "Typography groupKey trap",
             "lines": [
-              128,
-              138
+              104,
+              114
             ],
             "anchor": "- **Typography `groupKey` on multi-slot components must incl",
             "anchorEnd": "The helper strips the `--<component>-` prefix and those segm"
@@ -2257,7 +1975,7 @@ export const skillTrees: Record<string, SkillTree> = {
           {
             "label": "State model",
             "lines": [
-              141,
+              116,
               159
             ],
             "anchor": "## State model",
@@ -2266,17 +1984,17 @@ export const skillTrees: Record<string, SkillTree> = {
           {
             "label": "User-facing copy",
             "lines": [
-              167,
-              171
+              142,
+              146
             ],
             "anchor": "## User-facing copy",
-            "anchorEnd": "If you add custom chrome inside an editor snippet (rare — `C"
+            "anchorEnd": "Custom chrome inside an editor snippet is rare, since `Compo"
           },
           {
             "label": "Public imports only",
             "lines": [
-              173,
-              188
+              148,
+              163
             ],
             "anchor": "## Public imports only",
             "anchorEnd": "**Never deep-import `node_modules/@motion-proto/live-tokens/"
@@ -2284,11 +2002,10 @@ export const skillTrees: Record<string, SkillTree> = {
           {
             "label": "Worked example: Toggle",
             "lines": [
-              190,
-              208
+              19,
+              19
             ],
-            "anchor": "## Worked example: the shipped Toggle",
-            "anchorEnd": "For your own component, copy the pattern and substitute your"
+            "anchor": "- Every rule below in the fewest lines: `Toggle`. Component "
           }
         ],
         "tag": "applies throughout"
@@ -2301,19 +2018,20 @@ export const skillTrees: Record<string, SkillTree> = {
         "title": "npx live-tokens check-component <id>",
         "desc": "Enforces file layout, the :global(:root) block, suffix vocabulary, state-before-property, theme-token defaults, public imports, and that the id is registered. Exit 0 means the static contract is met; resolve warnings before shipping.",
         "lines": [
-          218,
-          227
+          48,
+          54
         ],
-        "anchor": "## Verification checklist",
-        "anchorEnd": "It enforces the file layout, the `:global(:root)` block, tok",
+        "anchor": "**Gate on the checker.** Run it, fix every error, and run it",
+        "anchorEnd": "If it rejects a suffix, do not invent a new name for the rol",
         "chips": [
           {
-            "label": "Step 6 in the recipe",
+            "label": "Verification checklist",
             "lines": [
-              79,
-              79
+              173,
+              175
             ],
-            "anchor": "**Verify** with the checklist at the bottom of this file, th"
+            "anchor": "## Verification checklist",
+            "anchorEnd": "Step 6 of the recipe is the static gate: `npx live-tokens ch"
           }
         ],
         "command": "npx live-tokens check-component <id>"
@@ -2325,11 +2043,10 @@ export const skillTrees: Record<string, SkillTree> = {
         "title": "Run the registry contract test",
         "desc": "Six per-component checks: registration resolves, schema variables are unique, every editable token is declared in the runtime style block and seeded in default.json, a declared opacity floor is honoured, and setComponentAlias round-trips. checkRegistryEntry runs them for a consumer's own components; a first-party one is auto-covered the moment it lands in builtInRegistry.",
         "lines": [
-          233,
-          235
+          177,
+          177
         ],
-        "anchor": "**Then run the registry contract test.** `checkRegistryEntry`",
-        "anchorEnd": "Inside the package, `src/editor/component-editor/registryCon"
+        "anchor": "**Then run the registry contract test.** `checkRegistryEntry"
       },
       {
         "id": "cc-intr",
@@ -2338,8 +2055,8 @@ export const skillTrees: Record<string, SkillTree> = {
         "title": "And the intrinsics contract test",
         "desc": "Only when the component declares intrinsics. Per (intrinsic, variant) it asserts the runtime declares a default, the default is one of the spec's values, and the editor's default equals the runtime default.",
         "lines": [
-          237,
-          237
+          179,
+          179
         ],
         "anchor": "**If your component declares `intrinsics`, the intrinsics co"
       },
@@ -2350,8 +2067,8 @@ export const skillTrees: Record<string, SkillTree> = {
         "title": "Walk the runtime checklist",
         "desc": "Seven things no static check can see, at /live-tokens/components: the CUSTOM group entry, token rows and pickers, linked-block broadcast, default.json derivation, Reset, clean boot validation, and the sketch-mode pass.",
         "lines": [
-          239,
-          247
+          181,
+          189
         ],
         "anchor": "Finally navigate to `/live-tokens/components` and confirm th",
         "anchorEnd": "- [ ] Switch Sketch mode on in the editor and walk the check"
@@ -2405,6 +2122,696 @@ export const skillTrees: Record<string, SkillTree> = {
       [
         "cc-intr",
         "cc-man"
+      ]
+    ]
+  },
+  "check-compliance": {
+    "id": "live-tokens-check-compliance",
+    "title": "check-compliance",
+    "tagline": "One command gives the facts. The skill says what they mean and what fixing them costs, then hands the list on without touching a file.",
+    "nodes": [
+      {
+        "id": "cc2-trig",
+        "row": 0,
+        "kind": "trigger",
+        "title": "Check, audit, validate, review, how compliant, what would it take",
+        "desc": "A request to know how things stand. Making the changes is fix-findings; a single token is the editor.",
+        "lines": [
+          2,
+          3
+        ],
+        "anchor": "name: live-tokens-check-compliance",
+        "anchorEnd": "description: Check an existing @motion-proto/live-tokens pro"
+      },
+      {
+        "id": "cc2-why",
+        "row": 1,
+        "kind": "step",
+        "title": "A reading, not an edit",
+        "desc": "Every fact comes from one command. The reading, and what fixing would cost, is the skill's. Nothing is written.",
+        "lines": [
+          8,
+          8
+        ],
+        "anchor": "The answer to \"check this project\" is a report. Every fact i"
+      },
+      {
+        "id": "cc2-run",
+        "row": 2,
+        "kind": "cli",
+        "n": "1",
+        "title": "npx live-tokens report --json",
+        "desc": "Always exits 0: a reading, not a gate. Unknown command means the installed package predates it; upgrade first.",
+        "lines": [
+          12,
+          12
+        ],
+        "anchor": "Run `npx live-tokens report --json`. It always exits 0: it i",
+        "command": "npx live-tokens report --json"
+      },
+      {
+        "id": "cc2-sections",
+        "row": 3,
+        "kind": "chipset",
+        "title": "The report's sections",
+        "desc": "What each section states, and what it means when it is not clean.",
+        "lines": [
+          19,
+          30
+        ],
+        "anchor": "## The report's sections",
+        "anchorEnd": "| `findings.pages`, `findings.components` | Both checkers' f",
+        "chips": [
+          {
+            "label": "migrations",
+            "lines": [
+              23,
+              23
+            ],
+            "anchor": "| `migrations` | Whether `tokens.css` is behind the installe"
+          },
+          {
+            "label": "components[].unread",
+            "lines": [
+              24,
+              24
+            ],
+            "anchor": "| `components[].unread` | Tokens a component declares that n"
+          },
+          {
+            "label": "components[].registered",
+            "lines": [
+              25,
+              25
+            ],
+            "anchor": "| `components[].registered` | A component file with no `boot"
+          },
+          {
+            "label": "components[].described",
+            "lines": [
+              26,
+              26
+            ],
+            "anchor": "| `components[].described` | Whether the runtime file has th"
+          },
+          {
+            "label": "usage.byPage",
+            "lines": [
+              27,
+              27
+            ],
+            "anchor": "| `usage.byPage` | Which catalogue component each page rende"
+          },
+          {
+            "label": "usage.unusedShipped",
+            "lines": [
+              28,
+              28
+            ],
+            "anchor": "| `usage.unusedShipped` | Shipped components no page renders"
+          },
+          {
+            "label": "usage.custom*",
+            "lines": [
+              29,
+              29
+            ],
+            "anchor": "| `usage.customUnregistered`, `usage.customUnused` | The pro"
+          },
+          {
+            "label": "findings.pages, findings.components",
+            "lines": [
+              30,
+              30
+            ],
+            "anchor": "| `findings.pages`, `findings.components` | Both checkers' f"
+          }
+        ]
+      },
+      {
+        "id": "cc2-drill",
+        "row": 3,
+        "kind": "cli",
+        "title": "Ask about one component or one scale",
+        "desc": "components <id> prints props, values, and tokens; tokens --family <name> prints a scale. Both take --json.",
+        "lines": [
+          17,
+          17
+        ],
+        "anchor": "`npx live-tokens components <id>` and `npx live-tokens token",
+        "command": "npx live-tokens components <id>"
+      },
+      {
+        "id": "cc2-read",
+        "row": 4,
+        "kind": "decide",
+        "n": "2",
+        "title": "Mechanical, or judgement?",
+        "desc": "Mechanical: a literal to its nearest step, a route given its source. Judgement: a colour by role, a type axis from a text style. Name any visible shift; say what the choice is, not what you would pick.",
+        "lines": [
+          32,
+          35
+        ],
+        "anchor": "## Mechanical or judgement",
+        "anchorEnd": "- **Judgement**: a colour literal mapped by the role it play"
+      },
+      {
+        "id": "cc2-deliberate",
+        "row": 5,
+        "kind": "step",
+        "n": "3",
+        "title": "A finding that looks deliberate",
+        "desc": "Name the config entry that would record it: a rule severity, or an exclusion for a file that is not a themed surface. Prefer the narrower. Recording it is the user's call.",
+        "lines": [
+          37,
+          39
+        ],
+        "anchor": "## Deliberate findings",
+        "anchorEnd": "A translucent overlay on an app shell, or a layout size the "
+      },
+      {
+        "id": "cc2-report",
+        "row": 6,
+        "kind": "chipset",
+        "n": "4",
+        "title": "Report in six parts, counts on every line",
+        "desc": "Migrations, errors, what --strict adds, components, usage, then the fixes in the order fix-findings would take them, each marked mechanical or judgement.",
+        "lines": [
+          41,
+          48
+        ],
+        "anchor": "## Summary",
+        "anchorEnd": "Recommended fixes, in the order **live-tokens-fix-findings**",
+        "chips": [
+          {
+            "label": "Migrations pending",
+            "lines": [
+              43,
+              43
+            ],
+            "anchor": "Migrations pending, and the one command that clears them."
+          },
+          {
+            "label": "What fails the build now",
+            "lines": [
+              44,
+              44
+            ],
+            "anchor": "What fails the build now: errors by rule, with the files."
+          },
+          {
+            "label": "What --strict would add",
+            "lines": [
+              45,
+              45
+            ],
+            "anchor": "What `--strict` would add: warnings by rule."
+          },
+          {
+            "label": "Components",
+            "lines": [
+              46,
+              46
+            ],
+            "anchor": "Components: unread tokens, unregistered, undescribed."
+          },
+          {
+            "label": "Usage",
+            "lines": [
+              47,
+              47
+            ],
+            "anchor": "Usage: what each page renders, and what is used nowhere."
+          },
+          {
+            "label": "Recommended fixes",
+            "lines": [
+              48,
+              48
+            ],
+            "anchor": "Recommended fixes, in the order **live-tokens-fix-findings**"
+          }
+        ]
+      },
+      {
+        "id": "cc2-done",
+        "row": 7,
+        "kind": "hand",
+        "title": "Hand off to fix-findings, edit nothing",
+        "desc": "\"Run live-tokens-fix-findings to apply these\", or the subset the user chooses. Not even a one-line fix starts here, because the user asked how things stand.",
+        "lines": [
+          50,
+          50
+        ],
+        "anchor": "End with the hand-off: \"Run live-tokens-fix-findings to appl"
+      }
+    ],
+    "edges": [
+      [
+        "cc2-trig",
+        "cc2-why"
+      ],
+      [
+        "cc2-why",
+        "cc2-run"
+      ],
+      [
+        "cc2-run",
+        "cc2-sections"
+      ],
+      [
+        "cc2-run",
+        "cc2-drill"
+      ],
+      [
+        "cc2-sections",
+        "cc2-read"
+      ],
+      [
+        "cc2-drill",
+        "cc2-read"
+      ],
+      [
+        "cc2-read",
+        "cc2-deliberate"
+      ],
+      [
+        "cc2-deliberate",
+        "cc2-report"
+      ],
+      [
+        "cc2-report",
+        "cc2-done"
+      ]
+    ]
+  },
+  "fix-findings": {
+    "id": "live-tokens-fix-findings",
+    "title": "fix-findings",
+    "tagline": "The checkers say where a page or component opted out of the theme. This is the loop that brings it back: largest group of errors first, one recipe per rule, stop at exit 0.",
+    "nodes": [
+      {
+        "id": "ff-trig",
+        "row": 0,
+        "kind": "trigger",
+        "title": "Make the build pass, fix the warnings, replace the literals",
+        "desc": "The changes, not the reading: check-compliance reports and edits nothing. New pages and components run the same gate as their last step.",
+        "lines": [
+          2,
+          3
+        ],
+        "anchor": "name: live-tokens-fix-findings",
+        "anchorEnd": "description: Bring an existing @motion-proto/live-tokens pro"
+      },
+      {
+        "id": "ff-why",
+        "row": 1,
+        "kind": "step",
+        "title": "Two checkers, one contract",
+        "desc": "check-page holds pages to the catalogue and to tokens; check-component holds authored components to the token contract. What passes repaints when the theme changes.",
+        "lines": [
+          8,
+          10
+        ],
+        "anchor": "Two checkers hold a project to its design system. `check-pag",
+        "anchorEnd": "This skill is the loop for code that already exists. When th"
+      },
+      {
+        "id": "ff-run",
+        "row": 2,
+        "kind": "cli",
+        "n": "1",
+        "title": "Run both checkers with --json",
+        "desc": "Each finding carries a stable rule, a file, and a line. A path or an id scopes the run when the user names one thing.",
+        "lines": [
+          14,
+          19
+        ],
+        "anchor": "Run both checkers with `--json`. Each finding carries a stab",
+        "anchorEnd": "`check-page src/pages/Home.svelte` and `check-component <id>",
+        "command": "npx live-tokens check-page --json && npx live-tokens check-component --json"
+      },
+      {
+        "id": "ff-blocked",
+        "row": 3,
+        "kind": "gate",
+        "title": "Unknown command",
+        "desc": "The installed package predates the checkers. Upgrade, then migrate --check and --write, with --tokens for a tokens.css outside the four default locations.",
+        "lines": [
+          19,
+          19
+        ],
+        "anchor": "`check-page src/pages/Home.svelte` and `check-component <id>"
+      },
+      {
+        "id": "ff-loop",
+        "row": 4,
+        "kind": "step",
+        "n": "2",
+        "title": "Group by rule, largest group of errors first",
+        "desc": "Errors before warnings, and the rule with the most findings first, because one recipe clears the whole group.",
+        "lines": [
+          20,
+          20
+        ],
+        "anchor": "Group by rule. Take errors before warnings, and the rule wit"
+      },
+      {
+        "id": "ff-never",
+        "row": 5,
+        "kind": "chipset",
+        "title": "Three things the loop never does",
+        "desc": "--off is for one run; a severity change is the user's call and goes in config. No token is minted. A remap that moves a value is named.",
+        "chips": [
+          {
+            "label": "Silence a rule to pass",
+            "lines": [
+              29,
+              29
+            ],
+            "anchor": "- **Silence a rule to pass.** `--off=<rule>` is for a single"
+          },
+          {
+            "label": "Mint a token",
+            "lines": [
+              30,
+              30
+            ],
+            "anchor": "- **Mint a token.** A literal with no token behind it is rem"
+          },
+          {
+            "label": "Shift the look silently",
+            "lines": [
+              31,
+              31
+            ],
+            "anchor": "- **Change what the page looks like without saying so.** Mos"
+          }
+        ]
+      },
+      {
+        "id": "ff-recipe",
+        "row": 6,
+        "kind": "decide",
+        "n": "3",
+        "title": "Which recipe does the rule take?",
+        "desc": "Colour by role, geometry by scale, or the row in the table. A component outside the catalogue hands off.",
+        "lines": [
+          21,
+          21
+        ],
+        "anchor": "Apply that rule's recipe to every finding in the group: colo"
+      },
+      {
+        "id": "ff-colour",
+        "row": 7,
+        "kind": "decide",
+        "title": "Colour: what does it do?",
+        "desc": "The token for the colour's role, never the nearest hue, because the theme moves every role together. Text, fill, stroke, scrim, tint, transparent, gradient.",
+        "lines": [
+          33,
+          48
+        ],
+        "anchor": "## Colour by role, never by hue",
+        "anchorEnd": "A `var(--x, #fff)` fallback is not a finding. A named colour"
+      },
+      {
+        "id": "ff-geom",
+        "row": 7,
+        "kind": "decide",
+        "title": "Geometry: which scale?",
+        "desc": "Only the geometry the theme owns is reported; sizing is layout. Space to the nearest step and name the shift, strokes, corners, whole shadows, tokens inside a calc.",
+        "lines": [
+          50,
+          62
+        ],
+        "anchor": "## Geometry by scale",
+        "anchorEnd": "While in the file, motion values take `--duration-*` and `--"
+      },
+      {
+        "id": "ff-rest",
+        "row": 7,
+        "kind": "chipset",
+        "title": "Every other rule",
+        "desc": "One row per rule: what it holds and the fix.",
+        "lines": [
+          64,
+          81
+        ],
+        "anchor": "## Every other rule",
+        "anchorEnd": "| `invalid-id`, `missing-file`, `missing-root-block`, `no-to",
+        "chips": [
+          {
+            "label": "unknown-token",
+            "lines": [
+              68,
+              68
+            ],
+            "anchor": "| `unknown-token` | A typo or a rename. Search `tokens.css` "
+          },
+          {
+            "label": "raw-text-axis",
+            "lines": [
+              69,
+              69
+            ],
+            "anchor": "| `raw-text-axis` | Set the whole axis set from one text sty"
+          },
+          {
+            "label": "unknown-component",
+            "lines": [
+              70,
+              70
+            ],
+            "anchor": "| `unknown-component` | Not in the catalogue. Read **live-to"
+          },
+          {
+            "label": "unknown-prop, unknown-prop-value",
+            "lines": [
+              71,
+              72
+            ],
+            "anchor": "| `unknown-prop` | The component drops it at runtime. `npx l",
+            "anchorEnd": "| `unknown-prop-value` | Pick a value from the union the mes"
+          },
+          {
+            "label": "hardcoded-columns",
+            "lines": [
+              73,
+              73
+            ],
+            "anchor": "| `hardcoded-columns` | `repeat(var(--columns-count), 1fr)` "
+          },
+          {
+            "label": "site-css-in-main, missing-source, reserved-route",
+            "lines": [
+              74,
+              76
+            ],
+            "anchor": "| `site-css-in-main` | Delete the import from `main.ts` and ",
+            "anchorEnd": "| `reserved-route` | Move the route out of `/live-tokens/*`;"
+          },
+          {
+            "label": "deep-import",
+            "lines": [
+              77,
+              77
+            ],
+            "anchor": "| `deep-import` | Import from `@motion-proto/live-tokens` or"
+          },
+          {
+            "label": "Naming rules",
+            "lines": [
+              78,
+              78
+            ],
+            "anchor": "| `unknown-suffix`, `state-after-property`, `disabled-is-ter"
+          },
+          {
+            "label": "Component defaults",
+            "lines": [
+              79,
+              79
+            ],
+            "anchor": "| `color-literal`, `unknown-token-ref`, `default-not-token` "
+          },
+          {
+            "label": "Editor phantoms",
+            "lines": [
+              80,
+              80
+            ],
+            "anchor": "| `phantom-editor-token`, `phantom-link` | The editor names "
+          },
+          {
+            "label": "Wiring",
+            "lines": [
+              81,
+              81
+            ],
+            "anchor": "| `invalid-id`, `missing-file`, `missing-root-block`, `no-to"
+          }
+        ]
+      },
+      {
+        "id": "ff-hand",
+        "row": 7,
+        "kind": "hand",
+        "title": "Not in the catalogue: pick-component, or create-component",
+        "desc": "unknown-component is the one finding another skill resolves: the shipped component that fits, or a new editable one.",
+        "lines": [
+          70,
+          70
+        ],
+        "anchor": "| `unknown-component` | Not in the catalogue. Read **live-to"
+      },
+      {
+        "id": "ff-gate",
+        "row": 8,
+        "kind": "gate",
+        "n": "4",
+        "title": "Run again; anything left goes round",
+        "desc": "New findings can appear as old ones clear: a token you reached for may not exist, or a moved import lands where a rule now sees it.",
+        "lines": [
+          22,
+          22
+        ],
+        "anchor": "Run again. New findings can appear as old ones clear: a toke"
+      },
+      {
+        "id": "ff-strict",
+        "row": 9,
+        "kind": "ok",
+        "n": "5",
+        "title": "Exit 0, then --strict once",
+        "desc": "Report what --strict adds, so the user can decide whether warnings are worth clearing now.",
+        "lines": [
+          23,
+          23
+        ],
+        "anchor": "Run once with `--strict` and report what it adds, so the use"
+      },
+      {
+        "id": "ff-report",
+        "row": 10,
+        "kind": "step",
+        "title": "Report by rule, with any visible shift",
+        "desc": "One line per rule with the count. What was left and why, with the config entry if the user lowered a severity. The two commands and their exit codes.",
+        "lines": [
+          83,
+          85
+        ],
+        "anchor": "## Report",
+        "anchorEnd": "Say what changed by rule, one line per rule with the count a"
+      },
+      {
+        "id": "ff-script",
+        "row": 11,
+        "kind": "step",
+        "title": "Gate the build on check:design",
+        "desc": "A scaffolded project has the script; give any other one the same, and put it in front of vite build once it passes.",
+        "lines": [
+          25,
+          25
+        ],
+        "anchor": "A project scaffolded by `create` has a `check:design` script"
+      },
+      {
+        "id": "ff-ver",
+        "row": 12,
+        "kind": "done",
+        "title": "Verify: everything touched repaints",
+        "desc": "Change a surface colour and a spacing step in the editor. A file that does not repaint still holds a literal the checker cannot see, which is a gap to report.",
+        "lines": [
+          87,
+          89
+        ],
+        "anchor": "## Verify",
+        "anchorEnd": "Open `/live-tokens/editor` in dev and change a surface colou"
+      }
+    ],
+    "edges": [
+      [
+        "ff-trig",
+        "ff-why"
+      ],
+      [
+        "ff-why",
+        "ff-run"
+      ],
+      [
+        "ff-run",
+        "ff-blocked"
+      ],
+      [
+        "ff-blocked",
+        "ff-run",
+        "back"
+      ],
+      [
+        "ff-run",
+        "ff-loop"
+      ],
+      [
+        "ff-loop",
+        "ff-never"
+      ],
+      [
+        "ff-never",
+        "ff-recipe"
+      ],
+      [
+        "ff-recipe",
+        "ff-colour"
+      ],
+      [
+        "ff-recipe",
+        "ff-geom"
+      ],
+      [
+        "ff-recipe",
+        "ff-rest"
+      ],
+      [
+        "ff-recipe",
+        "ff-hand"
+      ],
+      [
+        "ff-colour",
+        "ff-gate"
+      ],
+      [
+        "ff-geom",
+        "ff-gate"
+      ],
+      [
+        "ff-rest",
+        "ff-gate"
+      ],
+      [
+        "ff-hand",
+        "ff-gate"
+      ],
+      [
+        "ff-gate",
+        "ff-loop",
+        "back"
+      ],
+      [
+        "ff-gate",
+        "ff-strict"
+      ],
+      [
+        "ff-strict",
+        "ff-report"
+      ],
+      [
+        "ff-report",
+        "ff-script"
+      ],
+      [
+        "ff-script",
+        "ff-ver"
       ]
     ]
   }

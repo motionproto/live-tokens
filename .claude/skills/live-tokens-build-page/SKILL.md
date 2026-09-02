@@ -16,7 +16,7 @@ Text inside a `Card` or a `CollapsibleSection` is typed by that container, not b
 
 ## Layout
 
-Pages sit inside the column grid via `--columns-count`, `--columns-gutter`, `--columns-max-width`. Toggle `ColumnsOverlay` (Cmd+G in dev) to visualise it while placing content.
+Pages sit inside the column grid via `--columns-count`, `--columns-gutter`, `--columns-max-width`. The columns button in the overlay's header (the vertical-lines icon) draws the grid over the page while you place content.
 
 To place children at specific page-column positions, span the parent grid (`grid-column: 1 / -1`), redeclare `repeat(var(--columns-count), 1fr)` with `--columns-gutter`, then refer to children by real page-column numbers. Never fabricate a local `repeat(N, 1fr)` with a hardcoded count: the widths drift from the page grid and the numbers stop matching `ColumnsOverlay`.
 
@@ -61,8 +61,8 @@ npx live-tokens check-page src/pages/YourPage.svelte
 # or: npx @motion-proto/live-tokens check-page      (every page under src/)
 ```
 
-It fails on a component outside the catalogue, a prop a component does not declare, a variant or size outside the prop's union, a deep import, a `var()` that resolves to nothing, a colour literal in any notation, a route under `/live-tokens/*`, and `site.css` imported from `main.ts`. It warns on a px or rem literal in spacing, stroke, radius, or shadow, a hardcoded column count of four or more, an absolute type value, and a route entry with no `source`. Inline `style=` attributes and `style:` directives are read the same way as the `<style>` block; a `var()` fallback is not the page's value and is never a finding.
+It fails on a component outside the catalogue, a prop or value the component does not declare, a deep import, a `var()` that resolves to nothing, a colour literal in any notation, a route under `/live-tokens/*`, and `site.css` imported from `main.ts`. It warns on a px or rem literal in the geometry the theme owns, a hardcoded page-column count, a raw type axis, and a route entry with no `source`. Inline `style=` attributes and `style:` directives are read the same way as the `<style>` block; a `var()` fallback is never a finding. The recipe for each rule is in **live-tokens-fix-findings**.
 
 Warnings do not fail the run. `--strict` makes them fail, which is the setting to use when the page is meant to be fully tokenized. `--json` prints findings with a stable `rule` id, so you can work through one rule at a time and re-run. `--off=<rule>` silences a rule for a run; `"checks": { "rules": { ... } }` in `live-tokens.config.json` sets it for the project. A project scaffolded by `create` runs the checker, with `check-component`, as `npm run check:design` before every `vite build`, so the page has to pass before it can ship.
 
-Then in dev: change a colour in `/live-tokens/editor` and confirm your page repaints (proves token usage). The overlay's "Page Source" button on the new route opens the page in VS Code (proves the route's `source`). `ColumnsOverlay` (Cmd+G) shows content sitting inside `--columns-max-width`.
+Then in dev: change a colour in `/live-tokens/editor` and confirm your page repaints (proves token usage). The overlay's "Page Source" button on the new route opens the page in VS Code (proves the route's `source`). The columns overlay shows content sitting inside `--columns-max-width`.

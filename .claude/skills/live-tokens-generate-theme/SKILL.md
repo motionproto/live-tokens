@@ -1,6 +1,6 @@
 ---
 name: live-tokens-generate-theme
-description: Generate a complete live-tokens theme — color, type, and geometry — from a natural-language brief, delegating the type and geometry halves to its sibling skills. Use whenever the user asks for a theme, look, vibe, brand feel, color scheme, or palette by mood, style, era, season, holiday, or hue; when they name only a color (something red-based, green and gold for St. Patrick's Day); or when they refine an existing theme (warmer, more contrast, calmer). Examples: bright and cheerful, dark and moody, brutalist, mid-century modern, Swiss and minimal, cyberpunk neon, editorial magazine, make it feel like a terminal. Not for a single token (use the editor), type alone (live-tokens-pair-fonts), or geometry alone (live-tokens-adjust-geometry).
+description: Generate a complete live-tokens theme (color, type, and geometry) from a natural-language brief, delegating the type and geometry halves to its sibling skills. Use whenever the user asks for a theme, look, vibe, brand feel, color scheme, or palette by mood, style, era, season, holiday, or hue; when they name only a color (something red-based, green and gold for St. Patrick's Day); or when they refine an existing theme (warmer, more contrast, calmer). Examples: bright and cheerful, dark and moody, brutalist, mid-century modern, Swiss and minimal, cyberpunk neon, editorial magazine, make it feel like a terminal. Not for a single token (use the editor), type alone (live-tokens-pair-fonts), or geometry alone (live-tokens-adjust-geometry).
 ---
 
 # Generating a theme from a brief
@@ -145,7 +145,7 @@ This table is the fallback. When the brief matched an entry in the mood or style
 
 One adjective moves one dial. Warmer and cooler rotate hue; calmer and louder move chroma; lighter, darker, and moodier move Canvas L and the scheme; more contrast widens the L gap between Canvas and Brand and takes chroma out of the ground rather than adding it to the garnish. Leave every seed the user did not name alone, because a refinement that re-rolls the whole palette reads as a different theme and loses the thing they liked.
 
-## What each step writes
+## Files each step writes
 
 Color writes `themes/<slug>.json` and opens it. Type and geometry write the unsaved buffers, which the page already runs. One Save in the editor keeps all three; Adopt ships them. Component aliases and gradients carry forward from the live look into a generated theme; user-tuned gradients survive, stock ones rebuild from the new families.
 

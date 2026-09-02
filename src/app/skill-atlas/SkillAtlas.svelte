@@ -155,7 +155,7 @@
   <header class="masthead">
     <h1>Skill atlas</h1>
     <p class="standfirst">
-      The six live-tokens authoring skills as decision trees. Select a step and its lines light up in
+      The eight live-tokens authoring skills as decision trees. Select a step and its lines light up in
       the skill on the right; select a line number and the step that owns it lights up on the left.
     </p>
     <div class="tabs">
