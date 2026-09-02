@@ -3,6 +3,8 @@
 // Subcommands:
 //   create <dir>             Scaffold a new app that depends on this package.
 //   setup-claude [--force]   Copy bundled Claude Code skills into ./.claude/skills/.
+//   components [id]          List every component the project has, shipped and its own, with props and tokens.
+//   tokens [--family <name>] List every theme token by family, with its value.
 //   check-component [id]     Validate a component (or every authored one) against the create-component skill contract.
 //   check-page [paths...]    Validate pages against the build-page skill contract.
 //   generate-theme <brief>   Build a theme from a 10-seed OKLCH brief and open it.
@@ -10,12 +12,14 @@
 //   set-fonts <brief.json>   Bind Google Fonts families to the theme's font stacks.
 //   migrate [...]            Reconcile tokens.css, the data tree, and route references.
 
-import { cpSync, existsSync, mkdirSync, readdirSync, statSync } from 'node:fs';
+import { cpSync, existsSync, mkdirSync, readdirSync, statSync, writeSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import process from 'node:process';
 import { COMPONENT_RULES, checkComponent, discoverComponents, formatReport } from './check-component.mjs';
 import { PAGE_RULES, checkPages, discoverPages } from './check-page.mjs';
+import { describeComponents, describeTokens, formatComponents, formatTokens } from './lib/catalogue.mjs';
+import { loadVocabulary } from './lib/tokenVocabulary.mjs';
 import {
   applySeverity,
   countBySeverity,
@@ -42,6 +46,14 @@ Commands:
   create <dir> [--force]      Scaffold a new Svelte + Vite app wired up with
                               live-tokens (editor, components, theme tokens)
   setup-claude [--force]      Install bundled Claude Code skills into ./.claude/skills/
+  components [id] [--json]    List every component the project has, shipped and
+                              its own (src/system/components plus any
+                              "componentDirs" in live-tokens.config.json), with
+                              the props each takes; with an id, that component's
+                              props, variants, tokens, and defaults
+  tokens [--family <name>] [--json]
+                              List every theme token the project's tokens.css
+                              declares, by family, with its value
   check-component [id]        Validate <id>'s runtime, editor, and registration
                               against the live-tokens-create-component contract
   check-page [paths...]       Validate pages against the live-tokens-build-page
@@ -101,6 +113,20 @@ Both check commands accept:
                               either is pending; route findings are advisory).
 `;
 
+// A large body written through console.log is cut at the pipe buffer when the
+// process exits before stdout drains, so a query writes synchronously.
+function writeOut(text) {
+  const buf = Buffer.from(`${text}\n`);
+  let offset = 0;
+  while (offset < buf.length) {
+    try {
+      offset += writeSync(1, buf, offset, buf.length - offset);
+    } catch (error) {
+      if (error.code !== 'EAGAIN') throw error;
+    }
+  }
+}
+
 function fail(message, code = 1) {
   console.error(message);
   process.exit(code);
@@ -139,6 +165,29 @@ function reportChecks(label, findings, checked, rules, opts) {
       : formatFindings(resolved, { label, checked }),
   );
   process.exit(countBySeverity(resolved).errors === 0 ? 0 : 1);
+}
+
+if (command === 'components') {
+  const opts = parseCheckFlags(rest);
+  const list = describeComponents(loadVocabulary());
+  const id = opts.rest[0];
+  if (id && !list.some((c) => c.id === id)) fail(formatComponents(list, { id }));
+  writeOut(opts.json ? JSON.stringify(id ? list.find((c) => c.id === id) : list, null, 2) : formatComponents(list, { id }));
+  process.exit(0);
+}
+
+if (command === 'tokens') {
+  const opts = parseCheckFlags(rest);
+  const at = opts.rest.indexOf('--family');
+  const family = at >= 0 ? opts.rest[at + 1] : undefined;
+  const desc = describeTokens(loadVocabulary());
+  if (family && !desc.families.some((f) => f.family === family)) fail(formatTokens(desc, { family }));
+  writeOut(
+    opts.json
+      ? JSON.stringify(family ? desc.families.find((f) => f.family === family) : desc, null, 2)
+      : formatTokens(desc, { family }),
+  );
+  process.exit(0);
 }
 
 if (command === 'check-component') {

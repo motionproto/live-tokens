@@ -26,7 +26,7 @@ const PKG_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
 const SHIPPED_COMPONENTS_DIR = 'src/system/components';
 
 /** Families whose names are governed by the token contract (see TOKENS.md). */
-const CONTRACT_FAMILIES = [
+export const CONTRACT_FAMILIES = [
   'surface', 'text', 'border', 'color', 'space', 'radius', 'font', 'line-height',
   'letter-spacing', 'shadow', 'blur', 'icon-size', 'scrim', 'tint', 'columns',
   'heading', 'body', 'editorial', 'eyebrow', 'code', 'easing', 'duration', 'zoom',
@@ -111,13 +111,26 @@ export function componentProps(source) {
 
   const props = new Set();
   const enums = new Map();
+  const types = new Map();
   const body = iface[1].replace(/\/\*[\s\S]*?\*\//g, '').replace(/^\s*\/\/.*$/gm, '');
   for (const m of body.matchAll(/^\s*(?:readonly\s+)?(\w+)\??\s*:\s*([^;\n]+)/gm)) {
     props.add(m[1]);
+    types.set(m[1], m[2].trim());
     const values = resolveEnum(m[2]);
     if (values) enums.set(m[1], new Set(values));
   }
-  return { props, enums };
+  return { props, enums, types };
+}
+
+/** `live-tokens.config.json` at the project root, or nothing. */
+export function readProjectConfig(root) {
+  const path = join(root, 'live-tokens.config.json');
+  if (!existsSync(path)) return {};
+  try {
+    return JSON.parse(readFileSync(path, 'utf8'));
+  } catch {
+    return {};
+  }
 }
 
 function walk(dir, exts, out = []) {
@@ -186,14 +199,28 @@ export function loadVocabulary({ root = process.cwd(), pkgRoot = PKG_ROOT } = {}
 
   const componentTokens = new Set();
   const components = new Map();
-  const dirs = [join(pkgRoot, SHIPPED_COMPONENTS_DIR), join(root, SHIPPED_COMPONENTS_DIR)];
+  // A project's own components sit beside the shipped ones, plus any directory
+  // `componentDirs` in live-tokens.config.json names.
+  const own = [SHIPPED_COMPONENTS_DIR, ...(readProjectConfig(root).componentDirs ?? [])].map((d) => join(root, d));
+  const shippedDir = join(pkgRoot, SHIPPED_COMPONENTS_DIR);
+  const dirs = [shippedDir, ...own];
   for (const file of componentFiles(dirs)) {
     const Id = file.slice(file.lastIndexOf('/') + 1).replace('.svelte', '');
     const src = readFileSync(file, 'utf8');
-    components.set(Id.toLowerCase(), { id: Id.toLowerCase(), name: Id, file, props: componentProps(src) });
+    const tokens = new Map();
     for (const block of extractGlobalRootBlocks(src)) {
-      for (const n of declaredCustomProperties(block)) componentTokens.add(n);
+      const clean = block.replace(/\/\*[\s\S]*?\*\//g, ' ');
+      for (const n of declaredCustomProperties(clean)) componentTokens.add(n);
+      for (const m of clean.matchAll(/(--[a-z0-9-]+)\s*:\s*([^;]+);/g)) if (!tokens.has(m[1])) tokens.set(m[1], m[2].trim());
     }
+    components.set(Id.toLowerCase(), {
+      id: Id.toLowerCase(),
+      name: Id,
+      file,
+      origin: file.startsWith(shippedDir) ? 'shipped' : 'custom',
+      props: componentProps(src),
+      tokens,
+    });
   }
   const registered = registeredIds(root);
 

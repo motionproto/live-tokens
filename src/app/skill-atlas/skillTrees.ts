@@ -1354,7 +1354,7 @@ export const skillTrees: Record<string, SkillTree> = {
         "desc": "The replacement is the token for the colour's role, never the nearest hue. Text, fill, stroke, a scrim behind, a tint on, transparent, gradient.",
         "lines": [
           62,
-          81
+          83
         ],
         "anchor": "## Colour by role, never by hue",
         "anchorEnd": "`rebeccapurple` are literals like any hex."
@@ -1366,8 +1366,8 @@ export const skillTrees: Record<string, SkillTree> = {
         "title": "Geometry: which scale?",
         "desc": "Spacing to the nearest --space-* step, strokes to --border-width-*, corners to --radius-*, whole shadows to --shadow-*. Sizing is layout and is never reported.",
         "lines": [
-          83,
-          99
+          85,
+          101
         ],
         "anchor": "## Geometry by scale",
         "anchorEnd": "though no rule reports them, and a `blur()` takes `--blur-*`."
@@ -1379,8 +1379,8 @@ export const skillTrees: Record<string, SkillTree> = {
         "title": "Every other rule has one row",
         "desc": "Unknown tokens, raw type, props, columns, site.css, routes, deep imports, and the component rules, each with its fix or the skill that owns it.",
         "lines": [
-          101,
-          118
+          103,
+          120
         ],
         "anchor": "## Every other rule",
         "anchorEnd": "| `missing-registration`, `missing-file`, `missing-root-block`"
@@ -1404,8 +1404,8 @@ export const skillTrees: Record<string, SkillTree> = {
         "title": "Report by rule, then repaint",
         "desc": "What changed with counts and visible shifts, what was left and why, the two exit codes. Then change a surface and a spacing step in the editor: a file that does not repaint is a checker gap worth reporting.",
         "lines": [
-          120,
-          131
+          122,
+          133
         ],
         "anchor": "## Report",
         "anchorEnd": "the checker rather than patching around."
@@ -1510,8 +1510,8 @@ export const skillTrees: Record<string, SkillTree> = {
         "title": "Is the glyph self-evident?",
         "desc": "Button carries a label. IconButton is icon-only and square, with no text slot, so an ariaLabel is required. InlineEditActions is the confirm-and-cancel pair, used rather than two loose IconButtons so every inline edit resolves the same way.",
         "lines": [
-          16,
-          23
+          24,
+          31
         ],
         "anchor": "## Action family: Button vs IconButton",
         "anchorEnd": "- `InlineEditActions` is the confirm-and-cancel pair that fo"
@@ -1524,8 +1524,8 @@ export const skillTrees: Record<string, SkillTree> = {
         "title": "Count, page-change, weight",
         "desc": "TabBar implies \"this changes the page\"; SegmentedControl implies \"one knob among others\". RadioButton when labels deserve room, MenuSelect when options would overflow. Labels long enough to wrap disqualify SegmentedControl.",
         "lines": [
-          25,
-          39
+          33,
+          47
         ],
         "anchor": "## Single-selection family: SegmentedControl vs TabBar vs Ra",
         "anchorEnd": "- **Don't pick `SegmentedControl` when option labels are lon"
@@ -1538,8 +1538,8 @@ export const skillTrees: Record<string, SkillTree> = {
         "title": "Enumerable answers, or free text",
         "desc": "If you can list the answers it is the selection family: a short set inline, a long one MenuSelect. Anything you cannot write down is Input, which ships its own label, hint, and error parts rather than needing text stacked under a bare field. Yes or no is Toggle.",
         "lines": [
-          41,
-          47
+          49,
+          55
         ],
         "anchor": "## Text entry: Input vs the selection family",
         "anchorEnd": "- Its four variants are `default`, `focused`, `disabled`, an"
@@ -1552,8 +1552,8 @@ export const skillTrees: Record<string, SkillTree> = {
         "title": "What is the modality?",
         "desc": "Default to Card, the workhorse. CollapsibleSection only when the content is legitimately secondary. Panel is a stage, not a content container. Dialog only when the page cannot meaningfully continue.",
         "lines": [
-          49,
-          61
+          57,
+          69
         ],
         "anchor": "## Container family: Card vs CollapsibleSection vs Dialog",
         "anchorEnd": "- **Don't use `Dialog` for routine forms.** Reach for it onl"
@@ -1566,8 +1566,8 @@ export const skillTrees: Record<string, SkillTree> = {
         "title": "Content, feedback, or hint?",
         "desc": "Callout is content, written into the markup. Notification is feedback, appearing then dismissing. Tooltip is what an element means, and never the primary location of important content. Badge and CornerBadge differ only in positioning.",
         "lines": [
-          63,
-          76
+          71,
+          84
         ],
         "anchor": "## Messaging family: Callout vs Notification vs Tooltip vs B",
         "anchorEnd": "- `Badge` and `CornerBadge` differ only in positioning. `Cor"
@@ -1580,8 +1580,8 @@ export const skillTrees: Record<string, SkillTree> = {
         "title": "A setting, or two named alternatives?",
         "desc": "If the off and on states share a name, it is a Toggle. If the two states have names you want compared, SegmentedControl. Toggle flips immediately; a RadioButton pair belongs to a larger submission.",
         "lines": [
-          87,
-          99
+          95,
+          107
         ],
         "anchor": "## Toggle vs SegmentedControl vs RadioButton (for on/off)",
         "anchorEnd": "- `Toggle` flips immediately; `RadioButton` pair is for form"
@@ -1594,8 +1594,8 @@ export const skillTrees: Record<string, SkillTree> = {
         "title": "Shown rather than asked",
         "desc": "Image for a picture in the flow, ImageLightbox when the detail is the point, Table for records, ProgressBar as a read-out and never a control, CodeSnippet for something the reader runs. SideNavigation changes the URL; switching panels inside one page is TabBar.",
         "lines": [
-          78,
-          85
+          86,
+          93
         ],
         "anchor": "## Display family: what the page shows rather than what it a",
         "anchorEnd": "- `SectionDivider` separates sections of one page. `SideNavi"
@@ -1607,8 +1607,8 @@ export const skillTrees: Record<string, SkillTree> = {
         "title": "Does anything in the catalogue fit?",
         "desc": "A custom component is a maintenance commitment. Do not reach for one before checking.",
         "lines": [
-          101,
-          103
+          109,
+          111
         ],
         "anchor": "---",
         "anchorEnd": "If nothing in the catalogue fits (a `Slider`, a `DatePicker`"
@@ -1632,8 +1632,8 @@ export const skillTrees: Record<string, SkillTree> = {
         "title": "Author it: create-component",
         "desc": "A Slider, a DatePicker, a Stepper, a custom widget.",
         "lines": [
-          103,
-          103
+          111,
+          111
         ],
         "anchor": "If nothing in the catalogue fits (a `Slider`, a `DatePicker`"
       }
@@ -2008,7 +2008,7 @@ export const skillTrees: Record<string, SkillTree> = {
         "desc": "Card and Badge for the simplest reads, Button and Input for multi-state, Dialog for multi-part, SegmentedControl for linked siblings. Read shipped files for pattern; ignore their location, because your two files co-locate in src/system/components/.",
         "lines": [
           10,
-          22
+          21
         ],
         "anchor": "## Worked examples ship inside the package",
         "anchorEnd": "**File-location note.** Shipped editors live in `src/editor/"
@@ -2021,8 +2021,8 @@ export const skillTrees: Record<string, SkillTree> = {
         "title": "Runtime file",
         "desc": "Declare every editable slot as a CSS custom property inside :global(:root), defaulting to a theme token, never a raw value. The plugin parses that block to seed default.json; variables declared anywhere else cannot be edited.",
         "lines": [
-          24,
-          26
+          23,
+          25
         ],
         "anchor": "## The recipe",
         "anchorEnd": "**Runtime file** — `src/system/components/MyWidget.svelte`. "
@@ -2035,8 +2035,8 @@ export const skillTrees: Record<string, SkillTree> = {
         "title": "Editor file",
         "desc": "In a script module block declare the component id, build states per VariantGroup, and export the flat union as allTokens. In the runtime script block mount ComponentEditorBase with one VariantGroup per variant.",
         "lines": [
-          27,
-          27
+          26,
+          26
         ],
         "anchor": "**Editor file** — `src/system/components/MyWidgetEditor.svel"
       },
@@ -2049,31 +2049,31 @@ export const skillTrees: Record<string, SkillTree> = {
           {
             "label": "Linked siblings",
             "lines": [
-              207,
-              207
+              214,
+              214
             ],
             "anchor": "- `references/linked-siblings.md`: variants that share base "
           },
           {
             "label": "Intrinsics",
             "lines": [
-              208,
-              208
+              215,
+              215
             ],
             "anchor": "- `references/intrinsics.md`: structural or display choices "
           },
           {
             "label": "Sketch mode (always)",
             "lines": [
-              209,
-              209
+              216,
+              216
             ],
             "anchor": "- `references/sketch-mode.md`: joining the sketch layer. **E"
           }
         ],
         "lines": [
-          203,
-          209
+          210,
+          216
         ],
         "anchor": "## Extensions",
         "anchorEnd": "- `references/sketch-mode.md`: joining the sketch layer. **E",
@@ -2087,8 +2087,8 @@ export const skillTrees: Record<string, SkillTree> = {
         "title": "Register through bootLiveTokens",
         "desc": "It calls registerComponent internally at the right point: after the editor init hooks, before it seeds configs and mounts. Never place a standalone registerComponent before bootLiveTokens; that is the wrong window and can leave editor changes disconnected from the live page.",
         "lines": [
-          28,
-          45
+          27,
+          44
         ],
         "anchor": "**Register** — pass the component to `bootLiveTokens` in `sr",
         "anchorEnd": "The schema side-effect happens inside `registerComponent` (w"
@@ -2098,13 +2098,13 @@ export const skillTrees: Record<string, SkillTree> = {
         "row": 6,
         "kind": "hand",
         "n": "4",
-        "title": "Tell the picker",
-        "desc": "Add the component to pick-component's Catalogue line under its family, and a decision-table row if it is confusable with an existing one. Without this the component exists but cannot be recommended.",
+        "title": "Say what it is for",
+        "desc": "The runtime file's header comment is the description `live-tokens components` prints beside the id, with props and variants read from the file. The picker weighs a custom component from that query, so no skill file is edited. First-party components are also added to the Catalogue line.",
         "lines": [
-          46,
-          46
+          45,
+          45
         ],
-        "anchor": "**Tell the picker** — open `.claude/skills/live-tokens-pick-"
+        "anchor": "**Say what it is for.** The runtime file's leading HTML comme"
       },
       {
         "id": "cc-sk",
@@ -2114,8 +2114,8 @@ export const skillTrees: Record<string, SkillTree> = {
         "title": "Join the sketch layer",
         "desc": "The effect draws a fixed set of parts, so a new component stays crisp while the page goes hand-drawn until it opts in. One of four reserved classes on the root plus the five --sketch-* colours. The layer takes background, border-color, box-shadow, overflow, position and both pseudo-elements away from what it draws.",
         "lines": [
-          47,
-          54
+          54,
+          61
         ],
         "anchor": "**Join the sketch layer** — the effect draws a fixed set of ",
         "anchorEnd": "`references/sketch-mode.md`."
@@ -2130,8 +2130,8 @@ export const skillTrees: Record<string, SkillTree> = {
           {
             "label": "Naming scheme",
             "lines": [
-              74,
-              74
+              81,
+              81
             ],
             "anchor": "## Token discipline",
             "anchorEnd": ""
@@ -2139,8 +2139,8 @@ export const skillTrees: Record<string, SkillTree> = {
           {
             "label": "Suffix vocabulary",
             "lines": [
-              88,
-              109
+              95,
+              116
             ],
             "anchor": "### Suffix vocabulary",
             "anchorEnd": "compete. A suffix outside that list fails `check-component`."
@@ -2148,8 +2148,8 @@ export const skillTrees: Record<string, SkillTree> = {
           {
             "label": "Rules that bite",
             "lines": [
-              114,
-              120
+              121,
+              127
             ],
             "anchor": "### Rules that bite",
             "anchorEnd": "- **Text aliases.** Neutral scale is `--text-primary` / `--t"
@@ -2157,8 +2157,8 @@ export const skillTrees: Record<string, SkillTree> = {
           {
             "label": "Typography groupKey trap",
             "lines": [
-              121,
-              131
+              128,
+              138
             ],
             "anchor": "- **Typography `groupKey` on multi-slot components must incl",
             "anchorEnd": "The helper strips the `--<component>-` prefix and those segm"
@@ -2166,8 +2166,8 @@ export const skillTrees: Record<string, SkillTree> = {
           {
             "label": "State model",
             "lines": [
-              134,
-              152
+              141,
+              159
             ],
             "anchor": "## State model",
             "anchorEnd": "```"
@@ -2175,8 +2175,8 @@ export const skillTrees: Record<string, SkillTree> = {
           {
             "label": "User-facing copy",
             "lines": [
-              160,
-              164
+              167,
+              171
             ],
             "anchor": "## User-facing copy",
             "anchorEnd": "If you add custom chrome inside an editor snippet (rare — `C"
@@ -2184,8 +2184,8 @@ export const skillTrees: Record<string, SkillTree> = {
           {
             "label": "Public imports only",
             "lines": [
-              166,
-              181
+              173,
+              188
             ],
             "anchor": "## Public imports only",
             "anchorEnd": "**Never deep-import `node_modules/@motion-proto/live-tokens/"
@@ -2193,8 +2193,8 @@ export const skillTrees: Record<string, SkillTree> = {
           {
             "label": "Worked example: Toggle",
             "lines": [
-              183,
-              201
+              190,
+              208
             ],
             "anchor": "## Worked example: the shipped Toggle",
             "anchorEnd": "For your own component, copy the pattern and substitute your"
@@ -2210,8 +2210,8 @@ export const skillTrees: Record<string, SkillTree> = {
         "title": "npx live-tokens check-component <id>",
         "desc": "Enforces file layout, the :global(:root) block, suffix vocabulary, state-before-property, theme-token defaults, public imports, and that the id is registered. Exit 0 means the static contract is met; resolve warnings before shipping.",
         "lines": [
-          211,
-          220
+          218,
+          227
         ],
         "anchor": "## Verification checklist",
         "anchorEnd": "It enforces the file layout, the `:global(:root)` block, tok",
@@ -2219,8 +2219,8 @@ export const skillTrees: Record<string, SkillTree> = {
           {
             "label": "Step 6 in the recipe",
             "lines": [
-              72,
-              72
+              79,
+              79
             ],
             "anchor": "**Verify** with the checklist at the bottom of this file, th"
           }
@@ -2234,8 +2234,8 @@ export const skillTrees: Record<string, SkillTree> = {
         "title": "Run the registry contract test",
         "desc": "Five per-component checks: registration resolves, schema variables are unique, every editable token is declared in the runtime style block and seeded in default.json, and setComponentAlias round-trips. A first-party component is auto-covered the moment it lands in builtInRegistry.",
         "lines": [
-          226,
-          234
+          233,
+          235
         ],
         "anchor": "**Then run the registry contract test.** If you're authoring",
         "anchorEnd": "A new first-party component is auto-covered the moment it la"
@@ -2247,8 +2247,8 @@ export const skillTrees: Record<string, SkillTree> = {
         "title": "And the intrinsics contract test",
         "desc": "Only when the component declares intrinsics. Per (intrinsic, variant) it asserts the runtime declares a default, the default is one of the spec's values, and the editor's default equals the runtime default.",
         "lines": [
-          236,
-          236
+          237,
+          237
         ],
         "anchor": "**If your component declares `intrinsics`, the intrinsics co"
       },
@@ -2259,8 +2259,8 @@ export const skillTrees: Record<string, SkillTree> = {
         "title": "Walk the runtime checklist",
         "desc": "Seven things no static check can see, at /live-tokens/components: the CUSTOM group entry, token rows and pickers, linked-block broadcast, default.json derivation, Reset, clean boot validation, and the sketch-mode pass.",
         "lines": [
-          238,
-          246
+          239,
+          247
         ],
         "anchor": "Finally navigate to `/live-tokens/components` and confirm th",
         "anchorEnd": "- [ ] Switch Sketch mode on in the editor and walk the check"

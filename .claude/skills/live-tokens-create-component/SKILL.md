@@ -15,11 +15,10 @@ For pattern reference, read any shipped component's source directly from the con
   - Simplest reads (no state, no linked-block): `Card` (single variant with parts), `Badge` and `Callout` (multi-variant).
   - Multi-state (hover, disabled, focus): `Button`, `Input`.
   - Multi-part (overlay / header / body / footer): `Dialog`.
-  - Multi-variant with linked siblings (`canBeLinked` + `groupKey`): `SegmentedControl`, `TabBar`.
-  - Composes another shipped component: `CodeSnippet` (renders a `Tooltip` for the copy-confirmation popover).
+  - Multi-variant with linked siblings (`canBeLinked` + `groupKey`): `SegmentedControl`, `TabBar`. Composes another shipped component: `CodeSnippet`.
 - Editor files: `node_modules/@motion-proto/live-tokens/src/editor/component-editor/<Name>Editor.svelte`.
 
-**File-location note.** Shipped editors live in `src/editor/component-editor/` because they're library-internal. For *your* component, **co-locate** both files in `src/system/components/` per the recipe below. Read the shipped files for pattern, ignore their location.
+**File-location note.** Shipped editors live in `src/editor/component-editor/` because they're library-internal. For *your* component, **co-locate** both files in `src/system/components/`. Read the shipped files for pattern, ignore their location.
 
 ## The recipe
 
@@ -43,7 +42,15 @@ For pattern reference, read any shipped component's source directly from the con
    });
    ```
    The schema side-effect happens inside `registerComponent` (which `bootLiveTokens` calls for you), so you don't call `registerComponentSchema` separately. **Do not place a standalone `registerComponent(...)` *before* `bootLiveTokens`** — that registers before the editor's init hooks run, which is the wrong window and can leave editor changes disconnected from the live page. Only call `registerComponent` directly if your app mounts manually (no `bootLiveTokens`), in which case call it before `mount(App, ...)`.
-4. **Tell the picker** — open `.claude/skills/live-tokens-pick-component/SKILL.md` and add your new component to the **Catalogue** line under the family it belongs to (Action / Input / Selection / Containers / Messaging / Display). If it's confusable with an existing component (a second selection control, a competing container), add a row to that family's decision table explaining the use-case it owns. Without this step, the component exists but **live-tokens-pick-component** can't recommend it when a user asks "which component should I use?" — the same rule applies whether the component is first-party (update the picker shipped in this package) or consumer-authored (update the local copy at `.claude/skills/live-tokens-pick-component/SKILL.md` that `setup-claude` placed in your project).
+4. **Say what it is for.** The runtime file's leading HTML comment is the
+   component's description. `npx live-tokens components` prints it beside the
+   id with the variants and props read from `interface Props` (`--json` for
+   data); that is how **live-tokens-pick-component** weighs a project's own
+   component against the shipped set, so no skill file is edited and nothing
+   is lost when `setup-claude` refreshes the skills. Name the job it does and
+   what it is not for. A directory other than `src/system/components` goes in
+   `"componentDirs"` in `live-tokens.config.json`; a first-party component is
+   also added to the picker's **Catalogue** line, which `check:skills` holds.
 5. **Join the sketch layer** — the effect draws a fixed set of parts, so a new
    component stays crisp while the page around it goes hand-drawn until it opts
    in. A consumer component carries one of four reserved classes on its root and
@@ -223,15 +230,9 @@ It *warns* (non-fatal) when a token-backed default still carries a px or rem ter
 
 Exit code 0 means the static contract is met. Resolve warnings before shipping, or run with `--strict` to make them fail. `--json` prints findings with a stable `rule` id, so you can work through one rule at a time and re-run.
 
-**Then run the registry contract test.** If you're authoring inside the package itself, `src/editor/component-editor/registryContract.test.ts` runs `describe.each(getComponentRegistryEntries())` and verifies, per component:
+**Then run the registry contract test.** If you're authoring inside the package itself, `src/editor/component-editor/registryContract.test.ts` runs `describe.each(getComponentRegistryEntries())` and verifies, per component, that the registration resolves to a real `sourceFile` and a non-empty schema, that schema variables are unique, that every editable token (excluding `hidden: true`, `kind: 'gradient'`, and padding-side suffixes) is declared in the runtime `<style>` block and seeded in `src/live-tokens/data/component-configs/<id>/default.json`, and that `setComponentAlias` round-trips the alias through the slice.
 
-1. Registration resolves to a real `sourceFile` and a non-empty schema.
-2. Schema variables are unique within the component.
-3. Every editable token (excluding `hidden: true`, `kind: 'gradient'`, and padding-side suffixes) is declared in the runtime `<style>` block.
-4. Every editable token is seeded in `src/live-tokens/data/component-configs/<id>/default.json`.
-5. `setComponentAlias` round-trips the alias through the slice.
-
-A new first-party component is auto-covered the moment it lands in `builtInRegistry` — `npm test` will fail if any of the five checks miss. For a consumer-authored component, mirror this pattern in your own test suite if you want the same drift protection (the same test logic works against any `registerComponent` registration; iterate `getComponentRegistryEntries()` after your `main.ts` has run).
+A new first-party component is auto-covered the moment it lands in `builtInRegistry` — `npm test` will fail if any of the five checks miss. For a consumer-authored component, mirror this pattern in your own test suite if you want the same drift protection: `getComponentRegistryEntries` is exported from `@motion-proto/live-tokens` and returns every registration, shipped and custom, once your `main.ts` has run.
 
 **If your component declares `intrinsics`, the intrinsics contract test covers it too.** `src/editor/component-editor/intrinsicsContract.test.ts` iterates every entry with an `intrinsics` array and asserts, per (intrinsic, variant), that the runtime `:global(:root)` declares a default, the default is one of the spec's `values`, and the editor's `default` equals the runtime default. This is what would have caught a getter defaulting to `center` while `:global(:root)` says `start`. Same auto-coverage rule: declare `intrinsics` on the registry entry and the test picks it up.
 

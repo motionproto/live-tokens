@@ -13,6 +13,14 @@ For composing a page once you've picked components, see **live-tokens-build-page
 
 Action: `Button`, `IconButton`, `InlineEditActions`. Input: `Input`, `Slider`. Selection: `SegmentedControl`, `TabBar`, `RadioButton`, `MenuSelect`, `Toggle`. Containers: `Card`, `CollapsibleSection`, `Dialog`, `Panel`. Messaging: `Callout`, `Notification`, `Tooltip`, `Badge`, `CornerBadge`. Display: `Table`, `Image`, `ImageLightbox`, `ProgressBar`, `SectionDivider`, `SideNavigation`, `CodeSnippet`.
 
+That line is the shipped set. A project can register components of its own,
+and those never appear in this file: run `npx live-tokens components` before
+choosing. It lists every component the project has, shipped and custom, with
+the variants each takes and the purpose its header comment states, so a custom
+component is weighed against the shipped set on the same footing.
+`npx live-tokens components <id>` prints one component's props, the values each
+union accepts, and its tokens with defaults; `--json` returns the same as data.
+
 ## Action family: Button vs IconButton
 
 Both trigger an action and share the same six variants (primary, secondary, outline, success, danger, warning), three states (default, hover, disabled) and two sizes (default, small). They differ only in content.

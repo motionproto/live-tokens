@@ -117,6 +117,24 @@ it. Two causes, one of them a real editor bug:
 The Slider's first contract run also failed: its thumb was a vendor
 pseudo-element the probe cannot read. The thumb is a real element now.
 
+## The registry as a query
+
+The Slider exercise showed the custom-component path was smoothed over: a
+consumer's component reached the picker only by hand-editing the consumer's
+copy of the picker skill, which `setup-claude --force` overwrites on the next
+upgrade. That is now a query. `live-tokens components` and `live-tokens tokens`
+read the same vocabulary the checkers use, list shipped and custom components
+with props, unions, tokens, and the description each runtime file's header
+comment states, and take `--json`. `componentDirs` in `live-tokens.config.json`
+extends where a project's components are found. The four skills call the
+query instead of carrying a list, and `getComponentRegistryEntries` is public
+so a consumer can run the registry contract in their own suite.
+
+Still open from the same exercise: a consumer has no runtime contract that
+catches a token no CSS reads or an editor row that renders nothing; a bare
+`-width`, `-height`, or `-size` token gets a colour picker; the consumer sketch
+opt-in through the reserved classes is untested.
+
 ## Consumer reality
 
 `live-tokens-online` before the fixes: 39 errors, 50 warnings. After the checker

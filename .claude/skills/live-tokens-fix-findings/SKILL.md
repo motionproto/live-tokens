@@ -64,7 +64,9 @@ Three things the loop never does:
 `color-literal` is the finding that takes judgement. The replacement is the
 token for what the colour *does*, not the token that happens to be closest in
 hue, because the theme will move every role together and the page must move
-with it. Read `tokens.css` for the names; the families are fixed.
+with it. `npx live-tokens tokens --family surface` prints a family's names and
+values (`text`, `border`, `scrim`, `tint` likewise; `--json` for data); the
+families are fixed.
 
 | The literal is | Token family | Notes |
 | --- | --- | --- |
@@ -89,7 +91,7 @@ and is never reported, so leave it.
 
 | The literal is | Token | Notes |
 | --- | --- | --- |
-| Padding, margin, gap, an offset | `--space-<px>` | Steps: 0, 2, 4, 6, 8, 10, 12, 16, 20, 24, 32, 40, 48, 64, 96, 128. Round to the nearest step and name the shift. |
+| Padding, margin, gap, an offset | `--space-<px>` | `npx live-tokens tokens --family space` prints the steps. Round to the nearest one and name the shift. |
 | A stroke width | `--border-width-1`, `-2`, `-4` | Also for `outline`. |
 | A corner | `--radius-sm` through `-4xl`, `--radius-full` | |
 | A shadow | `--shadow-sm` through `-xl` | Replace the whole value, never one offset. |
@@ -105,7 +107,7 @@ though no rule reports them, and a `blur()` takes `--blur-*`.
 | `unknown-token` | A typo or a rename. Search `tokens.css` for the stem. A contract-family name (`--surface-…`, `--text-…`) that is gone was renamed: `npx live-tokens migrate --check` names the migration. |
 | `raw-text-axis` | Set the whole axis set from one text style: `--heading-xl` through `-sm`, `--body-md`, `--body-sm`, `--editorial-*`, `--eyebrow`, `--code`, each carrying `-font-family`, `-font-size`, `-font-weight`, `-line-height`, `-letter-spacing`. A `font:` shorthand is rewritten the same way. `em`, `%`, and a unitless line-height are relative and fine. |
 | `unknown-component` | Not in the catalogue. Read **live-tokens-pick-component** for the shipped one that fits, or author it with **live-tokens-create-component**. |
-| `unknown-prop` | The component drops it at runtime. Read its `interface Props` in `node_modules/@motion-proto/live-tokens/src/system/components/<Name>.svelte` and either map it to a declared prop or delete it. A `class` on a component that declares none does nothing. |
+| `unknown-prop` | The component drops it at runtime. `npx live-tokens components <id>` prints the props it declares and the values each union accepts; map the prop to one of them or delete it. A `class` on a component that declares none does nothing. |
 | `unknown-prop-value` | Pick a value from the union the message lists. |
 | `hardcoded-columns` | `repeat(var(--columns-count), 1fr)` for the page grid; `calc(var(--columns-count) - 2)` for a sub-grid spanning fewer page columns. A two-up or three-up is a layout and is not reported. |
 | `site-css-in-main` | Delete the import from `main.ts` and add it to each page's `<script>`, so page CSS never reaches the editor routes. |

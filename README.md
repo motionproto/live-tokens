@@ -323,6 +323,8 @@ npx @motion-proto/live-tokens <command>
 |---|---|
 | `create <dir> [--force]` | Scaffold a new Svelte + Vite app wired up with live-tokens. |
 | `setup-claude [--force]` | Install the bundled Claude Code skills into `./.claude/skills/`. |
+| `components [id] [--json]` | List every component the project has, shipped and its own, with the props each takes; with an id, its props, variants, tokens, and defaults. |
+| `tokens [--family <name>] [--json]` | List every theme token the project's `tokens.css` declares, by family, with its value. |
 | `check-component [id]` | Validate a component's runtime, editor, and registration against the authoring contract; with no id, every component authored under `src/system/components`. |
 | `check-page [paths...]` | Validate pages against the build-page contract: catalogue components and their props, theme tokens over literals, route wiring. |
 | `generate-theme <brief.json> [--no-activate] [--dry-run] [--carry-from <name>]` | Build a full theme from a 10-seed OKLCH brief, enforce AA contrast, write `themes/<slug>.json`, and open it. |

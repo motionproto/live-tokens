@@ -1,5 +1,34 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+- **The registry is a query.** `npx live-tokens components` lists every
+  component a project has, shipped and its own, with the variants and props
+  read from each `interface Props` and the purpose its header comment states;
+  `components <id>` prints one component's props, unions, tokens, and
+  defaults. `npx live-tokens tokens` lists every theme token the project's
+  `tokens.css` declares by family with its value, `--family <name>` for one
+  scale. Both take `--json`. A project's components in a directory other than
+  `src/system/components` are found through `"componentDirs"` in
+  `live-tokens.config.json`. The same vocabulary the checkers read answers the
+  query, so a skill sees exactly what the checkers will hold it to.
+
+- **`getComponentRegistryEntries` is exported from the package**, so a
+  project's own test suite can run the registry contract over every
+  registration, shipped and custom. The create-component skill pointed at it
+  before it was public.
+
+### Changed
+
+- **The skills read the registry instead of carrying it.** The picker's
+  catalogue line is the shipped set only; a project's own component is found
+  by `live-tokens components`, weighed by the description its header comment
+  states, and never written into a skill file, so `setup-claude --force` no
+  longer loses anything. build-page and fix-findings read a component's props
+  from the same query, and fix-findings reads a token scale from `tokens`.
+
 ## 0.69.0 — Every value reads a token, and the build says so
 
 ### Changed
