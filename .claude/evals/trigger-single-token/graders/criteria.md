@@ -1,3 +1,7 @@
+---
+type: llm
+---
+
 PASS when **no live-tokens skill fires** and the model points at the editor.
 
 Every one of the six descriptions excludes the single-token case in the same

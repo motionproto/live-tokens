@@ -59,7 +59,7 @@
 
   code {
     background: var(--surface-neutral-high);
-    padding: 2px 6px;
+    padding: var(--space-2) var(--space-6);
     border-radius: var(--radius-sm);
     font-family: var(--font-mono, monospace);
     font-size: 0.9em;

@@ -7,8 +7,8 @@ description: Apply the @motion-proto/live-tokens project conventions when buildi
 
 Two rules above all else:
 
-1. **Use a shipped component if one fits.** Import from `@motion-proto/live-tokens/components/<Name>.svelte`. See **live-tokens-pick-component** for the catalogue and the confusing-pair decisions. Author custom markup only when nothing fits, and then consider **live-tokens-create-component** so the new piece is editable too.
-2. **Use theme tokens for every value.** Every color, spacing, radius, font-size, and font-family in page CSS is a `var(--token-*)`. No hex literals. No pixel literals. A change in `/live-tokens/editor` should repaint your page.
+1. **Use a shipped component if one fits.** Import from `@motion-proto/live-tokens/components/<Name>.svelte`. See **live-tokens-pick-component** for the catalogue and the confusing-pair decisions. Pass only the props its `interface Props` declares, with variant and size values from its union: a prop it does not declare is dropped silently at runtime, and the checker reports it. Author custom markup only when nothing fits, and then consider **live-tokens-create-component** so the new piece is editable too.
+2. **Use theme tokens for every value.** Every color, spacing, radius, font-size, and font-family in page CSS is a `var(--token-*)`, whether it sits in the `<style>` block, an inline `style=` attribute, or a `style:` directive. No colour literals in any notation, `white` and `rgb()` included. No px or rem in spacing, stroke, radius, or shadow: that is the geometry the theme owns and `adjust` moves. Sizing is layout, not theme: a hero's height, a max content width, or a column's minimum width stays a literal. A change in `/live-tokens/editor` should repaint your page.
 
 For text, reach for a whole text style rather than assembling one: `--heading-xl` through `--heading-sm`, `--body-md`, `--body-sm`, `--editorial-xl` through `--editorial-sm`, `--eyebrow`, and `--code` each carry a `-font-family`, `-font-size`, `-font-weight`, `-line-height`, and `-letter-spacing`. A heading set from `--heading-lg-*` retypes when the theme's fonts change; one set from a raw `font-size` does not.
 
@@ -45,8 +45,8 @@ const pages = {
 
 ## Avoid
 
-- Hex or pixel literals in page CSS.
-- Hardcoded column counts (`repeat(10, 1fr)`). Use `repeat(var(--columns-count), 1fr)`.
+- Colour literals, and px or rem in spacing, stroke, radius, or shadow.
+- Hardcoded page-grid counts (`repeat(10, 1fr)`). Use `repeat(var(--columns-count), 1fr)`, or `calc(var(--columns-count) - 2)` for a sub-grid that spans fewer page columns. A local two-up or three-up is a layout and is fine.
 - Utility classes overriding shipped components. Extend via the `/live-tokens/components` editor instead.
 - Deep imports from `node_modules/@motion-proto/live-tokens/src/...`. Use public entry points only.
 - Mounting `Editor` or `ComponentEditorPage` outside their dedicated routes.
@@ -61,8 +61,8 @@ npx live-tokens check-page src/pages/YourPage.svelte
 # or: npx @motion-proto/live-tokens check-page      (every page under src/)
 ```
 
-It fails on a component outside the catalogue, a deep import, a `var()` that resolves to nothing, a colour literal, a route under `/live-tokens/*`, and `site.css` imported from `main.ts`. It warns on a raw px or rem dimension, a hardcoded column count, an absolute type value, and a route entry with no `source`.
+It fails on a component outside the catalogue, a prop a component does not declare, a variant or size outside the prop's union, a deep import, a `var()` that resolves to nothing, a colour literal in any notation, a route under `/live-tokens/*`, and `site.css` imported from `main.ts`. It warns on a px or rem literal in spacing, stroke, radius, or shadow, a hardcoded column count of four or more, an absolute type value, and a route entry with no `source`. Inline `style=` attributes and `style:` directives are read the same way as the `<style>` block; a `var()` fallback is not the page's value and is never a finding.
 
-Warnings do not fail the run. `--strict` makes them fail, which is the setting to use when the page is meant to be fully tokenized. `--json` prints findings with a stable `rule` id, so you can work through one rule at a time and re-run. `--off=<rule>` silences a rule for a run; `"checks": { "rules": { ... } }` in `live-tokens.config.json` sets it for the project.
+Warnings do not fail the run. `--strict` makes them fail, which is the setting to use when the page is meant to be fully tokenized. `--json` prints findings with a stable `rule` id, so you can work through one rule at a time and re-run. `--off=<rule>` silences a rule for a run; `"checks": { "rules": { ... } }` in `live-tokens.config.json` sets it for the project. A project scaffolded by `create` runs the checker, with `check-component`, as `npm run check:design` before every `vite build`, so the page has to pass before it can ship.
 
 Then in dev: change a colour in `/live-tokens/editor` and confirm your page repaints (proves token usage). The overlay's "Page Source" button on the new route opens the page in VS Code (proves the route's `source`). `ColumnsOverlay` (Cmd+G) shows content sitting inside `--columns-max-width`.

@@ -23,6 +23,7 @@ import Image from '../Image.svelte';
 import InlineEditActions from '../InlineEditActions.svelte';
 import Notification from '../Notification.svelte';
 import ProgressBar from '../ProgressBar.svelte';
+import Slider from '../Slider.svelte';
 import RadioButton from '../RadioButton.svelte';
 import SectionDivider from '../SectionDivider.svelte';
 import SegmentedControl from '../SegmentedControl.svelte';
@@ -132,6 +133,14 @@ describe('public components — smoke mount', () => {
     const target = fresh();
     const c = mount(ProgressBar, { target, props: { value: 50 } });
     expect(target.children.length).toBeGreaterThan(0);
+    unmount(c);
+  });
+
+  it('Slider', () => {
+    const target = fresh();
+    const c = mount(Slider, { target, props: { variant: 'range', label: 'Price', low: 10, high: 60 } });
+    expect(target.querySelectorAll('input[type="range"]').length).toBe(2);
+    expect(target.textContent).toContain('Price');
     unmount(c);
   });
 

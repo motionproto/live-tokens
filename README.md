@@ -11,7 +11,7 @@ The editor is dev-only. Production builds get plain CSS variables and the compon
 ## Features
 
 - **Live token editing.** Colors, typography, spacing, radii, shadows, motion, palettes, and gradients. Every input writes a CSS variable, so the page repaints with no reload and no build step.
-- **Live component editing.** 25 shipped Svelte components (Button, IconButton, Input, Card, Dialog, Badge, Callout, Table, Tooltip, Toggle, TabBar, SegmentedControl, RadioButton, MenuSelect, ProgressBar, CornerBadge, SectionDivider, CollapsibleSection, Notification, Image, ImageLightbox, CodeSnippet, SideNavigation, Panel, InlineEditActions) declare their design-token aliases in a `:global(:root)` block. Rewire an alias from the component's editor and it updates everywhere that component is used, on your real pages.
+- **Live component editing.** 26 shipped Svelte components (Button, IconButton, Input, Card, Dialog, Badge, Callout, Table, Tooltip, Toggle, TabBar, SegmentedControl, RadioButton, MenuSelect, ProgressBar, CornerBadge, SectionDivider, CollapsibleSection, Notification, Image, ImageLightbox, CodeSnippet, SideNavigation, Panel, InlineEditActions) declare their design-token aliases in a `:global(:root)` block. Rewire an alias from the component's editor and it updates everywhere that component is used, on your real pages.
 - **Four dev-only routes.** `/live-tokens/editor` for tokens, `/live-tokens/colors` for palettes, `/live-tokens/components` for per-component aliases, `/live-tokens/docs` for the user guide.
 - **Editor overlay.** Pins to the top right of every dev page and opens the editor in a side panel or floating window, so you edit on the page you are styling. Its "Page Source" button opens the current page's `.svelte` file in VS Code.
 - **Themes.** A theme is a whole look in one file: colors and type plus a config for every component, stored by value. Loading one changes a single pointer file, and nothing your site ships changes until you Adopt. Export a theme and import it into another project to restore the look in one step.
@@ -323,7 +323,8 @@ npx @motion-proto/live-tokens <command>
 |---|---|
 | `create <dir> [--force]` | Scaffold a new Svelte + Vite app wired up with live-tokens. |
 | `setup-claude [--force]` | Install the bundled Claude Code skills into `./.claude/skills/`. |
-| `check-component <id>` | Validate a component's runtime, editor, and registration against the authoring contract. |
+| `check-component [id]` | Validate a component's runtime, editor, and registration against the authoring contract; with no id, every component authored under `src/system/components`. |
+| `check-page [paths...]` | Validate pages against the build-page contract: catalogue components and their props, theme tokens over literals, route wiring. |
 | `generate-theme <brief.json> [--no-activate] [--dry-run] [--carry-from <name>]` | Build a full theme from a 10-seed OKLCH brief, enforce AA contrast, write `themes/<slug>.json`, and open it. |
 | `adjust <ops.json> [--dry-run]` | Move radius, padding, gap, and border-width aliases along their token scales. |
 | `set-fonts <brief.json> [--dry-run] [--no-verify]` | Bind Google Fonts families to the theme's font stacks, verified against the API. |
@@ -333,7 +334,7 @@ Once installed in a project, the same commands are available as `npx live-tokens
 
 ## Claude Code skills
 
-The package bundles six Claude Code skills. They encode the conventions this README cannot carry in full: which component fits a need, how a page is wired, what a valid theme looks like in OKLCH, how two typefaces sit together, and how geometry moves along the token scales. Each triggers from an ordinary request, so there are no slash commands to learn.
+The package bundles seven Claude Code skills. They encode the conventions this README cannot carry in full: which component fits a need, how a page is wired, what a valid theme looks like in OKLCH, how two typefaces sit together, how geometry moves along the token scales, and how an existing page or component is brought back into line with all of that. Each triggers from an ordinary request, so there are no slash commands to learn.
 
 ### Install
 
@@ -397,13 +398,19 @@ Ask for something the catalogue lacks: "author a Rating component", "make my Chi
 
 The skill covers the recipe: the runtime `.svelte` file with its `:global(:root)` token block, the editor `.svelte` file exporting `allTokens` and its variant groups, the `registerComponent()` call, and the catalogue entry that keeps `live-tokens-pick-component` current. It carries the naming scheme, the token suffix vocabulary, the state model (component states such as selected and disabled are separate from interaction states such as hover), and the public-imports rule, and points at the shipped `Toggle` in `node_modules` as the worked example. Linked siblings, intrinsics, and the fixed-overlay portal rule sit in reference files the skill reads only when a component needs them.
 
+### `live-tokens-fix-findings`
+
+Ask for the existing code to catch up: "make check:design pass", "fix the design-system warnings", "replace the hex and pixel values with tokens", "why is check-page failing on the pricing page?".
+
+The two checkers report a stable rule id per finding. The skill runs them with `--json`, groups the findings by rule, and carries one fix recipe per rule: a colour literal becomes the token for its role rather than the nearest hue, a spacing literal moves to the nearest `--space-*` step with the shift named, a raw `font-size` becomes a whole text style, a prop the component does not declare is mapped or dropped, and `site.css` moves out of `main.ts` into each page. It re-runs after every rule and stops at exit 0, then reports what changed, what it left and why, and what `--strict` would add. It never silences a rule to pass and never adds a token to `tokens.css` to match a value a page happened to use.
+
 Verify the result:
 
 ```bash
 npx @motion-proto/live-tokens check-component <id>
 ```
 
-The validator checks the file layout, the `:global(:root)` block, the token-suffix vocabulary, the state-before-property rule, the no-raw-color-defaults rule, the public-imports rule, and the `registerComponent({ id })` call. Exit code 0 means the static contract is met. Use it after Claude generates a component, and as a pre-commit guard on hand-authored ones.
+The validator checks the file layout, the `:global(:root)` block, the token-suffix vocabulary, the state-before-property rule, the public-imports rule, the `registerComponent({ id })` call, and that every default resolves to a theme token rather than a literal. Exit code 0 means the static contract is met. A project scaffolded by `create` runs it, with `check-page`, as `npm run check:design` before every `vite build`, so a component or page that opts out of the theme cannot ship by accident.
 
 ## From edit to production
 

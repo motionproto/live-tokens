@@ -614,7 +614,7 @@ describe('the live layer doors', () => {
 
     const { json: list } = await request('GET', `${API}/component-configs`);
     const names: string[] = list.components.map((c: any) => c.name);
-    expect(names.length).toBe(25);
+    expect(names.length).toBe(26);
 
     for (const name of names) {
       const { json } = await request('GET', `${API}/component-configs/${name}/active`);

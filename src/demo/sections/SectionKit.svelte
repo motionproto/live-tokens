@@ -191,12 +191,12 @@
 <style lang="scss">
   @use '../../system/styles/slot-prose' as *;
 
-  /* 10 tracks reproduce the section's slice of the page grid (it spans page
-     columns 2–11), so each item lands on exactly three of those columns and the
-     row stops at column 9, leaving column 10 open on the right. */
+  /* The section spans page columns 2–11, so its tracks are the page grid
+     minus one column on each side; each item then lands on exactly three page
+     columns and the row stops at column 9, leaving column 10 open on the right. */
   .kit-grid {
     display: grid;
-    grid-template-columns: repeat(10, 1fr);
+    grid-template-columns: repeat(calc(var(--columns-count) - 2), 1fr);
     column-gap: var(--columns-gutter);
     row-gap: var(--space-32);
   }
@@ -316,7 +316,7 @@
   .kit-preview {
     margin-top: var(--space-32);
     display: grid;
-    grid-template-columns: repeat(10, 1fr);
+    grid-template-columns: repeat(calc(var(--columns-count) - 2), 1fr);
     column-gap: var(--columns-gutter);
   }
 

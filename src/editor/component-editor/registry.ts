@@ -19,6 +19,7 @@ import MenuSelectEditor, { allTokens as menuSelectTokens } from './MenuSelectEdi
 import NotificationEditor, { allTokens as notificationTokens } from './NotificationEditor.svelte';
 import PanelEditor, { allTokens as panelTokens } from './PanelEditor.svelte';
 import ProgressBarEditor, { allTokens as progressBarTokens } from './ProgressBarEditor.svelte';
+import SliderEditor, { allTokens as sliderTokens } from './SliderEditor.svelte';
 import RadioButtonEditor, { allTokens as radioButtonTokens } from './RadioButtonEditor.svelte';
 import SectionDividerEditor, { allTokens as sectionDividerTokens, intrinsics as sectionDividerIntrinsics } from './SectionDividerEditor.svelte';
 import SegmentedControlEditor, { allTokens as segmentedControlTokens } from './SegmentedControlEditor.svelte';
@@ -318,6 +319,15 @@ const builtInRegistry: Readonly<Record<BuiltInComponentId, RegistryEntry>> = Obj
     sourceFile: 'src/system/components/ProgressBar.svelte',
     editorComponent: ProgressBarEditor,
     schema: progressBarTokens,
+    origin: 'system',
+  },
+  slider: {
+    id: 'slider',
+    label: 'Slider',
+    icon: 'fas fa-sliders',
+    sourceFile: 'src/system/components/Slider.svelte',
+    editorComponent: SliderEditor,
+    schema: sliderTokens,
     origin: 'system',
   },
 });

@@ -1,3 +1,7 @@
+---
+type: llm
+---
+
 This case grades the outcome, not just the trigger.
 
 PASS requires all of:

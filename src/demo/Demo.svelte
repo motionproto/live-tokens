@@ -46,7 +46,7 @@
      against its bottom. -space-64 cancels the grid row-gap; the extra
      -space-64 on top is the actual overlap — tune that second term to taste. */
   .kit > :global(.offering) {
-    margin-top: calc(var(--space-64) * -2 + 0.5rem);
+    margin-top: calc(var(--space-64) * -2 + var(--space-8));
     margin-bottom: calc(var(--space-64) * -1);
   }
 
@@ -54,7 +54,7 @@
   .kit :global(p > code),
   .kit :global(.callout code) {
     background: var(--tint-low);
-    padding: 1px 6px;
+    padding: var(--space-2) var(--space-6);
     border-radius: var(--radius-sm);
     font-family: var(--font-mono);
     font-size: 0.88em;

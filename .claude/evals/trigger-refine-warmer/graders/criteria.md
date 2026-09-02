@@ -1,3 +1,7 @@
+---
+type: llm
+---
+
 The session already has a theme open.
 
 PASS when **live-tokens-generate-theme** fires. Its description names

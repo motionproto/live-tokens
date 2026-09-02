@@ -22,6 +22,7 @@ function fixtureRoot(): string {
       --radius-xl: 1rem;
       --columns-count: 12;
       --heading-lg-font-size: 2rem;
+      --text-secondary: #ccc;
     }`,
   );
   return dir;
@@ -147,9 +148,17 @@ describe('check-page token rules', () => {
   it('flags a hardcoded page grid but not a local two-up', () => {
     const root = fixtureRoot();
     const grid = page(root, 'Grid.svelte', `<style>.a { grid-template-columns: repeat(10, 1fr); }</style>`);
-    const twoUp = page(root, 'TwoUp.svelte', `<style>.a { grid-template-columns: repeat(2, minmax(max-content, 1fr)); }</style>`);
+    const twoUp = page(root, 'TwoUp.svelte', `<style>.a { grid-template-columns: repeat(2, 1fr); }</style>`);
     expect(rulesFor(root, grid)).toContain('hardcoded-columns');
     expect(rulesFor(root, twoUp)).not.toContain('hardcoded-columns');
+  });
+
+  it('flags a literal in themed geometry but not in layout sizing', () => {
+    const root = fixtureRoot();
+    const themed = page(root, 'Themed.svelte', `<style>.a { box-shadow: 0 2px 4px var(--surface-neutral); border-radius: 6px; }</style>`);
+    const sizing = page(root, 'Sizing.svelte', `<style>.a { height: 32rem; max-width: 48rem; grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr)); }</style>`);
+    expect(rulesFor(root, themed).filter((r) => r === 'dimension-literal')).toHaveLength(2);
+    expect(rulesFor(root, sizing)).not.toContain('dimension-literal');
   });
 });
 
@@ -198,13 +207,118 @@ describe('discoverPages', () => {
   });
 });
 
+/**
+ * A page that passes under --strict, and one mutation per rule that a page can
+ * break. Same idea as the component table: the clean page is the only shape
+ * that passes, and each row proves its rule still fires.
+ */
+const CLEAN_PAGE = `<script lang="ts">
+  import Card from '@motion-proto/live-tokens/components/Card.svelte';
+  import Badge from '@motion-proto/live-tokens/components/Badge.svelte';
+  import Button from '@motion-proto/live-tokens/components/Button.svelte';
+  let count = 0;
+</script>
+
+<section class="hero" style="gap: var(--space-8)">
+  <Card title="Welcome" hover={false} prose={false}>
+    <Badge variant="neutral" size="small">New</Badge>
+    <Button variant="secondary" onclick={() => (count = count > 1 ? 0 : count + 1)}>
+      Count
+    </Button>
+  </Card>
+  <p style:color="var(--text-secondary)">Body</p>
+</section>
+
+<style>
+  .hero {
+    display: grid;
+    grid-template-columns: repeat(var(--columns-count), 1fr);
+    padding: var(--space-8);
+    border-radius: var(--radius-xl);
+    color: var(--text-primary);
+    background: var(--surface-neutral, #111);
+  }
+  .hero::before { content: "white"; }
+</style>`;
+
+function strictPage(body: string) {
+  const root = fixtureRoot();
+  const rel = page(root, 'Clean.svelte', body);
+  return applySeverity(checkPages([rel], { root }).findings, PAGE_RULES, { strict: true });
+}
+
+const edit = (from: string, to: string) => (body: string) => {
+  if (!body.includes(from)) throw new Error(`fixture no longer contains ${from}`);
+  return body.replace(from, to);
+};
+
+const PAGE_MUTATIONS: [string, (body: string) => string, string][] = [
+  ['a hex literal in an inline style attribute', edit('style="gap: var(--space-8)"', 'style="gap: var(--space-8); color: #fff"'), 'color-literal'],
+  ['a raw dimension in an inline style attribute', edit('style="gap: var(--space-8)"', 'style="gap: 12px"'), 'dimension-literal'],
+  ['a colour literal in a style: directive', edit('style:color="var(--text-secondary)"', 'style:color="rebeccapurple"'), 'color-literal'],
+  ['an unknown token in a style: directive', edit('style:color="var(--text-secondary)"', 'style:color="var(--text-imaginary)"'), 'unknown-token'],
+  ['a named colour in a style block', edit('color: var(--text-primary);', 'color: white;'), 'color-literal'],
+  ['a colour function in a style block', edit('color: var(--text-primary);', 'color: rgb(0 0 0 / 50%);'), 'color-literal'],
+  ['a prop the component does not declare', edit('hover={false}', 'elevation="high"'), 'unknown-prop'],
+  ['a shorthand prop the component does not declare', edit('hover={false}', '{elevation}'), 'unknown-prop'],
+  ['a variant outside the union', edit('variant="neutral"', 'variant="bogus"'), 'unknown-prop-value'],
+  ['a size outside the union', edit('size="small"', 'size="xl"'), 'unknown-prop-value'],
+  ['a variant after an expression holding >', edit('variant="secondary"', 'variant="tertiary"'), 'unknown-prop-value'],
+  ['a component outside the catalogue', edit('components/Badge.svelte', 'components/Sparkle.svelte'), 'unknown-component'],
+  ['a hardcoded column count', edit('repeat(var(--columns-count), 1fr)', 'repeat(12, 1fr)'), 'hardcoded-columns'],
+  ['a font shorthand with an absolute size', edit('color: var(--text-primary);', 'font: 500 12px/1 system-ui;'), 'raw-text-axis'],
+];
+
+describe('the clean page and its mutations', () => {
+  it('passes under --strict with no findings at all', () => {
+    expect(strictPage(CLEAN_PAGE)).toEqual([]);
+  });
+
+  it.each(PAGE_MUTATIONS)('%s is caught', (_name, mutate, rule) => {
+    expect(strictPage(mutate(CLEAN_PAGE)).map((f: { rule: string }) => f.rule)).toContain(rule);
+  });
+
+  it('skips a tag that spreads props, an expression value, and directives', () => {
+    const body = edit('<Badge variant="neutral" size="small">', '<Badge {...rest} variant="bogus">')(
+      edit('hover={false}', 'variant={kind} bind:title on:click class:active')(CLEAN_PAGE),
+    );
+    const rules = strictPage(body).map((f: { rule: string }) => f.rule);
+    expect(rules).not.toContain('unknown-prop');
+    expect(rules).not.toContain('unknown-prop-value');
+  });
+
+  it('reads a custom property with a digit in its name as one declaration', () => {
+    const body = edit('padding: var(--space-8);', '--local-2xl: 2rem; padding: var(--local-2xl);')(CLEAN_PAGE);
+    expect(strictPage(body)).toEqual([]);
+  });
+});
+
+describe('discoverPages skips the files that define the vocabulary', () => {
+  it('leaves out tokens.css at a legacy location and the generated token files', () => {
+    const dir = mkdtempSync(join(tmpdir(), 'lt-page-'));
+    roots.push(dir);
+    mkdirSync(join(dir, 'src/pages'), { recursive: true });
+    writeFileSync(join(dir, 'src/tokens.css'), ':root { --surface-neutral: #111; }');
+    writeFileSync(join(dir, 'src/tokens.generated.css'), ':root { --surface-neutral: #222; }');
+    writeFileSync(join(dir, 'src/pages/Home.svelte'), '<div />');
+    const found = discoverPages(dir).map((f: string) => f.slice(dir.length + 1));
+    expect(found).toEqual(['src/pages/Home.svelte']);
+  });
+});
+
+describe('the create template', () => {
+  it('passes check-page under --strict', () => {
+    const root = join(process.cwd(), 'template');
+    const resolved = applySeverity(checkPages(discoverPages(root), { root }).findings, PAGE_RULES, { strict: true });
+    expect(resolved.map((f: { file: string; message: string }) => `${f.file}: ${f.message}`)).toEqual([]);
+  });
+});
+
 describe("this repo's own pages", () => {
-  it('carry no page errors', () => {
+  it('carry no finding at all under --strict', () => {
     const root = process.cwd();
     const { findings } = checkPages(discoverPages(root), { root });
-    const errors = applySeverity(findings, PAGE_RULES, {}).filter(
-      (f: { severity: string }) => f.severity === 'error',
-    );
-    expect(errors.map((f: { file: string; message: string }) => `${f.file}: ${f.message}`)).toEqual([]);
+    const resolved = applySeverity(findings, PAGE_RULES, { strict: true });
+    expect(resolved.map((f: { file: string; message: string }) => `${f.file}: ${f.message}`)).toEqual([]);
   });
 });

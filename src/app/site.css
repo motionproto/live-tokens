@@ -71,7 +71,7 @@ p {
   font-size: var(--body-md-font-size);
   color: var(--text-secondary);
   line-height: var(--body-md-line-height);
-  margin: 0 0 14px;
+  margin: 0 0 var(--space-16);
 }
 
 p:last-child {
@@ -142,15 +142,15 @@ ol li::marker {
 
 hr {
   border: none;
-  border-top: 1px solid var(--border-neutral-faint);
+  border-top: var(--border-width-1) solid var(--border-neutral-faint);
   margin: var(--space-32) 0;
 }
 
 blockquote {
   margin: var(--space-16) 0;
   padding: var(--space-12) var(--space-20);
-  border: 1px solid var(--color-brand-500);
-  border-left: 4px solid var(--color-brand-500);
+  border: var(--border-width-1) solid var(--color-brand-500);
+  border-left: var(--border-width-4) solid var(--color-brand-500);
   background: var(--surface-neutral-high);
   border-radius: 0 var(--radius-md) var(--radius-md) 0;
   color: var(--text-secondary);

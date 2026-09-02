@@ -112,7 +112,7 @@ describe.each(PRESETS)('shipped preset theme "%s"', (slug) => {
     expect(theme.name).toBe(colorsAndType.name);
   });
 
-  it('carries all 25 components, each with the full alias key set', () => {
+  it('carries every known component, each with the full alias key set', () => {
     const theme = themeOf(slug);
     const configs = Object.entries(theme.componentConfigs) as [string, any][];
     expect(Object.keys(theme.componentConfigs).sort()).toEqual(KNOWN_COMPONENTS);

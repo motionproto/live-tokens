@@ -83,7 +83,7 @@
     grid-column: 5 / span 8;
     grid-row: 1;
     height: 32rem;
-    margin-top: 1rem;
+    margin-top: var(--space-16);
     position: relative;
   }
 

@@ -52,7 +52,7 @@ const committedComponents = fs
 
 describe('first generation with no prior default.json', () => {
   it('covers every committed component', () => {
-    expect(committedComponents).toHaveLength(25);
+    expect(committedComponents).toHaveLength(26);
     expect(fs.readdirSync(derivedDir).sort()).toEqual(committedComponents);
   });
 

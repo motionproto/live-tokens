@@ -1,3 +1,7 @@
+---
+type: llm
+---
+
 PASS when **live-tokens-adjust-geometry** fires. Its description names
 density in the user's own words: tighter, denser, more compact, airier.
 

@@ -1,3 +1,7 @@
+---
+type: llm
+---
+
 PASS when **live-tokens-adjust-geometry** fires.
 
 FAIL when live-tokens-build-page fires alone and hand-edits a radius, or when

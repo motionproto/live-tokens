@@ -144,7 +144,7 @@
     "check:overlay-portal": "node scripts/check-overlay-portal.mjs",
     "check:editor-font-isolation": "node scripts/check-editor-font-isolation.mjs",
     "check:component-defaults": "node scripts/sync-component-defaults.mjs --check",
-    "check:pages": "node bin/cli.mjs check-page",
+    "check:pages": "node bin/cli.mjs check-page --strict",
     "check:production-is-default": "node scripts/check-production-is-default.mjs",
     "check:docs-content": "node scripts/sync-docs.mjs --check",
     "check:token-contract": "node scripts/check-token-contract.mjs",

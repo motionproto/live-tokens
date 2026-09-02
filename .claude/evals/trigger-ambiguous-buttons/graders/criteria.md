@@ -1,3 +1,7 @@
+---
+type: llm
+---
+
 No skill is the clear owner: this could be colour, type, geometry, or the
 wrong component entirely.
 

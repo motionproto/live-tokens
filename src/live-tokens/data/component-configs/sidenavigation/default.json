@@ -2,7 +2,7 @@
   "name": "default",
   "component": "sidenavigation",
   "createdAt": "2026-05-25T19:34:09.771Z",
-  "updatedAt": "2026-09-01T16:30:38.887Z",
+  "updatedAt": "2026-09-02T10:17:50.775Z",
   "aliases": {
     "--sidenavigation-hover-tint": "--tint",
     "--sidenavigation-hover-tint-enabled": "--color-transparent",
@@ -13,6 +13,7 @@
     "--sidenavigation-panel-section-gap": "--space-4",
     "--sidenavigation-panel-item-padding": "--space-32",
     "--sidenavigation-panel-footer-gap": "--space-16",
+    "--sidenavigation-panel-closed-width": "--space-48",
     "--sidenavigation-open-duration": "--duration-200",
     "--sidenavigation-open-easing": "--ease-out-quart",
     "--sidenavigation-close-duration": "--duration-150",

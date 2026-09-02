@@ -4,6 +4,15 @@
 
 ### Changed
 
+- **SideNavigation's panel widths read the spacing scale.** `16rem` and `3rem`
+  were the only shipped defaults with no token behind them; they now read
+  `calc(var(--space-64) * 4)` and `var(--space-48)`. Values are unchanged.
+
+- **The starter `site.css` is fully tokenized.** A paragraph margin and three
+  rule and blockquote strokes were px literals; they read `--space-16` and
+  `--border-width-*` now, so a scaffolded project starts clean under
+  `check-page --strict`. The paragraph margin moves from 14px to 16px.
+
 - **TabBar's active tab and Button's inline-code badge are tints, not scrims.**
   Both washed a surface rather than dimming what sat behind it, and only read a
   scrim because no tint family existed. **They restyle**: a 38% near-black wash
@@ -97,8 +106,13 @@
   contract.** It fails on a component outside the catalogue, a deep import into
   package internals, a `var()` naming a token that does not exist, a colour
   literal, a route under the reserved `/live-tokens/*` namespace, and `site.css`
-  imported from `main.ts`. It warns on a raw px or rem dimension, a hardcoded
-  column count, an absolute type value, and a route entry with no `source`.
+  imported from `main.ts`, a prop a shipped component does not declare, and a
+  variant or size outside that prop's union. It warns on a px or rem literal
+  in spacing, stroke, radius, or shadow, a hardcoded page-grid count of four
+  columns or more, an absolute type value (the `font` shorthand included), and
+  a route entry with no `source`. Sizing is layout and is never reported.
+  Inline `style=` attributes and `style:` directives are read under the same
+  rules as the `<style>` block, and a named colour is a literal like any hex.
   Given no paths it checks every page under `src/`.
 
 - **Both check commands take `--json`, `--strict`, and per-rule severity
@@ -113,16 +127,59 @@
   theme token that property reads, which is what makes the component repaint
   when the theme changes. A default reading a token that does not exist is now
   an error, including a `var()` naming a state word rather than the token that
-  state should paint. A default with no token behind it warns unless the editor declares
-  it in `intrinsics`, and a default pinning a raw px or rem dimension warns.
-  `check-component` also finds a shipped component's editor beside the other
-  editors, not only next to its runtime.
+  state should paint. A default with no token behind it is an error unless the
+  editor declares it in `intrinsics`; a colour literal in any notation is an
+  error; a token-backed default that still carries a px or rem term warns.
+  Two more rules read the name alone: `disabled-is-terminal` rejects a token
+  that combines `disabled` with `hover`, `focus`, `selected`, `on`, `active`,
+  or `checked`, and `phantom-editor-token` rejects an editor row naming a
+  token the runtime never declares. Given no id, `check-component` checks
+  every component authored under `src/system/components`, and a scaffolded
+  project runs both checkers as `npm run check:design` before every
+  `vite build`. `check-component` also finds a shipped component's editor
+  beside the other editors, not only next to its runtime.
 
-- **`npm run check:pages` runs the page check over this repo and is part of
-  `prepublishOnly`.** The unit suite covers the same ground: pages carry no
-  errors, and every shipped component default resolves to a real token.
+- **`npm run check:pages` runs the page check over this repo under `--strict`
+  and is part of `prepublishOnly`.** The unit suite covers the same ground:
+  the repo's pages carry no finding at all, and every shipped component
+  default resolves to a real token. Both suites also hold a mutation table: a
+  clean component and a clean page that pass `--strict`, and one smallest
+  break per rule that must fail, so a rule cannot stop firing unnoticed.
+
+- **`Slider`, in two variants.** `single` moves one thumb to a value; `range`
+  moves two thumbs to a low and a high bound on one track. Both share track,
+  fill, and thumb tokens, linked in the editor so an edit to one moves the
+  other until deliberately unlinked, with hover and disabled states and a
+  label and value readout. It was authored by following
+  `live-tokens-create-component` end to end, and `check-component --strict`
+  was clean on the first run.
+
+- **`live-tokens-fix-findings`, the seventh skill.** The loop for code that
+  already exists: run both checkers with `--json`, take the largest group of
+  errors first, apply that rule's recipe, re-run, stop at exit 0. It carries
+  one recipe per rule id, with colour mapped by role rather than hue and
+  geometry by scale, and three refusals: never silence a rule to pass, never
+  mint a token, never shift the look without saying so. Its first run, on the
+  package's own demo site, took three rounds and ended clean.
 
 ### Fixed
+
+- **`check-page` no longer reports a `var()` fallback as a colour literal.**
+  `var(--surface-neutral, #111)` paints the token; the literal only renders
+  when the token is missing. Against the package's own demo site this was 33
+  of 39 errors.
+
+- **`check-page` reads a custom property with a digit in its name as one
+  declaration.** `--heading-2xl: 1.875rem` was parsed as the property `xl`
+  and reported as a raw dimension. The project's own `tokens.css` and the
+  generated token files are also no longer discovered as pages.
+
+- **Both checkers read a `:global(:root)` block the same way.** They had two
+  extractors, one of which stopped at the first `}`, so a nested at-rule or
+  SCSS block truncated the block. One brace-balanced extractor is shared.
+
+- **An `intrinsics` array on one line still exempts its token.** The
+  exemption required the closing `];` on its own line.
 
 - **A persisted editor session from before the rename no longer breaks the
   renderer.** `hydrate` shallow-merges persisted state, so a `washes` (or

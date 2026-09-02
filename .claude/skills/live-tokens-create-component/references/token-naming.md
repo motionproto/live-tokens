@@ -3,7 +3,7 @@
 The editor picker is chosen by suffix. There is no per-token override; if a
 token renders with the wrong picker, rename it to one of these.
 
-`KNOWN_SUFFIXES` in `bin/check-component.mjs` is authoritative, and
+`KIND_RULES` in `src/editor/core/components/aliasKinds.ts` is authoritative, and
 `check-component` fails on a suffix outside it. `check:skills` holds this file
 to that list, so the two cannot drift apart.
 

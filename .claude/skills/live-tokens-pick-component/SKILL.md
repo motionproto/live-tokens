@@ -11,7 +11,7 @@ For composing a page once you've picked components, see **live-tokens-build-page
 
 ## Catalogue
 
-Action: `Button`, `IconButton`, `InlineEditActions`. Input: `Input`. Selection: `SegmentedControl`, `TabBar`, `RadioButton`, `MenuSelect`, `Toggle`. Containers: `Card`, `CollapsibleSection`, `Dialog`, `Panel`. Messaging: `Callout`, `Notification`, `Tooltip`, `Badge`, `CornerBadge`. Display: `Table`, `Image`, `ImageLightbox`, `ProgressBar`, `SectionDivider`, `SideNavigation`, `CodeSnippet`.
+Action: `Button`, `IconButton`, `InlineEditActions`. Input: `Input`, `Slider`. Selection: `SegmentedControl`, `TabBar`, `RadioButton`, `MenuSelect`, `Toggle`. Containers: `Card`, `CollapsibleSection`, `Dialog`, `Panel`. Messaging: `Callout`, `Notification`, `Tooltip`, `Badge`, `CornerBadge`. Display: `Table`, `Image`, `ImageLightbox`, `ProgressBar`, `SectionDivider`, `SideNavigation`, `CodeSnippet`.
 
 ## Action family: Button vs IconButton
 
@@ -42,6 +42,7 @@ All four pick one option from a set. The right one depends on **option count**, 
 
 - `Input` takes an answer the page cannot enumerate: a name, an email, a search string, an amount. It ships the label, the hint line, and the error state as parts (`--input-label-*`, `--input-hint-*`, `--input-error-*`), so style those rather than stacking your own text under a bare field.
 - The boundary is whether you can list the answers. A short fixed set is the single-selection family above; a long fixed set is `MenuSelect`; anything you cannot write down is `Input`.
+- `Slider` takes a number inside a known range where the position carries the meaning: a volume, a price band, a percentage. Its `range` variant takes a low and a high bound on one track. A number the user knows exactly and would rather type is `Input` with `type="number"`.
 - **Don't use it for on/off.** That is `Toggle`, and a one-field form asking for yes or no is the usual way this goes wrong.
 - Its four variants are `default`, `focused`, `disabled`, and `error`. A validation message belongs in the `error` variant, not in a `Callout` next to the field.
 

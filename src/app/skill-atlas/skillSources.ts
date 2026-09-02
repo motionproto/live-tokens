@@ -4,6 +4,7 @@
 import adjustGeometry from '../../../.claude/skills/live-tokens-adjust-geometry/SKILL.md?raw';
 import buildPage from '../../../.claude/skills/live-tokens-build-page/SKILL.md?raw';
 import createComponent from '../../../.claude/skills/live-tokens-create-component/SKILL.md?raw';
+import fixFindings from '../../../.claude/skills/live-tokens-fix-findings/SKILL.md?raw';
 import generateTheme from '../../../.claude/skills/live-tokens-generate-theme/SKILL.md?raw';
 import pairFonts from '../../../.claude/skills/live-tokens-pair-fonts/SKILL.md?raw';
 import pickComponent from '../../../.claude/skills/live-tokens-pick-component/SKILL.md?raw';
@@ -15,6 +16,7 @@ const raw: Record<string, string> = {
   'pick-component': pickComponent,
   'build-page': buildPage,
   'create-component': createComponent,
+  'fix-findings': fixFindings,
 };
 
 export const skillSources: Record<string, string[]> = Object.fromEntries(

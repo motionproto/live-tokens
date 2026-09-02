@@ -227,6 +227,22 @@ const PART_SPECS: readonly PartSpec[] = [
     // Holds the picture inside the frame; without it a zoom spills out square.
     clips: true,
   },
+  ...['single', 'range'].map((v) => ({
+    sel: `.slider.${v} .slider-track`,
+    fill: `var(--slider-${v}-track-surface)`,
+    stroke: `var(--slider-${v}-track-border)`,
+    radius: `var(--slider-${v}-track-radius, 0px)`,
+  })),
+  // The fill rides inside the track, so it is stroked by nothing and hatched
+  // in the track's ink.
+  ...['single', 'range'].map((v) => ({
+    sel: `.slider.${v} .slider-fill`,
+    fill: `var(--slider-${v}-fill)`,
+    stroke: 'transparent',
+    hatch: `var(--slider-${v}-track-border)`,
+    radius: `var(--slider-${v}-track-radius, 0px)`,
+    positioned: true,
+  })),
   { sel: '.toggle .track', stem: 'toggle-track' },
   { sel: '.toggle.on .track', stem: 'toggle-on-track', radius: 'var(--toggle-track-radius, 0px)' },
 

@@ -264,8 +264,8 @@
     --sidenavigation-panel-section-gap: var(--space-4);
     --sidenavigation-panel-item-padding: var(--space-32);
     --sidenavigation-panel-footer-gap: var(--space-16);
-    --sidenavigation-panel-open-width: 16rem;
-    --sidenavigation-panel-closed-width: 3rem;
+    --sidenavigation-panel-open-width: calc(var(--space-64) * 4);
+    --sidenavigation-panel-closed-width: var(--space-48);
     --sidenavigation-open-duration: var(--duration-200);
     --sidenavigation-open-easing: var(--ease-out-quart);
     --sidenavigation-close-duration: var(--duration-150);

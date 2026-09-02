@@ -5,7 +5,7 @@ never behaviour. Nothing here has ever measured whether these six descriptions
 fire when they should, or whether following a skill end to end produces
 anything.
 
-Eight cases, seven on triggering and one on outcome:
+Ten cases, seven on triggering and three on outcome:
 
 | Case | Asks |
 |---|---|
@@ -17,6 +17,8 @@ Eight cases, seven on triggering and one on outcome:
 | `trigger-density-phrasing` | Does "feels cluttered" reach adjust-geometry at all? |
 | `trigger-ambiguous-buttons` | Does an ambiguous request get a question rather than a guess? |
 | `outcome-theme-from-brief` | Does following generate-theme produce a real theme? |
+| `outcome-component-from-brief` | Does create-component reach its gate, run `check-component --strict`, and iterate to exit 0? |
+| `outcome-page-from-brief` | Does build-page run `check-page --strict` on the new page and iterate to exit 0? |
 
 Three of these are negatives, and that is the point. A suite of only positive
 cases scores an added trigger word as a free win, which is how a description
@@ -37,10 +39,22 @@ claude plugin eval .claude
 The runner adds a no-plugin baseline arm on its own, so the score separates
 what the skills contribute from what the model would have done anyway.
 
-**These cases have never been run.** `claude plugin eval` is in early access
-and refuses on an account without it, so the suite is authored against the
-documented layout (`prompt.md` plus `graders/*.md` per case) and unverified.
-Expect to fix the case files on the first real run.
+**These cases have never been run.** `claude plugin eval --help` answers on
+this account, but a run is refused with "`plugin eval` is currently in early
+access" (tried 2026-09-02 on `trigger-confusable-pair`). The suite is authored
+against the documented layout (`prompt.md` with frontmatter, plus `graders/*.md`
+each carrying a `type:`) and unverified. Expect to fix the case files on the
+first real run.
 
-`outcome-theme-from-brief` writes to the live data tree. Restore it afterwards
-with the commands in `CLAUDE.md`, or run that case alone with `--case`.
+The two component and page outcome cases each carry a deterministic
+`tool_used` grader beside the rubric: the gate counts as closed only if a
+`Bash` call ran the checker with `--strict` against the new id or file. That is
+the mechanical half of goal G4 in `docs/design-system-compliance-briefing.md`;
+the rubric grades the iteration.
+
+The three outcome cases write into the tree. `outcome-theme-from-brief` writes
+to the live data tree; restore it with the commands in `CLAUDE.md`. The other
+two create source files and edit `src/main.ts`, `src/App.svelte`, and the
+picker skill; each grader ends with the restore step. Run one at a time with
+`--case`, and pass `--allow-tools Bash Write Edit` or the agent cannot reach
+the gate.

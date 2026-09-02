@@ -79,7 +79,7 @@ The module reads files only. It must never import `dist-plugin` at module top:
 CI runs the suite before the plugin is built, and `bin/engineLoadsLazily.test.ts`
 enforces that.
 
-### `check-page` — new
+### `check-page` — new (G1)
 
 `bin/check-page.mjs`, `npx live-tokens check-page [paths...]`. Ten rules:
 
@@ -106,7 +106,7 @@ preludes are excluded; `raw-text-axis` fires only on absolute or named values;
 `hardcoded-columns` requires the literal `, 1fr)` shape so a local two-up is not
 flagged. Each of those is a judgement call about signal versus noise.
 
-### `check-component` — extended
+### `check-component` — extended (G2)
 
 It already checked naming. It now also checks what a default *resolves to*, which
 is the half that makes a component repaint:
@@ -121,7 +121,7 @@ is the half that makes a component repaint:
 component regardless of layout, so the value rules can run over the shipped
 catalogue without the consumer-only structural rules.
 
-### Severity and flags
+### Severity and flags (G3)
 
 Every rule has a default severity, overridable in this order, last wins:
 `checks.rules` in `live-tokens.config.json`, then `--off=` / `--warn=` /
@@ -199,7 +199,7 @@ The fix was structural, not a longer list: the vocabulary moved to `KIND_RULES`
 in `src/editor/core/components/aliasKinds.ts`, and the picker, the `adjust` CLI,
 `check-component`, and `check:skills` all read that one table.
 
-## Skill wiring
+## Skill wiring (G4)
 
 **`live-tokens-create-component`** — verification was a closing checklist item.
 It is now **step 6 of the recipe**, phrased as a gate: run
@@ -357,6 +357,10 @@ handles them on load; confirm that end to end rather than by reading it.
 ## Unverified
 
 Stated plainly, because a green suite is not evidence of these:
+
+- **G4 has never been exercised.** No skill was run end to end against a new
+  component or page during this work. The loop is designed, documented, and
+  unproven.
 
 - **No visual review has happened.** The five scrim-to-tint moves restyle TabBar's
   active tab, Button's slotted badge, and three inline-`code` backgrounds. The

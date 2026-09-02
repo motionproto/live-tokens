@@ -21,8 +21,9 @@
 
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { extname, join, relative } from 'node:path';
+import { hasColorLiteral, hasDimensionLiteral, stripVarFallbacks } from './lib/cssValues.mjs';
 import { lineOf } from './lib/findings.mjs';
-import { PKG_ROOT, isContractToken, loadVocabulary } from './lib/tokenVocabulary.mjs';
+import { PKG_ROOT, declaredCustomProperties, extractGlobalRootBlocks, isContractToken, loadVocabulary } from './lib/tokenVocabulary.mjs';
 
 export const COMPONENT_RULES = {
   'invalid-id': 'error',
@@ -30,15 +31,17 @@ export const COMPONENT_RULES = {
   'missing-root-block': 'error',
   'no-tokens': 'error',
   'state-after-property': 'error',
+  'disabled-is-terminal': 'error',
   'unknown-suffix': 'error',
+  'phantom-editor-token': 'error',
   'color-literal': 'error',
   'missing-component-const': 'error',
   'missing-all-tokens': 'error',
   'deep-import': 'error',
   'missing-registration': 'error',
   'unknown-token-ref': 'error',
+  'default-not-token': 'error',
   'phantom-link': 'warn',
-  'default-not-token': 'warn',
   'dimension-literal': 'warn',
 };
 
@@ -89,6 +92,10 @@ const SIDE_SUFFIXES = ['-top', '-right', '-bottom', '-left'];
 // State tokens that must come *before* the property, never after.
 const STATE_TOKENS = ['hover', 'disabled', 'selected', 'focus', 'active', 'focused'];
 
+// Disabled is terminal: a disabled component cannot be hovered, focused, or
+// selected, so a token naming both describes a state that never paints.
+const TERMINAL_CONFLICTS = ['hover', 'focus', 'focused', 'selected', 'on', 'active', 'checked'];
+
 // Deep imports into the package internals are not a supported API.
 const DEEP_IMPORT_PATTERNS = [
   /^@motion-proto\/live-tokens\/src\//,
@@ -107,16 +114,6 @@ function extractImports(source) {
     out.push(m[1]);
   }
   return out;
-}
-
-function extractGlobalRootBlocks(source) {
-  const blocks = [];
-  const re = /:global\(:root\)\s*\{([^}]*)\}/g;
-  let m;
-  while ((m = re.exec(source)) !== null) {
-    blocks.push(m[1]);
-  }
-  return blocks;
 }
 
 /**
@@ -203,6 +200,32 @@ function findFilesRecursive(dir, exts) {
 }
 
 /**
+ * Every token the editor names in a row: `variable: '--x'`, the type-group
+ * `colorVariable` / `familyVariable` / ... keys, and the arrow form intrinsics
+ * use. A `${...}` hole stands for a variant segment. Per-side padding names are
+ * written by the padding selector rather than declared, so they resolve to
+ * their parent.
+ */
+function editorTokenRefs(editor) {
+  const literals = new Set();
+  const patterns = [];
+  for (const m of editor.matchAll(/\b(?:variable|[a-zA-Z]+Variable)\s*:\s*(?:\([^)]*\)\s*=>\s*)?[`'"](--(?:\$\{[^}]*\}|[^`'"])+)[`'"]/g)) {
+    const name = stripSide(m[1]);
+    if (name.includes('${')) {
+      patterns.push([name, new RegExp(`^${name.replace(/[.*+?^()|[\]\\]/g, '\\$&').replace(/\$\{[^}]*\}/g, '[a-z0-9-]+')}$`)]);
+    } else {
+      literals.add(name);
+    }
+  }
+  return { literals, patterns };
+}
+
+function stripSide(token) {
+  const side = SIDE_SUFFIXES.find((x) => token.endsWith(x));
+  return side ? token.slice(0, -side.length) : token;
+}
+
+/**
  * Token patterns the editor declares in `intrinsics` — the only tokens allowed a
  * bare keyword instead of a theme token.
  *
@@ -211,7 +234,7 @@ function findFilesRecursive(dir, exts) {
  * actually names the token. A `${...}` hole stands for a variant segment.
  */
 function intrinsicMatchers(editor) {
-  const block = editor.match(/export\s+const\s+intrinsics[^=]*=\s*\[([\s\S]*?)\n\s*\];/);
+  const block = editor.match(/export\s+const\s+intrinsics[^=]*=\s*\[([\s\S]*?)\];/);
   if (!block) return [];
   const out = [];
   for (const m of block[1].matchAll(/\bvariable\s*:[^`'"]*[`'"]([^`'"]+)[`'"]/g)) {
@@ -246,7 +269,8 @@ function checkDefaultsAreSemantic({ blocks, runtime, editor, root, runtimePath, 
       const value = raw.trim();
       const at = runtime.indexOf(decl);
 
-      const refs = [...value.matchAll(/var\(\s*(--[a-z0-9-]+)/g)].map((x) => x[1]);
+      const painted = stripVarFallbacks(value);
+      const refs = [...painted.matchAll(/var\(\s*(--[a-z0-9-]+)/g)].map((x) => x[1]);
       for (const ref of refs) {
         if (own.has(ref) || vocab.knows(ref)) continue;
         record(
@@ -260,6 +284,15 @@ function checkDefaultsAreSemantic({ blocks, runtime, editor, root, runtimePath, 
         );
       }
 
+      if (hasColorLiteral(painted)) {
+        record(
+          'color-literal',
+          `${rel}: ${name}: ${value} is a colour literal; defaults must reference theme tokens (e.g. var(--surface-primary))`,
+          at,
+        );
+        continue;
+      }
+
       if (refs.length === 0 && !matchers.some((re) => re.test(name))) {
         record(
           'default-not-token',
@@ -268,7 +301,7 @@ function checkDefaultsAreSemantic({ blocks, runtime, editor, root, runtimePath, 
         );
       }
 
-      if (/(?<![\w.-])\d*\.?\d+(?:px|rem)\b/.test(value)) {
+      if (hasDimensionLiteral(painted)) {
         record(
           'dimension-literal',
           `${rel}: ${name}: ${value} pins a raw dimension; use a --space-*, --radius-*, or --border-width-* token`,
@@ -363,6 +396,19 @@ export function checkComponent(id, root = process.cwd(), { vocabulary } = {}) {
     }
   }
 
+  for (const token of tokens) {
+    const segments = token.slice(2).split('-');
+    if (!segments.includes('disabled')) continue;
+    const conflict = TERMINAL_CONFLICTS.find((s) => segments.includes(s));
+    if (conflict) {
+      record(
+        'disabled-is-terminal',
+        `${relative(root, runtimePath)}: ${token} combines 'disabled' with '${conflict}'; disabled is terminal, so that state never paints. Drop the token.`,
+        runtime.indexOf(token),
+      );
+    }
+  }
+
   // Runtime: every token ends in a known suffix.
   for (const token of tokens) {
     if (stateAfterTokens.has(token) || intrinsic.some((re) => re.test(token))) continue;
@@ -371,18 +417,6 @@ export function checkComponent(id, root = process.cwd(), { vocabulary } = {}) {
         'unknown-suffix',
         `${relative(root, runtimePath)}: ${token} doesn't end in a known suffix`,
         runtime.indexOf(token),
-      );
-    }
-  }
-
-  // Runtime: defaults inside :global(:root) reference theme tokens, not raw colours.
-  for (const block of blocks) {
-    const rawColours = block.match(/:\s*#[0-9a-fA-F]{3,8}\b/g) ?? [];
-    if (rawColours.length > 0) {
-      record(
-        'color-literal',
-        `${relative(root, runtimePath)}: :global(:root) contains ${rawColours.length} raw colour literal(s); ` +
-          `defaults must reference theme tokens (e.g. var(--surface-primary))`,
       );
     }
   }
@@ -401,6 +435,30 @@ export function checkComponent(id, root = process.cwd(), { vocabulary } = {}) {
   // Editor: exports allTokens.
   if (!/\bexport\s+const\s+allTokens\b/.test(editor)) {
     record('missing-all-tokens', `${relative(root, editorPath)}: missing 'export const allTokens'`);
+  }
+
+  // Editor: every token a row names is one the runtime declares. A row that
+  // names nothing renders a control that edits nothing.
+  const declared = new Set();
+  for (const block of blocks) {
+    for (const n of declaredCustomProperties(block.replace(/\/\*[\s\S]*?\*\//g, ' '))) declared.add(n);
+  }
+  const refs = editorTokenRefs(editor);
+  for (const name of refs.literals) {
+    if (!declared.has(name)) {
+      record(
+        'phantom-editor-token',
+        `${relative(root, editorPath)}: names ${name}, which ${relative(root, runtimePath)} never declares in :global(:root)`,
+      );
+    }
+  }
+  for (const [name, re] of refs.patterns) {
+    if (![...declared].some((d) => re.test(d))) {
+      record(
+        'phantom-editor-token',
+        `${relative(root, editorPath)}: names ${name}, which matches nothing ${relative(root, runtimePath)} declares in :global(:root)`,
+      );
+    }
   }
 
   // Editor: phantom-link guard. The font type-group helpers fall back to bare
@@ -478,6 +536,21 @@ export function checkComponent(id, root = process.cwd(), { vocabulary } = {}) {
   }
 
   return done();
+}
+
+/**
+ * Every component authored in `root`: a runtime file under
+ * src/system/components with an editor beside it or in the package's editor
+ * directory. What `check-component` runs over when no id is named.
+ */
+export function discoverComponents(root = process.cwd()) {
+  const dir = join(root, 'src/system/components');
+  if (!existsSync(dir)) return [];
+  return readdirSync(dir)
+    .filter((f) => f.endsWith('.svelte') && !f.endsWith('Editor.svelte'))
+    .map((f) => f.replace('.svelte', ''))
+    .filter((Id) => EDITOR_DIRS.some((d) => existsSync(join(root, d, `${Id}Editor.svelte`))))
+    .map((Id) => Id.toLowerCase());
 }
 
 export function formatReport(id, result) {

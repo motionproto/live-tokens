@@ -42,7 +42,7 @@
     font-size: 0.9em;
     color: var(--text-primary);
     background: var(--tint-low);
-    padding: 2px 6px;
+    padding: var(--space-2) var(--space-6);
     border-radius: var(--radius-sm);
   }
 

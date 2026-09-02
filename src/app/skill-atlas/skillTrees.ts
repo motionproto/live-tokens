@@ -1269,6 +1269,196 @@ export const skillTrees: Record<string, SkillTree> = {
       ]
     ]
   },
+  "fix-findings": {
+    "id": "live-tokens-fix-findings",
+    "title": "fix-findings",
+    "tagline": "The checkers say where a page or component opted out of the theme. This is the loop that brings it back.",
+    "nodes": [
+      {
+        "id": "ff-trig",
+        "row": 0,
+        "kind": "trigger",
+        "title": "Make the build pass, fix the warnings, replace the literals",
+        "desc": "Fires on an existing project's findings. A new page or component runs the same gate as the last step of its own skill; a single token goes to the editor.",
+        "lines": [
+          2,
+          3
+        ],
+        "anchor": "name: live-tokens-fix-findings",
+        "anchorEnd": "description: Bring an existing @motion-proto/live-tokens proj"
+      },
+      {
+        "id": "ff-reach",
+        "row": 1,
+        "kind": "cli",
+        "title": "Run both checkers with --json",
+        "desc": "Unknown command means the installed package predates the checkers: upgrade and migrate. No check:design script means the project was not scaffolded: add it, and gate the build once it passes.",
+        "command": "npx live-tokens check-page --json",
+        "lines": [
+          19,
+          35
+        ],
+        "anchor": "## Reach the checkers",
+        "anchorEnd": "`check-component <id>` scope a run when the user names one"
+      },
+      {
+        "id": "ff-loop",
+        "row": 2,
+        "kind": "step",
+        "title": "One rule at a time, errors first, re-run after each",
+        "desc": "Group by rule and take the biggest group of errors first, because one recipe clears it. New findings can surface as old ones clear.",
+        "lines": [
+          37,
+          46
+        ],
+        "anchor": "## The loop",
+        "anchorEnd": "the user can decide whether warnings are worth clearing no"
+      },
+      {
+        "id": "ff-never",
+        "row": 3,
+        "kind": "chipset",
+        "title": "Never",
+        "chips": [
+          {
+            "label": "Silence a rule to pass",
+            "lines": [
+              50,
+              50
+            ],
+            "anchor": "- **Silence a rule to pass.**"
+          },
+          {
+            "label": "Mint a token",
+            "lines": [
+              54,
+              54
+            ],
+            "anchor": "- **Mint a token.**"
+          },
+          {
+            "label": "Shift the look silently",
+            "lines": [
+              58,
+              58
+            ],
+            "anchor": "- **Change what the page looks like without saying so.**"
+          }
+        ]
+      },
+      {
+        "id": "ff-colour",
+        "row": 4,
+        "kind": "decide",
+        "title": "Colour: what does it do?",
+        "desc": "The replacement is the token for the colour's role, never the nearest hue. Text, fill, stroke, a scrim behind, a tint on, transparent, gradient.",
+        "lines": [
+          62,
+          81
+        ],
+        "anchor": "## Colour by role, never by hue",
+        "anchorEnd": "`rebeccapurple` are literals like any hex."
+      },
+      {
+        "id": "ff-geom",
+        "row": 4,
+        "kind": "decide",
+        "title": "Geometry: which scale?",
+        "desc": "Spacing to the nearest --space-* step, strokes to --border-width-*, corners to --radius-*, whole shadows to --shadow-*. Sizing is layout and is never reported.",
+        "lines": [
+          83,
+          99
+        ],
+        "anchor": "## Geometry by scale",
+        "anchorEnd": "though no rule reports them, and a `blur()` takes `--blur-*`."
+      },
+      {
+        "id": "ff-rest",
+        "row": 4,
+        "kind": "ref",
+        "title": "Every other rule has one row",
+        "desc": "Unknown tokens, raw type, props, columns, site.css, routes, deep imports, and the component rules, each with its fix or the skill that owns it.",
+        "lines": [
+          101,
+          118
+        ],
+        "anchor": "## Every other rule",
+        "anchorEnd": "| `missing-registration`, `missing-file`, `missing-root-block`"
+      },
+      {
+        "id": "ff-gate",
+        "row": 5,
+        "kind": "gate",
+        "title": "Both exit 0, then --strict once",
+        "desc": "Stop at exit 0 under the project's severities. Run --strict once and report what it adds, so warnings are the user's call.",
+        "lines": [
+          45,
+          45
+        ],
+        "anchor": "Stop at exit 0. Then run once with `--strict` and report wha"
+      },
+      {
+        "id": "ff-report",
+        "row": 6,
+        "kind": "done",
+        "title": "Report by rule, then repaint",
+        "desc": "What changed with counts and visible shifts, what was left and why, the two exit codes. Then change a surface and a spacing step in the editor: a file that does not repaint is a checker gap worth reporting.",
+        "lines": [
+          120,
+          131
+        ],
+        "anchor": "## Report",
+        "anchorEnd": "the checker rather than patching around."
+      }
+    ],
+    "edges": [
+      [
+        "ff-trig",
+        "ff-reach"
+      ],
+      [
+        "ff-reach",
+        "ff-loop"
+      ],
+      [
+        "ff-loop",
+        "ff-never"
+      ],
+      [
+        "ff-loop",
+        "ff-colour"
+      ],
+      [
+        "ff-loop",
+        "ff-geom"
+      ],
+      [
+        "ff-loop",
+        "ff-rest"
+      ],
+      [
+        "ff-colour",
+        "ff-gate"
+      ],
+      [
+        "ff-geom",
+        "ff-gate"
+      ],
+      [
+        "ff-rest",
+        "ff-gate"
+      ],
+      [
+        "ff-gate",
+        "ff-loop",
+        "back"
+      ],
+      [
+        "ff-gate",
+        "ff-report"
+      ]
+    ]
+  },
   "pick-component": {
     "id": "live-tokens-pick-component",
     "title": "pick-component",
@@ -1349,7 +1539,7 @@ export const skillTrees: Record<string, SkillTree> = {
         "desc": "If you can list the answers it is the selection family: a short set inline, a long one MenuSelect. Anything you cannot write down is Input, which ships its own label, hint, and error parts rather than needing text stacked under a bare field. Yes or no is Toggle.",
         "lines": [
           41,
-          46
+          47
         ],
         "anchor": "## Text entry: Input vs the selection family",
         "anchorEnd": "- Its four variants are `default`, `focused`, `disabled`, an"
@@ -1362,8 +1552,8 @@ export const skillTrees: Record<string, SkillTree> = {
         "title": "What is the modality?",
         "desc": "Default to Card, the workhorse. CollapsibleSection only when the content is legitimately secondary. Panel is a stage, not a content container. Dialog only when the page cannot meaningfully continue.",
         "lines": [
-          48,
-          60
+          49,
+          61
         ],
         "anchor": "## Container family: Card vs CollapsibleSection vs Dialog",
         "anchorEnd": "- **Don't use `Dialog` for routine forms.** Reach for it onl"
@@ -1376,8 +1566,8 @@ export const skillTrees: Record<string, SkillTree> = {
         "title": "Content, feedback, or hint?",
         "desc": "Callout is content, written into the markup. Notification is feedback, appearing then dismissing. Tooltip is what an element means, and never the primary location of important content. Badge and CornerBadge differ only in positioning.",
         "lines": [
-          62,
-          75
+          63,
+          76
         ],
         "anchor": "## Messaging family: Callout vs Notification vs Tooltip vs B",
         "anchorEnd": "- `Badge` and `CornerBadge` differ only in positioning. `Cor"
@@ -1390,8 +1580,8 @@ export const skillTrees: Record<string, SkillTree> = {
         "title": "A setting, or two named alternatives?",
         "desc": "If the off and on states share a name, it is a Toggle. If the two states have names you want compared, SegmentedControl. Toggle flips immediately; a RadioButton pair belongs to a larger submission.",
         "lines": [
-          86,
-          98
+          87,
+          99
         ],
         "anchor": "## Toggle vs SegmentedControl vs RadioButton (for on/off)",
         "anchorEnd": "- `Toggle` flips immediately; `RadioButton` pair is for form"
@@ -1404,8 +1594,8 @@ export const skillTrees: Record<string, SkillTree> = {
         "title": "Shown rather than asked",
         "desc": "Image for a picture in the flow, ImageLightbox when the detail is the point, Table for records, ProgressBar as a read-out and never a control, CodeSnippet for something the reader runs. SideNavigation changes the URL; switching panels inside one page is TabBar.",
         "lines": [
-          77,
-          84
+          78,
+          85
         ],
         "anchor": "## Display family: what the page shows rather than what it a",
         "anchorEnd": "- `SectionDivider` separates sections of one page. `SideNavi"
@@ -1417,8 +1607,8 @@ export const skillTrees: Record<string, SkillTree> = {
         "title": "Does anything in the catalogue fit?",
         "desc": "A custom component is a maintenance commitment. Do not reach for one before checking.",
         "lines": [
-          100,
-          102
+          101,
+          103
         ],
         "anchor": "---",
         "anchorEnd": "If nothing in the catalogue fits (a `Slider`, a `DatePicker`"
@@ -1442,8 +1632,8 @@ export const skillTrees: Record<string, SkillTree> = {
         "title": "Author it: create-component",
         "desc": "A Slider, a DatePicker, a Stepper, a custom widget.",
         "lines": [
-          102,
-          102
+          103,
+          103
         ],
         "anchor": "If nothing in the catalogue fits (a `Slider`, a `DatePicker`"
       }
@@ -1672,12 +1862,12 @@ export const skillTrees: Record<string, SkillTree> = {
         "title": "Avoid",
         "chips": [
           {
-            "label": "Hex or pixel literals",
+            "label": "Colour and geometry literals",
             "lines": [
               48,
               48
             ],
-            "anchor": "- Hex or pixel literals in page CSS."
+            "anchor": "- Colour literals, and px or rem in spacing, stroke, radius, or"
           },
           {
             "label": "Hardcoded column counts",
@@ -1685,7 +1875,7 @@ export const skillTrees: Record<string, SkillTree> = {
               49,
               49
             ],
-            "anchor": "- Hardcoded column counts (`repeat(10, 1fr)`). Use `repeat(v"
+            "anchor": "- Hardcoded page-grid counts (`repeat(10, 1fr)`). Use `repeat("
           },
           {
             "label": "Utility classes over components",
@@ -1859,31 +2049,31 @@ export const skillTrees: Record<string, SkillTree> = {
           {
             "label": "Linked siblings",
             "lines": [
-              205,
-              205
+              207,
+              207
             ],
             "anchor": "- `references/linked-siblings.md`: variants that share base "
           },
           {
             "label": "Intrinsics",
             "lines": [
-              206,
-              206
+              208,
+              208
             ],
             "anchor": "- `references/intrinsics.md`: structural or display choices "
           },
           {
             "label": "Sketch mode (always)",
             "lines": [
-              207,
-              207
+              209,
+              209
             ],
             "anchor": "- `references/sketch-mode.md`: joining the sketch layer. **E"
           }
         ],
         "lines": [
-          201,
-          207
+          203,
+          209
         ],
         "anchor": "## Extensions",
         "anchorEnd": "- `references/sketch-mode.md`: joining the sketch layer. **E",
@@ -1940,8 +2130,8 @@ export const skillTrees: Record<string, SkillTree> = {
           {
             "label": "Naming scheme",
             "lines": [
-              72,
-              72
+              74,
+              74
             ],
             "anchor": "## Token discipline",
             "anchorEnd": ""
@@ -1949,8 +2139,8 @@ export const skillTrees: Record<string, SkillTree> = {
           {
             "label": "Suffix vocabulary",
             "lines": [
-              86,
-              107
+              88,
+              109
             ],
             "anchor": "### Suffix vocabulary",
             "anchorEnd": "compete. A suffix outside that list fails `check-component`."
@@ -1958,8 +2148,8 @@ export const skillTrees: Record<string, SkillTree> = {
           {
             "label": "Rules that bite",
             "lines": [
-              112,
-              118
+              114,
+              120
             ],
             "anchor": "### Rules that bite",
             "anchorEnd": "- **Text aliases.** Neutral scale is `--text-primary` / `--t"
@@ -1967,8 +2157,8 @@ export const skillTrees: Record<string, SkillTree> = {
           {
             "label": "Typography groupKey trap",
             "lines": [
-              119,
-              129
+              121,
+              131
             ],
             "anchor": "- **Typography `groupKey` on multi-slot components must incl",
             "anchorEnd": "The helper strips the `--<component>-` prefix and those segm"
@@ -1976,8 +2166,8 @@ export const skillTrees: Record<string, SkillTree> = {
           {
             "label": "State model",
             "lines": [
-              132,
-              150
+              134,
+              152
             ],
             "anchor": "## State model",
             "anchorEnd": "```"
@@ -1985,8 +2175,8 @@ export const skillTrees: Record<string, SkillTree> = {
           {
             "label": "User-facing copy",
             "lines": [
-              158,
-              162
+              160,
+              164
             ],
             "anchor": "## User-facing copy",
             "anchorEnd": "If you add custom chrome inside an editor snippet (rare — `C"
@@ -1994,8 +2184,8 @@ export const skillTrees: Record<string, SkillTree> = {
           {
             "label": "Public imports only",
             "lines": [
-              164,
-              179
+              166,
+              181
             ],
             "anchor": "## Public imports only",
             "anchorEnd": "**Never deep-import `node_modules/@motion-proto/live-tokens/"
@@ -2003,8 +2193,8 @@ export const skillTrees: Record<string, SkillTree> = {
           {
             "label": "Worked example: Toggle",
             "lines": [
-              181,
-              199
+              183,
+              201
             ],
             "anchor": "## Worked example: the shipped Toggle",
             "anchorEnd": "For your own component, copy the pattern and substitute your"
@@ -2020,8 +2210,8 @@ export const skillTrees: Record<string, SkillTree> = {
         "title": "npx live-tokens check-component <id>",
         "desc": "Enforces file layout, the :global(:root) block, suffix vocabulary, state-before-property, theme-token defaults, public imports, and that the id is registered. Exit 0 means the static contract is met; resolve warnings before shipping.",
         "lines": [
-          209,
-          218
+          211,
+          220
         ],
         "anchor": "## Verification checklist",
         "anchorEnd": "It enforces the file layout, the `:global(:root)` block, tok",
@@ -2029,8 +2219,8 @@ export const skillTrees: Record<string, SkillTree> = {
           {
             "label": "Step 6 in the recipe",
             "lines": [
-              70,
-              70
+              72,
+              72
             ],
             "anchor": "**Verify** with the checklist at the bottom of this file, th"
           }
@@ -2044,8 +2234,8 @@ export const skillTrees: Record<string, SkillTree> = {
         "title": "Run the registry contract test",
         "desc": "Five per-component checks: registration resolves, schema variables are unique, every editable token is declared in the runtime style block and seeded in default.json, and setComponentAlias round-trips. A first-party component is auto-covered the moment it lands in builtInRegistry.",
         "lines": [
-          224,
-          232
+          226,
+          234
         ],
         "anchor": "**Then run the registry contract test.** If you're authoring",
         "anchorEnd": "A new first-party component is auto-covered the moment it la"
@@ -2057,8 +2247,8 @@ export const skillTrees: Record<string, SkillTree> = {
         "title": "And the intrinsics contract test",
         "desc": "Only when the component declares intrinsics. Per (intrinsic, variant) it asserts the runtime declares a default, the default is one of the spec's values, and the editor's default equals the runtime default.",
         "lines": [
-          234,
-          234
+          236,
+          236
         ],
         "anchor": "**If your component declares `intrinsics`, the intrinsics co"
       },
@@ -2069,8 +2259,8 @@ export const skillTrees: Record<string, SkillTree> = {
         "title": "Walk the runtime checklist",
         "desc": "Seven things no static check can see, at /live-tokens/components: the CUSTOM group entry, token rows and pickers, linked-block broadcast, default.json derivation, Reset, clean boot validation, and the sketch-mode pass.",
         "lines": [
-          236,
-          244
+          238,
+          246
         ],
         "anchor": "Finally navigate to `/live-tokens/components` and confirm th",
         "anchorEnd": "- [ ] Switch Sketch mode on in the editor and walk the check"

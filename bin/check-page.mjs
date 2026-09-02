@@ -13,10 +13,14 @@
 import { existsSync, readFileSync, statSync } from 'node:fs';
 import { join, relative, resolve, basename } from 'node:path';
 import { lineOf } from './lib/findings.mjs';
+import { blankStrings, hasColorLiteral, hasDimensionLiteral, stripVarFallbacks } from './lib/cssValues.mjs';
 import { isContractToken, loadVocabulary, walk } from './lib/tokenVocabulary.mjs';
+import { resolveTokensCssPath } from './migrate.mjs';
 
 export const PAGE_RULES = {
   'unknown-component': 'error',
+  'unknown-prop': 'error',
+  'unknown-prop-value': 'error',
   'deep-import': 'error',
   'unknown-token': 'error',
   'color-literal': 'error',
@@ -41,39 +45,23 @@ const DEEP_IMPORT_PATTERNS = [
 
 const TEXT_AXES = ['font-size', 'font-family', 'font-weight', 'line-height', 'letter-spacing'];
 
-/** Blank out comments and url() payloads so their contents never match a rule. */
-function neutralise(css) {
-  return css
-    .replace(/\/\*[\s\S]*?\*\//g, (m) => ' '.repeat(m.length))
-    .replace(/url\((?:[^()]|\([^()]*\))*\)/g, (m) => ' '.repeat(m.length));
-}
+// The geometry the theme owns: spacing, stroke, radius, and shadow all have a
+// token scale, and `adjust` moves them. Sizing (a hero's height, a column's
+// minimum width, a max content width) is layout, has no scale, and stays
+// literal.
+const THEMED_GEOMETRY = /^(padding|margin|gap|row-gap|column-gap|border|outline|inset|top|right|bottom|left|box-shadow|text-shadow)(-|$)|-radius$/;
 
-/**
- * Replace `var(--x, <fallback>)` with `var(--x)`. A fallback only renders when
- * the token is missing, so its literals are not the page's real values.
- */
-function stripVarFallbacks(value) {
-  let out = '';
-  for (let i = 0; i < value.length; i++) {
-    if (!value.startsWith('var(', i)) {
-      out += value[i];
-      continue;
-    }
-    let depth = 0;
-    let comma = -1;
-    let j = i;
-    for (; j < value.length; j++) {
-      const c = value[j];
-      if (c === '(') depth++;
-      else if (c === ')') {
-        depth--;
-        if (depth === 0) break;
-      } else if (c === ',' && depth === 1 && comma === -1) comma = j;
-    }
-    out += comma === -1 ? value.slice(i, j + 1) : `${value.slice(i, comma)})`;
-    i = j;
-  }
-  return out;
+// A local two-up or three-up is a layout. From four columns on, a hardcoded
+// count reads as a claim about the page grid, which `--columns-count` owns.
+const PAGE_GRID_COLUMNS = 4;
+
+/** Blank out comments, url() payloads, and string contents so none of them can match a rule. */
+function neutralise(css) {
+  return blankStrings(
+    css
+      .replace(/\/\*[\s\S]*?\*\//g, (m) => ' '.repeat(m.length))
+      .replace(/url\((?:[^()]|\([^()]*\))*\)/g, (m) => ' '.repeat(m.length)),
+  );
 }
 
 /** `<style>` blocks with their absolute offset in the file; whole file for .css. */
@@ -82,6 +70,22 @@ function styleRegions(text, file) {
   const out = [];
   for (const m of text.matchAll(/<style[^>]*>([\s\S]*?)<\/style>/g)) {
     out.push({ text: m[1], offset: m.index + m[0].indexOf(m[1]) });
+  }
+  return out;
+}
+
+/**
+ * Inline styles in markup, as declaration lists the value rules can read: a
+ * `style="..."` attribute verbatim, and a `style:prop="value"` directive
+ * rewritten as `prop: value;`. A `{...}` expression is dynamic and skipped.
+ */
+function inlineStyleRegions(code) {
+  const out = [];
+  for (const m of code.matchAll(/\sstyle=(["'])([^"']*)\1/g)) {
+    out.push({ text: `${m[2]};`, offset: m.index + m[0].indexOf(m[2]) });
+  }
+  for (const m of code.matchAll(/\sstyle:([a-z-]+)=(["'])([^"']*)\2/g)) {
+    out.push({ text: `${m[1]}: ${m[3]};`, offset: m.index + 1 });
   }
   return out;
 }
@@ -95,14 +99,113 @@ function codeRegion(text, file) {
 /**
  * Declarations in a stylesheet, with at-rule preludes excluded. A breakpoint in
  * `@media (max-width: 768px)` is structural geometry, not a themeable value.
+ * A property name is read from its start, so `--heading-2xl` is one custom
+ * property and never the property `xl`.
  */
 function declarations(css) {
   const body = css.replace(/@[a-z-]+[^;{]*(?=\{)/gi, (m) => ' '.repeat(m.length));
   const out = [];
-  for (const m of body.matchAll(/([a-z-]+)\s*:\s*([^;{}]+)[;}]/gi)) {
+  for (const m of body.matchAll(/(?<![\w-])((?:--)?[a-z][\w-]*)\s*:\s*([^;{}]+)[;}]/gi)) {
     out.push({ prop: m[1].toLowerCase(), value: m[2].trim(), index: m.index });
   }
   return out;
+}
+
+/**
+ * The attributes of one component tag starting at `start` (the `<`), read with
+ * `{}` depth and quotes tracked so an expression holding `>` does not end the
+ * tag early. Returns null when the tag spreads an object, which makes its prop
+ * set unknowable.
+ */
+function tagAttributes(code, start) {
+  let i = code.indexOf(' ', start);
+  const tagEnd = (() => {
+    let depth = 0;
+    let quote = null;
+    for (let j = start; j < code.length; j++) {
+      const c = code[j];
+      if (quote) {
+        if (c === quote) quote = null;
+      } else if (c === '"' || c === "'") quote = c;
+      else if (c === '{') depth++;
+      else if (c === '}') depth--;
+      else if (c === '>' && depth === 0) return j;
+    }
+    return code.length;
+  })();
+  if (i === -1 || i > tagEnd) return { attrs: [], end: tagEnd };
+  const attrs = [];
+  while (i < tagEnd) {
+    const c = code[i];
+    if (/\s/.test(c) || c === '/') {
+      i++;
+      continue;
+    }
+    if (c === '{') {
+      let depth = 0;
+      let j = i;
+      for (; j < tagEnd; j++) {
+        if (code[j] === '{') depth++;
+        else if (code[j] === '}' && --depth === 0) break;
+      }
+      const inner = code.slice(i + 1, j).trim();
+      if (inner.startsWith('...')) return null;
+      if (/^\w+$/.test(inner)) attrs.push({ name: inner, value: null, index: i });
+      i = j + 1;
+      continue;
+    }
+    const name = code.slice(i).match(/^[^\s=/>]+/)?.[0];
+    if (!name) break;
+    const at = i;
+    i += name.length;
+    let value = null;
+    if (code[i] === '=') {
+      i++;
+      const q = code[i];
+      if (q === '"' || q === "'") {
+        const close = code.indexOf(q, i + 1);
+        value = code.slice(i + 1, close === -1 ? tagEnd : close);
+        i = close === -1 ? tagEnd : close + 1;
+      } else if (q === '{') {
+        let depth = 0;
+        for (; i < tagEnd; i++) {
+          if (code[i] === '{') depth++;
+          else if (code[i] === '}' && --depth === 0) break;
+        }
+        i++;
+      } else {
+        const bare = code.slice(i).match(/^[^\s>]+/)?.[0] ?? '';
+        value = bare;
+        i += bare.length;
+      }
+    }
+    attrs.push({ name, value, index: at });
+  }
+  return { attrs, end: tagEnd };
+}
+
+/** Props a page passes that the component does not declare, or values outside a prop's union. */
+function checkComponentUsage(code, imports, add) {
+  for (const [local, entry] of imports) {
+    const props = entry.props;
+    if (!props) continue;
+    const re = new RegExp(`<${local}(?=[\\s/>])`, 'g');
+    for (const m of code.matchAll(re)) {
+      const tag = tagAttributes(code, m.index);
+      if (!tag) continue;
+      for (const { name, value, index } of tag.attrs) {
+        if (name.includes(':') || name.startsWith('@') || name === 'children') continue;
+        if (!props.props.has(name)) {
+          add('unknown-prop', index, `${entry.name} has no prop '${name}'; it accepts ${[...props.props].join(', ')}`);
+          continue;
+        }
+        const allowed = props.enums.get(name);
+        if (allowed && value !== null && !allowed.has(value)) {
+          add('unknown-prop-value', index, `${entry.name} ${name}="${value}" is not one of ${[...allowed].join(', ')}`);
+        }
+      }
+    }
+  }
 }
 
 /** The object literal enclosing `index`, found by balancing braces outward. */
@@ -141,22 +244,29 @@ function checkFile(file, text, vocab, root) {
 
   const code = codeRegion(text, file);
   if (code !== null) {
-    for (const m of code.matchAll(/import\s+(?:[^'"]*\s+from\s+)?['"]([^'"]+)['"]/g)) {
-      const spec = m[1];
+    const imports = new Map();
+    for (const m of code.matchAll(/import\s+(?:([^'"]*?)\s+from\s+)?['"]([^'"]+)['"]/g)) {
+      const spec = m[2];
       for (const pattern of DEEP_IMPORT_PATTERNS) {
         if (pattern.test(spec)) {
           add('deep-import', m.index, `deep import into package internals: ${spec}`);
         }
       }
       const comp = spec.match(COMPONENT_IMPORT);
-      if (comp && !vocab.components.has(comp[1].toLowerCase())) {
+      if (!comp) continue;
+      const entry = vocab.components.get(comp[1].toLowerCase());
+      if (!entry) {
         add(
           'unknown-component',
           m.index,
           `'${comp[1]}' is not in the component catalogue; author it with live-tokens-create-component or pick a shipped one`,
         );
+        continue;
       }
+      const local = m[1]?.trim().match(/^(\w+)$/)?.[1];
+      if (local) imports.set(local, entry);
     }
+    checkComponentUsage(code, imports, add);
 
     for (const m of code.matchAll(/['"](\/live-tokens[^'"]*)['"]\s*:/g)) {
       add('reserved-route', m.index, `route '${m[1]}' is inside the reserved /live-tokens/* namespace`);
@@ -194,7 +304,7 @@ function checkFile(file, text, vocab, root) {
     declaredHere.add(m[1]);
   }
 
-  for (const region of regions) {
+  for (const region of [...regions, ...(code === null ? [] : inlineStyleRegions(code))]) {
     const css = neutralise(region.text);
     const at = (i) => region.offset + i;
 
@@ -214,7 +324,10 @@ function checkFile(file, text, vocab, root) {
       const { prop, value, index } = decl;
       if (prop.startsWith('--')) continue;
 
-      if (/#[0-9a-f]{3,8}\b|\brgba?\(|\bhsla?\(|\boklch\(|\boklab\(/i.test(value)) {
+      // A `var()` fallback only renders when the token is missing, so a literal
+      // inside one is not the page's value.
+      const painted = stripVarFallbacks(value);
+      if (!TEXT_AXES.includes(prop) && hasColorLiteral(painted)) {
         add('color-literal', at(index), `${prop}: ${value}. Use a theme token, not a colour literal.`);
         continue;
       }
@@ -223,7 +336,7 @@ function checkFile(file, text, vocab, root) {
       // line-height are relative to the inherited type, so they ride whatever
       // the theme sets rather than overriding it.
       if (
-        TEXT_AXES.includes(prop) &&
+        (TEXT_AXES.includes(prop) || prop === 'font') &&
         !value.includes('var(') &&
         !/^(inherit|initial|unset|normal)$/.test(value) &&
         /\d(px|rem|pt)\b|^[a-z"']/i.test(value)
@@ -236,20 +349,16 @@ function checkFile(file, text, vocab, root) {
         continue;
       }
 
-      const dims = [...stripVarFallbacks(value).matchAll(/(?<![\w.-])(\d*\.?\d+)(px|rem)\b/g)].filter(
-        (d) => parseFloat(d[1]) !== 0,
-      );
-      if (dims.length > 0) {
+      if (THEMED_GEOMETRY.test(prop) && hasDimensionLiteral(painted)) {
         add(
           'dimension-literal',
           at(index),
-          `${prop}: ${value}. Use a --space-*, --radius-*, or --border-width-* token.`,
+          `${prop}: ${value}. Use a --space-*, --radius-*, --border-width-*, or --shadow-* token.`,
         );
       }
 
-      // Only the page-grid shape. `repeat(2, minmax(max-content, 1fr))` is a
-      // local two-up, not a claim about the page's columns.
-      if (/\brepeat\(\s*\d+\s*,\s*1fr\s*\)/.test(value)) {
+      const columns = value.match(/\brepeat\(\s*(\d+)\s*,\s*1fr\s*\)/);
+      if (columns && Number(columns[1]) >= PAGE_GRID_COLUMNS) {
         add(
           'hardcoded-columns',
           at(index),
@@ -262,13 +371,18 @@ function checkFile(file, text, vocab, root) {
   return findings;
 }
 
+// Files that define the vocabulary rather than consume it.
+const TOKEN_SOURCES = ['tokens.generated.css', 'fonts.css'];
+
 /** Pages to check when the caller names none: every .svelte/.css under src/ that is not system code. */
 export function discoverPages(root) {
   const src = join(root, 'src');
   if (!existsSync(src)) return [];
+  const tokensCss = resolveTokensCssPath(null, null, root);
   return walk(src, ['.svelte', '.css', '.ts', '.js']).filter((f) => {
     const rel = relative(root, f);
     if (NOT_PAGES.some((d) => rel.startsWith(`${d}/`))) return false;
+    if (f === tokensCss || TOKEN_SOURCES.includes(basename(f))) return false;
     if (/\.(test|spec)\.[tj]s$/.test(rel)) return false;
     if (rel.endsWith('.ts') || rel.endsWith('.js')) return /main\.(ts|js)$/.test(rel);
     return true;

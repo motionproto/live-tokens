@@ -53,8 +53,71 @@ export function referencedCustomProperties(css) {
   return out;
 }
 
+/**
+ * The body of every `:global(:root) { ... }` block, brace-balanced so a nested
+ * at-rule or an SCSS block inside it neither truncates the block nor leaks
+ * declarations from the rule after it.
+ */
 export function extractGlobalRootBlocks(source) {
-  return [...source.matchAll(/:global\(:root\)\s*\{([\s\S]*?)\n\s*\}/g)].map((m) => m[1]);
+  const out = [];
+  const re = /:global\(:root\)\s*\{/g;
+  let m;
+  while ((m = re.exec(source)) !== null) {
+    const start = m.index + m[0].length;
+    let depth = 1;
+    let i = start;
+    for (; i < source.length && depth > 0; i++) {
+      if (source[i] === '{') depth++;
+      else if (source[i] === '}') depth--;
+    }
+    out.push(source.slice(start, depth === 0 ? i - 1 : i));
+    re.lastIndex = i;
+  }
+  return out;
+}
+
+const STRING_UNION = /^(?:'[^']*'\s*\|?\s*)+$/;
+
+function unionValues(text) {
+  return [...text.matchAll(/'([^']*)'/g)].map((m) => m[1]);
+}
+
+/**
+ * The public props of a component: every name its `interface Props` declares,
+ * and for each prop typed as a union of string literals (inline, via a `type`
+ * alias, or via `typeof <const array>[number]`), the values it accepts.
+ *
+ * Shipped components declare their props this way and none spreads a rest
+ * object onto the element, so an attribute outside this set is silently
+ * dropped at runtime. Returns null when the file declares no `interface Props`.
+ */
+export function componentProps(source) {
+  const script = source.replace(/<style[^>]*>[\s\S]*?<\/style>/g, '');
+  const iface = script.match(/interface\s+Props\b[^{]*\{([\s\S]*?)\n\s*\}/);
+  if (!iface) return null;
+  const aliases = new Map();
+  for (const m of script.matchAll(/\btype\s+(\w+)\s*=\s*([^;]+);/g)) aliases.set(m[1], m[2].trim());
+  const arrays = new Map();
+  for (const m of script.matchAll(/\bconst\s+(\w+)\s*=\s*\[([\s\S]*?)\]\s*as\s+const/g)) arrays.set(m[1], unionValues(m[2]));
+
+  const resolveEnum = (type) => {
+    const t = type.replace(/\|\s*undefined\b/g, '').replace(/\bundefined\s*\|/g, '').trim();
+    if (STRING_UNION.test(t)) return unionValues(t);
+    const viaArray = t.match(/^typeof\s+(\w+)\[number\]$/);
+    if (viaArray) return arrays.get(viaArray[1]) ?? null;
+    if (/^\w+$/.test(t) && aliases.has(t)) return resolveEnum(aliases.get(t));
+    return null;
+  };
+
+  const props = new Set();
+  const enums = new Map();
+  const body = iface[1].replace(/\/\*[\s\S]*?\*\//g, '').replace(/^\s*\/\/.*$/gm, '');
+  for (const m of body.matchAll(/^\s*(?:readonly\s+)?(\w+)\??\s*:\s*([^;\n]+)/gm)) {
+    props.add(m[1]);
+    const values = resolveEnum(m[2]);
+    if (values) enums.set(m[1], new Set(values));
+  }
+  return { props, enums };
 }
 
 function walk(dir, exts, out = []) {
@@ -126,8 +189,8 @@ export function loadVocabulary({ root = process.cwd(), pkgRoot = PKG_ROOT } = {}
   const dirs = [join(pkgRoot, SHIPPED_COMPONENTS_DIR), join(root, SHIPPED_COMPONENTS_DIR)];
   for (const file of componentFiles(dirs)) {
     const Id = file.slice(file.lastIndexOf('/') + 1).replace('.svelte', '');
-    components.set(Id.toLowerCase(), { id: Id.toLowerCase(), name: Id, file });
     const src = readFileSync(file, 'utf8');
+    components.set(Id.toLowerCase(), { id: Id.toLowerCase(), name: Id, file, props: componentProps(src) });
     for (const block of extractGlobalRootBlocks(src)) {
       for (const n of declaredCustomProperties(block)) componentTokens.add(n);
     }

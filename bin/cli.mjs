@@ -3,7 +3,7 @@
 // Subcommands:
 //   create <dir>             Scaffold a new app that depends on this package.
 //   setup-claude [--force]   Copy bundled Claude Code skills into ./.claude/skills/.
-//   check-component <id>     Validate a component against the add-component skill contract.
+//   check-component [id]     Validate a component (or every authored one) against the create-component skill contract.
 //   check-page [paths...]    Validate pages against the build-page skill contract.
 //   generate-theme <brief>   Build a theme from a 10-seed OKLCH brief and open it.
 //   adjust <ops.json>        Apply radius/padding/gap/border-width ops to the open buffer.
@@ -14,7 +14,7 @@ import { cpSync, existsSync, mkdirSync, readdirSync, statSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import process from 'node:process';
-import { COMPONENT_RULES, checkComponent, formatReport } from './check-component.mjs';
+import { COMPONENT_RULES, checkComponent, discoverComponents, formatReport } from './check-component.mjs';
 import { PAGE_RULES, checkPages, discoverPages } from './check-page.mjs';
 import {
   applySeverity,
@@ -42,7 +42,7 @@ Commands:
   create <dir> [--force]      Scaffold a new Svelte + Vite app wired up with
                               live-tokens (editor, components, theme tokens)
   setup-claude [--force]      Install bundled Claude Code skills into ./.claude/skills/
-  check-component <id>        Validate <id>'s runtime, editor, and registration
+  check-component [id]        Validate <id>'s runtime, editor, and registration
                               against the live-tokens-create-component contract
   check-page [paths...]       Validate pages against the live-tokens-build-page
                               contract: catalogue components only, and every CSS
@@ -143,14 +143,19 @@ function reportChecks(label, findings, checked, rules, opts) {
 
 if (command === 'check-component') {
   const opts = parseCheckFlags(rest);
-  const id = opts.rest[0];
-  if (!id) fail(`Usage: npx @motion-proto/live-tokens check-component <id> [--json] [--strict]`);
-  const result = checkComponent(id);
-  if (!opts.json && !opts.strict && opts.off.length + opts.warn.length + opts.error.length === 0) {
+  const ids = opts.rest.length > 0 ? [opts.rest[0]] : discoverComponents();
+  if (ids.length === 0) {
+    console.log('✓ check-component: no component authored under src/system/components yet.');
+    process.exit(0);
+  }
+  const results = ids.map((id) => [id, checkComponent(id)]);
+  if (ids.length === 1 && !opts.json && !opts.strict && opts.off.length + opts.warn.length + opts.error.length === 0) {
+    const [id, result] = results[0];
     console.log(formatReport(id, result));
     process.exit(result.errors.length === 0 ? 0 : 1);
   }
-  reportChecks(`check-component ${id}`, result.findings, 1, COMPONENT_RULES, opts);
+  const label = ids.length === 1 ? `check-component ${ids[0]}` : 'check-component';
+  reportChecks(label, results.flatMap(([, r]) => r.findings), ids.length, COMPONENT_RULES, opts);
 }
 
 if (command === 'check-page') {
@@ -313,6 +318,7 @@ const SAMPLE_PROMPTS = {
   'live-tokens-generate-theme': 'make me a bright and cheerful theme',
   'live-tokens-adjust-geometry': 'make the buttons pill shaped',
   'live-tokens-pair-fonts': 'pair some fonts for this theme',
+  'live-tokens-fix-findings': 'make check:design pass',
 };
 
 const installedSamples = skills
