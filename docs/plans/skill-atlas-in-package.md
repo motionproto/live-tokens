@@ -33,11 +33,14 @@ Waves 3 and 5 read it from `main` rather than from the working tree.)
 | 2 | Skill text ships as a generated module | wave-executor | Done | `1a45f87` |
 | 3 | Trees merged, digests stamped, `src/app/skill-atlas` deleted | wave-executor | Done | `76b8808` + fixes `1f9f069`, `c1c3642`, `e06da57` |
 | 4 | `./skill-atlas` export, gates, docs, changelog | wave-executor | Done | `14d9db4` |
-| 5 | Online mounts the export and deletes its copy | | Blocked | needs 0.73.0 on npm |
+| 5 | Online mounts the export and deletes its copy | wave-executor | In progress | |
 
 The orchestrator updates this table after each review gate: `Not started` to
 `In progress` to `Done` (or `Blocked`, with a one-line reason appended under
 the table). Record the short commit SHA.
+
+0.73.0 published from CI on 2026-09-03 (tag `v0.73.0`, run 33749355677),
+carrying Wave 4's export. Wave 5 runs against it.
 
 Waves 1 through 3 change nothing a consumer sees. Wave 4 is the release. If
 the run is cut short after Wave 3, the repo is coherent: one atlas, in the
