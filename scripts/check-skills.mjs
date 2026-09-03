@@ -147,6 +147,53 @@ if (existsSync(pickerPath)) {
   }
 }
 
+// One reading of a request produces three intents, and each contributing skill
+// reads its own dimension's column by the anchor name create-theme hands it. A
+// name that reaches only two of the four files is an anchor a sibling silently
+// cannot look up, and nothing else would catch it.
+const DIRECTIONS = 'live-tokens-create-theme/references/design-directions.md';
+const DIMENSIONS = [
+  'live-tokens-set-colors/references/color-anchors.md',
+  'live-tokens-set-type/references/type-anchors.md',
+  'live-tokens-set-geometry/references/geometry-anchors.md',
+];
+// Anchors live under a Feelings, Idioms, or Occasions heading, so the axes
+// table in the preamble is not mistaken for one. The key is a row's first cell
+// up to its first comma, which is how every table names its anchor: "Art deco,
+// opulent, luxurious" keys on "art deco".
+const ANCHOR_SECTIONS = /^(feelings|idioms|occasions)\b/i;
+const anchorKeys = (text) =>
+  new Set(
+    text
+      .split(/^## /m)
+      .filter((section) => ANCHOR_SECTIONS.test(section))
+      .flatMap((section) => [...section.matchAll(/^\|\s*([^|\n]+?)\s*\|/gm)])
+      .map((m) => m[1].split(',')[0].trim().toLowerCase())
+      .filter((key) => key && !/^-+$/.test(key) && !['request', 'anchor'].includes(key)),
+  );
+
+const directionsPath = join(SKILLS, DIRECTIONS);
+if (!existsSync(directionsPath)) {
+  errors.push(`${DIRECTIONS}: missing, so no anchor has an index`);
+} else {
+  const indexed = anchorKeys(read(directionsPath));
+  const covered = new Set();
+  for (const path of DIMENSIONS) {
+    const full = join(SKILLS, path);
+    if (!existsSync(full)) {
+      errors.push(`${path}: missing, so one dimension has no anchors`);
+      continue;
+    }
+    for (const key of anchorKeys(read(full))) {
+      covered.add(key);
+      if (!indexed.has(key)) errors.push(`${path}: anchors "${key}", which ${DIRECTIONS} does not index`);
+    }
+  }
+  for (const key of indexed) {
+    if (!covered.has(key)) errors.push(`${DIRECTIONS}: indexes "${key}", which no dimension anchors`);
+  }
+}
+
 // A token's suffix is what picks its editor control, and the list now sits in
 // three places: KIND_RULES in the editor's aliasKinds decides (check-component
 // reads the same table), references/token-naming.md explains, and the skill's

@@ -1,6 +1,6 @@
 ---
-name: live-tokens-adjust-geometry
-description: Adjust corner radius, padding, gap, and border width across live-tokens components by moving each token alias along the shipped scales. Use when the user asks for pill or capsule buttons; rounded, rounder, sharp, sharper, square, softer, or harder corners; thicker or thinner borders; or density: space it out, tighter, denser, more compact, airier, more breathing room. Also invoked by live-tokens-generate-theme, which supplies the geometry intent for a whole look. Changes shape and space aliases per component, never color, fonts, or tokens.css. Not for editing a single token (use the editor) or for color (see live-tokens-generate-theme).
+name: live-tokens-set-geometry
+description: Adjust corner radius, padding, gap, and border width across live-tokens components by moving each token alias along the shipped scales. Use when the user asks for pill or capsule buttons; rounded, rounder, sharp, sharper, square, softer, or harder corners; thicker or thinner borders; or density: space it out, tighter, denser, more compact, airier, more breathing room. Also invoked by live-tokens-create-theme, which supplies the geometry intent for a whole look. Changes shape and space aliases per component, never color, fonts, or tokens.css. Not for editing a single token (use the editor) or for a whole look (see live-tokens-create-theme).
 ---
 
 # Adjusting geometry
@@ -9,10 +9,11 @@ You translate the request into a small ops file; the CLI resolves each matching 
 
 ## Workflow
 
-1. Write the ops file to `scratch/adjust-ops.json`.
-2. Run `npx live-tokens adjust-geometry scratch/adjust-ops.json`. It writes `component-configs/<id>/_working.json` for every component the ops change, which is the buffer the page already runs. `--dry-run` prints the report without writing.
+1. Read the geometry intent. When it names an anchor (a feeling, an idiom, or a genre), read `references/geometry-anchors.md` for that entry; it overrides the Idioms table below. Write the ops file to `scratch/geometry-ops.json`.
+2. Run `npx live-tokens set-geometry scratch/geometry-ops.json`. It writes `component-configs/<id>/_working.json` for every component the ops change, which is the buffer the page already runs. `--dry-run` prints the report without writing.
 3. Read the report card: every changed alias old → new, plus skips (raw value, off the ladder, already at the ladder end, pill preserved). Exit 1 means the run was rejected; the message names the offending op or the missing input, so fix it and re-run. Read where the controls landed, not only that the run succeeded: a button, badge, input, or tab padding sitting at `--space-6` is on its floor, and one that also carries `--radius-full` wants a targeted lift.
-4. Tell the user to reload the page before saving. The editor keeps the look in the browser and writes the buffers from that copy, so a Save in a tab that was open during the run puts the pre-run shape back and the report you just showed them becomes a lie. After the reload, offer the inverse op as the undo and say the edit is unsaved until they save the open theme.
+4. Report back in a line: every alias that moved, and any skip or clamp worth naming.
+5. Tell the user to reload the page before saving. The editor keeps the look in the browser and writes the buffers from that copy, so a Save in a tab that was open during the run puts the pre-run shape back and the report you just showed them becomes a lie. After the reload, offer the inverse op as the undo and say the edit is unsaved until they save the open theme.
 
 Each run reads the LIVE config (buffer, else the open theme, else the shipped default), so "a bit more" and "back one" compound naturally.
 
@@ -38,7 +39,9 @@ Targeted, absolute:
 
 ## Idioms
 
-| Request | Ops |
+This table covers an intent that names no anchor. When the intent names one, `references/geometry-anchors.md` has the row and it wins.
+
+| The intent says | Ops |
 |---|---|
 | pill, capsule | radius `set: "--radius-full"`, plus the padding the pill needs (see below) |
 | sharp, square corners | radius `set: "--radius-none"`, or `--radius-sm` for "mostly sharp" |
@@ -49,6 +52,8 @@ Targeted, absolute:
 | space it out, airier, breathing room | padding and gap `shift: 1` |
 | tighter, denser, more compact | padding and gap `shift: -1` |
 | thicker, thinner borders | border-width `shift: 1` or `-1` |
+
+A whole-look intent often arrives as a direction rather than an op. Playful, friendly, or soft is rounder and a step airier, with pill buttons when the direction is warm. Luxurious, elegant, or editorial is sharper corners, airier padding, thin borders. Technical, dense, or systematic is tighter spacing, a small radius, and square corners on containers. Calm or minimal leaves geometry alone.
 
 Magnitude words: "slightly" or "a bit" is 1 step, unqualified is 1 to 2, "much", "way", or "really" is 2 to 3. Mood words often mean both axes: "softer" is rounder plus airier, "compact" is tighter padding plus smaller gaps.
 

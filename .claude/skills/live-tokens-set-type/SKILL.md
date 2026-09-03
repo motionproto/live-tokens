@@ -1,6 +1,6 @@
 ---
-name: live-tokens-set-fonts
-description: Choose and apply a Google Fonts pairing for a live-tokens theme, binding families to the shipped --font-* stacks. Use whenever the user asks to pair fonts, pick a typeface, change or set the fonts, or describes type by voice: what font should the headings use, make the type more editorial, friendlier, more technical, more elegant, a serif for headings, a display font for this theme, less generic type, match the fonts to the theme. Also invoked by live-tokens-generate-theme, which supplies the type intent for a whole look. Changes type only, never color. Not for a single token (use the editor) or for color (see live-tokens-generate-theme).
+name: live-tokens-set-type
+description: Choose and apply a Google Fonts pairing for a live-tokens theme, binding families to the shipped --font-* stacks. Use whenever the user asks to pair fonts, pick a typeface, change or set the fonts, or describes type by voice: what font should the headings use, make the type more editorial, friendlier, more technical, more elegant, a serif for headings, a display font for this theme, less generic type, match the fonts to the theme. Also invoked by live-tokens-create-theme, which supplies the type intent for a whole look. Changes type only, never color. Not for a single token (use the editor) or for a whole look (see live-tokens-create-theme).
 ---
 
 # Setting a theme's fonts
@@ -9,10 +9,11 @@ You choose the families; the CLI verifies each against Google Fonts, builds the 
 
 ## Workflow
 
-1. Choose the pairing with the framework below and write the pairing file to `scratch/font-pairing.json`.
-2. Run `npx live-tokens set-fonts scratch/font-pairing.json`. It prints each stack that moved, each family's real weights and URL, and the weights your typography tokens ask for that the family lacks.
+1. Read the type intent. When it names an anchor (a feeling, an idiom, or a genre), read `references/type-anchors.md` for that entry; it overrides the Voice table below. Choose the pairing with the framework here and write the pairing file to `scratch/font-pairing.json`.
+2. Run `npx live-tokens set-type scratch/font-pairing.json`. It prints each stack that moved, each family's real weights and URL, and the weights your typography tokens ask for that the family lacks.
 3. Read the report. A weight gap is a quality note: name it and offer an alternative only if it matters (a body face without 400, 700, or italic matters; a display face without 300 does not). A family not on Google Fonts fails the run; fix the spelling and re-run.
-4. Tell the user to reload the editor page before saving. A running editor holds its own copy of the buffer this CLI just wrote and never re-reads it, so a Save without a reload writes the stale copy back and the pairing vanishes with a success report still on screen. After the reload the type is on the page, and unsaved until they save the open theme.
+4. Report back in a line: the two families, the form model behind each, and any weight gap worth naming.
+5. Tell the user to reload the editor page before saving. A running editor holds its own copy of the buffer this CLI just wrote and never re-reads it, so a Save without a reload writes the stale copy back and the pairing vanishes with a success report still on screen. After the reload the type is on the page, and unsaved until they save the open theme.
 
 State your reasoning when you propose the pairing: each face's form model and the matrix verdict, in one sentence, so the user can argue with the argument rather than only the result.
 
@@ -50,7 +51,7 @@ Many faces sit between columns. When one straddles, say so and lean on the voice
 
 ## Voice
 
-| Request says | Type voice |
+| The intent says | Type voice |
 |---|---|
 | editorial, literary, considered | dynamic serif display over a humanist sans body |
 | elegant, luxurious, formal | rational high-contrast serif display; keep the body quiet |
@@ -60,13 +61,15 @@ Many faces sit between columns. When one straddles, say so and lean on the voice
 | serious, institutional, trustworthy | rational sans body, rational serif display |
 | quiet, minimal, unbranded | one superfamily across both slots |
 
+This table covers an intent that names no anchor. When the intent names one, `references/type-anchors.md` has the row and it wins.
+
 Match the type to the same design direction the color came from. A warm autumn palette under a cold geometric sans reads as two projects.
 
 ## Shortcuts
 
 These find an adequate pairing fast and skip the reasoning; use them when the request is vague or the type should stay quiet.
 
-- **A superfamily.** Google Fonts families with both sans and serif siblings, among them Alegreya, Ancizar, IBM Plex, Inria, Merriweather, Noto, PT, Roboto, Source. The catalogue moves and this list does not, so treat it as a starting set: `set-fonts` verifies every family against the API and fails loudly on one that is gone.
+- **A superfamily.** Google Fonts families with both sans and serif siblings, among them Alegreya, Ancizar, IBM Plex, Inria, Merriweather, Noto, PT, Roboto, Source. The catalogue moves and this list does not, so treat it as a starting set: `set-type` verifies every family against the API and fails loudly on one that is gone.
 - **One family across weights.**
 - **Same designer or foundry.**
 - **Serif display over sans body** when nothing else decides it.
@@ -80,7 +83,7 @@ These find an adequate pairing fast and skip the reasoning; use them when the re
 
 ## Scope
 
-Type only. Color, component aliases, shape, and the type scale are untouched: `set-fonts` moves families between stacks and nothing else, writing only the font entries in the unsaved buffer. Save the theme to keep it, Adopt to ship it. Adopt is also what rewrites `fonts.css`, which is how a build with no editor in it loads the family at all.
+Type only. Color, component aliases, shape, and the type scale are untouched: `set-type` moves families between stacks and nothing else, writing only the font entries in the unsaved buffer. Save the theme to keep it, Adopt to ship it. Adopt is also what rewrites `fonts.css`, which is how a build with no editor in it loads the family at all.
 
 ## Verify
 

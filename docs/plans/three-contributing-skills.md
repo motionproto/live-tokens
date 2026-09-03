@@ -27,8 +27,8 @@ other way, stop and report.
 
 | Wave | Summary | Executor | Status | Commit |
 |---|---|---|---|---|
-| 0 | Precondition: commit the terminology pass, gates green | orchestrator | Not started | |
-| 1 | CLI verbs become `set-colors`, `set-type`, `set-geometry` | wave-executor | Not started | |
+| 0 | Precondition: commit the terminology pass, gates green | orchestrator | Done | `44396bc` |
+| 1 | CLI verbs become `set-colors`, `set-type`, `set-geometry` | wave-executor | Done | `9f6a37e` |
 | 2 | Four skills: create-theme routes, three siblings execute | wave-executor | Not started | |
 | 3 | Atlas trees split and renamed, gates extended | wave-executor | Not started | |
 | 4 | Docs, evals, changelog | wave-executor | Not started | |
