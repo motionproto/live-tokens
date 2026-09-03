@@ -154,15 +154,17 @@
     "check:token-contract": "node scripts/check-token-contract.mjs",
     "check:preset-themes": "node scripts/check-preset-themes.mjs",
     "check:skills": "node scripts/check-skills.mjs",
+    "check:skill-sources": "node scripts/sync-skill-sources.mjs --check",
     "check:skill-atlas": "node scripts/sync-skill-atlas.mjs",
     "sync:component-defaults": "node scripts/sync-component-defaults.mjs --write",
     "sync:docs": "node scripts/sync-docs.mjs --write",
+    "sync:skill-sources": "node scripts/sync-skill-sources.mjs --write",
     "sync:skill-atlas": "node scripts/sync-skill-atlas.mjs --write",
     "seed:preset-theme": "node scripts/seed-preset-theme.mjs",
     "collapse:theme": "node scripts/collapse-theme-to-default.mjs",
     "check:smoke-install": "bash scripts/smoke-install.sh",
     "check:smoke-create": "bash scripts/smoke-create.sh",
-    "prepublishOnly": "npm run check:no-style-imports && npm run check:no-tooling-imports && npm run check:slot-prose && npm run check:overlay-portal && npm run check:editor-font-isolation && npm run check:component-defaults && npm run check:pages && npm run check:production-is-default && npm run check:docs-content && npm run build:lib && npm run check:token-contract && npm run check:preset-themes && npm run check:skills && npm run check:skill-atlas && npm run check:smoke-install && npm run check:smoke-create"
+    "prepublishOnly": "npm run check:no-style-imports && npm run check:no-tooling-imports && npm run check:slot-prose && npm run check:overlay-portal && npm run check:editor-font-isolation && npm run check:component-defaults && npm run check:pages && npm run check:production-is-default && npm run check:docs-content && npm run build:lib && npm run check:token-contract && npm run check:preset-themes && npm run check:skills && npm run check:skill-sources && npm run check:skill-atlas && npm run check:smoke-install && npm run check:smoke-create"
   },
   "peerDependencies": {
     "@sveltejs/vite-plugin-svelte": "^7.0",

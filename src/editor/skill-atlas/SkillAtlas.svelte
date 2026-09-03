@@ -16,7 +16,7 @@
   let active = $state(linked in skillTrees ? linked : Object.keys(skillTrees)[0]);
   let selection: Selection | null = $state(null);
   /** Which of the skill's documents the source pane shows. */
-  let doc = $state(SKILL_DOC);
+  let doc: string = $state(SKILL_DOC);
 
   let tree = $derived(skillTrees[active]);
   let docs = $derived(skillDocs[active]);
