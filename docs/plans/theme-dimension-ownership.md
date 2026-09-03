@@ -46,7 +46,7 @@ stop only if the symbol itself is gone.
 | 2 | Dead keys: migration, preset sweep, gate | wave-executor, Opus | Fable | Done | db5e22f |
 | 3 | Engine names follow the verbs | recipe-sweeper, Sonnet | Opus | Done | 89f0cd5, 99e5183, 8d1461d |
 | 4 | `set-colors` narrows, `save-theme` lands | wave-executor, Opus | Fable | Done | 37d414c |
-| 5 | Skills and atlas | wave-executor, Opus | Opus | Not started | |
+| 5 | Skills and atlas | wave-executor, Opus | Opus | Done | 8812725 |
 | 6 | Docs, evals, changelog | wave-executor, Sonnet | Opus | Not started | |
 
 The orchestrator updates this table after each review gate: `Not started` to
@@ -550,10 +550,11 @@ diff. Confirm `set-colors` cannot reach `themes/` for writing on any path.
 `set-type` and `set-geometry` mention neither the theme write nor the flags;
 confirm with grep and leave them.
 
-`scripts/check-skills.mjs`: nothing to change. `OMITTED_FLAGS` is empty and
-the verb set derives from `bin/cli.mjs`. `save-theme` is reached by
-create-theme's step 7, which satisfies the flag rule for `--no-activate` and
-`--dry-run` as long as the step names both.
+`scripts/check-skills.mjs` gains three checks, because the gate as it stood
+could not see either of the two ways this wave's own edits could have gone
+wrong: a `RETIRED_FLAGS` set no skill may name, seeded with `--carry-from`; an
+error when a skill names a flag some other USAGE verb offers and its own verb
+does not; and `SKILLED_VERBS`, the verbs that must reach at least one skill.
 
 ### Atlas (`src/editor/skill-atlas/skillTrees.ts`)
 
@@ -591,6 +592,19 @@ An enumerated sweep. The executor changes the listed lines and nothing else.
   flag no longer exists.
 - `docs/skills-audit.md:74, 282`: historical; add "(retired in Unreleased)"
   after the first mention only.
+- The stale `adjust` verb, four sites the earlier rename left in shipped prose
+  and one in the atlas: `src/editor/skill-atlas/skillTrees.ts`'s `sg-cli`
+  `command` (it renders `npx live-tokens adjust`, which no CLI has dispatched
+  since `9f6a37e`, and `check:skill-atlas` cannot see it because `command` is
+  not anchored to skill text), `live-tokens-create-component/SKILL.md:93`,
+  `live-tokens-build-page/SKILL.md:11`, and `bin/check-page.mjs:49`.
+- Two claims the set-colors skill makes that its formatter does not bear out:
+  `SKILL.md:137` says the report names the buffer it wrote, and `:138` says the
+  Theme panel marks the theme unsaved. The success path prints neither a path
+  nor, on the discard branch, any unsaved state at all.
+- `check-skills.mjs`'s `SKILLED_VERBS` fails open: a new verb with no skill is
+  caught only if someone adds it to the list. Invert it to `cliVerbs` minus an
+  explicit `UNSKILLED_VERBS` exemption so it fails closed.
 - `.claude/evals/outcome-theme-from-request/graders/criteria.md:10`: the
   set-colors line drops the theme write; add a criterion that create-theme
   runs `save-theme` once with the name it stated.
