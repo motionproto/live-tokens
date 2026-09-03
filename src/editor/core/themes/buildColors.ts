@@ -1,7 +1,7 @@
 /**
  * Base colors → generator: a full ColorsAndType from 10 OKLCH base colors + a
  * scheme, with AA floors enforced on derived text tokens. Choosing them lives in the
- * live-tokens-generate-theme skill; the CLI reaches this via
+ * live-tokens-set-colors skill; the CLI reaches this via
  * `dist-plugin/setColors`, so keep this module Node-safe (no DOM).
  */
 

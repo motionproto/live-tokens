@@ -26,7 +26,7 @@ const rel = (p) => relative(ROOT, p);
 const ENGINE = join(ROOT, 'dist-plugin/setGeometry/index.js');
 if (!existsSync(ENGINE)) {
   console.error(
-    `check:preset-themes FAILED — adjust engine not found at ${rel(ENGINE)}. Build the plugin first: npm run build:plugin`,
+    `check:preset-themes FAILED — setGeometry engine not found at ${rel(ENGINE)}. Build the plugin first: npm run build:plugin`,
   );
   process.exit(1);
 }

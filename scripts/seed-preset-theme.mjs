@@ -25,7 +25,7 @@ const THEMES = join(DATA, 'themes');
 
 const ENGINE = join(ROOT, 'dist-plugin/setGeometry/index.js');
 const ENGINE_SOURCES = [
-  'vite-plugin/adjust/index.ts',
+  'vite-plugin/setGeometry/index.ts',
   'src/editor/core/components/adjustAliases.ts',
   'src/editor/core/components/aliasKinds.ts',
   // Registers CURRENT_COMPONENT_SCHEMA_VERSION, re-exported below.
@@ -115,14 +115,14 @@ if (!preset) usage(`Unknown preset slug "${slug}".`);
 async function loadEngine() {
   if (!existsSync(ENGINE)) {
     throw new Error(
-      `adjust engine not found at ${relative(ROOT, ENGINE)}. Build the plugin first: npm run build:plugin`,
+      `setGeometry engine not found at ${relative(ROOT, ENGINE)}. Build the plugin first: npm run build:plugin`,
     );
   }
   const built = statSync(ENGINE).mtimeMs;
   const stale = ENGINE_SOURCES.filter((src) => statSync(src).mtimeMs > built);
   if (stale.length > 0) {
     throw new Error(
-      `adjust engine is older than ${stale.map((s) => relative(ROOT, s)).join(', ')}. ` +
+      `setGeometry engine is older than ${stale.map((s) => relative(ROOT, s)).join(', ')}. ` +
         `Rebuild it first: npm run build:plugin`,
     );
   }

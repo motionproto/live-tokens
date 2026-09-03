@@ -31,7 +31,7 @@ const SKIP_LABELS = [
 async function loadEngine() {
   if (!existsSync(ENGINE)) {
     throw new Error(
-      `adjust engine not found at ${relative(process.cwd(), ENGINE)}. ` +
+      `setGeometry engine not found at ${relative(process.cwd(), ENGINE)}. ` +
         `Build the plugin first (npm run build:plugin).`,
     );
   }

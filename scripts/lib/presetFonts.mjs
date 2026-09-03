@@ -20,7 +20,7 @@ const STAMP_PREFIX = 'src_preset_';
 const ENGINE = resolve(dirname(fileURLToPath(import.meta.url)), '../../dist-plugin/setType/index.js');
 async function loadEngine() {
   if (!existsSync(ENGINE)) {
-    throw new Error(`font pairing engine not found at ${ENGINE}. Build the plugin first (npm run build:plugin).`);
+    throw new Error(`setType engine not found at ${ENGINE}. Build the plugin first (npm run build:plugin).`);
   }
   return import(ENGINE);
 }
