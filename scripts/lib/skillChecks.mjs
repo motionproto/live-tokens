@@ -5,8 +5,12 @@
 // found.
 //
 // The rules live here as one pure pass over sources the caller has already
-// read, so `scripts/check-skills.mjs` and the test that proves each rule bites
-// run the same implementation.
+// read, so `scripts/check-skills.mjs` and the tests run the same
+// implementation. Every `errors.push` below is one rule with a case in
+// skillChecks.test.ts, which counts them: a rule added without a case, or
+// deleted with its case left behind, turns the suite red. Six of the
+// twenty-seven were pinned once, and the ceiling could go from 250 to 99999
+// with the whole suite green.
 
 import { dispatchedVerbs, usageFlags } from './cliSurface.mjs';
 

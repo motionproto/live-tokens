@@ -71,7 +71,7 @@ Commands:
                               value a theme token. Checks every page under src/
                               when given no paths.
 
-Both check commands accept:
+check-component and check-page also accept:
   --json                      Machine-readable findings, for a skill to iterate
                               against until the exit code is 0
   --strict                    Treat warnings as errors

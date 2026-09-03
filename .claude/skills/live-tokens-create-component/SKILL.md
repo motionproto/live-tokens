@@ -49,7 +49,7 @@ Shipped editors live in `src/editor/component-editor/` because they are library-
    ```bash
    npx live-tokens check-component <id> --strict --json
    ```
-   `--json` gives each finding a stable `rule` id and a line number, so work one rule at a time. `--strict` fails on warnings too, the right setting for a new component: every warning is a naming or token decision that is cheaper to make now than to migrate later. Exit code 0 is the gate. With no id it checks every component under `src/system/components`; a project scaffolded by `create` runs that as `npm run check:design` before every `vite build`.
+   `--json` gives each finding a stable `rule` id and a line number, so work one rule at a time. `--strict` fails on warnings too, the right setting for a new component: every warning is a naming or token decision that is cheaper to make now than to migrate later. `--off=<rule>` silences a rule for one run, which a component still being authored has no use for: the finding is a decision to make. Exit code 0 is the gate. With no id it checks every component under `src/system/components`; a project scaffolded by `create` runs that as `npm run check:design` before every `vite build`.
 
    If it rejects a suffix, do not invent a new name for the role. Find a shipped component that paints the same thing and use the name it uses: every shipped component passes this same check, so the catalogue is the worked reference.
 7. **Verify** with the checklist at the bottom of this file, then place the component on a page with **live-tokens-build-page**.

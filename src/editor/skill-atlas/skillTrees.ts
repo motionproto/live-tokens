@@ -142,7 +142,18 @@ export const skillTrees: Record<string, SkillTree> = {
           29
         ],
         "anchor": "Take the theme name from the design direction and run `npx l",
-        "command": "npx live-tokens save-theme \"<name>\""
+        "command": "npx live-tokens save-theme \"<name>\"",
+        "chips": [
+          {
+            "label": "A set of themes",
+            "lines": [
+              32,
+              33
+            ],
+            "anchor": "A set of themes runs steps 4 to 7 once per theme, with `--no",
+            "anchorEnd": "save but the last, so each theme starts from the same live l"
+          }
+        ]
       },
       {
         "id": "ct-assemble",
@@ -155,18 +166,7 @@ export const skillTrees: Record<string, SkillTree> = {
           30,
           30
         ],
-        "anchor": "Assemble the three reports into the assembled report: the de",
-        "chips": [
-          {
-            "label": "A set of themes",
-            "lines": [
-              32,
-              33
-            ],
-            "anchor": "A set of themes runs steps 4 to 7 once per theme, with `--no",
-            "anchorEnd": "save but the last, so each theme starts from the same live l"
-          }
-        ]
+        "anchor": "Assemble the three reports into the assembled report: the de"
       },
       {
         "id": "ct-ver",
@@ -2596,7 +2596,7 @@ export const skillTrees: Record<string, SkillTree> = {
   },
   "create-component": {
     "id": "live-tokens-create-component",
-    "digest": "sha256:fad3a58d232e0b89",
+    "digest": "sha256:8bd2a011d9d5b878",
     "title": "create-component",
     "tagline": "A runtime/editor pair exposes full token editing in the CUSTOM catalogue.",
     "nodes": [
@@ -3011,7 +3011,7 @@ export const skillTrees: Record<string, SkillTree> = {
   },
   "check-compliance": {
     "id": "live-tokens-check-compliance",
-    "digest": "sha256:312e48bb6fc90fa4",
+    "digest": "sha256:495beffadd041e80",
     "title": "check-compliance",
     "tagline": "A read-only report explains project compliance and repair cost, then hands findings to fix-findings.",
     "nodes": [
@@ -3242,12 +3242,12 @@ export const skillTrees: Record<string, SkillTree> = {
             "anchor": "What fails the build now: errors by rule, with the files."
           },
           {
-            "label": "--strict warnings",
+            "label": "Strict warnings",
             "lines": [
               45,
               45
             ],
-            "anchor": "What `--strict` would add: warnings by rule."
+            "anchor": "What the strict count adds: warnings by rule."
           },
           {
             "label": "Components",

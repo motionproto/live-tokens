@@ -11,31 +11,32 @@
 //
 //   node scripts/sync-skill-atlas.mjs [--write]
 //
-// Without --write it is a dry run that fails on drift.
+// Without --write it is a dry run that fails on drift. The rules are in
+// scripts/lib/skillAtlas.mjs, under test; this half reads the files, counts
+// what changed, and writes.
 
-import { createHash } from 'node:crypto';
 import { readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { atlasNodes, auditCommands, parseTrees } from './lib/skillAtlas.mjs';
+import {
+  atlasNodes,
+  auditCommands,
+  parseTrees,
+  serializeTrees,
+  syncDigest,
+  syncNode,
+  uncoveredSkills,
+} from './lib/skillAtlas.mjs';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const ATLAS = join(ROOT, 'src/editor/skill-atlas/skillTrees.ts');
 const SKILLS = join(ROOT, '.claude/skills');
 const CLI = join(ROOT, 'bin/cli.mjs');
 
-// Long enough to be unique for all but three lines that are genuinely
-// identical to another line in the same file; those resolve by proximity.
-const ANCHOR_LENGTH = 60;
-
 const write = process.argv.slice(2).includes('--write');
-// A workflow step carries its own number, and renumbering one is the most
-// common edit these files see. Anchoring on the prose after the marker lets a
-// step move without re-anchoring, while still breaking when its words change.
-const normalize = (line) => line.trim().replace(/^\d+\.\s+/, '');
-const anchorOf = (line) => normalize(line).slice(0, ANCHOR_LENGTH);
 
-const { head, trees, tail } = parseTrees(readFileSync(ATLAS, 'utf8'));
+const parsed = parseTrees(readFileSync(ATLAS, 'utf8'));
+const { trees } = parsed;
 
 const bodies = new Map();
 const linesOf = (id) => {
@@ -43,120 +44,28 @@ const linesOf = (id) => {
   return bodies.get(id);
 };
 
-// Anchors only prove that the text a node cites is still somewhere in the file.
-// They say nothing about a skill that gained a step, dropped a branch, or
-// reordered its decisions while every quoted line survived — the tree is then
-// wrong in the one way the atlas exists to be right about. The digest catches
-// any edit at all and names the skill to re-read; re-running with --write is
-// the record that someone did.
-const digestOf = (id) => `sha256:${createHash('sha256').update(linesOf(id).join('\n')).digest('hex').slice(0, 16)}`;
-
-function checkDigest(tree) {
-  const current = digestOf(tree.id);
-  if (tree.digest === current) return;
-  if (!write) {
-    errors.push(
-      tree.digest === undefined
-        ? `${tree.id}: no digest recorded; run \`npm run sync:skill-atlas\``
-        : `${tree.id}/SKILL.md has changed since the tree was written — re-read it against the tree (new steps and dropped branches are invisible to the anchors), then run \`npm run sync:skill-atlas\``,
-    );
-    return;
-  }
-  rebuild(tree, { digest: current }, 'id');
-  digested += 1;
-}
-
 const errors = [];
 let moved = 0;
 let anchored = 0;
 let digested = 0;
 
-// Nearest match wins so that a repeated line resolves to the range it was
-// written for rather than to the first copy in the file.
-function locate(lines, anchor, hint, from = 0) {
-  const hits = [];
-  for (let i = from; i < lines.length; i += 1) {
-    if (normalize(lines[i]).startsWith(anchor)) hits.push(i + 1);
-  }
-  if (hits.length === 0) return null;
-  return hits.reduce((best, n) => (Math.abs(n - hint) < Math.abs(best - hint) ? n : best));
-}
+const take = ({ error, moved: didMove, anchored: didAnchor, digested: didDigest }) => {
+  if (error) errors.push(error);
+  if (didMove) moved += 1;
+  if (didAnchor) anchored += 1;
+  if (didDigest) digested += 1;
+};
 
-function sync(node, id, label) {
-  if (!Array.isArray(node.lines)) return;
-  const lines = linesOf(id);
-  const [start, end] = node.lines;
-
-  if (typeof node.anchor !== 'string') {
-    if (!write) {
-      errors.push(`${label}: no anchor; run \`npm run sync:skill-atlas\` to record one`);
-      return;
-    }
-    // A blank line normalizes to the empty string, which would match every
-    // line in the file and silently anchor the node to nothing.
-    if (anchorOf(lines[start - 1]) === '' || (end > start && anchorOf(lines[end - 1]) === '')) {
-      errors.push(`${label}: lines ${start}-${end} of ${id}/SKILL.md open or close on a blank line; point the range at the text it means`);
-      return;
-    }
-    rebuild(node, { anchor: anchorOf(lines[start - 1]), ...(end > start ? { anchorEnd: anchorOf(lines[end - 1]) } : {}) });
-    anchored += 1;
-    return;
-  }
-
-  const foundStart = locate(lines, node.anchor, start);
-  if (foundStart === null) {
-    errors.push(`${label}: anchor ${JSON.stringify(node.anchor)} is no longer in ${id}/SKILL.md; re-point the node or update its anchor`);
-    return;
-  }
-  let foundEnd = foundStart;
-  if (typeof node.anchorEnd === 'string') {
-    foundEnd = locate(lines, node.anchorEnd, end, foundStart - 1);
-    if (foundEnd === null) {
-      errors.push(`${label}: end anchor ${JSON.stringify(node.anchorEnd)} is not at or below line ${foundStart} of ${id}/SKILL.md`);
-      return;
-    }
-  } else if (end > start) {
-    foundEnd = end + (foundStart - start);
-  }
-
-  if (foundStart === start && foundEnd === end) return;
-  moved += 1;
-  if (!write) {
-    errors.push(`${label}: cites lines ${start}-${end} of ${id}/SKILL.md, but its anchor is now at ${foundStart}-${foundEnd}`);
-    return;
-  }
-  node.lines = [foundStart, foundEnd];
-}
-
-// Key order is the file's diff: rebuilding in place keeps `anchor` next to the
-// `lines` it explains rather than appending it after the node's prose.
-function rebuild(node, extra, after = 'lines') {
-  const next = {};
-  for (const [key, value] of Object.entries(node)) {
-    // A key already on the node would otherwise overwrite the new value on the
-    // way past, which silently dropped every digest restamp after the first.
-    if (!(key in extra)) next[key] = value;
-    if (key === after) Object.assign(next, extra);
-  }
-  for (const key of Object.keys(node)) delete node[key];
-  Object.assign(node, next);
-}
-
-for (const tree of Object.values(trees)) checkDigest(tree);
-for (const { node, id, label } of atlasNodes(trees)) sync(node, id, label);
+for (const tree of Object.values(trees)) take(syncDigest(tree, linesOf(tree.id), write));
+for (const { node, id, label } of atlasNodes(trees)) take(syncNode(node, { lines: linesOf(id), id, label, write }));
 errors.push(...auditCommands(trees, readFileSync(CLI, 'utf8')));
 
-// The loop above only ever iterates the trees that exist, so a skill dropped
-// from this file — in full, or by a bad merge — passed with nothing to check.
 // `check:skills` enumerates the same directory for the same reason.
 const skillDirs = readdirSync(SKILLS, { withFileTypes: true })
   .filter((e) => e.isDirectory())
   .map((e) => e.name)
   .sort();
-const covered = new Set(Object.values(trees).map((t) => t.id));
-for (const dir of skillDirs) {
-  if (!covered.has(dir)) errors.push(`${dir}: no tree in skillTrees.ts maps this skill`);
-}
+errors.push(...uncoveredSkills(trees, skillDirs));
 
 if (errors.length > 0) {
   console.error(`check:skill-atlas FAILED — ${errors.length} problem(s):\n`);
@@ -166,7 +75,7 @@ if (errors.length > 0) {
 }
 
 if (write) {
-  writeFileSync(ATLAS, head + JSON.stringify(trees, null, 2) + tail);
+  writeFileSync(ATLAS, serializeTrees(parsed));
   const parts = [];
   if (anchored > 0) parts.push(`anchored ${anchored} range(s)`);
   if (moved > 0) parts.push(`re-pointed ${moved} range(s)`);

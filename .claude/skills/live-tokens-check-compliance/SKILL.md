@@ -27,7 +27,7 @@ The answer to "check this project" is a report. Every fact in it comes from one 
 | `usage.byPage` | Which catalogue component each page renders, and how many times | A page rendering none is either chrome or hand-rolled markup that a shipped component covers. |
 | `usage.unusedShipped` | Shipped components no page renders | Information, not a finding. |
 | `usage.customUnregistered`, `usage.customUnused` | The project's own components that are unregistered or unused | Dead or half-wired work. |
-| `findings.pages`, `findings.components` | Both checkers' findings by rule, under the project's severities and again under `--strict` | The errors are what fails the build today; the strict count is what a fully tokenized project would fail. |
+| `findings.pages`, `findings.components` | Both checkers' findings by rule, under the project's severities and again with every warning counted as an error | The errors are what fails the build today; the strict count is what a fully tokenized project would fail. |
 
 ## Mechanical or judgement
 
@@ -42,7 +42,7 @@ A translucent overlay on an app shell, or a layout size the project owns, may be
 
 1. Migrations pending, and the one command that clears them.
 2. What fails the build now: errors by rule, with the files.
-3. What `--strict` would add: warnings by rule.
+3. What the strict count adds: warnings by rule.
 4. Components: unread tokens, unregistered, undescribed.
 5. Usage: what each page renders, and what is used nowhere.
 6. Recommended fixes, in the order **live-tokens-fix-findings** would take them: migrations, then the largest group of errors, then the rest, then warnings. Mark each as mechanical or judgement.
