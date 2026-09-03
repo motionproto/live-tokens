@@ -7,13 +7,14 @@
 // saves into a theme when they want to keep it. `default.json`, named preset
 // files, themes, colors and type, and tokens.css are never touched.
 
-import { existsSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
+import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
+import { componentNames, readActiveTheme, readLiveComponentConfigs } from './lib/liveState.mjs';
+
 const pkgRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const ENGINE = resolve(pkgRoot, 'dist-plugin/adjust/index.js');
-const packageThemesDir = join(pkgRoot, 'src/live-tokens/data/themes');
 
 const SOURCE_LABELS = {
   working: 'your unsaved edits',
@@ -41,10 +42,6 @@ function readJson(path) {
   return JSON.parse(readFileSync(path, 'utf8'));
 }
 
-function readJsonIfExists(path) {
-  return existsSync(path) ? readJson(path) : null;
-}
-
 /** Successive ops can touch the same alias (soften, then pill the buttons);
  *  the report shows one entry per alias, first `from` to last `to`. */
 function collapseChanges(changes) {
@@ -57,43 +54,14 @@ function collapseChanges(changes) {
   return [...byVariable.values()].filter((c) => c.from !== c.to);
 }
 
-/** The open theme, read the way every other door reads it: the local file
- *  first, then the copy the installed package ships. */
-function readActiveTheme(themesDir) {
-  if (!themesDir) return null;
-  const slug = readJsonIfExists(join(themesDir, '_active.json'))?.activeFile ?? 'default';
-  const theme =
-    readJsonIfExists(join(themesDir, `${slug}.json`)) ??
-    readJsonIfExists(join(packageThemesDir, `${slug}.json`));
-  return theme ? { slug, theme } : null;
-}
-
-/** Each component's live config, and whether a buffer or the open document
- *  answered. The document's own copy falls back to the shipped default for a
- *  component it somehow lacks, which reports as the document either way.
- *  Mirrors the dev server's `resolveLiveComponentConfig`, so the CLI adjusts
- *  what the page runs. */
-function readLiveConfigs(dir, active) {
+/** A config document names its own component, and a theme-embedded copy can
+ *  omit it, so stamp it back on before the buffer is written from it. */
+function stampedLiveConfigs(dir, active) {
+  const { configs: live, sources } = readLiveComponentConfigs(dir, active);
   const configs = {};
-  const sources = {};
-  for (const entry of readdirSync(dir, { withFileTypes: true })) {
-    if (!entry.isDirectory()) continue;
-    const comp = entry.name;
-    const componentDir = join(dir, comp);
-    const working = readJsonIfExists(join(componentDir, '_working.json'));
-    // Every theme carries every component by value, but this CLI reads the
-    // file straight off disk, ahead of any server-side fill — a theme
-    // written before this component existed can still omit it, so a missing
-    // entry falls back to the shipped default the same way the theme's own
-    // fill would.
-    const embedded =
-      active?.theme?.componentConfigs?.[comp] ?? readJsonIfExists(join(componentDir, 'default.json'));
-    const config = working ?? embedded;
-    if (!config) {
-      throw new Error(`component "${comp}": default.json is missing`);
-    }
-    configs[comp] = { ...config, component: comp };
-    sources[comp] = working ? 'working' : 'theme';
+  for (const comp of componentNames(dir)) {
+    if (!live[comp]) throw new Error(`component "${comp}": default.json is missing`);
+    configs[comp] = { ...live[comp], component: comp };
   }
   return { configs, sources };
 }
@@ -132,7 +100,7 @@ export async function runSetGeometry({
   }
 
   const active = readActiveTheme(themesDir ?? resolved?.themesDir);
-  const { configs, sources } = readLiveConfigs(dir, active);
+  const { configs, sources } = stampedLiveConfigs(dir, active);
   const now = new Date().toISOString();
   const { configs: next, report } = adjustAliases(configs, ops, now);
 

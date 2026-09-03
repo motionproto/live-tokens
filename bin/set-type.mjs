@@ -12,11 +12,11 @@ import { existsSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { dirname, join, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
+import { readActiveTheme, readLiveColorsAndType, readSavedColorsAndType } from './lib/liveState.mjs';
 import { resolveTokensCssPath } from './migrate.mjs';
 
 const pkgRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const ENGINE = resolve(pkgRoot, 'dist-plugin/fontPairing/index.js');
-const packageDataDir = join(pkgRoot, 'src/live-tokens/data');
 
 // Google serves a different stylesheet per user agent; ask as a browser would
 // so the weight census matches what the page will actually load.
@@ -43,35 +43,8 @@ function readJson(path) {
   return JSON.parse(readFileSync(path, 'utf8'));
 }
 
-function readJsonIfExists(path) {
-  return existsSync(path) ? readJson(path) : null;
-}
-
 function browserFetch(url) {
   return fetch(url, { headers: { 'user-agent': BROWSER_UA } });
-}
-
-/** The open theme, read the way every other door reads it: the local file
- *  first, then the copy the installed package ships. */
-function readActiveTheme(themesDir) {
-  const slug = readJsonIfExists(join(themesDir, '_active.json'))?.activeFile ?? 'default';
-  const theme =
-    readJsonIfExists(join(themesDir, `${slug}.json`)) ??
-    readJsonIfExists(join(packageDataDir, 'themes', `${slug}.json`));
-  return theme ? { slug, theme } : null;
-}
-
-/** Mirrors the dev server's live colors-and-type resolution: the unsaved
- *  buffer, then the open theme's own copy, then the package default. */
-function readLiveColorsAndType(colorsAndTypeDir, active) {
-  const working = readJsonIfExists(join(colorsAndTypeDir, '_working.json'));
-  if (working) return { colorsAndType: working, source: 'working' };
-  if (active?.theme?.colorsAndType) return { colorsAndType: active.theme.colorsAndType, source: 'theme' };
-  const shipped =
-    readJsonIfExists(join(colorsAndTypeDir, 'default.json')) ??
-    readJsonIfExists(join(packageDataDir, 'colors-and-type', 'default.json'));
-  if (!shipped) throw new Error(`no colors and type to read at ${colorsAndTypeDir}`);
-  return { colorsAndType: shipped, source: 'default' };
 }
 
 function normalizeFace(slot, value) {
@@ -176,10 +149,7 @@ export async function runSetType({
   }
 
   const workingPath = join(colorsDir, '_working.json');
-  const savedColorsAndType =
-    active?.theme?.colorsAndType ??
-    readJsonIfExists(join(colorsDir, 'default.json')) ??
-    readJsonIfExists(join(packageDataDir, 'colors-and-type', 'default.json'));
+  const savedColorsAndType = readSavedColorsAndType(colorsDir, active);
 
   // Returning the buffer to what the open theme already holds is a discard,
   // not an edit — the same call the dev server's own PUT makes.

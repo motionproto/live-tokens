@@ -14,9 +14,17 @@
 // gradients ride along too when user-tuned; stock ones are rebuilt from the new
 // theme's families by the engine.
 
-import { existsSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { dirname, join, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+
+import {
+  componentNames,
+  readActiveTheme,
+  readLiveColorsAndType,
+  readLiveComponentConfigs,
+  stripMarkers,
+} from './lib/liveState.mjs';
 
 const pkgRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const ENGINE = resolve(pkgRoot, 'dist-plugin/generateColorsAndType/index.js');
@@ -57,27 +65,6 @@ function readData(localDir, packageSubdir, fileName) {
   );
 }
 
-function componentNames(componentConfigsDir) {
-  if (!existsSync(componentConfigsDir)) return [];
-  return readdirSync(componentConfigsDir, { withFileTypes: true })
-    .filter((e) => e.isDirectory())
-    .map((e) => e.name)
-    .sort();
-}
-
-/** `_fileName` and `_source` are read-door markers, never part of a document. */
-function stripMarkers(value) {
-  if (!value || typeof value !== 'object') return value;
-  const { _fileName, _source, ...rest } = value;
-  return rest;
-}
-
-/** A component's derived default, local tree first, then the installed
- *  package's shipped copy — same fallback order every other read here uses. */
-function defaultComponentConfig(componentConfigsDir, comp) {
-  return readData(join(componentConfigsDir, comp), `component-configs/${comp}`, 'default');
-}
-
 /**
  * The look the new theme carries forward. Without --carry-from that is the LIVE
  * state — buffer first, then the open theme, then the shipped default — because
@@ -86,40 +73,23 @@ function defaultComponentConfig(componentConfigsDir, comp) {
  * source never produces an incomplete result.
  */
 function resolveCarrySource({ carryFrom, colorsAndTypeDir, componentConfigsDir, themesDir }) {
-  const comps = componentNames(componentConfigsDir);
-
   if (carryFrom) {
     const theme = readData(themesDir, 'themes', carryFrom);
     if (!theme) throw new Error(`--carry-from theme "${carryFrom}" not found`);
     const componentConfigs = {};
-    for (const comp of comps) {
-      const cfg = theme.componentConfigs?.[comp] ?? defaultComponentConfig(componentConfigsDir, comp);
+    for (const comp of componentNames(componentConfigsDir)) {
+      const cfg =
+        theme.componentConfigs?.[comp] ??
+        readData(join(componentConfigsDir, comp), `component-configs/${comp}`, 'default');
       if (cfg) componentConfigs[comp] = stripMarkers(cfg);
     }
     return { colorsAndType: stripMarkers(theme.colorsAndType), componentConfigs };
   }
 
-  const activeSlug = readJsonIfExists(join(themesDir, '_active.json'))?.activeFile ?? 'default';
-  const activeTheme = readData(themesDir, 'themes', activeSlug);
-  const colorsAndType = stripMarkers(
-    readJsonIfExists(join(colorsAndTypeDir, '_working.json')) ??
-      activeTheme?.colorsAndType ??
-      readData(colorsAndTypeDir, 'colors-and-type', 'default'),
-  );
-
-  // A working buffer is an unsaved delta from the active theme; absent theme
-  // component entries fall through to the component defaults. Mirrors
-  // `bin/set-geometry.mjs`'s `readLiveConfigs` and the dev server's
-  // `resolveLiveComponentConfig` — all three layers, in the same order.
-  const componentConfigs = {};
-  for (const comp of comps) {
-    const live =
-      readJsonIfExists(join(componentConfigsDir, comp, '_working.json')) ??
-      activeTheme?.componentConfigs?.[comp] ??
-      defaultComponentConfig(componentConfigsDir, comp);
-    if (live) componentConfigs[comp] = stripMarkers(live);
-  }
-  return { colorsAndType, componentConfigs };
+  const active = readActiveTheme(themesDir);
+  const { colorsAndType } = readLiveColorsAndType(colorsAndTypeDir, active);
+  const { configs } = readLiveComponentConfigs(componentConfigsDir, active);
+  return { colorsAndType, componentConfigs: configs };
 }
 
 /** `engine` is a test seam; the CLI always runs the compiled bundle. */
