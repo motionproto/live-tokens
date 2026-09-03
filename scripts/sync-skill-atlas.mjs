@@ -17,6 +17,7 @@ import { createHash } from 'node:crypto';
 import { readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { atlasNodes, auditCommands, parseTrees } from './lib/skillAtlas.mjs';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const ATLAS = join(ROOT, 'src/editor/skill-atlas/skillTrees.ts');
@@ -34,12 +35,7 @@ const write = process.argv.slice(2).includes('--write');
 const normalize = (line) => line.trim().replace(/^\d+\.\s+/, '');
 const anchorOf = (line) => normalize(line).slice(0, ANCHOR_LENGTH);
 
-const source = readFileSync(ATLAS, 'utf8');
-const open = source.indexOf('= {', source.indexOf('skillTrees')) + 2;
-const close = source.lastIndexOf('}');
-const head = source.slice(0, open);
-const tail = source.slice(close + 1);
-const trees = JSON.parse(source.slice(open, close + 1));
+const { head, trees, tail } = parseTrees(readFileSync(ATLAS, 'utf8'));
 
 const bodies = new Map();
 const linesOf = (id) => {
@@ -84,22 +80,6 @@ function locate(lines, anchor, hint, from = 0) {
   }
   if (hits.length === 0) return null;
   return hits.reduce((best, n) => (Math.abs(n - hint) < Math.abs(best - hint) ? n : best));
-}
-
-// A node's `command` is the one string on a card that no anchor holds, so the
-// `adjust` to `set-geometry` rename left the set-geometry card printing a verb
-// the CLI had stopped dispatching, with every check green.
-const cliVerbs = new Set(
-  [...readFileSync(CLI, 'utf8').matchAll(/command [!=]== '([a-z][a-z-]*)'/g)].map((m) => m[1]),
-);
-
-function checkCommand(node, label) {
-  if (typeof node.command !== 'string') return;
-  for (const [, verb] of node.command.matchAll(/npx (?:@motion-proto\/)?live-tokens ([a-z][a-z-]*)/g)) {
-    if (!cliVerbs.has(verb)) {
-      errors.push(`${label}: command runs \`live-tokens ${verb}\`, which bin/cli.mjs does not dispatch`);
-    }
-  }
 }
 
 function sync(node, id, label) {
@@ -162,22 +142,9 @@ function rebuild(node, extra, after = 'lines') {
   Object.assign(node, next);
 }
 
-function walk(value, id, label) {
-  if (Array.isArray(value)) {
-    value.forEach((item, i) => walk(item, id, `${label}[${i}]`));
-    return;
-  }
-  if (value === null || typeof value !== 'object') return;
-  const nodeLabel = value.id ? `${id} ${value.id}` : label;
-  checkCommand(value, nodeLabel);
-  sync(value, id, nodeLabel);
-  for (const [key, child] of Object.entries(value)) walk(child, id, `${label}.${key}`);
-}
-
-for (const tree of Object.values(trees)) {
-  checkDigest(tree);
-  walk(tree, tree.id, tree.id);
-}
+for (const tree of Object.values(trees)) checkDigest(tree);
+for (const { node, id, label } of atlasNodes(trees)) sync(node, id, label);
+errors.push(...auditCommands(trees, readFileSync(CLI, 'utf8')));
 
 // The loop above only ever iterates the trees that exist, so a skill dropped
 // from this file — in full, or by a bad merge — passed with nothing to check.

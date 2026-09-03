@@ -32,6 +32,13 @@ jobs:
       - name: Type-check
         run: npm run check
 
+      # Pure Node over the repo, so they need no build and go early: a SKILL.md
+      # edited without re-running the two syncs leaves the tree red, and while
+      # these gates lived only in `prepublishOnly` it stayed red for a whole
+      # session because nothing at commit time looked.
+      - name: Skill gates
+        run: npm run check:skills && npm run check:skill-atlas && npm run check:skill-sources
+
       - name: Test
         run: npm test --if-present
 
