@@ -1,43 +1,36 @@
 // `live-tokens set-colors` worker.
 //
-// Reads a base color file (JSON), builds a full validated colors-and-type layer via
-// the compiled engine (dist-plugin/setColors — the CLI never imports
-// TS sources), enforces the AA contrast gate, and saves the result as a theme:
-// <themesDir>/<slug>.json, the document that carries the whole theme by value.
-// Unless --no-activate it then opens that theme the way the dev server's apply
-// door does — existing `_working` buffers are cleared and
-// `themes/_active.json` names it. Nothing else moves, so generating a theme
-// cannot change what the site ships.
+// Reads a base color file (JSON), builds the theme's whole color state via the
+// compiled engine (dist-plugin/setColors — the CLI never imports TS sources),
+// enforces the AA contrast gate, and writes the result into
+// `colors-and-type/_working.json`: the same buffer the editor's own palette
+// edits land in, so a recolor is an unsaved edit the user keeps by saving the
+// open theme or by running `save-theme`. Named colors-and-type files, themes,
+// tokens.css and fonts.css are never touched, and nothing is activated.
 //
-// Non-color content (shadows, component aliases, fonts) carries forward from
-// the live state so generation only replaces the color identity. Swatch
-// gradients ride along too when user-tuned; stock ones are rebuilt from the new
-// theme's families by the engine.
+// Non-color content carries forward from the live colors and type, so a recolor
+// replaces the color identity and nothing else. Swatch gradients ride along
+// when user-tuned; stock ones are rebuilt from the new families by the engine.
 
-import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { dirname, join, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import {
-  componentNames,
-  readActiveTheme,
-  readLiveColorsAndType,
-  readLiveComponentConfigs,
-  stripMarkers,
-} from './lib/liveState.mjs';
+import { readActiveTheme, readLiveColorsAndType, readSavedColorsAndType } from './lib/liveState.mjs';
 
 const pkgRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const ENGINE = resolve(pkgRoot, 'dist-plugin/setColors/index.js');
-const packageDataDir = join(pkgRoot, 'src/live-tokens/data');
-// Source of truth: src/editor/core/themes/themeTypes.ts, which
-// normalizeTheme.ts re-exports. This copy cannot import TS, so
-// `check:preset-themes` and set-colors.test.ts are what catch a drift.
-const THEME_SCHEMA_VERSION = 5;
+
+const SOURCE_LABELS = {
+  working: 'your unsaved edits',
+  theme: 'the open theme',
+  default: 'the package default',
+};
 
 async function loadEngine() {
   if (!existsSync(ENGINE)) {
     throw new Error(
-      `theme engine not found at ${relative(process.cwd(), ENGINE)}. ` +
+      `setColors engine not found at ${relative(process.cwd(), ENGINE)}. ` +
         `Build the plugin first (npm run build:plugin).`,
     );
   }
@@ -48,64 +41,23 @@ function readJson(path) {
   return JSON.parse(readFileSync(path, 'utf8'));
 }
 
-function readJsonIfExists(path) {
-  try {
-    return existsSync(path) ? readJson(path) : null;
-  } catch {
-    return null;
-  }
-}
-
-/** Local dir first, then the installed package's shipped copy — the same
- *  fallback order the dev server's reads use. */
-function readData(localDir, packageSubdir, fileName) {
-  return (
-    readJsonIfExists(join(localDir, `${fileName}.json`)) ??
-    readJsonIfExists(join(packageDataDir, packageSubdir, `${fileName}.json`))
-  );
-}
-
-/**
- * The look the new theme carries forward. Without --carry-from that is the LIVE
- * state — buffer first, then the open theme, then the shipped default — because
- * what the user sees is what they expect to keep. With it, the named theme,
- * then the shipped default for anything that theme omits, so an incomplete
- * source never produces an incomplete result.
- */
-function resolveCarrySource({ carryFrom, colorsAndTypeDir, componentConfigsDir, themesDir }) {
-  if (carryFrom) {
-    const theme = readData(themesDir, 'themes', carryFrom);
-    if (!theme) throw new Error(`--carry-from theme "${carryFrom}" not found`);
-    const componentConfigs = {};
-    for (const comp of componentNames(componentConfigsDir)) {
-      const cfg =
-        theme.componentConfigs?.[comp] ??
-        readData(join(componentConfigsDir, comp), `component-configs/${comp}`, 'default');
-      if (cfg) componentConfigs[comp] = stripMarkers(cfg);
-    }
-    return { colorsAndType: stripMarkers(theme.colorsAndType), componentConfigs };
-  }
-
-  const active = readActiveTheme(themesDir);
-  const { colorsAndType } = readLiveColorsAndType(colorsAndTypeDir, active);
-  const { configs } = readLiveComponentConfigs(componentConfigsDir, active);
-  return { colorsAndType, componentConfigs: configs };
+/** `updatedAt` records when a buffer was written, not what it holds, so the
+ *  comparison that tells a discard from an edit ignores it. */
+function sameContent(a, b) {
+  const strip = ({ updatedAt: _updatedAt, ...rest }) => rest;
+  return JSON.stringify(strip(a)) === JSON.stringify(strip(b));
 }
 
 /** `engine` is a test seam; the CLI always runs the compiled bundle. */
 export async function runSetColors({
   baseColorsPath,
-  activate = true,
   dryRun = false,
-  carryFrom,
   root = process.cwd(),
   colorsAndTypeDir,
-  componentConfigsDir,
   themesDir,
   engine,
 } = {}) {
-  const { buildColors, resolveDataDirs, CURRENT_COMPONENT_SCHEMA_VERSION } =
-    engine ?? (await loadEngine());
+  const { buildColors, resolveDataDirs } = engine ?? (await loadEngine());
 
   const fullPath = resolve(root, baseColorsPath);
   if (!existsSync(fullPath)) {
@@ -118,80 +70,77 @@ export async function runSetColors({
     throw new Error(`base color file is not valid JSON: ${err instanceof Error ? err.message : String(err)}`);
   }
 
-  const dirs =
-    colorsAndTypeDir && componentConfigsDir && themesDir
-      ? { colorsAndTypeDir, componentConfigsDir, themesDir }
-      : resolveDataDirs();
+  const resolved = colorsAndTypeDir && themesDir ? null : resolveDataDirs();
+  const colorsDir = colorsAndTypeDir ?? resolved.colorsAndTypeDir;
+  const themes = themesDir ?? resolved.themesDir;
+  if (!existsSync(colorsDir)) {
+    throw new Error(`no colors and type at ${relative(root, colorsDir)}. Run the dev server once to create it.`);
+  }
 
-  const previousActive = readJsonIfExists(join(dirs.themesDir, '_active.json'))?.activeFile ?? 'default';
-  const carry = resolveCarrySource({ carryFrom, ...dirs });
+  const active = readActiveTheme(themes);
+  const { colorsAndType: live, source } = readLiveColorsAndType(colorsDir, active);
 
-  const { colorsAndType, slug, report } = buildColors(
-    input,
-    {
-      cssVariables: carry.colorsAndType?.cssVariables,
-      fontSources: carry.colorsAndType?.fontSources,
-      fontStacks: carry.colorsAndType?.fontStacks,
-      gradients: carry.colorsAndType?.gradients,
-    },
-    new Date().toISOString(),
-  );
+  const { colors, report } = buildColors(input, {
+    cssVariables: live.cssVariables,
+    gradients: live.gradients,
+  });
 
-  const themePath = join(dirs.themesDir, `${slug}.json`);
-  const existing = readJsonIfExists(themePath);
-  const theme = {
-    name: colorsAndType.name,
-    createdAt: existing?.createdAt ?? colorsAndType.createdAt,
-    updatedAt: colorsAndType.updatedAt,
-    schemaVersion: THEME_SCHEMA_VERSION,
-    colorsAndType,
-    componentConfigs: carry.componentConfigs,
-    componentSchemaVersion: CURRENT_COMPONENT_SCHEMA_VERSION,
+  const next = {
+    ...live,
+    ...colors,
+    updatedAt: new Date().toISOString(),
+    schemaVersion: live.schemaVersion,
   };
 
+  const workingPath = join(colorsDir, '_working.json');
+  const saved = readSavedColorsAndType(colorsDir, active);
+
+  // Returning the buffer to what the open theme already holds is a discard,
+  // not an edit — the same call the dev server's own PUT makes.
+  const backToSaved = saved !== null && sameContent(next, saved);
+  let wrote = null;
   if (!dryRun) {
-    mkdirSync(dirs.themesDir, { recursive: true });
-    writeFileSync(themePath, JSON.stringify(theme, null, 2) + '\n');
-    if (activate) applyTheme(slug, dirs);
+    if (backToSaved) {
+      if (existsSync(workingPath)) rmSync(workingPath);
+      wrote = 'cleared';
+    } else {
+      writeFileSync(workingPath, JSON.stringify(next, null, 2) + '\n');
+      wrote = 'buffer';
+    }
   }
 
   return {
-    name: theme.name,
-    slug,
-    themePath,
-    existed: existing !== null,
-    activated: activate && !dryRun,
-    previousActive,
-    carriedFrom: carryFrom ?? null,
-    componentsCarried: Object.keys(carry.componentConfigs).length,
+    baseColorsPath: fullPath,
+    colorsAndTypeDir: colorsDir,
+    workingPath,
+    openTheme: active?.slug ?? null,
+    source,
+    // The base color file's `name` used to pick a theme file name. This verb
+    // writes no file of its own now, so it names nothing; say so rather than
+    // drop it in silence.
+    ignoredName: input.name === undefined ? null : String(input.name),
     dryRun,
+    wrote,
     report,
   };
-}
-
-/** The apply door's write set, reproduced: clear every working delta and point
- *  `themes/_active.json` at the open document. Production is untouched. */
-function applyTheme(slug, dirs) {
-  const colorsWorking = join(dirs.colorsAndTypeDir, '_working.json');
-  if (existsSync(colorsWorking)) rmSync(colorsWorking);
-
-  for (const comp of componentNames(dirs.componentConfigsDir)) {
-    const workingPath = join(dirs.componentConfigsDir, comp, '_working.json');
-    if (existsSync(workingPath)) rmSync(workingPath);
-  }
-
-  writeFileSync(join(dirs.themesDir, '_active.json'), JSON.stringify({ activeFile: slug }));
 }
 
 export function formatSetColorsResult(result) {
   const root = process.cwd();
   const lines = [];
-  const wrote = result.dryRun ? 'Would write' : result.existed ? 'Updated' : 'Created';
-  lines.push(`${wrote} theme "${result.name}" → ${relative(root, result.themePath)}`);
-  lines.push(
-    `Carried forward from ${result.carriedFrom ? `theme "${result.carriedFrom}"` : 'the live state'}: ` +
-      `fonts, gradients and ${result.componentsCarried} component config(s).`,
-  );
+
+  const from =
+    result.source === 'theme' && result.openTheme
+      ? `theme "${result.openTheme}"`
+      : SOURCE_LABELS[result.source];
+  const verb = result.dryRun ? 'Would replace' : 'Replaced';
+  lines.push(`${verb} the color identity, carrying everything else forward from ${from}.`);
+  if (result.ignoredName !== null) {
+    lines.push(
+      `Ignored "name": "${result.ignoredName}". The base color file no longer names a theme; ` +
+        `name it when you run save-theme.`,
+    );
+  }
 
   lines.push(`\nContrast report (${result.report.scheme} scheme):`);
   const width = Math.max(...result.report.checks.map((c) => c.textVar.length));
@@ -217,14 +166,18 @@ export function formatSetColorsResult(result) {
     lines.push(`Canvas sky: ${result.report.canvasGradient}.`);
   }
 
-  if (result.activated) {
+  if (result.wrote === 'buffer') {
     lines.push(
-      `\nOpened "${result.slug}" (previously open: "${result.previousActive}"). ` +
-        `Reload the app to see it; switch back any time from Load in the editor's Theme panel. ` +
-        `Adopt it there to publish it to tokens.generated.css.`,
+      `\nReload the app to see it. This is an unsaved edit: save the open theme in the ` +
+        `editor's Theme panel to keep it, or run save-theme to write a new one.`,
     );
-  } else if (!result.dryRun) {
-    lines.push(`\nNot opened (--no-activate). Load "${result.slug}" from the editor's Theme panel to see it.`);
+  } else if (result.wrote === 'cleared') {
+    lines.push(
+      `\nThat is what the open theme already holds, so the unsaved buffer was discarded. ` +
+        `Reload the app to see it.`,
+    );
+  } else if (result.dryRun) {
+    lines.push(`\nDry run: nothing written under ${relative(root, result.colorsAndTypeDir)}.`);
   }
   return lines.join('\n');
 }

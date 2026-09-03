@@ -8,9 +8,10 @@
 //   report                   The project as facts: tokens read, components used, findings by rule. Always exits 0.
 //   check-component [id]     Validate a component (or every authored one) against the create-component skill contract.
 //   check-page [paths...]    Validate pages against the build-page skill contract.
-//   set-colors <colors>      Build a theme from 10 OKLCH base colors and open it.
+//   set-colors <colors>      Build the color identity from 10 OKLCH base colors, into the open buffer.
 //   set-geometry <ops>       Apply radius/padding/gap/border-width ops to the open buffer.
 //   set-type <pairing>       Bind Google Fonts families to the theme's font stacks.
+//   save-theme <name>        Compose the live state into themes/<slug>.json and open it.
 //   migrate [...]            Reconcile tokens.css, the data tree, and route references.
 
 import { cpSync, existsSync, mkdirSync, readdirSync, statSync, writeSync } from 'node:fs';
@@ -41,6 +42,7 @@ import { runCreate, formatCreateResult } from './create.mjs';
 import { runSetColors, formatSetColorsResult } from './set-colors.mjs';
 import { runSetGeometry, formatSetGeometryResult } from './set-geometry.mjs';
 import { runSetType, formatSetTypeResult } from './set-type.mjs';
+import { runSaveTheme, formatSaveThemeResult } from './save-theme.mjs';
 
 const USAGE = `Usage: npx @motion-proto/live-tokens <command> [options]
 
@@ -77,18 +79,16 @@ Both check commands accept:
                               (or set "checks": { "rules": {...} } in
                               live-tokens.config.json; "checks": { "exclude":
                               [...] } drops paths from discovery entirely)
-  set-colors <base-colors.json> [--no-activate] [--dry-run] [--carry-from <name>]
-                              Build a full theme from 10 OKLCH base colors
-                              (see the live-tokens-set-colors skill),
-                              enforce AA contrast on derived text tokens, write
-                              themes/<slug>.json, and open it in the editor.
-                              Opening never changes what your site ships; Adopt
-                              in the editor does that.
-                              --no-activate writes the theme without opening it;
-                              --dry-run prints the contrast report without
-                              writing. Non-color content (gradients, fonts,
-                              component aliases) carries forward from the live
-                              look, or from theme <name> with --carry-from.
+  set-colors <base-colors.json> [--dry-run]
+                              Build the theme's whole color identity from 10
+                              OKLCH base colors (see the live-tokens-set-colors
+                              skill) and enforce AA contrast on the derived text
+                              tokens. Reads the live colors and type and writes
+                              the result to the unsaved colors-and-type buffer,
+                              so save the open theme in the editor or run
+                              save-theme to keep it. Fonts and every override no
+                              palette owns carry forward. --dry-run prints the
+                              contrast report without writing.
   set-geometry <ops.json> [--dry-run]
                               Move radius, padding, gap, and border-width
                               aliases along their token scales (see the
@@ -109,6 +109,17 @@ Both check commands accept:
                               keep it. --dry-run prints the report without
                               writing; --no-verify skips the network and
                               requires an explicit URL per family.
+  save-theme <name> [--no-activate] [--dry-run]
+                              Compose the live state (the unsaved buffers, the
+                              open theme under them, the shipped defaults under
+                              that) into themes/<slug>.json and open it, which
+                              clears the buffers. With no unsaved edits it saves
+                              a copy of the open theme under the new name.
+                              Opening never changes what your site ships; Adopt
+                              in the editor does that. --no-activate writes the
+                              theme and leaves the live state alone, so a set of
+                              themes comes off one starting look; --dry-run
+                              prints the report without writing.
   migrate [--check] [--write] [--tokens <path>]
                               Reconcile your project with the installed package:
                               applies additive tokens.css migrations, moves a
@@ -244,17 +255,24 @@ if (command === 'check-page') {
 if (command === 'set-colors') {
   const baseColorsPath = rest.find((a) => !a.startsWith('-'));
   if (!baseColorsPath) {
-    fail(`Usage: npx @motion-proto/live-tokens set-colors <base-colors.json> [--no-activate] [--dry-run]`);
+    fail(`Usage: npx @motion-proto/live-tokens set-colors <base-colors.json> [--dry-run]`);
+  }
+  if (rest.includes('--no-activate')) {
+    fail(
+      `set-colors has no --no-activate: it edits the open buffer, which is what the page already runs. ` +
+        `Nothing is activated until save-theme, which takes the flag.`,
+    );
+  }
+  if (rest.includes('--carry-from')) {
+    fail(
+      `set-colors has no --carry-from: it reads the live look and edits it in place, so a second theme ` +
+        `already starts from the first. Run save-theme --no-activate between themes.`,
+    );
   }
   try {
-    const carryIdx = rest.indexOf('--carry-from');
-    const carryFrom = carryIdx !== -1 ? rest[carryIdx + 1] : undefined;
-    if (carryIdx !== -1 && !carryFrom) fail(`--carry-from requires a theme name`);
     const result = await runSetColors({
       baseColorsPath,
-      activate: !rest.includes('--no-activate'),
       dryRun: rest.includes('--dry-run'),
-      carryFrom,
     });
     console.log(formatSetColorsResult(result));
     process.exit(result.report.failures.length === 0 ? 0 : 1);
@@ -270,7 +288,7 @@ if (command === 'set-geometry') {
   }
   if (rest.includes('--no-activate')) {
     fail(
-      `adjust has no --no-activate: it edits the open buffer, which is what the page already runs. ` +
+      `set-geometry has no --no-activate: it edits the open buffer, which is what the page already runs. ` +
         `Drop the flag and re-run.`,
     );
   }
@@ -282,7 +300,7 @@ if (command === 'set-geometry') {
     console.log(formatSetGeometryResult(result));
     process.exit(0);
   } catch (err) {
-    fail(`adjust failed: ${err instanceof Error ? err.message : String(err)}`);
+    fail(`set-geometry failed: ${err instanceof Error ? err.message : String(err)}`);
   }
 }
 
@@ -307,6 +325,24 @@ if (command === 'set-type') {
     process.exit(0);
   } catch (err) {
     fail(`set-type failed: ${err instanceof Error ? err.message : String(err)}`);
+  }
+}
+
+if (command === 'save-theme') {
+  const name = rest.find((a) => !a.startsWith('-'));
+  if (!name) {
+    fail(`Usage: npx @motion-proto/live-tokens save-theme <name> [--no-activate] [--dry-run]`);
+  }
+  try {
+    const result = await runSaveTheme({
+      name,
+      activate: !rest.includes('--no-activate'),
+      dryRun: rest.includes('--dry-run'),
+    });
+    console.log(formatSaveThemeResult(result));
+    process.exit(0);
+  } catch (err) {
+    fail(`save-theme failed: ${err instanceof Error ? err.message : String(err)}`);
   }
 }
 

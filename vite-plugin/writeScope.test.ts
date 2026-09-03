@@ -12,11 +12,15 @@ import { themeFileApi } from './themeFileApi';
 import { adjustAliases } from '../src/editor/core/components/adjustAliases';
 import { matchesKind } from '../src/editor/core/components/aliasKinds';
 import { buildColors } from '../src/editor/core/themes/buildColors';
+import { sanitizeFileName } from '../src/editor/core/storage/files/versionedFileResourceClient';
+import { CURRENT_COMPONENT_SCHEMA_VERSION } from '../src/editor/core/themes/migrations';
 import { migrateData } from './migrateData/migrateData';
 // @ts-expect-error — plain .mjs module, no types
 import { runSetGeometry } from '../bin/set-geometry.mjs';
 // @ts-expect-error — plain .mjs module, no types
 import { runSetColors } from '../bin/set-colors.mjs';
+// @ts-expect-error — plain .mjs module, no types
+import { runSaveTheme } from '../bin/save-theme.mjs';
 // @ts-expect-error — plain .mjs module, no types
 import { runMigrateData } from '../bin/migrate.mjs';
 
@@ -290,13 +294,12 @@ describe('write scope', () => {
     expect(outsideOf(touched, [configsDir], [])).toEqual([]);
   });
 
-  it('the set-colors CLI writes only inside the data dirs it was given', async () => {
+  it('the set-colors CLI writes only inside the colors-and-type dir it was given', async () => {
     boot();
     const baseColorsPath = path.join(tmp, 'base-colors.json');
     fs.writeFileSync(
       baseColorsPath,
       JSON.stringify({
-        name: 'Scope Check',
         scheme: 'light',
         baseColors: {
           Brand: { l: 0.62, c: 0.17, h: 145 },
@@ -314,16 +317,33 @@ describe('write scope', () => {
     );
 
     const before = snapshotTree(tmp);
-    await runSetColors({
-      baseColorsPath,
+    await runSetColors({ baseColorsPath, colorsAndTypeDir, themesDir, engine: { buildColors } });
+    const touched = changedSince(before, snapshotTree(tmp));
+
+    // Narrower than the data dirs on purpose: a colors run reaches the theme
+    // directory to read the open document and must never write there.
+    expect(touched.length).toBeGreaterThan(0);
+    expect(outsideOf(touched, [colorsAndTypeDir], [])).toEqual([]);
+  });
+
+  it('the save-theme CLI writes only inside the data dirs it was given', async () => {
+    boot();
+    fs.writeFileSync(
+      path.join(configsDir, 'widget', '_working.json'),
+      JSON.stringify({ name: 'edited', component: 'widget', aliases: { '--widget-radius': '--radius-xl' } }),
+    );
+
+    const before = snapshotTree(tmp);
+    await runSaveTheme({
+      name: 'Scope Check',
       colorsAndTypeDir,
       componentConfigsDir: configsDir,
       themesDir,
-      engine: { buildColors },
+      engine: { sanitizeFileName, CURRENT_COMPONENT_SCHEMA_VERSION },
     });
     const touched = changedSince(before, snapshotTree(tmp));
 
-    expect(touched.length).toBeGreaterThan(0);
+    expect(touched).toContain(path.join(themesDir, 'scope-check.json'));
     expect(outsideOf(touched, [dataDir], [])).toEqual([]);
   });
 

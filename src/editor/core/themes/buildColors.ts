@@ -1,8 +1,12 @@
 /**
- * Base colors → generator: a full ColorsAndType from 10 OKLCH base colors + a
- * scheme, with AA floors enforced on derived text tokens. Choosing them lives in the
- * live-tokens-set-colors skill; the CLI reaches this via
+ * Base colors → the theme's color state: ten OKLCH base colors + a scheme give
+ * the palettes, the harmony axes, the swatch gradients, and the override bag,
+ * with AA floors enforced on derived text tokens. Choosing the base colors
+ * lives in the live-tokens-set-colors skill; the CLI reaches this via
  * `dist-plugin/setColors`, so keep this module Node-safe (no DOM).
+ *
+ * This is one dimension of a theme, not a theme: the caller merges the result
+ * into the live colors and type, and `save-theme` composes the document.
  */
 
 import { hexToOklch, cssColorToOklch, oklchToHexClamped, type Oklch } from '../palettes/oklch';
@@ -22,12 +26,9 @@ import { SHADOW_VAR_NAMES, parseShadowCss, shadowTokenCss } from './parsers/shad
 import { AA_BODY, AA_LARGE, contrastRatio, findLForContrast } from '../palettes/contrast';
 import { type HarmonyAxis, type HarmonyMode } from '../palettes/colorHarmony';
 import { defaultPaletteConfig } from '../../ui/palette/paletteMath';
-import { sanitizeFileName } from '../storage/files/versionedFileResourceClient';
-import { CURRENT_COLORS_AND_TYPE_SCHEMA_VERSION } from './migrations/index';
-import type { FontSource, FontStack, GradientDiskToken, PaletteConfig, ColorsAndType } from './themeTypes';
+import type { GradientDiskToken, PaletteConfig } from './themeTypes';
 
 export interface ColorsInput {
-  name: string;
   scheme: SchemeDirection;
   /** The one color each palette's ramp derives from (all 10 required); hex string or numeric OKLCH. */
   baseColors: Record<string, Oklch | string>;
@@ -39,13 +40,12 @@ export interface ColorsInput {
   canvasGradient?: boolean;
 }
 
-/** Non-color content carried forward from the currently active colors and type
- *  so gradients, shadow geometry, component aliases, and fonts survive
- *  regeneration. Shadow opacity is derived, not carried — see `shadowVars`. */
+/** The live colors and type this pass reads before it replaces the color
+ *  state: the override bag, so every name no palette owns rides through, and
+ *  the swatch gradients, so user-tuned ones survive. Shadow opacity is
+ *  derived, not carried — see `shadowVars`. */
 export interface CarryForward {
   cssVariables?: Record<string, string>;
-  fontSources?: FontSource[];
-  fontStacks?: FontStack[];
   gradients?: GradientDiskToken[];
 }
 
@@ -74,9 +74,17 @@ export interface BuildColorsReport {
   shadows: string;
 }
 
+/** The color dimension of a colors-and-type document. Every other key —
+ *  name, timestamps, fonts, schema version — belongs to the caller. */
+export interface ColorsState {
+  editorConfigs: Record<string, PaletteConfig>;
+  harmonyAxes: HarmonyAxis[];
+  gradients: GradientDiskToken[];
+  cssVariables: Record<string, string>;
+}
+
 export interface BuildColorsResult {
-  colorsAndType: ColorsAndType;
-  slug: string;
+  colors: ColorsState;
   report: BuildColorsReport;
 }
 
@@ -128,12 +136,8 @@ function parseBaseColor(label: string, raw: Oklch | string, problems: string[]):
   return { l, c, h: norm(h) };
 }
 
-function validateInput(input: ColorsInput): { baseColors: Record<string, Oklch>; slug: string } {
+function validateInput(input: ColorsInput): Record<string, Oklch> {
   const problems: string[] = [];
-  const name = typeof input.name === 'string' ? input.name.trim() : '';
-  if (!name) problems.push('name: required');
-  const slug = sanitizeFileName(name || 'unnamed');
-  if (slug === 'default') problems.push('name: "default" is the protected package theme; pick another name');
   if (input.scheme !== 'light' && input.scheme !== 'dark') {
     problems.push(`scheme: must be "light" or "dark", got ${JSON.stringify(input.scheme)}`);
   }
@@ -162,7 +166,7 @@ function validateInput(input: ColorsInput): { baseColors: Record<string, Oklch>;
   if (problems.length > 0) {
     throw new Error(`Invalid base color file:\n  ${problems.join('\n  ')}`);
   }
-  return { baseColors, slug };
+  return baseColors;
 }
 
 interface CheckDef {
@@ -424,12 +428,8 @@ function shadowVars(carried: Record<string, string>, canvas: Oklch): Record<stri
   return out;
 }
 
-export function buildColors(
-  input: ColorsInput,
-  carry: CarryForward = {},
-  now: string = new Date().toISOString(),
-): BuildColorsResult {
-  const { baseColors, slug } = validateInput(input);
+export function buildColors(input: ColorsInput, carry: CarryForward = {}): BuildColorsResult {
+  const baseColors = validateInput(input);
 
   const configs: Record<string, PaletteConfig> = {};
   for (const spec of PALETTE_SPECS) {
@@ -466,22 +466,8 @@ export function buildColors(
   for (const t of gradients) cssVariables[t.variable] = formatGradientValue(t);
   Object.assign(cssVariables, shadowVars(carry.cssVariables ?? {}, baseColors.Canvas));
 
-  const colorsAndType: ColorsAndType = {
-    name: input.name.trim(),
-    createdAt: now,
-    updatedAt: now,
-    editorConfigs: configs,
-    cssVariables,
-    fontSources: carry.fontSources ?? [],
-    fontStacks: carry.fontStacks ?? [],
-    gradients,
-    harmonyAxes,
-    schemaVersion: CURRENT_COLORS_AND_TYPE_SCHEMA_VERSION,
-  };
-
   return {
-    colorsAndType,
-    slug,
+    colors: { editorConfigs: configs, harmonyAxes, gradients, cssVariables },
     report: {
       ...report,
       gradients: gradients === carry.gradients ? 'carried' : 'recipes',

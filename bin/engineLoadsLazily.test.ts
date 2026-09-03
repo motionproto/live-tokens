@@ -49,6 +49,7 @@ describe('modules the tests import', () => {
 
   it('reach at least the CLI workers', () => {
     expect(modules.some((m) => m.endsWith('bin/set-geometry.mjs'))).toBe(true);
+    expect(modules.some((m) => m.endsWith('bin/save-theme.mjs'))).toBe(true);
     expect(modules.some((m) => m.endsWith('scripts/lib/presetFonts.mjs'))).toBe(true);
   });
 

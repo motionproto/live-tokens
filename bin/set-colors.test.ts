@@ -1,15 +1,13 @@
 import { describe, it, expect, afterEach } from 'vitest';
-import { mkdtempSync, mkdirSync, rmSync, readFileSync, existsSync, writeFileSync } from 'node:fs';
+import { mkdtempSync, mkdirSync, rmSync, readFileSync, existsSync, writeFileSync, readdirSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { buildColors } from '../src/editor/core/themes/buildColors';
 import type { Oklch } from '../src/editor/core/palettes/oklch';
 // @ts-expect-error — plain .mjs module, no types
 import { runSetColors, formatSetColorsResult } from './set-colors.mjs';
-import { THEME_SCHEMA_VERSION } from '../vite-plugin/themes/normalizeTheme';
-import { CURRENT_COMPONENT_SCHEMA_VERSION } from '../src/editor/core/themes/migrations';
 
-const engine = { buildColors, CURRENT_COMPONENT_SCHEMA_VERSION };
+const engine = { buildColors };
 
 const BASE_COLORS: Record<string, Oklch> = {
   Brand: { l: 0.62, c: 0.17, h: 145 },
@@ -24,42 +22,34 @@ const BASE_COLORS: Record<string, Oklch> = {
   Danger: { l: 0.58, c: 0.2, h: 25 },
 };
 
-const BASE_COLORS_FILE = { name: 'Spring Meadow', scheme: 'light', baseColors: BASE_COLORS };
+const BASE_COLORS_FILE = { scheme: 'light', baseColors: BASE_COLORS };
+
+const fonts = (marker: string) => [{ variable: '--font-sans', slots: [{ kind: 'generic', value: marker }] }];
 
 const roots: string[] = [];
 
-function project(components: string[] = ['button', 'card']): string {
-  const root = mkdtempSync(join(tmpdir(), 'lt-gen-'));
+/** A tree whose three colors-and-type layers are all present and distinct: the
+ *  shipped default under a Default theme that carries no copy of its own. */
+function project(): string {
+  const root = mkdtempSync(join(tmpdir(), 'lt-set-colors-'));
   roots.push(root);
   mkdirSync(join(root, 'colors-and-type'), { recursive: true });
   mkdirSync(join(root, 'themes'), { recursive: true });
-  for (const comp of components) {
-    mkdirSync(join(root, 'component-configs', comp), { recursive: true });
-    writeFileSync(
-      join(root, 'component-configs', comp, 'default.json'),
-      JSON.stringify({ name: 'default', component: comp, aliases: {} }),
-    );
-  }
+  writeFileSync(
+    join(root, 'colors-and-type', 'default.json'),
+    JSON.stringify({ name: 'Default', schemaVersion: 8, cssVariables: {}, fontStacks: fonts('from-default') }),
+  );
   // Boot derives a local Default theme in every tree; without one the package
   // fallback would serve this repo's own.
   writeFileSync(
     join(root, 'themes', 'default.json'),
-    JSON.stringify({
-      name: 'Default',
-      schemaVersion: 3,
-      colorsAndType: { name: 'Default', cssVariables: { '--badge-trait-surface': 'var(--surface-brand)' }, fontStacks: [] },
-      componentConfigs: {},
-    }),
+    JSON.stringify({ name: 'Default', schemaVersion: 5, componentConfigs: {} }),
   );
   return root;
 }
 
 function dirs(root: string) {
-  return {
-    colorsAndTypeDir: join(root, 'colors-and-type'),
-    componentConfigsDir: join(root, 'component-configs'),
-    themesDir: join(root, 'themes'),
-  };
+  return { colorsAndTypeDir: join(root, 'colors-and-type'), themesDir: join(root, 'themes') };
 }
 
 function run(root: string, opts: Record<string, unknown> = {}, input: unknown = BASE_COLORS_FILE) {
@@ -69,9 +59,14 @@ function run(root: string, opts: Record<string, unknown> = {}, input: unknown = 
 }
 
 const readJson = (path: string) => JSON.parse(readFileSync(path, 'utf8'));
+const buffer = (root: string) => readJson(join(root, 'colors-and-type', '_working.json'));
+const hasBuffer = (root: string) => existsSync(join(root, 'colors-and-type', '_working.json'));
 
-function openTheme(root: string, slug: string, theme: Record<string, unknown>) {
-  writeFileSync(join(root, 'themes', `${slug}.json`), JSON.stringify({ schemaVersion: 3, ...theme }));
+function openTheme(root: string, slug: string, colorsAndType: Record<string, unknown>) {
+  writeFileSync(
+    join(root, 'themes', `${slug}.json`),
+    JSON.stringify({ name: slug, schemaVersion: 5, colorsAndType, componentConfigs: {} }),
+  );
   writeFileSync(join(root, 'themes', '_active.json'), JSON.stringify({ activeFile: slug }));
 }
 
@@ -80,198 +75,118 @@ afterEach(() => {
 });
 
 describe('runSetColors', () => {
-  it('writes a theme document and opens it', async () => {
+  it('writes the color state into the unsaved buffer', async () => {
     const root = project();
     const result = await run(root);
 
-    expect(result.slug).toBe('spring-meadow');
-    const theme = readJson(join(root, 'themes', 'spring-meadow.json'));
-    expect(theme.name).toBe('Spring Meadow');
-    expect(theme.schemaVersion).toBe(THEME_SCHEMA_VERSION);
-    expect(Object.keys(theme.colorsAndType.editorConfigs)).toHaveLength(10);
-
-    expect(readJson(join(root, 'themes', '_active.json')).activeFile).toBe('spring-meadow');
-    expect(existsSync(join(root, 'colors-and-type', '_working.json'))).toBe(false);
+    expect(result.wrote).toBe('buffer');
+    expect(result.source).toBe('default');
+    const next = buffer(root);
+    expect(Object.keys(next.editorConfigs)).toHaveLength(10);
+    expect(next.harmonyAxes).toHaveLength(4);
+    expect(next.cssVariables['--gradient-1']).toContain('var(--color-brand-400)');
   });
 
-  // Without this stamp `normalizeTheme` reads `componentSchemaVersion ?? 0`
-  // and replays every component migration on every read, forever — the TTL
-  // Wave 1 built never fires for a theme this CLI produces.
-  it('stamps the current component schema version', async () => {
+  it('writes no theme and moves no pointer', async () => {
     const root = project();
+    openTheme(root, 'sunset', { name: 'Sunset', cssVariables: {} });
+    const before = readdirSync(join(root, 'themes')).sort();
+    const theme = readFileSync(join(root, 'themes', 'sunset.json'), 'utf8');
+    const active = readFileSync(join(root, 'themes', '_active.json'), 'utf8');
+
     await run(root);
 
-    const theme = readJson(join(root, 'themes', 'spring-meadow.json'));
-    expect(theme.componentSchemaVersion).toBe(CURRENT_COMPONENT_SCHEMA_VERSION);
+    expect(readdirSync(join(root, 'themes')).sort()).toEqual(before);
+    expect(readFileSync(join(root, 'themes', 'sunset.json'), 'utf8')).toBe(theme);
+    expect(readFileSync(join(root, 'themes', '_active.json'), 'utf8')).toBe(active);
+    expect(readdirSync(join(root, 'colors-and-type')).sort()).toEqual(['_working.json', 'default.json']);
   });
 
-  it('writes no named colors-and-type file and never touches production', async () => {
+  it('discards the buffer when the result matches what the open theme already holds', async () => {
     const root = project();
+    openTheme(root, 'sunset', { name: 'Sunset', cssVariables: {} });
     await run(root);
+    expect(hasBuffer(root)).toBe(true);
 
-    expect(existsSync(join(root, 'colors-and-type', 'spring-meadow.json'))).toBe(false);
-    expect(existsSync(join(root, 'colors-and-type', '_active.json'))).toBe(false);
-    expect(existsSync(join(root, 'themes', '_production.json'))).toBe(false);
-  });
-
-  it('carries the live theme forward: buffers first, then the open theme', async () => {
-    const root = project();
-    openTheme(root, 'sunset', {
-      name: 'Sunset',
-      colorsAndType: { name: 'Sunset', cssVariables: { '--badge-trait-surface': 'from-theme' } },
-      componentConfigs: { card: { name: 'sunset', aliases: { '--card-radius': '--radius-lg' } } },
-    });
-    writeFileSync(
-      join(root, 'colors-and-type', '_working.json'),
-      JSON.stringify({ cssVariables: { '--badge-trait-surface': 'from-buffer' }, _source: 'working' }),
-    );
-    writeFileSync(
-      join(root, 'component-configs', 'button', '_working.json'),
-      JSON.stringify({ name: 'edited', component: 'button', aliases: { '--button-radius': '--radius-sm' } }),
-    );
-
+    // The theme now carries that color state, so building it again is a return
+    // to saved rather than an edit.
+    openTheme(root, 'sunset', buffer(root));
     const result = await run(root);
 
-    const theme = readJson(join(root, 'themes', 'spring-meadow.json'));
-    expect(theme.colorsAndType.cssVariables['--badge-trait-surface']).toBe('from-buffer');
-    expect(theme.componentConfigs.button.aliases['--button-radius']).toBe('--radius-sm');
-    expect(theme.componentConfigs.card.aliases['--card-radius']).toBe('--radius-lg');
-    expect(result.componentsCarried).toBe(2);
-    expect(result.previousActive).toBe('sunset');
+    expect(result.wrote).toBe('cleared');
+    expect(hasBuffer(root)).toBe(false);
   });
 
-  // Correction 1 of docs/plans/theme-completeness.md: the live path was
-  // missing the third resolution layer `bin/set-geometry.mjs` and the dev server
-  // both have, so a component neither the open theme nor a buffer carried
-  // was silently dropped instead of falling through to its default.
-  it('fills the gaps of an incomplete open theme from the component defaults', async () => {
-    const root = project(['button', 'card', 'panel']);
-    openTheme(root, 'sunset', {
-      name: 'Sunset',
-      colorsAndType: { name: 'Sunset' },
-      componentConfigs: { card: { name: 'sunset', aliases: { '--card-radius': '--radius-lg' } } },
-    });
-
-    const result = await run(root);
-
-    const theme = readJson(join(root, 'themes', 'spring-meadow.json'));
-    expect(theme.componentConfigs.card.aliases['--card-radius']).toBe('--radius-lg');
-    expect(theme.componentConfigs.button).toEqual(
-      readJson(join(root, 'component-configs', 'button', 'default.json')),
-    );
-    expect(theme.componentConfigs.panel).toEqual(
-      readJson(join(root, 'component-configs', 'panel', 'default.json')),
-    );
-    expect(result.componentsCarried).toBe(3);
-  });
-
-  it('strips read-door markers from what it embeds', async () => {
+  it('keeps the fonts of the buffer over the open theme over the package default', async () => {
     const root = project();
+    expect((await run(root)).source).toBe('default');
+    expect(buffer(root).fontStacks).toEqual(fonts('from-default'));
+
+    rmSync(join(root, 'colors-and-type', '_working.json'));
+    openTheme(root, 'sunset', { name: 'Sunset', cssVariables: {}, fontStacks: fonts('from-theme') });
+    expect((await run(root)).source).toBe('theme');
+    expect(buffer(root).fontStacks).toEqual(fonts('from-theme'));
+
     writeFileSync(
       join(root, 'colors-and-type', '_working.json'),
-      JSON.stringify({ cssVariables: {}, _fileName: 'sunset', _source: 'working' }),
+      JSON.stringify({ cssVariables: {}, fontStacks: fonts('from-buffer'), _source: 'working' }),
     );
-    await run(root);
-
-    const theme = readJson(join(root, 'themes', 'spring-meadow.json'));
-    expect(theme.colorsAndType).not.toHaveProperty('_fileName');
-    expect(theme.colorsAndType).not.toHaveProperty('_source');
+    expect((await run(root)).source).toBe('working');
+    expect(buffer(root).fontStacks).toEqual(fonts('from-buffer'));
+    expect(buffer(root)).not.toHaveProperty('_source');
   });
 
-  it('clears the buffer of a component the new theme does not carry', async () => {
+  it('carries every override no palette owns, and replaces the shadow opacity', async () => {
     const root = project();
-    writeFileSync(
-      join(root, 'component-configs', 'card', '_working.json'),
-      JSON.stringify({ name: 'edited', component: 'card', aliases: {} }),
-    );
     openTheme(root, 'sunset', {
       name: 'Sunset',
-      colorsAndType: { name: 'Sunset' },
-      componentConfigs: {},
+      cssVariables: {
+        '--radius-lg': '1rem',
+        '--surface-brand': 'from-theme',
+        '--shadow-md': '9px 9px 20px 2px hsla(20, 40%, 10%, 0.9)',
+      },
     });
 
-    // `--carry-from default` names a theme that carries no entries of its own;
-    // `card` comes from the shipped default, not from this edited buffer, and
-    // the buffer is cleared either way.
-    await run(root, { carryFrom: 'default' });
-
-    expect(existsSync(join(root, 'component-configs', 'card', '_working.json'))).toBe(false);
-  });
-
-  // Correction 1 of docs/plans/theme-completeness.md: `--carry-from` copied
-  // only the entries the source theme happened to hold, so an incomplete
-  // source produced an incomplete result.
-  it('fills the gaps of an incomplete --carry-from theme from the component defaults', async () => {
-    const root = project(['button', 'card', 'panel']);
-    writeFileSync(
-      join(root, 'themes', 'ocean.json'),
-      JSON.stringify({
-        name: 'Ocean',
-        schemaVersion: 3,
-        colorsAndType: { cssVariables: { '--badge-trait-surface': 'from-ocean' } },
-        componentConfigs: { button: { name: 'ocean', aliases: { '--button-radius': '--radius-xl' } } },
-      }),
-    );
-
-    const result = await run(root, { carryFrom: 'ocean' });
-
-    const theme = readJson(join(root, 'themes', 'spring-meadow.json'));
-    expect(theme.componentConfigs.button.aliases['--button-radius']).toBe('--radius-xl');
-    expect(theme.componentConfigs.card).toEqual(
-      readJson(join(root, 'component-configs', 'card', 'default.json')),
-    );
-    expect(theme.componentConfigs.panel).toEqual(
-      readJson(join(root, 'component-configs', 'panel', 'default.json')),
-    );
-    expect(result.componentsCarried).toBe(3);
-  });
-
-  it('carries from a named theme instead of the live state', async () => {
-    const root = project();
-    writeFileSync(
-      join(root, 'colors-and-type', '_working.json'),
-      JSON.stringify({ cssVariables: { '--badge-trait-surface': 'from-buffer' } }),
-    );
-    writeFileSync(
-      join(root, 'themes', 'ocean.json'),
-      JSON.stringify({
-        name: 'Ocean',
-        schemaVersion: 3,
-        colorsAndType: { cssVariables: { '--badge-trait-surface': 'from-ocean' } },
-        componentConfigs: { button: { name: 'ocean', aliases: { '--button-radius': '--radius-xl' } } },
-      }),
-    );
-
-    const result = await run(root, { carryFrom: 'ocean' });
-
-    const theme = readJson(join(root, 'themes', 'spring-meadow.json'));
-    expect(theme.colorsAndType.cssVariables['--badge-trait-surface']).toBe('from-ocean');
-    expect(theme.componentConfigs.button.aliases['--button-radius']).toBe('--radius-xl');
-    expect(result.carriedFrom).toBe('ocean');
-  });
-
-  it('rejects an unknown --carry-from theme', async () => {
-    const root = project();
-    await expect(run(root, { carryFrom: 'nope' })).rejects.toThrow(/--carry-from theme "nope" not found/);
-  });
-
-  it('keeps createdAt when regenerating an existing slug', async () => {
-    const root = project();
     await run(root);
-    const first = readJson(join(root, 'themes', 'spring-meadow.json'));
 
-    const second = await run(root);
-    expect(readJson(join(root, 'themes', 'spring-meadow.json')).createdAt).toBe(first.createdAt);
-    expect(second.existed).toBe(true);
+    const vars = buffer(root).cssVariables;
+    expect(vars['--radius-lg']).toBe('1rem');
+    // A palette owns --surface-brand, so the derivation replaces it rather than
+    // leaving a stale override in the bag.
+    expect(vars['--surface-brand']).toBeUndefined();
+    expect(vars['--shadow-md']).toBe('9px 9px 20px 2px hsla(20, 40%, 10%, 0.2)');
   });
 
-  it('leaves the open theme alone with activate false', async () => {
+  it('rebuilds stock swatch gradients and keeps tuned ones', async () => {
     const root = project();
-    await run(root, { activate: false });
+    const stock = await run(root);
+    expect(stock.report.gradients).toBe('recipes');
+    expect(buffer(root).gradients[0].stops.map((s: { color: string }) => s.color)).toEqual([
+      '--color-brand-400',
+      '--color-brand-700',
+    ]);
 
-    expect(existsSync(join(root, 'themes', 'spring-meadow.json'))).toBe(true);
-    expect(existsSync(join(root, 'themes', '_active.json'))).toBe(false);
-    expect(existsSync(join(root, 'colors-and-type', '_working.json'))).toBe(false);
+    const tuned = [
+      {
+        variable: '--gradient-1',
+        type: 'linear',
+        angle: 33,
+        stops: [{ position: 0, color: '--color-brand-200' }, { position: 100, color: '--color-brand-900' }],
+      },
+    ];
+    openTheme(root, 'sunset', { name: 'Sunset', cssVariables: {}, gradients: tuned });
+    rmSync(join(root, 'colors-and-type', '_working.json'));
+
+    const carried = await run(root);
+    expect(carried.report.gradients).toBe('carried');
+    expect(buffer(root).gradients).toEqual(tuned);
+    expect(buffer(root).cssVariables['--gradient-1']).toContain('33deg');
+  });
+
+  it('reports a name in the base color file as ignored', async () => {
+    const root = project();
+    expect((await run(root)).ignoredName).toBe(null);
+    expect((await run(root, {}, { ...BASE_COLORS_FILE, name: 'Spring Meadow' })).ignoredName).toBe('Spring Meadow');
   });
 
   it('writes nothing on a dry run', async () => {
@@ -279,8 +194,8 @@ describe('runSetColors', () => {
     const result = await run(root, { dryRun: true });
 
     expect(result.report.checks.length).toBeGreaterThan(0);
-    expect(existsSync(join(root, 'themes', 'spring-meadow.json'))).toBe(false);
-    expect(existsSync(join(root, 'colors-and-type', '_working.json'))).toBe(false);
+    expect(result.wrote).toBe(null);
+    expect(hasBuffer(root)).toBe(false);
   });
 
   it('rejects a base color file that is not there or not JSON', async () => {
@@ -290,29 +205,46 @@ describe('runSetColors', () => {
     );
     writeFileSync(join(root, 'bad.json'), '{');
     await expect(runSetColors({ baseColorsPath: join(root, 'bad.json'), engine, ...dirs(root) })).rejects.toThrow(
-      /not valid JSON/,
+      /base color file is not valid JSON/,
     );
+  });
+
+  it('names the live file it could not parse', async () => {
+    const root = project();
+    writeFileSync(join(root, 'colors-and-type', '_working.json'), '{ "cssVariables":');
+    await expect(run(root)).rejects.toThrow(/_working\.json is not valid JSON/);
   });
 });
 
 describe('formatSetColorsResult', () => {
-  it('names the theme file, the carry source and the open document', async () => {
+  it('names the layer it read, the contrast report, and what to do next', async () => {
     const root = project();
+    openTheme(root, 'sunset', { name: 'Sunset', cssVariables: {} });
     const out = formatSetColorsResult(await run(root));
 
-    expect(out).toContain('Created theme "Spring Meadow"');
-    expect(out).toContain('themes/spring-meadow.json');
-    expect(out).toContain('Carried forward from the live state');
-    expect(out).toContain('Opened "spring-meadow" (previously open: "default")');
-    expect(out).toContain('Adopt it there to publish it');
+    expect(out).toContain('Replaced the color identity, carrying everything else forward from theme "sunset"');
     expect(out).toContain('Contrast report (light scheme)');
+    expect(out).toContain('Gradients: swatch tokens rebuilt from the theme families.');
+    expect(out).toContain('or run save-theme to write a new one');
+    expect(out).not.toContain('Opened');
   });
 
-  it('says nothing was written on a dry run', async () => {
+  it('says the buffer was discarded when the result matches the open theme', async () => {
     const root = project();
-    const out = formatSetColorsResult(await run(root, { dryRun: true }));
+    openTheme(root, 'sunset', { name: 'Sunset', cssVariables: {} });
+    await run(root);
+    openTheme(root, 'sunset', buffer(root));
 
-    expect(out).toContain('Would write theme "Spring Meadow"');
-    expect(out).not.toContain('Opened');
+    expect(formatSetColorsResult(await run(root))).toContain('the unsaved buffer was discarded');
+  });
+
+  it('says nothing was written on a dry run, and names an ignored name', async () => {
+    const root = project();
+    const out = formatSetColorsResult(await run(root, { dryRun: true }, { ...BASE_COLORS_FILE, name: 'Spring Meadow' }));
+
+    expect(out).toContain('Would replace the color identity');
+    expect(out).toContain('Ignored "name": "Spring Meadow"');
+    expect(out).toContain('name it when you run save-theme');
+    expect(out).toContain('Dry run: nothing written under');
   });
 });
