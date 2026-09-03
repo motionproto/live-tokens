@@ -121,7 +121,8 @@ What should be in the tarball:
 - `src/app/site.css` (optional starter typography)
 - `dist-plugin/**` (built vite plugin)
 - `bin/**` (the `live-tokens` CLI: `create`, `setup-claude`, `check-component`,
-  `set-colors`, `set-type`, `set-geometry`, `migrate`, `migrate-routes`)
+  `set-colors`, `set-type`, `set-geometry`, `save-theme`, `migrate`,
+  `migrate-routes`)
 - `template/**` (the `create` scaffold)
 - `.claude/skills/**` (the Claude skills: build-page, create-component,
   pick-component, create-theme, set-colors, set-type, set-geometry)

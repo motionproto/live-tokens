@@ -328,9 +328,10 @@ npx @motion-proto/live-tokens <command>
 | `report [--json]` | The project as facts: pending migrations, tokens each component reads, which page renders which component, and both checkers' findings by rule. Always exits 0. |
 | `check-component [id]` | Validate a component's runtime, editor, and registration against the authoring contract; with no id, every component authored under `src/system/components`. |
 | `check-page [paths...]` | Validate pages against the build-page contract: catalogue components and their props, theme tokens over literals, route wiring. |
-| `set-colors <base-colors.json> [--no-activate] [--dry-run] [--carry-from <name>]` | Build a full theme from 10 OKLCH base colors, enforce AA contrast, write `themes/<slug>.json`, and open it. |
+| `set-colors <base-colors.json> [--dry-run]` | Build the theme's whole color identity from 10 OKLCH base colors, enforce AA contrast on the derived text tokens, and write the result to the unsaved colors-and-type buffer. |
 | `set-type <pairing.json> [--dry-run] [--no-verify]` | Bind Google Fonts families to the theme's font stacks, verified against the API. |
 | `set-geometry <ops.json> [--dry-run]` | Move radius, padding, gap, and border-width aliases along their token scales. |
+| `save-theme <name> [--no-activate] [--dry-run]` | Compose the live state into `themes/<slug>.json` and open it, which clears the unsaved buffers. |
 | `migrate [--check] [--write] [--tokens <path>]` | Reconcile the project with the installed package: additive `tokens.css` migrations, the pre-0.48 data-tree move, and a report on source references to the routes that moved in 0.35.0. |
 
 Once installed in a project, the same commands are available as `npx live-tokens <command>`.
@@ -367,7 +368,7 @@ The skill composes the page from shipped components, styles every value with `va
 
 Ask for a look: "a dark, moody night theme", "a St Patrick's Day theme in green and gold", "make it feel more serious".
 
-A theme is three decisions: color, type, and geometry. This skill reads the request once, states one design direction that fixes all three, and routes a color, a type, and a geometry intent to `live-tokens-set-colors`, `live-tokens-set-type`, and `live-tokens-set-geometry`. It runs no CLI itself and assembles the three reports into one summary.
+A theme is three decisions: color, type, and geometry. This skill reads the request once, states one design direction that fixes all three, and routes a color, a type, and a geometry intent to `live-tokens-set-colors`, `live-tokens-set-type`, and `live-tokens-set-geometry`. Each of them writes its dimension into the unsaved buffers the app already renders. The skill then runs `npx live-tokens save-theme "<name>"`, which turns those buffers into `themes/<slug>.json` and opens it, and assembles the three reports into one summary.
 
 It carries the anchor index: every feeling, idiom, era, genre, holiday, and season the skills know, placed on the valence, energy, and dominance axes with the direction each implies. An idiom sets constraints and a feeling moves dials inside them, so "cozy brutalist" reads the idiom first. Each contributing skill holds the mechanics for its own dimension, keyed on the same anchor names.
 
@@ -377,11 +378,11 @@ A refinement that names one dimension goes straight to that sibling. This skill 
 
 Ask for color: "a cooler palette", "warmer", "more contrast", "calmer", "make the ground darker".
 
-The skill translates the color intent into ten OKLCH base colors (Brand, Accent, Special, Canvas, Neutral, Alternate, Info, Success, Warning, Danger) plus a light or dark scheme, then runs `npx live-tokens set-colors <base-colors.json>`. The CLI assembles the curves, enforces AA contrast on derived text tokens and auto-corrects where it can, writes `themes/<slug>.json`, opens it, and prints a contrast report. Exit 1 means the base colors themselves are unworkable, and each failure line names the base color to change.
+The skill translates the color intent into ten OKLCH base colors (Brand, Accent, Special, Canvas, Neutral, Alternate, Info, Success, Warning, Danger) plus a light or dark scheme, then runs `npx live-tokens set-colors <base-colors.json>`. The CLI assembles the curves, enforces AA contrast on derived text tokens and auto-corrects where it can, writes the result to the unsaved colors-and-type buffer, and prints a contrast report. Exit 1 means the base colors themselves are unworkable, and each failure line names the base color to change.
 
 Most of the skill is the judgment the generator cannot supply: a chroma budget scaled to how much screen area each palette covers, per-role lightness and hue bands for each scheme, three levels of canvas commitment, gamut guardrails against impossible base colors, harmony modes, and the optional canvas gradient. OKLCH anchors for every named feeling, idiom, and occasion live in a reference file the skill reads on demand.
 
-This is the step that creates the theme file, so it runs first and never skips. `--dry-run` prints the report without writing; `--no-activate` writes without opening. Opening a theme never changes what your site ships; Adopt does. A re-run replaces that theme's whole color state, including palette edits made in the editor since the last run, and carries the type and geometry buffers forward.
+Color is the one dimension every look fixes, so it runs first and never skips. `--dry-run` prints the report without writing. Saving the open theme in the editor, or running `save-theme`, keeps the result; Adopt ships it. A re-run replaces the buffer's whole color state, including palette edits made in the editor since the last run, and carries the type and geometry buffers forward.
 
 ### `live-tokens-set-type`
 

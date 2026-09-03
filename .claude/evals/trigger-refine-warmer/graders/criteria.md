@@ -6,7 +6,7 @@ The session already has a theme open.
 
 PASS when **live-tokens-set-colors** fires. "Warmer" is a color-only
 refinement, and set-colors owns the refinement path: recover the base colors,
-rotate the hue, re-run under the same name.
+rotate the hue, re-run.
 
 FAIL when the model edits a single token in the editor, when it fires
 live-tokens-set-geometry (warmth is colour, not shape), or when it answers

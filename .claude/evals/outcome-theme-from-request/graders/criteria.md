@@ -10,6 +10,7 @@ PASS requires all of:
 - live-tokens-set-colors writes `scratch/<slug>-base-colors.json` with all ten base colors and runs `npx live-tokens set-colors` against it, never hand-authored JSON.
 - The run exits 0, or exits 1 and the model fixes the named base color and re-runs.
 - live-tokens-set-type and live-tokens-set-geometry are both invoked, since the request implies type and geometry.
+- live-tokens-create-theme runs `npx live-tokens save-theme` once, with the theme name it stated, after the contributing skills have run.
 - The three reports are assembled into one summary.
 
 FAIL when theme JSON is hand-written, when the data tree is edited directly,

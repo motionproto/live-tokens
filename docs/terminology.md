@@ -16,7 +16,7 @@ the nouns stay distinct.
 | 0 | **the request** | The user's own words, unstructured. | The user |
 | 1 | **the design direction** | The requirements derived from the request: the mood, the hue family, the scheme, and the type and geometry that mood implies. Enough to derive the three intents, with the default named where the request leaves a dimension open. | create-theme, once |
 | 2 | **the color intent**, **the type intent**, **the geometry intent** | What one dimension should achieve, in a line. | create-theme, from the design direction and the anchor |
-| 3 | the base color file, the pairing file, the ops file | What each contributing skill writes for its CLI. | set-colors, set-type, set-geometry |
+| 3 | the base color file, the pairing file, the ops file, the theme name | What each contributing skill writes for its CLI, plus the name create-theme hands `save-theme`. | set-colors, set-type, set-geometry, create-theme |
 | 4 | the assembled report | The three reports read as one summary. | create-theme |
 
 **Intent is the outcome, and the executor owns the mechanics.** A skill hands a
@@ -30,14 +30,14 @@ none of them may require a design direction.
 
 **The three intents are symmetric all the way down.** One reading produces all
 three at once, and each goes to a skill named for its dimension: set-colors,
-set-type, set-geometry. create-theme runs no CLI. It reads, routes, and
-assembles.
+set-type, set-geometry. create-theme reaches for no dimension mechanics. It
+reads, routes, saves the result with `save-theme`, and assembles.
 
-**Color runs first and never skips.** Its CLI writes `themes/<slug>.json`;
-type and geometry adjust that open theme through unsaved buffers. That is an
-ordering fact, not a reason to hold color inside the coordinator: color
-instantiates the artifact the other two modify, and a color re-run carries
-their buffers forward.
+**Color runs first and never skips.** A theme request names a color identity,
+so color is the one dimension every look fixes. That is an ordering fact, not a
+reason to hold color inside the coordinator: each contributing skill writes its
+own dimension into the unsaved buffers, and a color re-run carries the other two
+forward.
 
 **The anchor tables split by dimension, one index and three columns.**
 create-theme holds `references/design-directions.md`, which places each anchor
@@ -55,7 +55,7 @@ on was the asymmetry in file form.
 | **design direction** | The layer-1 sentence. Always the full phrase. | A hue rotation, or a layer-2 intent. |
 | **intent** | A layer-2 outcome, always compounded: color intent, type intent, geometry intent. | The mechanics that deliver it. |
 | **theme** | The document at `src/live-tokens/data/themes/<slug>.json`, schemaVersion 4. | The rendered state, which is the look. |
-| **look** | What the app renders now: the open theme plus any unsaved type and geometry buffers. | A theme file. `--carry-from <theme>` reads a file; without it the generator reads the live look. |
+| **look** | What the app renders now: the open theme plus any unsaved color, type, and geometry buffers. | A theme file. Each set verb reads the live look and writes its dimension back into it; `save-theme` turns it into a theme. |
 | **voice** | The character of a typeface: dynamic, rational, geometric. | The layer-1 sentence. That is the design direction. |
 
 **Two words are retired, and both were retired for reading as two things at
@@ -78,11 +78,12 @@ scripted sweep mangles these.
 A skill name matches its CLI verb where one exists: live-tokens-set-colors runs
 `set-colors`, live-tokens-set-type runs `set-type`, live-tokens-set-geometry
 runs `set-geometry`. Where no verb exists the skill names its own job.
-live-tokens-create-theme runs nothing and coordinates; the CLI validates pages
-and components and the agent authors them.
+live-tokens-create-theme runs `save-theme` and names its own job, because the
+verb names the last step and the skill names the whole of it; the CLI validates
+pages and components and the agent authors them.
 
 The rule stops above the CLI. The CLI only ever receives layer 3: the base color
-file, the pairing file, the ops file. Layers 0 through 2 keep their own
+file, the pairing file, the ops file, the theme name. Layers 0 through 2 keep their own
 vocabulary, which is why intent has no CLI counterpart and needs none.
 
 **An intent names its dimension, not its executor's reach.** Layer 2 is color,

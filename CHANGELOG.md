@@ -9,9 +9,35 @@
   `adjust-geometry` is now `set-geometry`. Each verb names the dimension it
   sets, and each matches the skill that runs it. A script or note that types
   an old verb fails with "Unknown command"; there is no deprecation path,
-  because nothing is released against these names yet. The flags, the file
-  formats, and the behaviour are unchanged, and the geometry ops file is now
-  written to `scratch/geometry-ops.json`.
+  because nothing is released against these names yet. `set-type` and
+  `set-geometry` keep their flags, their file formats, and their behaviour, and
+  the geometry ops file is now written to `scratch/geometry-ops.json`.
+
+  **`set-colors` writes the color buffer, and `save-theme` writes the theme.**
+  A theme is three decisions and one document. Each set verb now writes only
+  its own dimension into the unsaved buffers the app already renders:
+  `set-colors` joins `set-type` and `set-geometry` there, and no longer writes
+  or opens a theme. The new `save-theme <name>` composes the live state into
+  `themes/<slug>.json` and opens it, and with no unsaved edits it saves a copy
+  of the open theme under the new name. `--no-activate` saves without opening,
+  which is how a set of themes comes off one starting look. `--carry-from` is
+  gone: it existed because `set-colors` activated, and nothing activates now
+  until you save. The base color file no longer carries `name`; a name in it
+  is ignored with a notice. `live-tokens-create-theme` runs `save-theme` once,
+  after its three contributing skills.
+
+  **36 dead keys left the override bag.** Themes carried the color, type, and
+  border-width siblings of keys an earlier migration dropped (Badge's `trait`
+  variant, SectionDivider's title and description slots, Dialog's variant and
+  state axes). Nothing read them, and every Adopt baked them into
+  `tokens.generated.css`. A colors-and-type migration drops them from your
+  themes on the next Save, the nine shipped themes are rewritten, and
+  `check:preset-themes` now refuses any shipped theme, `default` included,
+  whose override bag names a variable `tokens.css` does not declare.
+
+  Internal: the engine bundles are `dist-plugin/setColors`, `setType`, and
+  `setGeometry`, named for the verbs that load them. They have no `exports`
+  entry and no consumer imports them.
 
 - **A theme is one design direction routed to three contributing skills.**
   `live-tokens-generate-theme` did two jobs: it read the request and fixed a
@@ -20,9 +46,9 @@
   **live-tokens-create-theme**, which reads the request once, states one design
   direction, states a color, a type, and a geometry intent, routes each to
   **live-tokens-set-colors**, **live-tokens-set-type**, and
-  **live-tokens-set-geometry**, and assembles their three reports. It runs no
-  CLI. Every contributing skill still works when invoked directly with an
-  intent and no direction behind it. This changes four `description` triggers:
+  **live-tokens-set-geometry**, and assembles their three reports. Its one CLI
+  is `save-theme`. Every contributing skill still works when invoked directly
+  with an intent and no direction behind it. This changes four `description` triggers:
   a whole look reaches create-theme, and a request naming one dimension goes
   straight to that dimension's skill, including a color-only refinement like
   "warmer".

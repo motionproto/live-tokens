@@ -46,9 +46,9 @@ const DEEP_IMPORT_PATTERNS = [
 const TEXT_AXES = ['font-size', 'font-family', 'font-weight', 'line-height', 'letter-spacing'];
 
 // The geometry the theme owns: spacing, stroke, radius, and shadow all have a
-// token scale, and `adjust` moves them. Sizing (a hero's height, a column's
-// minimum width, a max content width) is layout, has no scale, and stays
-// literal.
+// token scale, and `set-geometry` moves them. Sizing (a hero's height, a
+// column's minimum width, a max content width) is layout, has no scale, and
+// stays literal.
 const THEMED_GEOMETRY = /^(padding|margin|gap|row-gap|column-gap|border|outline|inset|top|right|bottom|left|box-shadow|text-shadow)(-|$)|-radius$/;
 
 // A local two-up or three-up is a layout. From four columns on, a hardcoded

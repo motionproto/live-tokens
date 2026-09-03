@@ -181,6 +181,12 @@ override bag causes real defects rather than untidiness.
 Written 2026-09-03 against branch `three-contributing-skills` at `7f84109`.
 Line numbers cite that tree.
 
+**Executed.** `docs/plans/theme-dimension-ownership.md` turned the verdict below
+into six waves on this branch: 5e141ca (one live-state reader), db5e22f (the
+dead keys), 89f0cd5 (engine names follow the verbs), 37d414c (`set-colors`
+narrows, `save-theme` lands), 8812725 (skills and atlas), and the docs sweep
+that carries this line. That plan's Status table records every commit.
+
 ## Verdict
 
 A theme is three design decisions and one document. The three-dimension claim

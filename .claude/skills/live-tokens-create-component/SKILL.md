@@ -90,9 +90,9 @@ state-after-property and fails.
 
 Read `references/token-naming.md` for what each one means and when two of them
 compete. A suffix outside that list fails `check-component`. The list lives in
-`KIND_RULES` in the editor's `aliasKinds.ts`, which the picker, the `adjust`
-CLI, and `check-component` all read, so a name accepted here always has a
-control behind it.
+`KIND_RULES` in the editor's `aliasKinds.ts`, which the picker, the
+`set-geometry` CLI, and `check-component` all read, so a name accepted here
+always has a control behind it.
 
 ### Rules that bite
 

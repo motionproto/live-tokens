@@ -71,7 +71,7 @@ built so either answer can show up rather than assuming this one.
 
 | Skill | Change | Why |
 |---|---|---|
-| generate-theme | Documented `--carry-from` and the batch trap | The flag exists in `bin/cli.mjs` and in `--help`, and in no skill. Two runs without it silently carry the first theme's fonts and geometry into the second. |
+| generate-theme | Documented `--carry-from` (retired in Unreleased) and the batch trap | The flag exists in `bin/cli.mjs` and in `--help`, and in no skill. Two runs without it silently carry the first theme's fonts and geometry into the second. |
 | generate-theme | New section: refining a theme that exists | The description triggers on "warmer", "more contrast", "calmer". The body had no path for them. Seeds are recoverable from `colorsAndType.editorConfigs.<Palette>.baseColor`. |
 | generate-theme | Brief is `scratch/<slug>-brief.json` | A theme file never records its brief, so the brief on disk is the only copy of the seeds. One fixed filename destroyed it on the next run. |
 | set-fonts | Reload before Save, with the mechanism | The trap that cost a full round trip on 2026-08-25. The editor writes the buffers from its own browser copy, so a Save in a tab that was open during the run puts the stale copy back. |

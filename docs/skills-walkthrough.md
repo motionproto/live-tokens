@@ -341,7 +341,8 @@ the site." Pairs with S5.
 
 ### Findings: the pair
 
-**P1. `gt-cli` misstates `--carry-from`.**
+**P1. `gt-cli` misstates `--carry-from`.** Superseded: `--carry-from` was
+removed in Unreleased, so there is no flag left to restate.
 
 The card says "--carry-from <theme> copies gradients, fonts, and component
 aliases." `SKILL.md:22` says those carry forward from the live look by default,

@@ -32,7 +32,9 @@ const skillDirs = readdirSync(SKILLS, { withFileTypes: true })
   .sort();
 
 const cli = read(CLI);
-const cliVerbs = new Set([...cli.matchAll(/command === '([a-z-]+)'/g)].map((m) => m[1]));
+// setup-claude is dispatched by the final `!==` branch, and a leading letter is
+// what separates a verb from the --help and -h the same comparisons carry.
+const cliVerbs = new Set([...cli.matchAll(/command [!=]== '([a-z][a-z-]*)'/g)].map((m) => m[1]));
 
 // Flags come off each verb's signature line in USAGE, never the indented prose
 // under it: set-type describes the --font-* custom properties there, and those
@@ -51,10 +53,16 @@ const OMITTED_FLAGS = new Map();
 // gone and the flag rule below has nothing to compare against; a skill still
 // naming one hands the model a command that exits 1.
 const RETIRED_FLAGS = new Set(['--carry-from']);
-// A verb that has to reach a skill. `--carry-from` shipped for a release with no
-// skill naming it; `save-theme` was one wave away from the same. A verb no skill
-// runs is a verb the model never reaches for.
-const SKILLED_VERBS = ['set-colors', 'set-type', 'set-geometry', 'save-theme'];
+// Every verb the CLI dispatches has to reach a skill, minus the exemptions
+// below. `--carry-from` shipped for a release with no skill naming it and
+// `save-theme` was one wave away from the same, so the list of verbs that owe a
+// skill is derived rather than hand-kept: a new verb owes one until someone
+// writes down why it does not.
+const UNSKILLED_VERBS = new Map([
+  ['create', 'scaffolds the project, so it runs before setup-claude has put a skill in it'],
+  ['init', 'the alias create still answers to'],
+  ['setup-claude', 'installs the skills, so no skill can be what runs it'],
+]);
 const verbsInSkills = new Set();
 const samplePrompts = new Set([...cli.matchAll(/^\s+'(live-tokens-[a-z-]+)':\s+['"]/gm)].map((m) => m[1]));
 
@@ -158,11 +166,16 @@ for (const skill of skillDirs) {
   }
 }
 
-for (const verb of SKILLED_VERBS) {
+for (const verb of cliVerbs) {
+  if (UNSKILLED_VERBS.has(verb) || verbsInSkills.has(verb)) continue;
+  errors.push(
+    `bin/cli.mjs dispatches \`live-tokens ${verb}\`, which no bundled skill runs; ` +
+      `name the skill that runs it, or add it to UNSKILLED_VERBS with the reason`,
+  );
+}
+for (const verb of UNSKILLED_VERBS.keys()) {
   if (!cliVerbs.has(verb)) {
-    errors.push(`SKILLED_VERBS names "${verb}", which bin/cli.mjs no longer dispatches`);
-  } else if (!verbsInSkills.has(verb)) {
-    errors.push(`bin/cli.mjs dispatches \`live-tokens ${verb}\`, which no bundled skill runs`);
+    errors.push(`UNSKILLED_VERBS exempts "${verb}", which bin/cli.mjs no longer dispatches`);
   }
 }
 
@@ -271,6 +284,7 @@ if (errors.length > 0) {
 
 console.log(
   `check:skills OK — ${skillDirs.length} skill(s), each under ${MAX_SKILL_LINES} lines with references resolved, ` +
-    `CLI verbs real and their flags documented on the verb that takes them, every verb in SKILLED_VERBS reached, ` +
+    `CLI verbs real and their flags documented on the verb that takes them, every dispatched verb outside ` +
+    `UNSKILLED_VERBS reached by a skill, ` +
     `and the picker catalogue complete.`,
 );

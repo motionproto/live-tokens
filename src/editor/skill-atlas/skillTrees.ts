@@ -306,7 +306,7 @@ export const skillTrees: Record<string, SkillTree> = {
   },
   "set-colors": {
     "id": "live-tokens-set-colors",
-    "digest": "sha256:b926bc6ef2a84476",
+    "digest": "sha256:1fc94459ea9a9b11",
     "title": "set-colors",
     "tagline": "Ten base colors become every ramp, gated on AA contrast, written into the live look.",
     "nodes": [
@@ -1335,7 +1335,7 @@ export const skillTrees: Record<string, SkillTree> = {
           13
         ],
         "anchor": "Run `npx live-tokens set-geometry scratch/geometry-ops.json",
-        "command": "npx live-tokens adjust scratch/geometry-ops.json"
+        "command": "npx live-tokens set-geometry scratch/geometry-ops.json"
       },
       {
         "id": "sg-fail",
@@ -2066,7 +2066,7 @@ export const skillTrees: Record<string, SkillTree> = {
   },
   "build-page": {
     "id": "live-tokens-build-page",
-    "digest": "sha256:acf4ef858661383f",
+    "digest": "sha256:6bb7df43ef2c7de4",
     "title": "build-page",
     "tagline": "Catalogue components cover established needs. Theme tokens drive every theme-owned value.",
     "nodes": [
@@ -2596,7 +2596,7 @@ export const skillTrees: Record<string, SkillTree> = {
   },
   "create-component": {
     "id": "live-tokens-create-component",
-    "digest": "sha256:d4d3024f29d6580e",
+    "digest": "sha256:fad3a58d232e0b89",
     "title": "create-component",
     "tagline": "A runtime/editor pair exposes full token editing in the CUSTOM catalogue.",
     "nodes": [
