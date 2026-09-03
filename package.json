@@ -50,6 +50,7 @@
     "src/live-tokens/data/sketch-styles/dry.json",
     "dist-plugin",
     ".claude/skills",
+    "!.claude/skills/**/skill-alt.md",
     "bin",
     "template",
     "!**/*.test.ts",
