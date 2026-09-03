@@ -10,7 +10,7 @@ import { THEME_SCHEMA_VERSION } from '../src/editor/core/themes/themeTypes';
  * the next bump fails here rather than writing themes under a stale version.
  */
 const COPIES = [
-  'bin/generate-theme.mjs',
+  'bin/set-colors.mjs',
   'scripts/check-preset-themes.mjs',
   'scripts/seed-preset-theme.mjs',
 ];

@@ -6,7 +6,7 @@
 // Every URL below was checked against fonts.googleapis.com. Note that a 200 is
 // not proof of weight coverage: the API drops enumerated weights a family
 // lacks and still answers 200, and only rejects a range its axis cannot serve.
-// `live-tokens set-fonts` negotiates URLs from the returned CSS instead.
+// `live-tokens set-type` negotiates URLs from the returned CSS instead.
 
 import { existsSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';

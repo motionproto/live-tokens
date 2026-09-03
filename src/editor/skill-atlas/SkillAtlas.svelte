@@ -10,7 +10,7 @@
   import { skillTrees } from './skillTrees';
   import type { Edge, LineRange, Selection, TreeNode } from './types';
 
-  // `/skills#pair-fonts` opens that skill, so a link can hand someone one tree
+  // `/skills#set-type` opens that skill, so a link can hand someone one tree
   // rather than the atlas front door.
   const linked = window.location.hash.slice(1);
   let active = $state(linked in skillTrees ? linked : Object.keys(skillTrees)[0]);

@@ -1,4 +1,4 @@
-// `live-tokens set-fonts` worker.
+// `live-tokens set-type` worker.
 //
 // Reads a pairing file (JSON), verifies each family against Google Fonts,
 // binds it to a font stack via the compiled engine (dist-plugin/fontPairing —
@@ -88,7 +88,7 @@ function sameJson(a, b) {
 
 /** `engine` and `fetcher` are test seams; the CLI always runs the compiled
  *  bundle against the live API. */
-export async function runSetFonts({
+export async function runSetType({
   pairingPath,
   dryRun = false,
   verify = true,
@@ -212,7 +212,7 @@ export async function runSetFonts({
   };
 }
 
-export function formatSetFontsResult(result) {
+export function formatSetTypeResult(result) {
   const root = process.cwd();
   const lines = [];
 

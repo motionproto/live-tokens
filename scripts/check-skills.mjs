@@ -35,7 +35,7 @@ const cli = read(CLI);
 const cliVerbs = new Set([...cli.matchAll(/command === '([a-z-]+)'/g)].map((m) => m[1]));
 
 // Flags come off each verb's signature line in USAGE, never the indented prose
-// under it: set-fonts describes the --font-* custom properties there, and those
+// under it: set-type describes the --font-* custom properties there, and those
 // are not flags.
 const usage = cli.match(/const USAGE = `([\s\S]*?)`;/)?.[1] ?? '';
 const cliFlags = new Map(
@@ -101,7 +101,7 @@ for (const skill of skillDirs) {
 
   // A skill naming a verb the CLI dropped is the cheap direction. The costly one
   // is the reverse: --carry-from shipped in bin/cli.mjs and in --help and reached
-  // no skill, so two generate-theme runs silently carried the first theme's fonts
+  // no skill, so two set-colors runs silently carried the first theme's fonts
   // and geometry into the second. A flag its own skill never names is a flag the
   // model never reaches for.
   for (const [, verb] of text.matchAll(/npx (?:@motion-proto\/)?live-tokens ([a-z-]+)/g)) {

@@ -1,4 +1,4 @@
-// `live-tokens adjust` worker.
+// `live-tokens set-geometry` worker.
 //
 // Reads an ops file (JSON), applies it to every component's LIVE config via the
 // compiled engine (dist-plugin/adjust — the CLI never imports TS sources), and
@@ -99,7 +99,7 @@ function readLiveConfigs(dir, active) {
 }
 
 /** `engine` is a test seam; the CLI always runs the compiled bundle. */
-export async function runAdjust({
+export async function runSetGeometry({
   opsPath,
   dryRun = false,
   root = process.cwd(),
@@ -175,7 +175,7 @@ export async function runAdjust({
   };
 }
 
-export function formatAdjustResult(result) {
+export function formatSetGeometryResult(result) {
   const root = process.cwd();
   const lines = [];
   const { components: changedCount, aliases, skips } = result.totals;

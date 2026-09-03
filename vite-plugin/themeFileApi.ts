@@ -867,7 +867,7 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
     return (
       `"${fileName}" is a colors-and-type file, not a theme. Before 0.48 those lived in ` +
       `themes/; move it to ${path.basename(COLORS_AND_TYPE_DIR)}/ or delete it. To build a ` +
-      `theme, use the theme generator skill "generate-theme".`
+      `theme, use the theme skill "create-theme".`
     );
   }
 
@@ -1689,7 +1689,7 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
     const { theme, filled } = read;
     if (!theme.colorsAndType) {
       jsonResponse(res, 422, {
-        error: 'This theme carries no colors and type. Build one with the theme generator skill "generate-theme".',
+        error: 'This theme carries no colors and type. Build one with the theme skill "create-theme".',
       });
       return;
     }

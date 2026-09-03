@@ -1,6 +1,6 @@
 // tsup entry: bundles the font-pairing engine into dist-plugin/fontPairing so
-// `bin/set-fonts.mjs` imports compiled JS, never the TS sources — the
-// bin/adjust.mjs precedent.
+// `bin/set-type.mjs` imports compiled JS, never the TS sources — the
+// bin/set-geometry.mjs precedent.
 
 export {
   applyFontPairing,

@@ -1,5 +1,5 @@
 // tsup entry: bundles the pure generation pipeline (plus the path/slug helpers
-// the CLI needs) into dist-plugin/generateColorsAndType so `bin/generate-theme.mjs`
+// the CLI needs) into dist-plugin/generateColorsAndType so `bin/set-colors.mjs`
 // imports compiled JS, never the TS sources — the bin/migrate.mjs precedent.
 
 export {

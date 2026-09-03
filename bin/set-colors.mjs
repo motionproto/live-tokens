@@ -1,4 +1,4 @@
-// `live-tokens generate-theme` worker.
+// `live-tokens set-colors` worker.
 //
 // Reads a base color file (JSON), builds a full validated colors-and-type layer via
 // the compiled engine (dist-plugin/generateColorsAndType — the CLI never imports
@@ -23,7 +23,7 @@ const ENGINE = resolve(pkgRoot, 'dist-plugin/generateColorsAndType/index.js');
 const packageDataDir = join(pkgRoot, 'src/live-tokens/data');
 // Source of truth: src/editor/core/themes/themeTypes.ts, which
 // normalizeTheme.ts re-exports. This copy cannot import TS, so
-// `check:preset-themes` and generate-theme.test.ts are what catch a drift.
+// `check:preset-themes` and set-colors.test.ts are what catch a drift.
 const THEME_SCHEMA_VERSION = 5;
 
 async function loadEngine() {
@@ -109,7 +109,7 @@ function resolveCarrySource({ carryFrom, colorsAndTypeDir, componentConfigsDir, 
 
   // A working buffer is an unsaved delta from the active theme; absent theme
   // component entries fall through to the component defaults. Mirrors
-  // `bin/adjust.mjs`'s `readLiveConfigs` and the dev server's
+  // `bin/set-geometry.mjs`'s `readLiveConfigs` and the dev server's
   // `resolveLiveComponentConfig` — all three layers, in the same order.
   const componentConfigs = {};
   for (const comp of comps) {
@@ -123,7 +123,7 @@ function resolveCarrySource({ carryFrom, colorsAndTypeDir, componentConfigsDir, 
 }
 
 /** `engine` is a test seam; the CLI always runs the compiled bundle. */
-export async function runGenerateTheme({
+export async function runSetColors({
   baseColorsPath,
   activate = true,
   dryRun = false,
@@ -213,7 +213,7 @@ function applyTheme(slug, dirs) {
   writeFileSync(join(dirs.themesDir, '_active.json'), JSON.stringify({ activeFile: slug }));
 }
 
-export function formatGenerateThemeResult(result) {
+export function formatSetColorsResult(result) {
   const root = process.cwd();
   const lines = [];
   const wrote = result.dryRun ? 'Would write' : result.existed ? 'Updated' : 'Created';

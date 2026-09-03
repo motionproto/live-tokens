@@ -6,7 +6,7 @@ import { applyFontPairing, SLOT_ORDER, SLOT_VARIABLES } from '../src/editor/core
 import { resolveGoogleFont, discoveryUrl, persistUrlFor } from '../src/editor/core/fonts/googleFontsUrl';
 import { requiredWeights, weightCoverage } from '../src/editor/core/fonts/weightCoverage';
 // @ts-expect-error — plain .mjs module, no types
-import { runSetFonts } from './set-fonts.mjs';
+import { runSetType } from './set-type.mjs';
 
 const engine = {
   applyFontPairing,
@@ -69,7 +69,7 @@ function colorsAndType() {
 }
 
 function project(): string {
-  const root = mkdtempSync(join(tmpdir(), 'lt-set-fonts-'));
+  const root = mkdtempSync(join(tmpdir(), 'lt-set-type-'));
   roots.push(root);
   mkdirSync(join(root, 'themes'), { recursive: true });
   mkdirSync(join(root, 'colors-and-type'), { recursive: true });
@@ -95,7 +95,7 @@ function project(): string {
 function run(root: string, pairing: unknown, opts: Record<string, unknown> = {}) {
   const pairingPath = join(root, 'pairing.json');
   writeFileSync(pairingPath, JSON.stringify(pairing));
-  return runSetFonts({
+  return runSetType({
     pairingPath,
     colorsAndTypeDir: join(root, 'colors-and-type'),
     themesDir: join(root, 'themes'),
@@ -114,7 +114,7 @@ function hasBuffer(root: string): boolean {
   return existsSync(join(root, 'colors-and-type', '_working.json'));
 }
 
-describe('runSetFonts', () => {
+describe('runSetType', () => {
   it('writes the pairing into the unsaved buffer', async () => {
     const root = project();
     const result = await run(root, { display: 'Cinzel', body: 'Lato' });

@@ -63,10 +63,10 @@ name and the editor checks it, or paste a fonts URL, an embed tag, or your own
 You can also set both faces at once from the command line:
 
 ```bash
-npx live-tokens set-fonts fonts.json
+npx live-tokens set-type fonts.json
 ```
 
-with a brief naming the families:
+with a pairing file naming the families:
 
 ```json
 { "display": "Fraunces", "body": "Nunito Sans" }

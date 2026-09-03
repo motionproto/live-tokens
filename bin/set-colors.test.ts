@@ -5,7 +5,7 @@ import { join } from 'node:path';
 import { buildColorsAndType } from '../src/editor/core/themes/generateColorsAndType';
 import type { Oklch } from '../src/editor/core/palettes/oklch';
 // @ts-expect-error — plain .mjs module, no types
-import { runGenerateTheme, formatGenerateThemeResult } from './generate-theme.mjs';
+import { runSetColors, formatSetColorsResult } from './set-colors.mjs';
 import { THEME_SCHEMA_VERSION } from '../vite-plugin/themes/normalizeTheme';
 import { CURRENT_COMPONENT_SCHEMA_VERSION } from '../src/editor/core/themes/migrations';
 
@@ -65,7 +65,7 @@ function dirs(root: string) {
 function run(root: string, opts: Record<string, unknown> = {}, input: unknown = BASE_COLORS_FILE) {
   const baseColorsPath = join(root, 'base-colors.json');
   writeFileSync(baseColorsPath, JSON.stringify(input));
-  return runGenerateTheme({ baseColorsPath, engine, ...dirs(root), ...opts });
+  return runSetColors({ baseColorsPath, engine, ...dirs(root), ...opts });
 }
 
 const readJson = (path: string) => JSON.parse(readFileSync(path, 'utf8'));
@@ -79,7 +79,7 @@ afterEach(() => {
   while (roots.length) rmSync(roots.pop()!, { recursive: true, force: true });
 });
 
-describe('runGenerateTheme', () => {
+describe('runSetColors', () => {
   it('writes a theme document and opens it', async () => {
     const root = project();
     const result = await run(root);
@@ -141,7 +141,7 @@ describe('runGenerateTheme', () => {
   });
 
   // Correction 1 of docs/plans/theme-completeness.md: the live path was
-  // missing the third resolution layer `bin/adjust.mjs` and the dev server
+  // missing the third resolution layer `bin/set-geometry.mjs` and the dev server
   // both have, so a component neither the open theme nor a buffer carried
   // was silently dropped instead of falling through to its default.
   it('fills the gaps of an incomplete open theme from the component defaults', async () => {
@@ -285,20 +285,20 @@ describe('runGenerateTheme', () => {
 
   it('rejects a base color file that is not there or not JSON', async () => {
     const root = project();
-    await expect(runGenerateTheme({ baseColorsPath: join(root, 'nope.json'), engine, ...dirs(root) })).rejects.toThrow(
+    await expect(runSetColors({ baseColorsPath: join(root, 'nope.json'), engine, ...dirs(root) })).rejects.toThrow(
       /base color file not found/,
     );
     writeFileSync(join(root, 'bad.json'), '{');
-    await expect(runGenerateTheme({ baseColorsPath: join(root, 'bad.json'), engine, ...dirs(root) })).rejects.toThrow(
+    await expect(runSetColors({ baseColorsPath: join(root, 'bad.json'), engine, ...dirs(root) })).rejects.toThrow(
       /not valid JSON/,
     );
   });
 });
 
-describe('formatGenerateThemeResult', () => {
+describe('formatSetColorsResult', () => {
   it('names the theme file, the carry source and the open document', async () => {
     const root = project();
-    const out = formatGenerateThemeResult(await run(root));
+    const out = formatSetColorsResult(await run(root));
 
     expect(out).toContain('Created theme "Spring Meadow"');
     expect(out).toContain('themes/spring-meadow.json');
@@ -310,7 +310,7 @@ describe('formatGenerateThemeResult', () => {
 
   it('says nothing was written on a dry run', async () => {
     const root = project();
-    const out = formatGenerateThemeResult(await run(root, { dryRun: true }));
+    const out = formatSetColorsResult(await run(root, { dryRun: true }));
 
     expect(out).toContain('Would write theme "Spring Meadow"');
     expect(out).not.toContain('Opened');

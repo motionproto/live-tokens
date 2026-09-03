@@ -5,7 +5,7 @@ import { join } from 'node:path';
 import { adjustAliases } from '../src/editor/core/components/adjustAliases';
 import { matchesKind } from '../src/editor/core/components/aliasKinds';
 // @ts-expect-error — plain .mjs module, no types
-import { runAdjust, formatAdjustResult } from './adjust.mjs';
+import { runSetGeometry, formatSetGeometryResult } from './set-geometry.mjs';
 
 const engine = { adjustAliases, matchesKind };
 const CREATED = '2026-01-01T00:00:00.000Z';
@@ -40,7 +40,7 @@ function opsFile(root: string, doc: unknown): string {
 }
 
 function run(root: string, doc: unknown, opts: Record<string, unknown> = {}) {
-  return runAdjust({
+  return runSetGeometry({
     opsPath: opsFile(root, doc),
     componentConfigsDir: join(root, 'component-configs'),
     themesDir: join(root, 'themes'),
@@ -77,7 +77,7 @@ afterEach(() => {
   while (roots.length) rmSync(roots.pop()!, { recursive: true, force: true });
 });
 
-describe('runAdjust', () => {
+describe('runSetGeometry', () => {
   it('fills the buffer of changed components only', async () => {
     const root = fixture();
     const result = await run(root, { ops: [{ kind: 'radius', shift: 1 }] });
@@ -144,11 +144,11 @@ describe('runAdjust', () => {
   });
 });
 
-describe('formatAdjustResult', () => {
+describe('formatSetGeometryResult', () => {
   it('reports an above-ladder value as clamped rather than pulling it down', async () => {
     const root = fixture();
     const result = await run(root, { ops: [{ kind: 'padding', shift: 1 }] }, { dryRun: true });
-    const out = formatAdjustResult(result);
+    const out = formatSetGeometryResult(result);
 
     expect(out).toContain('skipped, already at the ladder end: --card-hero-padding');
     expect(out).not.toContain('--space-64 → ');
@@ -164,7 +164,7 @@ describe('formatAdjustResult', () => {
         '--button-ghost-radius': 'clamp(4px, 1vw, 12px)',
       },
     });
-    const out = formatAdjustResult(await run(root, { ops: [{ kind: 'radius', shift: 1 }] }));
+    const out = formatSetGeometryResult(await run(root, { ops: [{ kind: 'radius', shift: 1 }] }));
 
     expect(out).toContain('button  (from: theme "default")');
     expect(out).toContain('skipped, raw value, not a token: --button-ghost-radius');
@@ -196,7 +196,7 @@ describe('formatAdjustResult', () => {
     openTheme(root, 'sunset', {
       button: { name: 'sunset', aliases: { '--button-primary-radius': '--radius-sm' } },
     });
-    const out = formatAdjustResult(await run(root, { ops: [{ target: 'button', kind: 'radius', shift: 1 }] }));
+    const out = formatSetGeometryResult(await run(root, { ops: [{ target: 'button', kind: 'radius', shift: 1 }] }));
 
     expect(out).toContain('button  (from: theme "sunset")');
     expect(out).toContain('This is an unsaved edit');
@@ -204,7 +204,7 @@ describe('formatAdjustResult', () => {
 
   it('says an ops-file name is ignored', async () => {
     const root = fixture();
-    const out = formatAdjustResult(
+    const out = formatSetGeometryResult(
       await run(root, { name: 'Pill Buttons', ops: [{ target: 'button', kind: 'radius', set: '--radius-full' }] }),
     );
 

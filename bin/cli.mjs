@@ -8,9 +8,9 @@
 //   report                   The project as facts: tokens read, components used, findings by rule. Always exits 0.
 //   check-component [id]     Validate a component (or every authored one) against the create-component skill contract.
 //   check-page [paths...]    Validate pages against the build-page skill contract.
-//   generate-theme <colors>  Build a theme from 10 OKLCH base colors and open it.
-//   adjust-geometry <ops>    Apply radius/padding/gap/border-width ops to the open buffer.
-//   set-fonts <pairing>      Bind Google Fonts families to the theme's font stacks.
+//   set-colors <colors>      Build a theme from 10 OKLCH base colors and open it.
+//   set-geometry <ops>       Apply radius/padding/gap/border-width ops to the open buffer.
+//   set-type <pairing>       Bind Google Fonts families to the theme's font stacks.
 //   migrate [...]            Reconcile tokens.css, the data tree, and route references.
 
 import { cpSync, existsSync, mkdirSync, readdirSync, statSync, writeSync } from 'node:fs';
@@ -38,9 +38,9 @@ import {
 } from './migrate.mjs';
 import { runMigrateRoutes, formatRouteResult } from './migrate-routes.mjs';
 import { runCreate, formatCreateResult } from './create.mjs';
-import { runGenerateTheme, formatGenerateThemeResult } from './generate-theme.mjs';
-import { runAdjust, formatAdjustResult } from './adjust.mjs';
-import { runSetFonts, formatSetFontsResult } from './set-fonts.mjs';
+import { runSetColors, formatSetColorsResult } from './set-colors.mjs';
+import { runSetGeometry, formatSetGeometryResult } from './set-geometry.mjs';
+import { runSetType, formatSetTypeResult } from './set-type.mjs';
 
 const USAGE = `Usage: npx @motion-proto/live-tokens <command> [options]
 
@@ -77,9 +77,9 @@ Both check commands accept:
                               (or set "checks": { "rules": {...} } in
                               live-tokens.config.json; "checks": { "exclude":
                               [...] } drops paths from discovery entirely)
-  generate-theme <base-colors.json> [--no-activate] [--dry-run] [--carry-from <name>]
+  set-colors <base-colors.json> [--no-activate] [--dry-run] [--carry-from <name>]
                               Build a full theme from 10 OKLCH base colors
-                              (see the live-tokens-generate-theme skill),
+                              (see the live-tokens-set-colors skill),
                               enforce AA contrast on derived text tokens, write
                               themes/<slug>.json, and open it in the editor.
                               Opening never changes what your site ships; Adopt
@@ -89,19 +89,19 @@ Both check commands accept:
                               writing. Non-color content (gradients, fonts,
                               component aliases) carries forward from the live
                               look, or from theme <name> with --carry-from.
-  adjust-geometry <ops.json> [--dry-run]
+  set-geometry <ops.json> [--dry-run]
                               Move radius, padding, gap, and border-width
                               aliases along their token scales (see the
-                              live-tokens-adjust-geometry skill). Reads each
+                              live-tokens-set-geometry skill). Reads each
                               component's live config and writes the result to
                               that component's unsaved buffer, so save the open
                               theme in the editor to keep it. --dry-run prints
                               the report without writing.
-  set-fonts <pairing.json> [--dry-run] [--no-verify]
+  set-type <pairing.json> [--dry-run] [--no-verify]
                               Bind Google Fonts families to --font-display,
                               --font-sans, --font-serif, --font-mono and
                               --font-editorial (see
-                              the live-tokens-set-fonts skill). Each family is
+                              the live-tokens-set-type skill). Each family is
                               verified against the Google Fonts API and the URL
                               is negotiated from the weights it actually has.
                               Writes the result to the unsaved colors-and-type
@@ -241,32 +241,32 @@ if (command === 'check-page') {
   reportChecks('check-page', findings, checked, PAGE_RULES, opts);
 }
 
-if (command === 'generate-theme') {
+if (command === 'set-colors') {
   const baseColorsPath = rest.find((a) => !a.startsWith('-'));
   if (!baseColorsPath) {
-    fail(`Usage: npx @motion-proto/live-tokens generate-theme <base-colors.json> [--no-activate] [--dry-run]`);
+    fail(`Usage: npx @motion-proto/live-tokens set-colors <base-colors.json> [--no-activate] [--dry-run]`);
   }
   try {
     const carryIdx = rest.indexOf('--carry-from');
     const carryFrom = carryIdx !== -1 ? rest[carryIdx + 1] : undefined;
     if (carryIdx !== -1 && !carryFrom) fail(`--carry-from requires a theme name`);
-    const result = await runGenerateTheme({
+    const result = await runSetColors({
       baseColorsPath,
       activate: !rest.includes('--no-activate'),
       dryRun: rest.includes('--dry-run'),
       carryFrom,
     });
-    console.log(formatGenerateThemeResult(result));
+    console.log(formatSetColorsResult(result));
     process.exit(result.report.failures.length === 0 ? 0 : 1);
   } catch (err) {
-    fail(`generate-theme failed: ${err instanceof Error ? err.message : String(err)}`);
+    fail(`set-colors failed: ${err instanceof Error ? err.message : String(err)}`);
   }
 }
 
-if (command === 'adjust-geometry') {
+if (command === 'set-geometry') {
   const opsPath = rest.find((a) => !a.startsWith('-'));
   if (!opsPath) {
-    fail(`Usage: npx @motion-proto/live-tokens adjust-geometry <ops.json> [--dry-run]`);
+    fail(`Usage: npx @motion-proto/live-tokens set-geometry <ops.json> [--dry-run]`);
   }
   if (rest.includes('--no-activate')) {
     fail(
@@ -275,38 +275,38 @@ if (command === 'adjust-geometry') {
     );
   }
   try {
-    const result = await runAdjust({
+    const result = await runSetGeometry({
       opsPath,
       dryRun: rest.includes('--dry-run'),
     });
-    console.log(formatAdjustResult(result));
+    console.log(formatSetGeometryResult(result));
     process.exit(0);
   } catch (err) {
     fail(`adjust failed: ${err instanceof Error ? err.message : String(err)}`);
   }
 }
 
-if (command === 'set-fonts') {
+if (command === 'set-type') {
   const pairingPath = rest.find((a) => !a.startsWith('-'));
   if (!pairingPath) {
-    fail(`Usage: npx @motion-proto/live-tokens set-fonts <pairing.json> [--dry-run] [--no-verify]`);
+    fail(`Usage: npx @motion-proto/live-tokens set-type <pairing.json> [--dry-run] [--no-verify]`);
   }
   if (rest.includes('--no-activate')) {
     fail(
-      `set-fonts has no --no-activate: it edits the open buffer, which is what the page already runs. ` +
+      `set-type has no --no-activate: it edits the open buffer, which is what the page already runs. ` +
         `Drop the flag and re-run.`,
     );
   }
   try {
-    const result = await runSetFonts({
+    const result = await runSetType({
       pairingPath,
       dryRun: rest.includes('--dry-run'),
       verify: !rest.includes('--no-verify'),
     });
-    console.log(formatSetFontsResult(result));
+    console.log(formatSetTypeResult(result));
     process.exit(0);
   } catch (err) {
-    fail(`set-fonts failed: ${err instanceof Error ? err.message : String(err)}`);
+    fail(`set-type failed: ${err instanceof Error ? err.message : String(err)}`);
   }
 }
 
@@ -391,9 +391,10 @@ const SAMPLE_PROMPTS = {
   'live-tokens-build-page': 'build a pricing page using live-tokens components',
   'live-tokens-pick-component': "what's the difference between TabBar and SegmentedControl?",
   'live-tokens-create-component': 'author a new Toggle component for my live-tokens project',
-  'live-tokens-generate-theme': 'make me a bright and cheerful theme',
-  'live-tokens-adjust-geometry': 'make the buttons pill shaped',
-  'live-tokens-set-fonts': 'pair some fonts for this theme',
+  'live-tokens-create-theme': 'make me a bright and cheerful theme',
+  'live-tokens-set-colors': 'give me a cooler palette, same fonts',
+  'live-tokens-set-type': 'pair some fonts for this theme',
+  'live-tokens-set-geometry': 'make the buttons pill shaped',
   'live-tokens-fix-findings': 'make check:design pass',
   'live-tokens-check-compliance': 'check this project against the design system',
 };

@@ -3,7 +3,7 @@
 // thing an edit to a skill always changes. Nothing caught that, so an
 // insertion anywhere above a cited range silently moved every node below it
 // onto the wrong paragraph — visible only to someone who opened the page and
-// read it. That coupling is why generate-theme's step 1 still carries two
+// read it. That coupling is why create-theme's step 1 still carries two
 // decisions: renumbering was expensive, so it did not happen.
 //
 // Each range stores the opening text of the lines it means. The numbers are

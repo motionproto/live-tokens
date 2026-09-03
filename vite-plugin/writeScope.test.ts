@@ -14,9 +14,9 @@ import { matchesKind } from '../src/editor/core/components/aliasKinds';
 import { buildColorsAndType } from '../src/editor/core/themes/generateColorsAndType';
 import { migrateData } from './migrateData/migrateData';
 // @ts-expect-error — plain .mjs module, no types
-import { runAdjust } from '../bin/adjust.mjs';
+import { runSetGeometry } from '../bin/set-geometry.mjs';
 // @ts-expect-error — plain .mjs module, no types
-import { runGenerateTheme } from '../bin/generate-theme.mjs';
+import { runSetColors } from '../bin/set-colors.mjs';
 // @ts-expect-error — plain .mjs module, no types
 import { runMigrateData } from '../bin/migrate.mjs';
 
@@ -267,7 +267,7 @@ describe('write scope', () => {
     expect(fs.readFileSync(tokensCssPath, 'utf-8')).toBe(before);
   });
 
-  it('the adjust CLI writes only inside the component-configs dir it was given', async () => {
+  it('the set-geometry CLI writes only inside the component-configs dir it was given', async () => {
     fs.mkdirSync(path.join(configsDir, 'widget'), { recursive: true });
     fs.writeFileSync(
       path.join(configsDir, 'widget', 'default.json'),
@@ -278,7 +278,7 @@ describe('write scope', () => {
     fs.writeFileSync(opsPath, JSON.stringify({ ops: [{ kind: 'radius', shift: 1 }] }));
 
     const before = snapshotTree(tmp);
-    await runAdjust({
+    await runSetGeometry({
       opsPath,
       componentConfigsDir: configsDir,
       themesDir,
@@ -290,7 +290,7 @@ describe('write scope', () => {
     expect(outsideOf(touched, [configsDir], [])).toEqual([]);
   });
 
-  it('the generate-theme CLI writes only inside the data dirs it was given', async () => {
+  it('the set-colors CLI writes only inside the data dirs it was given', async () => {
     boot();
     const baseColorsPath = path.join(tmp, 'base-colors.json');
     fs.writeFileSync(
@@ -314,7 +314,7 @@ describe('write scope', () => {
     );
 
     const before = snapshotTree(tmp);
-    await runGenerateTheme({
+    await runSetColors({
       baseColorsPath,
       colorsAndTypeDir,
       componentConfigsDir: configsDir,

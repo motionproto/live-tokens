@@ -9,9 +9,10 @@
     { icon: 'fas fa-list-check', name: 'pick-component' },
     { icon: 'fas fa-table-columns', name: 'build-page' },
     { icon: 'fas fa-cube', name: 'create-component' },
-    { icon: 'fas fa-palette', name: 'generate-theme' },
-    { icon: 'fas fa-font', name: 'pair-fonts' },
-    { icon: 'fas fa-ruler-combined', name: 'adjust-geometry' },
+    { icon: 'fas fa-wand-magic-sparkles', name: 'create-theme' },
+    { icon: 'fas fa-palette', name: 'set-colors' },
+    { icon: 'fas fa-font', name: 'set-type' },
+    { icon: 'fas fa-ruler-combined', name: 'set-geometry' },
     { icon: 'fas fa-clipboard-list', name: 'check-compliance' },
     { icon: 'fas fa-check-double', name: 'fix-findings' }
   ];
