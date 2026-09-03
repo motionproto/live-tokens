@@ -31,7 +31,7 @@ other way, stop and report.
 | 1 | CLI verbs become `set-colors`, `set-type`, `set-geometry` | wave-executor | Done | `9f6a37e` |
 | 2 | Four skills: create-theme routes, three siblings execute | wave-executor | Done | `ce4b740` |
 | 3 | Atlas trees split and renamed, gates extended | wave-executor | Done | `96ab891` |
-| 4 | Docs, evals, changelog | wave-executor | Not started | |
+| 4 | Docs, evals, changelog | wave-executor | Done | `96a3014` |
 
 The orchestrator updates this table after each review gate: `Not started` to
 `In progress` to `Done` (or `Blocked`, with a one-line reason under the table).
