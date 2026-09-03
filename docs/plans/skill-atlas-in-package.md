@@ -21,16 +21,19 @@ Wave 1. `../live-tokens-online` carries uncommitted atlas work in
 `docs/skill-atlas-review/`. That work is the source Waves 1 and 3 copy from.
 Do not commit, stash, reset, or checkout over it; Wave 5 removes it after the
 port has shipped. If either tree is dirty in any other way, stop and report.
+(That online work was committed there as `05b338e` during the Wave 1 run,
+outside the executor's tool calls and byte-identical to what Wave 1 copied.
+Waves 3 and 5 read it from `main` rather than from the working tree.)
 
 ## Status
 
 | Wave | Summary | Executor | Status | Commit |
 |---|---|---|---|---|
-| 1 | Atlas component and sync script move into `src/editor/skill-atlas` | | Not started | |
-| 2 | Skill text ships as a generated module | | Not started | |
-| 3 | Trees merged, digests stamped, `src/app/skill-atlas` deleted | | Not started | |
-| 4 | `./skill-atlas` export, gates, docs, changelog | | Not started | |
-| 5 | Online mounts the export and deletes its copy | | Not started | |
+| 1 | Atlas component and sync script move into `src/editor/skill-atlas` | wave-executor | Done | `9ba882c` |
+| 2 | Skill text ships as a generated module | wave-executor | Done | `1a45f87` |
+| 3 | Trees merged, digests stamped, `src/app/skill-atlas` deleted | wave-executor | Done | `76b8808` + fixes `1f9f069`, `c1c3642`, `e06da57` |
+| 4 | `./skill-atlas` export, gates, docs, changelog | wave-executor | Done | `14d9db4` |
+| 5 | Online mounts the export and deletes its copy | | Blocked | needs 0.73.0 on npm |
 
 The orchestrator updates this table after each review gate: `Not started` to
 `In progress` to `Done` (or `Blocked`, with a one-line reason appended under
@@ -204,11 +207,64 @@ Edit one word in a reference file, confirm `check:skill-sources` fails, revert.
    `src/app/App.svelte` at `../editor/skill-atlas/SkillAtlas.svelte` and set
    its `source` to that path.
 
+6. Carried forward from the Wave 1 review gate:
+   - **Close the vacuous-pass gap in `scripts/sync-skill-atlas.mjs`.** Its
+     check loop iterates `Object.values(trees)`, so an empty or partial trees
+     file passes clean, and the script is in `prepublishOnly`. Add a coverage
+     assertion that every directory under `.claude/skills` has a tree keyed to
+     it, the way `check:skills` enumerates them, and confirm it fails on a
+     deliberately removed tree before reverting.
+   - **Point the layout nodes at the reference document.** The generated
+     module now carries `references/layout-sources.md`, so the build-page
+     tree's `bp-laws` / `bp-bands` / `bp-contain` / `bp-density` nodes can
+     open it. Use that exact key.
+   - **Give the masthead its own typography.** Wave 1 dropped the
+     `site.css` import (correctly, under invariant 2), which leaves the
+     `<h1>` in `SkillAtlas.svelte` as the only element with no scoped token
+     rule. Style it with the heading-xl token set so the component owns its
+     type the way `Docs.svelte` does. Do not reinstate `site.css`: Wave 5
+     mounts the component through a bare package import with nowhere to
+     attach it.
+
 **Verification.** `npm run check`, `npm run test`, `npm run check:skill-atlas`
 OK with digests. Manually: open the dev app's atlas route, walk every skill
 tab, confirm each node highlights the right lines in the source pane, the
 reference tabs open for generate-theme and create-component, and the labelled
-branches and back-edges draw.
+branches and back-edges draw, and the masthead heading renders at heading-xl.
+Reference tabs now sort alphabetically rather than in the reading order the
+online hand-written list used; confirm that order reads acceptably. Restoring
+reading order would be a plan amendment, not an executor's call.
+
+### Open for the user after Wave 4
+
+The smoke-install check proves the `./skill-atlas` subpath resolves from the
+tarball and that `skillSources.generated.ts` ships beside it, which is what
+the plan asked for. It does not compile the atlas: the smoke consumer's
+`App.svelte` mounts only `<Editor />`, so the bundler-boundary failure class
+that judgment call 3 cites (`docs/docs-loading-bug.md`) goes unexercised.
+Adding `import SkillAtlas from '@motion-proto/live-tokens/skill-atlas'` and
+`<SkillAtlas />` to the smoke consumer would prove the `skillSources`
+re-export chain compiles from `node_modules`. Two lines, the user's call.
+
+A second, wider one. A hand-written sibling `.d.ts` is authoritative for
+every importer of its `.svelte` file, this repo's own code included. Wave 4
+had to type `SkillAtlas.svelte.d.ts` as Svelte 5 `Component` rather than the
+`SvelteComponent` class `Docs.svelte.d.ts` uses, because the class form has
+no call signature and `RouteEntry.lazy` demands one. `Docs.svelte.d.ts`,
+`Editor.svelte.d.ts`, `ComponentEditorPage.svelte.d.ts`, and
+`ColorsPage.svelte.d.ts` all still carry the class form. Nothing breaks
+today, because the router renders them as component tags. Any consumer that
+mounts one through a `pages` route entry hits the error. Converting all four
+is a follow-up outside this plan.
+
+### Open for the user after Wave 3
+
+Online's recast of `bp-ver` into three checker nodes leaves lines 99 and 101
+of `live-tokens-build-page/SKILL.md` (the "read it band by band" and "look
+from a distance" paragraphs, both from the layout-laws edit) opening from no
+node. Judgment call 5 gives online the node, so adding one for the by-eye
+verification step is new authoring and a plan amendment, not an executor's
+call. Unresolved; the atlas is coherent without it.
 
 ## Wave 4 — the export, its gates, and the docs
 
@@ -250,7 +306,11 @@ Runs in `../live-tokens-online` after the release is on npm.
    `docs/skill-atlas-review/`, and the `sync:skill-atlas` /
    `check:skill-atlas` npm scripts. This is the first point at which the
    uncommitted online work may go; it is now in this repo's history.
-4. `npm run build` and `npm run check:design` (or whatever the site's
+4. Edit the site's `check` script before deleting the scripts it calls. It
+   currently runs `svelte-check ... && node scripts/sync-skill-atlas.mjs`,
+   which breaks the moment step 3 removes that file. The plan's step 3 list
+   omitted it.
+5. `npm run build` and `npm run check:design` (or whatever the site's
    checker script is named) green.
 
 **Verification.** `npm run dev`, open `/skills`, walk every tab as in Wave 3.
