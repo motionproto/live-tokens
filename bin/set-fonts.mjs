@@ -1,6 +1,6 @@
 // `live-tokens set-fonts` worker.
 //
-// Reads a pairing brief (JSON), verifies each family against Google Fonts,
+// Reads a pairing file (JSON), verifies each family against Google Fonts,
 // binds it to a font stack via the compiled engine (dist-plugin/fontPairing —
 // the CLI never imports TS sources), and writes the result into
 // `colors-and-type/_working.json`: the same buffer the editor's own font edits
@@ -79,7 +79,7 @@ function normalizeFace(slot, value) {
   if (value && typeof value === 'object' && typeof value.name === 'string') {
     return { name: value.name, ...(value.url ? { url: value.url } : {}) };
   }
-  throw new Error(`brief slot "${slot}" must be a family name or { "name": "...", "url": "..." }`);
+  throw new Error(`pairing slot "${slot}" must be a family name or { "name": "...", "url": "..." }`);
 }
 
 function sameJson(a, b) {
@@ -89,7 +89,7 @@ function sameJson(a, b) {
 /** `engine` and `fetcher` are test seams; the CLI always runs the compiled
  *  bundle against the live API. */
 export async function runSetFonts({
-  briefPath,
+  pairingPath,
   dryRun = false,
   verify = true,
   root = process.cwd(),
@@ -110,21 +110,21 @@ export async function runSetFonts({
     resolveDataDirs,
   } = engine ?? (await loadEngine());
 
-  const briefFull = resolve(root, briefPath);
-  if (!existsSync(briefFull)) throw new Error(`brief file not found at ${relative(root, briefFull)}`);
-  let brief;
+  const fullPath = resolve(root, pairingPath);
+  if (!existsSync(fullPath)) throw new Error(`pairing file not found at ${relative(root, fullPath)}`);
+  let input;
   try {
-    brief = readJson(briefFull);
+    input = readJson(fullPath);
   } catch (err) {
-    throw new Error(`brief file is not valid JSON: ${err instanceof Error ? err.message : String(err)}`);
+    throw new Error(`pairing file is not valid JSON: ${err instanceof Error ? err.message : String(err)}`);
   }
 
-  const requested = SLOT_ORDER.filter((slot) => brief[slot] !== undefined).map((slot) => ({
+  const requested = SLOT_ORDER.filter((slot) => input[slot] !== undefined).map((slot) => ({
     slot,
-    face: normalizeFace(slot, brief[slot]),
+    face: normalizeFace(slot, input[slot]),
   }));
   if (requested.length === 0) {
-    throw new Error(`brief names no slot. Use one or more of: ${SLOT_ORDER.join(', ')}.`);
+    throw new Error(`pairing names no slot. Use one or more of: ${SLOT_ORDER.join(', ')}.`);
   }
 
   const resolved = colorsAndTypeDir && themesDir ? null : resolveDataDirs();
@@ -196,7 +196,7 @@ export async function runSetFonts({
   }
 
   return {
-    briefPath: briefFull,
+    pairingPath: fullPath,
     colorsAndTypeDir: colorsDir,
     workingPath,
     openTheme: active?.slug ?? null,

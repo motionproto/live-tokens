@@ -1,6 +1,6 @@
 // `live-tokens generate-theme` worker.
 //
-// Reads a seed brief (JSON), builds a full validated colors-and-type layer via
+// Reads a base color file (JSON), builds a full validated colors-and-type layer via
 // the compiled engine (dist-plugin/generateColorsAndType — the CLI never imports
 // TS sources), enforces the AA contrast gate, and saves the result as a theme:
 // <themesDir>/<slug>.json, the document that carries the whole theme by value.
@@ -124,7 +124,7 @@ function resolveCarrySource({ carryFrom, colorsAndTypeDir, componentConfigsDir, 
 
 /** `engine` is a test seam; the CLI always runs the compiled bundle. */
 export async function runGenerateTheme({
-  briefPath,
+  baseColorsPath,
   activate = true,
   dryRun = false,
   carryFrom,
@@ -134,18 +134,18 @@ export async function runGenerateTheme({
   themesDir,
   engine,
 } = {}) {
-  const { buildColorsAndTypeFromSeeds, resolveDataDirs, CURRENT_COMPONENT_SCHEMA_VERSION } =
+  const { buildColorsAndType, resolveDataDirs, CURRENT_COMPONENT_SCHEMA_VERSION } =
     engine ?? (await loadEngine());
 
-  const briefFull = resolve(root, briefPath);
-  if (!existsSync(briefFull)) {
-    throw new Error(`brief not found at ${relative(root, briefFull)}`);
+  const fullPath = resolve(root, baseColorsPath);
+  if (!existsSync(fullPath)) {
+    throw new Error(`base color file not found at ${relative(root, fullPath)}`);
   }
-  let brief;
+  let input;
   try {
-    brief = readJson(briefFull);
+    input = readJson(fullPath);
   } catch (err) {
-    throw new Error(`brief is not valid JSON: ${err instanceof Error ? err.message : String(err)}`);
+    throw new Error(`base color file is not valid JSON: ${err instanceof Error ? err.message : String(err)}`);
   }
 
   const dirs =
@@ -156,8 +156,8 @@ export async function runGenerateTheme({
   const previousActive = readJsonIfExists(join(dirs.themesDir, '_active.json'))?.activeFile ?? 'default';
   const carry = resolveCarrySource({ carryFrom, ...dirs });
 
-  const { colorsAndType, slug, report } = buildColorsAndTypeFromSeeds(
-    brief,
+  const { colorsAndType, slug, report } = buildColorsAndType(
+    input,
     {
       cssVariables: carry.colorsAndType?.cssVariables,
       fontSources: carry.colorsAndType?.fontSources,
@@ -233,7 +233,7 @@ export function formatGenerateThemeResult(result) {
     );
   }
   if (result.report.failures.length > 0) {
-    lines.push(`\nUnmet floors — adjust the brief's seeds and re-run:`);
+    lines.push(`\nUnmet floors — adjust the base colors and re-run:`);
     for (const f of result.report.failures) lines.push(`  ! ${f}`);
   }
 

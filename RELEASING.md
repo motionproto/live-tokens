@@ -124,7 +124,7 @@ What should be in the tarball:
   `generate-theme`, `adjust`, `set-fonts`, `migrate`, `migrate-routes`)
 - `template/**` (the `create` scaffold)
 - `.claude/skills/**` (the Claude skills: build-page, create-component,
-  pick-component, generate-theme, pair-fonts, adjust-geometry)
+  pick-component, generate-theme, set-fonts, adjust-geometry)
 - These files only, out of `src/live-tokens/data/`: `tokens.generated.css`,
   `colors-and-type/default.json` plus the eight preset colors-and-type files,
   and the eight preset themes (each an entry-by-entry `files` listing, never a

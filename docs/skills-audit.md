@@ -26,7 +26,7 @@ Every item is closed except the two the audit itself made conditional.
 Per-skill: generate-theme's step 1 split, its anchor precedence rule, and an
 atlas node for the refinement section landed in cdfc522; create-component's
 suffix extraction in ca43d51; build-page's route scaffold in 781fadf;
-pair-fonts' superfamily list now reads as a starting set rather than a closed
+set-fonts' superfamily list now reads as a starting set rather than a closed
 one. adjust-geometry needed nothing, as the audit said.
 
 Three items resolved differently than recommended, each for a reason found
@@ -67,9 +67,9 @@ built so either answer can show up rather than assuming this one.
 | generate-theme | Documented `--carry-from` and the batch trap | The flag exists in `bin/cli.mjs` and in `--help`, and in no skill. Two runs without it silently carry the first theme's fonts and geometry into the second. |
 | generate-theme | New section: refining a theme that exists | The description triggers on "warmer", "more contrast", "calmer". The body had no path for them. Seeds are recoverable from `colorsAndType.editorConfigs.<Palette>.baseColor`. |
 | generate-theme | Brief is `scratch/<slug>-brief.json` | A theme file never records its brief, so the brief on disk is the only copy of the seeds. One fixed filename destroyed it on the next run. |
-| pair-fonts | Reload before Save, with the mechanism | The trap that cost a full round trip on 2026-08-25. The editor writes the buffers from its own browser copy, so a Save in a tab that was open during the run puts the stale copy back. |
-| pair-fonts | Named the weights the type scale asks for | The scale asks the display face for 600 and the body face for 400; markup adds 700 and italic. The skill guessed "400 or 700". Now the model screens candidates before running rather than reading a surprise out of the report. |
-| pair-fonts | Adopt is what rewrites `fonts.css` | A build with no editor in it loads nothing until then. |
+| set-fonts | Reload before Save, with the mechanism | The trap that cost a full round trip on 2026-08-25. The editor writes the buffers from its own browser copy, so a Save in a tab that was open during the run puts the stale copy back. |
+| set-fonts | Named the weights the type scale asks for | The scale asks the display face for 600 and the body face for 400; markup adds 700 and italic. The skill guessed "400 or 700". Now the model screens candidates before running rather than reading a surprise out of the report. |
+| set-fonts | Adopt is what rewrites `fonts.css` | A build with no editor in it loads nothing until then. |
 | adjust-geometry | Reload before Save | Same trap, same mechanism, and this skill also ends by telling the user to reload. |
 | adjust-geometry | Pointed `target` at the picker's Catalogue | The Catalogue is gate-checked complete against `component-configs/`, so it is the one component list that cannot go stale. |
 | pick-component | New Display family section | `Image`, `ImageLightbox`, `Table`, `ProgressBar`, `SideNavigation` were in the Catalogue with no guidance at all. `Image` against `ImageLightbox` and `SideNavigation` against `TabBar` are both real confusable pairs. |
@@ -96,7 +96,7 @@ worth reading and not worth trusting to the digit.
 | SKILL.md | Lines | Δ | Characters | Δ | ≈ Δ tokens |
 |---|---|---|---|---|---|
 | `live-tokens-generate-theme/SKILL.md` | 149 → 155 | +6 | 13,127 → 14,567 | +1,440 | +360 |
-| `live-tokens-pair-fonts/SKILL.md` | 88 → 90 | +2 | 6,739 → 7,403 | +664 | +166 |
+| `live-tokens-set-fonts/SKILL.md` | 88 → 90 | +2 | 6,739 → 7,403 | +664 | +166 |
 | `live-tokens-adjust-geometry/SKILL.md` | 93 → 93 | +0 | 8,056 → 8,382 | +326 | +82 |
 | `live-tokens-pick-component/SKILL.md` | 88 → 95 | +7 | 9,271 → 10,210 | +939 | +235 |
 | `live-tokens-build-page/SKILL.md` | 39 → 42 | +3 | 3,931 → 4,452 | +521 | +130 |
@@ -153,7 +153,7 @@ Remaining:
 - **The new refinement section has no atlas node.** The tree in `skillTrees.ts`
   still shows a straight line from brief to verify.
 
-### pair-fonts
+### set-fonts
 
 Clear, and the font matrix is the rare piece of design instruction that gives a
 rule rather than a taste. The skeleton/flesh model does real work.
@@ -309,7 +309,7 @@ incomplete, which is the hardest kind of gap to notice.
 ### 6. The tree is a DAG with two thin edges
 
 ```
-generate-theme ──> pair-fonts
+generate-theme ──> set-fonts
                └─> adjust-geometry
 
 pick-component ──> build-page
@@ -317,6 +317,6 @@ pick-component ──> build-page
                                     └─> build-page (added this pass)
 ```
 
-`pair-fonts` and `adjust-geometry` never point back up at `generate-theme`,
+`set-fonts` and `adjust-geometry` never point back up at `generate-theme`,
 which is right: they are leaves and they say so in their descriptions.
 `build-page` points at neither theme skill, which is the one edge I would add.

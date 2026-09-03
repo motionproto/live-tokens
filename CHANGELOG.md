@@ -1,5 +1,37 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+- **The theme skills call the user's own words the request, not the brief.**
+  "Brief" named two things at once: the user's words, and the seed JSON at
+  `scratch/<slug>-brief.json`. The second sense is fixed in two filenames and
+  in the CLI's own `<brief.json>` usage string, so the first sense moves.
+  Layer 0 of the pipeline in `docs/terminology.md` is now the request; the
+  files stay where they are and the prose calls them the seed file and the
+  pairing file. This changes one `description` trigger, in
+  `live-tokens-generate-theme`, from "from a natural-language brief" to "from
+  a natural-language request". set-fonts loses its one clash with the new
+  term: every family is a download rather than a request. The atlas tagline
+  named the wrong layer and now credits the design direction, the one sentence
+  three skills actually read.
+
+- **A palette's base color is called that, not its seed.** The word already
+  meant something else in this product: sketch mode displaces its strokes on
+  random seeds, and says so in copy a user reads. The theme document has always
+  called the value `baseColor`, so the skill and the CLI were the drift. The
+  generator's input key is now `baseColors` rather than `seeds`, and the file
+  the skill writes is `scratch/<slug>-base-colors.json`; the pairing file
+  `set-fonts` reads is `scratch/font-pairing.json`. Both CLI verbs report
+  against the new names, so a contrast failure now says "raise the Brand base
+  color lightness". Internally `buildColorsAndTypeFromSeeds` becomes
+  `buildColorsAndType`, dropping a "from" clause that was never true on the
+  type half, and `ColorsAndTypeBrief` becomes `ColorsAndTypeInput`; neither is
+  a public export. A kept base color file with
+  the old `seeds` key needs that one key renamed, and the skill rewrites the
+  file from scratch on every run anyway.
+
 ## 0.73.0 — The skill atlas ships from the package
 
 ### Added

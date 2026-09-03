@@ -1,18 +1,18 @@
 # Style vocabulary: idioms, eras, and genres
 
-Read this when the brief names a design idiom, a decade, or a genre. A mood
+Read this when the request names a design idiom, a decade, or a genre. A mood
 moves dials; an idiom sets constraints, and it overrides the generic defaults in
 SKILL.md: the polished-UI Accent at 45% of Brand's chroma is right for a vague
-brief and wrong for Bauhaus.
+request and wrong for Bauhaus.
 
-Entries are starting points, not seeds to copy: apply the chroma budget,
+Entries are starting points. Apply the chroma budget,
 per-role bands, and canvas commitment rules on top of them. Riso, Memphis, and
 brutalist break the chroma budget on purpose. Break it in the one layer the
 style is about and hold the rest of the ground tier down.
 
 The table runs modernist, digital, quiet, print, expressive.
 
-| Brief | Anchors (L, C, H) | Type | Geometry |
+| Request | Anchors (L, C, H) | Type | Geometry |
 |---|---|---|---|
 | Swiss, International | near-white canvas (0.97, 0.01, 0), or true black for the poster reading; one red Brand (0.55, 0.22, 27) as the only hue on screen; Neutral at C 0.005, untinted on purpose; monochromatic | one rational neo-grotesque across both slots | radius none, tight gaps, hairline borders |
 | Bauhaus | paper canvas (0.95, 0.02, 85) under primaries at full commitment: red (0.58, 0.21, 27), blue (0.48, 0.20, 264), yellow (0.86, 0.17, 90); triadic | geometric sans, heavy display | radius none on containers, radius full on buttons alone, so the circle reads as a decision |

@@ -461,7 +461,7 @@
       </div>
       <div class="pane-body" bind:this={treePane}>
         <div class="intro">
-          <Callout variant="info" label="The skill in brief">{tree.tagline}</Callout>
+          <Callout variant="info" label="The skill in one line">{tree.tagline}</Callout>
         </div>
 
         <div class="canvas" bind:this={canvas}>

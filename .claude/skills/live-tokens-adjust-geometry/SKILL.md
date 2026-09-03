@@ -1,6 +1,6 @@
 ---
 name: live-tokens-adjust-geometry
-description: Adjust corner radius, padding, gap, and border width across live-tokens components by moving each token alias along the shipped scales. Use when the user asks for pill or capsule buttons; rounded, rounder, sharp, sharper, square, softer, or harder corners; thicker or thinner borders; or density: space it out, tighter, denser, more compact, airier, more breathing room. Also invoked by live-tokens-generate-theme for the geometry half of a whole look. Changes shape and space aliases per component, never color, fonts, or tokens.css. Not for editing a single token (use the editor) or for color (see live-tokens-generate-theme).
+description: Adjust corner radius, padding, gap, and border width across live-tokens components by moving each token alias along the shipped scales. Use when the user asks for pill or capsule buttons; rounded, rounder, sharp, sharper, square, softer, or harder corners; thicker or thinner borders; or density: space it out, tighter, denser, more compact, airier, more breathing room. Also invoked by live-tokens-generate-theme, which supplies the geometry intent for a whole look. Changes shape and space aliases per component, never color, fonts, or tokens.css. Not for editing a single token (use the editor) or for color (see live-tokens-generate-theme).
 ---
 
 # Adjusting geometry
@@ -10,7 +10,7 @@ You translate the request into a small ops file; the CLI resolves each matching 
 ## Workflow
 
 1. Write the ops file to `scratch/adjust-ops.json`.
-2. Run `npx live-tokens adjust scratch/adjust-ops.json`. It writes `component-configs/<id>/_working.json` for every component the ops change, which is the buffer the page already runs. `--dry-run` prints the report without writing.
+2. Run `npx live-tokens adjust-geometry scratch/adjust-ops.json`. It writes `component-configs/<id>/_working.json` for every component the ops change, which is the buffer the page already runs. `--dry-run` prints the report without writing.
 3. Read the report card: every changed alias old → new, plus skips (raw value, off the ladder, already at the ladder end, pill preserved). Exit 1 means the run was rejected; the message names the offending op or the missing input, so fix it and re-run. Read where the controls landed, not only that the run succeeded: a button, badge, input, or tab padding sitting at `--space-6` is on its floor, and one that also carries `--radius-full` wants a targeted lift.
 4. Tell the user to reload the page before saving. The editor keeps the look in the browser and writes the buffers from that copy, so a Save in a tab that was open during the run puts the pre-run shape back and the report you just showed them becomes a lie. After the reload, offer the inverse op as the undo and say the edit is unsaved until they save the open theme.
 
@@ -56,7 +56,7 @@ Magnitude words: "slightly" or "a bit" is 1 step, unqualified is 1 to 2, "much",
 
 A global op spends the same number of steps everywhere, but a step costs a control far more than a container. `padding shift: -2` takes a card from a 16px inset to 10px and it is still a card. It takes a button from 8 to 4, doubled to 8px at each end, around an 18px line. The button stops reading as a button.
 
-So a global compaction is `shift: -1`. When the brief wants more, spend the extra steps on the containers by name (`card`, `dialog`, `panel`, `collapsiblesection`, `sidenavigation`, `table`, `codesnippet`) and leave the controls alone. Loosening is not symmetric: airier is safe globally, because nothing breaks by growing.
+So a global compaction is `shift: -1`. When the request wants more, spend the extra steps on the containers by name (`card`, `dialog`, `panel`, `collapsiblesection`, `sidenavigation`, `table`, `codesnippet`) and leave the controls alone. Loosening is not symmetric: airier is safe globally, because nothing breaks by growing.
 
 A pill needs the room most. `--radius-full` bends the corner in over the first and last glyph, so a capsule wants more horizontal inset than a square-cornered control, never less. `--space-8` is the floor for a large-text pill, which is where compact Midnight Study sits; the roomier pill presets (Ocean, Sunset, Royal Velvet) run `--space-10` to `--space-12`. Pair the radius op with a padding `set` on the same target, placed after any global compaction so it wins outright:
 

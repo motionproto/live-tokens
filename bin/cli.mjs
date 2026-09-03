@@ -8,9 +8,9 @@
 //   report                   The project as facts: tokens read, components used, findings by rule. Always exits 0.
 //   check-component [id]     Validate a component (or every authored one) against the create-component skill contract.
 //   check-page [paths...]    Validate pages against the build-page skill contract.
-//   generate-theme <brief>   Build a theme from a 10-seed OKLCH brief and open it.
-//   adjust <ops.json>        Apply radius/padding/gap/border-width ops to the open buffer.
-//   set-fonts <brief.json>   Bind Google Fonts families to the theme's font stacks.
+//   generate-theme <colors>  Build a theme from 10 OKLCH base colors and open it.
+//   adjust-geometry <ops>    Apply radius/padding/gap/border-width ops to the open buffer.
+//   set-fonts <pairing>      Bind Google Fonts families to the theme's font stacks.
 //   migrate [...]            Reconcile tokens.css, the data tree, and route references.
 
 import { cpSync, existsSync, mkdirSync, readdirSync, statSync, writeSync } from 'node:fs';
@@ -77,8 +77,8 @@ Both check commands accept:
                               (or set "checks": { "rules": {...} } in
                               live-tokens.config.json; "checks": { "exclude":
                               [...] } drops paths from discovery entirely)
-  generate-theme <brief.json> [--no-activate] [--dry-run] [--carry-from <name>]
-                              Build a full theme from a 10-seed OKLCH brief
+  generate-theme <base-colors.json> [--no-activate] [--dry-run] [--carry-from <name>]
+                              Build a full theme from 10 OKLCH base colors
                               (see the live-tokens-generate-theme skill),
                               enforce AA contrast on derived text tokens, write
                               themes/<slug>.json, and open it in the editor.
@@ -89,7 +89,7 @@ Both check commands accept:
                               writing. Non-color content (gradients, fonts,
                               component aliases) carries forward from the live
                               look, or from theme <name> with --carry-from.
-  adjust <ops.json> [--dry-run]
+  adjust-geometry <ops.json> [--dry-run]
                               Move radius, padding, gap, and border-width
                               aliases along their token scales (see the
                               live-tokens-adjust-geometry skill). Reads each
@@ -97,11 +97,11 @@ Both check commands accept:
                               that component's unsaved buffer, so save the open
                               theme in the editor to keep it. --dry-run prints
                               the report without writing.
-  set-fonts <brief.json> [--dry-run] [--no-verify]
+  set-fonts <pairing.json> [--dry-run] [--no-verify]
                               Bind Google Fonts families to --font-display,
                               --font-sans, --font-serif, --font-mono and
                               --font-editorial (see
-                              the live-tokens-pair-fonts skill). Each family is
+                              the live-tokens-set-fonts skill). Each family is
                               verified against the Google Fonts API and the URL
                               is negotiated from the weights it actually has.
                               Writes the result to the unsaved colors-and-type
@@ -242,16 +242,16 @@ if (command === 'check-page') {
 }
 
 if (command === 'generate-theme') {
-  const briefPath = rest.find((a) => !a.startsWith('-'));
-  if (!briefPath) {
-    fail(`Usage: npx @motion-proto/live-tokens generate-theme <brief.json> [--no-activate] [--dry-run]`);
+  const baseColorsPath = rest.find((a) => !a.startsWith('-'));
+  if (!baseColorsPath) {
+    fail(`Usage: npx @motion-proto/live-tokens generate-theme <base-colors.json> [--no-activate] [--dry-run]`);
   }
   try {
     const carryIdx = rest.indexOf('--carry-from');
     const carryFrom = carryIdx !== -1 ? rest[carryIdx + 1] : undefined;
     if (carryIdx !== -1 && !carryFrom) fail(`--carry-from requires a theme name`);
     const result = await runGenerateTheme({
-      briefPath,
+      baseColorsPath,
       activate: !rest.includes('--no-activate'),
       dryRun: rest.includes('--dry-run'),
       carryFrom,
@@ -263,10 +263,10 @@ if (command === 'generate-theme') {
   }
 }
 
-if (command === 'adjust') {
+if (command === 'adjust-geometry') {
   const opsPath = rest.find((a) => !a.startsWith('-'));
   if (!opsPath) {
-    fail(`Usage: npx @motion-proto/live-tokens adjust <ops.json> [--dry-run]`);
+    fail(`Usage: npx @motion-proto/live-tokens adjust-geometry <ops.json> [--dry-run]`);
   }
   if (rest.includes('--no-activate')) {
     fail(
@@ -287,9 +287,9 @@ if (command === 'adjust') {
 }
 
 if (command === 'set-fonts') {
-  const briefPath = rest.find((a) => !a.startsWith('-'));
-  if (!briefPath) {
-    fail(`Usage: npx @motion-proto/live-tokens set-fonts <brief.json> [--dry-run] [--no-verify]`);
+  const pairingPath = rest.find((a) => !a.startsWith('-'));
+  if (!pairingPath) {
+    fail(`Usage: npx @motion-proto/live-tokens set-fonts <pairing.json> [--dry-run] [--no-verify]`);
   }
   if (rest.includes('--no-activate')) {
     fail(
@@ -299,7 +299,7 @@ if (command === 'set-fonts') {
   }
   try {
     const result = await runSetFonts({
-      briefPath,
+      pairingPath,
       dryRun: rest.includes('--dry-run'),
       verify: !rest.includes('--no-verify'),
     });
@@ -393,7 +393,7 @@ const SAMPLE_PROMPTS = {
   'live-tokens-create-component': 'author a new Toggle component for my live-tokens project',
   'live-tokens-generate-theme': 'make me a bright and cheerful theme',
   'live-tokens-adjust-geometry': 'make the buttons pill shaped',
-  'live-tokens-pair-fonts': 'pair some fonts for this theme',
+  'live-tokens-set-fonts': 'pair some fonts for this theme',
   'live-tokens-fix-findings': 'make check:design pass',
   'live-tokens-check-compliance': 'check this project against the design system',
 };

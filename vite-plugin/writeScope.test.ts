@@ -11,7 +11,7 @@ import path from 'path';
 import { themeFileApi } from './themeFileApi';
 import { adjustAliases } from '../src/editor/core/components/adjustAliases';
 import { matchesKind } from '../src/editor/core/components/aliasKinds';
-import { buildColorsAndTypeFromSeeds } from '../src/editor/core/themes/generateColorsAndType';
+import { buildColorsAndType } from '../src/editor/core/themes/generateColorsAndType';
 import { migrateData } from './migrateData/migrateData';
 // @ts-expect-error — plain .mjs module, no types
 import { runAdjust } from '../bin/adjust.mjs';
@@ -292,13 +292,13 @@ describe('write scope', () => {
 
   it('the generate-theme CLI writes only inside the data dirs it was given', async () => {
     boot();
-    const briefPath = path.join(tmp, 'brief.json');
+    const baseColorsPath = path.join(tmp, 'base-colors.json');
     fs.writeFileSync(
-      briefPath,
+      baseColorsPath,
       JSON.stringify({
         name: 'Scope Check',
         scheme: 'light',
-        seeds: {
+        baseColors: {
           Brand: { l: 0.62, c: 0.17, h: 145 },
           Accent: { l: 0.8, c: 0.15, h: 95 },
           Special: { l: 0.6, c: 0.19, h: 300 },
@@ -315,11 +315,11 @@ describe('write scope', () => {
 
     const before = snapshotTree(tmp);
     await runGenerateTheme({
-      briefPath,
+      baseColorsPath,
       colorsAndTypeDir,
       componentConfigsDir: configsDir,
       themesDir,
-      engine: { buildColorsAndTypeFromSeeds },
+      engine: { buildColorsAndType },
     });
     const touched = changedSince(before, snapshotTree(tmp));
 

@@ -3,35 +3,35 @@ import type { SkillTree } from './types';
 export const skillTrees: Record<string, SkillTree> = {
   "generate-theme": {
     "id": "live-tokens-generate-theme",
-    "digest": "sha256:e6b9892d67820148",
+    "digest": "sha256:f5bce8ff8be8d03a",
     "title": "generate-theme",
-    "tagline": "One brief guides color, type, and geometry across three skills.",
+    "tagline": "One design direction guides color, type, and geometry across three skills.",
     "nodes": [
       {
         "id": "gt-trig",
         "row": 0,
         "kind": "trigger",
         "title": "Define or refine a theme",
-        "desc": "A palette, mood, style, occasion, hue, or color refinement drives the theme. The editor handles single tokens; pair-fonts handles type; adjust-geometry handles geometry.",
+        "desc": "A palette, mood, style, occasion, hue, or color refinement drives the theme. The editor handles single tokens; set-fonts handles type; adjust-geometry handles geometry.",
         "lines": [
           2,
           8
         ],
         "anchor": "name: live-tokens-generate-theme",
-        "anchorEnd": "A theme is three decisions made from one brief: color, type,"
+        "anchorEnd": "A theme is three decisions made from one request: color, type,"
       },
       {
-        "id": "gt-voice",
+        "id": "gt-direction",
         "row": 1,
         "kind": "step",
         "n": "1",
-        "title": "Define the theme voice",
-        "desc": "The voice sentence captures the mood, hue family, scheme, and implied type and geometry. It guides every later choice.",
+        "title": "State the design direction",
+        "desc": "One sentence fixes the mood, the hue family, the scheme, and the type and geometry that mood implies. Every later step keys off it.",
         "lines": [
           12,
           12
         ],
-        "anchor": "Read the brief once and name its voice in a sentence: the mo"
+        "anchor": "Read the request once and state the design direction to the "
       },
       {
         "id": "gt-anchor",
@@ -43,7 +43,7 @@ export const skillTrees: Record<string, SkillTree> = {
           13,
           13
         ],
-        "anchor": "Read the anchor reference that matches the voice (feeling, i",
+        "anchor": "Read the anchor reference that matches the design direction ",
         "n": "2"
       },
       {
@@ -53,10 +53,11 @@ export const skillTrees: Record<string, SkillTree> = {
         "title": "Read the mood anchor",
         "reference": "references/mood-vocabulary.md",
         "lines": [
-          123,
-          123
+          124,
+          124
         ],
-        "anchor": "- `references/mood-vocabulary.md` covers feelings: joyful, p"
+        "anchor": "- `references/mood-vocabulary.md` covers feelings: joyful, p",
+        "desc": "Eighteen feelings placed on valence, energy, and dominance. A feeling the table omits still places on the three axes."
       },
       {
         "id": "gt-style",
@@ -65,10 +66,11 @@ export const skillTrees: Record<string, SkillTree> = {
         "title": "Read the style anchor",
         "reference": "references/style-vocabulary.md",
         "lines": [
-          124,
-          124
+          125,
+          125
         ],
-        "anchor": "- `references/style-vocabulary.md` covers named idioms, eras"
+        "anchor": "- `references/style-vocabulary.md` covers named idioms, eras",
+        "desc": "Nineteen idioms, eras, and genres. Each entry fixes color, type, and geometry as one set, and its Type and Geometry columns go to the siblings verbatim."
       },
       {
         "id": "gt-named",
@@ -77,34 +79,36 @@ export const skillTrees: Record<string, SkillTree> = {
         "title": "Read the named-theme anchor",
         "reference": "references/named-themes.md",
         "lines": [
-          125,
-          125
+          126,
+          126
         ],
-        "anchor": "- `references/named-themes.md` covers holidays, seasons, and"
+        "anchor": "- `references/named-themes.md` covers holidays, seasons, and",
+        "desc": "Holidays, seasons, and natural scenes. Each is a statement request: canvas commitment level 2 or 3, with the named color on the ground."
       },
       {
         "id": "gt-none",
         "row": 3,
-        "kind": "ref",
+        "kind": "step",
         "title": "Use generic color and geometry rules",
         "lines": [
-          127,
-          127
+          128,
+          128
         ],
-        "anchor": "Most briefs hit the first file. A brief that matches two (\"c"
+        "anchor": "Most requests hit the first file. A request that matches two (\"c",
+        "desc": "The chroma budget, the per-role bands, and the geometry table carry a request that names no feeling, idiom, or occasion."
       },
       {
-        "id": "gt-seed",
+        "id": "gt-base-colors",
         "row": 4,
         "kind": "step",
         "n": "3",
-        "title": "Define ten OKLCH seeds",
-        "desc": "scratch/<slug>-brief.json records Brand, Accent, Special, Canvas, Neutral, Alternate, and four status seeds.",
+        "title": "Define ten OKLCH base colors",
+        "desc": "The color intent becomes ten base colors in scratch/<slug>-base-colors.json: Brand, Accent, Special, Canvas, Neutral, Alternate, and four statuses.",
         "lines": [
-          14,
-          14
+          15,
+          15
         ],
-        "anchor": "Translate the brief into a seed file using the framework bel"
+        "anchor": "Translate the color intent into a base color file using the"
       },
       {
         "id": "gt-cons",
@@ -113,19 +117,19 @@ export const skillTrees: Record<string, SkillTree> = {
         "title": "Apply all palette constraints",
         "chips": [
           {
-            "label": "Brief schema",
+            "label": "Base color file schema",
             "lines": [
-              24,
-              47
+              26,
+              49
             ],
-            "anchor": "## The brief",
+            "anchor": "## The base color file",
             "anchorEnd": "Roles: **Brand** is the dominant chromatic identity; **Accen"
           },
           {
             "label": "Chroma budget",
             "lines": [
-              49,
-              58
+              51,
+              61
             ],
             "anchor": "## Chroma budget: color is inversely proportional to area",
             "anchorEnd": "A good theme reads as 3 or 4 hue families on screen, never 1"
@@ -133,8 +137,8 @@ export const skillTrees: Record<string, SkillTree> = {
           {
             "label": "Role bands",
             "lines": [
-              60,
-              72
+              63,
+              75
             ],
             "anchor": "## Per-role bands",
             "anchorEnd": "| Danger | shared status L, C 0.15 to 0.20 | same | H 20 to "
@@ -142,17 +146,26 @@ export const skillTrees: Record<string, SkillTree> = {
           {
             "label": "Canvas commitment",
             "lines": [
-              74,
-              87
+              77,
+              86
             ],
             "anchor": "**The canvas carries the theme's identity, so commit to it.*",
-            "anchorEnd": ""
+            "anchorEnd": "- When generating a set of themes, make the canvases pairwis"
+          },
+          {
+            "label": "Dark scheme and status lightness",
+            "lines": [
+              87,
+              89
+            ],
+            "anchor": "- A dark scheme transforms every base color: each chromatic ",
+            "anchorEnd": "- Status hues never rotate with the harmony; only their L an"
           },
           {
             "label": "Mood dials",
             "lines": [
-              88,
-              94
+              91,
+              97
             ],
             "anchor": "## Mood dials",
             "anchorEnd": "Avoid mid-lightness yellow-green (H 100 to 120 at L 0.5 to 0"
@@ -160,8 +173,8 @@ export const skillTrees: Record<string, SkillTree> = {
           {
             "label": "Gamut guardrails",
             "lines": [
-              96,
-              103
+              99,
+              106
             ],
             "anchor": "## Gamut guardrails",
             "anchorEnd": "- Peak chroma anchors: red H20 C 0.25 at L 0.63; orange H60 "
@@ -169,8 +182,8 @@ export const skillTrees: Record<string, SkillTree> = {
           {
             "label": "Hue harmony",
             "lines": [
-              105,
-              111
+              108,
+              114
             ],
             "anchor": "## Harmony",
             "anchorEnd": "- Drama or maximum contrast: complementary, triadic, or tetr"
@@ -178,8 +191,8 @@ export const skillTrees: Record<string, SkillTree> = {
           {
             "label": "Canvas gradient and shadows",
             "lines": [
-              113,
-              117
+              116,
+              120
             ],
             "anchor": "## Canvas sky and shadows",
             "anchorEnd": "Shadow opacity derives from Canvas lightness and re-derives "
@@ -193,97 +206,107 @@ export const skillTrees: Record<string, SkillTree> = {
         "kind": "cli",
         "n": "4",
         "title": "Generate and validate the theme",
-        "desc": "The CLI writes and opens themes/<slug>.json and reports contrast. Reruns replace every color, including editor edits. --carry-from <theme> copies gradients, fonts, and component aliases.",
+        "desc": "The CLI writes and opens themes/<slug>.json and reports contrast. Reruns replace every color, including editor edits. --carry-from <theme> takes gradients, fonts, and aliases from a named theme instead of the live look.",
         "lines": [
-          15,
-          15
+          16,
+          16
         ],
-        "anchor": "Run `npx live-tokens generate-theme scratch/<slug>-brief.jso",
+        "anchor": "Run `npx live-tokens generate-theme scratch/<slug>-base-colo",
         "chips": [
           {
             "label": "Flags",
             "lines": [
-              22,
-              22
+              24,
+              24
             ],
             "anchor": "Flags: `--dry-run` prints the report without writing; `--no-"
           }
         ],
-        "command": "npx live-tokens generate-theme scratch/<slug>-brief.json"
+        "command": "npx live-tokens generate-theme scratch/<slug>-base-colors.json"
       },
       {
         "id": "gt-fail",
         "row": 7,
         "kind": "gate",
-        "title": "A seed fails validation",
-        "desc": "The report names the failed seed. A valid repair raises its lightness or reduces its chroma before the next run.",
+        "title": "A base color fails validation",
+        "desc": "The report names the failed base color. A valid repair raises its lightness or reduces its chroma before the next run.",
         "lines": [
-          15,
-          15
+          16,
+          16
         ],
-        "anchor": "Run `npx live-tokens generate-theme scratch/<slug>-brief.jso"
+        "anchor": "Run `npx live-tokens generate-theme scratch/<slug>-base-colo"
       },
       {
         "id": "gt-pass",
         "row": 7,
         "kind": "ok",
         "title": "Colors pass validation",
-        "desc": "The flow continues to the type and geometry decisions.",
+        "desc": "Every contrast floor is met. Auto-corrected values count as passing.",
         "lines": [
-          15,
-          15
+          16,
+          16
         ],
-        "anchor": "Run `npx live-tokens generate-theme scratch/<slug>-brief.jso"
+        "anchor": "Run `npx live-tokens generate-theme scratch/<slug>-base-colo",
+        "chips": [
+          {
+            "label": "Safe operation order",
+            "lines": [
+              22,
+              22
+            ],
+            "anchor": "Order matters only for safety, and the order above is safe: "
+          }
+        ]
       },
       {
         "id": "gt-type-q",
         "row": 8,
         "kind": "decide",
-        "title": "Preserve the current type?",
-        "desc": "An explicit color-only instruction preserves current type. Complete themes pair type through pair-fonts.",
+        "title": "Does the theme need new type?",
+        "desc": "An explicit color-only instruction preserves current type. Complete themes pair type through set-fonts.",
         "lines": [
-          16,
-          16
+          18,
+          18
         ],
-        "anchor": "Invoke **live-tokens-pair-fonts** with the same voice. Skip "
+        "anchor": "Invoke **live-tokens-set-fonts** with the type intent. Skip "
       },
       {
         "id": "gt-fonts",
         "row": 9,
         "kind": "hand",
         "n": "5",
-        "title": "Pair fonts from the same voice",
-        "desc": "pair-fonts receives the voice sentence and aligns the type with the theme.",
+        "title": "Pair fonts from the same design direction",
+        "desc": "set-fonts receives the type intent and aligns the type with the theme.",
         "lines": [
-          16,
-          16
+          18,
+          18
         ],
-        "anchor": "Invoke **live-tokens-pair-fonts** with the same voice. Skip "
+        "anchor": "Invoke **live-tokens-set-fonts** with the type intent. Skip "
       },
       {
         "id": "gt-geo-q",
         "row": 10,
         "kind": "decide",
         "title": "Does the theme need geometry changes?",
-        "desc": "A shape or spacing cue continues to adjust-geometry. A neutral geometry voice preserves current aliases.",
+        "desc": "A shape or spacing cue continues to adjust-geometry. A design direction that implies nothing about geometry preserves the current aliases.",
         "lines": [
-          17,
-          17
+          19,
+          19
         ],
-        "anchor": "Invoke **live-tokens-adjust-geometry** with the geometry the"
+        "anchor": "Invoke **live-tokens-adjust-geometry** with the geometry int"
       },
       {
         "id": "gt-geo",
         "row": 12,
         "kind": "hand",
         "n": "6",
-        "title": "Adjust geometry from the same voice",
-        "desc": "adjust-geometry receives the geometry intent. Anchor geometry overrides the voice table.",
+        "title": "Adjust geometry from the same design direction",
+        "desc": "adjust-geometry receives the geometry intent. Anchor geometry overrides the table.",
         "lines": [
-          17,
-          17
+          19,
+          19
         ],
-        "anchor": "Invoke **live-tokens-adjust-geometry** with the geometry the"
+        "anchor": "Invoke **live-tokens-adjust-geometry** with the geometry int"
       },
       {
         "id": "gt-geotab",
@@ -292,30 +315,13 @@ export const skillTrees: Record<string, SkillTree> = {
         "title": "Prepare the geometry hand-off",
         "chips": [
           {
-            "label": "Voice-to-geometry map",
+            "label": "Direction-to-geometry map",
             "lines": [
-              129,
-              140
+              130,
+              141
             ],
-            "anchor": "## Geometry from the voice",
-            "anchorEnd": "This table is the fallback. When the brief matched an entry "
-          },
-          {
-            "label": "Safe operation order",
-            "lines": [
-              20,
-              20
-            ],
-            "anchor": "Order matters only for safety, and the order above is safe: "
-          },
-          {
-            "label": "Output files",
-            "lines": [
-              148,
-              150
-            ],
-            "anchor": "## Files each step writes",
-            "anchorEnd": "Color writes `themes/<slug>.json` and opens it. Type and geo"
+            "anchor": "## Geometry from the design direction",
+            "anchorEnd": "This table is the fallback. When the request matched an entry "
           }
         ],
         "tag": "sources"
@@ -326,10 +332,10 @@ export const skillTrees: Record<string, SkillTree> = {
         "kind": "step",
         "n": "7",
         "title": "Reload and review the theme",
-        "desc": "The browser holds type and geometry in the working buffer until Save. Further revisions update the same brief.",
+        "desc": "The browser holds type and geometry in the working buffer until Save. Further revisions update the same base color file.",
         "lines": [
-          18,
-          18
+          20,
+          20
         ],
         "anchor": "Tell the user to look at the running app, and that type and "
       },
@@ -340,8 +346,8 @@ export const skillTrees: Record<string, SkillTree> = {
         "title": "Verify the complete theme",
         "desc": "Colors pass validation, each invoked sibling reports success, and the reloaded app shows the complete theme. Selecting the previous theme restores the prior look.",
         "lines": [
-          152,
-          156
+          153,
+          157
         ],
         "anchor": "## Verify",
         "anchorEnd": "- To return to the previous look, load the theme the CLI out"
@@ -351,26 +357,26 @@ export const skillTrees: Record<string, SkillTree> = {
         "row": 15,
         "kind": "decide",
         "title": "Refine the theme?",
-        "desc": "Every refinement updates the existing seed brief. The generator owns the derived theme data.",
+        "desc": "Every refinement updates the existing base color file. The generator owns the derived theme data.",
         "lines": [
-          142,
-          146
+          143,
+          145
         ],
         "anchor": "## Refining a theme that exists",
-        "anchorEnd": "One adjective moves one dial. Warmer and cooler rotate hue; "
+        "anchorEnd": "\"Warmer\", \"calmer\", \"more contrast\" arrive against a theme t"
       },
       {
         "id": "gt-refine",
         "row": 16,
         "kind": "step",
         "tag": "Follow-up",
-        "title": "Refine the seed brief",
-        "desc": "The scratch brief supplies seeds. The theme file recovers them after scratch-file loss. Each refinement moves one requested dial and retains the other seeds.",
+        "title": "Refine the base color file",
+        "desc": "The base color file supplies the base colors. The theme file recovers them after scratch-file loss. Each refinement moves one requested dial and retains the other base colors.",
         "lines": [
-          142,
-          146
+          145,
+          147
         ],
-        "anchor": "## Refining a theme that exists",
+        "anchor": "\"Warmer\", \"calmer\", \"more contrast\" arrive against a theme t",
         "anchorEnd": "One adjective moves one dial. Warmer and cooler rotate hue; "
       },
       {
@@ -378,10 +384,10 @@ export const skillTrees: Record<string, SkillTree> = {
         "row": 16,
         "kind": "done",
         "title": "Theme complete",
-        "desc": "generate-theme has written the colors. Saving the open theme keeps any type or geometry changes.",
+        "desc": "generate-theme has written the colors. One Save in the editor keeps the type and geometry too. Adopt ships the theme to the site.",
         "lines": [
-          148,
-          150
+          149,
+          151
         ],
         "anchor": "## Files each step writes",
         "anchorEnd": "Color writes `themes/<slug>.json` and opens it. Type and geo"
@@ -390,10 +396,10 @@ export const skillTrees: Record<string, SkillTree> = {
     "edges": [
       {
         "from": "gt-trig",
-        "to": "gt-voice"
+        "to": "gt-direction"
       },
       {
-        "from": "gt-voice",
+        "from": "gt-direction",
         "to": "gt-anchor"
       },
       {
@@ -414,26 +420,26 @@ export const skillTrees: Record<string, SkillTree> = {
       {
         "from": "gt-anchor",
         "to": "gt-none",
-        "label": "generic rules"
+        "label": "none"
       },
       {
         "from": "gt-mood",
-        "to": "gt-seed"
+        "to": "gt-base-colors"
       },
       {
         "from": "gt-style",
-        "to": "gt-seed"
+        "to": "gt-base-colors"
       },
       {
         "from": "gt-named",
-        "to": "gt-seed"
+        "to": "gt-base-colors"
       },
       {
         "from": "gt-none",
-        "to": "gt-seed"
+        "to": "gt-base-colors"
       },
       {
-        "from": "gt-seed",
+        "from": "gt-base-colors",
         "to": "gt-cons"
       },
       {
@@ -518,10 +524,10 @@ export const skillTrees: Record<string, SkillTree> = {
       }
     ]
   },
-  "pair-fonts": {
-    "id": "live-tokens-pair-fonts",
-    "digest": "sha256:f5f807a05b7665e2",
-    "title": "pair-fonts",
+  "set-fonts": {
+    "id": "live-tokens-set-fonts",
+    "digest": "sha256:94592f0909d3b5d8",
+    "title": "set-fonts",
     "tagline": "Choose the families; the CLI verifies them and builds URLs for their available weights.",
     "nodes": [
       {
@@ -529,13 +535,13 @@ export const skillTrees: Record<string, SkillTree> = {
         "row": 0,
         "kind": "trigger",
         "title": "Choose or pair font families",
-        "desc": "The pairing selects or restyles font families. generate-theme supplies the type voice for complete themes.",
+        "desc": "The pairing selects or restyles font families. generate-theme supplies the type intent for complete themes.",
         "lines": [
           2,
           6
         ],
-        "anchor": "name: live-tokens-pair-fonts",
-        "anchorEnd": "# Pairing fonts for a theme"
+        "anchor": "name: live-tokens-set-fonts",
+        "anchorEnd": "# Setting a theme's fonts"
       },
       {
         "id": "pf-pool",
@@ -566,8 +572,8 @@ export const skillTrees: Record<string, SkillTree> = {
         "id": "pf-spec",
         "row": 3,
         "kind": "decide",
-        "title": "Does the brief define a specific voice?",
-        "desc": "A specific voice follows the full matrix. A vague or quiet brief takes a conservative pairing.",
+        "title": "Does the type intent name a specific voice?",
+        "desc": "A specific voice follows the full matrix. A vague or quiet type intent takes a conservative pairing.",
         "lines": [
           65,
           67
@@ -583,10 +589,10 @@ export const skillTrees: Record<string, SkillTree> = {
         "desc": "Form describes its model: dynamic, rational, or geometric. Finish describes stroke contrast and serif treatment.",
         "lines": [
           35,
-          44
+          43
         ],
         "anchor": "## The font matrix: the decision rule",
-        "anchorEnd": ""
+        "anchorEnd": "| **Geometric** | monolinear, circle-and-line | technical, m"
       },
       {
         "id": "pf-short",
@@ -646,14 +652,14 @@ export const skillTrees: Record<string, SkillTree> = {
         "id": "pf-voice",
         "row": 6,
         "kind": "step",
-        "title": "Match the pairing to the theme voice",
-        "desc": "The pairing matches type and color to the same brief. Conflicting voices make them feel unrelated.",
+        "title": "Match the pairing to the design direction",
+        "desc": "The pairing matches type and color to the same design direction. Conflicting voices make them feel unrelated.",
         "lines": [
           51,
           63
         ],
         "anchor": "## Voice",
-        "anchorEnd": "Match the type to the same brief the color came from. A warm"
+        "anchorEnd": "Match the type to the same design direction the color came f"
       },
       {
         "id": "pf-watch",
@@ -683,7 +689,7 @@ export const skillTrees: Record<string, SkillTree> = {
               78,
               78
             ],
-            "anchor": "- **Every family is a request.** Two is the target; three ne"
+            "anchor": "- **Every family is a download.** Two is the target; three n"
           },
           {
             "label": "Repeated families across theme sets",
@@ -702,23 +708,23 @@ export const skillTrees: Record<string, SkillTree> = {
         "tag": "risks"
       },
       {
-        "id": "pf-brief",
+        "id": "pf-pairing",
         "row": 8,
         "kind": "step",
         "n": "1",
-        "title": "Write scratch/font-brief.json",
-        "desc": "The brief changes listed slots and preserves the rest. Display maps to --font-display; body maps to --font-sans. Serif, mono, and editorial serve specialized roles.",
+        "title": "Write scratch/font-pairing.json",
+        "desc": "The pairing file changes listed slots and preserves the rest. Display maps to --font-display; body maps to --font-sans. Serif, mono, and editorial serve specialized roles.",
         "lines": [
           12,
           12
         ],
-        "anchor": "Choose the pairing with the framework below and write a brie"
+        "anchor": "Choose the pairing with the framework below and write the pa"
       },
       {
         "id": "pf-shape",
         "row": 9,
         "kind": "chipset",
-        "title": "Check font brief fields and flags",
+        "title": "Check pairing file fields and flags",
         "chips": [
           {
             "label": "Slots and stacks",
@@ -726,7 +732,7 @@ export const skillTrees: Record<string, SkillTree> = {
               21,
               27
             ],
-            "anchor": "## The brief",
+            "anchor": "## The pairing file",
             "anchorEnd": "Every slot is optional and an omitted slot is left exactly a"
           },
           {
@@ -746,7 +752,7 @@ export const skillTrees: Record<string, SkillTree> = {
             "anchor": "Flags: `--dry-run` reports without writing. `--no-verify` sk"
           }
         ],
-        "tag": "brief"
+        "tag": "pairing file"
       },
       {
         "id": "pf-cli",
@@ -759,8 +765,8 @@ export const skillTrees: Record<string, SkillTree> = {
           13,
           13
         ],
-        "anchor": "Run `npx live-tokens set-fonts scratch/font-brief.json`. It ",
-        "command": "npx live-tokens set-fonts scratch/font-brief.json"
+        "anchor": "Run `npx live-tokens set-fonts scratch/font-pairing.json`. I",
+        "command": "npx live-tokens set-fonts scratch/font-pairing.json"
       },
       {
         "id": "pf-fail",
@@ -830,7 +836,7 @@ export const skillTrees: Record<string, SkillTree> = {
           90
         ],
         "anchor": "## Verify",
-        "anchorEnd": "- To revert, run the inverse brief, or load the open theme a"
+        "anchorEnd": "- To revert, run the inverse pairing file, or load the open "
       }
     ],
     "edges": [
@@ -874,10 +880,10 @@ export const skillTrees: Record<string, SkillTree> = {
       },
       {
         "from": "pf-watch",
-        "to": "pf-brief"
+        "to": "pf-pairing"
       },
       {
-        "from": "pf-brief",
+        "from": "pf-pairing",
         "to": "pf-shape"
       },
       {
@@ -916,7 +922,7 @@ export const skillTrees: Record<string, SkillTree> = {
   },
   "adjust-geometry": {
     "id": "live-tokens-adjust-geometry",
-    "digest": "sha256:cd28cf6a45c926e2",
+    "digest": "sha256:131b0d96a76ba190",
     "title": "adjust-geometry",
     "tagline": "The CLI reads a small ops file, moves each alias along its token scale, and reports the result.",
     "nodes": [
@@ -1058,7 +1064,7 @@ export const skillTrees: Record<string, SkillTree> = {
           59
         ],
         "anchor": "## Controls squeeze before containers",
-        "anchorEnd": "So a global compaction is `shift: -1`. When the brief wants "
+        "anchorEnd": "So a global compaction is `shift: -1`. When the request wants "
       },
       {
         "id": "ag-pill",
@@ -1160,10 +1166,10 @@ export const skillTrees: Record<string, SkillTree> = {
           {
             "label": "Global, relative",
             "lines": [
-              20,
+              21,
               25
             ],
-            "anchor": "",
+            "anchor": "Global, relative:",
             "anchorEnd": "```"
           },
           {
@@ -1202,7 +1208,7 @@ export const skillTrees: Record<string, SkillTree> = {
           13,
           13
         ],
-        "anchor": "Run `npx live-tokens adjust scratch/adjust-ops.json`. It wri",
+        "anchor": "Run `npx live-tokens adjust-geometry scratch/adjust-ops.json",
         "command": "npx live-tokens adjust scratch/adjust-ops.json"
       },
       {

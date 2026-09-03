@@ -11,12 +11,12 @@ Ten cases, seven on triggering and three on outcome:
 |---|---|
 | `trigger-refine-warmer` | Does "warmer" reach generate-theme rather than the editor? |
 | `trigger-rounder-mid-build` | Does a geometry request mid-page-build cross to adjust-geometry? |
-| `trigger-type-voice` | Does a type voice reach pair-fonts rather than generate-theme? |
+| `trigger-type-voice` | Does a type voice reach set-fonts rather than generate-theme? |
 | `trigger-confusable-pair` | Does "X or Y" reach the picker rather than the authoring skill? |
 | `trigger-single-token` | Does a single-token edit fire **nothing**? |
 | `trigger-density-phrasing` | Does "feels cluttered" reach adjust-geometry at all? |
 | `trigger-ambiguous-buttons` | Does an ambiguous request get a question rather than a guess? |
-| `outcome-theme-from-brief` | Does following generate-theme produce a real theme? |
+| `outcome-theme-from-request` | Does following generate-theme produce a real theme? |
 | `outcome-component-from-brief` | Does create-component reach its gate, run `check-component --strict`, and iterate to exit 0? |
 | `outcome-page-from-brief` | Does build-page run `check-page --strict` on the new page and iterate to exit 0? |
 
@@ -52,7 +52,7 @@ The two component and page outcome cases each carry a deterministic
 the mechanical half of goal G4 in `docs/design-system-compliance-briefing.md`;
 the rubric grades the iteration.
 
-The three outcome cases write into the tree. `outcome-theme-from-brief` writes
+The three outcome cases write into the tree. `outcome-theme-from-request` writes
 to the live data tree; restore it with the commands in `CLAUDE.md`. The other
 two create source files and edit `src/main.ts`, `src/App.svelte`, and the
 picker skill; each grader ends with the restore step. Run one at a time with

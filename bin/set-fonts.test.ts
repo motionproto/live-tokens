@@ -92,11 +92,11 @@ function project(): string {
   return root;
 }
 
-function run(root: string, brief: unknown, opts: Record<string, unknown> = {}) {
-  const briefPath = join(root, 'brief.json');
-  writeFileSync(briefPath, JSON.stringify(brief));
+function run(root: string, pairing: unknown, opts: Record<string, unknown> = {}) {
+  const pairingPath = join(root, 'pairing.json');
+  writeFileSync(pairingPath, JSON.stringify(pairing));
   return runSetFonts({
-    briefPath,
+    pairingPath,
     colorsAndTypeDir: join(root, 'colors-and-type'),
     themesDir: join(root, 'themes'),
     tokensCssPath: join(root, 'tokens.css'),
@@ -205,7 +205,7 @@ describe('runSetFonts', () => {
     expect(buffer(root).fontSources[0].url).toBe(url);
   });
 
-  it('refuses a brief that names no slot', async () => {
+  it('refuses a pairing that names no slot', async () => {
     const root = project();
     await expect(run(root, { colour: 'red' })).rejects.toThrow(/names no slot/);
   });

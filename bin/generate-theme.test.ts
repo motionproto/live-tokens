@@ -2,16 +2,16 @@ import { describe, it, expect, afterEach } from 'vitest';
 import { mkdtempSync, mkdirSync, rmSync, readFileSync, existsSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { buildColorsAndTypeFromSeeds } from '../src/editor/core/themes/generateColorsAndType';
+import { buildColorsAndType } from '../src/editor/core/themes/generateColorsAndType';
 import type { Oklch } from '../src/editor/core/palettes/oklch';
 // @ts-expect-error — plain .mjs module, no types
 import { runGenerateTheme, formatGenerateThemeResult } from './generate-theme.mjs';
 import { THEME_SCHEMA_VERSION } from '../vite-plugin/themes/normalizeTheme';
 import { CURRENT_COMPONENT_SCHEMA_VERSION } from '../src/editor/core/themes/migrations';
 
-const engine = { buildColorsAndTypeFromSeeds, CURRENT_COMPONENT_SCHEMA_VERSION };
+const engine = { buildColorsAndType, CURRENT_COMPONENT_SCHEMA_VERSION };
 
-const SEEDS: Record<string, Oklch> = {
+const BASE_COLORS: Record<string, Oklch> = {
   Brand: { l: 0.62, c: 0.17, h: 145 },
   Accent: { l: 0.8, c: 0.15, h: 95 },
   Special: { l: 0.6, c: 0.19, h: 300 },
@@ -24,7 +24,7 @@ const SEEDS: Record<string, Oklch> = {
   Danger: { l: 0.58, c: 0.2, h: 25 },
 };
 
-const BRIEF = { name: 'Spring Meadow', scheme: 'light', seeds: SEEDS };
+const BASE_COLORS_FILE = { name: 'Spring Meadow', scheme: 'light', baseColors: BASE_COLORS };
 
 const roots: string[] = [];
 
@@ -62,10 +62,10 @@ function dirs(root: string) {
   };
 }
 
-function run(root: string, opts: Record<string, unknown> = {}, brief: unknown = BRIEF) {
-  const briefPath = join(root, 'brief.json');
-  writeFileSync(briefPath, JSON.stringify(brief));
-  return runGenerateTheme({ briefPath, engine, ...dirs(root), ...opts });
+function run(root: string, opts: Record<string, unknown> = {}, input: unknown = BASE_COLORS_FILE) {
+  const baseColorsPath = join(root, 'base-colors.json');
+  writeFileSync(baseColorsPath, JSON.stringify(input));
+  return runGenerateTheme({ baseColorsPath, engine, ...dirs(root), ...opts });
 }
 
 const readJson = (path: string) => JSON.parse(readFileSync(path, 'utf8'));
@@ -283,13 +283,13 @@ describe('runGenerateTheme', () => {
     expect(existsSync(join(root, 'colors-and-type', '_working.json'))).toBe(false);
   });
 
-  it('rejects a brief that is not there or not JSON', async () => {
+  it('rejects a base color file that is not there or not JSON', async () => {
     const root = project();
-    await expect(runGenerateTheme({ briefPath: join(root, 'nope.json'), engine, ...dirs(root) })).rejects.toThrow(
-      /brief not found/,
+    await expect(runGenerateTheme({ baseColorsPath: join(root, 'nope.json'), engine, ...dirs(root) })).rejects.toThrow(
+      /base color file not found/,
     );
     writeFileSync(join(root, 'bad.json'), '{');
-    await expect(runGenerateTheme({ briefPath: join(root, 'bad.json'), engine, ...dirs(root) })).rejects.toThrow(
+    await expect(runGenerateTheme({ baseColorsPath: join(root, 'bad.json'), engine, ...dirs(root) })).rejects.toThrow(
       /not valid JSON/,
     );
   });

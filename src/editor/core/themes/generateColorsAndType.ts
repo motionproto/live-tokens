@@ -1,6 +1,6 @@
 /**
- * Brief → generator: a full ColorsAndType from 10 OKLCH seeds + a scheme, with
- * AA floors enforced on derived text tokens. Seed *selection* lives in the
+ * Base colors → generator: a full ColorsAndType from 10 OKLCH base colors + a
+ * scheme, with AA floors enforced on derived text tokens. Choosing them lives in the
  * live-tokens-generate-theme skill; the CLI reaches this via
  * `dist-plugin/generateColorsAndType`, so keep this module Node-safe (no DOM).
  */
@@ -26,15 +26,15 @@ import { sanitizeFileName } from '../storage/files/versionedFileResourceClient';
 import { CURRENT_COLORS_AND_TYPE_SCHEMA_VERSION } from './migrations/index';
 import type { FontSource, FontStack, GradientDiskToken, PaletteConfig, ColorsAndType } from './themeTypes';
 
-export interface ColorsAndTypeBrief {
+export interface ColorsAndTypeInput {
   name: string;
   scheme: SchemeDirection;
-  /** One seed per palette label (all 10 required); hex string or numeric OKLCH. */
-  seeds: Record<string, Oklch | string>;
-  /** Advisory record of the harmony reasoning; seeds stay ground truth. */
+  /** The one color each palette's ramp derives from (all 10 required); hex string or numeric OKLCH. */
+  baseColors: Record<string, Oklch | string>;
+  /** Advisory record of the harmony reasoning; the base colors stay ground truth. */
   harmony?: { mode: HarmonyMode };
   /** Page-background sky. Off by default; the skill turns it on only when the
-   *  mood brief evokes atmosphere. The engine derives the stops itself, on the
+   *  request evokes atmosphere. The engine derives the stops itself, on the
    *  scheme's safe side of the Canvas anchor. */
   canvasGradient?: boolean;
 }
@@ -66,7 +66,7 @@ export interface GenerateColorsAndTypeReport {
   /** 'recipes' when the engine replaced absent/stock swatch gradients with the
    *  family-relative recipes; 'carried' when user-tuned ones rode through. */
   gradients: 'recipes' | 'carried';
-  /** Present when the brief opted into the page-background sky: either
+  /** Present when the input opted into the page-background sky: either
    *  'on, <sky> → <anchor>' or a 'skipped — …' explanation when the Canvas
    *  anchors at the ramp edge and leaves no room. */
   canvasGradient?: string;
@@ -112,7 +112,7 @@ const FUNCTIONAL_TEXT_LABELS = PALETTE_SPECS
 
 const norm = (h: number): number => (h >= 0 && h < 360 ? h : ((h % 360) + 360) % 360);
 
-function parseSeed(label: string, raw: Oklch | string, problems: string[]): Oklch | null {
+function parseBaseColor(label: string, raw: Oklch | string, problems: string[]): Oklch | null {
   if (typeof raw === 'string') {
     if (!HEX_RE.test(raw.trim())) {
       problems.push(`${label}: "${raw}" is not a #rrggbb hex color`);
@@ -128,41 +128,41 @@ function parseSeed(label: string, raw: Oklch | string, problems: string[]): Oklc
   return { l, c, h: norm(h) };
 }
 
-function validateBrief(brief: ColorsAndTypeBrief): { seeds: Record<string, Oklch>; slug: string } {
+function validateInput(input: ColorsAndTypeInput): { baseColors: Record<string, Oklch>; slug: string } {
   const problems: string[] = [];
-  const name = typeof brief.name === 'string' ? brief.name.trim() : '';
+  const name = typeof input.name === 'string' ? input.name.trim() : '';
   if (!name) problems.push('name: required');
   const slug = sanitizeFileName(name || 'unnamed');
   if (slug === 'default') problems.push('name: "default" is the protected package theme; pick another name');
-  if (brief.scheme !== 'light' && brief.scheme !== 'dark') {
-    problems.push(`scheme: must be "light" or "dark", got ${JSON.stringify(brief.scheme)}`);
+  if (input.scheme !== 'light' && input.scheme !== 'dark') {
+    problems.push(`scheme: must be "light" or "dark", got ${JSON.stringify(input.scheme)}`);
   }
-  if (brief.harmony && !HARMONY_MODES.includes(brief.harmony.mode)) {
-    problems.push(`harmony.mode: unknown mode ${JSON.stringify(brief.harmony.mode)}`);
+  if (input.harmony && !HARMONY_MODES.includes(input.harmony.mode)) {
+    problems.push(`harmony.mode: unknown mode ${JSON.stringify(input.harmony.mode)}`);
   }
-  if (brief.canvasGradient !== undefined && typeof brief.canvasGradient !== 'boolean') {
-    problems.push(`canvasGradient: must be a boolean, got ${JSON.stringify(brief.canvasGradient)}`);
+  if (input.canvasGradient !== undefined && typeof input.canvasGradient !== 'boolean') {
+    problems.push(`canvasGradient: must be a boolean, got ${JSON.stringify(input.canvasGradient)}`);
   }
 
-  const seeds: Record<string, Oklch> = {};
-  const given = brief.seeds ?? {};
+  const baseColors: Record<string, Oklch> = {};
+  const given = input.baseColors ?? {};
   for (const spec of PALETTE_SPECS) {
     if (!(spec.label in given)) {
-      problems.push(`seeds.${spec.label}: missing`);
+      problems.push(`baseColors.${spec.label}: missing`);
       continue;
     }
-    const parsed = parseSeed(spec.label, given[spec.label], problems);
-    if (parsed) seeds[spec.label] = parsed;
+    const parsed = parseBaseColor(spec.label, given[spec.label], problems);
+    if (parsed) baseColors[spec.label] = parsed;
   }
   const known = new Set<string>(PALETTE_SPECS.map((s) => s.label));
   for (const label of Object.keys(given)) {
-    if (!known.has(label)) problems.push(`seeds.${label}: unknown palette (expected ${[...known].join(', ')})`);
+    if (!known.has(label)) problems.push(`baseColors.${label}: unknown palette (expected ${[...known].join(', ')})`);
   }
 
   if (problems.length > 0) {
-    throw new Error(`Invalid theme brief:\n  ${problems.join('\n  ')}`);
+    throw new Error(`Invalid base color file:\n  ${problems.join('\n  ')}`);
   }
-  return { seeds, slug };
+  return { baseColors, slug };
 }
 
 interface CheckDef {
@@ -233,16 +233,16 @@ function worstSurface(
 }
 
 /** Pin the palette's Text curves so `step` derives to the solved color: the
- *  lightness anchor is the solved L as a multiplier of seed L, the saturation
- *  anchor the solved chroma as a multiplier of seed C (the solver may have
+ *  lightness anchor is the solved L as a multiplier of the base color's L, the
+ *  saturation anchor the solved chroma as a multiplier of its C (the solver may have
  *  decayed chroma to reach the ratio, so lightness alone can undershoot). */
 function pinTextStep(cfg: PaletteConfig, step: Step, solved: { l: number; c: number }): void {
   const x = scaleStepToX(step, TEXT_SCALE);
-  const seed = cfg.baseColor;
-  const yL = Math.max(0, Math.min(200, (solved.l / seed.l) * 100));
+  const base = cfg.baseColor;
+  const yL = Math.max(0, Math.min(200, (solved.l / base.l) * 100));
   cfg.scaleCurves.Text.lightness = setCurveAnchor(cfg.scaleCurves.Text.lightness, x, yL).curve;
-  if (seed.c > 0) {
-    const yC = Math.max(0, Math.min(200, (solved.c / seed.c) * 100));
+  if (base.c > 0) {
+    const yC = Math.max(0, Math.min(200, (solved.c / base.c) * 100));
     cfg.scaleCurves.Text.saturation = setCurveAnchor(cfg.scaleCurves.Text.saturation, x, yC).curve;
   }
 }
@@ -267,14 +267,14 @@ function runContrastGate(
       const worst = worstSurface(textHex, vars);
       if (worst.ratio >= def.floor) continue;
       const cfg = configs[def.paletteLabel];
-      const seed = cfg.baseColor;
+      const base = cfg.baseColor;
       const solved = findLForContrast({
         against: varToHex(vars[worst.against]) ?? '#000000',
         ratio: def.target,
         direction,
         c: text.c,
-        h: seed.h,
-        lMax: Math.min(1, 2 * seed.l),
+        h: base.h,
+        lMax: Math.min(1, 2 * base.l),
       });
       pinTextStep(cfg, def.step, solved);
       corrected.add(def.textVar);
@@ -301,8 +301,8 @@ function runContrastGate(
     .map((c) => {
       const label = defs.find((d) => d.textVar === c.textVar)!.paletteLabel;
       const hint = scheme === 'dark'
-        ? `raise the ${label} seed lightness (derived text tops out at 2× seed L)`
-        : `raise the ${label} seed lightness or reduce its chroma`;
+        ? `raise the ${label} base color lightness (derived text tops out at 2× its L)`
+        : `raise the ${label} base color lightness or reduce its chroma`;
       return `${c.textVar} reaches ${c.ratio.toFixed(2)}:1 vs ${c.against} (floor ${c.floor}:1) — ${hint}`;
     });
 
@@ -323,19 +323,19 @@ const linear = (variable: string, angle: number, from: string, to: string): Grad
   stops: [{ position: 0, color: from }, { position: 100, color: to }],
 });
 
-/** The four swatch recipes, family-relative so they suit any seed set: a
+/** The four swatch recipes, family-relative so they suit any set of base colors: a
  *  within-family brand sweep, two cross-family pairs that fall back to
  *  within-family when the hues sit more than 120° apart (an srgb gradient
  *  between distant hues passes through gray), and a canvas sweep on the
  *  scheme's rich half of the ramp. Stops are var() refs, so later palette
  *  edits flow through. */
-function recipeGradients(seeds: Record<string, Oklch>, scheme: SchemeDirection): GradientDiskToken[] {
+function recipeGradients(baseColors: Record<string, Oklch>, scheme: SchemeDirection): GradientDiskToken[] {
   return [
     linear('--gradient-1', 90, '--color-brand-400', '--color-brand-700'),
-    hueDist(seeds.Special.h, seeds.Brand.h) <= ADJACENT_HUE_MAX
+    hueDist(baseColors.Special.h, baseColors.Brand.h) <= ADJACENT_HUE_MAX
       ? linear('--gradient-2', 135, '--color-special-500', '--color-brand-500')
       : linear('--gradient-2', 135, '--color-special-400', '--color-special-700'),
-    hueDist(seeds.Brand.h, seeds.Accent.h) <= ADJACENT_HUE_MAX
+    hueDist(baseColors.Brand.h, baseColors.Accent.h) <= ADJACENT_HUE_MAX
       ? linear('--gradient-3', 90, '--color-brand-500', '--color-accent-500')
       : linear('--gradient-3', 90, '--color-accent-400', '--color-accent-700'),
     scheme === 'dark'
@@ -367,7 +367,7 @@ function applyCanvasGradient(canvas: PaletteConfig, scheme: SchemeDirection): st
     ? Math.min(anchor + 2, labels.length - 1)
     : Math.max(anchor - 2, 0);
   if (sky === anchor) {
-    return `skipped — the Canvas seed anchors at the ramp edge (${labels[anchor]}), leaving no room for a sky; commit the canvas further from ${scheme === 'dark' ? 'black' : 'white'}`;
+    return `skipped — the Canvas base color anchors at the ramp edge (${labels[anchor]}), leaving no room for a sky; commit the canvas further from ${scheme === 'dark' ? 'black' : 'white'}`;
   }
   canvas.emptyMode = 'gradient';
   canvas.gradientStyle = 'linear';
@@ -409,9 +409,9 @@ export function shadowOpacityForCanvas(canvasL: number): number {
 
 /** Recolor the scale for this canvas: carried geometry and color ride through
  *  (elevation shape belongs to the shape pass), opacity is replaced. Replaced
- *  rather than kept-when-untouched, because a brief iterated from a light
+ *  rather than kept-when-untouched, because a run iterated from a light
  *  canvas to a dark one would otherwise hold a shadow too faint to see. The
- *  Canvas seed is the page background verbatim, so it is the ground the
+ *  Canvas base color is the page background verbatim, so it is the ground the
  *  shadow falls on. */
 function shadowVars(carried: Record<string, string>, canvas: Oklch): Record<string, string> {
   const opacity = shadowOpacityForCanvas(canvas.l);
@@ -424,36 +424,36 @@ function shadowVars(carried: Record<string, string>, canvas: Oklch): Record<stri
   return out;
 }
 
-export function buildColorsAndTypeFromSeeds(
-  brief: ColorsAndTypeBrief,
+export function buildColorsAndType(
+  input: ColorsAndTypeInput,
   carry: CarryForward = {},
   now: string = new Date().toISOString(),
 ): GenerateColorsAndTypeResult {
-  const { seeds, slug } = validateBrief(brief);
+  const { baseColors, slug } = validateInput(input);
 
   const configs: Record<string, PaletteConfig> = {};
   for (const spec of PALETTE_SPECS) {
     configs[spec.label] = defaultPaletteConfig({
-      baseColor: seeds[spec.label],
+      baseColor: baseColors[spec.label],
       neutral: spec.neutral,
-      scheme: brief.scheme,
+      scheme: input.scheme,
     });
   }
 
-  const report = runContrastGate(configs, brief.scheme);
-  const canvasGradient = brief.canvasGradient
-    ? applyCanvasGradient(configs.Canvas, brief.scheme)
+  const report = runContrastGate(configs, input.scheme);
+  const canvasGradient = input.canvasGradient
+    ? applyCanvasGradient(configs.Canvas, input.scheme)
     : undefined;
 
   const gradients = isStockGradients(carry.gradients)
-    ? recipeGradients(seeds, brief.scheme)
+    ? recipeGradients(baseColors, input.scheme)
     : carry.gradients!;
 
   const harmonyAxes: HarmonyAxis[] = [
-    { hue: norm(seeds.Brand.h), family: 'Brand' },
-    { hue: norm(seeds.Accent.h), family: 'Accent' },
-    { hue: norm(seeds.Canvas.h), family: 'Canvas' },
-    { hue: norm(seeds.Brand.h + 270), family: null },
+    { hue: norm(baseColors.Brand.h), family: 'Brand' },
+    { hue: norm(baseColors.Accent.h), family: 'Accent' },
+    { hue: norm(baseColors.Canvas.h), family: 'Canvas' },
+    { hue: norm(baseColors.Brand.h + 270), family: null },
   ];
 
   // The catch-all bag carries only tokens no typed slice owns (the server's
@@ -464,10 +464,10 @@ export function buildColorsAndTypeFromSeeds(
   );
   // Rendered projections of the structured gradients, kept for production CSS.
   for (const t of gradients) cssVariables[t.variable] = formatGradientValue(t);
-  Object.assign(cssVariables, shadowVars(carry.cssVariables ?? {}, seeds.Canvas));
+  Object.assign(cssVariables, shadowVars(carry.cssVariables ?? {}, baseColors.Canvas));
 
   const colorsAndType: ColorsAndType = {
-    name: brief.name.trim(),
+    name: input.name.trim(),
     createdAt: now,
     updatedAt: now,
     editorConfigs: configs,
@@ -485,7 +485,7 @@ export function buildColorsAndTypeFromSeeds(
     report: {
       ...report,
       gradients: gradients === carry.gradients ? 'carried' : 'recipes',
-      shadows: `opacity ${shadowOpacityForCanvas(seeds.Canvas.l)} for a canvas at L ${seeds.Canvas.l.toFixed(2)}`,
+      shadows: `opacity ${shadowOpacityForCanvas(baseColors.Canvas.l)} for a canvas at L ${baseColors.Canvas.l.toFixed(2)}`,
       ...(canvasGradient ? { canvasGradient } : {}),
     },
   };
