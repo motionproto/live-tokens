@@ -47,7 +47,7 @@ stop only if the symbol itself is gone.
 | 3 | Engine names follow the verbs | recipe-sweeper, Sonnet | Opus | Done | 89f0cd5, 99e5183, 8d1461d |
 | 4 | `set-colors` narrows, `save-theme` lands | wave-executor, Opus | Fable | Done | 37d414c |
 | 5 | Skills and atlas | wave-executor, Opus | Opus | Done | 8812725 |
-| 6 | Docs, evals, changelog | wave-executor, Sonnet | Opus | Not started | |
+| 6 | Docs, evals, changelog | wave-executor, Opus | Opus | Done | 6a213c3, 0383d87 |
 
 The orchestrator updates this table after each review gate: `Not started` to
 `In progress` to `Done` (or `Blocked`, with a one-line reason under the table).
@@ -663,6 +663,27 @@ arrives with the first theme's fonts and geometry. Restore the data tree per
   formatters, within the sentences this doc fixes.
 - Wave 5: node-level shape of the new atlas node and which set-colors nodes
   re-point.
+
+## What is left for the user
+
+Every automated gate is green: `npm test` (4358), `npm run check`,
+`check:skills`, `check:skill-atlas`, `check:skill-sources`,
+`check:docs-content`, `check:preset-themes`, `check-production-is-default`,
+`check:smoke-create`, `check:smoke-install`. Three manual halves were never
+run and belong to the user:
+
+1. Wave 4: the CLI walk with the dev server stopped, then the Theme panel
+   naming the theme the run saved.
+2. Wave 5: the atlas card walk at `/live-tokens/skill-atlas`.
+3. The end-to-end two-theme request below.
+
+Three findings the last gate raised were left open on purpose. `init` is
+dispatched at `bin/cli.mjs:164`, absent from `USAGE` and `README.md`, and
+shipped since 0.21.0; `UNSKILLED_VERBS` now records it, which makes an
+undocumented alias official. Either document it or remove it in this same
+breaking release. The `set-colors` formatter says "what the open theme already
+holds" even when the layer under the buffer was `default.json` and no theme is
+open. The eight `colors-and-type/` preset copies still ship.
 
 ## Follow-ups this plan does not take
 
