@@ -33,7 +33,7 @@ Waves 3 and 5 read it from `main` rather than from the working tree.)
 | 2 | Skill text ships as a generated module | wave-executor | Done | `1a45f87` |
 | 3 | Trees merged, digests stamped, `src/app/skill-atlas` deleted | wave-executor | Done | `76b8808` + fixes `1f9f069`, `c1c3642`, `e06da57` |
 | 4 | `./skill-atlas` export, gates, docs, changelog | wave-executor | Done | `14d9db4` |
-| 5 | Online mounts the export and deletes its copy | wave-executor | In progress | |
+| 5 | Online mounts the export and deletes its copy | wave-executor | Done | `fe3bfa9` (online repo, unpushed) |
 
 The orchestrator updates this table after each review gate: `Not started` to
 `In progress` to `Done` (or `Blocked`, with a one-line reason appended under
@@ -237,6 +237,25 @@ branches and back-edges draw, and the masthead heading renders at heading-xl.
 Reference tabs now sort alphabetically rather than in the reading order the
 online hand-written list used; confirm that order reads acceptably. Restoring
 reading order would be a plan amendment, not an executor's call.
+
+### Open for the user after Wave 5
+
+`check-page`'s `missing-source` rule is syntactic: it finds each `lazy:` and
+tests the enclosing object for a `source:` key. A package-mounted route has
+no consumer file to open, so `/skills` on the online site now carries a
+standing warning that no route-side declaration can silence. `hidePageSource:
+true` does not satisfy the regex. The rule should skip a `lazy` specifier
+that starts with `@motion-proto/live-tokens` and should honour
+`hidePageSource`, which the router API already exposes for this intent. The
+`live-tokens-fix-findings` recipe row for the rule advises adding a `source:`
+path, which is wrong advice for this case and needs the same amendment.
+Pointing `source` into `node_modules` and switching the rule off are both
+worse: the first offers an edit that the next install destroys, the second
+blinds the site to consumer routes that genuinely lack a source.
+
+The online site's tracked `.claude/skills` copies are stale against 0.73.0
+(`build-page` and `pick-component` differ, and `build-page` has no
+`references/`). Re-run `setup-claude` there.
 
 ### Open for the user after Wave 4
 
