@@ -515,10 +515,6 @@ describe('migration runner — schemaVersion gating', () => {
       '--dialog-secondary-default-padding': 'var(--space-8)',
       '--dialog-secondary-hover-radius': 'var(--radius-md)',
       '--dialog-secondary-hover-padding': 'var(--space-8)',
-      // Same components, non-shape keys — untouched.
-      '--badge-trait-surface': 'var(--surface-brand)',
-      '--sectiondivider-title': 'var(--text-primary)',
-      '--dialog-primary-default-border-width': 'var(--border-width-1)',
       // Shape/space keys under the modern component-config names — untouched.
       '--badge-primary-radius': 'var(--radius-full)',
       '--sectiondivider-lg-padding': 'var(--space-0)',
@@ -542,9 +538,6 @@ describe('migration runner — schemaVersion gating', () => {
     ]) {
       expect(out[key]).toBeUndefined();
     }
-    expect(out['--badge-trait-surface']).toBe('var(--surface-brand)');
-    expect(out['--sectiondivider-title']).toBe('var(--text-primary)');
-    expect(out['--dialog-primary-default-border-width']).toBe('var(--border-width-1)');
     expect(out['--badge-primary-radius']).toBe('var(--radius-full)');
     expect(out['--sectiondivider-lg-padding']).toBe('var(--space-0)');
     expect(out['--dialog-radius']).toBe('var(--radius-lg)');
@@ -557,6 +550,71 @@ describe('migration runner — schemaVersion gating', () => {
       '--text-primary': '#fff5f0',
     });
     expect(runMigrations('colors-and-type', 3, once)).toEqual(once);
+  });
+
+  it('colors-and-type v7 → v8: legacy badge / sectiondivider / dialog color and type keys drop', () => {
+    const legacy = [
+      '--badge-trait-surface',
+      '--badge-trait-text',
+      '--badge-trait-text-font-family',
+      '--badge-trait-text-font-size',
+      '--badge-trait-text-font-weight',
+      '--badge-trait-text-line-height',
+      '--badge-trait-border',
+      '--badge-trait-border-width',
+      '--badge-trait-shadow',
+      '--sectiondivider-title',
+      '--sectiondivider-title-font-family',
+      '--sectiondivider-title-font-size',
+      '--sectiondivider-title-font-weight',
+      '--sectiondivider-title-line-height',
+      '--sectiondivider-title-border-width',
+      '--sectiondivider-title-stroke-color',
+      '--sectiondivider-description',
+      '--sectiondivider-description-font-family',
+      '--sectiondivider-description-font-size',
+      '--sectiondivider-description-font-weight',
+      '--sectiondivider-description-line-height',
+      '--dialog-primary-default-surface',
+      '--dialog-primary-default-text',
+      '--dialog-primary-default-border',
+      '--dialog-primary-default-border-width',
+      '--dialog-primary-hover-surface',
+      '--dialog-primary-hover-text',
+      '--dialog-primary-hover-border',
+      '--dialog-primary-hover-border-width',
+      '--dialog-secondary-default-text',
+      '--dialog-secondary-default-border',
+      '--dialog-secondary-default-border-width',
+      '--dialog-secondary-hover-surface',
+      '--dialog-secondary-hover-text',
+      '--dialog-secondary-hover-border',
+      '--dialog-secondary-hover-border-width',
+    ];
+    const out = runMigrations('colors-and-type', 7, {
+      ...Object.fromEntries(legacy.map((key) => [key, 'var(--surface-brand)'])),
+      // Modern names for the same three components survive.
+      '--badge-primary-surface': 'var(--surface-brand)',
+      '--sectiondivider-lg-title': 'var(--text-primary)',
+      '--dialog-surface': 'var(--surface-canvas-high)',
+      // tokens.css declares the gradient stops, so an override of one is live.
+      '--gradient-1-stops': 'var(--color-brand-500) 0%, var(--color-accent-500) 100%',
+      '--text-primary': '#fff5f0',
+    });
+    for (const key of legacy) expect(out[key]).toBeUndefined();
+    expect(out['--badge-primary-surface']).toBe('var(--surface-brand)');
+    expect(out['--sectiondivider-lg-title']).toBe('var(--text-primary)');
+    expect(out['--dialog-surface']).toBe('var(--surface-canvas-high)');
+    expect(out['--gradient-1-stops']).toBe('var(--color-brand-500) 0%, var(--color-accent-500) 100%');
+    expect(out['--text-primary']).toBe('#fff5f0');
+  });
+
+  it('colors-and-type v7 → v8 is idempotent — re-running on migrated output changes nothing', () => {
+    const once = runMigrations('colors-and-type', 7, {
+      '--badge-trait-surface': 'var(--surface-brand)',
+      '--text-primary': '#fff5f0',
+    });
+    expect(runMigrations('colors-and-type', 7, once)).toEqual(once);
   });
 
   it('colors-and-type v4 → v5: line-height references follow the tokens.css rename', () => {

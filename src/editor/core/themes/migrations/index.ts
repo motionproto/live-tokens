@@ -73,6 +73,7 @@ import {
 import { componentMigration_2026_09_01_tabbarActiveTint } from './2026-09-01-tabbar-active-tint';
 import { componentMigration_2026_09_01_gateSuffixEnabled } from './2026-09-01-gate-suffix-enabled';
 import { componentMigration_2026_09_02_sectiondividerDropTitleOutline } from './2026-09-02-sectiondivider-drop-title-outline';
+import { colorsAndTypeMigration_2026_09_03_dropLegacyComponentKeys } from './2026-09-03-drop-legacy-component-keys';
 
 /**
  * Registered migrations. Order in this array does not matter — the runner
@@ -112,6 +113,7 @@ export const MIGRATIONS: Migration[] = [
   componentMigration_2026_09_01_tabbarActiveTint,
   componentMigration_2026_09_01_gateSuffixEnabled,
   componentMigration_2026_09_02_sectiondividerDropTitleOutline,
+  colorsAndTypeMigration_2026_09_03_dropLegacyComponentKeys,
 ];
 
 function countFor(kind: 'colors-and-type' | 'component-config'): number {

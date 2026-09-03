@@ -20,6 +20,7 @@ const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const DATA = join(ROOT, 'src/live-tokens/data');
 const THEMES = join(DATA, 'themes');
 const CONFIGS = join(DATA, 'component-configs');
+const TOKENS_CSS = join(ROOT, 'src/system/styles/tokens.css');
 const rel = (p) => relative(ROOT, p);
 
 const ENGINE = join(ROOT, 'dist-plugin/adjust/index.js');
@@ -112,6 +113,25 @@ for (const slug of PRESETS) {
   }
 }
 
+// The override bag stays inside the token contract. A preset may override any
+// name `tokens.css` declares; a name it does not declare paints nothing and is
+// dead weight the next restructure will forget to remove, which is how the 36
+// keys 2026-09-03-drop-legacy-component-keys drops got there. Default is in
+// scope here even though the loop above skips it: it is the file every other
+// theme falls through to.
+const declaredTokens = new Set(
+  [...readFileSync(TOKENS_CSS, 'utf8').matchAll(/^\s*(--[\w-]+)\s*:/gm)].map((m) => m[1]),
+);
+for (const slug of [...PRESETS, 'default']) {
+  const theme = slug === 'default' ? readJson(join(THEMES, 'default.json')) : themes[slug];
+  if (!theme) continue; // already reported as missing above
+  for (const key of Object.keys(theme.colorsAndType?.cssVariables ?? {})) {
+    if (!declaredTokens.has(key)) {
+      errors.push(`${slug}: cssVariables key ${key} is not declared in ${rel(TOKENS_CSS)}`);
+    }
+  }
+}
+
 // Distinctness (moved from presetThemes.test.ts, Wave 5 step 3): each preset
 // reads as its own look rather than landing on the same spot as another.
 function duplicates(label) {
@@ -147,5 +167,6 @@ if (errors.length) {
 
 console.log(
   `check:preset-themes OK — ${PRESETS.length} preset(s), each complete with all ${KNOWN_COMPONENTS.length} components, ` +
-    'current schema, the pairing its stacks name, and a distinct look.',
+    'current schema, the pairing its stacks name, a distinct look, and an ' +
+    'override bag inside the token contract.',
 );

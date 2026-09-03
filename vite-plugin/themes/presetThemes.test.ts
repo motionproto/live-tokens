@@ -192,6 +192,24 @@ describe('themes/default.json', () => {
   });
 });
 
+/* The same rule `scripts/check-preset-themes.mjs` enforces at the repo
+   boundary, repeated here so it runs without `dist-plugin`. A preset may
+   override any name `tokens.css` declares; a name it does not declare paints
+   nothing and survives every restructure that renamed its component, which is
+   how the 36 keys `2026-09-03-drop-legacy-component-keys` removes got here. */
+describe('override bag stays inside the token contract', () => {
+  const declared = new Set(
+    [...fs.readFileSync(path.join(REPO_ROOT, 'src/system/styles/tokens.css'), 'utf-8')
+      .matchAll(/^\s*(--[\w-]+)\s*:/gm)].map((m) => m[1]),
+  );
+
+  it.each([...PRESETS, 'default'])('%s declares every cssVariables key in tokens.css', (slug) => {
+    const keys = Object.keys(themeOf(slug).colorsAndType.cssVariables);
+    expect(keys.length).toBeGreaterThan(0);
+    expect(keys.filter((k) => !declared.has(k))).toEqual([]);
+  });
+});
+
 // Distinctness across presets (card radius + button padding, and the font
 // pairing) moved to `scripts/check-preset-themes.mjs` (Wave 5 of
 // docs/plans/theme-completeness.md): it asserts on these same committed files,
