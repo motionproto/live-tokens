@@ -6,19 +6,20 @@
 // read it. That coupling is why generate-theme's step 1 still carries two
 // decisions: renumbering was expensive, so it did not happen.
 //
-// Each range now stores the opening text of the lines it means. The numbers
-// are derived from that text, so an edit costs a sync rather than an audit.
+// Each range stores the opening text of the lines it means. The numbers are
+// derived from that text, so an edit costs a sync rather than an audit.
 //
 //   node scripts/sync-skill-atlas.mjs [--write]
 //
 // Without --write it is a dry run that fails on drift.
 
+import { createHash } from 'node:crypto';
 import { readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
-const ATLAS = join(ROOT, 'src/app/skill-atlas/skillTrees.ts');
+const ATLAS = join(ROOT, 'src/editor/skill-atlas/skillTrees.ts');
 const SKILLS = join(ROOT, '.claude/skills');
 
 // Long enough to be unique for all but three lines that are genuinely
@@ -45,9 +46,33 @@ const linesOf = (id) => {
   return bodies.get(id);
 };
 
+// Anchors only prove that the text a node cites is still somewhere in the file.
+// They say nothing about a skill that gained a step, dropped a branch, or
+// reordered its decisions while every quoted line survived — the tree is then
+// wrong in the one way the atlas exists to be right about. The digest catches
+// any edit at all and names the skill to re-read; re-running with --write is
+// the record that someone did.
+const digestOf = (id) => `sha256:${createHash('sha256').update(linesOf(id).join('\n')).digest('hex').slice(0, 16)}`;
+
+function checkDigest(tree) {
+  const current = digestOf(tree.id);
+  if (tree.digest === current) return;
+  if (!write) {
+    errors.push(
+      tree.digest === undefined
+        ? `${tree.id}: no digest recorded; run \`npm run sync:skill-atlas\``
+        : `${tree.id}/SKILL.md has changed since the tree was written — re-read it against the tree (new steps and dropped branches are invisible to the anchors), then run \`npm run sync:skill-atlas\``,
+    );
+    return;
+  }
+  rebuild(tree, { digest: current }, 'id');
+  digested += 1;
+}
+
 const errors = [];
 let moved = 0;
 let anchored = 0;
+let digested = 0;
 
 // Nearest match wins so that a repeated line resolves to the range it was
 // written for rather than to the first copy in the file.
@@ -108,11 +133,13 @@ function sync(node, id, label) {
 
 // Key order is the file's diff: rebuilding in place keeps `anchor` next to the
 // `lines` it explains rather than appending it after the node's prose.
-function rebuild(node, extra) {
+function rebuild(node, extra, after = 'lines') {
   const next = {};
   for (const [key, value] of Object.entries(node)) {
-    next[key] = value;
-    if (key === 'lines') Object.assign(next, extra);
+    // A key already on the node would otherwise overwrite the new value on the
+    // way past, which silently dropped every digest restamp after the first.
+    if (!(key in extra)) next[key] = value;
+    if (key === after) Object.assign(next, extra);
   }
   for (const key of Object.keys(node)) delete node[key];
   Object.assign(node, next);
@@ -128,7 +155,10 @@ function walk(value, id, label) {
   for (const [key, child] of Object.entries(value)) walk(child, id, `${label}.${key}`);
 }
 
-for (const tree of Object.values(trees)) walk(tree, tree.id, tree.id);
+for (const tree of Object.values(trees)) {
+  checkDigest(tree);
+  walk(tree, tree.id, tree.id);
+}
 
 if (errors.length > 0) {
   console.error(`check:skill-atlas FAILED — ${errors.length} problem(s):\n`);
@@ -142,7 +172,8 @@ if (write) {
   const parts = [];
   if (anchored > 0) parts.push(`anchored ${anchored} range(s)`);
   if (moved > 0) parts.push(`re-pointed ${moved} range(s)`);
+  if (digested > 0) parts.push(`stamped ${digested} skill digest(s)`);
   console.log(`sync:skill-atlas — ${parts.length > 0 ? parts.join(', ') : 'already in sync'}.`);
 } else {
-  console.log('check:skill-atlas OK — every atlas range still opens on the text it was written for.');
+  console.log('check:skill-atlas OK — every skill is byte-identical to the tree that maps it, and every range still opens on the text it was written for.');
 }
