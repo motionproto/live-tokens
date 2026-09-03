@@ -101,6 +101,11 @@
       "svelte": "./src/editor/docs/Docs.svelte",
       "default": "./src/editor/docs/Docs.svelte"
     },
+    "./skill-atlas": {
+      "types": "./src/editor/skill-atlas/SkillAtlas.svelte.d.ts",
+      "svelte": "./src/editor/skill-atlas/SkillAtlas.svelte",
+      "default": "./src/editor/skill-atlas/SkillAtlas.svelte"
+    },
     "./backdrop": {
       "svelte": "./src/system/backdrop/index.ts",
       "types": "./src/system/backdrop/index.ts",

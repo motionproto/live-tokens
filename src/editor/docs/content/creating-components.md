@@ -16,6 +16,19 @@ npx @motion-proto/live-tokens setup-claude
 This copies the bundled skills into your project's `.claude/skills/`. Once
 they're there, Claude Code picks them up automatically.
 
+## Browse the skill atlas
+
+The package also ships a Skill Atlas component: a diagram of the reasoning
+behind each bundled skill, with its `SKILL.md` and reference files alongside
+so you can see exactly which lines drive which step. Import it from
+`@motion-proto/live-tokens/skill-atlas` and mount it on a route of your own:
+
+```js
+'/skills': {
+  lazy: () => import('@motion-proto/live-tokens/skill-atlas'),
+},
+```
+
 ## Ask for a component
 
 Describe what you want in plain English. Phrases like these trigger the skill:

@@ -116,6 +116,21 @@ echo "→ Resolving the contract subpath…"
 # file, so no build here would notice an exports-map typo.
 (cd "$SMOKE_DIR" && node -p "require.resolve('$PKG_NAME/component-editor/contract')" > /dev/null)
 
+echo "→ Resolving the skill-atlas subpath…"
+# require.resolve() doesn't request the "svelte" condition, but the "default"
+# condition points at the same file, so this still proves the exports-map
+# entry resolves inside the tarball. It also confirms the generated skill-text
+# module the component imports — easy to leave out of `files` by accident —
+# actually landed beside it.
+(cd "$SMOKE_DIR" && node -e "
+  const path = require('node:path');
+  const fs = require('node:fs');
+  const atlasPath = require.resolve('$PKG_NAME/skill-atlas');
+  const sourcesPath = path.join(path.dirname(atlasPath), 'skillSources.generated.ts');
+  if (!fs.existsSync(sourcesPath)) throw new Error('skillSources.generated.ts missing from tarball: ' + sourcesPath);
+  if (fs.statSync(sourcesPath).size === 0) throw new Error('skillSources.generated.ts is empty in tarball');
+")
+
 echo "→ Building consumer…"
 (cd "$SMOKE_DIR" && npx --no-install vite build)
 

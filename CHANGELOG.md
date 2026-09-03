@@ -2,6 +2,19 @@
 
 ## Unreleased
 
+### Added
+
+- **A public export for the skill atlas, `@motion-proto/live-tokens/skill-atlas`.**
+  The atlas is a Svelte component that diagrams the reasoning tree behind each
+  bundled skill, with the source `SKILL.md` and its reference files alongside
+  so a reader can see which lines drive which step. It carries no route of its
+  own; a consumer mounts it wherever it likes. `live-tokens-online` is its
+  first consumer, mounting it at its existing `/skills` route. Skill text
+  reaches the component through a generated module built from `.claude/skills`
+  and gated by `check:skill-sources`; the trees each carry a digest of the
+  `SKILL.md` they cite and are gated by `check:skill-atlas`. Both run in
+  `prepublishOnly`.
+
 ### Changed
 
 - **`live-tokens-build-page` lays out the page before it places columns.**
