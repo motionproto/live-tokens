@@ -16,7 +16,7 @@ import { existsSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { dirname, join, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { readActiveTheme, readLiveColorsAndType, readSavedColorsAndType } from './lib/liveState.mjs';
+import { readActiveTheme, readLiveColorsAndType, readSavedColorsAndType, sameContent } from './lib/liveState.mjs';
 
 const pkgRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const ENGINE = resolve(pkgRoot, 'dist-plugin/setColors/index.js');
@@ -39,13 +39,6 @@ async function loadEngine() {
 
 function readJson(path) {
   return JSON.parse(readFileSync(path, 'utf8'));
-}
-
-/** `updatedAt` records when a buffer was written, not what it holds, so the
- *  comparison that tells a discard from an edit ignores it. */
-function sameContent(a, b) {
-  const strip = ({ updatedAt: _updatedAt, ...rest }) => rest;
-  return JSON.stringify(strip(a)) === JSON.stringify(strip(b));
 }
 
 /** `engine` is a test seam; the CLI always runs the compiled bundle. */

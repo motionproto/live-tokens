@@ -160,7 +160,7 @@ export function formatSetGeometryResult(result) {
   }
   if (result.ignoredName !== null) {
     lines.push(
-      `Ignored "name": "${result.ignoredName}". adjust edits the open buffer now, ` +
+      `Ignored "name": "${result.ignoredName}". set-geometry edits the open buffer, ` +
         `so it writes no file of its own.`,
     );
   }

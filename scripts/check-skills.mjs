@@ -47,6 +47,15 @@ const cliFlags = new Map(
 // A flag whose owning skill leaves it out on purpose, keyed `verb --flag`, with
 // the reason. Declaring one keeps the check honest; deleting the check does not.
 const OMITTED_FLAGS = new Map();
+// A flag the CLI used to take. Nothing dispatches it, so USAGE cannot say it is
+// gone and the flag rule below has nothing to compare against; a skill still
+// naming one hands the model a command that exits 1.
+const RETIRED_FLAGS = new Set(['--carry-from']);
+// A verb that has to reach a skill. `--carry-from` shipped for a release with no
+// skill naming it; `save-theme` was one wave away from the same. A verb no skill
+// runs is a verb the model never reaches for.
+const SKILLED_VERBS = ['set-colors', 'set-type', 'set-geometry', 'save-theme'];
+const verbsInSkills = new Set();
 const samplePrompts = new Set([...cli.matchAll(/^\s+'(live-tokens-[a-z-]+)':\s+['"]/gm)].map((m) => m[1]));
 
 const components = readdirSync(CONFIGS, { withFileTypes: true })
@@ -104,7 +113,9 @@ for (const skill of skillDirs) {
   // no skill, so two set-colors runs silently carried the first theme's fonts
   // and geometry into the second. A flag its own skill never names is a flag the
   // model never reaches for.
-  for (const [, verb] of text.matchAll(/npx (?:@motion-proto\/)?live-tokens ([a-z-]+)/g)) {
+  const runs = new Set([...text.matchAll(/npx (?:@motion-proto\/)?live-tokens ([a-z-]+)/g)].map((m) => m[1]));
+  for (const verb of runs) {
+    verbsInSkills.add(verb);
     if (!cliVerbs.has(verb)) {
       errors.push(`${skill}: mentions \`live-tokens ${verb}\`, which bin/cli.mjs does not dispatch`);
       continue;
@@ -117,6 +128,25 @@ for (const skill of skillDirs) {
     }
   }
 
+  for (const flag of RETIRED_FLAGS) {
+    if (text.includes(flag)) errors.push(`${skill}: names ${flag}, which the CLI no longer takes`);
+  }
+
+  // The third direction: a flag that is real, but on another verb. The skill
+  // reads as if the verb it runs took it, and the run exits 1 on a flag the
+  // help text does list. Token names open with `--` too, so only a name some
+  // verb actually offers can trip this.
+  if (runs.size > 0) {
+    const ran = [...runs].map((v) => `\`${v}\``).join(', ');
+    for (const flag of new Set([...text.matchAll(/--[a-z][a-z-]+/g)].map((m) => m[0]))) {
+      if ([...runs].some((verb) => (cliFlags.get(verb) ?? []).includes(flag))) continue;
+      const owner = [...cliFlags].find(([, flags]) => flags.includes(flag))?.[0];
+      if (owner) {
+        errors.push(`${skill}: names ${flag}, which bin/cli.mjs offers on \`${owner}\` and not on ${ran}, the verb(s) this skill runs`);
+      }
+    }
+  }
+
   for (const [, sibling] of text.matchAll(/\b(live-tokens-[a-z-]+)\b/g)) {
     if (!skillDirs.includes(sibling)) errors.push(`${skill}: refers to skill "${sibling}", which is not bundled`);
   }
@@ -125,6 +155,14 @@ for (const skill of skillDirs) {
 
   for (const [, count] of text.matchAll(/^#+ .*\b(\w+)-step\b/gim)) {
     errors.push(`${skill}: a heading promises "${count}-step"; counts drift, so name the recipe instead`);
+  }
+}
+
+for (const verb of SKILLED_VERBS) {
+  if (!cliVerbs.has(verb)) {
+    errors.push(`SKILLED_VERBS names "${verb}", which bin/cli.mjs no longer dispatches`);
+  } else if (!verbsInSkills.has(verb)) {
+    errors.push(`bin/cli.mjs dispatches \`live-tokens ${verb}\`, which no bundled skill runs`);
   }
 }
 
@@ -231,4 +269,8 @@ if (errors.length > 0) {
   process.exit(1);
 }
 
-console.log(`check:skills OK — ${skillDirs.length} skill(s), each under ${MAX_SKILL_LINES} lines with references resolved, CLI verbs real and their flags documented, and the picker catalogue complete.`);
+console.log(
+  `check:skills OK — ${skillDirs.length} skill(s), each under ${MAX_SKILL_LINES} lines with references resolved, ` +
+    `CLI verbs real and their flags documented on the verb that takes them, every verb in SKILLED_VERBS reached, ` +
+    `and the picker catalogue complete.`,
+);

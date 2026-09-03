@@ -62,6 +62,15 @@ export function readLiveColorsAndType(colorsAndTypeDir, active) {
   return { colorsAndType: stripMarkers(shipped), source: 'default' };
 }
 
+/** `updatedAt` records when a buffer was written, not what it holds, so the
+ *  comparison that tells a discard from an edit ignores it. Both writers of
+ *  `colors-and-type/_working.json` ask this one question, and a rule that kept
+ *  `updatedAt` missed every buffer the other verb had stamped. */
+export function sameContent(a, b) {
+  const strip = ({ updatedAt: _updatedAt, ...rest }) => rest;
+  return JSON.stringify(strip(a)) === JSON.stringify(strip(b));
+}
+
 /** The layer under the buffer. Returning the buffer to exactly this is a
  *  discard, not an edit, so a caller compares against it before writing. */
 export function readSavedColorsAndType(colorsAndTypeDir, active) {

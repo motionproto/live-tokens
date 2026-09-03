@@ -1,37 +1,33 @@
 ---
 name: live-tokens-set-colors
-description: Set a live-tokens theme's color from a color intent: ten OKLCH base colors, a light or dark scheme, and an AA-gated contrast pass that writes and opens the theme. Use whenever the user asks for a palette, colors, or hues by mood, style, era, season, holiday, or hue; when they name only a color; or when they refine the color of a look: warmer, cooler, calmer, louder, lighter, darker, moodier, more contrast. Also invoked by live-tokens-create-theme, which supplies the color intent for a whole look. Changes color only, never fonts or geometry. Not for a single token (use the editor), and not for a whole look (see live-tokens-create-theme).
+description: Set a live-tokens theme's color from a color intent: ten OKLCH base colors, a light or dark scheme, and an AA-gated contrast pass, written into the unsaved color buffer the app already renders. Use whenever the user asks for a palette, colors, or hues by mood, style, era, season, holiday, or hue; when they name only a color; or when they refine the color of a look: warmer, cooler, calmer, louder, lighter, darker, moodier, more contrast. Also invoked by live-tokens-create-theme, which supplies the color intent for a whole look. Changes color only, never fonts or geometry. Not for a single token (use the editor), and not for a whole look (see live-tokens-create-theme).
 ---
 
 # Setting a theme's colors
 
 You choose ten base colors; the CLI builds every ramp from them, enforces AA
-contrast on the derived text tokens, writes `themes/<slug>.json`, opens it, and
-prints a contrast report. Never hand-author theme JSON and never edit the data
-tree directly.
+contrast on the derived text tokens, writes the result into the unsaved colors
+buffer the app already renders, and prints a contrast report. Never hand-author
+theme JSON and never edit the data tree directly.
 
-This is the step that creates the theme file. Type and geometry adjust that
-open theme through unsaved buffers, and a color re-run carries those buffers
-forward.
+The run replaces the color state in that buffer and carries everything else
+forward, so it composes with type and geometry in any order. Saving the open
+theme in the editor, or running `save-theme`, turns the live look into a theme.
 
 ## Workflow
 
 1. Read the color intent. When it names an anchor (a feeling, an idiom, or an occasion), read `references/color-anchors.md` for that entry; it overrides the generic bands below. Say which anchor you took.
 2. Translate the intent into ten base colors using the framework below and write `scratch/<slug>-base-colors.json`. Nothing else records the base colors, so this file is the only copy; one per slug is what makes the refinement pass cheap.
-3. Run `npx live-tokens set-colors scratch/<slug>-base-colors.json`. It writes `themes/<slug>.json`, opens that theme, and prints a contrast report.
-4. Read the report. Exit 0 passes, and auto-corrected values count as passing. Exit 1 means the base colors are unworkable; each failure line names the base color to change, usually by raising its lightness or cutting its chroma. Fix the base color file and re-run under the same name.
-5. Report back in a line: the theme name, the scheme, the hue families on screen, the canvas commitment level, and anything the report auto-corrected.
+3. Run `npx live-tokens set-colors scratch/<slug>-base-colors.json`. It writes the color state into the unsaved buffer the page already runs, and prints a contrast report.
+4. Read the report. Exit 0 passes, and auto-corrected values count as passing. Exit 1 means the base colors are unworkable; each failure line names the base color to change, usually by raising its lightness or cutting its chroma. Fix the base color file and re-run.
+5. Report back in a line: the scheme, the hue families on screen, the canvas commitment level, and anything the report auto-corrected.
 
-Flags: `--dry-run` prints the report without writing; `--no-activate` writes
-without opening; `--carry-from <theme>` takes the non-color content (gradients,
-fonts, component aliases) from a named theme rather than from the live look.
-Generating a set needs it, because the first run becomes the live look.
+Flags: `--dry-run` prints the contrast report without writing.
 
 ## The base color file
 
 ```json
 {
-  "name": "Spring Meadow",
   "scheme": "light",
   "baseColors": {
     "Brand":     { "l": 0.62, "c": 0.17, "h": 145 },
@@ -48,7 +44,7 @@ Generating a set needs it, because the first run becomes the live look.
 }
 ```
 
-A base color is the one color a palette's whole ramp derives from. All 10 are required, and each may be given as a `"#rrggbb"` string instead. OKLCH: `l` is 0 to 1 lightness, `c` is chroma (0 grey, about 0.37 max), `h` is hue in degrees. `name` becomes the file slug; `"default"` is refused. `canvasGradient` is an optional boolean, see below.
+A base color is the one color a palette's whole ramp derives from. All 10 are required, and each may be given as a `"#rrggbb"` string instead. OKLCH: `l` is 0 to 1 lightness, `c` is chroma (0 grey, about 0.37 max), `h` is hue in degrees. The file names no theme: the slug in its own path is the theme name live-tokens-create-theme intends, or any label when this skill runs alone. `canvasGradient` is an optional boolean, see below.
 
 Roles: **Brand** is the dominant chromatic identity; **Accent** the supporting color; **Special** the rare expressive tertiary; **Canvas** is the page background verbatim; **Neutral** drives neutral surfaces and body text; **Alternate** is the second near-grey family; the four statuses are conventional signals.
 
@@ -125,19 +121,20 @@ Shadow opacity derives from Canvas lightness and re-derives on every run, so the
 
 ## Refining the color of a theme that exists
 
-"Warmer", "calmer", "more contrast" arrive against a theme that is already open, and the answer is a new base color file. Edit `scratch/<slug>-base-colors.json` when it is still there. When it is not, recover the base colors: `src/live-tokens/data/themes/<slug>.json` holds each one verbatim at `colorsAndType.editorConfigs.<Palette>.baseColor` as `{l, c, h}`, and the Canvas base color's lightness gives the scheme. Rebuild the base color file from those ten values, move the dial the user named, re-run under the same name. A re-run replaces that theme's whole color state, including palette edits made in the editor since the last run, so say so once when iterating.
+"Warmer", "calmer", "more contrast" arrive against a theme that is already open, and the answer is a new base color file. Edit `scratch/<slug>-base-colors.json` when it is still there. When it is not, recover the base colors: `src/live-tokens/data/themes/<slug>.json` holds each one verbatim at `colorsAndType.editorConfigs.<Palette>.baseColor` as `{l, c, h}`, and the Canvas base color's lightness gives the scheme. Rebuild the base color file from those ten values, move the dial the user named, and re-run. A re-run replaces the buffer's whole color state, including palette edits made in the editor since the last run, so say so once when iterating; a Save or a `save-theme` run keeps the result.
 
 One adjective moves one dial. Warmer and cooler rotate hue; calmer and louder move chroma; lighter, darker, and moodier move Canvas L and the scheme; more contrast widens the L gap between Canvas and Brand and takes chroma out of the ground rather than adding it to the garnish. Leave every base color the user did not name alone, because a refinement that re-rolls the whole palette reads as a different theme and loses the thing they liked.
 
 ## Scope
 
-Color only. Type and geometry are untouched, and their unsaved buffers carry
-forward into the theme this run writes. Save the open theme in the editor to
-keep the result; Adopt ships it. Both stay human actions.
+Color only. Type and geometry are untouched: `set-colors` replaces the color
+state in the unsaved buffer and carries every other value in it forward. Save
+the open theme in the editor, or run `save-theme`, to keep the result; Adopt
+ships it.
 
 ## Verify
 
-- The CLI exits 0 with every check passing (auto-corrected is fine), and the report names the theme it wrote and opened.
-- The app (dev server running) shows the new palette after a reload, and the editor's Theme panel names the theme.
+- The CLI exits 0 with every check passing (auto-corrected is fine), and the report names the buffer it wrote.
+- The app (dev server running) shows the new palette after a reload, and the editor's Theme panel marks the open theme unsaved.
 - The canvas is committed: on screen it reads as the theme's color rather than as generic near-white.
-- To return to the previous look, load the earlier theme from the Theme panel.
+- To revert, re-run with the previous base color file, or load the open theme again to discard the buffer.

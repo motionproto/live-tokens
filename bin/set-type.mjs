@@ -12,7 +12,7 @@ import { existsSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { dirname, join, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { readActiveTheme, readLiveColorsAndType, readSavedColorsAndType } from './lib/liveState.mjs';
+import { readActiveTheme, readLiveColorsAndType, readSavedColorsAndType, sameContent } from './lib/liveState.mjs';
 import { resolveTokensCssPath } from './migrate.mjs';
 
 const pkgRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
@@ -53,10 +53,6 @@ function normalizeFace(slot, value) {
     return { name: value.name, ...(value.url ? { url: value.url } : {}) };
   }
   throw new Error(`pairing slot "${slot}" must be a family name or { "name": "...", "url": "..." }`);
-}
-
-function sameJson(a, b) {
-  return JSON.stringify(a) === JSON.stringify(b);
 }
 
 /** `engine` and `fetcher` are test seams; the CLI always runs the compiled
@@ -153,7 +149,7 @@ export async function runSetType({
 
   // Returning the buffer to what the open theme already holds is a discard,
   // not an edit — the same call the dev server's own PUT makes.
-  const backToSaved = savedColorsAndType !== null && sameJson(next, savedColorsAndType);
+  const backToSaved = savedColorsAndType !== null && sameContent(next, savedColorsAndType);
   let wrote = null;
   if (!dryRun && report.changed) {
     if (backToSaved) {

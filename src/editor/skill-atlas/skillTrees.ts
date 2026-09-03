@@ -3,9 +3,9 @@ import type { SkillTree } from './types';
 export const skillTrees: Record<string, SkillTree> = {
   "create-theme": {
     "id": "live-tokens-create-theme",
-    "digest": "sha256:523c15021cafafbb",
+    "digest": "sha256:7a87f61fa686368c",
     "title": "create-theme",
-    "tagline": "One reading of the request becomes three intents, routed to three skills.",
+    "tagline": "One reading of the request becomes three intents, routed to three skills and saved as one theme.",
     "nodes": [
       {
         "id": "ct-trig",
@@ -18,7 +18,7 @@ export const skillTrees: Record<string, SkillTree> = {
           19
         ],
         "anchor": "name: live-tokens-create-theme",
-        "anchorEnd": "JSON and never edit the data tree directly."
+        "anchorEnd": "never edit the data tree directly."
       },
       {
         "id": "ct-direction",
@@ -52,7 +52,7 @@ export const skillTrees: Record<string, SkillTree> = {
         "kind": "step",
         "n": "3",
         "title": "State the three intents",
-        "desc": "The color, type, and geometry intents each name an outcome in a line. The anchor name travels with each one so the sibling can read its own column.",
+        "desc": "The color, type, and geometry intents each name an outcome in a line. The anchor name travels with each one so the contributing skill can read its own column.",
         "lines": [
           25,
           25
@@ -60,10 +60,10 @@ export const skillTrees: Record<string, SkillTree> = {
         "anchor": "State the three intents the design direction and the anchor ",
         "chips": [
           {
-            "label": "What each sibling owns",
+            "label": "What each contributing skill owns",
             "lines": [
-              43,
-              47
+              39,
+              43
             ],
             "anchor": "| Dimension | Contributing skill | It decides |",
             "anchorEnd": "| geometry | live-tokens-set-geometry | radius, padding, gap"
@@ -75,7 +75,7 @@ export const skillTrees: Record<string, SkillTree> = {
         "row": 4,
         "kind": "hand",
         "title": "Hand the color intent to set-colors",
-        "desc": "This hand-off never skips: the color CLI writes the theme file that type and geometry adjust through unsaved buffers.",
+        "desc": "This hand-off never skips: a theme request names a color identity, so color is the one dimension every look fixes.",
         "lines": [
           26,
           26
@@ -99,7 +99,7 @@ export const skillTrees: Record<string, SkillTree> = {
         "row": 6,
         "kind": "hand",
         "title": "Hand the type intent to set-type",
-        "desc": "The sibling chooses the families. This skill passes an outcome and never a family name.",
+        "desc": "The contributing skill chooses the families. This skill passes an outcome and never a family name.",
         "lines": [
           27,
           27
@@ -123,7 +123,7 @@ export const skillTrees: Record<string, SkillTree> = {
         "row": 8,
         "kind": "hand",
         "title": "Hand the geometry intent to set-geometry",
-        "desc": "The sibling chooses the ops. This skill passes an outcome and never a radius or a token.",
+        "desc": "The contributing skill chooses the ops. This skill passes an outcome and never a radius or a token.",
         "lines": [
           28,
           28
@@ -131,80 +131,94 @@ export const skillTrees: Record<string, SkillTree> = {
         "anchor": "Invoke **live-tokens-set-geometry** with the geometry intent"
       },
       {
-        "id": "ct-assemble",
+        "id": "ct-save",
         "row": 9,
-        "kind": "step",
+        "kind": "cli",
         "n": "7",
-        "title": "Assemble the three reports",
-        "desc": "One summary carries the design direction, what each sibling changed, and anything one of them flagged.",
+        "title": "Save the theme",
+        "desc": "One verb composes the three buffers into themes/<slug>.json and opens it, so nothing is left unsaved.",
         "lines": [
           29,
           29
         ],
+        "anchor": "Take the theme name from the design direction and run `npx l",
+        "command": "npx live-tokens save-theme \"<name>\""
+      },
+      {
+        "id": "ct-assemble",
+        "row": 10,
+        "kind": "step",
+        "n": "8",
+        "title": "Assemble the three reports",
+        "desc": "One summary carries the design direction, what each contributing skill changed, the theme that was written, and anything one of them flagged.",
+        "lines": [
+          30,
+          30
+        ],
         "anchor": "Assemble the three reports into the assembled report: the de",
         "chips": [
           {
-            "label": "Safe operation order",
+            "label": "A set of themes",
             "lines": [
-              31,
-              37
+              32,
+              33
             ],
-            "anchor": "Order matters only for safety, and the order above is safe: ",
-            "anchorEnd": "carries the first theme's type and geometry into the second."
+            "anchor": "A set of themes runs steps 4 to 7 once per theme, with `--no",
+            "anchorEnd": "save but the last, so each theme starts from the same live l"
           }
         ]
       },
       {
         "id": "ct-ver",
-        "row": 10,
+        "row": 11,
         "kind": "step",
         "title": "Verify the whole look",
-        "desc": "Each sibling reports back, the color CLI exits 0, and the running app shows the look after a reload.",
+        "desc": "Each contributing skill reports back, save-theme names the theme it wrote, and the running app shows the look after a reload.",
         "lines": [
-          77,
-          82
+          74,
+          80
         ],
         "anchor": "## Verify",
-        "anchorEnd": "- To return to the previous look, load the theme `set-colors"
+        "anchorEnd": "- To return to the previous look, load the earlier theme fro"
       },
       {
         "id": "ct-refine-q",
-        "row": 11,
+        "row": 12,
         "kind": "decide",
         "title": "Refine the look?",
         "desc": "One adjective usually names one dimension, and that dimension owns the refinement.",
         "lines": [
-          53,
-          56
+          49,
+          52
         ],
         "anchor": "## Refining a look",
         "anchorEnd": "usually names one dimension. Route it rather than re-reading"
       },
       {
         "id": "ct-refine",
-        "row": 12,
+        "row": 13,
         "kind": "step",
-        "title": "Route the refinement to one sibling",
+        "title": "Route the refinement to one contributing skill",
         "desc": "Warmer and calmer go to set-colors, a type voice to set-type, rounder and tighter to set-geometry.",
         "lines": [
-          58,
-          62
+          54,
+          58
         ],
         "anchor": "| The user says | Goes to |",
         "anchorEnd": "| rounder, sharper, pill buttons, tighter, airier, thicker b"
       },
       {
         "id": "ct-done",
-        "row": 12,
+        "row": 13,
         "kind": "done",
         "title": "Look complete",
-        "desc": "Color wrote and opened the theme; type and geometry sit in unsaved buffers. One Save keeps all three, and Adopt ships them.",
+        "desc": "save-theme wrote the theme and opened it, which cleared the three buffers. Adopt, in the editor, ships it.",
         "lines": [
-          70,
-          75
+          66,
+          72
         ],
-        "anchor": "Color writes `themes/<slug>.json` and opens it. Type and geo",
-        "anchorEnd": "stock ones rebuild from the new families."
+        "anchor": "Color, type, and geometry each write an unsaved buffer, whic",
+        "anchorEnd": "new families."
       }
     ],
     "edges": [
@@ -249,11 +263,15 @@ export const skillTrees: Record<string, SkillTree> = {
       },
       {
         "from": "ct-geo-q",
-        "to": "ct-assemble",
+        "to": "ct-save",
         "label": "keep geometry"
       },
       {
         "from": "ct-geo",
+        "to": "ct-save"
+      },
+      {
+        "from": "ct-save",
         "to": "ct-assemble"
       },
       {
@@ -288,9 +306,9 @@ export const skillTrees: Record<string, SkillTree> = {
   },
   "set-colors": {
     "id": "live-tokens-set-colors",
-    "digest": "sha256:e69f6846480bd199",
+    "digest": "sha256:b926bc6ef2a84476",
     "title": "set-colors",
-    "tagline": "Ten base colors become every ramp, gated on AA contrast, written as the theme.",
+    "tagline": "Ten base colors become every ramp, gated on AA contrast, written into the live look.",
     "nodes": [
       {
         "id": "sc-trig",
@@ -303,7 +321,7 @@ export const skillTrees: Record<string, SkillTree> = {
           15
         ],
         "anchor": "name: live-tokens-set-colors",
-        "anchorEnd": "forward."
+        "anchorEnd": "theme in the editor, or running `save-theme`, turns the live"
       },
       {
         "id": "sc-anchor",
@@ -337,8 +355,8 @@ export const skillTrees: Record<string, SkillTree> = {
         "kind": "chipset",
         "title": "Apply all palette constraints",
         "lines": [
-          30,
-          124
+          27,
+          120
         ],
         "anchor": "## The base color file",
         "anchorEnd": "Shadow opacity derives from Canvas lightness and re-derives ",
@@ -346,8 +364,8 @@ export const skillTrees: Record<string, SkillTree> = {
           {
             "label": "Base color file schema",
             "lines": [
-              30,
-              53
+              27,
+              49
             ],
             "anchor": "## The base color file",
             "anchorEnd": "Roles: **Brand** is the dominant chromatic identity; **Accen"
@@ -355,8 +373,8 @@ export const skillTrees: Record<string, SkillTree> = {
           {
             "label": "Chroma budget",
             "lines": [
-              55,
-              65
+              51,
+              61
             ],
             "anchor": "## Chroma budget: color is inversely proportional to area",
             "anchorEnd": "A good theme reads as 3 or 4 hue families on screen, never 1"
@@ -364,8 +382,8 @@ export const skillTrees: Record<string, SkillTree> = {
           {
             "label": "Role bands",
             "lines": [
-              67,
-              79
+              63,
+              75
             ],
             "anchor": "## Per-role bands",
             "anchorEnd": "| Danger | shared status L, C 0.15 to 0.20 | same | H 20 to "
@@ -373,8 +391,8 @@ export const skillTrees: Record<string, SkillTree> = {
           {
             "label": "Canvas commitment",
             "lines": [
-              81,
-              85
+              77,
+              81
             ],
             "anchor": "**The canvas carries the theme's identity, so commit to it.*",
             "anchorEnd": "*Full-color ground* (holiday and statement intents): the can"
@@ -382,8 +400,8 @@ export const skillTrees: Record<string, SkillTree> = {
           {
             "label": "Dark scheme and status lightness",
             "lines": [
-              87,
-              93
+              83,
+              89
             ],
             "anchor": "Also:",
             "anchorEnd": "- Status hues never rotate with the harmony; only their L an"
@@ -391,8 +409,8 @@ export const skillTrees: Record<string, SkillTree> = {
           {
             "label": "Mood dials",
             "lines": [
-              95,
-              101
+              91,
+              97
             ],
             "anchor": "## Mood dials",
             "anchorEnd": "Avoid mid-lightness yellow-green (H 100 to 120 at L 0.5 to 0"
@@ -400,8 +418,8 @@ export const skillTrees: Record<string, SkillTree> = {
           {
             "label": "Gamut guardrails",
             "lines": [
-              103,
-              110
+              99,
+              106
             ],
             "anchor": "## Gamut guardrails",
             "anchorEnd": "- Peak chroma anchors: red H20 C 0.25 at L 0.63; orange H60 "
@@ -409,8 +427,8 @@ export const skillTrees: Record<string, SkillTree> = {
           {
             "label": "Hue harmony",
             "lines": [
-              112,
-              118
+              108,
+              114
             ],
             "anchor": "## Harmony",
             "anchorEnd": "- Drama or maximum contrast: complementary, triadic, or tetr"
@@ -418,8 +436,8 @@ export const skillTrees: Record<string, SkillTree> = {
           {
             "label": "Canvas gradient and shadows",
             "lines": [
-              120,
-              124
+              116,
+              120
             ],
             "anchor": "## Canvas sky and shadows",
             "anchorEnd": "Shadow opacity derives from Canvas lightness and re-derives "
@@ -431,8 +449,8 @@ export const skillTrees: Record<string, SkillTree> = {
         "row": 4,
         "kind": "cli",
         "n": "3",
-        "title": "Write and open the theme",
-        "desc": "The CLI builds every ramp, enforces AA contrast on the derived text tokens, writes themes/<slug>.json, opens it, and prints a contrast report.",
+        "title": "Write the color buffer",
+        "desc": "The CLI builds every ramp, enforces AA contrast on the derived text tokens, writes the result into the unsaved buffer the page already runs, and prints a contrast report.",
         "lines": [
           21,
           21
@@ -444,10 +462,9 @@ export const skillTrees: Record<string, SkillTree> = {
             "label": "Flags",
             "lines": [
               25,
-              28
+              25
             ],
-            "anchor": "Flags: `--dry-run` prints the report without writing; `--no-",
-            "anchorEnd": "Generating a set needs it, because the first run becomes the"
+            "anchor": "Flags: `--dry-run` prints the contrast report without writin"
           }
         ]
       },
@@ -481,12 +498,12 @@ export const skillTrees: Record<string, SkillTree> = {
         "kind": "step",
         "n": "5",
         "title": "Report back",
-        "desc": "The line back to create-theme names the theme, the scheme, the hue families on screen, the canvas commitment level, and anything auto-corrected.",
+        "desc": "The line back to create-theme names the scheme, the hue families on screen, the canvas commitment level, and anything auto-corrected.",
         "lines": [
           23,
           23
         ],
-        "anchor": "Report back in a line: the theme name, the scheme, the hue f"
+        "anchor": "Report back in a line: the scheme, the hue families on scree"
       },
       {
         "id": "sc-refine-q",
@@ -495,8 +512,8 @@ export const skillTrees: Record<string, SkillTree> = {
         "title": "Refine the color?",
         "desc": "Warmer, calmer, or more contrast arrives against a theme that is already open, and the answer is a new base color file.",
         "lines": [
-          126,
-          128
+          122,
+          124
         ],
         "anchor": "## Refining the color of a theme that exists",
         "anchorEnd": "\"Warmer\", \"calmer\", \"more contrast\" arrive against a theme t"
@@ -506,10 +523,10 @@ export const skillTrees: Record<string, SkillTree> = {
         "row": 8,
         "kind": "step",
         "title": "Move one dial and re-run",
-        "desc": "One adjective moves one dial. A re-run replaces the theme’s whole color state, so every base color the user did not name stays where it was.",
+        "desc": "One adjective moves one dial. A re-run replaces the buffer's whole color state, so every base color the user did not name stays where it was.",
         "lines": [
-          130,
-          130
+          126,
+          126
         ],
         "anchor": "One adjective moves one dial. Warmer and cooler rotate hue; "
       },
@@ -518,13 +535,13 @@ export const skillTrees: Record<string, SkillTree> = {
         "row": 8,
         "kind": "done",
         "title": "Color set",
-        "desc": "The theme file exists and is open. Type and geometry buffers carried forward. Save keeps the result, Adopt ships it.",
+        "desc": "The buffer holds the new color state, and type and geometry carried forward. A Save or a save-theme run keeps it, Adopt ships it.",
         "lines": [
-          132,
-          136
+          128,
+          133
         ],
         "anchor": "## Scope",
-        "anchorEnd": "keep the result; Adopt ships it. Both stay human actions."
+        "anchorEnd": "ships it."
       }
     ],
     "edges": [

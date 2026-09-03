@@ -7,6 +7,8 @@ import { resolveGoogleFont, discoveryUrl, persistUrlFor } from '../src/editor/co
 import { requiredWeights, weightCoverage } from '../src/editor/core/fonts/weightCoverage';
 // @ts-expect-error — plain .mjs module, no types
 import { runSetType } from './set-type.mjs';
+// @ts-expect-error — plain .mjs module, no types
+import { runSetColors } from './set-colors.mjs';
 
 const engine = {
   applyFontPairing,
@@ -163,6 +165,43 @@ describe('runSetType', () => {
       JSON.stringify({ name: 'Fixture', schemaVersion: 4, colorsAndType: saved, componentConfigs: {} }),
     );
     writeFileSync(join(root, 'colors-and-type', '_working.json'), JSON.stringify(colorsAndType(), null, 2));
+
+    const result = await run(root, { display: 'Cinzel', body: 'Lato' });
+
+    expect(result.wrote).toBe('cleared');
+    expect(hasBuffer(root)).toBe(false);
+  });
+
+  it('discards a buffer set-colors wrote when the pairing returns to the theme', async () => {
+    const root = project();
+    const generic = colorsAndType();
+
+    // The theme carries the Cinzel/Lato pairing over the generic buffer's colors.
+    await run(root, { display: 'Cinzel', body: 'Lato' });
+    writeFileSync(
+      join(root, 'themes', 'fixture.json'),
+      JSON.stringify({
+        name: 'Fixture',
+        schemaVersion: 4,
+        colorsAndType: { ...buffer(root), updatedAt: '2026-01-01T00:00:00.000Z' },
+        componentConfigs: {},
+      }),
+    );
+    writeFileSync(join(root, 'colors-and-type', '_working.json'), JSON.stringify(generic, null, 2));
+
+    // set-colors rewrites the buffer with the theme's own colors and a fresh
+    // updatedAt, keeping the generic pairing it read.
+    const baseColorsPath = join(root, 'base-colors.json');
+    writeFileSync(baseColorsPath, JSON.stringify({ scheme: 'light' }));
+    const recolor = await runSetColors({
+      baseColorsPath,
+      colorsAndTypeDir: join(root, 'colors-and-type'),
+      themesDir: join(root, 'themes'),
+      engine: {
+        buildColors: () => ({ colors: { cssVariables: generic.cssVariables }, report: {} }),
+      },
+    });
+    expect(recolor.wrote).toBe('buffer');
 
     const result = await run(root, { display: 'Cinzel', body: 'Lato' });
 

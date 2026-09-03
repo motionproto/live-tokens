@@ -12,29 +12,25 @@ each naming an outcome and never a value. Each goes to the contributing skill
 that owns that dimension, and their three reports come back as one **assembled
 report**, so the whole look comes from one reading.
 
-This skill runs no CLI. Its contributing skills do: one writes the **theme**,
-the document at `themes/<slug>.json`, and the other two write unsaved buffers on
-top of it. The theme plus those buffers is the **look**, which is what the app
-renders now and what one Save turns back into a theme. Never hand-author theme
-JSON and never edit the data tree directly.
+Every contributing skill writes its dimension into the unsaved buffers the app
+already renders, and those three buffers are the **look**. This skill runs one
+CLI of its own, `save-theme`, which turns the look into the **theme**, the
+document at `themes/<slug>.json`, and opens it. Never hand-author theme JSON and
+never edit the data tree directly.
 
 ## Workflow
 
 1. Read the request once and state the design direction to the user: the mood, the hue family, the scheme, and the type and geometry that mood implies. It fixes enough to derive the three intents in step 3, and it names the default where the request leaves a dimension open. Keep it to a line or two. Every step below keys off it.
 2. Read `references/design-directions.md` and name the **anchor** the request matches: a feeling, an idiom, or an occasion that reference lists, each one fixing color, type, and geometry together. An idiom sets constraints and a feeling moves dials inside them, so a request matching both reads the idiom first. A request matching none takes the design direction alone.
 3. State the three intents the design direction and the anchor imply, one line each: the color intent, the type intent, and the geometry intent. Each names an outcome. Pass the anchor's name with each one, because every contributing skill holds its own anchors for its own dimension under the same names. Never reach for an OKLCH triple, a font family, or a token on a contributing skill's behalf.
-4. Invoke **live-tokens-set-colors** with the color intent. This step never skips: `set-colors` writes and opens the theme the other two then adjust through unsaved buffers.
+4. Invoke **live-tokens-set-colors** with the color intent. This step never skips: a theme request names a color identity, so color is the one dimension every look fixes.
 5. Invoke **live-tokens-set-type** with the type intent. Skip only when the user asked to leave the type alone.
 6. Invoke **live-tokens-set-geometry** with the geometry intent. Skip when the geometry intent is to leave the geometry alone.
-7. Assemble the three reports into the assembled report: the design direction, what each contributing skill changed, and anything one of them flagged. Tell the user to look at the running app, and that type and geometry sit in unsaved buffers until they save the open theme. Offer refinements (see Refining a look).
+7. Take the theme name from the design direction and run `npx live-tokens save-theme "<name>"`. It composes the three buffers into `themes/<slug>.json` and opens it, so nothing is left unsaved. `--dry-run` prints what it would write.
+8. Assemble the three reports into the assembled report: the design direction, what each contributing skill changed, the theme `save-theme` wrote, and anything one of them flagged. Tell the user to look at the running app. Offer refinements (see Refining a look).
 
-Order matters only for safety, and the order above is safe: `set-colors` carries
-the unsaved buffers forward into the theme it writes, so a color re-run after
-type and geometry keeps both.
-
-Creating a set of themes needs `--carry-from`, which live-tokens-set-colors
-documents: the first run becomes the live look, so a second run without it
-carries the first theme's type and geometry into the second.
+A set of themes runs steps 4 to 7 once per theme, with `--no-activate` on every
+save but the last, so each theme starts from the same live look.
 
 ## What each contributing skill owns
 
@@ -67,17 +63,18 @@ and route all three again.
 
 ## Files each step writes
 
-Color writes `themes/<slug>.json` and opens it. Type and geometry write unsaved
-buffers, which the page already runs. One Save in the editor keeps all three;
-Adopt ships them. Opening a theme never changes what the site ships. Only Adopt,
-in the editor, does that. Component aliases and gradients carry forward from the
-live look into the theme `set-colors` writes; user-tuned gradients survive,
-stock ones rebuild from the new families.
+Color, type, and geometry each write an unsaved buffer, which the page already
+runs. `save-theme` composes the three into `themes/<slug>.json` and opens it,
+which clears the buffers; Adopt then ships the theme. Opening a theme never
+changes what the site ships. Only Adopt, in the editor, does that. Component
+aliases and gradients carry forward from the live look into the theme
+`save-theme` writes; user-tuned gradients survive, stock ones rebuild from the
+new families.
 
 ## Verify
 
 - Each contributing skill reports back, and `set-colors` exits 0 with every check passing (auto-corrected is fine).
-- The app (dev server running) shows the whole look after a reload, and the editor's Theme panel names the theme.
+- `save-theme` exits 0 and names the theme it wrote and opened.
+- The app (dev server running) shows the whole look after a reload, and the editor's Theme panel names that theme with no unsaved marker.
 - The assembled report names one design direction, and the three intents trace to it.
-- To return to the previous look, load the theme `set-colors` named from the Theme panel; that discards the buffers too.
-Leave the atlases for now. 
+- To return to the previous look, load the earlier theme from the Theme panel.
