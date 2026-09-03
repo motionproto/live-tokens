@@ -71,10 +71,19 @@ export function sameContent(a, b) {
   return JSON.stringify(strip(a)) === JSON.stringify(strip(b));
 }
 
+/** Which layer sits under the buffer: the open theme when it carries colors and
+ *  type, else the shipped default. A report that names the layer reads it from
+ *  here rather than re-deriving the fall-through, which is how the discard
+ *  message came to name a theme that was not open. */
+export const savedColorsAndTypeSource = (active) => (active?.theme?.colorsAndType ? 'theme' : 'default');
+
 /** The layer under the buffer. Returning the buffer to exactly this is a
  *  discard, not an edit, so a caller compares against it before writing. */
 export function readSavedColorsAndType(colorsAndTypeDir, active) {
-  const saved = active?.theme?.colorsAndType ?? readData(colorsAndTypeDir, 'colors-and-type', 'default');
+  const saved =
+    savedColorsAndTypeSource(active) === 'theme'
+      ? active.theme.colorsAndType
+      : readData(colorsAndTypeDir, 'colors-and-type', 'default');
   return saved ? stripMarkers(saved) : null;
 }
 

@@ -16,7 +16,13 @@ import { existsSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { dirname, join, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { readActiveTheme, readLiveColorsAndType, readSavedColorsAndType, sameContent } from './lib/liveState.mjs';
+import {
+  readActiveTheme,
+  readLiveColorsAndType,
+  readSavedColorsAndType,
+  sameContent,
+  savedColorsAndTypeSource,
+} from './lib/liveState.mjs';
 
 const pkgRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const ENGINE = resolve(pkgRoot, 'dist-plugin/setColors/index.js');
@@ -88,7 +94,7 @@ export async function runSetColors({
   const workingPath = join(colorsDir, '_working.json');
   const saved = readSavedColorsAndType(colorsDir, active);
 
-  // Returning the buffer to what the open theme already holds is a discard,
+  // Returning the buffer to what the layer under it already holds is a discard,
   // not an edit — the same call the dev server's own PUT makes.
   const backToSaved = saved !== null && sameContent(next, saved);
   let wrote = null;
@@ -108,6 +114,11 @@ export async function runSetColors({
     workingPath,
     openTheme: active?.slug ?? null,
     source,
+    // Which layer the discard compared against, so the report can name it. It
+    // is the open theme only when one is open; with none, it is the default the
+    // package ships, and calling that "the open theme" named a file nobody had
+    // opened.
+    savedSource: savedColorsAndTypeSource(active),
     // The base color file's `name` used to pick a theme file name. This verb
     // writes no file of its own now, so it names nothing; say so rather than
     // drop it in silence.
@@ -165,9 +176,13 @@ export function formatSetColorsResult(result) {
         `editor's Theme panel to keep it, or run save-theme to write a new one.`,
     );
   } else if (result.wrote === 'cleared') {
+    const held =
+      result.savedSource === 'theme' ? `theme "${result.openTheme}"` : 'the package default';
     lines.push(
-      `\nThat is what the open theme already holds, so the unsaved buffer was discarded. ` +
-        `Reload the app to see it.`,
+      result.source === 'working'
+        ? `\nThat is what ${held} already holds, so the unsaved buffer was discarded. ` +
+            `Reload the app to see it.`
+        : `\nThat is what ${held} already holds, and there was no unsaved buffer, so nothing was written.`,
     );
   } else if (result.dryRun) {
     lines.push(`\nDry run: nothing written under ${relative(root, result.colorsAndTypeDir)}.`);

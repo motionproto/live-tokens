@@ -24,7 +24,8 @@
   gone: it existed because `set-colors` activated, and nothing activates now
   until you save. The base color file no longer carries `name`; a name in it
   is ignored with a notice. `live-tokens-create-theme` runs `save-theme` once,
-  after its three contributing skills.
+  after its three contributing skills. `init`, an undocumented alias for
+  `create` since 0.21.0, is gone: type `create`.
 
   **36 dead keys left the override bag.** Themes carried the color, type, and
   border-width siblings of keys an earlier migration dropped (Badge's `trait`

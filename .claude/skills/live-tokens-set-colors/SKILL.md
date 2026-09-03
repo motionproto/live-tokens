@@ -135,6 +135,6 @@ ships it.
 ## Verify
 
 - The CLI exits 0 with every check passing (auto-corrected is fine), and the report names the layer it carried the rest of the look forward from.
-- The app (dev server running) shows the new palette after a reload. The editor's Theme panel marks the open theme unsaved, unless the run was a dry one or the report says the buffer was discarded because the new colors are what the open theme already holds.
+- The app (dev server running) shows the new palette after a reload. The editor's Theme panel marks the open theme unsaved, unless the run was a dry one or the report says the layer under the buffer, the open theme or the package default, already holds these colors.
 - The canvas is committed: on screen it reads as the theme's color rather than as generic near-white.
 - To revert, re-run with the previous base color file, or load the open theme again to discard the buffer.

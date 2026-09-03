@@ -10,7 +10,7 @@ type Repo = {
 };
 
 const CLI = `
-if (command === 'create' || command === 'init') {
+if (command === 'create') {
 if (command === 'set-colors') {
 if (command === 'set-geometry') {
 if (command === 'set-type') {
@@ -175,12 +175,11 @@ describe('verbs a skill runs', () => {
 
   it('rejects an exemption for a verb bin/cli.mjs stopped dispatching', () => {
     const problems = checkSkills(
-      repo((r) => { r.cli = r.cli.replace("if (command === 'create' || command === 'init') {\n", ''); }),
+      repo((r) => { r.cli = r.cli.replace("if (command === 'create') {\n", ''); }),
     );
 
     expect(problems).toEqual([
       'UNSKILLED_VERBS exempts "create", which bin/cli.mjs no longer dispatches',
-      'UNSKILLED_VERBS exempts "init", which bin/cli.mjs no longer dispatches',
     ]);
   });
 });

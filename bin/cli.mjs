@@ -161,7 +161,7 @@ if (!command || command === '--help' || command === '-h') {
 
 const pkgRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 
-if (command === 'create' || command === 'init') {
+if (command === 'create') {
   const targetArg = rest.find((a) => !a.startsWith('-'));
   if (!targetArg) {
     fail(`Usage: npx @motion-proto/live-tokens create <project-directory>`);

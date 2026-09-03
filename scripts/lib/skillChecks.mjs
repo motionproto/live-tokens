@@ -31,7 +31,6 @@ const RETIRED_FLAGS = new Set(['--carry-from']);
 // writes down why it does not.
 const UNSKILLED_VERBS = new Map([
   ['create', 'scaffolds the project, so it runs before setup-claude has put a skill in it'],
-  ['init', 'the alias create still answers to'],
   ['setup-claude', 'installs the skills, so no skill can be what runs it'],
 ]);
 

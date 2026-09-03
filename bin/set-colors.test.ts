@@ -229,13 +229,37 @@ describe('formatSetColorsResult', () => {
     expect(out).not.toContain('Opened');
   });
 
-  it('says the buffer was discarded when the result matches the open theme', async () => {
+  it('names the open theme when the buffer is discarded against it', async () => {
     const root = project();
     openTheme(root, 'sunset', { name: 'Sunset', cssVariables: {} });
     await run(root);
     openTheme(root, 'sunset', buffer(root));
 
-    expect(formatSetColorsResult(await run(root))).toContain('the unsaved buffer was discarded');
+    expect(formatSetColorsResult(await run(root))).toContain(
+      'That is what theme "sunset" already holds, so the unsaved buffer was discarded',
+    );
+  });
+
+  it('names the package default, not a theme, when no theme is open', async () => {
+    const root = project();
+    await run(root);
+    writeFileSync(join(root, 'colors-and-type', 'default.json'), JSON.stringify(buffer(root)));
+
+    const out = formatSetColorsResult(await run(root));
+
+    expect(out).toContain('That is what the package default already holds, so the unsaved buffer was discarded');
+    expect(out).not.toContain('theme');
+  });
+
+  it('says nothing was written when the colors already match and no buffer exists', async () => {
+    const root = project();
+    await run(root);
+    writeFileSync(join(root, 'colors-and-type', 'default.json'), JSON.stringify(buffer(root)));
+    rmSync(join(root, 'colors-and-type', '_working.json'));
+
+    expect(formatSetColorsResult(await run(root))).toContain(
+      'That is what the package default already holds, and there was no unsaved buffer, so nothing was written',
+    );
   });
 
   it('says nothing was written on a dry run, and names an ignored name', async () => {
