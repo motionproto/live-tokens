@@ -2131,7 +2131,7 @@ export const skillTrees: Record<string, SkillTree> = {
         "id": "bp-avoid",
         "row": 18,
         "kind": "chipset",
-        "title": "Avoid",
+        "title": "Follow seven page safeguards",
         "chips": [
           {
             "label": "Theme tokens for colour and geometry",
