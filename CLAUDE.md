@@ -23,7 +23,7 @@ git status --short src/live-tokens/data   # then delete untracked theme files th
 
 # Editing a skill moves the Skill Atlas
 
-`src/app/skill-atlas/skillTrees.ts` cites `.claude/skills/*/SKILL.md` by line
+`src/editor/skill-atlas/skillTrees.ts` cites `.claude/skills/*/SKILL.md` by line
 number. The numbers are derived from anchor text, so after any edit to a
 SKILL.md — including adding or removing a line — run:
 

@@ -2159,6 +2159,14 @@ export const skillTrees: Record<string, SkillTree> = {
             "anchor": "- Utility classes overriding shipped components. Extend via "
           },
           {
+            "label": "Label the box with a text style",
+            "lines": [
+              81,
+              81
+            ],
+            "anchor": "- A card header as a section label in a tool UI, and a page "
+          },
+          {
             "label": "Public package imports",
             "lines": [
               82,
