@@ -24,14 +24,20 @@ git status --short src/live-tokens/data   # then delete untracked theme files th
 # Editing a skill moves the Skill Atlas
 
 `src/editor/skill-atlas/skillTrees.ts` cites `.claude/skills/*/SKILL.md` by line
-number. The numbers are derived from anchor text, so after any edit to a
-SKILL.md — including adding or removing a line — run:
+number. The numbers are derived from anchor text. The skills also ship to the
+atlas as a generated module, `skillSources.generated.ts`. So after any edit to a
+SKILL.md or a `references/*.md`, including adding or removing a line, run both:
 
 ```sh
 npm run sync:skill-atlas
+npm run sync:skill-sources
 ```
 
-`check:skill-atlas` is in `prepublishOnly` and fails on drift, so skipping the
-sync surfaces at release rather than at commit. The sync repairs a range that
-moved; it refuses a range whose anchor text is gone, which means that node has
-to be re-pointed by hand.
+`check:skill-atlas` and `check:skill-sources` are both in `prepublishOnly` and
+fail on drift, so skipping either sync surfaces at release rather than at
+commit. The atlas sync repairs a range that moved; it refuses a range whose
+anchor text is gone, which means that node has to be re-pointed by hand.
+
+Renaming or moving a node also needs a look at the rendered card. A title and
+its chip labels can each be correct and still contradict each other, and every
+check passes on that.
