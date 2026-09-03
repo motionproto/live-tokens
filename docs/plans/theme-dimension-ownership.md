@@ -43,7 +43,7 @@ stop only if the symbol itself is gone.
 |---|---|---|---|---|---|
 | 0 | Precondition: docs committed, user's work settled | orchestrator | none | Done | 5b80fc5 |
 | 1 | One live-state reader under `bin/lib/` | wave-executor, Opus | Opus | Done | 5e141ca |
-| 2 | Dead keys: migration, preset sweep, gate | wave-executor, Opus | Fable | Not started | |
+| 2 | Dead keys: migration, preset sweep, gate | wave-executor, Opus | Fable | Done | db5e22f |
 | 3 | Engine names follow the verbs | recipe-sweeper, Sonnet | Opus | Not started | |
 | 4 | `set-colors` narrows, `save-theme` lands | wave-executor, Opus | Fable | Not started | |
 | 5 | Skills and atlas | wave-executor, Opus | Opus | Not started | |
@@ -247,13 +247,13 @@ After the drop, every surviving key in all nine presets is declared in
 
 New `src/editor/core/themes/migrations/2026-09-03-drop-legacy-component-keys.ts`
 in the shape of `2026-08-13-drop-legacy-shape-space-keys.ts`: `appliesTo:
-'colors-and-type'`, `fromVersion: 8`, `toVersion: 9`, a `DROPPED` set, and a
+'colors-and-type'`, `fromVersion: 7`, `toVersion: 8`, a `DROPPED` set, and a
 comment saying these are the color, type, and border-width siblings of the
 keys that migration removed, left behind when Badge's `trait` variant,
 SectionDivider's title and description slots, and Dialog's variant-by-state
 axes were renamed. Register it in `migrations/index.ts` after
 `colorsAndTypeMigration_2026_09_01_tintRename`; `countFor('colors-and-type')`
-moves the current counter from 8 to 9 on its own. Add the case to
+moves the current counter from 7 to 8 on its own. Add the case to
 `migrations.test.ts` beside the 2026-08-13 case.
 
 ### Step 3: the sweep (wave-executor)
@@ -266,14 +266,19 @@ each of the nine `themes/<slug>.json` and the nine
 
 - removes every key in `DROPPED` from `cssVariables`,
 - stamps `colorsAndType.schemaVersion` (or the file's own `schemaVersion`
-  for the standalone copies) to 9,
+  for the standalone copies) to 8,
 - leaves `name`, `createdAt`, `updatedAt`, and every other byte alone,
-- writes with two-space indent and a trailing newline, the format the files
-  carry now.
+- writes with two-space indent, and keeps each file's own final byte:
+  sixteen of the eighteen end without a newline and two (`midnight-study`)
+  end with one.
 
 Seven presets sit at colors-and-type version 3 and two at 5; every migration
-between is a no-op on them, which is why they still load. Stamping to 9 is
-correct and stops the client re-running eight no-ops per load.
+between is a no-op on them, which is why they still load. Stamping to 8 is
+correct and stops the client re-running seven no-ops per load.
+
+The v3-to-v4 case in `migrations.test.ts` witnesses three keys that are now in
+`DROPPED`, and it runs the whole chain, so those three fixtures come out and
+the modern-named survivors carry the case.
 
 Then the baked CSS. `tokens.generated.css` is regenerated from the production
 theme when the dev plugin boots. Start the dev server once, stop it, and
@@ -289,7 +294,10 @@ there. Delete `scratch/` output before finishing.
 `colorsAndType.cssVariables` in every preset is declared in
 `src/system/styles/tokens.css` as `--name:` at any indentation. Failure names
 the preset and the key. `presetThemes.test.ts` gains the same assertion so it
-runs without `dist-plugin`.
+runs without `dist-plugin`. The check covers `default` as well as the eight in
+`PRESETS`: `default` is the layer every other theme falls through to and the
+file the bake reads, so leaving it out would unguard the source of the baked
+lines this wave removed.
 
 **Verify (test-verifier):** `npm test`, `npm run check`,
 `npm run build:plugin && npm run check:preset-themes`,
