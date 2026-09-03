@@ -1,126 +1,353 @@
 import type { SkillTree } from './types';
 
 export const skillTrees: Record<string, SkillTree> = {
-  "generate-theme": {
-    "id": "live-tokens-generate-theme",
-    "digest": "sha256:f5bce8ff8be8d03a",
-    "title": "generate-theme",
-    "tagline": "One design direction guides color, type, and geometry across three skills.",
+  "create-theme": {
+    "id": "live-tokens-create-theme",
+    "digest": "sha256:91d5892a4d4bb04e",
+    "title": "create-theme",
+    "tagline": "One reading of the request becomes three intents, routed to three skills.",
     "nodes": [
       {
-        "id": "gt-trig",
+        "id": "ct-trig",
         "row": 0,
         "kind": "trigger",
-        "title": "Define or refine a theme",
-        "desc": "A palette, mood, style, occasion, hue, or color refinement drives the theme. The editor handles single tokens; set-fonts handles type; adjust-geometry handles geometry.",
+        "title": "Define or refine a whole look",
+        "desc": "A theme, look, vibe, or brand feel by mood, style, era, season, holiday, or hue. One dimension alone goes straight to set-colors, set-type, or set-geometry.",
         "lines": [
           2,
-          8
+          12
         ],
-        "anchor": "name: live-tokens-generate-theme",
-        "anchorEnd": "A theme is three decisions made from one request: color, type,"
+        "anchor": "name: live-tokens-create-theme",
+        "anchorEnd": "tree directly."
       },
       {
-        "id": "gt-direction",
+        "id": "ct-direction",
         "row": 1,
         "kind": "step",
         "n": "1",
         "title": "State the design direction",
-        "desc": "One sentence fixes the mood, the hue family, the scheme, and the type and geometry that mood implies. Every later step keys off it.",
+        "desc": "One or two lines fix the mood, the hue family, the scheme, and the type and geometry that mood implies, naming the default where the request leaves a dimension open.",
         "lines": [
-          12,
-          12
+          16,
+          16
         ],
         "anchor": "Read the request once and state the design direction to the "
       },
       {
-        "id": "gt-anchor",
+        "id": "ct-index",
         "row": 2,
-        "kind": "decide",
-        "title": "Anchor category?",
-        "desc": "Anchors define color, type, and geometry and override generic defaults. When two match, the idiom sets constraints and the feeling adjusts its dials.",
-        "lines": [
-          13,
-          13
-        ],
-        "anchor": "Read the anchor reference that matches the design direction ",
-        "n": "2"
-      },
-      {
-        "id": "gt-mood",
-        "row": 3,
         "kind": "ref",
-        "title": "Read the mood anchor",
-        "reference": "references/mood-vocabulary.md",
+        "title": "Name the anchor",
+        "desc": "A feeling, an idiom, or an occasion. An idiom sets constraints and a feeling moves dials inside them, so a request matching both reads the idiom first.",
+        "reference": "references/design-directions.md",
         "lines": [
-          124,
-          124
+          17,
+          17
         ],
-        "anchor": "- `references/mood-vocabulary.md` covers feelings: joyful, p",
-        "desc": "Eighteen feelings placed on valence, energy, and dominance. A feeling the table omits still places on the three axes."
+        "anchor": "Read `references/design-directions.md` and name the anchor t"
       },
       {
-        "id": "gt-style",
+        "id": "ct-intents",
         "row": 3,
-        "kind": "ref",
-        "title": "Read the style anchor",
-        "reference": "references/style-vocabulary.md",
-        "lines": [
-          125,
-          125
-        ],
-        "anchor": "- `references/style-vocabulary.md` covers named idioms, eras",
-        "desc": "Nineteen idioms, eras, and genres. Each entry fixes color, type, and geometry as one set, and its Type and Geometry columns go to the siblings verbatim."
-      },
-      {
-        "id": "gt-named",
-        "row": 3,
-        "kind": "ref",
-        "title": "Read the named-theme anchor",
-        "reference": "references/named-themes.md",
-        "lines": [
-          126,
-          126
-        ],
-        "anchor": "- `references/named-themes.md` covers holidays, seasons, and",
-        "desc": "Holidays, seasons, and natural scenes. Each is a statement request: canvas commitment level 2 or 3, with the named color on the ground."
-      },
-      {
-        "id": "gt-none",
-        "row": 3,
-        "kind": "step",
-        "title": "Use generic color and geometry rules",
-        "lines": [
-          128,
-          128
-        ],
-        "anchor": "Most requests hit the first file. A request that matches two (\"c",
-        "desc": "The chroma budget, the per-role bands, and the geometry table carry a request that names no feeling, idiom, or occasion."
-      },
-      {
-        "id": "gt-base-colors",
-        "row": 4,
         "kind": "step",
         "n": "3",
-        "title": "Define ten OKLCH base colors",
-        "desc": "The color intent becomes ten base colors in scratch/<slug>-base-colors.json: Brand, Accent, Special, Canvas, Neutral, Alternate, and four statuses.",
+        "title": "State the three intents",
+        "desc": "The color, type, and geometry intents each name an outcome in a line. The anchor name travels with each one so the sibling can read its own column.",
         "lines": [
-          15,
-          15
+          18,
+          18
         ],
-        "anchor": "Translate the color intent into a base color file using the"
+        "anchor": "State the three intents the design direction and the anchor ",
+        "chips": [
+          {
+            "label": "What each sibling owns",
+            "lines": [
+              36,
+              40
+            ],
+            "anchor": "| Intent | Sibling | It decides |",
+            "anchorEnd": "| geometry | live-tokens-set-geometry | radius, padding, gap"
+          }
+        ]
       },
       {
-        "id": "gt-cons",
+        "id": "ct-colors",
+        "row": 4,
+        "kind": "hand",
+        "title": "Hand the color intent to set-colors",
+        "desc": "This hand-off never skips: the color CLI writes the theme file that type and geometry adjust through unsaved buffers.",
+        "lines": [
+          19,
+          19
+        ],
+        "anchor": "Invoke **live-tokens-set-colors** with the color intent. Thi"
+      },
+      {
+        "id": "ct-type-q",
         "row": 5,
+        "kind": "decide",
+        "title": "Does the look need new type?",
+        "desc": "Type is skipped only when the user asked to leave it alone.",
+        "lines": [
+          20,
+          20
+        ],
+        "anchor": "Invoke **live-tokens-set-type** with the type intent. Skip o"
+      },
+      {
+        "id": "ct-type",
+        "row": 6,
+        "kind": "hand",
+        "title": "Hand the type intent to set-type",
+        "desc": "The sibling chooses the families. This skill passes an outcome and never a family name.",
+        "lines": [
+          20,
+          20
+        ],
+        "anchor": "Invoke **live-tokens-set-type** with the type intent. Skip o"
+      },
+      {
+        "id": "ct-geo-q",
+        "row": 7,
+        "kind": "decide",
+        "title": "Does the look need geometry changes?",
+        "desc": "Geometry is skipped when the geometry intent is to leave it alone.",
+        "lines": [
+          21,
+          21
+        ],
+        "anchor": "Invoke **live-tokens-set-geometry** with the geometry intent"
+      },
+      {
+        "id": "ct-geo",
+        "row": 8,
+        "kind": "hand",
+        "title": "Hand the geometry intent to set-geometry",
+        "desc": "The sibling chooses the ops. This skill passes an outcome and never a radius or a token.",
+        "lines": [
+          21,
+          21
+        ],
+        "anchor": "Invoke **live-tokens-set-geometry** with the geometry intent"
+      },
+      {
+        "id": "ct-assemble",
+        "row": 9,
+        "kind": "step",
+        "n": "7",
+        "title": "Assemble the three reports",
+        "desc": "One summary carries the design direction, what each sibling changed, and anything one of them flagged.",
+        "lines": [
+          22,
+          22
+        ],
+        "anchor": "Assemble the three reports into one summary: the design dire",
+        "chips": [
+          {
+            "label": "Safe operation order",
+            "lines": [
+              24,
+              30
+            ],
+            "anchor": "Order matters only for safety, and the order above is safe: ",
+            "anchorEnd": "first theme's type and geometry into the second."
+          }
+        ]
+      },
+      {
+        "id": "ct-ver",
+        "row": 10,
+        "kind": "step",
+        "title": "Verify the whole look",
+        "desc": "Each sibling reports back, the color CLI exits 0, and the running app shows the look after a reload.",
+        "lines": [
+          70,
+          75
+        ],
+        "anchor": "## Verify",
+        "anchorEnd": "- To return to the previous look, load the theme the color C"
+      },
+      {
+        "id": "ct-refine-q",
+        "row": 11,
+        "kind": "decide",
+        "title": "Refine the look?",
+        "desc": "One adjective usually names one dimension, and that dimension owns the refinement.",
+        "lines": [
+          46,
+          49
+        ],
+        "anchor": "## Refining a look",
+        "anchorEnd": "usually names one dimension. Route it rather than re-reading"
+      },
+      {
+        "id": "ct-refine",
+        "row": 12,
+        "kind": "step",
+        "title": "Route the refinement to one sibling",
+        "desc": "Warmer and calmer go to set-colors, a type voice to set-type, rounder and tighter to set-geometry.",
+        "lines": [
+          51,
+          55
+        ],
+        "anchor": "| The user says | Goes to |",
+        "anchorEnd": "| rounder, sharper, pill buttons, tighter, airier, thicker b"
+      },
+      {
+        "id": "ct-done",
+        "row": 12,
+        "kind": "done",
+        "title": "Look complete",
+        "desc": "Color wrote and opened the theme; type and geometry sit in unsaved buffers. One Save keeps all three, and Adopt ships them.",
+        "lines": [
+          63,
+          68
+        ],
+        "anchor": "Color writes `themes/<slug>.json` and opens it. Type and geo",
+        "anchorEnd": "survive, stock ones rebuild from the new families."
+      }
+    ],
+    "edges": [
+      {
+        "from": "ct-trig",
+        "to": "ct-direction"
+      },
+      {
+        "from": "ct-direction",
+        "to": "ct-index"
+      },
+      {
+        "from": "ct-index",
+        "to": "ct-intents"
+      },
+      {
+        "from": "ct-intents",
+        "to": "ct-colors"
+      },
+      {
+        "from": "ct-colors",
+        "to": "ct-type-q"
+      },
+      {
+        "from": "ct-type-q",
+        "to": "ct-type",
+        "label": "set type"
+      },
+      {
+        "from": "ct-type-q",
+        "to": "ct-geo-q",
+        "label": "keep type"
+      },
+      {
+        "from": "ct-type",
+        "to": "ct-geo-q"
+      },
+      {
+        "from": "ct-geo-q",
+        "to": "ct-geo",
+        "label": "set geometry"
+      },
+      {
+        "from": "ct-geo-q",
+        "to": "ct-assemble",
+        "label": "keep geometry"
+      },
+      {
+        "from": "ct-geo",
+        "to": "ct-assemble"
+      },
+      {
+        "from": "ct-assemble",
+        "to": "ct-ver"
+      },
+      {
+        "from": "ct-ver",
+        "to": "ct-refine-q"
+      },
+      {
+        "from": "ct-refine-q",
+        "to": "ct-refine",
+        "label": "one dimension"
+      },
+      {
+        "from": "ct-refine-q",
+        "to": "ct-direction",
+        "label": "spans dimensions",
+        "back": true
+      },
+      {
+        "from": "ct-refine-q",
+        "to": "ct-done",
+        "label": "done"
+      },
+      {
+        "from": "ct-refine",
+        "to": "ct-done"
+      }
+    ]
+  },
+  "set-colors": {
+    "id": "live-tokens-set-colors",
+    "digest": "sha256:e69f6846480bd199",
+    "title": "set-colors",
+    "tagline": "Ten base colors become every ramp, gated on AA contrast, written as the theme.",
+    "nodes": [
+      {
+        "id": "sc-trig",
+        "row": 0,
+        "kind": "trigger",
+        "title": "Set or refine a palette",
+        "desc": "A palette, colors, or hues by mood, style, or hue, and every color refinement. create-theme supplies the color intent for a whole look.",
+        "lines": [
+          2,
+          15
+        ],
+        "anchor": "name: live-tokens-set-colors",
+        "anchorEnd": "forward."
+      },
+      {
+        "id": "sc-anchor",
+        "row": 1,
+        "kind": "ref",
+        "title": "Read the color anchor",
+        "desc": "An anchor the color intent names overrides the generic bands. Say which anchor you took.",
+        "reference": "references/color-anchors.md",
+        "lines": [
+          19,
+          19
+        ],
+        "anchor": "Read the color intent. When it names an anchor (a feeling, a"
+      },
+      {
+        "id": "sc-base-colors",
+        "row": 2,
+        "kind": "step",
+        "n": "2",
+        "title": "Define ten OKLCH base colors",
+        "desc": "Brand, Accent, Special, Canvas, Neutral, Alternate, and four statuses go to scratch/<slug>-base-colors.json, which is the only copy.",
+        "lines": [
+          20,
+          20
+        ],
+        "anchor": "Translate the intent into ten base colors using the framewor"
+      },
+      {
+        "id": "sc-cons",
+        "row": 3,
         "kind": "chipset",
         "title": "Apply all palette constraints",
+        "lines": [
+          30,
+          124
+        ],
+        "anchor": "## The base color file",
+        "anchorEnd": "Shadow opacity derives from Canvas lightness and re-derives ",
         "chips": [
           {
             "label": "Base color file schema",
             "lines": [
-              26,
-              49
+              30,
+              53
             ],
             "anchor": "## The base color file",
             "anchorEnd": "Roles: **Brand** is the dominant chromatic identity; **Accen"
@@ -128,8 +355,8 @@ export const skillTrees: Record<string, SkillTree> = {
           {
             "label": "Chroma budget",
             "lines": [
-              51,
-              61
+              55,
+              65
             ],
             "anchor": "## Chroma budget: color is inversely proportional to area",
             "anchorEnd": "A good theme reads as 3 or 4 hue families on screen, never 1"
@@ -137,8 +364,8 @@ export const skillTrees: Record<string, SkillTree> = {
           {
             "label": "Role bands",
             "lines": [
-              63,
-              75
+              67,
+              79
             ],
             "anchor": "## Per-role bands",
             "anchorEnd": "| Danger | shared status L, C 0.15 to 0.20 | same | H 20 to "
@@ -146,26 +373,26 @@ export const skillTrees: Record<string, SkillTree> = {
           {
             "label": "Canvas commitment",
             "lines": [
-              77,
-              86
+              81,
+              85
             ],
             "anchor": "**The canvas carries the theme's identity, so commit to it.*",
-            "anchorEnd": "- When generating a set of themes, make the canvases pairwis"
+            "anchorEnd": "*Full-color ground* (holiday and statement intents): the can"
           },
           {
             "label": "Dark scheme and status lightness",
             "lines": [
               87,
-              89
+              93
             ],
-            "anchor": "- A dark scheme transforms every base color: each chromatic ",
+            "anchor": "Also:",
             "anchorEnd": "- Status hues never rotate with the harmony; only their L an"
           },
           {
             "label": "Mood dials",
             "lines": [
-              91,
-              97
+              95,
+              101
             ],
             "anchor": "## Mood dials",
             "anchorEnd": "Avoid mid-lightness yellow-green (H 100 to 120 at L 0.5 to 0"
@@ -173,8 +400,8 @@ export const skillTrees: Record<string, SkillTree> = {
           {
             "label": "Gamut guardrails",
             "lines": [
-              99,
-              106
+              103,
+              110
             ],
             "anchor": "## Gamut guardrails",
             "anchorEnd": "- Peak chroma anchors: red H20 C 0.25 at L 0.63; orange H60 "
@@ -182,8 +409,8 @@ export const skillTrees: Record<string, SkillTree> = {
           {
             "label": "Hue harmony",
             "lines": [
-              108,
-              114
+              112,
+              118
             ],
             "anchor": "## Harmony",
             "anchorEnd": "- Drama or maximum contrast: complementary, triadic, or tetr"
@@ -191,361 +418,209 @@ export const skillTrees: Record<string, SkillTree> = {
           {
             "label": "Canvas gradient and shadows",
             "lines": [
-              116,
-              120
+              120,
+              124
             ],
             "anchor": "## Canvas sky and shadows",
             "anchorEnd": "Shadow opacity derives from Canvas lightness and re-derives "
           }
-        ],
-        "tag": "constraints"
+        ]
       },
       {
-        "id": "gt-cli",
-        "row": 6,
+        "id": "sc-cli",
+        "row": 4,
         "kind": "cli",
-        "n": "4",
-        "title": "Generate and validate the theme",
-        "desc": "The CLI writes and opens themes/<slug>.json and reports contrast. Reruns replace every color, including editor edits. --carry-from <theme> takes gradients, fonts, and aliases from a named theme instead of the live look.",
+        "n": "3",
+        "title": "Write and open the theme",
+        "desc": "The CLI builds every ramp, enforces AA contrast on the derived text tokens, writes themes/<slug>.json, opens it, and prints a contrast report.",
         "lines": [
-          16,
-          16
+          21,
+          21
         ],
-        "anchor": "Run `npx live-tokens generate-theme scratch/<slug>-base-colo",
+        "anchor": "Run `npx live-tokens set-colors scratch/<slug>-base-colors.j",
+        "command": "npx live-tokens set-colors scratch/<slug>-base-colors.json",
         "chips": [
           {
             "label": "Flags",
             "lines": [
-              24,
-              24
+              25,
+              28
             ],
-            "anchor": "Flags: `--dry-run` prints the report without writing; `--no-"
-          }
-        ],
-        "command": "npx live-tokens generate-theme scratch/<slug>-base-colors.json"
-      },
-      {
-        "id": "gt-fail",
-        "row": 7,
-        "kind": "gate",
-        "title": "A base color fails validation",
-        "desc": "The report names the failed base color. A valid repair raises its lightness or reduces its chroma before the next run.",
-        "lines": [
-          16,
-          16
-        ],
-        "anchor": "Run `npx live-tokens generate-theme scratch/<slug>-base-colo"
-      },
-      {
-        "id": "gt-pass",
-        "row": 7,
-        "kind": "ok",
-        "title": "Colors pass validation",
-        "desc": "Every contrast floor is met. Auto-corrected values count as passing.",
-        "lines": [
-          16,
-          16
-        ],
-        "anchor": "Run `npx live-tokens generate-theme scratch/<slug>-base-colo",
-        "chips": [
-          {
-            "label": "Safe operation order",
-            "lines": [
-              22,
-              22
-            ],
-            "anchor": "Order matters only for safety, and the order above is safe: "
+            "anchor": "Flags: `--dry-run` prints the report without writing; `--no-",
+            "anchorEnd": "Generating a set needs it, because the first run becomes the"
           }
         ]
       },
       {
-        "id": "gt-type-q",
-        "row": 8,
-        "kind": "decide",
-        "title": "Does the theme need new type?",
-        "desc": "An explicit color-only instruction preserves current type. Complete themes pair type through set-fonts.",
+        "id": "sc-fail",
+        "row": 5,
+        "kind": "gate",
+        "title": "A base color fails validation",
+        "desc": "Each failure line names the base color to change, usually by raising its lightness or cutting its chroma.",
         "lines": [
-          18,
-          18
+          22,
+          22
         ],
-        "anchor": "Invoke **live-tokens-set-fonts** with the type intent. Skip "
+        "anchor": "Read the report. Exit 0 passes, and auto-corrected values co"
       },
       {
-        "id": "gt-fonts",
-        "row": 9,
-        "kind": "hand",
+        "id": "sc-pass",
+        "row": 5,
+        "kind": "ok",
+        "title": "Colors pass validation",
+        "desc": "Auto-corrected values count as passing.",
+        "lines": [
+          22,
+          22
+        ],
+        "anchor": "Read the report. Exit 0 passes, and auto-corrected values co"
+      },
+      {
+        "id": "sc-report",
+        "row": 6,
+        "kind": "step",
         "n": "5",
-        "title": "Pair fonts from the same design direction",
-        "desc": "set-fonts receives the type intent and aligns the type with the theme.",
+        "title": "Report back",
+        "desc": "The line back to create-theme names the theme, the scheme, the hue families on screen, the canvas commitment level, and anything auto-corrected.",
         "lines": [
-          18,
-          18
+          23,
+          23
         ],
-        "anchor": "Invoke **live-tokens-set-fonts** with the type intent. Skip "
+        "anchor": "Report back in a line: the theme name, the scheme, the hue f"
       },
       {
-        "id": "gt-geo-q",
-        "row": 10,
+        "id": "sc-refine-q",
+        "row": 7,
         "kind": "decide",
-        "title": "Does the theme need geometry changes?",
-        "desc": "A shape or spacing cue continues to adjust-geometry. A design direction that implies nothing about geometry preserves the current aliases.",
+        "title": "Refine the color?",
+        "desc": "Warmer, calmer, or more contrast arrives against a theme that is already open, and the answer is a new base color file.",
         "lines": [
-          19,
-          19
+          126,
+          128
         ],
-        "anchor": "Invoke **live-tokens-adjust-geometry** with the geometry int"
-      },
-      {
-        "id": "gt-geo",
-        "row": 12,
-        "kind": "hand",
-        "n": "6",
-        "title": "Adjust geometry from the same design direction",
-        "desc": "adjust-geometry receives the geometry intent. Anchor geometry overrides the table.",
-        "lines": [
-          19,
-          19
-        ],
-        "anchor": "Invoke **live-tokens-adjust-geometry** with the geometry int"
-      },
-      {
-        "id": "gt-geotab",
-        "row": 11,
-        "kind": "chipset",
-        "title": "Prepare the geometry hand-off",
-        "chips": [
-          {
-            "label": "Direction-to-geometry map",
-            "lines": [
-              130,
-              141
-            ],
-            "anchor": "## Geometry from the design direction",
-            "anchorEnd": "This table is the fallback. When the request matched an entry "
-          }
-        ],
-        "tag": "sources"
-      },
-      {
-        "id": "gt-tell",
-        "row": 13,
-        "kind": "step",
-        "n": "7",
-        "title": "Reload and review the theme",
-        "desc": "The browser holds type and geometry in the working buffer until Save. Further revisions update the same base color file.",
-        "lines": [
-          20,
-          20
-        ],
-        "anchor": "Tell the user to look at the running app, and that type and "
-      },
-      {
-        "id": "gt-ver",
-        "row": 14,
-        "kind": "step",
-        "title": "Verify the complete theme",
-        "desc": "Colors pass validation, each invoked sibling reports success, and the reloaded app shows the complete theme. Selecting the previous theme restores the prior look.",
-        "lines": [
-          153,
-          157
-        ],
-        "anchor": "## Verify",
-        "anchorEnd": "- To return to the previous look, load the theme the CLI out"
-      },
-      {
-        "id": "gt-refine-q",
-        "row": 15,
-        "kind": "decide",
-        "title": "Refine the theme?",
-        "desc": "Every refinement updates the existing base color file. The generator owns the derived theme data.",
-        "lines": [
-          143,
-          145
-        ],
-        "anchor": "## Refining a theme that exists",
+        "anchor": "## Refining the color of a theme that exists",
         "anchorEnd": "\"Warmer\", \"calmer\", \"more contrast\" arrive against a theme t"
       },
       {
-        "id": "gt-refine",
-        "row": 16,
+        "id": "sc-refine",
+        "row": 8,
         "kind": "step",
-        "tag": "Follow-up",
-        "title": "Refine the base color file",
-        "desc": "The base color file supplies the base colors. The theme file recovers them after scratch-file loss. Each refinement moves one requested dial and retains the other base colors.",
+        "title": "Move one dial and re-run",
+        "desc": "One adjective moves one dial. A re-run replaces the theme’s whole color state, so every base color the user did not name stays where it was.",
         "lines": [
-          145,
-          147
+          130,
+          130
         ],
-        "anchor": "\"Warmer\", \"calmer\", \"more contrast\" arrive against a theme t",
-        "anchorEnd": "One adjective moves one dial. Warmer and cooler rotate hue; "
+        "anchor": "One adjective moves one dial. Warmer and cooler rotate hue; "
       },
       {
-        "id": "gt-done",
-        "row": 16,
+        "id": "sc-done",
+        "row": 8,
         "kind": "done",
-        "title": "Theme complete",
-        "desc": "generate-theme has written the colors. One Save in the editor keeps the type and geometry too. Adopt ships the theme to the site.",
+        "title": "Color set",
+        "desc": "The theme file exists and is open. Type and geometry buffers carried forward. Save keeps the result, Adopt ships it.",
         "lines": [
-          149,
-          151
+          132,
+          136
         ],
-        "anchor": "## Files each step writes",
-        "anchorEnd": "Color writes `themes/<slug>.json` and opens it. Type and geo"
+        "anchor": "## Scope",
+        "anchorEnd": "keep the result; Adopt ships it. Both stay human actions."
       }
     ],
     "edges": [
       {
-        "from": "gt-trig",
-        "to": "gt-direction"
+        "from": "sc-trig",
+        "to": "sc-anchor"
       },
       {
-        "from": "gt-direction",
-        "to": "gt-anchor"
+        "from": "sc-anchor",
+        "to": "sc-base-colors"
       },
       {
-        "from": "gt-anchor",
-        "to": "gt-mood",
-        "label": "feeling"
+        "from": "sc-base-colors",
+        "to": "sc-cons"
       },
       {
-        "from": "gt-anchor",
-        "to": "gt-style",
-        "label": "idiom or era"
+        "from": "sc-cons",
+        "to": "sc-cli"
       },
       {
-        "from": "gt-anchor",
-        "to": "gt-named",
-        "label": "holiday, season, or scene"
-      },
-      {
-        "from": "gt-anchor",
-        "to": "gt-none",
-        "label": "none"
-      },
-      {
-        "from": "gt-mood",
-        "to": "gt-base-colors"
-      },
-      {
-        "from": "gt-style",
-        "to": "gt-base-colors"
-      },
-      {
-        "from": "gt-named",
-        "to": "gt-base-colors"
-      },
-      {
-        "from": "gt-none",
-        "to": "gt-base-colors"
-      },
-      {
-        "from": "gt-base-colors",
-        "to": "gt-cons"
-      },
-      {
-        "from": "gt-cons",
-        "to": "gt-cli"
-      },
-      {
-        "from": "gt-cli",
-        "to": "gt-fail",
+        "from": "sc-cli",
+        "to": "sc-fail",
         "label": "exit 1"
       },
       {
-        "from": "gt-cli",
-        "to": "gt-pass",
+        "from": "sc-cli",
+        "to": "sc-pass",
         "label": "exit 0"
       },
       {
-        "from": "gt-fail",
-        "to": "gt-cli",
+        "from": "sc-fail",
+        "to": "sc-cli",
         "label": "rerun",
         "back": true
       },
       {
-        "from": "gt-pass",
-        "to": "gt-type-q"
+        "from": "sc-pass",
+        "to": "sc-report"
       },
       {
-        "from": "gt-type-q",
-        "to": "gt-fonts",
-        "label": "pair type"
+        "from": "sc-report",
+        "to": "sc-refine-q"
       },
       {
-        "from": "gt-type-q",
-        "to": "gt-geo-q",
-        "label": "preserve type"
-      },
-      {
-        "from": "gt-fonts",
-        "to": "gt-geo-q"
-      },
-      {
-        "from": "gt-geo-q",
-        "to": "gt-geotab",
-        "label": "change geometry"
-      },
-      {
-        "from": "gt-geotab",
-        "to": "gt-geo"
-      },
-      {
-        "from": "gt-geo",
-        "to": "gt-tell"
-      },
-      {
-        "from": "gt-geo-q",
-        "to": "gt-tell",
-        "label": "preserve geometry"
-      },
-      {
-        "from": "gt-tell",
-        "to": "gt-ver"
-      },
-      {
-        "from": "gt-ver",
-        "to": "gt-refine-q"
-      },
-      {
-        "from": "gt-refine-q",
-        "to": "gt-refine",
+        "from": "sc-refine-q",
+        "to": "sc-refine",
         "label": "refine"
       },
       {
-        "from": "gt-refine-q",
-        "to": "gt-done",
-        "label": "done"
-      },
-      {
-        "from": "gt-refine",
-        "to": "gt-cli",
+        "from": "sc-refine",
+        "to": "sc-cli",
         "label": "regenerate",
         "back": true
+      },
+      {
+        "from": "sc-refine-q",
+        "to": "sc-done",
+        "label": "done"
       }
     ]
   },
-  "set-fonts": {
-    "id": "live-tokens-set-fonts",
-    "digest": "sha256:94592f0909d3b5d8",
-    "title": "set-fonts",
+  "set-type": {
+    "id": "live-tokens-set-type",
+    "digest": "sha256:9a82b5b14ddebdc0",
+    "title": "set-type",
     "tagline": "Choose the families; the CLI verifies them and builds URLs for their available weights.",
     "nodes": [
       {
-        "id": "pf-trig",
+        "id": "st-trig",
         "row": 0,
         "kind": "trigger",
         "title": "Choose or pair font families",
-        "desc": "The pairing selects or restyles font families. generate-theme supplies the type intent for complete themes.",
+        "desc": "The pairing selects or restyles font families. create-theme supplies the type intent for complete themes.",
         "lines": [
           2,
           6
         ],
-        "anchor": "name: live-tokens-set-fonts",
+        "anchor": "name: live-tokens-set-type",
         "anchorEnd": "# Setting a theme's fonts"
       },
       {
-        "id": "pf-pool",
+        "id": "st-anchor",
         "row": 1,
+        "kind": "ref",
+        "title": "Read the type anchor",
+        "desc": "An anchor the type intent names overrides the voice table. Occasions fix color only, so their type comes from the feeling they imply.",
+        "reference": "references/type-anchors.md",
+        "lines": [
+          12,
+          12
+        ],
+        "anchor": "Read the type intent. When it names an anchor (a feeling, an"
+      },
+      {
+        "id": "st-pool",
+        "row": 2,
         "kind": "step",
         "title": "Use Google Fonts with the CLI",
         "desc": "The CLI manages Google Fonts. The editor's Project fonts section handles other sources.",
@@ -556,92 +631,92 @@ export const skillTrees: Record<string, SkillTree> = {
         "anchor": "You choose the families; the CLI verifies each against Googl"
       },
       {
-        "id": "pf-body",
-        "row": 2,
+        "id": "st-body",
+        "row": 3,
         "kind": "step",
         "title": "Choose the body face first",
         "desc": "Body faces need regular, bold, italic, open apertures, a large x-height, and low or moderate contrast. Families that miss a requirement belong in display.",
         "lines": [
-          29,
-          31
+          30,
+          32
         ],
         "anchor": "## Choose the body face first",
         "anchorEnd": "The body face is the anchor. It carries most of the words, a"
       },
       {
-        "id": "pf-spec",
-        "row": 3,
+        "id": "st-spec",
+        "row": 4,
         "kind": "decide",
         "title": "Does the type intent name a specific voice?",
         "desc": "A specific voice follows the full matrix. A vague or quiet type intent takes a conservative pairing.",
         "lines": [
-          65,
-          67
+          68,
+          70
         ],
         "anchor": "## Shortcuts",
         "anchorEnd": "These find an adequate pairing fast and skip the reasoning; "
       },
       {
-        "id": "pf-matrix",
-        "row": 4,
+        "id": "st-matrix",
+        "row": 5,
         "kind": "step",
         "title": "Classify each face by form and finish",
         "desc": "Form describes its model: dynamic, rational, or geometric. Finish describes stroke contrast and serif treatment.",
         "lines": [
-          35,
-          43
+          36,
+          44
         ],
         "anchor": "## The font matrix: the decision rule",
         "anchorEnd": "| **Geometric** | monolinear, circle-and-line | technical, m"
       },
       {
-        "id": "pf-short",
-        "row": 4,
+        "id": "st-short",
+        "row": 5,
         "kind": "step",
         "title": "Choose a conservative pairing",
         "desc": "Conservative options include a superfamily, one family across weights, two families by one designer, or a serif display face with a sans body.",
         "lines": [
-          65,
-          72
+          68,
+          75
         ],
         "anchor": "## Shortcuts",
         "anchorEnd": "- **Serif display over sans body** when nothing else decides"
       },
       {
-        "id": "pf-rule",
-        "row": 5,
+        "id": "st-rule",
+        "row": 6,
         "kind": "chipset",
         "title": "Compare form and finish",
         "chips": [
           {
             "label": "Same form, different finish: reliable",
             "lines": [
-              45,
-              45
+              46,
+              46
             ],
             "anchor": "- **Same skeleton, different flesh: reliable.** Helvetica an"
           },
           {
             "label": "Same finish, different form: clashes",
             "lines": [
-              46,
-              46
+              47,
+              47
             ],
             "anchor": "- **Same flesh, different skeleton: the failure case.** The "
           },
           {
             "label": "Different on both: deliberate contrast",
             "lines": [
-              47,
-              47
+              48,
+              48
             ],
             "anchor": "- **Far apart on both: works, deliberately.** An unmistakabl"
           },
           {
             "label": "Faces between models",
             "lines": [
-              49,
-              49
+              50,
+              50
             ],
             "anchor": "Many faces sit between columns. When one straddles, say so a"
           }
@@ -649,67 +724,67 @@ export const skillTrees: Record<string, SkillTree> = {
         "tag": "pairing rule"
       },
       {
-        "id": "pf-voice",
-        "row": 6,
+        "id": "st-voice",
+        "row": 7,
         "kind": "step",
         "title": "Match the pairing to the design direction",
         "desc": "The pairing matches type and color to the same design direction. Conflicting voices make them feel unrelated.",
         "lines": [
-          51,
-          63
+          52,
+          66
         ],
         "anchor": "## Voice",
         "anchorEnd": "Match the type to the same design direction the color came f"
       },
       {
-        "id": "pf-watch",
-        "row": 7,
+        "id": "st-watch",
+        "row": 8,
         "kind": "chipset",
         "title": "Check four pairing risks",
         "chips": [
           {
             "label": "x-height parity",
             "lines": [
-              76,
-              76
+              79,
+              79
             ],
             "anchor": "- **x-height parity.** Both faces are set from one size scal"
           },
           {
             "label": "Small-size legibility",
             "lines": [
-              77,
-              77
+              80,
+              80
             ],
             "anchor": "- **Print faces at small sizes.** Delicate serifs and high s"
           },
           {
             "label": "More than two families",
             "lines": [
-              78,
-              78
+              81,
+              81
             ],
             "anchor": "- **Every family is a download.** Two is the target; three n"
           },
           {
             "label": "Repeated families across theme sets",
             "lines": [
-              79,
-              79
+              82,
+              82
             ],
             "anchor": "- **Sets of themes:** no two share a display face or a body "
           }
         ],
         "lines": [
-          74,
-          74
+          77,
+          77
         ],
         "anchor": "## Watch for",
         "tag": "risks"
       },
       {
-        "id": "pf-pairing",
-        "row": 8,
+        "id": "st-pairing",
+        "row": 9,
         "kind": "step",
         "n": "1",
         "title": "Write scratch/font-pairing.json",
@@ -718,19 +793,19 @@ export const skillTrees: Record<string, SkillTree> = {
           12,
           12
         ],
-        "anchor": "Choose the pairing with the framework below and write the pa"
+        "anchor": "Read the type intent. When it names an anchor (a feeling, an"
       },
       {
-        "id": "pf-shape",
-        "row": 9,
+        "id": "st-shape",
+        "row": 10,
         "kind": "chipset",
         "title": "Check pairing file fields and flags",
         "chips": [
           {
             "label": "Slots and stacks",
             "lines": [
-              21,
-              27
+              22,
+              28
             ],
             "anchor": "## The pairing file",
             "anchorEnd": "Every slot is optional and an omitted slot is left exactly a"
@@ -738,16 +813,16 @@ export const skillTrees: Record<string, SkillTree> = {
           {
             "label": "Pairing rationale",
             "lines": [
-              17,
-              17
+              18,
+              18
             ],
             "anchor": "State your reasoning when you propose the pairing: each face"
           },
           {
             "label": "Flags",
             "lines": [
-              19,
-              19
+              20,
+              20
             ],
             "anchor": "Flags: `--dry-run` reports without writing. `--no-verify` sk"
           }
@@ -755,8 +830,8 @@ export const skillTrees: Record<string, SkillTree> = {
         "tag": "pairing file"
       },
       {
-        "id": "pf-cli",
-        "row": 10,
+        "id": "st-cli",
+        "row": 11,
         "kind": "cli",
         "n": "2",
         "title": "Validate and apply the font stacks",
@@ -765,12 +840,12 @@ export const skillTrees: Record<string, SkillTree> = {
           13,
           13
         ],
-        "anchor": "Run `npx live-tokens set-fonts scratch/font-pairing.json`. I",
-        "command": "npx live-tokens set-fonts scratch/font-pairing.json"
+        "anchor": "Run `npx live-tokens set-type scratch/font-pairing.json`. I",
+        "command": "npx live-tokens set-type scratch/font-pairing.json"
       },
       {
-        "id": "pf-fail",
-        "row": 11,
+        "id": "st-fail",
+        "row": 12,
         "kind": "gate",
         "title": "Google Fonts lacks a family",
         "desc": "The next run uses a valid Google Fonts family name.",
@@ -781,8 +856,8 @@ export const skillTrees: Record<string, SkillTree> = {
         "anchor": "Read the report. A weight gap is a quality note: name it and"
       },
       {
-        "id": "pf-gap",
-        "row": 11,
+        "id": "st-gap",
+        "row": 12,
         "kind": "ok",
         "n": "3",
         "title": "The CLI applies the font stacks",
@@ -794,21 +869,34 @@ export const skillTrees: Record<string, SkillTree> = {
         "anchor": "Read the report. A weight gap is a quality note: name it and"
       },
       {
-        "id": "pf-tell",
-        "row": 12,
+        "id": "st-report",
+        "row": 13,
         "kind": "step",
         "n": "4",
-        "title": "Reload and review the type",
-        "desc": "Reloading before Save gives the editor the new buffer. Save then keeps the change.",
+        "title": "Report back",
+        "desc": "The line back to create-theme names both families, the form model behind each, and any weight gap worth naming.",
         "lines": [
           15,
           15
         ],
+        "anchor": "Report back in a line: the two families, the form model behi"
+      },
+      {
+        "id": "st-tell",
+        "row": 14,
+        "kind": "step",
+        "n": "5",
+        "title": "Reload and review the type",
+        "desc": "Reloading before Save gives the editor the new buffer. Save then keeps the change.",
+        "lines": [
+          16,
+          16
+        ],
         "anchor": "Tell the user to reload the editor page before saving. A run"
       },
       {
-        "id": "pf-scope",
-        "row": 13,
+        "id": "st-scope",
+        "row": 15,
         "kind": "chipset",
         "title": "Font-family scope",
         "desc": "Font-family changes preserve color, component aliases, geometry, and the type scale.",
@@ -816,8 +904,8 @@ export const skillTrees: Record<string, SkillTree> = {
           {
             "label": "Buffer, Save, and Adopt",
             "lines": [
-              81,
-              83
+              84,
+              86
             ],
             "anchor": "## Scope",
             "anchorEnd": "Type only. Color, component aliases, shape, and the type sca"
@@ -826,14 +914,14 @@ export const skillTrees: Record<string, SkillTree> = {
         "tag": "scope"
       },
       {
-        "id": "pf-ver",
-        "row": 14,
+        "id": "st-ver",
+        "row": 16,
         "kind": "done",
         "title": "Verify the type",
         "desc": "The report lists stacks and weights; the CLI builds matching URLs. Reloading shows the new type. Reselecting the open theme restores the previous type.",
         "lines": [
-          85,
-          90
+          88,
+          93
         ],
         "anchor": "## Verify",
         "anchorEnd": "- To revert, run the inverse pairing file, or load the open "
@@ -841,163 +929,184 @@ export const skillTrees: Record<string, SkillTree> = {
     ],
     "edges": [
       {
-        "from": "pf-trig",
-        "to": "pf-pool"
+        "from": "st-trig",
+        "to": "st-anchor"
       },
       {
-        "from": "pf-pool",
-        "to": "pf-body"
+        "from": "st-anchor",
+        "to": "st-pool"
       },
       {
-        "from": "pf-body",
-        "to": "pf-spec"
+        "from": "st-pool",
+        "to": "st-body"
       },
       {
-        "from": "pf-spec",
-        "to": "pf-matrix",
+        "from": "st-body",
+        "to": "st-spec"
+      },
+      {
+        "from": "st-spec",
+        "to": "st-matrix",
         "label": "specific"
       },
       {
-        "from": "pf-spec",
-        "to": "pf-short",
+        "from": "st-spec",
+        "to": "st-short",
         "label": "vague or quiet"
       },
       {
-        "from": "pf-matrix",
-        "to": "pf-rule"
+        "from": "st-matrix",
+        "to": "st-rule"
       },
       {
-        "from": "pf-rule",
-        "to": "pf-voice"
+        "from": "st-rule",
+        "to": "st-voice"
       },
       {
-        "from": "pf-short",
-        "to": "pf-voice"
+        "from": "st-short",
+        "to": "st-voice"
       },
       {
-        "from": "pf-voice",
-        "to": "pf-watch"
+        "from": "st-voice",
+        "to": "st-watch"
       },
       {
-        "from": "pf-watch",
-        "to": "pf-pairing"
+        "from": "st-watch",
+        "to": "st-pairing"
       },
       {
-        "from": "pf-pairing",
-        "to": "pf-shape"
+        "from": "st-pairing",
+        "to": "st-shape"
       },
       {
-        "from": "pf-shape",
-        "to": "pf-cli"
+        "from": "st-shape",
+        "to": "st-cli"
       },
       {
-        "from": "pf-cli",
-        "to": "pf-fail",
+        "from": "st-cli",
+        "to": "st-fail",
         "label": "exit 1"
       },
       {
-        "from": "pf-cli",
-        "to": "pf-gap",
+        "from": "st-cli",
+        "to": "st-gap",
         "label": "exit 0"
       },
       {
-        "from": "pf-fail",
-        "to": "pf-cli",
+        "from": "st-fail",
+        "to": "st-cli",
         "label": "rerun",
         "back": true
       },
       {
-        "from": "pf-gap",
-        "to": "pf-tell"
+        "from": "st-gap",
+        "to": "st-report"
       },
       {
-        "from": "pf-tell",
-        "to": "pf-scope"
+        "from": "st-report",
+        "to": "st-tell"
       },
       {
-        "from": "pf-scope",
-        "to": "pf-ver"
+        "from": "st-tell",
+        "to": "st-scope"
+      },
+      {
+        "from": "st-scope",
+        "to": "st-ver"
       }
     ]
   },
-  "adjust-geometry": {
-    "id": "live-tokens-adjust-geometry",
-    "digest": "sha256:131b0d96a76ba190",
-    "title": "adjust-geometry",
+  "set-geometry": {
+    "id": "live-tokens-set-geometry",
+    "digest": "sha256:c5b43383a2da10d2",
+    "title": "set-geometry",
     "tagline": "The CLI reads a small ops file, moves each alias along its token scale, and reports the result.",
     "nodes": [
       {
-        "id": "ag-trig",
+        "id": "sg-trig",
         "row": 0,
         "kind": "trigger",
         "title": "Adjust shape or spacing",
-        "desc": "Geometry changes cover radius, padding, gaps, border width, and density. generate-theme supplies the geometry intent for complete themes.",
+        "desc": "Geometry changes cover radius, padding, gaps, border width, and density. create-theme supplies the geometry intent for complete themes.",
         "lines": [
           2,
           8
         ],
-        "anchor": "name: live-tokens-adjust-geometry",
+        "anchor": "name: live-tokens-set-geometry",
         "anchorEnd": "You translate the request into a small ops file; the CLI res"
       },
       {
-        "id": "ag-live",
+        "id": "sg-anchor",
         "row": 1,
+        "kind": "ref",
+        "title": "Read the geometry anchor",
+        "desc": "An anchor the geometry intent names overrides the idiom table. Occasions fix color only, so their geometry comes from the feeling they imply.",
+        "reference": "references/geometry-anchors.md",
+        "lines": [
+          12,
+          12
+        ],
+        "anchor": "Read the geometry intent. When it names an anchor (a feeling"
+      },
+      {
+        "id": "sg-live",
+        "row": 2,
         "kind": "step",
         "title": "Read the live configuration",
         "desc": "Each run reads the buffer or falls back to the open theme and shipped default. Relative shifts compound across runs.",
         "lines": [
-          17,
-          17
+          18,
+          18
         ],
         "anchor": "Each run reads the LIVE config (buffer, else the open theme,"
       },
       {
-        "id": "ag-target",
-        "row": 2,
+        "id": "sg-target",
+        "row": 3,
         "kind": "step",
         "title": "Choose a global or component target",
         "desc": "An absent target applies globally. Component IDs map windows and modals to dialog, cards to card, and tabs to tabbar. Unknown IDs fail.",
         "lines": [
-          34,
-          34
+          35,
+          35
         ],
         "anchor": "- `target` (optional): a component id (the folder names unde"
       },
       {
-        "id": "ag-kind",
-        "row": 3,
+        "id": "sg-kind",
+        "row": 4,
         "kind": "chipset",
         "title": "Choose the geometry property",
         "chips": [
           {
             "label": "radius",
             "lines": [
-              35,
-              35
+              36,
+              36
             ],
             "anchor": "- `kind`: `radius | padding | gap | border-width`."
           },
           {
             "label": "padding",
             "lines": [
-              35,
-              35
+              36,
+              36
             ],
             "anchor": "- `kind`: `radius | padding | gap | border-width`."
           },
           {
             "label": "gap",
             "lines": [
-              35,
-              35
+              36,
+              36
             ],
             "anchor": "- `kind`: `radius | padding | gap | border-width`."
           },
           {
             "label": "border-width",
             "lines": [
-              35,
-              35
+              36,
+              36
             ],
             "anchor": "- `kind`: `radius | padding | gap | border-width`."
           }
@@ -1005,169 +1114,169 @@ export const skillTrees: Record<string, SkillTree> = {
         "tag": "property"
       },
       {
-        "id": "ag-op",
-        "row": 4,
+        "id": "sg-op",
+        "row": 5,
         "kind": "decide",
         "title": "Set or shift?",
         "desc": "Set selects a token on the property's scale. Shift moves a whole number of steps and clamps at either end.",
         "lines": [
-          36,
-          36
+          37,
+          37
         ],
         "anchor": "- `set` or `shift`, exactly one of the two. `set` takes an e"
       },
       {
-        "id": "ag-shift",
-        "row": 5,
+        "id": "sg-shift",
+        "row": 6,
         "kind": "step",
         "title": "Shift by steps",
         "desc": "'Slightly' and 'a bit' each move 1 step; an unqualified request moves 1–2; 'much,' 'way,' and 'really' move 2–3. 'Softer' increases radius and spacing.",
         "lines": [
-          53,
-          53
+          58,
+          58
         ],
         "anchor": "Magnitude words: \"slightly\" or \"a bit\" is 1 step, unqualifie"
       },
       {
-        "id": "ag-set",
-        "row": 5,
+        "id": "sg-set",
+        "row": 6,
         "kind": "step",
         "title": "Set an exact token",
         "desc": "Set selects a token from the property's scale. A pill operation sets --radius-full. The full flag belongs to radius shifts.",
         "lines": [
-          37,
-          37
+          38,
+          38
         ],
         "anchor": "- `full` (radius shifts only): admits `--radius-full` as the"
       },
       {
-        "id": "ag-idiom",
-        "row": 6,
+        "id": "sg-idiom",
+        "row": 7,
         "kind": "step",
         "title": "Map common phrases to operations",
         "desc": "The table translates pill, corner, density, and border requests into exact operations.",
         "lines": [
-          39,
-          51
+          40,
+          54
         ],
         "anchor": "## Idioms",
         "anchorEnd": "| thicker, thinner borders | border-width `shift: 1` or `-1`"
       },
       {
-        "id": "ag-squeeze",
-        "row": 7,
+        "id": "sg-squeeze",
+        "row": 8,
         "kind": "step",
         "title": "Protect controls during compaction",
         "desc": "Global compaction stops at shift: -1 because larger shifts crush controls. Further compaction targets named containers. Global expansion remains safe.",
         "lines": [
-          55,
-          59
+          60,
+          64
         ],
         "anchor": "## Controls squeeze before containers",
         "anchorEnd": "So a global compaction is `shift: -1`. When the request wants "
       },
       {
-        "id": "ag-pill",
-        "row": 8,
+        "id": "sg-pill",
+        "row": 9,
         "kind": "decide",
         "title": "Does the request create a pill?",
         "desc": "--radius-full curves into the end glyphs. Large-text pills need at least --space-8 horizontal padding.",
         "lines": [
-          61,
-          61
+          66,
+          66
         ],
         "anchor": "A pill needs the room most. `--radius-full` bends the corner"
       },
       {
-        "id": "ag-pillop",
-        "row": 9,
+        "id": "sg-pillop",
+        "row": 10,
         "kind": "step",
         "title": "Set pill radius and padding together",
         "desc": "The radius and padding operations share a target. The padding set follows global compaction so it wins.",
         "lines": [
-          63,
-          69
+          68,
+          68
         ],
         "anchor": "```json",
         "anchorEnd": "```"
       },
       {
-        "id": "ag-ladder",
-        "row": 10,
+        "id": "sg-ladder",
+        "row": 11,
         "kind": "chipset",
         "title": "Respect token scales and padding floors",
         "chips": [
           {
             "label": "Radius, space, and border-width scales",
             "lines": [
-              73,
-              73
+              78,
+              78
             ],
             "anchor": "Radius runs `none, sm, md, lg, xl, 2xl, 3xl, 4xl`, with `ful"
           },
           {
             "label": "Content padding floor: --space-4",
             "lines": [
-              75,
-              75
+              80,
+              80
             ],
             "anchor": "Content insets stop at `--space-4`. Below it the text sits a"
           },
           {
             "label": "Text-control padding floor: --space-6",
             "lines": [
-              77,
-              77
+              82,
+              82
             ],
             "anchor": "Padding that wraps a line of type stops a rung higher, at `-"
           },
           {
             "label": "Margin shifts use the full scale",
             "lines": [
-              79,
-              79
+              84,
+              84
             ],
             "anchor": "The floor guards `-padding` only. Outer space is exempt, bec"
           },
           {
             "label": "Off-subset aliases first reach a listed rung",
             "lines": [
-              81,
-              81
+              86,
+              86
             ],
             "anchor": "An alias sitting off the subset spends its first step reachi"
           }
         ],
         "lines": [
-          71,
-          71
+          76,
+          76
         ],
         "anchor": "## Ladders",
         "tag": "ladders and floors"
       },
       {
-        "id": "ag-write",
-        "row": 11,
+        "id": "sg-write",
+        "row": 12,
         "kind": "step",
         "n": "1",
-        "title": "Write scratch/adjust-ops.json",
+        "title": "Write scratch/geometry-ops.json",
         "lines": [
           12,
           12
         ],
-        "anchor": "Write the ops file to `scratch/adjust-ops.json`."
+        "anchor": "Read the geometry intent. When it names an anchor (a feeling"
       },
       {
-        "id": "ag-shapes",
-        "row": 12,
+        "id": "sg-shapes",
+        "row": 13,
         "kind": "chipset",
         "title": "Check operation forms",
         "chips": [
           {
             "label": "Global, relative",
             "lines": [
-              21,
-              25
+              22,
+              24
             ],
             "anchor": "Global, relative:",
             "anchorEnd": "```"
@@ -1175,8 +1284,8 @@ export const skillTrees: Record<string, SkillTree> = {
           {
             "label": "Targeted, absolute",
             "lines": [
-              27,
-              31
+              28,
+              30
             ],
             "anchor": "Targeted, absolute:",
             "anchorEnd": "```"
@@ -1184,22 +1293,22 @@ export const skillTrees: Record<string, SkillTree> = {
           {
             "label": "The CLI ignores name",
             "lines": [
-              33,
-              33
+              34,
+              34
             ],
             "anchor": "- `name`: ignored. Buffers are fixed slots, so a name names "
           }
         ],
         "lines": [
-          19,
-          19
+          20,
+          20
         ],
         "anchor": "## The ops file",
         "tag": "ops file"
       },
       {
-        "id": "ag-cli",
-        "row": 13,
+        "id": "sg-cli",
+        "row": 14,
         "kind": "cli",
         "n": "2",
         "title": "Apply the geometry operations",
@@ -1208,12 +1317,12 @@ export const skillTrees: Record<string, SkillTree> = {
           13,
           13
         ],
-        "anchor": "Run `npx live-tokens adjust-geometry scratch/adjust-ops.json",
-        "command": "npx live-tokens adjust scratch/adjust-ops.json"
+        "anchor": "Run `npx live-tokens set-geometry scratch/geometry-ops.json",
+        "command": "npx live-tokens adjust scratch/geometry-ops.json"
       },
       {
-        "id": "ag-fail",
-        "row": 14,
+        "id": "sg-fail",
+        "row": 15,
         "kind": "gate",
         "title": "The CLI rejects an operation",
         "desc": "The report names the invalid operation or missing input. The repair resolves that issue before the next run.",
@@ -1224,8 +1333,8 @@ export const skillTrees: Record<string, SkillTree> = {
         "anchor": "Read the report card: every changed alias old → new, plus sk"
       },
       {
-        "id": "ag-card",
-        "row": 14,
+        "id": "sg-card",
+        "row": 15,
         "kind": "ok",
         "n": "3",
         "title": "The buffers hold the new geometry",
@@ -1237,21 +1346,34 @@ export const skillTrees: Record<string, SkillTree> = {
         "anchor": "Read the report card: every changed alias old → new, plus sk"
       },
       {
-        "id": "ag-tell",
-        "row": 15,
+        "id": "sg-report",
+        "row": 16,
         "kind": "step",
         "n": "4",
-        "title": "Reload and review the geometry",
-        "desc": "Reloading before Save gives the editor the current buffer. Save keeps the change, and inverse operations undo it.",
+        "title": "Report back",
+        "desc": "The line back to create-theme names every alias that moved and any skip or clamp worth naming.",
         "lines": [
           15,
           15
         ],
+        "anchor": "Report back in a line: every alias that moved, and any skip "
+      },
+      {
+        "id": "sg-tell",
+        "row": 17,
+        "kind": "step",
+        "n": "5",
+        "title": "Reload and review the geometry",
+        "desc": "Reloading before Save gives the editor the current buffer. Save keeps the change, and inverse operations undo it.",
+        "lines": [
+          16,
+          16
+        ],
         "anchor": "Tell the user to reload the page before saving. The editor k"
       },
       {
-        "id": "ag-scope",
-        "row": 16,
+        "id": "sg-scope",
+        "row": 18,
         "kind": "chipset",
         "title": "Geometry scope",
         "desc": "Geometry operations remap component aliases to existing tokens and preserve colors, fonts, tokens.css, and saved themes.",
@@ -1259,8 +1381,8 @@ export const skillTrees: Record<string, SkillTree> = {
           {
             "label": "Buffers, Save, and Adopt",
             "lines": [
-              83,
-              85
+              88,
+              90
             ],
             "anchor": "## Scope",
             "anchorEnd": "Every value written is an existing token; nothing new is min"
@@ -1269,14 +1391,14 @@ export const skillTrees: Record<string, SkillTree> = {
         "tag": "scope"
       },
       {
-        "id": "ag-ver",
-        "row": 17,
+        "id": "sg-ver",
+        "row": 19,
         "kind": "done",
         "title": "Verify the geometry",
         "desc": "The command exits 0 with expected changes and explained skips. Controls remain readable after reload. Each reported component has a _working.json.",
         "lines": [
-          87,
-          93
+          92,
+          98
         ],
         "anchor": "## Verify",
         "anchorEnd": "- To revert, run the inverse ops, or load a theme in the The"
@@ -1284,99 +1406,107 @@ export const skillTrees: Record<string, SkillTree> = {
     ],
     "edges": [
       {
-        "from": "ag-trig",
-        "to": "ag-live"
+        "from": "sg-trig",
+        "to": "sg-anchor"
       },
       {
-        "from": "ag-live",
-        "to": "ag-target"
+        "from": "sg-anchor",
+        "to": "sg-live"
       },
       {
-        "from": "ag-target",
-        "to": "ag-kind"
+        "from": "sg-live",
+        "to": "sg-target"
       },
       {
-        "from": "ag-kind",
-        "to": "ag-op"
+        "from": "sg-target",
+        "to": "sg-kind"
       },
       {
-        "from": "ag-op",
-        "to": "ag-shift",
+        "from": "sg-kind",
+        "to": "sg-op"
+      },
+      {
+        "from": "sg-op",
+        "to": "sg-shift",
         "label": "shift"
       },
       {
-        "from": "ag-op",
-        "to": "ag-set",
+        "from": "sg-op",
+        "to": "sg-set",
         "label": "set"
       },
       {
-        "from": "ag-shift",
-        "to": "ag-idiom"
+        "from": "sg-shift",
+        "to": "sg-idiom"
       },
       {
-        "from": "ag-set",
-        "to": "ag-idiom"
+        "from": "sg-set",
+        "to": "sg-idiom"
       },
       {
-        "from": "ag-idiom",
-        "to": "ag-squeeze"
+        "from": "sg-idiom",
+        "to": "sg-squeeze"
       },
       {
-        "from": "ag-squeeze",
-        "to": "ag-pill"
+        "from": "sg-squeeze",
+        "to": "sg-pill"
       },
       {
-        "from": "ag-pill",
-        "to": "ag-pillop",
+        "from": "sg-pill",
+        "to": "sg-pillop",
         "label": "pill"
       },
       {
-        "from": "ag-pillop",
-        "to": "ag-ladder"
+        "from": "sg-pillop",
+        "to": "sg-ladder"
       },
       {
-        "from": "ag-ladder",
-        "to": "ag-write"
+        "from": "sg-ladder",
+        "to": "sg-write"
       },
       {
-        "from": "ag-write",
-        "to": "ag-shapes"
+        "from": "sg-write",
+        "to": "sg-shapes"
       },
       {
-        "from": "ag-shapes",
-        "to": "ag-cli"
+        "from": "sg-shapes",
+        "to": "sg-cli"
       },
       {
-        "from": "ag-cli",
-        "to": "ag-fail",
+        "from": "sg-cli",
+        "to": "sg-fail",
         "label": "exit 1"
       },
       {
-        "from": "ag-cli",
-        "to": "ag-card",
+        "from": "sg-cli",
+        "to": "sg-card",
         "label": "exit 0"
       },
       {
-        "from": "ag-fail",
-        "to": "ag-cli",
+        "from": "sg-fail",
+        "to": "sg-cli",
         "label": "rerun",
         "back": true
       },
       {
-        "from": "ag-card",
-        "to": "ag-tell"
+        "from": "sg-card",
+        "to": "sg-report"
       },
       {
-        "from": "ag-tell",
-        "to": "ag-scope"
+        "from": "sg-report",
+        "to": "sg-tell"
       },
       {
-        "from": "ag-scope",
-        "to": "ag-ver"
+        "from": "sg-tell",
+        "to": "sg-scope"
       },
       {
-        "from": "ag-pill",
-        "to": "ag-ladder",
+        "from": "sg-scope",
+        "to": "sg-ver"
+      },
+      {
+        "from": "sg-pill",
+        "to": "sg-ladder",
         "label": "other geometry"
       }
     ]
@@ -1919,7 +2049,7 @@ export const skillTrees: Record<string, SkillTree> = {
   },
   "build-page": {
     "id": "live-tokens-build-page",
-    "digest": "sha256:9690053df3487413",
+    "digest": "sha256:acf4ef858661383f",
     "title": "build-page",
     "tagline": "Catalogue components cover established needs. Theme tokens drive every theme-owned value.",
     "nodes": [
