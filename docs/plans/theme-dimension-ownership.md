@@ -41,7 +41,7 @@ stop only if the symbol itself is gone.
 
 | Wave | Summary | Executor | Reviewer | Status | Commit |
 |---|---|---|---|---|---|
-| 0 | Precondition: docs committed, user's work settled | orchestrator | none | Not started | |
+| 0 | Precondition: docs committed, user's work settled | orchestrator | none | Done | 5b80fc5 |
 | 1 | One live-state reader under `bin/lib/` | wave-executor, Opus | Opus | Not started | |
 | 2 | Dead keys: migration, preset sweep, gate | wave-executor, Opus | Fable | Not started | |
 | 3 | Engine names follow the verbs | recipe-sweeper, Sonnet | Opus | Not started | |
