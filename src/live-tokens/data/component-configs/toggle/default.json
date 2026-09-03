@@ -14,7 +14,7 @@
     "--toggle-thumb-size": "--font-size-md",
     "--toggle-label-text": "--text-primary",
     "--toggle-label-font-family": "--font-sans",
-    "--toggle-label-font-size": "--font-size-sm",
+    "--toggle-label-font-size": "--font-size-md",
     "--toggle-label-font-weight": "--font-weight-normal",
     "--toggle-gap": "--space-8",
     "--toggle-hover-track-surface": "--surface-neutral-high",

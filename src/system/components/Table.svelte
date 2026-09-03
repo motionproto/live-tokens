@@ -25,7 +25,7 @@
     --table-default-header-surface: var(--surface-neutral-lowest);
     --table-default-header-text: var(--text-primary);
     --table-default-header-font-family: var(--font-sans);
-    --table-default-header-font-size: var(--font-size-lg);
+    --table-default-header-font-size: var(--font-size-md);
     --table-default-header-font-weight: var(--font-weight-semibold);
     --table-default-header-line-height: var(--line-height-none);
     --table-default-header-padding: var(--space-12);

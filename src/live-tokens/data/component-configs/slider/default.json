@@ -44,7 +44,7 @@
     "--slider-label": "--text-secondary",
     "--slider-label-font-family": "--font-sans",
     "--slider-label-font-size": "--font-size-md",
-    "--slider-label-font-weight": "--font-weight-normal",
+    "--slider-label-font-weight": "--font-weight-semibold",
     "--slider-label-line-height": "--line-height-normal",
     "--slider-value": "--text-tertiary",
     "--slider-value-font-family": "--font-mono",

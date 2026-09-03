@@ -103,7 +103,7 @@
     --menuselect-default-surface: var(--color-transparent);
     --menuselect-default-text: var(--text-secondary);
     --menuselect-default-text-font-family: var(--font-sans);
-    --menuselect-default-text-font-size: var(--font-size-sm);
+    --menuselect-default-text-font-size: var(--font-size-md);
     --menuselect-default-text-font-weight: var(--font-weight-normal);
     --menuselect-default-text-line-height: var(--line-height-tighter);
     --menuselect-default-icon: var(--text-tertiary);
@@ -113,7 +113,7 @@
     --menuselect-hover-surface: var(--surface-neutral-higher);
     --menuselect-hover-text: var(--text-primary);
     --menuselect-hover-text-font-family: var(--font-sans);
-    --menuselect-hover-text-font-size: var(--font-size-sm);
+    --menuselect-hover-text-font-size: var(--font-size-md);
     --menuselect-hover-text-font-weight: var(--font-weight-normal);
     --menuselect-hover-text-line-height: var(--line-height-tighter);
     --menuselect-hover-icon: var(--text-primary);
@@ -123,7 +123,7 @@
     --menuselect-selected-surface: var(--surface-brand-low);
     --menuselect-selected-text: var(--text-primary);
     --menuselect-selected-text-font-family: var(--font-sans);
-    --menuselect-selected-text-font-size: var(--font-size-sm);
+    --menuselect-selected-text-font-size: var(--font-size-md);
     --menuselect-selected-text-font-weight: var(--font-weight-semibold);
     --menuselect-selected-text-line-height: var(--line-height-tighter);
     --menuselect-selected-icon: var(--text-brand);
@@ -134,7 +134,7 @@
     --menuselect-disabled-surface: var(--color-transparent);
     --menuselect-disabled-text: var(--text-tertiary);
     --menuselect-disabled-text-font-family: var(--font-sans);
-    --menuselect-disabled-text-font-size: var(--font-size-sm);
+    --menuselect-disabled-text-font-size: var(--font-size-md);
     --menuselect-disabled-text-font-weight: var(--font-weight-normal);
     --menuselect-disabled-text-line-height: var(--line-height-tighter);
     --menuselect-disabled-icon: var(--text-tertiary);

@@ -151,7 +151,7 @@
     --input-default-border: var(--border-neutral);
     --input-default-text: var(--text-primary);
     --input-default-text-font-family: var(--font-sans);
-    --input-default-text-font-size: var(--font-size-sm);
+    --input-default-text-font-size: var(--font-size-md);
     --input-default-text-font-weight: var(--font-weight-normal);
     --input-default-text-line-height: var(--line-height-tighter);
     --input-default-icon: var(--text-tertiary);
@@ -164,7 +164,7 @@
     --input-focused-border-width: var(--border-width-2);
     --input-focused-text: var(--text-primary);
     --input-focused-text-font-family: var(--font-sans);
-    --input-focused-text-font-size: var(--font-size-sm);
+    --input-focused-text-font-size: var(--font-size-md);
     --input-focused-text-font-weight: var(--font-weight-normal);
     --input-focused-text-line-height: var(--line-height-tighter);
     --input-focused-icon: var(--text-secondary);
@@ -175,7 +175,7 @@
     --input-disabled-border: var(--border-neutral-faint);
     --input-disabled-text: var(--text-tertiary);
     --input-disabled-text-font-family: var(--font-sans);
-    --input-disabled-text-font-size: var(--font-size-sm);
+    --input-disabled-text-font-size: var(--font-size-md);
     --input-disabled-text-font-weight: var(--font-weight-normal);
     --input-disabled-text-line-height: var(--line-height-tighter);
     --input-disabled-icon: var(--text-tertiary);
@@ -184,14 +184,14 @@
     /* Label */
     --input-label: var(--text-secondary);
     --input-label-font-family: var(--font-sans);
-    --input-label-font-size: var(--font-size-sm);
+    --input-label-font-size: var(--font-size-md);
     --input-label-font-weight: var(--font-weight-semibold);
     --input-label-line-height: var(--line-height-tighter);
 
     /* Hint */
     --input-hint: var(--text-tertiary);
     --input-hint-font-family: var(--font-sans);
-    --input-hint-font-size: var(--font-size-xs);
+    --input-hint-font-size: var(--font-size-sm);
     --input-hint-font-weight: var(--font-weight-normal);
     --input-hint-line-height: var(--line-height-tighter);
 
@@ -200,7 +200,7 @@
     --input-error-border-width: var(--border-width-2);
     --input-error: var(--text-danger);
     --input-error-font-family: var(--font-sans);
-    --input-error-font-size: var(--font-size-xs);
+    --input-error-font-size: var(--font-size-sm);
     --input-error-font-weight: var(--font-weight-medium);
     --input-error-line-height: var(--line-height-tighter);
   }

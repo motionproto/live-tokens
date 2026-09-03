@@ -61,7 +61,7 @@
     --toggle-thumb-size: var(--font-size-md);
     --toggle-label-text: var(--text-primary);
     --toggle-label-font-family: var(--font-sans);
-    --toggle-label-font-size: var(--font-size-sm);
+    --toggle-label-font-size: var(--font-size-md);
     --toggle-label-font-weight: var(--font-weight-normal);
     --toggle-gap: var(--space-8);
 

@@ -163,7 +163,7 @@
     --slider-label: var(--text-secondary);
     --slider-label-font-family: var(--font-sans);
     --slider-label-font-size: var(--font-size-md);
-    --slider-label-font-weight: var(--font-weight-normal);
+    --slider-label-font-weight: var(--font-weight-semibold);
     --slider-label-line-height: var(--line-height-normal);
     --slider-value: var(--text-tertiary);
     --slider-value-font-family: var(--font-mono);

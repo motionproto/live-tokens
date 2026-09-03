@@ -12,7 +12,7 @@
     "--table-default-header-surface": "--surface-neutral-lowest",
     "--table-default-header-text": "--text-primary",
     "--table-default-header-font-family": "--font-sans",
-    "--table-default-header-font-size": "--font-size-lg",
+    "--table-default-header-font-size": "--font-size-md",
     "--table-default-header-font-weight": "--font-weight-semibold",
     "--table-default-header-line-height": "--line-height-none",
     "--table-default-header-padding": "--space-12",

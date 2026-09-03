@@ -122,7 +122,7 @@
       --notification-info-icon-size: var(--icon-size-md);
       --notification-info-title: var(--text-info);
       --notification-info-title-font-family: var(--font-sans);
-      --notification-info-title-font-size: var(--font-size-lg);
+      --notification-info-title-font-size: var(--font-size-md);
       --notification-info-title-font-weight: var(--font-weight-bold);
       --notification-info-title-line-height: var(--line-height-tighter);
       --notification-info-text: var(--text-primary);
@@ -142,7 +142,7 @@
       --notification-success-icon-size: var(--icon-size-md);
       --notification-success-title: var(--text-success);
       --notification-success-title-font-family: var(--font-sans);
-      --notification-success-title-font-size: var(--font-size-lg);
+      --notification-success-title-font-size: var(--font-size-md);
       --notification-success-title-font-weight: var(--font-weight-bold);
       --notification-success-title-line-height: var(--line-height-tighter);
       --notification-success-text: var(--text-primary);
@@ -162,7 +162,7 @@
       --notification-warning-icon-size: var(--icon-size-md);
       --notification-warning-title: var(--text-warning);
       --notification-warning-title-font-family: var(--font-sans);
-      --notification-warning-title-font-size: var(--font-size-lg);
+      --notification-warning-title-font-size: var(--font-size-md);
       --notification-warning-title-font-weight: var(--font-weight-bold);
       --notification-warning-title-line-height: var(--line-height-tighter);
       --notification-warning-text: var(--text-primary);
@@ -182,7 +182,7 @@
       --notification-danger-icon-size: var(--icon-size-md);
       --notification-danger-title: var(--text-danger);
       --notification-danger-title-font-family: var(--font-sans);
-      --notification-danger-title-font-size: var(--font-size-lg);
+      --notification-danger-title-font-size: var(--font-size-md);
       --notification-danger-title-font-weight: var(--font-weight-bold);
       --notification-danger-title-line-height: var(--line-height-tighter);
       --notification-danger-text: var(--text-primary);
