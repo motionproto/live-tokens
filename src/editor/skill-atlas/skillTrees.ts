@@ -306,7 +306,7 @@ export const skillTrees: Record<string, SkillTree> = {
   },
   "set-colors": {
     "id": "live-tokens-set-colors",
-    "digest": "sha256:1fc94459ea9a9b11",
+    "digest": "sha256:50de00805689da8b",
     "title": "set-colors",
     "tagline": "Ten base colors become every ramp, gated on AA contrast, written into the live look.",
     "nodes": [

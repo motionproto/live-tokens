@@ -54,7 +54,7 @@ on was the asymmetry in file form.
 | **base color** | The one color a palette's whole ramp derives from, ten per theme, and the field `baseColor` in a theme document. | A random seed. Sketch mode owns that sense. |
 | **design direction** | The layer-1 sentence. Always the full phrase. | A hue rotation, or a layer-2 intent. |
 | **intent** | A layer-2 outcome, always compounded: color intent, type intent, geometry intent. | The mechanics that deliver it. |
-| **theme** | The document at `src/live-tokens/data/themes/<slug>.json`, schemaVersion 4. | The rendered state, which is the look. |
+| **theme** | The document at `src/live-tokens/data/themes/<slug>.json`, schemaVersion 5. | The rendered state, which is the look. |
 | **look** | What the app renders now: the open theme plus any unsaved color, type, and geometry buffers. | A theme file. Each set verb reads the live look and writes its dimension back into it; `save-theme` turns it into a theme. |
 | **voice** | The character of a typeface: dynamic, rational, geometric. | The layer-1 sentence. That is the design direction. |
 
@@ -83,8 +83,8 @@ verb names the last step and the skill names the whole of it; the CLI validates
 pages and components and the agent authors them.
 
 The rule stops above the CLI. The CLI only ever receives layer 3: the base color
-file, the pairing file, the ops file, the theme name. Layers 0 through 2 keep their own
-vocabulary, which is why intent has no CLI counterpart and needs none.
+file, the pairing file, the ops file, the theme name. Layers 0 through 2 keep
+their own vocabulary, which is why intent has no CLI counterpart and needs none.
 
 **An intent names its dimension, not its executor's reach.** Layer 2 is color,
 type, and geometry, because those are the three dimensions of a theme.

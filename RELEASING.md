@@ -120,12 +120,13 @@ What should be in the tarball:
 - `src/system/**` (token components and `tokens.css`)
 - `src/app/site.css` (optional starter typography)
 - `dist-plugin/**` (built vite plugin)
-- `bin/**` (the `live-tokens` CLI: `create`, `setup-claude`, `check-component`,
-  `set-colors`, `set-type`, `set-geometry`, `save-theme`, `migrate`,
-  `migrate-routes`)
+- `bin/**` (the `live-tokens` CLI: `create`, `setup-claude`, `components`,
+  `tokens`, `report`, `check-component`, `check-page`, `set-colors`,
+  `set-type`, `set-geometry`, `save-theme`, `migrate`)
 - `template/**` (the `create` scaffold)
 - `.claude/skills/**` (the Claude skills: build-page, create-component,
-  pick-component, create-theme, set-colors, set-type, set-geometry)
+  pick-component, check-compliance, fix-findings, create-theme, set-colors,
+  set-type, set-geometry)
 - These files only, out of `src/live-tokens/data/`: `tokens.generated.css`,
   `colors-and-type/default.json` plus the eight preset colors-and-type files,
   and the eight preset themes (each an entry-by-entry `files` listing, never a
