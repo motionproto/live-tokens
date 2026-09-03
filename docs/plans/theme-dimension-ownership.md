@@ -42,7 +42,7 @@ stop only if the symbol itself is gone.
 | Wave | Summary | Executor | Reviewer | Status | Commit |
 |---|---|---|---|---|---|
 | 0 | Precondition: docs committed, user's work settled | orchestrator | none | Done | 5b80fc5 |
-| 1 | One live-state reader under `bin/lib/` | wave-executor, Opus | Opus | Not started | |
+| 1 | One live-state reader under `bin/lib/` | wave-executor, Opus | Opus | Done | 5e141ca |
 | 2 | Dead keys: migration, preset sweep, gate | wave-executor, Opus | Fable | Not started | |
 | 3 | Engine names follow the verbs | recipe-sweeper, Sonnet | Opus | Not started | |
 | 4 | `set-colors` narrows, `save-theme` lands | wave-executor, Opus | Fable | Not started | |
@@ -223,9 +223,25 @@ The Audit names 36 keys. Confirm each has no reader outside
 ```
 
 `--sectiondivider-title` and `--sectiondivider-description` are the bare
-keys. Also check `--gradient-{1,2,3,4}-stops`, which only `midnight-study`
-carries: if nothing reads them, they join the list and the migration's
-comment names them.
+keys.
+
+**Census result (Wave 2 step 1, run 2026-09-03).** All 36 are dead: none is
+declared anywhere in `tokens.css`, and nothing outside the data tree,
+migrations, and tests reads one. Every one of the nine presets carries all 36,
+in both `themes/<slug>.json` and `colors-and-type/<slug>.json`. Counts:
+`cssVariables` goes 55 to 19 for eight presets and 59 to 23 for
+`midnight-study`. Seven presets sit at colors-and-type version 3 and two
+(`midnight-study`, `sketchy`) at 5, as this doc says.
+
+**`--gradient-{1,2,3,4}-stops` do not join `DROPPED`.** They differ from the 36
+in the way that decides it: `tokens.css:543-549` declares them. Nothing reads
+them today, but a preset overriding a declared token is a legitimate override,
+inside the contract step 4's gate enforces. Retiring them is a token removal
+and would need its own `vite-plugin/tokensCssMigrations` entry, which this plan
+does not take. The migration's comment does not name them.
+
+After the drop, every surviving key in all nine presets is declared in
+`tokens.css`, so step 4's gate passes with no exemption list.
 
 ### Step 2: the migration (wave-executor)
 
@@ -424,6 +440,20 @@ today (`set-colors.mjs:240-244`).
   only. Exit 0 always for `save-theme`; `set-colors` keeps exit 1 on unmet
   floors.
 - `SAMPLE_PROMPTS` unchanged.
+
+### From the Wave 1 review gate
+
+- `bin/lib/liveState.mjs` throws a named error on malformed JSON, the one new
+  behaviour Wave 1 introduced, and no test covers it. Fold a case into the
+  `set-colors.test.ts` rewrite: a corrupt `_working.json` throws
+  `/is not valid JSON/`.
+- `readLiveComponentConfigs`'s `sources[comp]` labels a config that came from
+  `default.json` as `theme`, even with no theme open. Wave 1 carried that
+  forward from `set-geometry` faithfully. `save-theme`'s report must not read
+  `sources` naively when it says which layers came from a buffer and which from
+  the open theme.
+- `bin/cli.mjs:272` and `:285` still say `adjust` in user-facing copy, left
+  over from the verb rename in `9f6a37e`. Fix both while editing `cli.mjs`.
 
 ### Tests
 
