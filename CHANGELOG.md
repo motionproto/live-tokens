@@ -1,5 +1,42 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+- **`live-tokens-build-page` lays out the page before it places columns.**
+  The Layout section opens with bands: name each by its job, put a tool
+  page's stage on top and its toolbar along the bottom edge, separate bands
+  with space and a rule, and stretch a band's boxes to one height. Two new
+  subsections follow. *Containers by job* says what `Panel`, `Card`, a bare
+  compact `Card` with its own text-style label, and a toolbar are each for,
+  and that a card header is typed by the card's own tokens at 2xl. *Density*
+  covers `size="small"` in toolbars and compose rows, forwarding `size` from
+  a project component, text inside a card body inheriting the card's size,
+  and toggling `MenuSelect` from a `Button`. Verify now asks for a look at
+  the page band by band, since the checker cannot see a layout. The gap
+  came from a studio page whose card headers, buttons, and inherited body
+  text all ran large with every check green; `docs/build-page-gap-analysis.md`
+  records it.
+
+- **`live-tokens-build-page` opens Layout with the laws behind its rules.**
+  A short block before the bands states what a layout is for: the page
+  shows one thing, each mark that is not content must do a job no other mark does,
+  separate with the smallest difference that separates (space, then a
+  hairline rule, then a second surface), rank content, labels, and
+  scaffolding on their own tokens, show related items side by side, and
+  give a tool page's space to the stage. Verify adds a look from a distance,
+  a removal question for each border and header bar, and a check of the
+  reading order. The laws are Tufte's (smallest effective difference,
+  1+1=3, layering and separation, administrative debris), with
+  Müller-Brockmann and Refactoring UI as the working restatements;
+  `references/layout-sources.md` in the skill names each source and where
+  it lands.
+
+- **`live-tokens-pick-component` says `MenuSelect` renders open.** The
+  selection table called it a compact dropdown; the shipped component is a
+  list, and a dropdown is a `Button` that toggles it.
+
 ## 0.72.1 — The compliance skills have a spine
 
 ### Changed

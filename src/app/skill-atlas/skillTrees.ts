@@ -1604,130 +1604,190 @@ export const skillTrees: Record<string, SkillTree> = {
         "anchor": "For text, reach for a whole text style rather than assemblin"
       },
       {
-        "id": "bp-grid",
+        "id": "bp-laws",
         "row": 5,
+        "kind": "step",
+        "title": "The purpose of a layout",
+        "desc": "The page shows one thing; each mark that is not content must earn its place. Separate with the smallest difference that separates: space, then a hairline rule, then a second surface. Content, labels, and scaffolding each take their own token. On a tool page the stage takes the space and controls take the smallest size that still works.",
+        "lines": [
+          19,
+          29
+        ],
+        "anchor": "**The purpose of a layout.** The page shows one thing. All o",
+        "anchorEnd": "`references/layout-sources.md` names the sources for these l"
+      },
+      {
+        "id": "bp-bands",
+        "row": 6,
+        "kind": "decide",
+        "title": "What are the bands?",
+        "desc": "Name each band by its job: what the user looks at, types into, presses. A tool page runs stage, inputs, then one toolbar along the bottom edge. Separate bands with space and a rule; stretch a band's boxes to one height so their bottom edges make one line.",
+        "lines": [
+          31,
+          33
+        ],
+        "anchor": "Decide the bands before the columns. Read the page top to bo",
+        "anchorEnd": "Separate bands with space and a rule, `padding-top: var(--sp"
+      },
+      {
+        "id": "bp-grid",
+        "row": 7,
         "kind": "step",
         "title": "Sit the page inside the column grid",
         "desc": "--columns-count, --columns-gutter, --columns-max-width. To place children at page-column positions, span the parent grid and redeclare repeat(var(--columns-count), 1fr). Never fabricate a local repeat(N, 1fr): the widths drift and the numbers stop matching ColumnsOverlay.",
         "lines": [
-          17,
-          21
+          35,
+          37
         ],
-        "anchor": "## Layout",
+        "anchor": "Pages sit inside the column grid via `--columns-count`, `--c",
         "anchorEnd": "To place children at specific page-column positions, span th"
       },
       {
+        "id": "bp-contain",
+        "row": 8,
+        "kind": "step",
+        "title": "Containers by job",
+        "desc": "Panel is a stage. Card is a titled block of content, typed by its own tokens; compact drops a size. A box in a tool UI is a bare compact Card labelled from a text style. A toolbar is a flex row of small buttons with no card around it.",
+        "lines": [
+          39,
+          44
+        ],
+        "anchor": "### Containers by job",
+        "anchorEnd": "- A toolbar is a flex row of small buttons on the band's bot"
+      },
+      {
+        "id": "bp-density",
+        "row": 9,
+        "kind": "step",
+        "title": "Density",
+        "desc": "size=\"small\" in toolbars and compose rows; fullWidth comes off in a row. A custom wrapper forwards size. Text in a card body inherits the card's size unless typed. MenuSelect renders open; a picker toggles it from a Button.",
+        "lines": [
+          46,
+          51
+        ],
+        "anchor": "### Density",
+        "anchorEnd": "- `MenuSelect` renders its list open. For a picker, toggle i"
+      },
+      {
         "id": "bp-wire",
-        "row": 6,
+        "row": 10,
         "kind": "decide",
         "title": "How does this app wire routes?",
         "desc": "Add the route the way App.svelte already does. Either way use lazy, never a static top-level import: static imports evaluate every page module at boot and leak page CSS into the editor routes.",
         "lines": [
-          23,
-          28
+          53,
+          58
         ],
         "anchor": "## Wiring",
         "anchorEnd": "Either way use `lazy`, not a static top-level import: static"
       },
       {
         "id": "bp-router",
-        "row": 7,
+        "row": 11,
         "kind": "step",
         "title": "LiveTokensRouter",
         "desc": "Add a pages entry as lazy: () => import('./YourPage.svelte') with a source: 'src/...'. For a route you cannot enumerate, add a resolve(path) instead; same entry shape.",
         "lines": [
-          26,
-          26
+          56,
+          56
         ],
         "anchor": "- **`<LiveTokensRouter pages={...}>`** (the usual case): add"
       },
       {
         "id": "bp-overlay",
-        "row": 7,
+        "row": 11,
         "kind": "step",
         "title": "Manual LiveEditorOverlay",
         "desc": "Dispatch with $derived.by(() => import(...)) and register the route's source in pageSources.",
         "lines": [
-          27,
-          27
+          57,
+          57
         ],
         "anchor": "- **Manual `<LiveEditorOverlay>`**: dispatch with `$derived."
       },
       {
         "id": "bp-css",
-        "row": 8,
+        "row": 12,
         "kind": "step",
         "title": "Import site.css from each page",
         "desc": "From the page's script block, never from main.ts, which would leak into editor routes.",
         "lines": [
-          29,
-          29
+          59,
+          59
         ],
         "anchor": "- Import `site.css` from each page's `<script>` block, never"
       },
       {
         "id": "bp-avoid",
-        "row": 9,
+        "row": 13,
         "kind": "chipset",
         "title": "Avoid",
         "chips": [
           {
             "label": "Colour and geometry literals",
             "lines": [
-              48,
-              48
+              78,
+              78
             ],
             "anchor": "- Colour literals, and px or rem in spacing, stroke, radius, or"
           },
           {
             "label": "Hardcoded column counts",
             "lines": [
-              49,
-              49
+              79,
+              79
             ],
             "anchor": "- Hardcoded page-grid counts (`repeat(10, 1fr)`). Use `repeat("
           },
           {
             "label": "Utility classes over components",
             "lines": [
-              50,
-              50
+              80,
+              80
             ],
             "anchor": "- Utility classes overriding shipped components. Extend via "
           },
           {
+            "label": "Card header as a section label",
+            "lines": [
+              81,
+              81
+            ],
+            "anchor": "- A card header as a section label in a tool UI, and a page "
+          },
+          {
             "label": "Deep node_modules imports",
             "lines": [
-              51,
-              51
+              82,
+              82
             ],
             "anchor": "- Deep imports from `node_modules/@motion-proto/live-tokens/"
           },
           {
             "label": "Editor mounted off its route",
             "lines": [
-              52,
-              52
+              83,
+              83
             ],
             "anchor": "- Mounting `Editor` or `ComponentEditorPage` outside their d"
           }
         ],
         "lines": [
-          46,
-          46
+          76,
+          76
         ],
         "anchor": "## Avoid",
         "tag": "avoid"
       },
       {
         "id": "bp-ver",
-        "row": 10,
+        "row": 14,
         "kind": "done",
         "title": "Verify",
-        "desc": "Run check-page and fix what it reports until it exits 0. Then change a colour in the editor and confirm the page repaints, which proves token usage. The overlay's Page Source button proves the route's source. Cmd+G shows content inside --columns-max-width.",
+        "desc": "Run check-page and fix what it reports until it exits 0. The checker cannot see a layout, so read the page band by band at its real width before moving on. Then change a colour in the editor and confirm the page repaints, which proves token usage. The overlay's Page Source button proves the route's source; the columns overlay shows content inside --columns-max-width.",
         "lines": [
-          55,
-          68
+          86,
+          103
         ],
         "anchor": "## Verify",
         "anchorEnd": "Then in dev: change a colour in `/live-tokens/editor` and"
@@ -1760,10 +1820,26 @@ export const skillTrees: Record<string, SkillTree> = {
       ],
       [
         "bp-text",
+        "bp-laws"
+      ],
+      [
+        "bp-laws",
+        "bp-bands"
+      ],
+      [
+        "bp-bands",
         "bp-grid"
       ],
       [
         "bp-grid",
+        "bp-contain"
+      ],
+      [
+        "bp-contain",
+        "bp-density"
+      ],
+      [
+        "bp-density",
         "bp-wire"
       ],
       [

@@ -39,7 +39,7 @@ All four pick one option from a set. The right one depends on **option count**, 
 | `SegmentedControl`| Inline switch between alternative *views of the same data*              | Compact pill     | 2–4          |
 | `TabBar`          | Switching between *tab panels* (content area swaps below)               | Page-section     | 2–7          |
 | `RadioButton`     | Form-style selection where the user reviews all options as text         | Form-row         | Any          |
-| `MenuSelect`      | Hide the option set behind a dropdown to save vertical/horizontal space | Compact dropdown | Any          |
+| `MenuSelect`      | A list of options, one checked; renders open, so a dropdown toggles it from a `Button` | Open list        | Any          |
 
 - `TabBar` implies "this changes the page"; `SegmentedControl` implies "this is one knob among others."
 - Use `RadioButton` when labels deserve room to breathe and the user is committing to a larger form.
