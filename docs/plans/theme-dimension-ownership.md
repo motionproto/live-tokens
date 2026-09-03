@@ -44,7 +44,7 @@ stop only if the symbol itself is gone.
 | 0 | Precondition: docs committed, user's work settled | orchestrator | none | Done | 5b80fc5 |
 | 1 | One live-state reader under `bin/lib/` | wave-executor, Opus | Opus | Done | 5e141ca |
 | 2 | Dead keys: migration, preset sweep, gate | wave-executor, Opus | Fable | Done | db5e22f |
-| 3 | Engine names follow the verbs | recipe-sweeper, Sonnet | Opus | Not started | |
+| 3 | Engine names follow the verbs | recipe-sweeper, Sonnet | Opus | Done | 89f0cd5, 99e5183, 8d1461d |
 | 4 | `set-colors` narrows, `save-theme` lands | wave-executor, Opus | Fable | Not started | |
 | 5 | Skills and atlas | wave-executor, Opus | Opus | Not started | |
 | 6 | Docs, evals, changelog | wave-executor, Sonnet | Opus | Not started | |
@@ -345,9 +345,19 @@ Call sites, all to be found by grep rather than trusted from this list:
   three-contributing-skills plan says `generateColorsAndType` "stays" as an
   internal name; this wave supersedes that.
 
-Definition of done:
-`grep -rn "generateColorsAndType\|fontPairing/\|dist-plugin/adjust\|buildColorsAndType\|GenerateColorsAndType\|ColorsAndTypeInput" bin scripts src vite-plugin tsup.config.ts README.md docs/plans/theme-dimension-ownership.md`
-returns only this doc and `CHANGELOG.md` history.
+Definition of done, over `bin scripts src vite-plugin tsup.config.ts
+README.md package.json`, returning nothing:
+
+`grep -rn "vite-plugin/adjust\|vite-plugin/fontPairing\|vite-plugin/generateColorsAndType\|dist-plugin/adjust\|dist-plugin/fontPairing\|dist-plugin/generateColorsAndType\|generateColorsAndType\|buildColorsAndType\|GenerateColorsAndType\|ColorsAndTypeInput"`
+
+The first sweep used a narrower pattern carrying `dist-plugin/adjust` but not
+`vite-plugin/adjust`, and so passed while
+`scripts/seed-preset-theme.mjs`'s `ENGINE_SOURCES` still named a deleted path.
+`ENGINE` and `ENGINE_SOURCES` sit two lines apart and point into different
+directories; a pattern that covers one prefix and not the other reads as clean
+and proves nothing. That script is in no test and not in `package.json#files`,
+so neither the suite nor `npm pack` could see the break. The five
+missing-bundle error strings name their bundle too.
 
 **Verify (test-verifier):** `npm run build:plugin` produces
 `dist-plugin/setColors`, `setType`, `setGeometry` and no old directory;
