@@ -590,6 +590,12 @@
   }
 
   .masthead-top h1 {
+    font-family: var(--heading-xl-font-family);
+    font-size: var(--heading-xl-font-size);
+    font-weight: var(--heading-xl-font-weight);
+    line-height: var(--heading-xl-line-height);
+    letter-spacing: var(--heading-xl-letter-spacing);
+    color: var(--text-primary);
     margin-bottom: 0;
   }
 

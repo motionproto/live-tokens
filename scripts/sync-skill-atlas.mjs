@@ -14,7 +14,7 @@
 // Without --write it is a dry run that fails on drift.
 
 import { createHash } from 'node:crypto';
-import { readFileSync, writeFileSync } from 'node:fs';
+import { readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -158,6 +158,18 @@ function walk(value, id, label) {
 for (const tree of Object.values(trees)) {
   checkDigest(tree);
   walk(tree, tree.id, tree.id);
+}
+
+// The loop above only ever iterates the trees that exist, so a skill dropped
+// from this file — in full, or by a bad merge — passed with nothing to check.
+// `check:skills` enumerates the same directory for the same reason.
+const skillDirs = readdirSync(SKILLS, { withFileTypes: true })
+  .filter((e) => e.isDirectory())
+  .map((e) => e.name)
+  .sort();
+const covered = new Set(Object.values(trees).map((t) => t.id));
+for (const dir of skillDirs) {
+  if (!covered.has(dir)) errors.push(`${dir}: no tree in skillTrees.ts maps this skill`);
 }
 
 if (errors.length > 0) {
