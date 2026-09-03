@@ -3,6 +3,15 @@
 Decisions from the skill review. One section per skill, written before any file
 changes.
 
+**Superseded in part on 2026-09-03.** The theme skills were split: what this
+document calls generate-theme is now live-tokens-create-theme, which reads the
+request and routes three intents, plus live-tokens-set-colors, which owns the
+color mechanics. set-fonts is live-tokens-set-type and adjust-geometry is
+live-tokens-set-geometry, and their CLI verbs match. The conventions below still
+hold; `docs/terminology.md` carries the current vocabulary, including the fifth
+layer this document's table lacks. See `docs/plans/three-contributing-skills.md`
+for the reasoning.
+
 ---
 
 ## Conventions

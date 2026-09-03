@@ -1,5 +1,12 @@
 # Skills audit
 /Users/mark/Documents/repos/motionproto-repos/live-tokens/.claude/skills
+
+**Names below are pre-2026-09-03.** generate-theme has since split into
+live-tokens-create-theme and live-tokens-set-colors, set-fonts is
+live-tokens-set-type, and adjust-geometry is live-tokens-set-geometry. The
+findings still stand against the text they were written for; this document is
+the record of that pass, not a description of the current tree.
+
 Six bundled skills, four reference files, reviewed one tree at a time from the
 SKILL.md down to every file it names. This document records what the
 optimization pass changed and what I would change next. The changes are already

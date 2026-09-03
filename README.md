@@ -328,16 +328,16 @@ npx @motion-proto/live-tokens <command>
 | `report [--json]` | The project as facts: pending migrations, tokens each component reads, which page renders which component, and both checkers' findings by rule. Always exits 0. |
 | `check-component [id]` | Validate a component's runtime, editor, and registration against the authoring contract; with no id, every component authored under `src/system/components`. |
 | `check-page [paths...]` | Validate pages against the build-page contract: catalogue components and their props, theme tokens over literals, route wiring. |
-| `generate-theme <base-colors.json> [--no-activate] [--dry-run] [--carry-from <name>]` | Build a full theme from 10 OKLCH base colors, enforce AA contrast, write `themes/<slug>.json`, and open it. |
-| `adjust-geometry <ops.json> [--dry-run]` | Move radius, padding, gap, and border-width aliases along their token scales. |
-| `set-fonts <pairing.json> [--dry-run] [--no-verify]` | Bind Google Fonts families to the theme's font stacks, verified against the API. |
+| `set-colors <base-colors.json> [--no-activate] [--dry-run] [--carry-from <name>]` | Build a full theme from 10 OKLCH base colors, enforce AA contrast, write `themes/<slug>.json`, and open it. |
+| `set-type <pairing.json> [--dry-run] [--no-verify]` | Bind Google Fonts families to the theme's font stacks, verified against the API. |
+| `set-geometry <ops.json> [--dry-run]` | Move radius, padding, gap, and border-width aliases along their token scales. |
 | `migrate [--check] [--write] [--tokens <path>]` | Reconcile the project with the installed package: additive `tokens.css` migrations, the pre-0.48 data-tree move, and a report on source references to the routes that moved in 0.35.0. |
 
 Once installed in a project, the same commands are available as `npx live-tokens <command>`.
 
 ## Claude Code skills
 
-The package bundles eight Claude Code skills. They encode the conventions this README cannot carry in full: which component fits a need, how a page is wired, what a valid theme looks like in OKLCH, how two typefaces sit together, how geometry moves along the token scales, how a project is checked against all of that, and how an existing page or component is brought back into line. Each triggers from an ordinary request, so there are no slash commands to learn.
+The package bundles nine Claude Code skills. They encode the conventions this README cannot carry in full: which component fits a need, how a page is wired, how one request becomes a whole look, what a valid theme looks like in OKLCH, how two typefaces sit together, how geometry moves along the token scales, how a project is checked against all of that, and how an existing page or component is brought back into line. Each triggers from an ordinary request, so there are no slash commands to learn.
 
 ### Install
 
@@ -363,33 +363,41 @@ Ask for a page, a route, or a screen: "build a pricing page", "add a /settings r
 
 The skill composes the page from shipped components, styles every value with `var(--token-*)` (no hex, no pixel literals, so editor changes repaint the page), places content on the column grid via `--columns-count`, `--columns-gutter`, and `--columns-max-width`, adds the route as a `lazy` import with a `source` so the overlay's "Page Source" button works, and imports `site.css` from the page rather than `main.ts` so page CSS stays out of the editor routes. It writes your page files and the route entry, and never touches the data tree.
 
-### `live-tokens-generate-theme`
+### `live-tokens-create-theme`
 
-Ask for a look: "a dark, moody night theme", "a St Patrick's Day theme in green and gold", "warmer", "more contrast", "calmer".
+Ask for a look: "a dark, moody night theme", "a St Patrick's Day theme in green and gold", "make it feel more serious".
 
-A theme is three decisions made from one request: color, type, and geometry. The skill owns color and delegates the other two to `live-tokens-set-fonts` and `live-tokens-adjust-geometry`, so the whole look comes from one reading of the request.
+A theme is three decisions: color, type, and geometry. This skill reads the request once, states one design direction that fixes all three, and routes a color, a type, and a geometry intent to `live-tokens-set-colors`, `live-tokens-set-type`, and `live-tokens-set-geometry`. It runs no CLI itself and assembles the three reports into one summary.
 
-For color it translates the request into ten OKLCH base colors (Brand, Accent, Special, Canvas, Neutral, Alternate, Info, Success, Warning, Danger) plus a light or dark scheme, then runs `npx live-tokens generate-theme <base-colors.json>`. The CLI assembles the curves, enforces AA contrast on derived text tokens and auto-corrects where it can, writes `themes/<slug>.json`, opens it, and prints a contrast report. Exit 1 means the base colors themselves are unworkable, and each failure line names the base color to change.
+It carries the anchor index: every feeling, idiom, era, genre, holiday, and season the skills know, placed on the valence, energy, and dominance axes with the direction each implies. An idiom sets constraints and a feeling moves dials inside them, so "cozy brutalist" reads the idiom first. Each contributing skill holds the mechanics for its own dimension, keyed on the same anchor names.
 
-Most of the skill is the judgment the generator cannot supply: a chroma budget scaled to how much screen area each palette covers, per-role lightness and hue bands for each scheme, gamut guardrails against impossible base colors, harmony modes, the optional canvas gradient, and a direction-to-geometry table for the geometry step. OKLCH anchors for named holidays and seasons live in a reference file the skill reads on demand.
+A refinement that names one dimension goes straight to that sibling. This skill takes the ones that span dimensions.
 
-Color lands in the theme file; type and shape land in the unsaved buffers, and one Save keeps all three. `--dry-run` prints the report without writing; `--no-activate` writes without opening. Opening a theme never changes what your site ships; Adopt does. Regenerating replaces that theme's whole color state, including palette edits made in the editor since the last run, and carries the live buffers forward, so re-rolling color after setting fonts and shape keeps both.
+### `live-tokens-set-colors`
 
-### `live-tokens-set-fonts`
+Ask for color: "a cooler palette", "warmer", "more contrast", "calmer", "make the ground darker".
+
+The skill translates the color intent into ten OKLCH base colors (Brand, Accent, Special, Canvas, Neutral, Alternate, Info, Success, Warning, Danger) plus a light or dark scheme, then runs `npx live-tokens set-colors <base-colors.json>`. The CLI assembles the curves, enforces AA contrast on derived text tokens and auto-corrects where it can, writes `themes/<slug>.json`, opens it, and prints a contrast report. Exit 1 means the base colors themselves are unworkable, and each failure line names the base color to change.
+
+Most of the skill is the judgment the generator cannot supply: a chroma budget scaled to how much screen area each palette covers, per-role lightness and hue bands for each scheme, three levels of canvas commitment, gamut guardrails against impossible base colors, harmony modes, and the optional canvas gradient. OKLCH anchors for every named feeling, idiom, and occasion live in a reference file the skill reads on demand.
+
+This is the step that creates the theme file, so it runs first and never skips. `--dry-run` prints the report without writing; `--no-activate` writes without opening. Opening a theme never changes what your site ships; Adopt does. A re-run replaces that theme's whole color state, including palette edits made in the editor since the last run, and carries the type and geometry buffers forward.
+
+### `live-tokens-set-type`
 
 Ask for type: "pair some fonts for this theme", "what font should the headings use?", "make the type more editorial", "something friendlier", "a serif for headings".
 
-The skill chooses the families and runs `npx live-tokens set-fonts <pairing.json>`, which binds each one to `--font-display`, `--font-sans`, `--font-serif`, or `--font-mono`. Every family is checked against the Google Fonts API before it is written, and the URL is built from the weights that family actually has: a range for a variable font, an enumeration for a static one, a bare URL for a single-weight display face. The report names the weights your typography tokens ask for and the family does not carry.
+The skill chooses the families and runs `npx live-tokens set-type <pairing.json>`, which binds each one to `--font-display`, `--font-sans`, `--font-serif`, or `--font-mono`. Every family is checked against the Google Fonts API before it is written, and the URL is built from the weights that family actually has: a range for a variable font, an enumeration for a static one, a bare URL for a single-weight display face. The report names the weights your typography tokens ask for and the family does not carry.
 
-The judgment is the skill's half. It anchors on the body face, because that is most of the words on the page and text faces survive small sizes where display faces do not. It classifies both candidates by form model (dynamic, rational, geometric) and applies the font matrix: two faces sharing a skeleton under different surfaces pair reliably, two faces sharing a surface over different skeletons fight, and two faces far apart on both read as a decision. It also carries the screen test a body face has to pass, a voice table from request to type, and the Google Fonts superfamilies for when the type should stay quiet.
+The judgment is the skill's half. It anchors on the body face, because that is most of the words on the page and text faces survive small sizes where display faces do not. It classifies both candidates by form model (dynamic, rational, geometric) and applies the font matrix: two faces sharing a skeleton under different surfaces pair reliably, two faces sharing a surface over different skeletons fight, and two faces far apart on both read as a decision. It also carries the screen test a body face has to pass, a voice table from intent to type, a type anchor per named feeling and idiom, and the Google Fonts superfamilies for when the type should stay quiet.
 
 Scope: type only, and never color. Edits land in the colors-and-type `_working.json` buffer, so save the open theme to keep them. `--dry-run` reports without writing.
 
-### `live-tokens-adjust-geometry`
+### `live-tokens-set-geometry`
 
 Ask for shape or space: "make the buttons pill shaped", "sharper corners on the cards", "space it out", "tighter", "thinner borders".
 
-The skill turns the phrase into ops (`kind` of `radius`, `padding`, `gap`, or `border-width`, with `shift: N` or `set: <token>`, optionally scoped to one component id), then runs `npx live-tokens adjust-geometry <ops.json>`. The CLI moves each matching alias along its ladder, reads the live config first so "a bit more" compounds, and prints every change and every skip.
+The skill turns the phrase into ops (`kind` of `radius`, `padding`, `gap`, or `border-width`, with `shift: N` or `set: <token>`, optionally scoped to one component id), then runs `npx live-tokens set-geometry <ops.json>`. The CLI moves each matching alias along its ladder, reads the live config first so "a bit more" compounds, and prints every change and every skip.
 
 It also knows where these edits go wrong: controls run out of room long before containers do, so a global compaction is one step and anything deeper is aimed at named containers; a pill needs more horizontal padding than a square-cornered control, not less; and content insets stop at `--space-4`, below which a relative "tighter" reports as clamped instead of writing.
 

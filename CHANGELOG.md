@@ -4,6 +4,38 @@
 
 ### Changed
 
+- **Breaking: the three theme CLI verbs are renamed, and there is no alias.**
+  `generate-theme` is now `set-colors`, `set-fonts` is now `set-type`, and
+  `adjust-geometry` is now `set-geometry`. Each verb names the dimension it
+  sets, and each matches the skill that runs it. A script or note that types
+  an old verb fails with "Unknown command"; there is no deprecation path,
+  because nothing is released against these names yet. The flags, the file
+  formats, and the behaviour are unchanged, and the geometry ops file is now
+  written to `scratch/geometry-ops.json`.
+
+- **A theme is one design direction routed to three contributing skills.**
+  `live-tokens-generate-theme` did two jobs: it read the request and fixed a
+  whole look, and it executed the color layer itself. So two of a theme's three
+  dimensions were skills and the third was a section. It is now
+  **live-tokens-create-theme**, which reads the request once, states one design
+  direction, states a color, a type, and a geometry intent, routes each to
+  **live-tokens-set-colors**, **live-tokens-set-type**, and
+  **live-tokens-set-geometry**, and assembles their three reports. It runs no
+  CLI. Every contributing skill still works when invoked directly with an
+  intent and no direction behind it. This changes four `description` triggers:
+  a whole look reaches create-theme, and a request naming one dimension goes
+  straight to that dimension's skill, including a color-only refinement like
+  "warmer".
+
+- **The anchor tables split by dimension.** A row in the old mood and style
+  vocabularies fixed color, type, and geometry at once, which meant the
+  coordinator read color mechanics and handed on the other two. create-theme
+  now holds `references/design-directions.md`, an index placing each anchor on
+  the valence, energy, and dominance axes with its one-line direction; each
+  contributing skill holds the column it executes, keyed on the same names.
+  `check:skills` gains an anchor-key parity gate, so a name that reaches only
+  some of the four files fails at commit.
+
 - **The theme skills call the user's own words the request, not the brief.**
   "Brief" named two things at once: the user's words, and the seed JSON at
   `scratch/<slug>-brief.json`. The second sense is fixed in two filenames and
