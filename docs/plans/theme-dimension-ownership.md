@@ -45,7 +45,7 @@ stop only if the symbol itself is gone.
 | 1 | One live-state reader under `bin/lib/` | wave-executor, Opus | Opus | Done | 5e141ca |
 | 2 | Dead keys: migration, preset sweep, gate | wave-executor, Opus | Fable | Done | db5e22f |
 | 3 | Engine names follow the verbs | recipe-sweeper, Sonnet | Opus | Done | 89f0cd5, 99e5183, 8d1461d |
-| 4 | `set-colors` narrows, `save-theme` lands | wave-executor, Opus | Fable | Not started | |
+| 4 | `set-colors` narrows, `save-theme` lands | wave-executor, Opus | Fable | Done | 37d414c |
 | 5 | Skills and atlas | wave-executor, Opus | Opus | Not started | |
 | 6 | Docs, evals, changelog | wave-executor, Sonnet | Opus | Not started | |
 
@@ -492,9 +492,14 @@ today (`set-colors.mjs:240-244`).
   `bin/save-theme.mjs` joins.
 - `bin/engineLoadsLazily.test.ts` covers the new module by walking.
 
-`check:skills` fails at the end of this wave (the set-colors skill names two
-flags the CLI no longer offers and `save-theme` reaches no skill). Run it at
-the end of Wave 5.
+`check:skills` stays GREEN at the end of this wave, and that is the finding.
+The gate is one-directional (`scripts/check-skills.mjs:107-118`): for each
+verb a skill names it errors when the CLI does not dispatch that verb, and
+when USAGE offers a flag the skill omits. It never asks whether a flag the
+skill names still exists, and never asks whether a dispatched verb reaches any
+skill. So the set-colors skill documenting `--no-activate` and `--carry-from`,
+and `save-theme` reaching nothing, are both invisible to it. Wave 5 hardens
+it.
 
 **Verify (test-verifier):** `npm test`, `npm run check` green; `node
 bin/cli.mjs --help` shows the four verbs and no `--carry-from`. Manual, with
