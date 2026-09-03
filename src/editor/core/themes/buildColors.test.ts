@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { buildColorsAndType, shadowOpacityForCanvas, type ColorsAndTypeInput } from './generateColorsAndType';
+import { buildColors, shadowOpacityForCanvas, type ColorsInput } from './buildColors';
 import { palettesToVars } from '../palettes/paletteDerivation';
 import { CURRENT_COLORS_AND_TYPE_SCHEMA_VERSION } from './migrations/index';
 import type { Oklch } from '../palettes/oklch';
@@ -22,9 +22,9 @@ function baseColors(overrides: Record<string, Oklch | string> = {}): Record<stri
   };
 }
 
-const lightInput: ColorsAndTypeInput = { name: 'Spring Meadow', scheme: 'light', baseColors: baseColors({ Brand: '#2f9e44' }) };
+const lightInput: ColorsInput = { name: 'Spring Meadow', scheme: 'light', baseColors: baseColors({ Brand: '#2f9e44' }) };
 
-const darkInput: ColorsAndTypeInput = {
+const darkInput: ColorsInput = {
   name: 'Midnight Violet',
   scheme: 'dark',
   baseColors: baseColors({
@@ -36,9 +36,9 @@ const darkInput: ColorsAndTypeInput = {
   }),
 };
 
-describe('buildColorsAndType', () => {
+describe('buildColors', () => {
   it('assembles complete colors and type from a light scheme', () => {
-    const { colorsAndType, slug, report } = buildColorsAndType(lightInput, {}, NOW);
+    const { colorsAndType, slug, report } = buildColors(lightInput, {}, NOW);
     expect(slug).toBe('spring-meadow');
     expect(colorsAndType.name).toBe('Spring Meadow');
     expect(colorsAndType.createdAt).toBe(NOW);
@@ -57,27 +57,27 @@ describe('buildColorsAndType', () => {
   });
 
   it('meets every floor on a dark scheme, auto-correcting where the base colors fall short', () => {
-    const { report } = buildColorsAndType(darkInput, {}, NOW);
+    const { report } = buildColors(darkInput, {}, NOW);
     expect(report.failures).toEqual([]);
     for (const check of report.checks) expect(check.ratio).toBeGreaterThanOrEqual(check.floor);
   });
 
   it('reports unreachable floors instead of silently passing', () => {
-    const input: ColorsAndTypeInput = {
+    const input: ColorsInput = {
       name: 'Doomed',
       scheme: 'dark',
       baseColors: baseColors({ Neutral: { l: 0.15, c: 0.013, h: 285 }, Canvas: { l: 0.2, c: 0.02, h: 280 } }),
     };
-    const { report } = buildColorsAndType(input, {}, NOW);
+    const { report } = buildColors(input, {}, NOW);
     const primary = report.checks.find((c) => c.textVar === '--text-primary')!;
     expect(primary.pass).toBe(false);
     expect(report.failures.some((f) => f.includes('--text-primary'))).toBe(true);
   });
 
   it('refuses the protected default name and malformed input', () => {
-    expect(() => buildColorsAndType({ ...lightInput, name: 'Default' }, {}, NOW)).toThrow(/protected/);
+    expect(() => buildColors({ ...lightInput, name: 'Default' }, {}, NOW)).toThrow(/protected/);
     const { Brand: _dropped, ...missingBrand } = baseColors();
-    expect(() => buildColorsAndType({ name: 'x', scheme: 'light', baseColors: missingBrand }, {}, NOW)).toThrow(
+    expect(() => buildColors({ name: 'x', scheme: 'light', baseColors: missingBrand }, {}, NOW)).toThrow(
       /baseColors\.Brand: missing/,
     );
   });
@@ -87,7 +87,7 @@ describe('buildColorsAndType', () => {
       cssVariables: { '--surface-brand': '#123456', '--gradient-1': 'linear-gradient(90deg, #000, #fff)' },
       fontStacks: [{ variable: '--font-sans' as const, slots: [] }],
     };
-    const { colorsAndType } = buildColorsAndType(lightInput, carry, NOW);
+    const { colorsAndType } = buildColors(lightInput, carry, NOW);
     expect(colorsAndType.cssVariables['--surface-brand']).toBeUndefined();
     // The carried string is a projection of stock gradients; the rebuilt basis supersedes it.
     expect(colorsAndType.cssVariables['--gradient-1']).toBe(
@@ -97,7 +97,7 @@ describe('buildColorsAndType', () => {
   });
 
   it('rebuilds absent/stock swatch gradients from the theme families, falling back within-family for distant hues', () => {
-    const { colorsAndType, report } = buildColorsAndType(lightInput, {}, NOW);
+    const { colorsAndType, report } = buildColors(lightInput, {}, NOW);
     expect(report.gradients).toBe('recipes');
     const stops = colorsAndType.gradients!.map((g) => g.stops.map((s) => s.color));
     expect(stops[0]).toEqual(['--color-brand-400', '--color-brand-700']);
@@ -114,14 +114,14 @@ describe('buildColorsAndType', () => {
       { variable: '--gradient-1', type: 'linear' as const, angle: 33,
         stops: [{ position: 0, color: '--color-brand-200' }, { position: 100, color: '--color-brand-900' }] },
     ];
-    const { colorsAndType, report } = buildColorsAndType(lightInput, { gradients: tuned }, NOW);
+    const { colorsAndType, report } = buildColors(lightInput, { gradients: tuned }, NOW);
     expect(report.gradients).toBe('carried');
     expect(colorsAndType.gradients).toBe(tuned);
     expect(colorsAndType.cssVariables['--gradient-1']).toContain('33deg');
   });
 
   it('canvasGradient: true turns on the page sky on the scheme-safe side of the Canvas anchor', () => {
-    const dark = buildColorsAndType({ ...darkInput, canvasGradient: true }, {}, NOW);
+    const dark = buildColors({ ...darkInput, canvasGradient: true }, {}, NOW);
     const canvas = dark.colorsAndType.editorConfigs.Canvas;
     expect(canvas.emptyMode).toBe('gradient');
     expect(canvas.gradientSize).toBe('window');
@@ -132,16 +132,16 @@ describe('buildColorsAndType', () => {
 
     // A committed light canvas has room on the light side.
     const committed = { ...lightInput, canvasGradient: true, baseColors: baseColors({ Brand: '#2f9e44', Canvas: { l: 0.88, c: 0.06, h: 120 } }) };
-    const light = buildColorsAndType(committed, {}, NOW);
+    const light = buildColors(committed, {}, NOW);
     const stops = light.colorsAndType.editorConfigs.Canvas.gradientStops!;
     expect(Number(stops[0].paletteLabel)).toBeLessThan(Number(stops[1].paletteLabel));
 
     // A near-white canvas anchors at the ramp edge: sky skipped, and the report says so.
-    const edge = buildColorsAndType({ ...lightInput, canvasGradient: true }, {}, NOW);
+    const edge = buildColors({ ...lightInput, canvasGradient: true }, {}, NOW);
     expect(edge.colorsAndType.editorConfigs.Canvas.emptyMode).toBeUndefined();
     expect(edge.report.canvasGradient).toMatch(/^skipped/);
 
-    const off = buildColorsAndType(lightInput, {}, NOW);
+    const off = buildColors(lightInput, {}, NOW);
     expect(off.colorsAndType.editorConfigs.Canvas.emptyMode).toBeUndefined();
     expect(off.report.canvasGradient).toBeUndefined();
   });
@@ -152,17 +152,17 @@ describe('buildColorsAndType', () => {
     expect(shadowOpacityForCanvas(0.7)).toBe(0.55);
     expect(shadowOpacityForCanvas(0.97)).toBe(0.2);
 
-    const light = buildColorsAndType(lightInput, {}, NOW);
+    const light = buildColors(lightInput, {}, NOW);
     expect(light.colorsAndType.cssVariables['--shadow-md']).toBe('3px 3px 6px hsla(237, 18%, 3%, 0.2)');
     expect(light.report.shadows).toBe('opacity 0.2 for a canvas at L 0.97');
 
-    const dark = buildColorsAndType(darkInput, {}, NOW);
+    const dark = buildColors(darkInput, {}, NOW);
     expect(dark.colorsAndType.cssVariables['--shadow-md']).toBe('3px 3px 6px hsla(237, 18%, 3%, 0.9)');
   });
 
   it('recolors carried shadow geometry rather than replacing it', () => {
     const carry = { cssVariables: { '--shadow-md': '9px 9px 20px 2px hsla(20, 40%, 10%, 0.9)' } };
-    const { colorsAndType } = buildColorsAndType(lightInput, carry, NOW);
+    const { colorsAndType } = buildColors(lightInput, carry, NOW);
     expect(colorsAndType.cssVariables['--shadow-md']).toBe('9px 9px 20px 2px hsla(20, 40%, 10%, 0.2)');
   });
 });

@@ -17,7 +17,7 @@ const STAMP_PREFIX = 'src_preset_';
 // Loaded only by `stampPresetFonts`: the table above is imported by a vitest
 // suite and by `check:preset-themes`, both of which run before the plugin is
 // built in CI.
-const ENGINE = resolve(dirname(fileURLToPath(import.meta.url)), '../../dist-plugin/fontPairing/index.js');
+const ENGINE = resolve(dirname(fileURLToPath(import.meta.url)), '../../dist-plugin/setType/index.js');
 async function loadEngine() {
   if (!existsSync(ENGINE)) {
     throw new Error(`font pairing engine not found at ${ENGINE}. Build the plugin first (npm run build:plugin).`);

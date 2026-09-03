@@ -1,5 +1,5 @@
 // tsup entry: bundles the pure ops applier (plus the kind matcher and the path
-// resolution the CLI needs) into dist-plugin/adjust so `bin/set-geometry.mjs`
+// resolution the CLI needs) into dist-plugin/setGeometry so `bin/set-geometry.mjs`
 // imports compiled JS, never the TS sources — the bin/migrate.mjs precedent.
 
 export {

@@ -1,7 +1,7 @@
 // `live-tokens set-colors` worker.
 //
 // Reads a base color file (JSON), builds a full validated colors-and-type layer via
-// the compiled engine (dist-plugin/generateColorsAndType — the CLI never imports
+// the compiled engine (dist-plugin/setColors — the CLI never imports
 // TS sources), enforces the AA contrast gate, and saves the result as a theme:
 // <themesDir>/<slug>.json, the document that carries the whole theme by value.
 // Unless --no-activate it then opens that theme the way the dev server's apply
@@ -27,7 +27,7 @@ import {
 } from './lib/liveState.mjs';
 
 const pkgRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
-const ENGINE = resolve(pkgRoot, 'dist-plugin/generateColorsAndType/index.js');
+const ENGINE = resolve(pkgRoot, 'dist-plugin/setColors/index.js');
 const packageDataDir = join(pkgRoot, 'src/live-tokens/data');
 // Source of truth: src/editor/core/themes/themeTypes.ts, which
 // normalizeTheme.ts re-exports. This copy cannot import TS, so
@@ -104,7 +104,7 @@ export async function runSetColors({
   themesDir,
   engine,
 } = {}) {
-  const { buildColorsAndType, resolveDataDirs, CURRENT_COMPONENT_SCHEMA_VERSION } =
+  const { buildColors, resolveDataDirs, CURRENT_COMPONENT_SCHEMA_VERSION } =
     engine ?? (await loadEngine());
 
   const fullPath = resolve(root, baseColorsPath);
@@ -126,7 +126,7 @@ export async function runSetColors({
   const previousActive = readJsonIfExists(join(dirs.themesDir, '_active.json'))?.activeFile ?? 'default';
   const carry = resolveCarrySource({ carryFrom, ...dirs });
 
-  const { colorsAndType, slug, report } = buildColorsAndType(
+  const { colorsAndType, slug, report } = buildColors(
     input,
     {
       cssVariables: carry.colorsAndType?.cssVariables,

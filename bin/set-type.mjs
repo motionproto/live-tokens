@@ -1,7 +1,7 @@
 // `live-tokens set-type` worker.
 //
 // Reads a pairing file (JSON), verifies each family against Google Fonts,
-// binds it to a font stack via the compiled engine (dist-plugin/fontPairing —
+// binds it to a font stack via the compiled engine (dist-plugin/setType —
 // the CLI never imports TS sources), and writes the result into
 // `colors-and-type/_working.json`: the same buffer the editor's own font edits
 // land in, so a retype is an unsaved edit the user saves into a theme when they
@@ -16,7 +16,7 @@ import { readActiveTheme, readLiveColorsAndType, readSavedColorsAndType } from '
 import { resolveTokensCssPath } from './migrate.mjs';
 
 const pkgRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
-const ENGINE = resolve(pkgRoot, 'dist-plugin/fontPairing/index.js');
+const ENGINE = resolve(pkgRoot, 'dist-plugin/setType/index.js');
 
 // Google serves a different stylesheet per user agent; ask as a browser would
 // so the weight census matches what the page will actually load.

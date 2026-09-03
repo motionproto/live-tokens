@@ -1,7 +1,7 @@
 // `live-tokens set-geometry` worker.
 //
 // Reads an ops file (JSON), applies it to every component's LIVE config via the
-// compiled engine (dist-plugin/adjust — the CLI never imports TS sources), and
+// compiled engine (dist-plugin/setGeometry — the CLI never imports TS sources), and
 // writes the result into that component's `_working.json` buffer: the same slot
 // the editor's own edits land in, so an adjustment is an unsaved edit the user
 // saves into a theme when they want to keep it. `default.json`, named preset
@@ -14,7 +14,7 @@ import { fileURLToPath } from 'node:url';
 import { componentNames, readActiveTheme, readLiveComponentConfigs } from './lib/liveState.mjs';
 
 const pkgRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
-const ENGINE = resolve(pkgRoot, 'dist-plugin/adjust/index.js');
+const ENGINE = resolve(pkgRoot, 'dist-plugin/setGeometry/index.js');
 
 const SOURCE_LABELS = {
   working: 'your unsaved edits',

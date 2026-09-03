@@ -4,9 +4,9 @@ export default defineConfig({
   entry: [
     'vite-plugin/index.ts',
     'vite-plugin/tokensCssMigrations/index.ts',
-    'vite-plugin/generateColorsAndType/index.ts',
-    'vite-plugin/adjust/index.ts',
-    'vite-plugin/fontPairing/index.ts',
+    'vite-plugin/setColors/index.ts',
+    'vite-plugin/setGeometry/index.ts',
+    'vite-plugin/setType/index.ts',
     'vite-plugin/migrateData/index.ts',
   ],
   outDir: 'dist-plugin',

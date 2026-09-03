@@ -11,7 +11,7 @@ import path from 'path';
 import { themeFileApi } from './themeFileApi';
 import { adjustAliases } from '../src/editor/core/components/adjustAliases';
 import { matchesKind } from '../src/editor/core/components/aliasKinds';
-import { buildColorsAndType } from '../src/editor/core/themes/generateColorsAndType';
+import { buildColors } from '../src/editor/core/themes/buildColors';
 import { migrateData } from './migrateData/migrateData';
 // @ts-expect-error — plain .mjs module, no types
 import { runSetGeometry } from '../bin/set-geometry.mjs';
@@ -319,7 +319,7 @@ describe('write scope', () => {
       colorsAndTypeDir,
       componentConfigsDir: configsDir,
       themesDir,
-      engine: { buildColorsAndType },
+      engine: { buildColors },
     });
     const touched = changedSince(before, snapshotTree(tmp));
 

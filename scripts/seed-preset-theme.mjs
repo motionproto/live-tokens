@@ -23,7 +23,7 @@ const CONFIGS = join(DATA, 'component-configs');
 const COLORS_AND_TYPE = join(DATA, 'colors-and-type');
 const THEMES = join(DATA, 'themes');
 
-const ENGINE = join(ROOT, 'dist-plugin/adjust/index.js');
+const ENGINE = join(ROOT, 'dist-plugin/setGeometry/index.js');
 const ENGINE_SOURCES = [
   'vite-plugin/adjust/index.ts',
   'src/editor/core/components/adjustAliases.ts',

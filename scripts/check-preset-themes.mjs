@@ -23,7 +23,7 @@ const CONFIGS = join(DATA, 'component-configs');
 const TOKENS_CSS = join(ROOT, 'src/system/styles/tokens.css');
 const rel = (p) => relative(ROOT, p);
 
-const ENGINE = join(ROOT, 'dist-plugin/adjust/index.js');
+const ENGINE = join(ROOT, 'dist-plugin/setGeometry/index.js');
 if (!existsSync(ENGINE)) {
   console.error(
     `check:preset-themes FAILED — adjust engine not found at ${rel(ENGINE)}. Build the plugin first: npm run build:plugin`,

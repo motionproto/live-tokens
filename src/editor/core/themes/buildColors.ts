@@ -2,7 +2,7 @@
  * Base colors → generator: a full ColorsAndType from 10 OKLCH base colors + a
  * scheme, with AA floors enforced on derived text tokens. Choosing them lives in the
  * live-tokens-generate-theme skill; the CLI reaches this via
- * `dist-plugin/generateColorsAndType`, so keep this module Node-safe (no DOM).
+ * `dist-plugin/setColors`, so keep this module Node-safe (no DOM).
  */
 
 import { hexToOklch, cssColorToOklch, oklchToHexClamped, type Oklch } from '../palettes/oklch';
@@ -26,7 +26,7 @@ import { sanitizeFileName } from '../storage/files/versionedFileResourceClient';
 import { CURRENT_COLORS_AND_TYPE_SCHEMA_VERSION } from './migrations/index';
 import type { FontSource, FontStack, GradientDiskToken, PaletteConfig, ColorsAndType } from './themeTypes';
 
-export interface ColorsAndTypeInput {
+export interface ColorsInput {
   name: string;
   scheme: SchemeDirection;
   /** The one color each palette's ramp derives from (all 10 required); hex string or numeric OKLCH. */
@@ -59,7 +59,7 @@ export interface ContrastCheck {
   corrected: boolean;
 }
 
-export interface GenerateColorsAndTypeReport {
+export interface BuildColorsReport {
   scheme: SchemeDirection;
   checks: ContrastCheck[];
   failures: string[];
@@ -74,10 +74,10 @@ export interface GenerateColorsAndTypeReport {
   shadows: string;
 }
 
-export interface GenerateColorsAndTypeResult {
+export interface BuildColorsResult {
   colorsAndType: ColorsAndType;
   slug: string;
-  report: GenerateColorsAndTypeReport;
+  report: BuildColorsReport;
 }
 
 const HEX_RE = /^#[0-9a-f]{6}$/i;
@@ -128,7 +128,7 @@ function parseBaseColor(label: string, raw: Oklch | string, problems: string[]):
   return { l, c, h: norm(h) };
 }
 
-function validateInput(input: ColorsAndTypeInput): { baseColors: Record<string, Oklch>; slug: string } {
+function validateInput(input: ColorsInput): { baseColors: Record<string, Oklch>; slug: string } {
   const problems: string[] = [];
   const name = typeof input.name === 'string' ? input.name.trim() : '';
   if (!name) problems.push('name: required');
@@ -252,7 +252,7 @@ const MAX_CORRECTION_ROUNDS = 3;
 function runContrastGate(
   configs: Record<string, PaletteConfig>,
   scheme: SchemeDirection,
-): Pick<GenerateColorsAndTypeReport, 'scheme' | 'checks' | 'failures'> {
+): Pick<BuildColorsReport, 'scheme' | 'checks' | 'failures'> {
   const defs = checkDefs();
   const direction = scheme === 'light' ? 'darker' : 'lighter';
   const corrected = new Set<string>();
@@ -424,11 +424,11 @@ function shadowVars(carried: Record<string, string>, canvas: Oklch): Record<stri
   return out;
 }
 
-export function buildColorsAndType(
-  input: ColorsAndTypeInput,
+export function buildColors(
+  input: ColorsInput,
   carry: CarryForward = {},
   now: string = new Date().toISOString(),
-): GenerateColorsAndTypeResult {
+): BuildColorsResult {
   const { baseColors, slug } = validateInput(input);
 
   const configs: Record<string, PaletteConfig> = {};

@@ -2,14 +2,14 @@ import { describe, it, expect, afterEach } from 'vitest';
 import { mkdtempSync, mkdirSync, rmSync, readFileSync, existsSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { buildColorsAndType } from '../src/editor/core/themes/generateColorsAndType';
+import { buildColors } from '../src/editor/core/themes/buildColors';
 import type { Oklch } from '../src/editor/core/palettes/oklch';
 // @ts-expect-error — plain .mjs module, no types
 import { runSetColors, formatSetColorsResult } from './set-colors.mjs';
 import { THEME_SCHEMA_VERSION } from '../vite-plugin/themes/normalizeTheme';
 import { CURRENT_COMPONENT_SCHEMA_VERSION } from '../src/editor/core/themes/migrations';
 
-const engine = { buildColorsAndType, CURRENT_COMPONENT_SCHEMA_VERSION };
+const engine = { buildColors, CURRENT_COMPONENT_SCHEMA_VERSION };
 
 const BASE_COLORS: Record<string, Oklch> = {
   Brand: { l: 0.62, c: 0.17, h: 145 },
