@@ -32,7 +32,7 @@ const SOURCE_LABELS = {
 async function loadEngine() {
   if (!existsSync(ENGINE)) {
     throw new Error(
-      `font pairing engine not found at ${relative(process.cwd(), ENGINE)}. ` +
+      `setType engine not found at ${relative(process.cwd(), ENGINE)}. ` +
         `Build the plugin first (npm run build:plugin).`,
     );
   }
