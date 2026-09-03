@@ -105,10 +105,28 @@
   });
 
   type Mode = 'docked' | 'floating';
+  type Side = 'left' | 'right';
 
   const STORAGE_KEY = storageKey('overlay-state');
   const MIN_WIDTH = 360;
   const MIN_HEIGHT = 480;
+
+  // Collapsed-pill size; slight overshoot is fine (overflow:hidden).
+  const COLLAPSED_WIDTH = 252;
+  const COLLAPSED_HEIGHT = 44;
+  const COLLAPSED_DEFAULT = { right: 12, top: 12 };
+
+  // Drop the pill this close to an edge and it docks there.
+  const DOCK_EDGES = ['left', 'right', 'top', 'bottom'] as const;
+  const DOCK_SNAP = 20;
+  // Leaving a dock is resisted across twice that distance, so the edge holds
+  // unless the drag is deliberate.
+  const DOCK_PULL = DOCK_SNAP * 2;
+  // A press that travels this far is a drag, and must not also fire a click.
+  const DRAG_SLOP = 16;
+  // Mirror the pill motion timings in CSS below.
+  const SNAP_DUR = 200;
+  const SETTLE_DUR = 300;
   const DEFAULT_DOCKED_WIDTH = Math.min(960, Math.floor(window.innerWidth * 0.55));
   const DEFAULT_FLOATING = {
     x: Math.max(16, window.innerWidth - 960 - 32),
@@ -117,10 +135,44 @@
     height: Math.min(880, window.innerHeight - 96),
   };
 
+  // The collapsed pill is placed from the right and top edges whichever side it
+  // docks to, so that every dock is a value change on one of those two axes and
+  // stays animatable. A left dock is right: <the far end>, not left: 0.
+  type DockEdge = 'none' | (typeof DOCK_EDGES)[number];
+
+  interface CollapsedState {
+    right: number;
+    top: number;
+    edge: DockEdge;
+  }
+
+  function parseEdge(value: unknown): DockEdge {
+    return DOCK_EDGES.find((e) => e === value) ?? 'none';
+  }
+
+  // A fixed element's offsets resolve against the viewport without its
+  // scrollbars, which is what documentElement.clientWidth/Height report.
+  // window.innerWidth counts the scrollbar, and pinning a dock with it hangs
+  // the pill off the edge by the scrollbar's width.
+  let viewport = $state({
+    width: document.documentElement.clientWidth,
+    height: document.documentElement.clientHeight,
+  });
+
+  function maxRight() {
+    return Math.max(0, viewport.width - COLLAPSED_WIDTH);
+  }
+
+  function maxTop() {
+    return Math.max(0, viewport.height - COLLAPSED_HEIGHT);
+  }
+
   interface OverlayState {
     mode: Mode;
+    dockSide: Side;
     dockedWidth: number;
     floating: { x: number; y: number; width: number; height: number };
+    collapsed: CollapsedState;
   }
 
   function loadState(): OverlayState {
@@ -128,6 +180,7 @@
     if (parsed && typeof parsed === 'object') {
       return {
         mode: parsed.mode === 'floating' ? 'floating' : 'docked',
+        dockSide: parsed.dockSide === 'left' ? 'left' : 'right',
         dockedWidth: typeof parsed.dockedWidth === 'number' ? parsed.dockedWidth : DEFAULT_DOCKED_WIDTH,
         floating: {
           x: parsed.floating?.x ?? DEFAULT_FLOATING.x,
@@ -135,27 +188,41 @@
           width: parsed.floating?.width ?? DEFAULT_FLOATING.width,
           height: parsed.floating?.height ?? DEFAULT_FLOATING.height,
         },
+        collapsed: {
+          right: parsed.collapsed?.right ?? COLLAPSED_DEFAULT.right,
+          top: parsed.collapsed?.top ?? COLLAPSED_DEFAULT.top,
+          edge: parseEdge(parsed.collapsed?.edge),
+        },
       };
     }
     return {
       mode: 'docked',
+      dockSide: 'right',
       dockedWidth: DEFAULT_DOCKED_WIDTH,
       floating: { ...DEFAULT_FLOATING },
+      collapsed: { ...COLLAPSED_DEFAULT, edge: 'none' },
     };
   }
 
   function persist() {
-    quietSet(STORAGE_KEY, JSON.stringify({ mode, dockedWidth, floating }));
+    quietSet(STORAGE_KEY, JSON.stringify({ mode, dockSide, dockedWidth, floating, collapsed }));
   }
 
   const initial = loadState();
   let mode: Mode = $state(initial.mode);
+  let dockSide: Side = $state(initial.dockSide);
   let dockedWidth: number = $state(Math.max(MIN_WIDTH, initial.dockedWidth));
   let floating = $state({ ...initial.floating });
+  let collapsed: CollapsedState = $state({ ...initial.collapsed });
 
-  // Collapsed-pill size; slight overshoot is fine (overflow:hidden).
-  const COLLAPSED_WIDTH = 232;
-  const COLLAPSED_HEIGHT = 44;
+  // A docked pill tucks off the edge; its tab pulls it back out.
+  let dockExpanded = $state(false);
+  // Set once a press passes DRAG_SLOP, and consumed by the click it precedes.
+  let dragged = false;
+  let snapping = $state(false);
+  let settling = $state(false);
+  let snapTimer: ReturnType<typeof setTimeout> | undefined;
+  let settleTimer: ReturnType<typeof setTimeout> | undefined;
 
   // Fade for open-only buttons (bar timing lives in CSS vars below).
   const BTN_FADE = { duration: 130, easing: cubicInOut };
@@ -184,6 +251,8 @@
     if (open) {
       closing = false;
       opening = true;
+      dockExpanded = false;
+      if (collapsed.edge === 'left' || collapsed.edge === 'right') dockSide = collapsed.edge;
       if (gesturing || suppressTransition) {
         // .no-transition path: no transitionend will fire, so reveal next frame.
         requestAnimationFrame(() => { opening = false; });
@@ -210,7 +279,7 @@
   }
 
   // Scrim catches pointer events during gestures so they hit the panel, not the iframe.
-  let gesturing: 'drag' | 'resize-left' | 'resize-se' | null = $state(null);
+  let gesturing: 'drag' | 'resize-dock' | 'resize-se' | 'collapsed-drag' | null = $state(null);
 
   function startDrag(e: PointerEvent) {
     if (!open || mode !== 'floating') return;
@@ -238,15 +307,140 @@
     window.addEventListener('pointerup', up);
   }
 
+  // The whole collapsed pill is the drag surface, so a press anywhere on it can
+  // become a drag; the buttons under it stay clickable via dragSafe().
+  function startCollapsedDrag(e: PointerEvent) {
+    const surface = e.currentTarget as HTMLElement;
+    const pointerId = e.pointerId;
+    const orig = { ...collapsed };
+    // The pointer only moves the pill once it has travelled DRAG_SLOP, and it
+    // moves from that point rather than from the press, so a click on a button
+    // in the pill neither nudges it nor gets retargeted by pointer capture.
+    let anchorX = e.clientX;
+    let anchorY = e.clientY;
+
+    function move(ev: PointerEvent) {
+      if (!dragged) {
+        if (Math.hypot(ev.clientX - anchorX, ev.clientY - anchorY) <= DRAG_SLOP) return;
+        dragged = true;
+        gesturing = 'collapsed-drag';
+        anchorX = ev.clientX;
+        anchorY = ev.clientY;
+        surface.setPointerCapture(pointerId);
+      }
+      const dx = ev.clientX - anchorX;
+      const dy = ev.clientY - anchorY;
+
+      let right = clamp(orig.right - dx, 0, maxRight());
+      let top = clamp(orig.top + dy, 0, maxTop());
+
+      // Sticky edge: while docked, blend the pill back toward the edge it is on,
+      // so pulling off takes a deliberate move rather than a twitch.
+      if (collapsed.edge === 'right') right = resist(right, 0);
+      else if (collapsed.edge === 'left') right = resist(right, maxRight());
+      else if (collapsed.edge === 'top') top = resist(top, 0);
+      else if (collapsed.edge === 'bottom') top = resist(top, maxTop());
+
+      const edge = nearestEdge(right, top);
+      if (edge === 'right') right = 0;
+      else if (edge === 'left') right = maxRight();
+      else if (edge === 'top') top = 0;
+      else if (edge === 'bottom') top = maxTop();
+
+      if (edge !== 'none' && edge !== collapsed.edge) {
+        // Animate the last pixels to the edge instead of jumping them.
+        dockExpanded = false;
+        snapping = true;
+        clearTimeout(snapTimer);
+        snapTimer = setTimeout(() => { snapping = false; }, SNAP_DUR);
+      }
+      collapsed = { right, top, edge };
+    }
+
+    function up() {
+      window.removeEventListener('pointermove', move);
+      window.removeEventListener('pointerup', up);
+      if (!dragged) return;
+      gesturing = null;
+      snapping = false;
+      clearTimeout(snapTimer);
+      settling = true;
+      clearTimeout(settleTimer);
+      settleTimer = setTimeout(() => { settling = false; }, SETTLE_DUR + 40);
+      persist();
+    }
+
+    window.addEventListener('pointermove', move);
+    window.addEventListener('pointerup', up);
+  }
+
+  function onHeaderPointerDown(e: PointerEvent) {
+    dragged = false;
+    if (open) startDrag(e);
+    else startCollapsedDrag(e);
+  }
+
+  // Mirrors applySnapResistance in the source toolbar: the closer the pill is to
+  // the edge it is docked on, the harder it pulls back to it.
+  function resist(value: number, anchor: number) {
+    const delta = Math.abs(value - anchor);
+    if (delta >= DOCK_PULL) return value;
+    const factor = 1 - delta / DOCK_PULL;
+    return value * (1 - factor) + anchor * factor;
+  }
+
+  function nearestEdge(right: number, top: number): DockEdge {
+    const distances = [
+      { edge: 'right' as const, distance: right },
+      { edge: 'left' as const, distance: maxRight() - right },
+      { edge: 'top' as const, distance: top },
+      { edge: 'bottom' as const, distance: maxTop() - top },
+    ];
+    const nearest = distances.reduce((a, b) => (b.distance < a.distance ? b : a));
+    return nearest.distance < DOCK_SNAP ? nearest.edge : 'none';
+  }
+
+  // A press that turned into a drag must not also fire the button it landed on.
+  function dragSafe(fn: () => void) {
+    return () => {
+      if (dragged) return;
+      fn();
+    };
+  }
+
+  function toggleDock() {
+    if (collapsed.edge === 'none') return;
+    dockExpanded = !dockExpanded;
+  }
+
+  function onViewportResize() {
+    viewport = {
+      width: document.documentElement.clientWidth,
+      height: document.documentElement.clientHeight,
+    };
+    clampCollapsed();
+  }
+
+  function clampCollapsed() {
+    const { edge } = collapsed;
+    collapsed = {
+      edge,
+      right: edge === 'left' ? maxRight() : edge === 'right' ? 0 : clamp(collapsed.right, 0, maxRight()),
+      top: edge === 'bottom' ? maxTop() : edge === 'top' ? 0 : clamp(collapsed.top, 0, maxTop()),
+    };
+  }
+
   function startDockedResize(e: PointerEvent) {
     if (!open || mode !== 'docked') return;
-    gesturing = 'resize-left';
+    gesturing = 'resize-dock';
     (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
     const startX = e.clientX;
     const origWidth = dockedWidth;
     function move(ev: PointerEvent) {
-      // Panel anchored right — drag left grows width.
-      dockedWidth = clamp(origWidth + (startX - ev.clientX), MIN_WIDTH, window.innerWidth - 120);
+      // The panel is pinned to its docked side, so dragging away from that side
+      // is what grows it.
+      const grow = dockSide === 'left' ? ev.clientX - startX : startX - ev.clientX;
+      dockedWidth = clamp(origWidth + grow, MIN_WIDTH, viewport.width - 120);
     }
     function up() {
       gesturing = null;
@@ -307,9 +501,16 @@
     open = !open;
   }
 
+  function flipDockSide() {
+    dockSide = dockSide === 'right' ? 'left' : 'right';
+    persist();
+  }
+
   function handleHeaderDblClick(e: MouseEvent) {
-    // Skip dblclick on buttons so their handlers don't double-fire.
+    // Skip dblclick on buttons so their handlers don't double-fire, and on the
+    // grip so a quick reposition doesn't open the editor.
     if ((e.target as HTMLElement).closest('button')) return;
+    if (dragged) return;
     toggleOpen();
   }
 
@@ -319,52 +520,100 @@
 
   onMount(() => {
     window.addEventListener('lt-overlay-toggle', handleToggleRequest);
+    window.addEventListener('resize', onViewportResize);
+    onViewportResize();
   });
   onDestroy(() => {
     window.removeEventListener('lt-overlay-toggle', handleToggleRequest);
+    window.removeEventListener('resize', onViewportResize);
     clearTimeout(maskTimer);
+    clearTimeout(snapTimer);
+    clearTimeout(settleTimer);
   });
 
+  // A docked pill tucks off its edge the moment it snaps, mid-drag included, so
+  // that reaching an edge gets it out of the way instead of parking it against
+  // the side. It waits out the collapse animation, so the shrink and the tuck
+  // read as one move.
+  let tucked = $derived(!open && !closing && !dockExpanded && collapsed.edge !== 'none');
+  let dockClass = $derived(!open && collapsed.edge !== 'none' ? `dock-${collapsed.edge}` : '');
+  let tabIsHorizontal = $derived(collapsed.edge === 'top' || collapsed.edge === 'bottom');
+
   let panelStyle = $derived(!open
-    ? `position: fixed; top: 12px; right: 12px; width: ${COLLAPSED_WIDTH}px; height: ${COLLAPSED_HEIGHT}px;`
+    ? `position: fixed; top: ${collapsed.top}px; right: ${collapsed.right}px; width: ${COLLAPSED_WIDTH}px; height: ${COLLAPSED_HEIGHT}px;`
     : mode === 'docked'
-      ? `position: fixed; top: 0; right: 0; width: ${dockedWidth}px; height: 100vh;`
+      // Both sides are pinned with `right`, so flipping side and collapsing to
+      // the pill are value changes on one axis, and animate.
+      ? `position: fixed; top: 0; right: ${dockSide === 'left' ? Math.max(0, viewport.width - dockedWidth) : 0}px; width: ${dockedWidth}px; height: 100vh;`
       : `position: fixed; top: ${floating.y}px; left: ${floating.x}px; width: ${floating.width}px; height: ${floating.height}px;`);
 </script>
 
 {#if enabled && !onEditorPath}
 <!-- svelte-ignore a11y_no_static_element_interactions -->
 <div
-  class="lt-overlay"
+  class="lt-overlay {dockClass}"
   style={panelStyle}
   class:shown={open}
   class:hidden={!open}
   class:docked={open && mode === 'docked'}
+  class:side-left={open && mode === 'docked' && dockSide === 'left'}
   class:floating={open && mode === 'floating'}
+  class:tucked
+  class:dragging={gesturing === 'collapsed-drag'}
+  class:snapping
+  class:settling
+  class:at-edge={gesturing === 'collapsed-drag' && collapsed.edge !== 'none'}
   class:opening={open && opening}
   class:closing={!open && closing}
-  class:no-transition={!!gesturing || suppressTransition}
+  class:no-transition={(!!gesturing && gesturing !== 'collapsed-drag') || suppressTransition}
   ontransitionend={onPanelTransitionEnd}
 >
   <div
     class="header"
-    onpointerdown={startDrag}
+    onpointerdown={onHeaderPointerDown}
     ondblclick={handleHeaderDblClick}
-    title={open ? 'Double-click to hide' : 'Double-click to show'}
+    title={open ? 'Double-click to collapse' : 'Double-click to expand'}
   >
+    {#if !open && collapsed.edge !== 'none'}
+      <button
+        class="tab"
+        inert={!tucked}
+        onclick={dragSafe(toggleDock)}
+        title="Show the editor bar. Drag to undock."
+      >
+        <i class="fas {tabIsHorizontal ? 'fa-grip' : 'fa-grip-vertical'}"></i>
+      </button>
+    {/if}
+
+    {#if !open}
+      <button
+        class="grip"
+        inert={tucked}
+        onclick={dragSafe(toggleDock)}
+        title={collapsed.edge === 'none'
+          ? 'Drag to move. Drop at an edge to dock.'
+          : 'Tuck to the edge'}
+        transition:fade={BTN_FADE}
+      >
+        <i class="fas fa-grip-vertical"></i>
+      </button>
+    {/if}
+
     <button
       class="hdr-btn text title"
-      onclick={toggleOpen}
-      title={open ? 'Hide Editor' : 'Show Editor'}
+      inert={tucked}
+      onclick={dragSafe(toggleOpen)}
+      title={open ? 'Collapse Editor' : 'Expand Editor'}
     >
-      <i class="fas {open ? 'fa-chevron-right' : 'fa-chevron-left'}"></i>
+      <i class="fas {open ? 'fa-compress' : 'fa-expand'}"></i>
       <span>Editor</span>
     </button>
 
     <button
       class="hdr-btn icon"
       class:active={$columnsVisible}
-      onclick={toggleColumns}
+      inert={tucked}
+      onclick={dragSafe(toggleColumns)}
       title="{$columnsVisible ? 'Hide' : 'Show'} columns"
     >
       <i class="fas fa-grip-lines-vertical"></i>
@@ -373,11 +622,22 @@
     {#if open}
       <button
         class="hdr-btn icon"
-        title={mode === 'docked' ? 'Float' : 'Dock to right'}
+        title={mode === 'docked' ? 'Float' : `Dock to the ${dockSide}`}
         onclick={toggleMode}
         transition:fade={BTN_FADE}
       >
         <i class={mode === 'docked' ? 'fas fa-up-right-from-square' : 'fas fa-thumbtack'}></i>
+      </button>
+    {/if}
+
+    {#if open && mode === 'docked'}
+      <button
+        class="hdr-btn icon"
+        title="Dock to the {dockSide === 'right' ? 'left' : 'right'}"
+        onclick={flipDockSide}
+        transition:fade={BTN_FADE}
+      >
+        <i class="fas {dockSide === 'right' ? 'fa-angles-left' : 'fa-angles-right'}"></i>
       </button>
     {/if}
 
@@ -437,7 +697,10 @@
     </div>
 
     {#if mode === 'docked'}
-      <div class="resize-left" onpointerdown={startDockedResize}></div>
+      <div
+        class="resize-edge {dockSide === 'left' ? 'at-right' : 'at-left'}"
+        onpointerdown={startDockedResize}
+      ></div>
     {:else}
       <div class="resize-se" onpointerdown={startFloatingResize}></div>
     {/if}
@@ -454,6 +717,17 @@
     --bar-close-dur: 240ms;
     --bar-close-ease: cubic-bezier(0, 0, 0.2, 1); /* ease-out */
     --bar-close-delay: 120ms; /* let the iframe fade out before the panel shrinks */
+    /* Collapsed-pill motion: snap = the last pixels to the edge, settle = the
+       drop, tuck = sliding off the edge and back. Mirrored by SNAP_DUR and
+       SETTLE_DUR in the script. */
+    --snap-dur: 200ms;
+    --snap-ease: cubic-bezier(0.755, 0.05, 0.855, 0.06);
+    --settle-dur: 300ms;
+    --settle-ease: cubic-bezier(0.22, 1, 0.36, 1);
+    --tuck-dur: 220ms;
+    --tuck-ease: cubic-bezier(0.22, 1, 0.36, 1);
+    --tab-width: 20px; /* the sliver of pill that stays on screen when docked */
+    --tab-length: 56px; /* the handle's reach along a horizontal edge */
 
     display: flex;
     flex-direction: column;
@@ -469,7 +743,8 @@
       height var(--bar-open-dur) var(--bar-open-ease) var(--bar-open-delay),
       top var(--bar-open-dur) var(--bar-open-ease) var(--bar-open-delay),
       right var(--bar-open-dur) var(--bar-open-ease) var(--bar-open-delay),
-      border-radius var(--bar-open-dur) var(--bar-open-ease) var(--bar-open-delay);
+      border-radius var(--bar-open-dur) var(--bar-open-ease) var(--bar-open-delay),
+      transform var(--tuck-dur) var(--tuck-ease);
   }
 
   /* Sketch mode scopes itself to the host document root, and this bar lives
@@ -492,11 +767,17 @@
     border-radius: 0;
   }
 
+  .lt-overlay.docked.side-left {
+    border-right: 1px solid rgba(255, 255, 255, 0.12);
+    border-left: none;
+  }
+
   .lt-overlay.floating {
     border-radius: var(--ui-radius-xl, 8px);
   }
 
-  /* Collapsed state: pinned top-right; iframe stays mounted, clipped by overflow:hidden. */
+  /* Collapsed state: draggable pill, placed from the right edge; iframe stays
+     mounted, clipped by overflow:hidden. */
   .lt-overlay.hidden {
     border-radius: var(--ui-radius-lg, 6px);
     border-color: rgba(255, 255, 255, 0.32);
@@ -505,10 +786,99 @@
       height var(--bar-close-dur) var(--bar-close-ease) var(--bar-close-delay),
       top var(--bar-close-dur) var(--bar-close-ease) var(--bar-close-delay),
       right var(--bar-close-dur) var(--bar-close-ease) var(--bar-close-delay),
-      border-radius var(--bar-close-dur) var(--bar-close-ease) var(--bar-close-delay);
+      border-radius var(--bar-close-dur) var(--bar-close-ease) var(--bar-close-delay),
+      transform var(--tuck-dur) var(--tuck-ease),
+      background-color var(--tuck-dur) var(--tuck-ease),
+      border-color var(--tuck-dur) var(--tuck-ease),
+      box-shadow var(--tuck-dur) ease;
   }
 
-  .lt-overlay.hidden .resize-left,
+  /* Docked: slide all but a tab's width off the edge, whichever edge it is. */
+  .lt-overlay.tucked.dock-right {
+    transform: translateX(calc(100% - var(--tab-width)));
+  }
+
+  .lt-overlay.tucked.dock-left {
+    transform: translateX(calc(-100% + var(--tab-width)));
+  }
+
+  .lt-overlay.tucked.dock-top {
+    transform: translateY(calc(-100% + var(--tab-width)));
+  }
+
+  .lt-overlay.tucked.dock-bottom {
+    transform: translateY(calc(100% - var(--tab-width)));
+  }
+
+  /* Flatten the corners the pill is resting against. */
+  .lt-overlay.hidden.dock-right {
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+  }
+
+  .lt-overlay.hidden.dock-left {
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+  }
+
+  .lt-overlay.hidden.dock-top {
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
+  }
+
+  .lt-overlay.hidden.dock-bottom {
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+  }
+
+  /* Following the pointer, so position does not animate. The tuck still does,
+     so pulling a docked pill off the edge unfurls it. */
+  .lt-overlay.dragging {
+    transition: transform var(--tuck-dur) var(--tuck-ease);
+  }
+
+  /* The last pixels to the edge are a jump, and worth animating. */
+  .lt-overlay.dragging.snapping {
+    transition:
+      right var(--snap-dur) var(--snap-ease),
+      top var(--snap-dur) var(--snap-ease),
+      transform var(--tuck-dur) var(--tuck-ease);
+  }
+
+  /* Released: ease into the resting spot rather than stopping dead. */
+  .lt-overlay.settling {
+    transition:
+      top var(--settle-dur) var(--settle-ease),
+      right var(--settle-dur) var(--settle-ease),
+      transform var(--tuck-dur) var(--tuck-ease),
+      box-shadow var(--tuck-dur) ease;
+  }
+
+  /* Docked to a horizontal edge, the pill hides its depth rather than its
+     length, which would leave its whole width parked on the page. Its chrome
+     gives way to the tab, so what stays on screen is a handle either way. */
+  .lt-overlay.tucked.dock-top,
+  .lt-overlay.tucked.dock-bottom,
+  .lt-overlay.tucked.dock-top .header,
+  .lt-overlay.tucked.dock-bottom .header {
+    background: transparent;
+    border-color: transparent;
+    box-shadow: none;
+  }
+
+  .lt-overlay.tucked.dock-top .frame-wrap,
+  .lt-overlay.tucked.dock-bottom .frame-wrap {
+    opacity: 0;
+  }
+
+  /* The edge has the pill: say so while it is still under the pointer. */
+  .lt-overlay.at-edge {
+    box-shadow:
+      0 0 0 2px rgba(255, 255, 255, 0.45),
+      0 18px 60px rgba(0, 0, 0, 0.6);
+  }
+
+  .lt-overlay.hidden .resize-edge,
   .lt-overlay.hidden .resize-se {
     display: none;
   }
@@ -519,6 +889,7 @@
   }
 
   .header {
+    position: relative;
     display: flex;
     align-items: center;
     gap: var(--ui-space-6, 6px);
@@ -530,13 +901,125 @@
     user-select: none;
   }
 
+  /* The whole collapsed pill is the drag surface. */
   .lt-overlay.hidden .header {
     border-bottom: none;
     padding: 5px var(--ui-space-8, 8px);
+    cursor: grab;
+    transition: background-color var(--tuck-dur) var(--tuck-ease);
+  }
+
+  .grip {
+    display: inline-flex;
+    align-self: stretch;
+    align-items: center;
+    justify-content: center;
+    width: var(--tab-width);
+    /* Cancel the header's left padding so the grip is the pill's left edge,
+       which is what stays on screen when docked. */
+    margin-left: calc(-1 * var(--ui-space-8, 8px));
+    padding: 0;
+    background: transparent;
+    border: 0;
+    color: rgba(255, 255, 255, 0.45);
+    font-size: var(--ui-font-size-sm, 12px);
+    cursor: grab;
+    touch-action: none;
+    transition: background var(--ui-transition-fast, 120ms ease), color var(--ui-transition-fast, 120ms ease);
+  }
+
+  .grip:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.9);
+  }
+
+  /* The tab hugs the edge of the pill that stays on screen, so it is the whole
+     of what a tucked pill shows. It sits over the bar, which fades out under it. */
+  .tab {
+    position: absolute;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    background: rgba(255, 255, 255, 0.08);
+    border: 0;
+    color: rgba(255, 255, 255, 0.75);
+    font-size: var(--ui-font-size-sm, 12px);
+    cursor: grab;
+    opacity: 0;
+    touch-action: none;
+    transition: opacity var(--tuck-dur) var(--tuck-ease), background var(--ui-transition-fast, 120ms ease);
+  }
+
+  .tab:hover {
+    background: rgba(255, 255, 255, 0.14);
+    color: var(--ui-text-primary, #fff);
+  }
+
+  .dock-right .tab {
+    top: 0;
+    bottom: 0;
+    left: 0;
+    width: var(--tab-width);
+  }
+
+  .dock-left .tab {
+    top: 0;
+    bottom: 0;
+    right: 0;
+    width: var(--tab-width);
+  }
+
+  /* On a horizontal edge the tab is the whole of the visible chrome, so it
+     carries the pill's surface and border and reaches only --tab-length. */
+  .dock-top .tab,
+  .dock-bottom .tab {
+    left: 50%;
+    width: var(--tab-length);
+    height: var(--tab-width);
+    margin-left: calc(var(--tab-length) / -2);
+    background: var(--ui-surface-low, #111);
+    border: 1px solid rgba(255, 255, 255, 0.32);
+  }
+
+  .dock-top .tab {
+    bottom: 0;
+    border-top: 0;
+    border-radius: 0 0 var(--ui-radius-lg, 6px) var(--ui-radius-lg, 6px);
+  }
+
+  .dock-bottom .tab {
+    top: 0;
+    border-bottom: 0;
+    border-radius: var(--ui-radius-lg, 6px) var(--ui-radius-lg, 6px) 0 0;
+  }
+
+  .dock-top .tab:hover,
+  .dock-bottom .tab:hover {
+    background: var(--ui-surface-lower, #0a0a0a);
+  }
+
+  .lt-overlay.tucked .tab {
+    opacity: 1;
+  }
+
+  /* Tucked, the bar itself is off-screen; fade it so nothing of it shows
+     through the tab on the way out. */
+  .lt-overlay.tucked .hdr-btn,
+  .lt-overlay.tucked .grip,
+  .lt-overlay.tucked .version {
+    opacity: 0;
+    transition: opacity var(--tuck-dur) var(--tuck-ease);
   }
 
   .lt-overlay.floating .header {
     cursor: move;
+  }
+
+  .lt-overlay.dragging .header,
+  .lt-overlay.dragging .grip,
+  .lt-overlay.dragging .tab {
+    cursor: grabbing;
   }
 
   .hdr-btn.title {
@@ -716,17 +1199,25 @@
     cursor: inherit;
   }
 
-  .resize-left {
+  /* Sits on the panel's inner edge, whichever side it is docked to. */
+  .resize-edge {
     position: absolute;
     top: 0;
-    left: 0;
     bottom: 0;
     width: 6px;
     cursor: ew-resize;
     background: transparent;
   }
 
-  .resize-left:hover {
+  .resize-edge.at-left {
+    left: 0;
+  }
+
+  .resize-edge.at-right {
+    right: 0;
+  }
+
+  .resize-edge:hover {
     background: rgba(255, 255, 255, 0.08);
   }
 

@@ -3,7 +3,7 @@ import type { SkillTree } from './types';
 export const skillTrees: Record<string, SkillTree> = {
   "create-theme": {
     "id": "live-tokens-create-theme",
-    "digest": "sha256:91d5892a4d4bb04e",
+    "digest": "sha256:523c15021cafafbb",
     "title": "create-theme",
     "tagline": "One reading of the request becomes three intents, routed to three skills.",
     "nodes": [
@@ -15,10 +15,10 @@ export const skillTrees: Record<string, SkillTree> = {
         "desc": "A theme, look, vibe, or brand feel by mood, style, era, season, holiday, or hue. One dimension alone goes straight to set-colors, set-type, or set-geometry.",
         "lines": [
           2,
-          12
+          19
         ],
         "anchor": "name: live-tokens-create-theme",
-        "anchorEnd": "tree directly."
+        "anchorEnd": "JSON and never edit the data tree directly."
       },
       {
         "id": "ct-direction",
@@ -28,8 +28,8 @@ export const skillTrees: Record<string, SkillTree> = {
         "title": "State the design direction",
         "desc": "One or two lines fix the mood, the hue family, the scheme, and the type and geometry that mood implies, naming the default where the request leaves a dimension open.",
         "lines": [
-          16,
-          16
+          23,
+          23
         ],
         "anchor": "Read the request once and state the design direction to the "
       },
@@ -41,10 +41,10 @@ export const skillTrees: Record<string, SkillTree> = {
         "desc": "A feeling, an idiom, or an occasion. An idiom sets constraints and a feeling moves dials inside them, so a request matching both reads the idiom first.",
         "reference": "references/design-directions.md",
         "lines": [
-          17,
-          17
+          24,
+          24
         ],
-        "anchor": "Read `references/design-directions.md` and name the anchor t"
+        "anchor": "Read `references/design-directions.md` and name the **anchor"
       },
       {
         "id": "ct-intents",
@@ -54,18 +54,18 @@ export const skillTrees: Record<string, SkillTree> = {
         "title": "State the three intents",
         "desc": "The color, type, and geometry intents each name an outcome in a line. The anchor name travels with each one so the sibling can read its own column.",
         "lines": [
-          18,
-          18
+          25,
+          25
         ],
         "anchor": "State the three intents the design direction and the anchor ",
         "chips": [
           {
             "label": "What each sibling owns",
             "lines": [
-              36,
-              40
+              43,
+              47
             ],
-            "anchor": "| Intent | Sibling | It decides |",
+            "anchor": "| Dimension | Contributing skill | It decides |",
             "anchorEnd": "| geometry | live-tokens-set-geometry | radius, padding, gap"
           }
         ]
@@ -77,8 +77,8 @@ export const skillTrees: Record<string, SkillTree> = {
         "title": "Hand the color intent to set-colors",
         "desc": "This hand-off never skips: the color CLI writes the theme file that type and geometry adjust through unsaved buffers.",
         "lines": [
-          19,
-          19
+          26,
+          26
         ],
         "anchor": "Invoke **live-tokens-set-colors** with the color intent. Thi"
       },
@@ -89,8 +89,8 @@ export const skillTrees: Record<string, SkillTree> = {
         "title": "Does the look need new type?",
         "desc": "Type is skipped only when the user asked to leave it alone.",
         "lines": [
-          20,
-          20
+          27,
+          27
         ],
         "anchor": "Invoke **live-tokens-set-type** with the type intent. Skip o"
       },
@@ -101,8 +101,8 @@ export const skillTrees: Record<string, SkillTree> = {
         "title": "Hand the type intent to set-type",
         "desc": "The sibling chooses the families. This skill passes an outcome and never a family name.",
         "lines": [
-          20,
-          20
+          27,
+          27
         ],
         "anchor": "Invoke **live-tokens-set-type** with the type intent. Skip o"
       },
@@ -113,8 +113,8 @@ export const skillTrees: Record<string, SkillTree> = {
         "title": "Does the look need geometry changes?",
         "desc": "Geometry is skipped when the geometry intent is to leave it alone.",
         "lines": [
-          21,
-          21
+          28,
+          28
         ],
         "anchor": "Invoke **live-tokens-set-geometry** with the geometry intent"
       },
@@ -125,8 +125,8 @@ export const skillTrees: Record<string, SkillTree> = {
         "title": "Hand the geometry intent to set-geometry",
         "desc": "The sibling chooses the ops. This skill passes an outcome and never a radius or a token.",
         "lines": [
-          21,
-          21
+          28,
+          28
         ],
         "anchor": "Invoke **live-tokens-set-geometry** with the geometry intent"
       },
@@ -138,19 +138,19 @@ export const skillTrees: Record<string, SkillTree> = {
         "title": "Assemble the three reports",
         "desc": "One summary carries the design direction, what each sibling changed, and anything one of them flagged.",
         "lines": [
-          22,
-          22
+          29,
+          29
         ],
-        "anchor": "Assemble the three reports into one summary: the design dire",
+        "anchor": "Assemble the three reports into the assembled report: the de",
         "chips": [
           {
             "label": "Safe operation order",
             "lines": [
-              24,
-              30
+              31,
+              37
             ],
             "anchor": "Order matters only for safety, and the order above is safe: ",
-            "anchorEnd": "first theme's type and geometry into the second."
+            "anchorEnd": "carries the first theme's type and geometry into the second."
           }
         ]
       },
@@ -161,11 +161,11 @@ export const skillTrees: Record<string, SkillTree> = {
         "title": "Verify the whole look",
         "desc": "Each sibling reports back, the color CLI exits 0, and the running app shows the look after a reload.",
         "lines": [
-          70,
-          75
+          77,
+          82
         ],
         "anchor": "## Verify",
-        "anchorEnd": "- To return to the previous look, load the theme the color C"
+        "anchorEnd": "- To return to the previous look, load the theme `set-colors"
       },
       {
         "id": "ct-refine-q",
@@ -174,8 +174,8 @@ export const skillTrees: Record<string, SkillTree> = {
         "title": "Refine the look?",
         "desc": "One adjective usually names one dimension, and that dimension owns the refinement.",
         "lines": [
-          46,
-          49
+          53,
+          56
         ],
         "anchor": "## Refining a look",
         "anchorEnd": "usually names one dimension. Route it rather than re-reading"
@@ -187,8 +187,8 @@ export const skillTrees: Record<string, SkillTree> = {
         "title": "Route the refinement to one sibling",
         "desc": "Warmer and calmer go to set-colors, a type voice to set-type, rounder and tighter to set-geometry.",
         "lines": [
-          51,
-          55
+          58,
+          62
         ],
         "anchor": "| The user says | Goes to |",
         "anchorEnd": "| rounder, sharper, pill buttons, tighter, airier, thicker b"
@@ -200,11 +200,11 @@ export const skillTrees: Record<string, SkillTree> = {
         "title": "Look complete",
         "desc": "Color wrote and opened the theme; type and geometry sit in unsaved buffers. One Save keeps all three, and Adopt ships them.",
         "lines": [
-          63,
-          68
+          70,
+          75
         ],
         "anchor": "Color writes `themes/<slug>.json` and opens it. Type and geo",
-        "anchorEnd": "survive, stock ones rebuild from the new families."
+        "anchorEnd": "stock ones rebuild from the new families."
       }
     ],
     "edges": [

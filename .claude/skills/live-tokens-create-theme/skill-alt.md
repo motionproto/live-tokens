@@ -1,18 +1,17 @@
 ---
 name: live-tokens-create-theme
-description: Create a complete live-tokens theme from a natural-language request by stating one design direction and routing a color intent, a type intent, and a geometry intent to live-tokens-set-colors, live-tokens-set-type, and live-tokens-set-geometry. Use whenever the user asks for a theme, look, vibe, or brand feel by mood, style, era, season, holiday, or hue; when they name only a color and want a theme around it; or when they refine a look across more than one dimension. Not for a single token (use the editor), and not for one dimension alone: color is live-tokens-set-colors, type is live-tokens-set-type, geometry is live-tokens-set-geometry.
+description: Create or modify a complete live-tokens theme from a natural-language request by deriving one design direction and routing a color intent, a type intent, and a geometry intent to live-tokens-set-colors, live-tokens-set-type, and live-tokens-set-geometry. Use whenever the user asks for a theme, look, vibe, or brand feel by mood, style, era, season, holiday, or hue; when they name only a color and want a theme around it; or when they refine a look across more than one dimension. Not for one dimension alone: color, type, or geometry named by itself goes straight to that set skill.
 ---
 
 # Creating a theme from a request
 
-A look is three decisions: color, type, and geometry. This skill reads the
-**request**, the user's own words, and states one **design direction**, a line
-or two that fixes all three. From it come three **intents**, one per dimension,
-each naming an outcome and never a value. Each goes to the contributing skill
-that owns that dimension, and their three reports come back as one **assembled
-report**, so the whole look comes from one reading.
+A theme is built of three dimensions: color, type, and geometry. This skill reads the user's prompt, the 
+**request**, and derives the **design direction**, a short
+summary covering three **intents**, one per
+dimension, each naming an outcome rather than a value. Each set skill receives the design direction and the related intent for that dimensions as a goal.
+Each set skill contributes its report back, which is combined to an **assembled report** for the entire theme. 
 
-This skill runs no CLI. Its contributing skills do: one writes the **theme**,
+This skill runs no CLI. Its set skills do: one writes the **theme**,
 the document at `themes/<slug>.json`, and the other two write unsaved buffers on
 top of it. The theme plus those buffers is the **look**, which is what the app
 renders now and what one Save turns back into a theme. Never hand-author theme
@@ -22,11 +21,11 @@ JSON and never edit the data tree directly.
 
 1. Read the request once and state the design direction to the user: the mood, the hue family, the scheme, and the type and geometry that mood implies. It fixes enough to derive the three intents in step 3, and it names the default where the request leaves a dimension open. Keep it to a line or two. Every step below keys off it.
 2. Read `references/design-directions.md` and name the **anchor** the request matches: a feeling, an idiom, or an occasion that reference lists, each one fixing color, type, and geometry together. An idiom sets constraints and a feeling moves dials inside them, so a request matching both reads the idiom first. A request matching none takes the design direction alone.
-3. State the three intents the design direction and the anchor imply, one line each: the color intent, the type intent, and the geometry intent. Each names an outcome. Pass the anchor's name with each one, because every contributing skill holds its own anchors for its own dimension under the same names. Never reach for an OKLCH triple, a font family, or a token on a contributing skill's behalf.
+3. State the three intents the design direction and the anchor imply, one line each: the color intent, the type intent, and the geometry intent. Each names an outcome. Pass the anchor's name with each one, because every set skill holds its own anchors for its own dimension under the same names. Never reach for an OKLCH triple, a font family, or a token on a set skill's behalf.
 4. Invoke **live-tokens-set-colors** with the color intent. This step never skips: `set-colors` writes and opens the theme the other two then adjust through unsaved buffers.
 5. Invoke **live-tokens-set-type** with the type intent. Skip only when the user asked to leave the type alone.
 6. Invoke **live-tokens-set-geometry** with the geometry intent. Skip when the geometry intent is to leave the geometry alone.
-7. Assemble the three reports into the assembled report: the design direction, what each contributing skill changed, and anything one of them flagged. Tell the user to look at the running app, and that type and geometry sit in unsaved buffers until they save the open theme. Offer refinements (see Refining a look).
+7. Assemble the three reports into the assembled report: the design direction, what each set skill changed, and anything one of them flagged. Tell the user to look at the running app, and that type and geometry sit in unsaved buffers until they save the open theme. Offer refinements (see Refining a look).
 
 Order matters only for safety, and the order above is safe: `set-colors` carries
 the unsaved buffers forward into the theme it writes, so a color re-run after
@@ -36,11 +35,11 @@ Creating a set of themes needs `--carry-from`, which live-tokens-set-colors
 documents: the first run becomes the live look, so a second run without it
 carries the first theme's type and geometry into the second.
 
-## What each contributing skill owns
+## What each set skill owns
 
 Hand an outcome and the anchor's name. The mechanics stay where they are.
 
-| Dimension | Contributing skill | It decides |
+| Dimension | Set skill | It decides |
 |---|---|---|
 | color | live-tokens-set-colors | ten base colors, the scheme, harmony, the canvas commitment, the contrast pass |
 | type | live-tokens-set-type | the two families, the form models behind them, the weights |
@@ -76,8 +75,8 @@ stock ones rebuild from the new families.
 
 ## Verify
 
-- Each contributing skill reports back, and `set-colors` exits 0 with every check passing (auto-corrected is fine).
+- Each set skill reports back, and `set-colors` exits 0 with every check passing (auto-corrected is fine).
 - The app (dev server running) shows the whole look after a reload, and the editor's Theme panel names the theme.
-- The assembled report names one design direction, and the three intents trace to it.
+- The assembled report names one design direction, and the three intents come from it.
 - To return to the previous look, load the theme `set-colors` named from the Theme panel; that discards the buffers too.
 Leave the atlases for now. 
