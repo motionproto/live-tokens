@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.74.0 — A theme is three decisions and one document
 
 ### Changed
 
