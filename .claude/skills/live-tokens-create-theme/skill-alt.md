@@ -11,48 +11,41 @@ summary covering three **intents**, one per
 dimension, each naming an outcome rather than a value. Each set skill receives the design direction and the related intent for that dimensions as a goal.
 Each set skill contributes its report back, which is combined to an **assembled report** for the entire theme. 
 
-This skill runs no CLI. Its set skills do: one writes the **theme**,
-the document at `themes/<slug>.json`, and the other two write unsaved buffers on
-top of it. The theme plus those buffers is the **look**, which is what the app
-renders now and what one Save turns back into a theme. Never hand-author theme
-JSON and never edit the data tree directly.
+This skill runs one CLI of its own, `save-theme`, which turns the design direction into a
+**theme**, the document at `themes/<slug>.json`, and opens it. Never
+hand-author theme JSON and never edit the data tree directly.
 
 ## Workflow
 
-1. Read the request once and state the design direction to the user: the mood, the hue family, the scheme, and the type and geometry that mood implies. It fixes enough to derive the three intents in step 3, and it names the default where the request leaves a dimension open. Keep it to a line or two. Every step below keys off it.
-2. Read `references/design-directions.md` and name the **anchor** the request matches: a feeling, an idiom, or an occasion that reference lists, each one fixing color, type, and geometry together. An idiom sets constraints and a feeling moves dials inside them, so a request matching both reads the idiom first. A request matching none takes the design direction alone.
-3. State the three intents the design direction and the anchor imply, one line each: the color intent, the type intent, and the geometry intent. Each names an outcome. Pass the anchor's name with each one, because every set skill holds its own anchors for its own dimension under the same names. Never reach for an OKLCH triple, a font family, or a token on a set skill's behalf.
-4. Invoke **live-tokens-set-colors** with the color intent. This step never skips: `set-colors` writes and opens the theme the other two then adjust through unsaved buffers.
-5. Invoke **live-tokens-set-type** with the type intent. Skip only when the user asked to leave the type alone.
-6. Invoke **live-tokens-set-geometry** with the geometry intent. Skip when the geometry intent is to leave the geometry alone.
-7. Assemble the three reports into the assembled report: the design direction, what each set skill changed, and anything one of them flagged. Tell the user to look at the running app, and that type and geometry sit in unsaved buffers until they save the open theme. Offer refinements (see Refining a look).
-
-Order matters only for safety, and the order above is safe: `set-colors` carries
-the unsaved buffers forward into the theme it writes, so a color re-run after
-type and geometry keeps both.
-
-Creating a set of themes needs `--carry-from`, which live-tokens-set-colors
-documents: the first run becomes the live look, so a second run without it
-carries the first theme's type and geometry into the second.
+1. Read the request once and generate the design direction based on the prompt: the mood, color,typography, and geometry that mood implies. It describes the three intents for each set-skill, and it names a default where the request leaves a dimension open. Keep brief and clear. Every step below keys off it.
+2. Read `references/design-directions.md` and name the **anchor** the request matches: a feeling, idiom, or occasion the reference lists, each one fixing color, type, and geometry. An idiom sets constraints and a feeling moves dials inside them, so a request matching both reads the idiom first. A request matching none takes the design direction alone.
+3. Generate the three intents the design direction and the anchor imply, one line each: the color intent, the type intent, and the geometry intent. Each names an outcome. Pass the anchor and the matching intent to each set skill. Never specify an OKLCH value, font family, or a token on a set skill's behalf.
+4. Invoke **live-tokens-set-colors** with the anchor and color intent. Skip only when the user asked to leave the color alone.
+5. Invoke **live-tokens-set-type** with the anchor and type intent. Skip only when the user asked to leave the type alone.
+6. Invoke **live-tokens-set-geometry** with the anchor and geometry intent. Skip when the geometry intent is to leave the geometry alone.
+7. Take the theme name from the design direction and run
+   `npx live-tokens save-theme "<name>"`. It composes the three buffers into
+   `themes/<slug>.json` and opens it, so nothing is left unsaved.  Adopt, in the
+   editor, publishes it to the site.
+   `--dry-run` prints what it would write.
+8. Assemble the three set skill responses into the final report: the design direction, what each set skill changed, any dimension left alone, and anything one of them flagged. Tell the user to review at the running app. Offer refinements (see Refining a theme).
 
 ## What each set skill owns
 
-Hand an outcome and the anchor's name. The mechanics stay where they are.
+Invoke set skills with the anchor and the matching intent.
 
 | Dimension | Set skill | It decides |
 |---|---|---|
 | color | live-tokens-set-colors | ten base colors, the scheme, harmony, the canvas commitment, the contrast pass |
 | type | live-tokens-set-type | the two families, the form models behind them, the weights |
-| geometry | live-tokens-set-geometry | radius, padding, gap, and border-width moves, global or per component |
+| geometry | live-tokens-set-geometry | radius, padding, gap, and border-width |
 
-A dimension the request leaves open still gets an intent, taken from the anchor.
-A dimension the request rules out gets no invocation at all, and the assembled
-report says which.
+A dimension the request left open still gets an intent, taken from the anchor.
+A dimension the request excludes gets no invocation at all, and the assembled report says which.
 
-## Refining a look
+## Refining a theme
 
-A refinement arrives against a theme that is already open, and one adjective
-usually names one dimension. Route it rather than re-reading the whole look:
+A refinement operates on an existing theme, and one adjective usually names one dimension. Route it to the matching set skill
 
 | The user says | Goes to |
 |---|---|
@@ -64,19 +57,9 @@ Keep this skill for a refinement that spans dimensions ("make it feel more
 serious"), or one that names no dimension at all. State a new design direction
 and route all three again.
 
-## Files each step writes
-
-Color writes `themes/<slug>.json` and opens it. Type and geometry write unsaved
-buffers, which the page already runs. One Save in the editor keeps all three;
-Adopt ships them. Opening a theme never changes what the site ships. Only Adopt,
-in the editor, does that. Component aliases and gradients carry forward from the
-live look into the theme `set-colors` writes; user-tuned gradients survive,
-stock ones rebuild from the new families.
-
 ## Verify
 
 - Each set skill reports back, and `set-colors` exits 0 with every check passing (auto-corrected is fine).
-- The app (dev server running) shows the whole look after a reload, and the editor's Theme panel names the theme.
+- The app (dev server running) shows the whole theme after a reload, and the editor's Theme panel names the theme.
 - The assembled report names one design direction, and the three intents come from it.
-- To return to the previous look, load the theme `set-colors` named from the Theme panel; that discards the buffers too.
-Leave the atlases for now. 
+- To return to the previous theme, load the theme `set-colors` named from the Theme panel; that discards the buffers too.
