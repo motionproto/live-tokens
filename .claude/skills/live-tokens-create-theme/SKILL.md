@@ -20,7 +20,7 @@ never edit the data tree directly.
 
 ## Workflow
 
-1. Read the request once and state the design direction to the user: the mood, the hue family, the scheme, and the type and geometry that mood implies. It fixes enough to derive the three intents in step 3, and it names the default where the request leaves a dimension open. Keep it to a line or two. Every step below keys off it.
+1. Read the request once and state the design direction to the user: the mood, the hue family, the scheme, the type and geometry that mood implies, and the name the theme will take. It fixes enough to derive the three intents in step 3, and it names the default where the request leaves a dimension open. Keep it to a line or two. Every step below keys off it.
 2. Read `references/design-directions.md` and name the **anchor** the request matches: a feeling, an idiom, or an occasion that reference lists, each one fixing color, type, and geometry together. An idiom sets constraints and a feeling moves dials inside them, so a request matching both reads the idiom first. A request matching none takes the design direction alone.
 3. State the three intents the design direction and the anchor imply, one line each: the color intent, the type intent, and the geometry intent. Each names an outcome. Pass the anchor's name with each one, because every contributing skill holds its own anchors for its own dimension under the same names. Never reach for an OKLCH triple, a font family, or a token on a contributing skill's behalf.
 4. Invoke **live-tokens-set-colors** with the color intent. This step never skips: a theme request names a color identity, so color is the one dimension every look fixes.

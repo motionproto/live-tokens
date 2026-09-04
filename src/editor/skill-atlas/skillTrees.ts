@@ -3,7 +3,7 @@ import type { SkillTree } from './types';
 export const skillTrees: Record<string, SkillTree> = {
   "create-theme": {
     "id": "live-tokens-create-theme",
-    "digest": "sha256:7a87f61fa686368c",
+    "digest": "sha256:60f4c500446b8e6b",
     "title": "create-theme",
     "tagline": "One reading of the request becomes three intents, routed to three skills and saved as one theme.",
     "nodes": [
