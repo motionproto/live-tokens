@@ -59,11 +59,18 @@ export function freshName(base: string, taken: Set<string>): string {
   return `${base}_${Date.now()}`;
 }
 
-export interface ApplyThemeResult {
-  ok: boolean;
+/** The whole live state as the server resolves it: the open theme and every
+ *  layer read through the live doors. An Apply answers with it, and the event
+ *  stream sends it after an outside write. */
+export interface LiveState {
+  fileName: string;
   theme: Theme;
   colorsAndType: ColorsAndType;
   componentConfigs: Record<string, ComponentConfig>;
+}
+
+export interface ApplyThemeResult extends LiveState {
+  ok: boolean;
   /** Components the theme carries data for that this install doesn't have. */
   skippedComponents: string[];
   /** What the completeness fill (`normalizeTheme`) had to add to reach this

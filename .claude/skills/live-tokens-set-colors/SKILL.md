@@ -5,22 +5,25 @@ description: Set a live-tokens theme's color: ten OKLCH base colors, a light or 
 
 # Setting a theme's colors
 
-You choose ten base colors; the CLI builds every ramp from them, enforces AA
-contrast on the derived text tokens, writes the result into the unsaved colors
-buffer the app already renders, and prints a contrast report. The run carries
-every non-color value forward, so it composes with type and geometry in any
-order. Never hand-author theme JSON and never edit the data tree directly.
+You choose ten base colors. The CLI builds every ramp from them, checks AA
+contrast, and prints a contrast report. Never write theme JSON by hand and
+never edit the data tree.
+
+The result lands in the unsaved buffer: the edits the app renders over the
+open theme. Nothing saved changes. Save the open theme in the editor, or run
+`save-theme`, to keep it; load a theme to discard it. All three set skills
+write the same buffer, so color, type, and geometry compose in any order and
+one save keeps them all.
 
 ## Workflow
 
-1. Read the color intent, and the anchor name when live-tokens-create-theme passed one. When the caller or the intent names an anchor (a feeling, an idiom, or an occasion), read `references/color-anchors.md` for that entry; it overrides the generic bands below. Say which anchor you took.
-2. Translate the intent into ten base colors using the framework below and write `scratch/<slug>-base-colors.json`. Nothing else records the base colors, so this file is the only copy, and one per slug is what makes the refinement pass cheap.
-3. Run `npx live-tokens set-colors scratch/<slug>-base-colors.json`. It writes the color state into the unsaved buffer and prints a contrast report.
-4. Read the report. Exit 0 passes, and auto-corrected values count as passing. Exit 1 means the base colors are unworkable; each failure line names the base color to change, usually by raising its lightness or cutting its chroma. Fix the base color file and re-run.
-5. Report back in a line: the scheme, the hue families on screen, the canvas commitment level, and anything the report auto-corrected.
-6. Tell the user to reload the editor page before saving. A running editor holds its own copy of this buffer and never re-reads it, so a Save without a reload writes the pre-run colors back over the run you just reported.
+1. Read the color intent and any anchor live-tokens-create-theme passed. When either names an anchor (a feeling, an idiom, an occasion), read its entry in `references/color-anchors.md`; it overrides the generic bands below.
+2. Translate the intent into ten base colors with the framework below and write them to `scratch/<slug>-base-colors.json`. This file is the only record of the base colors, and a later refinement edits it.
+3. Run `npx live-tokens set-colors scratch/<slug>-base-colors.json`.
+4. Read the report. Exit 0 passes, and auto-corrected values count as passing. Exit 1 names the base color to change, usually by raising its lightness or cutting its chroma. Fix the file and re-run.
+5. Reply with the anchor if any, the scheme, the hue families, the Canvas base color, and anything the contrast report auto-corrected.
 
-Flags: `--dry-run` prints the contrast report without writing.
+`--dry-run` prints the report without writing.
 
 ## The base color file
 
@@ -51,17 +54,19 @@ A base color is the one color a palette's whole ramp derives from.
 
 Roles: **Brand** is the dominant chromatic identity; **Accent** the supporting color; **Special** the rare expressive tertiary; **Canvas** is the page background verbatim; **Neutral** drives neutral surfaces and body text; **Alternate** is the second near-grey family; the four statuses are conventional signals.
 
-## Chroma budget: color is inversely proportional to area
+## Chroma budget
+
+The more area a palette covers, the less chroma it gets.
 
 | Tier | Palettes | Chroma |
 |---|---|---|
 | Ground (about 60% of every screen) | Neutral, Alternate | C 0.008 to 0.02 |
-| Canvas (the largest single area) | Canvas | Per the commitment levels below, C 0.02 to 0.14 |
+| Canvas (the largest single area) | Canvas | C 0.02 to 0.14, by commitment level (see Canvas commitment) |
 | Dominant chromatic (about 30%) | Brand | C 0.10 to 0.20 |
 | Garnish (about 10%) | Accent, Special | may exceed Brand; at most one at the gamut cap for its hue (see Gamut guardrails) |
 | Conditional | Info, Success, Warning, Danger | C 0.12 to 0.19 |
 
-A good theme reads as 3 or 4 hue families on screen, never 10. Neutral and Alternate stay near-grey but tinted toward the theme (Neutral near Brand's hue; Alternate offset 15 to 60 degrees, or a warm/cool counterpoint), never pure C = 0 unless an anchor calls for it.
+A good theme reads as 3 or 4 hue families on screen, never 10. Neutral and Alternate stay near-grey, tinted toward the theme: Neutral near Brand's hue, Alternate offset 15 to 60 degrees or a warm/cool counterpoint. Pure C = 0 only when an anchor calls for it.
 
 ## Per-role bands
 
@@ -140,7 +145,7 @@ run `save-theme`, to keep the result; Adopt ships it.
 ## Verify
 
 - The CLI exits 0 with every check passing (auto-corrected is fine), and the report names which layer the non-color values came from.
-- The app (dev server running) shows the new palette after a reload.
+- The app (dev server running) shows the new palette.
 - The editor's Theme panel marks the open theme unsaved. A dry run marks nothing, and neither does a run whose report says the layer under the buffer, the open theme or the package default, already holds these colors.
 - The canvas is committed: on screen it reads as the theme's color rather than as generic near-white.
 - To revert, re-run with the previous base color file, or load the open theme again to discard the buffer.

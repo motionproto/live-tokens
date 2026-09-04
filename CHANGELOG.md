@@ -1,5 +1,21 @@
 # Changelog
 
+## 0.75.0 — The app follows the CLI
+
+### Changed
+
+- **A CLI run shows up in the open editor, and a Save afterwards keeps it.**
+  The dev server now watches the unsaved buffers and the active-theme pointer
+  and streams every outside change to the page as one frame over
+  `GET /api/live-tokens/events`. The editor hydrates from that frame the way
+  it does from an Apply, so `set-colors`, `set-type`, `set-geometry`, and
+  `save-theme` land on screen as they finish, and a Save afterwards writes
+  what is on screen rather than the tab's stale copy. The four verbs no longer
+  ask for a reload, and neither do the skills that run them. The server leaves
+  its own writes out of the stream, so an editor Save does not hydrate itself.
+  A branch switch that moves a buffer or the pointer reaches the page the same
+  way; any other JSON changed from outside still needs a reload.
+
 ## 0.74.0 — A theme is three decisions and one document
 
 ### Changed

@@ -13,7 +13,7 @@ You choose the families; the CLI verifies each against Google Fonts, builds the 
 2. Run `npx live-tokens set-type scratch/font-pairing.json`. It prints each stack that moved, each family's real weights and URL, and the weights your typography tokens ask for that the family lacks.
 3. Read the report. A weight gap is a quality note: name it and offer an alternative only if it matters (a body face without 400, 700, or italic matters; a display face without 300 does not). A family not on Google Fonts fails the run; fix the spelling and re-run.
 4. Report back in a line: the two families, the form model behind each, and any weight gap worth naming.
-5. Tell the user to reload the editor page before saving. A running editor holds its own copy of the buffer this CLI just wrote and never re-reads it, so a Save without a reload writes the stale copy back and the pairing vanishes with a success report still on screen. After the reload the type is on the page, and unsaved until they save the open theme.
+5. Say the type is on the page and unsaved until they save the open theme.
 
 State your reasoning when you propose the pairing: each face's form model and the matrix verdict, in one sentence, so the user can argue with the argument rather than only the result.
 
@@ -89,5 +89,5 @@ Type only. Color, component aliases, shape, and the type scale are untouched: `s
 
 - The CLI exits 0 and names each stack that moved, before and after.
 - Each URL reflects the family's real weights: a range for a variable family, an enumeration for a static one, a bare URL for a single-weight face.
-- The app shows the new type after a reload, and the editor's Fonts section lists both families with their fallbacks intact.
+- The app shows the new type, and the editor's Fonts section lists both families with their fallbacks intact.
 - To revert, run the inverse pairing file, or load the open theme again to discard the buffer.

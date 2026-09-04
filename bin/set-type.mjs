@@ -231,13 +231,12 @@ export function formatSetTypeResult(result) {
 
   if (result.wrote === 'buffer') {
     lines.push(
-      `\nReload the app to see it. This is an unsaved edit: save the open theme in the ` +
-        `editor's Theme panel to keep it, or load a theme to discard it.`,
+      `\nThis is an unsaved edit: save the open theme in the editor's Theme panel to keep it, ` +
+        `or load a theme to discard it.`,
     );
   } else if (result.wrote === 'cleared') {
     lines.push(
-      `\nThat is what the open theme already holds, so the unsaved buffer was discarded. ` +
-        `Reload the app to see it.`,
+      `\nThat is what the open theme already holds, so the unsaved buffer was discarded.`,
     );
   } else if (result.dryRun) {
     lines.push(`\nDry run: nothing written under ${relative(root, result.colorsAndTypeDir)}.`);

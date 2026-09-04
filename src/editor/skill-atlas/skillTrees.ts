@@ -541,7 +541,7 @@ export const skillTrees: Record<string, SkillTree> = {
           133
         ],
         "anchor": "## Scope",
-        "anchorEnd": "ships it."
+        "anchorEnd": "run `save-theme`, to keep the result; Adopt ships it."
       }
     ],
     "edges": [
@@ -903,13 +903,13 @@ export const skillTrees: Record<string, SkillTree> = {
         "row": 14,
         "kind": "step",
         "n": "5",
-        "title": "Reload and review the type",
-        "desc": "Reloading before Save gives the editor the new buffer. Save then keeps the change.",
+        "title": "Say it is unsaved",
+        "desc": "The type is on the page. Save keeps the change.",
         "lines": [
           16,
           16
         ],
-        "anchor": "Tell the user to reload the editor page before saving. A run"
+        "anchor": "Say the type is on the page and unsaved until they save the"
       },
       {
         "id": "st-scope",
@@ -1380,13 +1380,13 @@ export const skillTrees: Record<string, SkillTree> = {
         "row": 17,
         "kind": "step",
         "n": "5",
-        "title": "Reload and review the geometry",
-        "desc": "Reloading before Save gives the editor the current buffer. Save keeps the change, and inverse operations undo it.",
+        "title": "Offer the undo",
+        "desc": "The inverse op undoes the change. Save keeps it.",
         "lines": [
           16,
           16
         ],
-        "anchor": "Tell the user to reload the page before saving. The editor k"
+        "anchor": "Offer the inverse op as the undo and say the edit is unsaved"
       },
       {
         "id": "sg-scope",

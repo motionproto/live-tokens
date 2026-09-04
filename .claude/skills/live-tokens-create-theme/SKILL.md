@@ -73,6 +73,6 @@ and route all three again.
 
 - Each set skill reports back, and `set-colors` exits 0 with every check passing (auto-corrected is fine).
 - `save-theme` exits 0 and names the theme it wrote and opened.
-- The app (dev server running) shows the whole theme after a reload, and the editor's Theme panel names that theme with no unsaved marker.
+- The app (dev server running) shows the whole theme, and the editor's Theme panel names that theme with no unsaved marker.
 - The assembled report names one design direction, and the three intents come from it.
 - To return to the previous theme, load it from the Theme panel; loading clears the buffers too.

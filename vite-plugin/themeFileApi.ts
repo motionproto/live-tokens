@@ -21,6 +21,7 @@ import {
   type VersionedFileResourceServer,
 } from './files/versionedFileResourceServer';
 import { dispatch, type Route } from './files/routeTable';
+import { dataTreeWatch } from './files/dataTreeWatch';
 import {
   THEME_SCHEMA_VERSION,
   isColorsAndTypeShaped,
@@ -223,10 +224,24 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
   // `packageOwnedNames` comes from the package's own `package.json` so the
   // library repo (whose local dir IS the package dir) can still tell a shipped
   // file from a user file when flagging `isPackage` in the list.
+  // The files an outside writer (a CLI verb, a branch switch) moves the live
+  // state with. Their server-side writes go through the resource servers
+  // below, which report each one so the watcher can leave it out.
+  const isLiveStateFile = (file: string): boolean =>
+    file === path.join(THEMES_DIR, '_active.json') ||
+    (path.basename(file) === '_working.json' &&
+      (file.startsWith(COLORS_AND_TYPE_DIR + path.sep) ||
+        file.startsWith(COMPONENT_CONFIGS_DIR + path.sep)));
+  const liveWatch = dataTreeWatch({
+    dirs: [COLORS_AND_TYPE_DIR, COMPONENT_CONFIGS_DIR, THEMES_DIR],
+    isLive: isLiveStateFile,
+  });
+
   const colorsAndTypeResource = versionedFileResourceServer({
     dir: COLORS_AND_TYPE_DIR,
     packageDir: packageColorsAndTypeDir,
     packageOwnedNames: shippedNames(packageDataDir, 'colors-and-type'),
+    onWrite: liveWatch.noteOwnWrite,
   });
 
   // Per-component resources are constructed on demand because the set of
@@ -247,6 +262,7 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
       r = versionedFileResourceServer({
         dir: path.join(COMPONENT_CONFIGS_DIR, comp),
         packageDir: path.join(packageComponentConfigsDir, comp),
+        onWrite: liveWatch.noteOwnWrite,
       });
       componentResourceCache.set(comp, r);
     }
@@ -260,6 +276,7 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
   const themesResource = versionedFileResourceServer({
     dir: THEMES_DIR,
     packageDir: packageThemesDir,
+    onWrite: liveWatch.noteOwnWrite,
   });
 
   // Sketchstyles — the shipped sketchstyles plus whatever the project saved. The
@@ -1209,6 +1226,7 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
   // The adopt door: publishes the open theme. Production is one named theme,
   // so there is nothing per-layer to promote and nothing to name in the body.
   const PRODUCTION_ROUTE = `${API_BASE}/production`;
+  const EVENTS_ROUTE = `${API_BASE}/events`;
 
   // ── Route handlers ────────────────────────────────────────────────────────
   // Each handler can throw — the route-table dispatcher centralises the 500
@@ -1694,36 +1712,64 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
       return;
     }
     clearAllWorking();
-    const knownComponents = listComponentNames();
     themesResource.setActiveName(fileName);
-
-    // Resolved through the same doors a follow-up GET would use, so the payload
-    // and the live state can never disagree.
-    const resolvedConfigs: Record<string, any> = {};
-    for (const comp of knownComponents) {
-      const resolved = resolveLiveComponentConfig(comp, theme);
-      if (resolved) resolvedConfigs[comp] = { ...resolved.data, _fileName: fileName, _source: resolved.source };
-    }
-    const resolvedColorsAndType = resolveLiveColorsAndType(theme);
 
     // Data for components this install doesn't have is inert, but silence here
     // is what let a removed component sit in the default theme unnoticed.
+    const knownComponents = listComponentNames();
     const skippedComponents = Object.keys(theme.componentConfigs).filter(
       (comp) => !knownComponents.includes(comp),
     );
 
     jsonResponse(res, 200, {
       ok: true,
-      theme: { ...theme, _fileName: fileName },
-      colorsAndType: resolvedColorsAndType && {
-        ...resolvedColorsAndType.data,
-        _fileName: fileName,
-        _source: resolvedColorsAndType.source,
-      },
-      componentConfigs: resolvedConfigs,
+      ...resolveLiveState(theme, fileName),
       skippedComponents,
       filled,
     });
+  }
+
+  /**
+   * The whole live state as one payload: the open theme plus every layer
+   * resolved through the same doors a GET would use, so the payload and a
+   * follow-up read can never disagree. Apply answers with it, and the event
+   * stream sends it after an outside write.
+   */
+  function resolveLiveState(theme: EncapsulatedTheme, fileName: string) {
+    const componentConfigs: Record<string, any> = {};
+    for (const comp of listComponentNames()) {
+      const resolved = resolveLiveComponentConfig(comp, theme);
+      if (resolved) componentConfigs[comp] = { ...resolved.data, _fileName: fileName, _source: resolved.source };
+    }
+    const colorsAndType = resolveLiveColorsAndType(theme);
+    return {
+      fileName,
+      theme: { ...theme, _fileName: fileName },
+      colorsAndType: colorsAndType && { ...colorsAndType.data, _fileName: fileName, _source: colorsAndType.source },
+      componentConfigs,
+    };
+  }
+
+  /**
+   * Server-sent events: one `live-state` frame per outside change to a buffer
+   * or the active pointer. The editor hydrates from it the way it does from
+   * an Apply, so a CLI run shows up in an open tab without a reload, and a
+   * Save afterwards writes what is on screen.
+   */
+  async function handleEvents({ req, res }: any) {
+    res.statusCode = 200;
+    res.setHeader('Content-Type', 'text/event-stream');
+    res.setHeader('Cache-Control', 'no-cache');
+    res.setHeader('Connection', 'keep-alive');
+    res.write(': connected\n\n');
+    const unsubscribe = liveWatch.subscribe(() => {
+      const activeFile = themesResource.getActiveName();
+      const read = readTheme(activeFile);
+      if (!read) return;
+      const state = resolveLiveState(read.theme, activeFile);
+      res.write(`event: live-state\ndata: ${JSON.stringify(state)}\n\n`);
+    });
+    req.on('close', unsubscribe);
   }
 
   /**
@@ -2103,6 +2149,7 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
     { method: 'DELETE', pattern: SKETCH_STYLE_BY_NAME_REGEX, handler: handleSketchStyleByName },
     { method: 'POST',   pattern: SKETCH_STYLE_BY_NAME_REGEX, handler: methodNotAllowed },
 
+    { method: 'GET',    pattern: EVENTS_ROUTE,            handler: handleEvents },
     { method: 'PUT',    pattern: PRODUCTION_ROUTE,        handler: handleAdoptTheme },
     { method: 'GET',    pattern: PRODUCTION_ROUTE,        handler: methodNotAllowed },
     { method: 'POST',   pattern: PRODUCTION_ROUTE,        handler: methodNotAllowed },
@@ -2122,10 +2169,12 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
    *
    * Nothing is lost by not watching them. The editor reads this directory over
    * its own API and re-lists after every write, so the page already holds what
-   * a reload would fetch. A file changed from outside — a CLI run, a branch
-   * switch — needs the page reloaded by hand, which is what the CLIs already
-   * ask for. `tokens.generated.css` and `fonts.css` stay watched: they are
-   * stylesheets the page really does import, and CSS updates without a reload.
+   * a reload would fetch. The buffers and the active pointer have their own
+   * watcher (`liveWatch`): a CLI run or a branch switch that moves one reaches
+   * the page through `/events`, and the editor hydrates in place. Any other
+   * JSON changed from outside still needs a reload. `tokens.generated.css` and
+   * `fonts.css` stay watched: they are stylesheets the page really does
+   * import, and CSS updates without a reload.
    */
   const isEditorOwnedJson = (file: string): boolean =>
     file.endsWith('.json') && path.resolve(file).startsWith(dataDirs.dataDir + path.sep);

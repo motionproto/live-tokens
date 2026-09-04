@@ -172,16 +172,15 @@ export function formatSetColorsResult(result) {
 
   if (result.wrote === 'buffer') {
     lines.push(
-      `\nReload the app to see it. This is an unsaved edit: save the open theme in the ` +
-        `editor's Theme panel to keep it, or run save-theme to write a new one.`,
+      `\nThis is an unsaved edit: save the open theme in the editor's Theme panel to keep it, ` +
+        `or run save-theme to write a new one.`,
     );
   } else if (result.wrote === 'cleared') {
     const held =
       result.savedSource === 'theme' ? `theme "${result.openTheme}"` : 'the package default';
     lines.push(
       result.source === 'working'
-        ? `\nThat is what ${held} already holds, so the unsaved buffer was discarded. ` +
-            `Reload the app to see it.`
+        ? `\nThat is what ${held} already holds, so the unsaved buffer was discarded.`
         : `\nThat is what ${held} already holds, and there was no unsaved buffer, so nothing was written.`,
     );
   } else if (result.dryRun) {

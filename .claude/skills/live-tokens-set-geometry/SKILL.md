@@ -13,7 +13,7 @@ You translate the request into a small ops file; the CLI resolves each matching 
 2. Run `npx live-tokens set-geometry scratch/geometry-ops.json`. It writes `component-configs/<id>/_working.json` for every component the ops change, which is the buffer the page already runs. `--dry-run` prints the report without writing.
 3. Read the report card: every changed alias old → new, plus skips (raw value, off the ladder, already at the ladder end, pill preserved). Exit 1 means the run was rejected; the message names the offending op or the missing input, so fix it and re-run. Read where the controls landed, not only that the run succeeded: a button, badge, input, or tab padding sitting at `--space-6` is on its floor, and one that also carries `--radius-full` wants a targeted lift.
 4. Report back in a line: every alias that moved, and any skip or clamp worth naming.
-5. Tell the user to reload the page before saving. The editor keeps the look in the browser and writes the buffers from that copy, so a Save in a tab that was open during the run puts the pre-run shape back and the report you just showed them becomes a lie. After the reload, offer the inverse op as the undo and say the edit is unsaved until they save the open theme.
+5. Offer the inverse op as the undo and say the edit is unsaved until they save the open theme.
 
 Each run reads the LIVE config (buffer, else the open theme, else the shipped default), so "a bit more" and "back one" compound naturally.
 
@@ -92,7 +92,7 @@ Every value written is an existing token; nothing new is minted. `tokens.css`, s
 ## Verify
 
 - The CLI exits 0 and the report card lists the changes you expected, with no surprising skips.
-- The app (dev server running) shows the new shape on each changed component after a reload.
+- The app (dev server running) shows the new shape on each changed component.
 - Buttons still read as buttons: the label has room at both ends, and a pill has more of it than a square-cornered control had.
 - `component-configs/<id>/_working.json` exists for every component the report listed. That buffer is the whole change: it stays until the open theme is saved or another theme is loaded.
 - To revert, run the inverse ops, or load a theme in the Theme panel to discard every unsaved edit.

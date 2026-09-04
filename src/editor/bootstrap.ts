@@ -20,6 +20,7 @@ import * as router from './core/routing/router';
 import * as columnsOverlay from './overlay/columnsOverlay';
 import * as editorStore from './core/store/editorStore';
 import * as themeDocumentSync from './core/themes/themeDocumentSync';
+import * as liveStateStream from './core/themes/liveStateStream';
 import { initializeTheme } from './core/themes/themeInit';
 import { registerComponent, type RegisterComponentEntry } from './component-editor/registry';
 import { registerSketchStyle, type RegisterSketchStyleInput } from './core/sketch/sketchRegistry';
@@ -52,6 +53,7 @@ export async function bootLiveTokens(
 
   if (import.meta.env.DEV) {
     themeDocumentSync.init();
+    liveStateStream.init();
     if (opts.components) {
       for (const entry of opts.components) {
         registerComponent(entry);

@@ -30,6 +30,9 @@ export interface VersionedFileResourceServerOptions {
    * where path identity cannot distinguish a shipped file from a user file.
    */
   packageOwnedNames?: string[];
+  /** Called with the path after every pointer or buffer write, including a
+   *  buffer delete, so a watcher can tell the server's own writes from outside ones. */
+  onWrite?: (file: string) => void;
 }
 
 export interface VersionedFileResourceServer {
@@ -119,9 +122,11 @@ export function versionedFileResourceServer(
   function ensureMeta(): void {
     if (!fs.existsSync(activePath)) {
       fs.writeFileSync(activePath, JSON.stringify({ activeFile: defaultName }));
+      opts.onWrite?.(activePath);
     }
     if (!fs.existsSync(productionPath)) {
       fs.writeFileSync(productionPath, JSON.stringify({ productionFile: defaultName }));
+      opts.onWrite?.(productionPath);
     }
   }
 
@@ -197,10 +202,12 @@ export function versionedFileResourceServer(
 
   function setActiveName(name: string): void {
     fs.writeFileSync(activePath, JSON.stringify({ activeFile: name }));
+    opts.onWrite?.(activePath);
   }
 
   function setProductionName(name: string): void {
     fs.writeFileSync(productionPath, JSON.stringify({ productionFile: name }));
+    opts.onWrite?.(productionPath);
   }
 
   function hasWorking(): boolean {
@@ -221,10 +228,13 @@ export function versionedFileResourceServer(
   function writeWorking(data: Record<string, unknown>): void {
     ensureDir();
     fs.writeFileSync(workingPath, JSON.stringify(data, null, 2));
+    opts.onWrite?.(workingPath);
   }
 
   function clearWorking(): void {
-    if (fs.existsSync(workingPath)) fs.unlinkSync(workingPath);
+    if (!fs.existsSync(workingPath)) return;
+    fs.unlinkSync(workingPath);
+    opts.onWrite?.(workingPath);
   }
 
   return {

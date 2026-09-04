@@ -162,7 +162,7 @@ export function formatSaveThemeResult(result) {
   if (result.activated) {
     lines.push(
       `\nOpened "${result.slug}" (previously open: "${result.previousActive}"). ` +
-        `Reload the app to see it; switch back any time from Load in the editor's Theme panel. ` +
+        `Switch back any time from Load in the editor's Theme panel. ` +
         `Adopt it there to publish it to tokens.generated.css.`,
     );
   } else if (result.dryRun) {
