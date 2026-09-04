@@ -1,26 +1,24 @@
 ---
 name: live-tokens-set-colors
-description: Set a live-tokens theme's color from a color intent: ten OKLCH base colors, a light or dark scheme, and an AA-gated contrast pass, written into the unsaved color buffer the app already renders. Use whenever the user asks for a palette, colors, or hues by mood, style, era, season, holiday, or hue; when they name only a color; or when they refine the color of a look: warmer, cooler, calmer, louder, lighter, darker, moodier, more contrast. Also invoked by live-tokens-create-theme, which supplies the color intent for a whole look. Changes color only, never fonts or geometry. Not for a single token (use the editor), and not for a whole look (see live-tokens-create-theme).
+description: Set a live-tokens theme's color: ten OKLCH base colors, a light or dark scheme, and an AA-gated contrast pass, written into the unsaved color buffer the app already renders. Called with an anchor and a color intent by live-tokens-create-theme, or with the user's request directly. Use whenever the user asks for a palette, colors, or hues by mood, style, era, season, or holiday; when they name only a color; or when they refine a theme's color: warmer, cooler, calmer, louder, lighter, darker, moodier, more contrast. Changes color only, never fonts or geometry, so a request that also names those goes to live-tokens-create-theme. Not for a single token; use the editor.
 ---
 
 # Setting a theme's colors
 
 You choose ten base colors; the CLI builds every ramp from them, enforces AA
 contrast on the derived text tokens, writes the result into the unsaved colors
-buffer the app already renders, and prints a contrast report. Never hand-author
-theme JSON and never edit the data tree directly.
-
-The run replaces the color state in that buffer and carries everything else
-forward, so it composes with type and geometry in any order. Saving the open
-theme in the editor, or running `save-theme`, turns the live look into a theme.
+buffer the app already renders, and prints a contrast report. The run carries
+every non-color value forward, so it composes with type and geometry in any
+order. Never hand-author theme JSON and never edit the data tree directly.
 
 ## Workflow
 
-1. Read the color intent. When it names an anchor (a feeling, an idiom, or an occasion), read `references/color-anchors.md` for that entry; it overrides the generic bands below. Say which anchor you took.
-2. Translate the intent into ten base colors using the framework below and write `scratch/<slug>-base-colors.json`. Nothing else records the base colors, so this file is the only copy; one per slug is what makes the refinement pass cheap.
-3. Run `npx live-tokens set-colors scratch/<slug>-base-colors.json`. It writes the color state into the unsaved buffer the page already runs, and prints a contrast report.
+1. Read the color intent, and the anchor name when live-tokens-create-theme passed one. When the caller or the intent names an anchor (a feeling, an idiom, or an occasion), read `references/color-anchors.md` for that entry; it overrides the generic bands below. Say which anchor you took.
+2. Translate the intent into ten base colors using the framework below and write `scratch/<slug>-base-colors.json`. Nothing else records the base colors, so this file is the only copy, and one per slug is what makes the refinement pass cheap.
+3. Run `npx live-tokens set-colors scratch/<slug>-base-colors.json`. It writes the color state into the unsaved buffer and prints a contrast report.
 4. Read the report. Exit 0 passes, and auto-corrected values count as passing. Exit 1 means the base colors are unworkable; each failure line names the base color to change, usually by raising its lightness or cutting its chroma. Fix the base color file and re-run.
 5. Report back in a line: the scheme, the hue families on screen, the canvas commitment level, and anything the report auto-corrected.
+6. Tell the user to reload the editor page before saving. A running editor holds its own copy of this buffer and never re-reads it, so a Save without a reload writes the pre-run colors back over the run you just reported.
 
 Flags: `--dry-run` prints the contrast report without writing.
 
@@ -44,7 +42,12 @@ Flags: `--dry-run` prints the contrast report without writing.
 }
 ```
 
-A base color is the one color a palette's whole ramp derives from. All 10 are required, and each may be given as a `"#rrggbb"` string instead. OKLCH: `l` is 0 to 1 lightness, `c` is chroma (0 grey, about 0.37 max), `h` is hue in degrees. The file names no theme: the slug in its own path is the theme name live-tokens-create-theme intends, or any label when this skill runs alone. `canvasGradient` is an optional boolean, see below.
+A base color is the one color a palette's whole ramp derives from.
+
+- `baseColors`: all ten required. Each is an OKLCH triple, where `l` is lightness 0 to 1, `c` is chroma (0 grey, about 0.37 max), and `h` is hue in degrees, or a `"#rrggbb"` string in its place.
+- `scheme`: `"light"` or `"dark"`.
+- `canvasGradient` (optional): a boolean, default off. See Canvas sky and shadows.
+- `name`: ignored, and the CLI says it dropped one. Leave it out. The theme takes its name from `save-theme`; the slug in this file's own path is a label for the file.
 
 Roles: **Brand** is the dominant chromatic identity; **Accent** the supporting color; **Special** the rare expressive tertiary; **Canvas** is the page background verbatim; **Neutral** drives neutral surfaces and body text; **Alternate** is the second near-grey family; the four statuses are conventional signals.
 
@@ -74,25 +77,25 @@ A good theme reads as 3 or 4 hue families on screen, never 10. Neutral and Alter
 | Warning | L 0.75 or higher (vivid yellow must be light) | same | H 70 to 90 |
 | Danger | shared status L, C 0.15 to 0.20 | same | H 20 to 30 |
 
-**The canvas carries the theme's identity, so commit to it.** The page background is the largest area on screen and the strongest difference between themes; a timid canvas makes every theme look the same. Below C 0.015 at L 0.95 a tint is imperceptible, which makes near-white a deliberate choice for clean or minimal intents and never the default. Three levels of commitment:
+Three rules cross every role:
+
+- A dark scheme transforms every base color: each chromatic one lightens to L 0.75 to 0.85 and drops about a third of its chroma, because saturated color vibrates on dark grounds.
+- Equal lightness reads as equal weight: give the four statuses one shared L, and do the same for Brand and Accent when they should balance.
+- Status hues never rotate with the harmony; only their L and C adapt to the mood.
+
+**The canvas carries the theme's identity, so commit to it.** The page background is the largest area on screen and the strongest difference between themes; a timid canvas makes every theme look the same. Below C 0.015 at L 0.95 a tint is imperceptible, so near-white is a choice you make for a clean or minimal intent, never a default. Three levels of commitment:
 
 1. *Tinted paper* (most UI intents): C 0.02 to 0.06, with L down to 0.92 where the hue needs room.
 2. *Colored ground* (expressive intents): L 0.85 to 0.92 at C 0.05 to 0.10. The page is unmistakably mint, parchment, sky.
 3. *Full-color ground* (holiday and statement intents): the canvas is the theme color, like a red Christmas page with green and gold on it. Keep canvas L at or below 0.48 or at or above 0.85 so text has somewhere to go; the contrast gate enforces legibility either way.
 
-Also:
-
-- Blue tints cap very low at high L (H 264 at L 0.95 barely reaches C 0.03): lower L for a blue canvas rather than fighting the ceiling. Yellow, green, and cream tint generously at high L.
-- When generating a set of themes, make the canvases pairwise distinct in hue or in L. Two light themes both near (0.97, 0.01) read as one theme with different buttons.
-- A dark scheme transforms every base color: each chromatic one lightens to L 0.75 to 0.85 and drops about a third of its chroma, because saturated color vibrates on dark grounds.
-- Equal lightness reads as equal weight: give the four statuses one shared L, and do the same for Brand and Accent when they should balance.
-- Status hues never rotate with the harmony; only their L and C adapt to the mood.
+Blue tints cap very low at high L (H 264 at L 0.95 barely reaches C 0.03), so lower L for a blue canvas rather than fighting the ceiling; yellow, green, and cream tint generously at high L. Across a set of themes, make the canvases pairwise distinct in hue or in L. Two light themes both near (0.97, 0.01) read as one theme with different buttons.
 
 ## Mood dials
 
-Pleasantness rises with lightness (strongly) and saturation (weakly); energy rises with saturation; drama rises with dark plus saturated. Dominance, the third axis, is carried by surface contrast, type weight, and tightness rather than by color at all.
+Pleasantness rises with lightness (strongly) and saturation (weakly); energy rises with saturation; drama rises with dark plus saturated. Dominance, the third axis, is carried by surface contrast, type weight, and tightness rather than by color.
 
-That is the whole mechanism, and one dial moves without a reference: warm is hues 20 to 110 plus pink 290 to 360, cool is 140 to 290. For an intent that names a feeling, read `references/color-anchors.md` instead of guessing the dial settings.
+Warm is hues 20 to 110 plus pink 290 to 360; cool is 140 to 290. For an intent that names a feeling, read `references/color-anchors.md` rather than guessing the dial settings.
 
 Avoid mid-lightness yellow-green (H 100 to 120 at L 0.5 to 0.7, C about 0.1) unless the intent asks for olive or toxic.
 
@@ -119,22 +122,25 @@ Hue offsets from Brand: complementary +180; split-complementary +150/+210; triad
 
 Shadow opacity derives from Canvas lightness and re-derives on every run, so there is nothing to choose. When shadows read heavy or muddy, raise the Canvas base color's L.
 
-## Refining the color of a theme that exists
+## Refining a theme's color
 
-"Warmer", "calmer", "more contrast" arrive against a theme that is already open, and the answer is a new base color file. Edit `scratch/<slug>-base-colors.json` when it is still there. When it is not, recover the base colors: `src/live-tokens/data/themes/<slug>.json` holds each one verbatim at `colorsAndType.editorConfigs.<Palette>.baseColor` as `{l, c, h}`, and the Canvas base color's lightness gives the scheme. Rebuild the base color file from those ten values, move the dial the user named, and re-run. A re-run replaces the buffer's whole color state, including palette edits made in the editor since the last run, so say so once when iterating; a Save or a `save-theme` run keeps the result.
+"Warmer", "calmer", "more contrast" arrive against a theme that is already open, and the answer is a new base color file. Edit `scratch/<slug>-base-colors.json` when it is still there. When it is not, recover the ten base colors from `src/live-tokens/data/themes/<slug>.json`: each one sits verbatim at `colorsAndType.editorConfigs.<Palette>.baseColor`, in either form the file accepts, and the Canvas base color's lightness gives the scheme. Rebuild the base color file from those values, move the dial the user named, and re-run.
+
+A re-run replaces the buffer's whole color state, including palette edits made in the editor since the last run, so say so once when iterating. A Save or a `save-theme` run keeps the result.
 
 One adjective moves one dial. Warmer and cooler rotate hue; calmer and louder move chroma; lighter, darker, and moodier move Canvas L and the scheme; more contrast widens the L gap between Canvas and Brand and takes chroma out of the ground rather than adding it to the garnish. Leave every base color the user did not name alone, because a refinement that re-rolls the whole palette reads as a different theme and loses the thing they liked.
 
 ## Scope
 
-Color only. Type and geometry are untouched: `set-colors` replaces the color
-state in the unsaved buffer and carries every other value in it forward. Save
-the open theme in the editor, or run `save-theme`, to keep the result; Adopt
-ships it.
+Color only. Fonts, geometry, saved themes, `tokens.css`, and `fonts.css` are
+untouched: `set-colors` replaces the color state in the unsaved buffer and
+carries every other value in it forward. Save the open theme in the editor, or
+run `save-theme`, to keep the result; Adopt ships it.
 
 ## Verify
 
-- The CLI exits 0 with every check passing (auto-corrected is fine), and the report names the layer it carried the rest of the look forward from.
-- The app (dev server running) shows the new palette after a reload. The editor's Theme panel marks the open theme unsaved, unless the run was a dry one or the report says the layer under the buffer, the open theme or the package default, already holds these colors.
+- The CLI exits 0 with every check passing (auto-corrected is fine), and the report names which layer the non-color values came from.
+- The app (dev server running) shows the new palette after a reload.
+- The editor's Theme panel marks the open theme unsaved. A dry run marks nothing, and neither does a run whose report says the layer under the buffer, the open theme or the package default, already holds these colors.
 - The canvas is committed: on screen it reads as the theme's color rather than as generic near-white.
 - To revert, re-run with the previous base color file, or load the open theme again to discard the buffer.
