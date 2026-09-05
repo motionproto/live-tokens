@@ -1,19 +1,18 @@
 ---
 name: live-tokens-set-colors
-description: Set a live-tokens theme's color: ten OKLCH base colors, a light or dark scheme, and an WCAG AA-gated contrast check. Called with an anchor and a color intent by live-tokens-create-theme, or with the user's request directly. Use whenever the user asks for a palette, colors, or hues by mood, style, era, season, holiday, or hue; when they name only a color; or when they refine a theme's color: warmer, cooler, calmer, louder, lighter, darker, moodier, more contrast. Changes color only, never fonts or geometry. Not for a single token (use the editor), and not for a request that also names type or geometry (see live-tokens-create-theme).
+description: Set a live-tokens theme's color: ten OKLCH base colors, a light or dark scheme, and a WCAG AA-gated contrast check. Called with an anchor and a color intent by live-tokens-create-theme, or with the user's request directly. Use whenever the user asks for a palette, colors, or hues by mood, style, era, season, holiday, or hue; when they name only a color; or when they refine a theme's color: warmer, cooler, calmer, louder, lighter, darker, moodier, more contrast. Changes color only, never fonts or geometry. Not for a request that also names type or geometry (see live-tokens-create-theme).
 ---
 
 # Setting a theme's colors
 
-You choose ten base colors. The CLI builds every ramp from them, checks AA
+Choose ten base colors. The CLI builds every ramp from them, checks AA
 contrast, and prints a contrast report. Never write theme JSON by hand and
 never edit the data tree.
 
-The result lands in the unsaved buffer: the edits the app renders over the
-open theme. Nothing saved changes. Save the open theme in the editor, or run
-`save-theme`, to keep it; load a theme to discard it. All three set skills
-write the same buffer, so color, type, and geometry compose in any order and
-one save keeps them all.
+The result is on screen as soon as the run finishes. The three set skills
+write the same buffer, so color, type, and geometry compose in any order. When
+the user accepts the result, run `save-theme` to keep it as a theme. Loading a
+theme in the editor discards it.
 
 ## Workflow
 
@@ -50,7 +49,6 @@ A base color is the one color a palette's whole ramp derives from.
 - `baseColors`: all ten required. Each is an OKLCH triple, where `l` is lightness 0 to 1, `c` is chroma (0 grey, about 0.37 max), and `h` is hue in degrees, or a `"#rrggbb"` string in its place.
 - `scheme`: `"light"` or `"dark"`.
 - `canvasGradient` (optional): a boolean, default off. See Canvas sky and shadows.
-- `name`: ignored, and the CLI says it dropped one. Leave it out. The theme takes its name from `save-theme`; the slug in this file's own path is a label for the file.
 
 Roles: **Brand** is the dominant chromatic identity; **Accent** the supporting color; **Special** the rare expressive tertiary; **Canvas** is the page background verbatim; **Neutral** drives neutral surfaces and body text; **Alternate** is the second near-grey family; the four statuses are conventional signals.
 
@@ -88,7 +86,7 @@ Three rules cross every role:
 - Equal lightness reads as equal weight: give the four statuses one shared L, and do the same for Brand and Accent when they should balance.
 - Status hues never rotate with the harmony; only their L and C adapt to the mood.
 
-**The canvas carries the theme's identity, so commit to it.** The page background is the largest area on screen and the strongest difference between themes; a timid canvas makes every theme look the same. Below C 0.015 at L 0.95 a tint is imperceptible, so near-white is a choice you make for a clean or minimal intent, never a default. Three levels of commitment:
+**The canvas carries the theme's identity, so commit to it.** The page background is the largest area on screen and the strongest difference between themes; a timid canvas makes every theme look the same. Below C 0.015 at L 0.95 a tint is imperceptible, so near-white is a choice for a clean or minimal intent, never a default. The canvas sits in one of three ranges:
 
 1. *Tinted paper* (most UI intents): C 0.02 to 0.06, with L down to 0.92 where the hue needs room.
 2. *Colored ground* (expressive intents): L 0.85 to 0.92 at C 0.05 to 0.10. The page is unmistakably mint, parchment, sky.
@@ -131,16 +129,15 @@ Shadow opacity derives from Canvas lightness and re-derives on every run, so the
 
 "Warmer", "calmer", "more contrast" arrive against a theme that is already open, and the answer is a new base color file. Edit `scratch/<slug>-base-colors.json` when it is still there. When it is not, recover the ten base colors from `src/live-tokens/data/themes/<slug>.json`: each one sits verbatim at `colorsAndType.editorConfigs.<Palette>.baseColor`, in either form the file accepts, and the Canvas base color's lightness gives the scheme. Rebuild the base color file from those values, move the dial the user named, and re-run.
 
-A re-run replaces the buffer's whole color state, including palette edits made in the editor since the last run, so say so once when iterating. A Save or a `save-theme` run keeps the result.
+A re-run replaces the buffer's whole color state, including palette edits made in the editor since the last run, so say so once when iterating.
 
 One adjective moves one dial. Warmer and cooler rotate hue; calmer and louder move chroma; lighter, darker, and moodier move Canvas L and the scheme; more contrast widens the L gap between Canvas and Brand and takes chroma out of the ground rather than adding it to the garnish. Leave every base color the user did not name alone, because a refinement that re-rolls the whole palette reads as a different theme and loses the thing they liked.
 
 ## Scope
 
 Color only. Fonts, geometry, saved themes, `tokens.css`, and `fonts.css` are
-untouched: `set-colors` replaces the color state in the unsaved buffer and
-carries every other value in it forward. Save the open theme in the editor, or
-run `save-theme`, to keep the result; Adopt ships it.
+untouched: `set-colors` replaces the color state in the buffer and carries
+every other value in it forward. `save-theme` keeps the result; Adopt ships it.
 
 ## Verify
 

@@ -1,21 +1,25 @@
 ---
 name: live-tokens-set-geometry
-description: Adjust corner radius, padding, gap, and border width across live-tokens components by moving each token alias along the shipped scales. Use when the user asks for pill or capsule buttons; rounded, rounder, sharp, sharper, square, softer, or harder corners; thicker or thinner borders; or density: space it out, tighter, denser, more compact, airier, more breathing room. Also invoked by live-tokens-create-theme, which supplies the geometry intent for a whole look. Changes shape and space aliases per component, never color, fonts, or tokens.css. Not for editing a single token (use the editor) or for a whole look (see live-tokens-create-theme).
+description: Set a live-tokens theme's geometry: corner radius, padding, gap, and border width, moved per component along the shipped scales. Called with an anchor and a geometry intent by live-tokens-create-theme, or with the user's request directly. Use whenever the user asks for pill or capsule buttons; rounded, sharp, square, softer, or harder corners; thicker or thinner borders; or density: space it out, tighter, denser, airier. Changes geometry only, never color, type, or tokens.css. Not for a request that also names color or type (see live-tokens-create-theme).
 ---
 
-# Adjusting geometry
+# Setting a theme's geometry
 
-You translate the request into a small ops file; the CLI resolves each matching alias on its token ladder, writes the result into each component's unsaved buffer, and prints a report card. Never hand-edit the data tree.
+Write the request as an ops file. The CLI moves each matching alias along its scale, writes the result to each component's buffer, and prints a report. Never hand-edit the data tree.
+
+The result is on screen as soon as the run finishes. The three set skills write the same buffer, so color, type, and geometry compose in any order. When the user accepts the result, run `save-theme` to keep it as a theme. Loading a theme in the editor discards it.
 
 ## Workflow
 
-1. Read the geometry intent. When it names an anchor (a feeling, an idiom, or a genre), read `references/geometry-anchors.md` for that entry; it overrides the Idioms table below. Write the ops file to `scratch/geometry-ops.json`.
-2. Run `npx live-tokens set-geometry scratch/geometry-ops.json`. It writes `component-configs/<id>/_working.json` for every component the ops change, which is the buffer the page already runs. `--dry-run` prints the report without writing.
-3. Read the report card: every changed alias old → new, plus skips (raw value, off the ladder, already at the ladder end, pill preserved). Exit 1 means the run was rejected; the message names the offending op or the missing input, so fix it and re-run. Read where the controls landed, not only that the run succeeded: a button, badge, input, or tab padding sitting at `--space-6` is on its floor, and one that also carries `--radius-full` wants a targeted lift.
-4. Report back in a line: every alias that moved, and any skip or clamp worth naming.
-5. Offer the inverse op as the undo and say the edit is unsaved until they save the open theme.
+1. Read the geometry intent and any anchor live-tokens-create-theme passed. When either names an anchor (a feeling, an idiom, or a genre), read its entry in `references/geometry-anchors.md`; it overrides the Idioms table below.
+2. Write the ops file to `scratch/geometry-ops.json`.
+3. Run `npx live-tokens set-geometry scratch/geometry-ops.json`. It writes `component-configs/<id>/_working.json` for every component the ops change.
+4. Read the report: every changed alias, old and new, plus skips (raw value, off the scale, at the end of the scale, pill preserved). Exit 1 names the bad op or the missing input; fix it and re-run. Check where the controls landed: a button, badge, input, or tab whose padding sits at `--space-6` is on its floor, and one that also carries `--radius-full` needs a targeted lift.
+5. Reply with every alias that moved and any skip or clamp worth naming.
 
-Each run reads the LIVE config (buffer, else the open theme, else the shipped default), so "a bit more" and "back one" compound naturally.
+`--dry-run` prints the report without writing.
+
+Each run reads the live config (buffer, else the open theme, else the shipped default), so "a bit more" and "back one" compound.
 
 ## The ops file
 
@@ -31,15 +35,14 @@ Targeted, absolute:
 { "ops": [{ "target": "button", "kind": "radius", "set": "--radius-full" }] }
 ```
 
-- `name`: ignored. Buffers are fixed slots, so a name names no file, and the CLI says it dropped one. Leave it out.
-- `target` (optional): a component id (the folder names under `src/live-tokens/data/component-configs/`, which the Catalogue in **live-tokens-pick-component** also names in full). A named component targets its id: "windows" or "modals" is `dialog`, "cards" is `card`, "tabs" is `tabbar`; an unknown target is a hard error. "The UI", "everything", or no noun at all means global, so omit it.
+- `target` (optional): a component id, one of the folder names under `src/live-tokens/data/component-configs/`. "Windows" or "modals" is `dialog`, "cards" is `card`, "tabs" is `tabbar`; an unknown target is an error. "The UI", "everything", or no noun means global, so omit it.
 - `kind`: `radius | padding | gap | border-width`.
-- `set` or `shift`, exactly one of the two. `set` takes an existing token on that kind's ladder. `shift` is a whole number of steps, clamped at the ladder ends.
-- `full` (radius shifts only): admits `--radius-full` as the ladder's top rung. `set` plus `full` is an error, so a pill request is `set: "--radius-full"` with no `full` flag.
+- `set` or `shift`, one of the two. `set` takes a token on that kind's scale. `shift` is a whole number of steps, clamped at the ends of the scale.
+- `full` (radius shifts only): admits `--radius-full` as the top of the scale. A pill request is `set: "--radius-full"` with no `full` flag.
 
 ## Idioms
 
-This table covers an intent that names no anchor. When the intent names one, `references/geometry-anchors.md` has the row and it wins.
+The table covers an intent that names no anchor. An anchor's row in `references/geometry-anchors.md` wins.
 
 | The intent says | Ops |
 |---|---|
@@ -53,17 +56,17 @@ This table covers an intent that names no anchor. When the intent names one, `re
 | tighter, denser, more compact | padding and gap `shift: -1` |
 | thicker, thinner borders | border-width `shift: 1` or `-1` |
 
-A whole-look intent often arrives as a direction rather than an op. Playful, friendly, or soft is rounder and a step airier, with pill buttons when the direction is warm. Luxurious, elegant, or editorial is sharper corners, airier padding, thin borders. Technical, dense, or systematic is tighter spacing, a small radius, and square corners on containers. Calm or minimal leaves geometry alone.
+A theme intent arrives as a direction. Playful, friendly, or soft is rounder and a step airier, with pill buttons when the direction is warm. Luxurious, elegant, or editorial is sharper corners, airier padding, and thin borders. Technical, dense, or systematic is tighter spacing, a small radius, and square corners on containers. Calm or minimal leaves geometry alone.
 
-Magnitude words: "slightly" or "a bit" is 1 step, unqualified is 1 to 2, "much", "way", or "really" is 2 to 3. Mood words often mean both axes: "softer" is rounder plus airier, "compact" is tighter padding plus smaller gaps.
+Magnitude: "slightly" or "a bit" is 1 step, unqualified is 1 to 2, "much", "way", or "really" is 2 to 3. A mood word often means both axes: "softer" is rounder plus airier, "compact" is tighter padding plus smaller gaps.
 
-## Controls squeeze before containers
+## Compact containers before controls
 
-A global op spends the same number of steps everywhere, but a step costs a control far more than a container. `padding shift: -2` takes a card from a 16px inset to 10px and it is still a card. It takes a button from 8 to 4, doubled to 8px at each end, around an 18px line. The button stops reading as a button.
+A global op spends the same number of steps everywhere, but a step costs a control more than a container. `padding shift: -2` takes a card from a 16px inset to 10px and it is still a card. It takes a button from 8 to 4, doubled to 8px at each end, around an 18px line. The button stops reading as a button.
 
-So a global compaction is `shift: -1`. When the request wants more, spend the extra steps on the containers by name (`card`, `dialog`, `panel`, `collapsiblesection`, `sidenavigation`, `table`, `codesnippet`) and leave the controls alone. Loosening is not symmetric: airier is safe globally, because nothing breaks by growing.
+So a global compaction is `shift: -1`. When the request wants more, spend the extra steps on the containers by name (`card`, `dialog`, `panel`, `collapsiblesection`, `sidenavigation`, `table`, `codesnippet`) and leave the controls alone. Airier is safe globally, because nothing breaks by growing.
 
-A pill needs the room most. `--radius-full` bends the corner in over the first and last glyph, so a capsule wants more horizontal inset than a square-cornered control, never less. `--space-8` is the floor for a large-text pill, which is where compact Midnight Study sits; the roomier pill presets (Ocean, Sunset, Royal Velvet) run `--space-10` to `--space-12`. Pair the radius op with a padding `set` on the same target, placed after any global compaction so it wins outright:
+A pill needs the most room. `--radius-full` bends the corner in over the first and last glyph, so a capsule wants more horizontal inset than a square-cornered control. `--space-8` is the floor for a large-text pill, where compact Midnight Study sits; the roomier pill presets (Ocean, Sunset, Royal Velvet) run `--space-10` to `--space-12`. Pair the radius op with a padding `set` on the same target, after any global compaction so it wins:
 
 ```json
 { "ops": [
@@ -73,26 +76,26 @@ A pill needs the room most. `--radius-full` bends the corner in over the first a
 ] }
 ```
 
-## Ladders
+## Scales
 
-Radius runs `none, sm, md, lg, xl, 2xl, 3xl, 4xl`, with `full` as the gated ninth rung. Space (padding and gap) is the editor picker's subset: `0, 2, 4, 6, 8, 10, 12, 16, 20, 24, 32, 48`, so every written value stays re-editable by hand. Border width is the full `--border-width-*` scale. `set` values must be on the ladder (`--space-64` is rejected).
+Radius runs `none, sm, md, lg, xl, 2xl, 3xl, 4xl`, with `full` as the gated ninth step. Space (padding and gap) is the editor picker's subset, `0, 2, 4, 6, 8, 10, 12, 16, 20, 24, 32, 48`, so the editor can select every value the CLI writes. Border width is the full `--border-width-*` scale. `set` values must be on the scale.
 
-Content insets stop at `--space-4`. Below it the text sits against its own edge, so `--space-0` and `--space-2` are destinations a person picks on purpose, not ones a relative "tighter" hands you. Both stay available through the editor picker and through `set`. An alias already below the floor still moves up, and a shift that would push one under `--space-4` reports as clamped and writes nothing.
+Content insets stop at `--space-4`. Below it the text sits against its own edge, so `--space-0` and `--space-2` are values a person picks on purpose, through the editor picker or `set`. An alias below the floor still moves up. A shift that would push one under `--space-4` reports as clamped and writes nothing.
 
-Padding that wraps a line of type stops a rung higher, at `--space-6`. The engine spots it in the config itself: a variant that also declares a `-text-font-size` is holding text, and the components that hold text double their padding horizontally, so `--space-4` there is 4px over an 18px line and 8px at each end. No shipped default puts text below `--space-6`.
+Padding around a line of type stops at `--space-6`. A variant that declares a `-text-font-size` holds text, and components that hold text double their padding horizontally, so `--space-4` there is 4px over an 18px line and 8px at each end. No shipped default puts text below `--space-6`.
 
-The floor guards `-padding` only. Outer space is exempt, because a 2px gap between an icon and its label, or a 2px margin under a bar, is ordinary design rather than a mistake. Note that `-margin` rides the `padding` kind, so a padding op moves margins too; it just does not floor them.
+The floor guards `-padding` only. A 2px gap between an icon and its label, or a 2px margin under a bar, is ordinary design. `-margin` rides the `padding` kind, so a padding op moves margins too, without the floor.
 
-An alias sitting off the subset spends its first step reaching the rung the shift points at, so `--space-2` with `shift: 1` lands on `--space-4` rather than jumping past it.
+An alias off the subset spends its first step reaching the subset, so `--space-2` with `shift: 1` lands on `--space-4`.
 
 ## Scope
 
-Every value written is an existing token; nothing new is minted. `tokens.css`, saved themes, colors, and fonts are never touched, so any theme composes with any shape state. An adjustment is an unsaved edit: Save the open theme in the editor to keep it, and Adopt to ship it. Both stay human actions.
+Geometry only. Color, type, saved themes, and `tokens.css` are untouched: `set-geometry` writes existing tokens into each component's buffer and creates no new ones. `save-theme` keeps the result; Adopt ships it.
 
 ## Verify
 
-- The CLI exits 0 and the report card lists the changes you expected, with no surprising skips.
-- The app (dev server running) shows the new shape on each changed component.
-- Buttons still read as buttons: the label has room at both ends, and a pill has more of it than a square-cornered control had.
-- `component-configs/<id>/_working.json` exists for every component the report listed. That buffer is the whole change: it stays until the open theme is saved or another theme is loaded.
-- To revert, run the inverse ops, or load a theme in the Theme panel to discard every unsaved edit.
+- The CLI exits 0 and the report lists the expected changes, with no unexpected skips.
+- The app shows the new shape on each changed component.
+- Buttons still read as buttons: the label has room at both ends, and a pill has more than a square-cornered control.
+- `component-configs/<id>/_working.json` exists for every component the report listed.
+- To revert, run the inverse ops, or load the open theme to discard the buffer.

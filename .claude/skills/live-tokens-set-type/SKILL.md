@@ -1,23 +1,23 @@
 ---
 name: live-tokens-set-type
-description: Choose and apply a Google Fonts pairing for a live-tokens theme, binding families to the shipped --font-* stacks. Use whenever the user asks to pair fonts, pick a typeface, change or set the fonts, or describes type by voice: what font should the headings use, make the type more editorial, friendlier, more technical, more elegant, a serif for headings, a display font for this theme, less generic type, match the fonts to the theme. Also invoked by live-tokens-create-theme, which supplies the type intent for a whole look. Changes type only, never color. Not for a single token (use the editor) or for a whole look (see live-tokens-create-theme).
+description: Set a live-tokens theme's type: a Google Fonts pairing bound to the shipped --font-* stacks, each family verified for the weights it ships. Called with an anchor and a type intent by live-tokens-create-theme, or with the user's request directly. Use whenever the user asks to pair fonts, pick a typeface, or set the fonts; describes type by voice: editorial, friendlier, technical, elegant, less generic; or names a face for a role: a serif for headings, a display font. Changes type only, never color or geometry. Not for a request that also names color or geometry (see live-tokens-create-theme).
 ---
 
-# Setting a theme's fonts
+# Setting a theme's type
 
-You choose the families; the CLI verifies each against Google Fonts, builds the URL from the weights the family actually has, and writes the result into the unsaved buffer. Never hand-author font JSON and never edit the data tree directly. Google Fonts is the pool because it is freely licensable and loads by URL; other sources go in by hand through the editor's Project fonts section.
+Choose the families. The CLI verifies each against Google Fonts, builds the URL from the weights the family has, and writes the result to the buffer. Never hand-author font JSON or edit the data tree. Google Fonts is the pool because it is freely licensable and loads by URL. Other sources go in through the editor's Project fonts section.
+
+The result is on screen as soon as the run finishes. The three set skills write the same buffer, so color, type, and geometry compose in any order. When the user accepts the result, run `save-theme` to keep it as a theme. Loading a theme in the editor discards it.
 
 ## Workflow
 
-1. Read the type intent. When it names an anchor (a feeling, an idiom, or a genre), read `references/type-anchors.md` for that entry; it overrides the Voice table below. Choose the pairing with the framework here and write the pairing file to `scratch/font-pairing.json`.
-2. Run `npx live-tokens set-type scratch/font-pairing.json`. It prints each stack that moved, each family's real weights and URL, and the weights your typography tokens ask for that the family lacks.
-3. Read the report. A weight gap is a quality note: name it and offer an alternative only if it matters (a body face without 400, 700, or italic matters; a display face without 300 does not). A family not on Google Fonts fails the run; fix the spelling and re-run.
-4. Report back in a line: the two families, the form model behind each, and any weight gap worth naming.
-5. Say the type is on the page and unsaved until they save the open theme.
+1. Read the type intent and any anchor live-tokens-create-theme passed. When either names an anchor (a feeling, an idiom, or a genre), read its entry in `references/type-anchors.md`; it overrides the Voice table below.
+2. Choose the pairing and write it to `scratch/font-pairing.json`.
+3. Run `npx live-tokens set-type scratch/font-pairing.json`. It prints each stack that moved, each family's weights and URL, and the weights the typography tokens ask for that the family lacks.
+4. Read the report. Name a weight gap and offer an alternative only when it matters: a body face without 400, 700, or italic matters; a display face without 300 does not. A family not on Google Fonts fails the run; fix the spelling and re-run.
+5. Reply with the two families, the form model behind each, the matrix verdict, and any weight gap worth naming.
 
-State your reasoning when you propose the pairing: each face's form model and the matrix verdict, in one sentence, so the user can argue with the argument rather than only the result.
-
-Flags: `--dry-run` reports without writing. `--no-verify` skips the network and requires an explicit URL per family; use it only offline with a URL in hand.
+Flags: `--dry-run` reports without writing. `--no-verify` skips the network and requires a URL per family; use it only offline.
 
 ## The pairing file
 
@@ -25,17 +25,17 @@ Flags: `--dry-run` reports without writing. `--no-verify` skips the network and 
 { "display": "Fraunces", "body": "Nunito Sans" }
 ```
 
-Every slot is optional and an omitted slot is left exactly as it is. `display` is `--font-display`, `body` is `--font-sans`; `serif`, `mono` and `editorial` exist when a theme needs them. `editorial` is `--font-editorial`, the long-reading face behind the `--editorial-*` text styles: it tracks the body face until a theme repoints it, so set it only when essays and articles should not carry the body face. A slot may be `{ "name": "...", "url": "..." }` to pin an exact URL. Spell families as Google does; the CLI reports the canonical spelling back.
+Every slot is optional; an omitted slot keeps its family. `display` is `--font-display` and `body` is `--font-sans`. `serif`, `mono`, and `editorial` exist when a theme needs them. `editorial` is `--font-editorial`, the long-reading face behind the `--editorial-*` text styles. It tracks the body face until a theme repoints it, so set it only when essays and articles need a face of their own. A slot may be `{ "name": "...", "url": "..." }` to pin a URL. Spell families as Google does; the CLI reports the canonical spelling.
 
 ## Choose the body face first
 
-The body face is the anchor. It carries most of the words, and text faces survive small sizes where display faces do not. Pick it against the type intent, then pick the display face against it. A body face must have regular, bold, and italic; low to moderate stroke contrast; open apertures; and a large x-height. A face failing any of these is a display face whatever its name says. Single-weight families are fine for `display` and disqualifying for `body`.
+The body face is the anchor. It carries most of the words, and text faces survive small sizes where display faces do not. Pick it against the type intent, then pick the display face against it. A body face has regular, bold, and italic; low to moderate stroke contrast; open apertures; and a large x-height. A face missing any of these is a display face, whatever its name says.
 
-The shipped text styles ask the display face for 600, across all four heading levels, and the body face for 400; prose markup adds 700 and italic for `strong` and `em`. Screen candidates against those four before running, so the report confirms a decision instead of reporting a surprise.
+The shipped text styles ask the display face for 600 and the body face for 400; `strong` and `em` add 700 and italic. Screen candidates against those four weights before running.
 
-## The font matrix: the decision rule
+## The font matrix
 
-Classify each candidate on two layers. The **skeleton** is its form model; the **flesh** is its stroke contrast and serif treatment.
+Classify each candidate by form model and by stroke contrast and serifs.
 
 | Form model | Construction | Reads as |
 |---|---|---|
@@ -43,11 +43,11 @@ Classify each candidate on two layers. The **skeleton** is its form model; the *
 | **Rational** | vertical stress, closed apertures, drawn not written | orderly, reserved, elegant, authoritative |
 | **Geometric** | monolinear, circle-and-line | technical, modern, systematic, sober |
 
-- **Same skeleton, different flesh: reliable.** Helvetica and Bodoni are both rational, one a linear sans and one a contrasting serif.
-- **Same flesh, different skeleton: the failure case.** The two look alike on the surface and fight underneath. This is why two arbitrary sans-serifs so often clash.
-- **Far apart on both: works, deliberately.** An unmistakable difference reads as a decision.
+- One form model with different stroke contrast or serifs pairs reliably. Helvetica and Bodoni are both rational, one a linear sans and one a high-contrast serif.
+- Different form models with the same stroke contrast and serifs fail. The two look alike and fight underneath. Two arbitrary sans serifs clash for this reason.
+- Different on both counts works. An unmistakable difference reads as a decision.
 
-Many faces sit between columns. When one straddles, say so and lean on the voice table and the x-height check instead.
+Many faces sit between columns. When one straddles, say so and lean on the Voice table and the x-height check.
 
 ## Voice
 
@@ -61,33 +61,33 @@ Many faces sit between columns. When one straddles, say so and lean on the voice
 | serious, institutional, trustworthy | rational sans body, rational serif display |
 | quiet, minimal, unbranded | one superfamily across both slots |
 
-This table covers an intent that names no anchor. When the intent names one, `references/type-anchors.md` has the row and it wins.
+The table covers an intent that names no anchor. An anchor's row in `references/type-anchors.md` wins.
 
-Match the type to the same design direction the color came from. A warm autumn palette under a cold geometric sans reads as two projects.
+Match the type to the design direction the color came from. A warm autumn palette under a cold geometric sans reads as two projects.
 
 ## Shortcuts
 
-These find an adequate pairing fast and skip the reasoning; use them when the request is vague or the type should stay quiet.
+Use these when the request is vague or the type should stay quiet.
 
-- **A superfamily.** Google Fonts families with both sans and serif siblings, among them Alegreya, Ancizar, IBM Plex, Inria, Merriweather, Noto, PT, Roboto, Source. The catalogue moves and this list does not, so treat it as a starting set: `set-type` verifies every family against the API and fails loudly on one that is gone.
+- **A superfamily.** A Google Fonts family with sans and serif siblings: Alegreya, Ancizar, IBM Plex, Inria, Merriweather, Noto, PT, Roboto, Source. The catalogue moves and this list does not; `set-type` fails on a family that is gone.
 - **One family across weights.**
 - **Same designer or foundry.**
 - **Serif display over sans body** when nothing else decides it.
 
 ## Watch for
 
-- **x-height parity.** Both faces are set from one size scale, so a small-x-height display face over a large-x-height body face gives a heading that looks weaker than its own body text. This is the one visual check that matters on screen; make it on the rendered page.
+- **x-height parity.** Both faces share one size scale, so a small-x-height display face over a large-x-height body face gives a heading weaker than its own body text. Check it on the rendered page.
 - **Print faces at small sizes.** Delicate serifs and high stroke contrast turn to mud below 16px.
 - **Every family is a download.** Two is the target; three needs a reason.
-- **Sets of themes:** no two share a display face or a body face.
+- **Sets of themes.** No two share a display face or a body face.
 
 ## Scope
 
-Type only. Color, component aliases, shape, and the type scale are untouched: `set-type` moves families between stacks and nothing else, writing only the font entries in the unsaved buffer. Save the theme to keep it, Adopt to ship it. Adopt is also what rewrites `fonts.css`, which is how a build with no editor in it loads the family at all.
+Type only. Color, component aliases, shape, and the type scale are untouched: `set-type` writes the font entries in the buffer and carries every other value forward. `save-theme` keeps the result; Adopt ships it and rewrites `fonts.css`, which is how a build without the editor loads the family.
 
 ## Verify
 
 - The CLI exits 0 and names each stack that moved, before and after.
-- Each URL reflects the family's real weights: a range for a variable family, an enumeration for a static one, a bare URL for a single-weight face.
-- The app shows the new type, and the editor's Fonts section lists both families with their fallbacks intact.
-- To revert, run the inverse pairing file, or load the open theme again to discard the buffer.
+- Each URL matches the family's weights: a range for a variable family, an enumeration for a static one, a bare URL for a single-weight face.
+- The app shows the new type, and the editor's Fonts section lists both families with their fallbacks.
+- To revert, run the previous pairing file, or load the open theme to discard the buffer.
