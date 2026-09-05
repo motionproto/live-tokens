@@ -1,89 +1,88 @@
 ---
 name: live-tokens-fix-findings
-description: Bring an existing @motion-proto/live-tokens project into line with its design system by running check-page and check-component, reading the findings, and fixing each by rule until both exit 0. Use when the user asks to make the build pass, fix the design-system errors or warnings, clean up the literals, replace hex or pixel values with tokens, make a page or component themeable, or apply what a check reported. Not for the check itself (live-tokens-check-compliance reports and edits nothing), not for building a new page (live-tokens-build-page) or a new component (live-tokens-create-component), which run the same gate as their last step, and not for a single token edit (use the editor).
+description: Fix every finding of check-page and check-component in an existing @motion-proto/live-tokens project until both exit 0. Called with the fix list by live-tokens-check-compliance, or whenever the user asks to fix the project. Edits the files the checkers name, never tokens.css.
 ---
 
-# Fixing the checkers' findings
+# Fixing the findings of check-page and check-component
 
-Two checkers hold a project to its design system. `check-page` holds pages: every component comes from the catalogue and is passed only the props it declares, and every value in page CSS is a theme token. `check-component` holds authored components: every token names a semantic property and its default is the theme token that property reads. A page or component that passes repaints when the theme changes. One that fails has opted out of the system silently, and its findings say where.
-
-This skill is the loop for code that already exists. When the user has not seen the state of the project yet, **live-tokens-check-compliance** presents `npx live-tokens report` without editing; this skill edits.
+Fix every finding of `check-page` and `check-component` until both exit 0. `check-page` checks pages. Every component comes from the catalogue, every prop is declared, and every value in page CSS is a theme token. `check-component` checks authored components. Every token names a semantic property, and its default is the theme token that property reads. Never edit `tokens.css`. When live-tokens-check-compliance hands over a fix list, the user's choices in it stand.
 
 ## Workflow
 
-1. Run both checkers with `--json`. Each finding carries a stable `rule`, a file, and a line.
+When `check-page` is an unknown command, upgrade `@motion-proto/live-tokens` first.
+
+1. Run `npx live-tokens migrate --check`, then `--write`.
+2. Run both checkers with `--json`. Each finding carries a `rule`, a file, and a line.
    ```sh
-   npx live-tokens check-page --json           # every page under src/
-   npx live-tokens check-component --json      # every component authored under src/system/components
+   npx live-tokens check-page --json
+   npx live-tokens check-component --json
    ```
-   `check-page src/pages/Home.svelte` and `check-component <id>` scope a run when the user names one thing. Unknown command means the installed package predates the checkers: upgrade `@motion-proto/live-tokens`, then run `npx live-tokens migrate --check` and apply what it plans with `--write` (`--tokens <path>` for a tokens.css outside the four default locations).
-2. Group by rule. Take errors before warnings, and the rule with the most findings first, because one recipe clears the whole group.
-3. Apply that rule's recipe to every finding in the group: colour by role, geometry by scale, or the row in the table below. A component outside the catalogue hands off to **live-tokens-pick-component** for the shipped one that fits, or to **live-tokens-create-component**.
-4. Run again. New findings can appear as old ones clear: a token you reached for may not exist, or a moved import may land where a rule now sees it. Stop at exit 0.
-5. Run once with `--strict` and report what it adds, so the user can decide whether warnings are worth clearing now. Then report by rule.
+3. Group the findings by rule.
+4. Take the errors first, the rule with the most findings before the rest.
+5. Fix every finding in the group with its section: Colour by role, Geometry by scale, or The remaining rules.
+6. Run both checkers again. When a finding remains, return to step 3.
+7. Run both checkers with `--strict`. Report what `--strict` adds. Ask the user whether to clear the warnings now.
+8. When the user chooses to clear the warnings, return to step 3 with `--strict`.
+9. Reply with:
+   - the changes by rule, each with its count and any visible shift
+   - the findings left, each with its reason and any config entry the user chose
+   - both checker commands with their exit codes
 
-A project scaffolded by `create` has a `check:design` script. Give any other project one in `package.json`, `"check:design": "live-tokens check-page && live-tokens check-component"`, and once it passes, gate the build: `"build": "npm run check:design && vite build"`.
+`check-page <path>` and `check-component <id>` scope a run to one file. `--tokens <path>` names a tokens.css outside the default locations.
 
-## Three things the loop never does
+When `package.json` has no `check:design` script, add `"check:design": "live-tokens check-page && live-tokens check-component"`. When both checkers exit 0, gate the build with `"build": "npm run check:design && vite build"`.
 
-- **Silence a rule to pass.** `--off=<rule>` is for a single run while working. A severity the project wants changed goes in `live-tokens.config.json` under `"checks": { "rules": { "<rule>": "warn" } }`, with the reason in the commit, and only when the user has made that call.
-- **Mint a token.** A literal with no token behind it is remapped to the nearest existing token by role. No new `--surface-*`, `--text-*`, or `--space-*` is added to `tokens.css` to match a value the page happened to use. If nothing fits, say so and leave the finding.
-- **Change what the page looks like without saying so.** Most remaps land on the same value. When the nearest token differs, `14px` to `--space-16` or a 55% black to `--scrim`, name the shift in the report.
+## Scope
 
-## Colour by role, never by hue
+- Add no token to `tokens.css`. Map a literal with no matching token to the nearest existing token by role. When no token fits, leave the finding and say so.
+- When the user has chosen to lower a rule's severity, record it in `live-tokens.config.json` under `"checks": { "rules": { "<rule>": "warn" } }`. `--off=<rule>` silences a rule for one run only.
+- When the nearest token differs from the literal, use the token and name the shift in the report, such as `14px` to `--space-16`.
 
-`color-literal` is the finding that takes judgement. The replacement is the token for what the colour *does*, not the token nearest in hue, because the theme moves every role together and the page must move with it. `npx live-tokens tokens --family surface` prints a family's names and values (`text`, `border`, `scrim`, `tint` likewise; `--json` for data); the families are fixed.
+## Colour by role
 
-| The literal is | Token family | Notes |
+`color-literal` is a judgement finding. The replacement is the token for the role the colour plays. The theme moves every role together. `npx live-tokens tokens --family <name>` prints a family's names and values, with `--json` for data.
+
+| Literal | Token | Notes |
 | --- | --- | --- |
-| Text on a surface | `--text-primary`, `-secondary`, `-tertiary`, `-muted`, `-disabled` | The neutral scale. Family colour is `--text-accent`, `--text-success`, and so on. |
-| Light text on a dark chip over the page | `--text-inverted` | The one flip; no AA guarantee. |
-| A box's fill | `--surface-<family>-<level>` | `neutral` for chrome; `brand`, `accent`, `special` for emphasis; `info`, `success`, `warning`, `danger` for status. |
-| A stroke | `--border-<family>-<level>` | `faint`, `subtle`, base, `medium`, `strong` in the neutral family. |
-| A translucent layer that dims what is behind it | `--scrim-low`, `--scrim`, `--scrim-high` | Behind a modal, under a floating control. |
-| A translucent wash on a surface | `--tint-low`, `--tint`, `--tint-high` | Hover, an active tab, a code chip's background. |
-| Fully transparent | `--color-transparent` | Never `transparent` inside a component default. |
+| Text on a surface | `--text-primary` through `--text-disabled` | The neutral text scale. `--text-<family>` for a family colour. |
+| Light text on a dark chip | `--text-inverted` | No AA guarantee. |
+| A box's fill | `--surface-<family>-<level>` | The role names the family: `neutral` for chrome, `brand` for emphasis, `danger` for status. |
+| A stroke | `--border-<family>-<level>` | Levels run `faint` to `strong`. |
+| A translucent layer that dims what is behind it | `--scrim-low`, `--scrim`, `--scrim-high` | Behind a modal. |
+| A translucent wash on a surface | `--tint-low`, `--tint`, `--tint-high` | A hover state. |
+| Any other translucent colour | The role's token at an opacity: `color-mix(in srgb, var(--surface-brand) 80%, transparent)` | The editor reads that form. |
+| Fully transparent | `--color-transparent` | |
 | A gradient | `--gradient-*` | Or compose one from surface tokens. |
-
-A `var(--x, #fff)` fallback is not a finding. A named colour is: `white` and `rebeccapurple` are literals like any hex.
 
 ## Geometry by scale
 
-`dimension-literal` fires only on the geometry the theme owns: padding, margin, gap, border and outline widths, inset offsets, radius, and shadow. Sizing (a hero's height, a max content width, a `minmax()` floor) is layout and is never reported, so leave it.
+`dimension-literal` is a mechanical finding. A size, such as a hero's height, is layout. Leave it.
 
-| The literal is | Token | Notes |
+| Literal | Token | Notes |
 | --- | --- | --- |
-| Padding, margin, gap, an offset | `--space-<px>` | `npx live-tokens tokens --family space` prints the steps. Round to the nearest one and name the shift. |
+| Spacing | `--space-<px>` | `npx live-tokens tokens --family space` prints the steps. Round to the nearest step. |
 | A stroke width | `--border-width-1`, `-2`, `-4` | Also for `outline`. |
-| A corner | `--radius-sm` through `-4xl`, `--radius-full` | |
-| A shadow | `--shadow-sm` through `-xl` | Replace the whole value, never one offset. |
+| A corner | `--radius-sm` through `--radius-4xl`, or `--radius-full` | |
+| A shadow | `--shadow-sm` through `--shadow-xl` | Replace the whole value. |
 | Part of a `calc()` | The token inside the calc | `calc(var(--space-64) * -2 + var(--space-8))` |
+| A duration or easing | `--duration-*`, `--ease-*` | No rule reports it. Fix it while in the file. |
+| A `blur()` | `--blur-*` | No rule reports it. Fix it while in the file. |
 
-While in the file, motion values take `--duration-*` and `--ease-*` even though no rule reports them, and a `blur()` takes `--blur-*`.
-
-## Every other rule
+## The remaining rules
 
 | Rule | Fix |
 | --- | --- |
-| `unknown-token` | A typo or a rename. Search `tokens.css` for the stem. A contract-family name (`--surface-…`, `--text-…`) that is gone was renamed: `npx live-tokens migrate --check` names the migration. |
-| `raw-text-axis` | Set the whole axis set from one text style: `--heading-xl` through `-sm`, `--body-md`, `--body-sm`, `--editorial-*`, `--eyebrow`, `--code`, each carrying `-font-family`, `-font-size`, `-font-weight`, `-line-height`, `-letter-spacing`. A `font:` shorthand is rewritten the same way. `em`, `%`, and a unitless line-height are relative and fine. |
-| `unknown-component` | Not in the catalogue. Read **live-tokens-pick-component** for the shipped one that fits, or author it with **live-tokens-create-component**. |
-| `unknown-prop` | The component drops it at runtime. `npx live-tokens components <id>` prints the props it declares and the values each union accepts; map the prop to one of them or delete it. A `class` on a component that declares none does nothing. |
-| `unknown-prop-value` | Pick a value from the union the message lists. |
-| `hardcoded-columns` | `repeat(var(--columns-count), 1fr)` for the page grid; `calc(var(--columns-count) - 2)` for a sub-grid spanning fewer page columns. A two-up or three-up is a layout and is not reported. |
-| `site-css-in-main` | Delete the import from `main.ts` and add it to each page's `<script>`, so page CSS never reaches the editor routes. |
-| `missing-source` | Add `source: 'src/...'` to the route entry so Page Source can open it. |
-| `reserved-route` | Move the route out of `/live-tokens/*`; the package owns that namespace. |
-| `deep-import` | Import from `@motion-proto/live-tokens` or `/component-editor` or `/components/<Name>.svelte`, never from `/src/`. |
-| `unknown-suffix`, `state-after-property`, `disabled-is-terminal` | Rename the token. Borrow the name a shipped component uses for the same role; the vocabulary and the state model are in **live-tokens-create-component**. |
-| `color-literal`, `unknown-token-ref`, `default-not-token` (component) | The `:global(:root)` default reads a theme token, composed if needed. A structural keyword (`start`, `contain`) is declared in the editor's `intrinsics`. |
-| `phantom-editor-token`, `phantom-link` | The editor names a token the runtime never declares, or a bare font helper spans slots. Both are editor fixes; see the same skill. |
-| `invalid-id`, `missing-file`, `missing-root-block`, `no-tokens`, `missing-component-const`, `missing-all-tokens`, `missing-registration` | The component is not wired the way the recipe in **live-tokens-create-component** wires it: a lowercase id, a runtime file with a `:global(:root)` block, an editor file exporting `component` and `allTokens`, and a `bootLiveTokens` entry. |
-
-## Report
-
-Say what changed by rule, one line per rule with the count and any visible shift. Say what was left and why, with the config entry if the user chose to lower a severity. End with the two commands and their exit codes.
-
-## Verify
-
-Open `/live-tokens/editor` in dev and change a surface colour and a spacing step. Every file the loop touched should repaint. One that does not still holds a literal the checker cannot see, which is worth reporting as a gap in the checker rather than patching around.
+| `unknown-token` | Search `tokens.css` for the stem. When a contract-family name is gone, `npx live-tokens migrate --check` names the rename. |
+| `raw-text-axis` | Set every axis from one text style, `-font-family` through `-letter-spacing`. `npx live-tokens tokens --family heading` prints one style family. The families are `heading`, `body`, `editorial`, `eyebrow`, and `code`. Rewrite a `font:` shorthand the same way. |
+| `unknown-component` | Read **live-tokens-pick-component** for the shipped component that fits. When none fits, author one with **live-tokens-create-component**. |
+| `unknown-prop` | `npx live-tokens components <id>` prints the declared props and their values. Map the prop to one of them, or delete it. |
+| `unknown-prop-value` | Use a value from the union the message lists. |
+| `hardcoded-columns` | `repeat(var(--columns-count), 1fr)` for the page grid. `calc(var(--columns-count) - 2)` for a sub-grid spanning fewer columns. |
+| `site-css-in-main` | Delete the import from `main.ts`. Add it to each page's `<script>`. Page CSS then stays off the editor routes. |
+| `missing-source` | Add `source: 'src/...'` to the route entry. |
+| `reserved-route` | Move the route out of `/live-tokens/*`. |
+| `deep-import` | Import from `@motion-proto/live-tokens`, `/component-editor`, or `/components/<Name>.svelte`. |
+| `unknown-suffix`, `state-after-property`, `disabled-is-terminal` | Rename the token to the name a shipped component uses for the same role. The vocabulary and the state model are in **live-tokens-create-component**. |
+| `color-literal`, `unknown-token-ref`, `default-not-token` (component) | Make the `:global(:root)` default read a theme token, composed when needed. Declare a structural keyword, such as `start`, in the editor's `intrinsics`. |
+| `phantom-editor-token`, `phantom-link` | The editor names a token the runtime never declares, or one font helper spans several slots. Fix the editor file by the recipe in **live-tokens-create-component**. |
+| `invalid-id`, `missing-file`, `missing-root-block`, `no-tokens`, `missing-component-const`, `missing-all-tokens`, `missing-registration` | Wire the component as the recipe in **live-tokens-create-component** wires it. |
