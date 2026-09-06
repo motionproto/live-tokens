@@ -65,8 +65,8 @@
        The mask URL must stay quoted: Vite inlines these SVGs as data URIs
        holding single quotes, which an unquoted url() rejects — and a dropped
        mask paints the whole chip as a solid block. */
-    height: calc(var(--body-sm-font-size) * 1.1 + var(--heading-lg-font-size) * 1.1 + var(--space-4));
-    width: calc(var(--body-sm-font-size) * 1.1 + var(--heading-lg-font-size) * 1.1 + var(--space-4));
+    height: calc(var(--font-size-md) * 1.1 + var(--font-size-2xl) * 1.1 + var(--space-4));
+    width: calc(var(--font-size-md) * 1.1 + var(--font-size-2xl) * 1.1 + var(--space-4));
     display: block;
     background-color: var(--brand-mark-color, var(--color-white));
     -webkit-mask: var(--brand-mark-image) center / contain no-repeat;
@@ -89,11 +89,9 @@
   }
 
   .brand-caption {
-    font-family: var(--body-sm-font-family);
-    font-size: var(--body-sm-font-size);
-    font-weight: var(--body-sm-font-weight);
-    line-height: var(--body-sm-line-height);
-    letter-spacing: var(--body-sm-letter-spacing);
+    font-family: var(--font-mono);
+    font-size: var(--font-size-md);
+    letter-spacing: 0.01em;
     color: var(--text-tertiary);
   }
 
@@ -101,11 +99,9 @@
     display: inline-flex;
     align-items: baseline;
     gap: 0.25em;
-    font-family: var(--heading-lg-font-family);
-    font-size: var(--heading-lg-font-size);
-    font-weight: var(--heading-lg-font-weight);
-    line-height: var(--heading-lg-line-height);
-    letter-spacing: var(--heading-lg-letter-spacing);
+    font-family: var(--font-sans);
+    font-size: var(--font-size-2xl);
+    font-weight: var(--font-weight-medium);
     color: var(--text-primary);
     transition: color var(--duration-150, 150ms) ease;
   }
@@ -140,16 +136,16 @@
   }
 
   .compact .brand-mark {
-    height: calc(var(--body-sm-font-size) * 1.1 + var(--heading-md-font-size) * 1.1 + var(--space-2));
-    width: calc(var(--body-sm-font-size) * 1.1 + var(--heading-md-font-size) * 1.1 + var(--space-2));
+    height: calc(var(--font-size-sm) * 1.1 + var(--font-size-xl) * 1.1 + var(--space-2));
+    width: calc(var(--font-size-sm) * 1.1 + var(--font-size-xl) * 1.1 + var(--space-2));
+  }
+
+  .compact .brand-caption {
+    font-size: var(--font-size-sm);
   }
 
   .compact .brand-name {
-    font-family: var(--heading-md-font-family);
-    font-size: var(--heading-md-font-size);
-    font-weight: var(--heading-md-font-weight);
-    line-height: var(--heading-md-line-height);
-    letter-spacing: var(--heading-md-letter-spacing);
+    font-size: var(--font-size-xl);
   }
 
   @media (max-width: 960px) {

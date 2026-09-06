@@ -222,20 +222,18 @@
 
   .kit-title {
     color: var(--text-primary);
-    font-family: var(--heading-md-font-family);
-    font-size: var(--heading-md-font-size);
-    font-weight: var(--heading-md-font-weight);
-    line-height: var(--heading-md-line-height);
-    letter-spacing: var(--heading-lg-letter-spacing);
+    font-family: var(--font-sans);
+    font-size: var(--font-size-2xl);
+    font-weight: var(--font-weight-medium);
+    line-height: var(--line-height-normal);
   }
 
   .kit-body {
     padding: var(--space-12) 0 0;
-    font-family: var(--body-md-font-family);
-    font-size: var(--body-md-font-size);
-    font-weight: var(--body-md-font-weight);
-    line-height: var(--body-md-line-height);
-    letter-spacing: var(--body-md-letter-spacing);
+    font-family: var(--font-sans);
+    font-size: var(--font-size-xl);
+    line-height: var(--line-height-normal);
+    font-weight: var(--font-weight-normal);
     color: var(--text-secondary);
 
     @include slot-prose;
@@ -301,10 +299,15 @@
     font-size: var(--icon-size-4xl, 3rem);
   }
 
+  .kit-lead .kit-title {
+    font-size: var(--font-size-4xl);
+    font-weight: var(--font-weight-bold);
+  }
 
   .kit-lead .kit-body {
     grid-column: 4 / span 6;
     padding: var(--space-32) 0;
+    font-size: var(--font-size-2xl);
     color: var(--text-primary);
   }
 
@@ -365,11 +368,11 @@
 
   .stage-eyebrow {
     align-self: center;
-    font-family: var(--body-sm-font-family);
-    font-size: var(--body-sm-font-size);
-    font-weight: var(--body-sm-font-weight);
-    line-height: var(--body-sm-line-height);
-    letter-spacing: var(--body-sm-letter-spacing);
+    font-family: var(--font-sans);
+    font-size: var(--font-size-md);
+    font-weight: var(--font-weight-medium);
+    letter-spacing: var(--letter-spacing-wide);
+    text-transform: uppercase;
     color: var(--text-secondary);
   }
 
@@ -421,6 +424,7 @@
     }
     .kit-lead .kit-body {
       padding: var(--space-16) var(--space-20);
+      font-size: var(--font-size-xl);
     }
   }
 </style>

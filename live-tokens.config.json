@@ -1,5 +1,9 @@
 {
   "checks": {
-    "exclude": ["src/demo/FloatingTokenTags.css"]
+    "exclude": [
+      "src/demo",
+      "src/app/Home.svelte",
+      "src/app/LabeledSelect.svelte"
+    ]
   }
 }

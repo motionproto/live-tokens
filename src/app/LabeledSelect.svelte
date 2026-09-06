@@ -177,11 +177,10 @@
   }
 
   .labeled-select-label {
-    font-family: var(--body-sm-font-family);
-    font-size: var(--body-sm-font-size);
-    font-weight: var(--body-sm-font-weight);
-    line-height: var(--body-sm-line-height);
-    letter-spacing: var(--body-sm-letter-spacing);
+    font-family: var(--font-mono);
+    font-size: var(--font-size-md);
+    font-weight: var(--font-weight-semibold);
+    line-height: var(--line-height-normal);
     color: var(--text-secondary);
   }
 
@@ -220,10 +219,8 @@
   .error {
     max-width: 20rem;
     color: var(--text-danger);
-    font-family: var(--body-sm-font-family);
-    font-size: var(--body-sm-font-size);
-    font-weight: var(--body-sm-font-weight);
-    line-height: var(--body-sm-line-height);
-    letter-spacing: var(--body-sm-letter-spacing);
+    font-family: var(--font-sans);
+    font-size: var(--font-size-sm);
+    line-height: var(--line-height-normal);
   }
 </style>
