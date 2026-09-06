@@ -1,3 +1,8 @@
+<!--
+  Table.svelte. A themed frame around your own rows and cells.
+  Use for: records the reader scans and compares.
+  Not for: a set of things the reader acts on (Card).
+-->
 <script lang="ts">
   interface Props {
     children?: import('svelte').Snippet;

@@ -1,3 +1,11 @@
+<!--
+  Image.svelte. A framed picture in the page flow.
+  Use for: any picture the page simply shows.
+  Not for: a picture whose detail the reader must open (ImageLightbox);
+  decoration painted from page CSS.
+  Variant: `default` keeps the picture's own proportions, `banner` gives it a
+  tall frame, `medium` and `compact` shorter ones.
+-->
 <script lang="ts">
   interface Props {
     src: string;

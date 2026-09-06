@@ -1,3 +1,10 @@
+<!--
+  Notification.svelte. Feedback about something that just happened.
+  Use for: the outcome of an action or a system event, which the reader can
+  dismiss.
+  Not for: standing content in a section (Callout); a decision that blocks the
+  page (Dialog).
+-->
 <script lang="ts">
    import { createEventDispatcher } from 'svelte';
    import Button from './Button.svelte';

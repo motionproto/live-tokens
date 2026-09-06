@@ -1,3 +1,10 @@
+<!--
+  RadioButton.svelte. A form row that selects one option.
+  Use for: a choice the reader reviews as text before committing to a larger
+  form.
+  Not for: an inline switch between views (SegmentedControl); a setting that
+  takes effect at once (Toggle).
+-->
 <script lang="ts">
   import { createEventDispatcher } from 'svelte';
 

@@ -1,3 +1,10 @@
+<!--
+  Badge.svelte. A short standing label on an element.
+  Use for: status the reader takes at a glance, such as "Beta", "New", or a
+  version.
+  Not for: a marker pinned to a parent's corner (CornerBadge); feedback after
+  an action (Notification).
+-->
 <script module lang="ts">
   export const badgeVariants = [
     'primary',

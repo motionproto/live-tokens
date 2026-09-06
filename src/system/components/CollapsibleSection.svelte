@@ -1,3 +1,11 @@
+<!--
+  CollapsibleSection.svelte. A section the reader opens and closes.
+  Use for: secondary content that most readers skip.
+  Not for: content every reader needs (Card); moving between pages
+  (SideNavigation).
+  Variant: `chromeless` sits inside other content, `divider` rules a line
+  under the header, `container` frames the whole section.
+-->
 <script lang="ts">
    import { createEventDispatcher } from 'svelte';
 

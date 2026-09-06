@@ -1,3 +1,12 @@
+<!--
+  IconButton.svelte. An action carried by an icon alone.
+  Use for: an action whose meaning is plain from the glyph, such as close,
+  edit, or delete.
+  Not for: an action that needs a word (Button); the confirm-and-cancel pair
+  after an inline edit (InlineEditActions).
+  Emphasis: one primary per page; secondary for the rest; outline for a
+  tertiary action; danger for a destructive one.
+-->
 <script lang="ts">
    interface Props {
     /** Wash the hovered surface with the theme's tint. `undefined` inherits the

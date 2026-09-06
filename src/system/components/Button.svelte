@@ -1,3 +1,10 @@
+<!--
+  Button.svelte. A labelled action.
+  Use for: an action that needs a word to be unambiguous.
+  Not for: an icon-only action (IconButton); a link to another page.
+  Emphasis: one primary per page; secondary for the rest; outline for a
+  tertiary action; danger for a destructive one.
+-->
 <script lang="ts">
    import { createEventDispatcher } from 'svelte';
 

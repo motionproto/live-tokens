@@ -1,3 +1,8 @@
+<!--
+  ProgressBar.svelte. A read-out of progress against a labelled track.
+  Use for: reporting how far a task has run.
+  Not for: a number the reader sets (Slider); a standing status label (Badge).
+-->
 <script lang="ts">
   interface Props {
     value?: number;

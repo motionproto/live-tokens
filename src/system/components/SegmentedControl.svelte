@@ -1,3 +1,9 @@
+<!--
+  SegmentedControl.svelte. An inline switch between named alternatives.
+  Use for: two to four short labels that pick one view of the same data.
+  Not for: swapping the page's content area (TabBar); labels long enough to
+  wrap (RadioButton).
+-->
 <script lang="ts">
   import { createEventDispatcher } from 'svelte';
 

@@ -44,6 +44,21 @@ function project(): string {
 </style>`,
   );
   writeFileSync(
+    join(root, 'src/system/components/Dial.svelte'),
+    `<!--
+  Dial.svelte. A number chosen by turning a ring.
+  Use for: a bounded number whose position on the ring carries the
+  meaning.
+  Not for: an exact number the reader would rather type (Input).
+-->
+<script lang="ts">
+  interface Props { value?: number }
+  let { value = 0 }: Props = $props();
+</script>
+<div class="dial">{value}</div>
+<style>:global(:root) { --dial-surface: var(--surface-neutral); }</style>`,
+  );
+  writeFileSync(
     join(root, 'src/widgets/Gizmo.svelte'),
     `<script lang="ts">
   interface Props { on?: boolean }
@@ -81,6 +96,17 @@ describe('describeComponents', () => {
       { name: '--widget-surface', default: 'var(--surface-neutral)' },
       { name: '--widget-text', default: 'var(--text-primary)' },
     ]);
+  });
+
+  it('keeps a labelled line of the usage comment on its own line and joins the wrapping', () => {
+    const root = project();
+    const dial = describeComponents(loadVocabulary({ root }), { root }).find((c: { id: string }) => c.id === 'dial');
+    expect(dial.description.split('\n')).toEqual([
+      'A number chosen by turning a ring.',
+      'Use for: a bounded number whose position on the ring carries the meaning.',
+      'Not for: an exact number the reader would rather type (Input).',
+    ]);
+    expect(formatComponents([dial], { id: 'dial' })).toContain('  Not for: an exact number the reader would rather type (Input).');
   });
 
   it('lists custom components first and names an unknown id', () => {

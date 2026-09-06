@@ -1,3 +1,9 @@
+<!--
+  Panel.svelte. A stage whose height holds while its content changes.
+  Use for: a demo, preview, or live example that must not shift the page
+  around it.
+  Not for: article or grouped content (Card); a modal surface (Dialog).
+-->
 <script lang="ts">
   import type { Snippet } from 'svelte';
 

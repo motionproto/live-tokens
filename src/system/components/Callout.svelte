@@ -1,3 +1,9 @@
+<!--
+  Callout.svelte. A standing message written into a section.
+  Use for: something the reader must know about the content around it.
+  Not for: feedback after an action (Notification); a hint anchored to one
+  element (Tooltip).
+-->
 <script module lang="ts">
   export const calloutVariants = ['info', 'success', 'warning', 'danger'] as const;
   export type CalloutVariant = typeof calloutVariants[number];

@@ -1,3 +1,9 @@
+<!--
+  ImageLightbox.svelte. A picture that opens to a full view on click.
+  Use for: a screenshot, artwork, or chart whose detail is the point, and for
+  a gallery of them.
+  Not for: decoration or a picture read at a glance (Image).
+-->
 <script lang="ts">
   import { onMount, tick } from 'svelte';
   import { portal } from '../internal/portal';

@@ -1,3 +1,9 @@
+<!--
+  SideNavigation.svelte. The rail that moves between the pages of a site.
+  Use for: navigation driven by the current path.
+  Not for: switching panels inside one page (TabBar); a menu of actions
+  (MenuSelect).
+-->
 <script lang="ts">
   import { createEventDispatcher } from 'svelte';
   import CollapsibleSection from './CollapsibleSection.svelte';

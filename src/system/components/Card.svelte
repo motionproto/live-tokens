@@ -1,3 +1,9 @@
+<!--
+  Card.svelte. The default container for grouped content.
+  Use for: any block of related content the page shows inline.
+  Not for: content the reader opens on demand (CollapsibleSection); a decision
+  that blocks the page (Dialog); a stage that must not reflow (Panel).
+-->
 <script lang="ts">
   interface Props {
     icon?: string;

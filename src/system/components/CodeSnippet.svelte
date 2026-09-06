@@ -1,7 +1,8 @@
 <!--
-  CodeSnippet.svelte — code display with a copy button pinned top-right. Click
-  the button to copy `code` to the clipboard; a Tooltip-rendered confirmation
-  ("Copied") flashes briefly above the button.
+  CodeSnippet.svelte. A command or value with a copy button.
+  Use for: text the reader is meant to run or paste somewhere else.
+  Not for: prose the reader only reads (Card); a value the reader edits
+  (Input).
 -->
 <script lang="ts">
   import Tooltip from './Tooltip.svelte';

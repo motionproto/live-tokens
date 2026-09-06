@@ -1,3 +1,10 @@
+<!--
+  MenuSelect.svelte. A list of options with one checked.
+  Use for: single selection from a set too long to sit in a row, dropped from
+  a Button.
+  Not for: two to four inline alternatives (SegmentedControl); a form-style
+  list read in full (RadioButton).
+-->
 <script lang="ts">
   import { createEventDispatcher } from 'svelte';
 

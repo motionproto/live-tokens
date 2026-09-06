@@ -1,8 +1,9 @@
 <!--
-  Slider.svelte — a number chosen by position on a track. `single` moves one
-  thumb to a value; `range` moves two thumbs to a low and a high bound. Both
-  variants share the track, fill, and thumb tokens, linked in the editor so an
-  edit to one moves the other unless deliberately unlinked.
+  Slider.svelte. A number chosen by position on a track.
+  Use for: a volume, a price band, or a percentage, where the position carries
+  the meaning.
+  Not for: an exact number the reader would rather type (Input); an on/off
+  setting (Toggle).
 -->
 <script module lang="ts">
   export const sliderVariants = ['single', 'range'] as const;
@@ -118,6 +119,8 @@
 
 <style>
   :global(:root) {
+    /* SliderEditor declares the two variant sets linkable, so an editor change
+       to one moves the other until the designer unlinks it. */
     /* Single: one thumb. */
     --slider-single-track-surface: var(--surface-neutral-lowest);
     --slider-single-track-border: var(--border-neutral-subtle);

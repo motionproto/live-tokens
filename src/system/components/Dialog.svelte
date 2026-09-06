@@ -1,3 +1,10 @@
+<!--
+  Dialog.svelte. A modal window that blocks the page.
+  Use for: a decision the page cannot continue without, such as a destructive
+  confirmation or a sign-in.
+  Not for: a routine form (Card); a message that asks nothing of the reader
+  (Notification).
+-->
 <script lang="ts">
   import { createEventDispatcher, tick } from 'svelte';
   import type { Snippet } from 'svelte';

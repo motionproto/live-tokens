@@ -1,8 +1,8 @@
 <!--
-  Toggle.svelte — Cloudscape-style on/off switch. The default state is "off",
-  whose tokens carry the baseline appearance plus all geometry and label
-  typography. "On" is a state that recolors track + thumb when the toggle is
-  checked; hover and disabled layer over the active component state.
+  Toggle.svelte. An on/off switch labelled with the setting it controls.
+  Use for: a setting that takes effect the moment it flips.
+  Not for: a choice between two named alternatives (SegmentedControl); a
+  yes/no answer inside a form (RadioButton).
 -->
 <script lang="ts">
   interface Props {

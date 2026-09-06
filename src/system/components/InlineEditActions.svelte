@@ -1,3 +1,10 @@
+<!--
+  InlineEditActions.svelte. The confirm-and-cancel pair that ends an inline
+  edit.
+  Use for: the two actions that close an in-place rename or value edit.
+  Not for: the actions of a form or a dialog (Button); a lone action on a row
+  (IconButton).
+-->
 <script lang="ts">
    
 

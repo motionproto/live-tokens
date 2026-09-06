@@ -1,3 +1,10 @@
+<!--
+  Input.svelte. A text field with its label, hint, and error line.
+  Use for: an answer the page cannot list, such as a name, an amount, or a
+  search string.
+  Not for: a choice from a set the page can write down (MenuSelect); an on/off
+  setting (Toggle).
+-->
 <script lang="ts">
   import { createEventDispatcher } from 'svelte';
 

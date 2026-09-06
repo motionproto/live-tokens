@@ -7,17 +7,22 @@ import { readFileSync } from 'node:fs';
 import { relative } from 'node:path';
 import { CONTRACT_FAMILIES } from './tokenVocabulary.mjs';
 
-/** The runtime file's leading HTML comment, which is where a component says what it is for. */
+/** The runtime file's leading HTML comment, which is where a component says what
+    it is for. A labelled line (`Use for:`, `Not for:`, `Emphasis:`) opens a line
+    of the description and every other line continues the one above it, so the
+    comment wraps in the source and still reads as its four lines here. */
 function descriptionOf(source) {
   const m = source.match(/^\s*<!--([\s\S]*?)-->/);
   if (!m) return '';
-  return m[1]
-    .split('\n')
-    .map((line) => line.trim())
-    .join(' ')
-    .replace(/\s+/g, ' ')
-    .trim()
-    .replace(/^\S+\.svelte\s*[—–-]+\s*/, '');
+  const lines = [];
+  for (const raw of m[1].split('\n')) {
+    const line = raw.trim().replace(/\s+/g, ' ');
+    if (!line) continue;
+    if (lines.length && !/^[A-Z][A-Za-z ]{0,20}:/.test(line)) lines[lines.length - 1] += ` ${line}`;
+    else lines.push(line);
+  }
+  if (lines.length) lines[0] = lines[0].replace(/^\S+\.svelte\s*(?:[—–-]+|\.)\s*/, '');
+  return lines.join('\n');
 }
 
 function familyOf(name) {
@@ -78,13 +83,15 @@ export function describeTokens(vocab, { root = process.cwd() } = {}) {
   };
 }
 
+const describeLines = (c) => (c.description ? c.description.split('\n') : []);
+
 export function formatComponents(list, { id } = {}) {
   const lines = [];
   if (id) {
     const c = list.find((x) => x.id === id);
     if (!c) return `No component "${id}". Run \`live-tokens components\` for the list.`;
     lines.push(`${c.name} (${c.id}, ${c.origin}${c.registered ? '' : ', NOT registered'})  ${c.file}`);
-    if (c.description) lines.push(`  ${c.description}`);
+    for (const line of describeLines(c)) lines.push(`  ${line}`);
     if (c.props.length) {
       lines.push('  props:');
       for (const p of c.props) lines.push(`    ${p.name}${p.values ? `: ${p.values.join(' | ')}` : p.type ? `: ${p.type}` : ''}`);
@@ -96,7 +103,7 @@ export function formatComponents(list, { id } = {}) {
   for (const c of list) {
     const variants = c.variants.length ? `  variants: ${c.variants.join(', ')}` : '';
     lines.push(`${c.id.padEnd(20)} ${c.origin.padEnd(8)} ${c.name}${c.registered ? '' : '  (NOT registered)'}${variants}`);
-    if (c.description) lines.push(`${''.padEnd(29)} ${c.description}`);
+    for (const line of describeLines(c)) lines.push(`    ${line}`);
   }
   lines.push('');
   const unregistered = list.filter((c) => !c.registered).length;

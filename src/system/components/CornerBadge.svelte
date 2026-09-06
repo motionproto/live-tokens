@@ -1,3 +1,9 @@
+<!--
+  CornerBadge.svelte. A badge pinned to a corner of its parent.
+  Use for: a count or status marker anchored to the thing it describes.
+  Not for: a label in the text flow (Badge); feedback after an action
+  (Notification).
+-->
 <script module lang="ts">
   export type CornerAnchor = 'bottom-right' | 'bottom-left' | 'top-right' | 'top-left';
 </script>
