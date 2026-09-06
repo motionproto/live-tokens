@@ -1,11 +1,11 @@
 /*
- * Site Styles — global typography for the themed pages
+ * Site Styles: global typography for the themed pages
  *
  * Unscoped element selectors (h1, h2, p, a, ul li, …) consume the design
  * tokens in tokens.css and recolor with the user's theme. Loaded globally
  * from main.ts.
  *
- * Pair with: ui-editor.css (--ui-* chrome, opposite scope — neutral and
+ * Pair with: ui-editor.css (--ui-* chrome, opposite scope: neutral and
  * theme-immune; only loaded on editor pages).
  */
 
@@ -69,8 +69,10 @@ h4 {
 p {
   font-family: var(--body-md-font-family);
   font-size: var(--body-md-font-size);
-  color: var(--text-secondary);
+  font-weight: var(--body-md-font-weight);
   line-height: var(--body-md-line-height);
+  letter-spacing: var(--body-md-letter-spacing);
+  color: var(--text-secondary);
   margin: 0 0 var(--space-16);
 }
 
@@ -81,12 +83,16 @@ p:last-child {
 code {
   font-family: var(--code-font-family);
   font-size: var(--code-font-size);
+  font-weight: var(--code-font-weight);
+  letter-spacing: var(--code-letter-spacing);
 }
 
 pre {
   font-family: var(--code-font-family);
   font-size: var(--code-font-size);
+  font-weight: var(--code-font-weight);
   line-height: var(--code-line-height);
+  letter-spacing: var(--code-letter-spacing);
 }
 
 a {
@@ -113,8 +119,10 @@ ul {
 ul li {
   font-family: var(--body-md-font-family);
   font-size: var(--body-md-font-size);
-  color: var(--text-secondary);
+  font-weight: var(--body-md-font-weight);
   line-height: var(--body-md-line-height);
+  letter-spacing: var(--body-md-letter-spacing);
+  color: var(--text-secondary);
   margin-bottom: var(--space-4);
 }
 
@@ -130,8 +138,10 @@ ol {
 ol li {
   font-family: var(--body-md-font-family);
   font-size: var(--body-md-font-size);
+  font-weight: var(--body-md-font-weight);
+  line-height: var(--body-md-line-height);
+  letter-spacing: var(--body-md-letter-spacing);
   color: var(--text-secondary);
-  line-height: 1.6;
   margin-bottom: var(--space-4);
 }
 

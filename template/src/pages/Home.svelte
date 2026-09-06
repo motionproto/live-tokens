@@ -1,7 +1,7 @@
 <script lang="ts">
   // site.css carries themed page typography (bare h1/p/a rules that consume
   // theme tokens). Imported per-page, not globally, so the editor routes stay
-  // theme-immune. It's yours to edit — see src/styles/site.css.
+  // theme-immune. It's yours to edit; see src/styles/site.css.
   import '../styles/site.css';
   import Card from '@motion-proto/live-tokens/components/Card.svelte';
   import Button from '@motion-proto/live-tokens/components/Button.svelte';
@@ -45,18 +45,7 @@
     grid-column: 4 / span 6;
   }
 
-  h1 {
-    color: var(--text-primary);
-    margin: 0 0 var(--space-12);
-  }
-
-  p {
-    color: var(--text-secondary);
-    line-height: 1.6;
-  }
-
   code {
-    font-size: 0.9em;
     background: var(--surface-neutral-high);
     padding: var(--space-2) var(--space-6);
     border-radius: var(--radius-sm);
@@ -64,7 +53,7 @@
 
   .actions {
     display: flex;
-    gap: var(--space-12);
+    gap: var(--space-8);
     flex-wrap: wrap;
     margin-top: var(--space-20);
   }
