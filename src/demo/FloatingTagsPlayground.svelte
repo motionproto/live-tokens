@@ -6,7 +6,7 @@
 <main class="playground">
   <header class="meta">
     <div class="meta-eyebrow">
-      <Badge variant="neutral" size="small" icon="fas fa-flask">Iteration sandbox</Badge>
+      <Badge variant="neutral" icon="fas fa-flask">Iteration sandbox</Badge>
     </div>
     <h1>FloatingTokenTags</h1>
     <p>
@@ -46,27 +46,33 @@
   }
 
   .meta h1 {
-    font-family: var(--font-display);
-    font-size: var(--font-size-5xl);
-    font-weight: var(--font-weight-semibold);
+    font-family: var(--heading-xl-font-family);
+    font-size: var(--heading-xl-font-size);
+    font-weight: var(--heading-xl-font-weight);
+    line-height: var(--heading-xl-line-height);
+    letter-spacing: var(--heading-xl-letter-spacing);
     color: var(--text-primary);
-    line-height: 1;
     margin: 0;
   }
 
   .meta p {
-    font-family: var(--font-serif);
+    font-family: var(--editorial-md-font-family);
+    font-size: var(--editorial-md-font-size);
+    font-weight: var(--editorial-md-font-weight);
+    line-height: var(--editorial-md-line-height);
+    letter-spacing: var(--editorial-md-letter-spacing);
     font-style: italic;
     color: var(--text-secondary);
-    font-size: var(--font-size-md);
-    line-height: 1.5;
     margin: 0;
     max-width: 44rem;
   }
 
   .meta :global(code) {
-    font-family: var(--font-mono);
-    font-size: 0.9em;
+    font-family: var(--code-font-family);
+    font-size: var(--code-font-size);
+    font-weight: var(--code-font-weight);
+    line-height: var(--code-line-height);
+    letter-spacing: var(--code-letter-spacing);
     color: var(--text-primary);
     background: var(--tint-low);
     padding: var(--space-2) var(--space-6);

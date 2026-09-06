@@ -56,8 +56,11 @@
     background: var(--tint-low);
     padding: var(--space-2) var(--space-6);
     border-radius: var(--radius-sm);
-    font-family: var(--font-mono);
-    font-size: 0.88em;
+    font-family: var(--code-font-family);
+    font-size: var(--code-font-size);
+    font-weight: var(--code-font-weight);
+    line-height: var(--code-line-height);
+    letter-spacing: var(--code-letter-spacing);
     color: var(--text-primary);
   }
 
