@@ -81,28 +81,34 @@ enforces that.
 
 ### `check-page` — new (G1)
 
-`bin/check-page.mjs`, `npx live-tokens check-page [paths...]`. Ten rules:
+`bin/check-page.mjs`, `npx live-tokens check-page [paths...]`. Fourteen rules:
 
 | Rule | Default | What it catches |
 | --- | --- | --- |
 | `unknown-component` | error | An import of a component not in the catalogue |
+| `unknown-prop` | error | A prop the component does not declare |
+| `unknown-prop-value` | error | A value outside a prop's union |
 | `deep-import` | error | Reaching into `@motion-proto/live-tokens/src/...` |
 | `unknown-token` | error | `var(--x)` that resolves to nothing |
 | `color-literal` | error | hex, `rgb()`, `hsl()`, `oklch()` in page CSS |
 | `reserved-route` | error | A page route under `/live-tokens/*` |
 | `site-css-in-main` | error | `site.css` imported from `main.ts` |
+| `raw-text-axis` | error | An absolute type value or a single-axis token instead of a text-style bundle |
 | `dimension-literal` | warn | A raw px or rem outside a var fallback or media query |
 | `hardcoded-columns` | warn | `repeat(<n>, 1fr)` instead of the page grid |
-| `raw-text-axis` | warn | An absolute type value instead of a text-style bundle |
 | `missing-source` | warn | A route entry with no `source`, so Page Source cannot open it |
+| `control-size` | warn | A `size` prop on a shipped component |
+| `multiple-primary` | warn | A second `variant="primary"` Button in one page |
 
-Baseline on this repo: **0 errors, 22 warnings across 21 files** (19
-`dimension-literal`, 3 `hardcoded-columns`).
+Baseline on this repo, 2026-09-06: **87 errors, 1 warning across 19 files** (87
+`raw-text-axis`, 1 `control-size`). `src/app` and `src/demo` were written
+before both rules; `bin/check-page.test.ts` names that debt.
 
 Tuning that mattered, and that an audit should re-examine: `em` and unitless
 values are excluded from `dimension-literal` (they are relative to inherited
 type, not themeable); `var()` fallbacks are stripped before scanning; media-query
-preludes are excluded; `raw-text-axis` fires only on absolute or named values;
+preludes are excluded; `raw-text-axis` fires on an absolute or named value and
+on a single-axis token such as `--font-size-lg`, never on a text style bundle;
 `hardcoded-columns` requires the literal `, 1fr)` shape so a local two-up is not
 flagged. Each of those is a judgement call about signal versus noise.
 
