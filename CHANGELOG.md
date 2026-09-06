@@ -7,6 +7,12 @@
 - **`live-tokens-build-page` is renamed `live-tokens-create-page`.** The verb
   now matches `create-theme` and `create-component`. A project that copied the
   skill keeps the old directory until it deletes it.
+- **The `create` template matches the skill.** `Home.svelte` drops the `h1`
+  and `p` rules `site.css` already types, the `0.9em` code size, and a `1.6`
+  line-height; its two Buttons take `--space-8`. `site.css` sets all five
+  axes from one text style on `p`, list items, `code`, and `pre`, and `ol li`
+  reads `--body-md-line-height` in place of `1.6`. A project created before
+  this release keeps its copied `site.css`.
 
 ## 0.75.0 — The app follows the CLI
 
