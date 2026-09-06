@@ -1,6 +1,6 @@
 <!--
-  CornerBadge.svelte. A badge pinned to a corner of its parent.
-  Use for: a count or status marker anchored to the thing it describes.
+  CornerBadge.svelte. A badge that sits on a corner of its parent.
+  Use for: a count or status marker that sits on the thing it describes.
   Not for: a label in the text flow (Badge); feedback after an action
   (Notification).
 -->

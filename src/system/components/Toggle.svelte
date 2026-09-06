@@ -1,5 +1,5 @@
 <!--
-  Toggle.svelte. An on/off switch labelled with the setting it controls.
+  Toggle.svelte. An on/off switch that names the setting it controls.
   Use for: a setting that takes effect the moment it flips.
   Not for: a choice between two named alternatives (SegmentedControl); a
   yes/no answer inside a form (RadioButton).

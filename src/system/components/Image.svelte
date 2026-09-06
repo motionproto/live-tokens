@@ -1,8 +1,8 @@
 <!--
   Image.svelte. A framed picture in the page flow.
-  Use for: any picture the page simply shows.
+  Use for: any picture the page shows.
   Not for: a picture whose detail the reader must open (ImageLightbox);
-  decoration painted from page CSS.
+  decoration that page CSS paints.
   Variant: `default` keeps the picture's own proportions, `banner` gives it a
   tall frame, `medium` and `compact` shorter ones.
 -->

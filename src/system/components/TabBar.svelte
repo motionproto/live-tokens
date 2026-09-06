@@ -1,8 +1,8 @@
 <!--
   TabBar.svelte. Tabs that swap the content below them.
   Use for: two to seven panels the reader moves between inside one page.
-  Not for: one knob among others in a row (SegmentedControl); navigation that
-  changes the URL (SideNavigation).
+  Not for: one switch among others in a row (SegmentedControl); navigation
+  that changes the URL (SideNavigation).
 -->
 <script lang="ts">
   import { createEventDispatcher } from 'svelte';

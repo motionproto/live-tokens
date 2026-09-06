@@ -1,5 +1,5 @@
 <!--
-  IconButton.svelte. An action carried by an icon alone.
+  IconButton.svelte. An action that an icon alone carries.
   Use for: an action whose meaning is plain from the glyph, such as close,
   edit, or delete.
   Not for: an action that needs a word (Button); the confirm-and-cancel pair

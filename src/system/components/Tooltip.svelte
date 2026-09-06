@@ -1,5 +1,5 @@
 <!--
-  Tooltip.svelte. A hint anchored to an element, shown on hover or focus.
+  Tooltip.svelte. A hint that appears on an element on hover or focus.
   Use for: a definition or a shortcut the reader can do without.
   Not for: content the reader must not miss (Callout); feedback after an
   action (Notification).

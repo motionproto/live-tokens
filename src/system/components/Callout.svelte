@@ -1,7 +1,7 @@
 <!--
-  Callout.svelte. A standing message written into a section.
+  Callout.svelte. A standing message that sits inside a section.
   Use for: something the reader must know about the content around it.
-  Not for: feedback after an action (Notification); a hint anchored to one
+  Not for: feedback after an action (Notification); a hint that hangs off one
   element (Tooltip).
 -->
 <script module lang="ts">

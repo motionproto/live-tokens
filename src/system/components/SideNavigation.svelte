@@ -1,6 +1,6 @@
 <!--
   SideNavigation.svelte. The rail that moves between the pages of a site.
-  Use for: navigation driven by the current path.
+  Use for: navigation that follows the current path.
   Not for: switching panels inside one page (TabBar); a menu of actions
   (MenuSelect).
 -->

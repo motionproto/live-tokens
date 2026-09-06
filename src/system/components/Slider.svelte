@@ -1,5 +1,5 @@
 <!--
-  Slider.svelte. A number chosen by position on a track.
+  Slider.svelte. A number the reader picks by position on a track.
   Use for: a volume, a price band, or a percentage, where the position carries
   the meaning.
   Not for: an exact number the reader would rather type (Input); an on/off
