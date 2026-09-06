@@ -3923,137 +3923,122 @@ export const skillTrees: Record<string, SkillTree> = {
   },
   "check-compliance": {
     "id": "live-tokens-check-compliance",
-    "digest": "sha256:495beffadd041e80",
+    "digest": "sha256:bd4b6b454ef0f2f2",
     "title": "check-compliance",
-    "tagline": "A read-only report explains project compliance and repair cost, then hands findings to fix-findings.",
+    "tagline": "Read the project report, inspect evidence, classify findings, and hand the fix list to the repair skill.",
     "nodes": [
       {
         "id": "cc2-trig",
         "row": 0,
         "kind": "trigger",
         "title": "Review design-system compliance",
-        "desc": "The report covers migrations, components, usage, checker findings, and repair cost. fix-findings applies repairs; the editor handles single tokens.",
+        "desc": "Use when the user asks to check, audit, or review the project.",
         "lines": [
-          2,
+          3,
           3
         ],
-        "anchor": "name: live-tokens-check-compliance",
-        "anchorEnd": "description: Check an existing @motion-proto/live-tokens pro"
-      },
-      {
-        "id": "cc2-why",
-        "row": 1,
-        "kind": "step",
-        "title": "Keep the audit read-only",
-        "desc": "The command supplies every fact. The review explains each finding and estimates its repair cost.",
-        "lines": [
-          8,
-          8
-        ],
-        "anchor": "The answer to \"check this project\" is a report. Every fact i"
+        "anchor": "description: Report an existing project's adherence to @moti"
       },
       {
         "id": "cc2-run",
-        "row": 2,
+        "row": 1,
         "kind": "cli",
-        "n": "1",
         "title": "Generate the compliance report",
-        "desc": "The report reads files and exits 0 even when it finds problems.",
         "lines": [
-          12,
-          12
+          14,
+          14
         ],
-        "anchor": "Run `npx live-tokens report --json`. It always exits 0: it i",
-        "command": "npx live-tokens report --json"
+        "anchor": "Run `npx live-tokens report --json`.",
+        "command": "npx live-tokens report --json",
+        "n": "1"
       },
       {
         "id": "cc2-upgrade",
-        "row": 3,
+        "row": 2,
         "kind": "gate",
-        "title": "Upgrade to get the report command",
-        "desc": "Upgrading @motion-proto/live-tokens restores the command. The next run generates the report.",
+        "title": "Route the dependency upgrade",
+        "desc": "Invoke live-tokens-fix-findings for the dependency upgrade, then resume the audit.",
         "lines": [
           12,
           12
         ],
-        "anchor": "Run `npx live-tokens report --json`. It always exits 0: it i"
+        "anchor": "When `report` is an unknown command, route the dependency up"
       },
       {
         "id": "cc2-sections",
         "row": 3,
         "kind": "chipset",
-        "title": "Read each report section",
-        "desc": "Each section names a project fact and the repair cost for each actionable finding.",
+        "title": "Read the report sections",
         "lines": [
-          19,
-          30
+          15,
+          15
         ],
-        "anchor": "## The report's sections",
-        "anchorEnd": "| `findings.pages`, `findings.components` | Both checkers' f",
+        "anchor": "Read each section of the report with the Report sections tab",
+        "n": "2",
         "chips": [
           {
             "label": "migrations",
             "lines": [
-              23,
-              23
+              28,
+              28
             ],
             "anchor": "| `migrations` | Whether `tokens.css` is behind the installe"
           },
           {
+            "label": "findings.pages, findings.components",
+            "lines": [
+              29,
+              29
+            ],
+            "anchor": "| `findings.pages`, `findings.components` | Both checkers' f"
+          },
+          {
             "label": "components[].unread",
             "lines": [
-              24,
-              24
+              30,
+              30
             ],
-            "anchor": "| `components[].unread` | Tokens a component declares that n"
+            "anchor": "| `components[].unread` | Tokens a component declares and ne"
           },
           {
             "label": "components[].registered",
             "lines": [
-              25,
-              25
+              31,
+              31
             ],
-            "anchor": "| `components[].registered` | A component file with no `boot"
+            "anchor": "| `components[].registered` | Whether the component has a `b"
           },
           {
             "label": "components[].described",
             "lines": [
-              26,
-              26
+              32,
+              32
             ],
             "anchor": "| `components[].described` | Whether the runtime file has th"
           },
           {
             "label": "usage.byPage",
             "lines": [
-              27,
-              27
+              33,
+              33
             ],
             "anchor": "| `usage.byPage` | Which catalogue component each page rende"
           },
           {
             "label": "usage.unusedShipped",
             "lines": [
-              28,
-              28
+              34,
+              34
             ],
             "anchor": "| `usage.unusedShipped` | Shipped components no page renders"
           },
           {
-            "label": "usage.customUnregistered / usage.customUnused",
+            "label": "usage.customUnregistered, usage.customUnused",
             "lines": [
-              29,
-              29
+              35,
+              35
             ],
             "anchor": "| `usage.customUnregistered`, `usage.customUnused` | The pro"
-          },
-          {
-            "label": "findings.pages / findings.components",
-            "lines": [
-              30,
-              30
-            ],
-            "anchor": "| `findings.pages`, `findings.components` | Both checkers' f"
           }
         ]
       },
@@ -4061,209 +4046,280 @@ export const skillTrees: Record<string, SkillTree> = {
         "id": "cc2-drill-q",
         "row": 4,
         "kind": "decide",
-        "title": "Does a finding need more evidence?",
-        "desc": "A component or token-scale query supplies additional evidence for classification.",
+        "title": "Inspection details",
+        "desc": "Does the finding need component or scale details?",
         "lines": [
-          17,
-          17
+          16,
+          16
         ],
-        "anchor": "`npx live-tokens components <id>` and `npx live-tokens token"
+        "anchor": "When a finding needs component or scale details, run the mat"
       },
       {
-        "id": "cc2-drill",
+        "id": "cc2-component",
         "row": 5,
         "kind": "cli",
-        "title": "Inspect the component or scale",
-        "desc": "components <id> lists props, values, and tokens. tokens --family <name> lists one scale. Both commands accept --json.",
+        "title": "Inspect the component",
+        "lines": [
+          22,
+          22
+        ],
+        "anchor": "For one component, run `npx live-tokens components <id>`. Fo",
+        "command": "npx live-tokens components <id> --json"
+      },
+      {
+        "id": "cc2-scale",
+        "row": 5,
+        "kind": "cli",
+        "title": "Inspect the scale",
+        "lines": [
+          22,
+          22
+        ],
+        "anchor": "For one component, run `npx live-tokens components <id>`. Fo",
+        "command": "npx live-tokens tokens --family <name> --json"
+      },
+      {
+        "id": "cc2-classify",
+        "row": 7,
+        "kind": "chipset",
+        "title": "Classify the findings",
         "lines": [
           17,
           17
         ],
-        "anchor": "`npx live-tokens components <id>` and `npx live-tokens token",
-        "command": "npx live-tokens components <id> --json\nnpx live-tokens tokens --family <name> --json"
-      },
-      {
-        "id": "cc2-read",
-        "row": 6,
-        "kind": "step",
-        "n": "2",
-        "title": "Classify each fix",
-        "desc": "Mechanical fixes follow a fixed mapping; judgement calls require a semantic choice. The classification names the choice and any visible shift.",
-        "lines": [
-          32,
-          35
-        ],
-        "anchor": "## Mechanical or judgement",
-        "anchorEnd": "- **Judgement**: a colour literal mapped by the role it play"
-      },
-      {
-        "id": "cc2-deliberate-q",
-        "row": 7,
-        "kind": "decide",
-        "title": "Deliberate finding?",
-        "desc": "Overlays, project-owned layout sizes, artwork, and vendored CSS require an intent check.",
-        "lines": [
-          37,
-          39
-        ],
-        "anchor": "## Deliberate findings",
-        "anchorEnd": "A translucent overlay on an app shell, or a layout size the "
-      },
-      {
-        "id": "cc2-deliberate",
-        "row": 8,
-        "kind": "step",
-        "n": "3",
-        "title": "Name the narrowest config entry",
-        "desc": "The review names a rule-severity entry or file exclusion and identifies the narrower choice. The user controls the config change.",
-        "lines": [
-          37,
-          39
-        ],
-        "anchor": "## Deliberate findings",
-        "anchorEnd": "A translucent overlay on an app shell, or a layout size the "
-      },
-      {
-        "id": "cc2-report",
-        "row": 9,
-        "kind": "chipset",
+        "anchor": "Classify each finding as Mechanical, Judgement, or Deliberat",
         "n": "4",
-        "title": "Report six sections with counts",
-        "desc": "The summary lists files for current errors, orders fixes by the fix-findings sequence, and marks each as mechanical or judgement.",
-        "lines": [
-          41,
-          48
-        ],
-        "anchor": "## Summary",
-        "anchorEnd": "Recommended fixes, in the order **live-tokens-fix-findings**",
         "chips": [
           {
-            "label": "Pending migrations",
+            "label": "Mechanical",
+            "lines": [
+              41,
+              41
+            ],
+            "anchor": "**Mechanical.** The value determines the token, such as a sp"
+          },
+          {
+            "label": "Judgement",
+            "lines": [
+              42,
+              42
+            ],
+            "anchor": "**Judgement.** A role determines the token, such as a color "
+          },
+          {
+            "label": "Deliberate",
             "lines": [
               43,
               43
             ],
-            "anchor": "Migrations pending, and the one command that clears them."
-          },
-          {
-            "label": "Current build errors",
-            "lines": [
-              44,
-              44
-            ],
-            "anchor": "What fails the build now: errors by rule, with the files."
-          },
-          {
-            "label": "Strict warnings",
-            "lines": [
-              45,
-              45
-            ],
-            "anchor": "What the strict count adds: warnings by rule."
-          },
-          {
-            "label": "Components",
-            "lines": [
-              46,
-              46
-            ],
-            "anchor": "Components: unread tokens, unregistered, undescribed."
-          },
-          {
-            "label": "Usage",
-            "lines": [
-              47,
-              47
-            ],
-            "anchor": "Usage: what each page renders, and what is used nowhere."
-          },
-          {
-            "label": "Recommended fixes",
-            "lines": [
-              48,
-              48
-            ],
-            "anchor": "Recommended fixes, in the order **live-tokens-fix-findings**"
+            "anchor": "**Deliberate.** The finding records a decision, such as a la"
           }
         ]
       },
       {
-        "id": "cc2-done",
-        "row": 10,
-        "kind": "hand",
-        "title": "Hand off the fixes",
-        "desc": "The hand-off offers live-tokens-fix-findings for the full set or a selected subset. The audit preserves project files.",
+        "id": "cc2-deliberate-q",
+        "row": 8,
+        "kind": "decide",
+        "title": "Finding class",
+        "desc": "Does the finding require a deliberate config decision?",
         "lines": [
-          50,
-          50
+          17,
+          17
         ],
-        "anchor": "End with the hand-off: \"Run live-tokens-fix-findings to appl"
+        "anchor": "Classify each finding as Mechanical, Judgement, or Deliberat"
+      },
+      {
+        "id": "cc2-deliberate",
+        "row": 9,
+        "kind": "step",
+        "title": "Name the narrower config entry",
+        "lines": [
+          43,
+          43
+        ],
+        "anchor": "**Deliberate.** The finding records a decision, such as a la"
+      },
+      {
+        "id": "cc2-reply",
+        "row": 10,
+        "kind": "chipset",
+        "title": "Reply in report order",
+        "lines": [
+          18,
+          18
+        ],
+        "anchor": "Reply with the findings of each section in the table's order",
+        "n": "5",
+        "chips": [
+          {
+            "label": "migrations",
+            "lines": [
+              28,
+              28
+            ],
+            "anchor": "| `migrations` | Whether `tokens.css` is behind the installe"
+          },
+          {
+            "label": "findings.pages, findings.components",
+            "lines": [
+              29,
+              29
+            ],
+            "anchor": "| `findings.pages`, `findings.components` | Both checkers' f"
+          },
+          {
+            "label": "components[].unread",
+            "lines": [
+              30,
+              30
+            ],
+            "anchor": "| `components[].unread` | Tokens a component declares and ne"
+          },
+          {
+            "label": "components[].registered",
+            "lines": [
+              31,
+              31
+            ],
+            "anchor": "| `components[].registered` | Whether the component has a `b"
+          },
+          {
+            "label": "components[].described",
+            "lines": [
+              32,
+              32
+            ],
+            "anchor": "| `components[].described` | Whether the runtime file has th"
+          },
+          {
+            "label": "usage.byPage",
+            "lines": [
+              33,
+              33
+            ],
+            "anchor": "| `usage.byPage` | Which catalogue component each page rende"
+          },
+          {
+            "label": "usage.unusedShipped",
+            "lines": [
+              34,
+              34
+            ],
+            "anchor": "| `usage.unusedShipped` | Shipped components no page renders"
+          },
+          {
+            "label": "usage.customUnregistered, usage.customUnused",
+            "lines": [
+              35,
+              35
+            ],
+            "anchor": "| `usage.customUnregistered`, `usage.customUnused` | The pro"
+          }
+        ]
+      },
+      {
+        "id": "cc2-fix-list",
+        "row": 11,
+        "kind": "step",
+        "title": "List the recommended fixes",
+        "lines": [
+          19,
+          19
+        ],
+        "anchor": "List the recommended fixes, each marked with its finding cla",
+        "n": "6"
+      },
+      {
+        "id": "cc2-handoff",
+        "row": 12,
+        "kind": "hand",
+        "title": "live-tokens-fix-findings",
+        "lines": [
+          20,
+          20
+        ],
+        "anchor": "End with the hand-off: run **live-tokens-fix-findings** on t",
+        "n": "7"
       }
     ],
     "edges": [
       {
-        "from": "cc2-trig",
-        "to": "cc2-why"
+        "to": "cc2-run",
+        "from": "cc2-trig"
       },
       {
-        "from": "cc2-why",
-        "to": "cc2-run"
-      },
-      {
-        "from": "cc2-run",
         "to": "cc2-upgrade",
+        "from": "cc2-run",
         "label": "unknown command"
       },
       {
-        "from": "cc2-upgrade",
         "to": "cc2-run",
-        "label": "retry",
+        "from": "cc2-upgrade",
+        "label": "resume audit",
         "back": true
       },
       {
-        "from": "cc2-run",
         "to": "cc2-sections",
-        "label": "report ready"
+        "from": "cc2-run",
+        "label": "report"
       },
       {
-        "from": "cc2-read",
-        "to": "cc2-deliberate-q"
+        "to": "cc2-drill-q",
+        "from": "cc2-sections"
       },
       {
-        "from": "cc2-deliberate-q",
+        "to": "cc2-component",
+        "from": "cc2-drill-q",
+        "label": "component"
+      },
+      {
+        "to": "cc2-scale",
+        "from": "cc2-drill-q",
+        "label": "scale"
+      },
+      {
+        "to": "cc2-classify",
+        "from": "cc2-drill-q",
+        "label": "continue with classification"
+      },
+      {
+        "to": "cc2-classify",
+        "from": "cc2-component"
+      },
+      {
+        "to": "cc2-classify",
+        "from": "cc2-scale"
+      },
+      {
+        "to": "cc2-deliberate-q",
+        "from": "cc2-classify"
+      },
+      {
         "to": "cc2-deliberate",
-        "label": "possible exception"
-      },
-      {
         "from": "cc2-deliberate-q",
-        "to": "cc2-report",
-        "label": "ordinary finding"
+        "label": "Deliberate"
       },
       {
-        "from": "cc2-deliberate",
-        "to": "cc2-report"
+        "to": "cc2-reply",
+        "from": "cc2-deliberate-q",
+        "label": "Mechanical"
       },
       {
-        "from": "cc2-report",
-        "to": "cc2-done"
+        "to": "cc2-reply",
+        "from": "cc2-deliberate-q",
+        "label": "Judgement"
       },
       {
-        "from": "cc2-sections",
-        "to": "cc2-drill-q"
+        "to": "cc2-reply",
+        "from": "cc2-deliberate"
       },
       {
-        "from": "cc2-drill-q",
-        "to": "cc2-drill",
-        "label": "needs evidence"
+        "to": "cc2-fix-list",
+        "from": "cc2-reply"
       },
       {
-        "from": "cc2-drill-q",
-        "to": "cc2-read",
-        "label": "enough evidence"
-      },
-      {
-        "from": "cc2-drill",
-        "to": "cc2-read"
+        "to": "cc2-handoff",
+        "from": "cc2-fix-list"
       }
     ]
   },

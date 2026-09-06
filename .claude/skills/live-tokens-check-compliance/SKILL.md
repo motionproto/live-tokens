@@ -9,13 +9,15 @@ Run `npx live-tokens report`. The CLI prints a report with the sections in the R
 
 ## Workflow
 
-When `report` is an unknown command, upgrade `@motion-proto/live-tokens` first.
+When `report` is an unknown command, route the dependency upgrade to **live-tokens-fix-findings**. Resume the audit after the upgrade.
 
 1. Run `npx live-tokens report --json`.
 2. Read each section of the report with the Report sections table.
-3. Reply with the findings of each section in the table's order, each with its count.
-4. List the recommended fixes, each marked with its finding class, in the order **live-tokens-fix-findings** takes them.
-5. End with the hand-off: run **live-tokens-fix-findings** on the list, or on the subset the user chooses.
+3. When a finding needs component or scale details, run the matching inspection command below. Otherwise continue with classification.
+4. Classify each finding as Mechanical, Judgement, or Deliberate. For Deliberate findings, name the narrower config entry.
+5. Reply with the findings of each section in the table's order, each with its count.
+6. List the recommended fixes, each marked with its finding class, in the order **live-tokens-fix-findings** takes them.
+7. End with the hand-off: run **live-tokens-fix-findings** on the list, or on the subset the user chooses.
 
 For one component, run `npx live-tokens components <id>`. For one scale, run `npx live-tokens tokens --family <name>`. Both take `--json`.
 
@@ -37,5 +39,5 @@ For one component, run `npx live-tokens components <id>`. For one scale, run `np
 Every finding is one of three. Say which.
 
 - **Mechanical.** The value determines the token, such as a spacing literal and its nearest `--space-*` step. When the fix shifts a rendered value, name the shift.
-- **Judgement.** A role determines the token, such as a colour literal and the role it plays. Say what the options are. Ask the user to choose.
+- **Judgement.** A role determines the token, such as a color literal and the role it plays. Say what the options are. Ask the user to choose.
 - **Deliberate.** The finding records a decision, such as a layout size the project owns. Name the config entry that would record the decision. Leave the decision to the user. To lower a rule's severity everywhere, the entry is `"checks": { "rules": { "<rule>": "warn" } }` in `live-tokens.config.json`. To drop one file that is not a themed surface, the entry is `"checks": { "exclude": ["src/art/hero.css"] }`. The path is project-relative, and a directory covers what is under it. Prefer the narrower entry.
