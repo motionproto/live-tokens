@@ -230,7 +230,8 @@ function checkComponentUsage(code, imports, add) {
 /**
  * One finding when a page holds more than one primary Button, at the second of
  * them. Emphasis is what the variant carries, so a second primary leaves the
- * page with no single most important action.
+ * page with no single most important action. A Button with no variant is
+ * primary, the component's default.
  */
 function checkPrimaryActions(code, imports, add) {
   const primaries = [];
@@ -238,7 +239,8 @@ function checkPrimaryActions(code, imports, add) {
     if (entry.id !== 'button') continue;
     for (const m of code.matchAll(new RegExp(`<${local}(?=[\\s/>])`, 'g'))) {
       const tag = tagAttributes(code, m.index);
-      if (tag?.attrs.some((a) => a.name === 'variant' && a.value === 'primary')) primaries.push(m.index);
+      const variant = tag?.attrs.find((a) => a.name === 'variant');
+      if (tag && (variant === undefined || variant.value === 'primary')) primaries.push(m.index);
     }
   }
   if (primaries.length < 2) return;

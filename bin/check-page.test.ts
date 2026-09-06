@@ -134,6 +134,20 @@ describe('check-page component rules', () => {
     expect(rulesFor(root, one)).not.toContain('multiple-primary');
   });
 
+  it('counts a Button with no variant as primary', () => {
+    const root = fixtureRoot();
+    const bare = page(root, 'Bare.svelte', `<script>
+      import Button from '@motion-proto/live-tokens/components/Button.svelte';
+    </script>
+    <Button>Save</Button><Button>Cancel</Button>`);
+    const mixed = page(root, 'Mixed.svelte', `<script>
+      import Button from '@motion-proto/live-tokens/components/Button.svelte';
+    </script>
+    <Button>Save</Button><Button variant="secondary">Cancel</Button>`);
+    expect(rulesFor(root, bare).filter((r) => r === 'multiple-primary')).toHaveLength(1);
+    expect(rulesFor(root, mixed)).not.toContain('multiple-primary');
+  });
+
   it('reports one finding, at the second primary, counting the extras', () => {
     const root = fixtureRoot();
     const rel = page(root, 'ThreePrimary.svelte', `<script>
