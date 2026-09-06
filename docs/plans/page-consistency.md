@@ -522,6 +522,8 @@ any attribute whose name holds a colon, so nothing reports it.
 
 2026-09-06. Each gap is one of: a skill sentence (S), a decision the user
 makes (U), or closed (C). Every S proposal is stated in shipped values.
+Applied 2026-09-06 (commit "build-page closes the acceptance gaps"); the
+user took the recommendation on 5.
 
 | Gap | Class | Proposal |
 |---|---|---|

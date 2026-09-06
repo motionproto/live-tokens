@@ -21,8 +21,8 @@
       </p>
       {#if isDev}
         <div class="actions">
-          <Button on:click={() => navigate('/live-tokens/editor')}>Open Token Editor</Button>
-          <Button variant="secondary" on:click={() => navigate('/live-tokens/components')}>Components</Button>
+          <Button onclick={() => navigate('/live-tokens/editor')}>Open Token Editor</Button>
+          <Button variant="secondary" onclick={() => navigate('/live-tokens/components')}>Components</Button>
         </div>
       {/if}
     </Card>

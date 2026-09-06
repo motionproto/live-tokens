@@ -9,8 +9,8 @@ Assemble the page from shipped components at their defaults. Type the page's own
 
 ## Rules
 
-1. **Use a shipped component when one fits.** Import from `@motion-proto/live-tokens/components/<Name>.svelte`. `npx live-tokens components <id>` prints the declared props, the values each union accepts, and the usage comment. `--json` returns the same as data. The list includes the project's own components. Pass only the props a component declares. When nothing fits, read **live-tokens-pick-component**. Then author the piece with **live-tokens-create-component**.
-2. **Use a theme token for every value.** Every color, spacing, radius, stroke, and shadow in page CSS is a `var(--token)`. That holds in the `<style>` block, an inline `style=` attribute, and a `style:` directive. Sizing is layout and stays literal: a hero's height, a max content width, a column's minimum width.
+1. **Use a shipped component when one fits.** Import from `@motion-proto/live-tokens/components/<Name>.svelte`. `npx live-tokens components <id>` prints the declared props, the values each union accepts, and the usage comment. `--json` returns the same as data. The list includes the project's own components. Pass only the props a component declares. A shipped component fills its parent; to size one, size the element the page wraps it in. A native element with no chrome of its own needs no component. An `<input type="file">` behind a Button, a `<canvas>`, or an `<img>` inside a stage is one. When nothing fits, read **live-tokens-pick-component**. Then author the piece with **live-tokens-create-component**.
+2. **Use a theme token for every value.** Every color, spacing, radius, stroke, and shadow in page CSS is a `var(--token)`. That holds in the `<style>` block, an inline `style=` attribute, and a `style:` directive. Sizing is layout and stays literal: a hero's height, a max content width, a column's minimum width. A value that comes from data (a sheet's padding in pixels, a chart's scale) is not a theme value. Set it through a `{}` expression.
 
 Text inside a `Card` or a `CollapsibleSection` takes the container's type. The slot pins the axes the container owns onto nested `p`, `ul`, `ol`, and `li`. When the page owns that type, as full-bleed media does, pass `prose={false}`.
 
@@ -20,19 +20,20 @@ Text inside a `Card` or a `CollapsibleSection` takes the container's type. The s
 
 | Place | Style |
 |---|---|
-| Page title | `--heading-xl-*`, or `SectionDivider variant="md"` |
+| Page title | `h1` in `--heading-xl-*` |
 | Band or section title | `--heading-lg-*`, or `SectionDivider variant="sm"` |
 | Card or box title | the Card `title` prop |
 | Label above a group | `--body-sm-*` in `--text-secondary` |
 | Body | `--body-md-*` |
-| Secondary line, count, status | `--body-sm-*` |
+| Secondary line | `--body-sm-*` in `--text-secondary` |
+| Count, status, read-out | `--body-sm-*` in `--text-primary` |
 | Command or value | `--code-*` |
 
-A text style carries `-font-family`, `-font-size`, `-font-weight`, `-line-height`, and `-letter-spacing`. Set all five from one style. A single axis such as `--font-size-lg` or `--font-sans` never appears in page CSS. A single axis drops the family and weight the style carries, and the checker reports the axis. A weight alone, on `strong` or a list marker, is the one axis a page sets by itself. A page shows at most two weights.
+The scaffold's `site.css` types bare `h1` to `h4`, `p`, `code`, `pre`, and list items from these styles. A bare element arrives typed. Type an element only when its place differs from its tag. A text style carries `-font-family`, `-font-size`, `-font-weight`, `-line-height`, and `-letter-spacing`. Set all five from one style. A single axis such as `--font-size-lg` or `--font-sans` never appears in page CSS. A single axis drops the family and weight the style carries, and the checker reports the axis. A weight alone, on `strong` or a list marker, is the one axis a page sets by itself. A page shows at most two weights.
 
 **One size.** Omit `size` on every control and container. The shipped default is the page's size. When a component's default voice is wrong for the project, retune the component in `/live-tokens/components`. That moves every instance at once.
 
-**One primary action.** One `variant="primary"` Button per page or dialog. Every other action is `secondary`. A tertiary action is `outline`. `danger` marks a destructive action only. In a row of actions the primary sits last, on the right. Fewer than five actions are individual Buttons. Five or more collapse into a `MenuSelect` behind one Button.
+**One primary action.** One `variant="primary"` Button per page or dialog. `secondary` is every other action the task needs. `outline` is an action that undoes or leaves: Reset, Cancel, Back. `danger` destroys saved work. In a row of actions the primary sits last, on the right. Fewer than five actions are individual Buttons. Five or more collapse into a `MenuSelect` behind one Button.
 
 **Spacing by place.** Each place takes one step of the `--space-*` scale. Inside is smaller than between.
 
@@ -43,8 +44,10 @@ A text style carries `-font-family`, `-font-size`, `-font-weight`, `-line-height
 | Between fields in a form | `--space-20` |
 | Between boxes in a band | `--columns-gutter` across, `--space-24` down |
 | Between bands | `--space-16` above a hairline |
+| Page title to first band | `--space-24`, no rule |
+| Page edge | `--space-32` |
 
-The hairline does the band's separating, so the band takes less space than the boxes inside it. A band's rule is `padding-top: var(--space-16)` with `border-top: var(--border-width-1) solid var(--border-neutral)`. Card chrome does not separate bands.
+The hairline does the band's separating, so the band takes less space than the boxes inside it. A band's rule is `padding-top: var(--space-16)` with `border-top: var(--border-width-1) solid var(--border-neutral)`. The first band takes space alone; every later band takes the rule. Card chrome does not separate bands.
 
 ## Layout
 
@@ -52,7 +55,7 @@ The page shows one thing. All other content stays out of its way. Each mark that
 
 Separate elements with the smallest difference that separates them. Use space first. When space is not sufficient, add a hairline rule. When a rule is not sufficient, use a second surface. Do not stack these separators. Two heavy edges side by side make a third shape between them. A band of boxes with borders and header bars reads as a set of posters.
 
-Put each element in one of three layers, and color it from that layer. Content is `--text-primary`. A label is `--text-secondary`. Scaffolding is `--border-neutral`.
+Put each element in one of three layers, and color it from that layer. Content is `--text-primary`, or the colour `site.css` gives the element. A label is `--text-secondary`. Scaffolding is `--border-neutral`. A mark drawn over content that must stay visible on any pixel, a grid or a selection, is `--border-brand`.
 
 Show related items side by side when the width permits. Do not put them behind a toggle.
 
@@ -76,9 +79,10 @@ Never write a local `repeat(N, 1fr)` with a hardcoded count. The widths drift fr
 
 ## Containers by job
 
-- `Panel` is a stage: a canvas, a player, a preview. It pins its height so the page holds still while what it shows changes.
+- `Panel` is a stage: a canvas, a player, a preview. It pins its height so the page holds still while what it shows changes. Its `minHeight` is a literal chosen from what the stage must show at the page's width.
 - `Card` is a titled block of content. Its `title` prop is the card's title. The card's own tokens type it.
 - A box in a tool UI labels itself. Use `Card variant="bare"` and put the label in the body as `--body-sm-*` in `--text-secondary`. Leave the shipped header alone.
+- A row of fields is a flex row with `gap: var(--space-20)`. Each field's wrapper takes `flex: 1`.
 - A toolbar is a flex row of Buttons on the band's bottom edge. Group them left and right with `justify-content: space-between`, the primary last. No card around it.
 - A stacked rail sets `fullWidth` on each Button. `fullWidth` comes off in a row.
 - `MenuSelect` renders its list open. For a picker, toggle it from a Button with a trailing chevron (`icon="fa-solid fa-chevron-down" iconPosition="right"`). Position the list absolutely under the button, `top: 100%` with a `--space-*` margin.
@@ -128,7 +132,7 @@ Run **live-tokens-check-compliance**. Its report carries both checkers' findings
 
 The checker cannot see a layout. Open the page at the width it is built for and read it band by band:
 
-- Heading levels run in order with no gap.
+- Heading elements run `h1`, `h2`, `h3` with no gap.
 - No label is larger than the page's body copy.
 - The boxes in a band end on one line.
 - Every control stays inside its box. A `width: 100%` field without `box-sizing: border-box` pushes past it by its padding.
