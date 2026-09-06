@@ -222,10 +222,10 @@
 
   .kit-title {
     color: var(--text-primary);
-    font-family: var(--heading-lg-font-family);
-    font-size: var(--heading-lg-font-size);
-    font-weight: var(--heading-lg-font-weight);
-    line-height: var(--heading-lg-line-height);
+    font-family: var(--heading-md-font-family);
+    font-size: var(--heading-md-font-size);
+    font-weight: var(--heading-md-font-weight);
+    line-height: var(--heading-md-line-height);
     letter-spacing: var(--heading-lg-letter-spacing);
   }
 
@@ -301,13 +301,6 @@
     font-size: var(--icon-size-4xl, 3rem);
   }
 
-  .kit-lead .kit-title {
-    font-family: var(--heading-xl-font-family);
-    font-size: var(--heading-xl-font-size);
-    font-weight: var(--heading-xl-font-weight);
-    line-height: var(--heading-xl-line-height);
-    letter-spacing: var(--heading-xl-letter-spacing);
-  }
 
   .kit-lead .kit-body {
     grid-column: 4 / span 6;
@@ -377,7 +370,6 @@
     font-weight: var(--body-sm-font-weight);
     line-height: var(--body-sm-line-height);
     letter-spacing: var(--body-sm-letter-spacing);
-    text-transform: uppercase;
     color: var(--text-secondary);
   }
 

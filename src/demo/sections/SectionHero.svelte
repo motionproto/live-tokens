@@ -93,7 +93,6 @@
     font-weight: var(--heading-xl-font-weight);
     line-height: var(--heading-xl-line-height);
     letter-spacing: var(--heading-xl-letter-spacing);
-    font-variation-settings: 'opsz' 144, 'SOFT' 30;
     color: var(--text-primary);
     margin: 0;
   }
@@ -101,7 +100,6 @@
   .hero-italic {
     font-weight: var(--font-weight-normal);
     color: var(--text-brand);
-    font-variation-settings: 'opsz' 144, 'SOFT' 100;
     white-space: nowrap;
   }
 

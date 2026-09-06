@@ -16,11 +16,11 @@
   retunes a component's default size once, in the components editor. The
   package's own pages, the template, and the `create` starter are all clean
   under `--strict`. The starter's bulleted lists now take the `--body-md-*`
-  bundle instead of a serif at relaxed leading.
+  bundle.
 
   **Every shipped component carries a usage comment.** `npx live-tokens
-  components` prints it as the component's description, and `report` checks
-  the shipped set the way it already checks a custom component. The comment
+  components` prints it as the description. `report` checks the shipped
+  set as it checks a custom component. The comment
   names what the component is, what it is for, and what to reach for instead.
   It never mentions size.
 

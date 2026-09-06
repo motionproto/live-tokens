@@ -98,7 +98,6 @@
     font-weight: var(--body-sm-font-weight);
     line-height: var(--body-sm-line-height);
     letter-spacing: var(--body-sm-letter-spacing);
-    font-variation-settings: 'opsz' 144, 'SOFT' 100;
     color: var(--text-primary);
     text-align: right;
     padding-right: 0.4em;
