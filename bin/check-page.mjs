@@ -31,6 +31,7 @@ export const PAGE_RULES = {
   'hardcoded-columns': 'warn',
   'missing-source': 'warn',
   'control-size': 'warn',
+  'multiple-primary': 'warn',
 };
 
 // Directories that hold the system, not pages built on it.
@@ -225,6 +226,29 @@ function checkComponentUsage(code, imports, add) {
   }
 }
 
+/**
+ * One finding when a page holds more than one primary Button, at the second of
+ * them. Emphasis is what the variant carries, so a second primary leaves the
+ * page with no single most important action.
+ */
+function checkPrimaryActions(code, imports, add) {
+  const primaries = [];
+  for (const [local, entry] of imports) {
+    if (entry.id !== 'button') continue;
+    for (const m of code.matchAll(new RegExp(`<${local}(?=[\\s/>])`, 'g'))) {
+      const tag = tagAttributes(code, m.index);
+      if (tag?.attrs.some((a) => a.name === 'variant' && a.value === 'primary')) primaries.push(m.index);
+    }
+  }
+  if (primaries.length < 2) return;
+  primaries.sort((a, b) => a - b);
+  add(
+    'multiple-primary',
+    primaries[1],
+    `${primaries.length} primary Buttons in this page. Keep the most important action primary and make the other ${primaries.length - 1} secondary.`,
+  );
+}
+
 /** The object literal enclosing `index`, found by balancing braces outward. */
 function enclosingObject(text, index) {
   let depth = 0;
@@ -284,6 +308,7 @@ function checkFile(file, text, vocab, root) {
       if (local) imports.set(local, entry);
     }
     checkComponentUsage(code, imports, add);
+    checkPrimaryActions(code, imports, add);
 
     for (const m of code.matchAll(/['"](\/live-tokens[^'"]*)['"]\s*:/g)) {
       add('reserved-route', m.index, `route '${m[1]}' is inside the reserved /live-tokens/* namespace`);

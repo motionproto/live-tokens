@@ -113,6 +113,38 @@ describe('check-page component rules', () => {
     expect(findings[0].message).toContain('/live-tokens/components');
   });
 
+  it('flags a second primary Button and accepts one primary beside an IconButton', () => {
+    const root = fixtureRoot();
+    const two = page(root, 'TwoPrimary.svelte', `<script>
+      import Button from '@motion-proto/live-tokens/components/Button.svelte';
+    </script>
+    <Button variant="primary">Save</Button>
+    <Button variant="primary">Publish</Button>`);
+    const one = page(root, 'OnePrimary.svelte', `<script>
+      import Button from '@motion-proto/live-tokens/components/Button.svelte';
+      import IconButton from '@motion-proto/live-tokens/components/IconButton.svelte';
+    </script>
+    <Button variant="primary">Save</Button>
+    <Button variant="secondary">Cancel</Button>
+    <IconButton variant="primary" icon="fas fa-xmark" ariaLabel="Close" />`);
+    expect(rulesFor(root, two).filter((r) => r === 'multiple-primary')).toHaveLength(1);
+    expect(rulesFor(root, one)).not.toContain('multiple-primary');
+  });
+
+  it('reports one finding, at the second primary, counting the extras', () => {
+    const root = fixtureRoot();
+    const rel = page(root, 'ThreePrimary.svelte', `<script>
+      import Button from '@motion-proto/live-tokens/components/Button.svelte';
+    </script>
+    <Button variant="primary">Save</Button>
+    <Button variant="primary">Publish</Button>
+    <Button variant="primary">Share</Button>`);
+    const { findings } = checkPages([rel], { root });
+    expect(findings).toHaveLength(1);
+    expect(findings[0].line).toBe(5);
+    expect(findings[0].message).toContain('other 2 secondary');
+  });
+
   it('flags a route entry with no source, and accepts one with it', () => {
     const root = fixtureRoot();
     const missing = page(root, 'NoSource.svelte', `<script>
@@ -354,6 +386,41 @@ describe('the clean page and its mutations', () => {
   it('reads a custom property with a digit in its name as one declaration', () => {
     const body = edit('padding: var(--space-8);', '--local-2xl: 2rem; padding: var(--local-2xl);')(CLEAN_PAGE);
     expect(strictPage(body)).toEqual([]);
+  });
+});
+
+// The wave's gate: the page Robosprite shipped, and the same page taking the
+// shipped defaults.
+const GATE_PAGE = `<script lang="ts">
+  import Button from '@motion-proto/live-tokens/components/Button.svelte';
+</script>
+
+<div class="bar">
+  <span class="count">3 selected</span>
+  <Button variant="primary" size="small">Publish</Button>
+  <Button variant="primary" size="small">Save</Button>
+</div>
+
+<style>
+  .count { font-size: var(--font-size-lg); }
+</style>`;
+
+const GATE_PAGE_FIXED = GATE_PAGE.replace(/ size="small"/g, '')
+  .replace('variant="primary">Save', 'variant="secondary">Save')
+  .replace('var(--font-size-lg)', 'var(--body-md-font-size)');
+
+describe('the wave gate', () => {
+  it('fails on two sizes, two primaries, and a raw axis', () => {
+    expect(strictPage(GATE_PAGE).map((f: { rule: string }) => f.rule).sort()).toEqual([
+      'control-size',
+      'control-size',
+      'multiple-primary',
+      'raw-text-axis',
+    ]);
+  });
+
+  it('passes once the props are gone and the axis is a text style', () => {
+    expect(strictPage(GATE_PAGE_FIXED)).toEqual([]);
   });
 });
 
