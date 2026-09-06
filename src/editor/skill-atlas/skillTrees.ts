@@ -1597,537 +1597,655 @@ export const skillTrees: Record<string, SkillTree> = {
   },
   "pick-component": {
     "id": "live-tokens-pick-component",
-    "digest": "sha256:8a49229102d83d69",
+    "digest": "sha256:d6ecf99e668c42f8",
     "title": "pick-component",
-    "tagline": "Purpose determines the component. Similar-looking components serve different jobs.",
+    "tagline": "Run the catalogue, choose a family, and apply its test to select the component.",
     "nodes": [
       {
         "id": "pk-trig",
         "row": 0,
         "kind": "trigger",
         "title": "Choose a component for a UX need",
-        "desc": "Purpose, interaction, and content map the need to the catalogue before custom implementation.",
+        "desc": "Use when the user asks which component to use, or what the difference between two components is. Use when the user asks how to show or capture a UX outcome.",
         "lines": [
-          2,
-          8
+          3,
+          3
         ],
-        "anchor": "name: live-tokens-pick-component",
-        "anchorEnd": "This skill helps you choose between shipped components when "
+        "anchor": "description: Recommend which shipped @motion-proto/live-toke"
       },
       {
         "id": "pk-cat",
         "row": 1,
         "kind": "step",
-        "title": "Scan the catalogue",
-        "desc": "The catalogue groups 26 shipped components into six families. Slider belongs to the Input family; CodeSnippet presents commands the reader should run.",
+        "title": "Run the catalogue",
         "lines": [
-          12,
-          14
+          10,
+          12
         ],
         "anchor": "## Catalogue",
-        "anchorEnd": "Action: `Button`, `IconButton`, `InlineEditActions`. Input: "
-      },
-      {
-        "id": "pk-reg",
-        "row": 2,
-        "kind": "cli",
-        "title": "Inspect available components",
-        "desc": "The list combines shipped and registered project components. A component ID reveals its purpose, variants, props, accepted values, and token defaults.",
-        "lines": [
-          16,
-          22
-        ],
-        "anchor": "That line is the shipped set. A project can register compone",
-        "anchorEnd": "union accepts, and its tokens with defaults; `--json` return",
+        "anchorEnd": "Before choosing, run `npx live-tokens components`. The list ",
         "command": "npx live-tokens components"
       },
       {
         "id": "pk-fam",
-        "row": 3,
+        "row": 2,
         "kind": "decide",
-        "title": "Component job?",
-        "desc": "The component's primary job selects a family and its deciding question.",
+        "title": "Component purpose",
+        "desc": "Which family matches the UX need?",
         "lines": [
-          14,
-          14
+          8,
+          8
         ],
-        "anchor": "Action: `Button`, `IconButton`, `InlineEditActions`. Input: "
+        "anchor": "When more than one shipped component could fit, find the fam"
       },
       {
         "id": "pk-act",
-        "row": 4,
+        "row": 3,
         "kind": "ask",
-        "tag": "action",
-        "title": "Action content?",
-        "desc": "IconButton handles a clear icon action and requires ariaLabel. Button carries text. InlineEditActions supplies a consistent confirm-and-cancel pair.",
+        "title": "Action family",
+        "desc": "What communicates the action?",
         "lines": [
-          24,
-          31
+          14,
+          18
         ],
-        "anchor": "## Action family: Button vs IconButton",
-        "anchorEnd": "- `InlineEditActions` is the confirm-and-cancel pair that fo",
+        "anchor": "## Action family",
+        "anchorEnd": "The pair that confirms or cancels an inline edit: `InlineEdi",
         "chips": [
           {
-            "label": "Clear icon: IconButton",
+            "label": "Button",
             "lines": [
-              29,
-              29
+              16,
+              16
             ],
-            "anchor": "- `IconButton` is icon-only and square. Use it for compact, "
+            "anchor": "The action needs a word to be unambiguous: `Button`."
           },
           {
-            "label": "Needs text: Button",
+            "label": "IconButton",
             "lines": [
-              28,
-              28
+              17,
+              17
             ],
-            "anchor": "- `Button` carries a text label, optionally with a leading o"
+            "anchor": "The glyph alone is plain (close, edit, delete) and space is "
           },
           {
-            "label": "Confirm and cancel: InlineEditActions",
+            "label": "InlineEditActions",
             "lines": [
-              31,
-              31
+              18,
+              18
             ],
-            "anchor": "- `InlineEditActions` is the confirm-and-cancel pair that fo"
+            "anchor": "The pair that confirms or cancels an inline edit: `InlineEdi"
           }
         ]
       },
       {
         "id": "pk-sel",
-        "row": 4,
+        "row": 3,
         "kind": "ask",
-        "tag": "single selection",
-        "title": "Selection context?",
-        "desc": "SegmentedControl handles 2–4 inline alternatives; TabBar handles 2–7 page panels. RadioButton suits form choices or long labels. MenuSelect contains overflowing options.",
+        "title": "Single-selection family",
+        "desc": "What does the selection change, and how many options fit?",
         "lines": [
-          33,
-          47
+          20,
+          32
         ],
-        "anchor": "## Single-selection family: SegmentedControl vs TabBar vs Ra",
-        "anchorEnd": "- **Don't pick `SegmentedControl` when option labels are lon",
+        "anchor": "## Single-selection family",
+        "anchorEnd": "The URL changes: `SideNavigation`. Sections inside one page:",
         "chips": [
           {
-            "label": "Page content: TabBar",
+            "label": "SegmentedControl",
             "lines": [
-              40,
-              40
+              26,
+              26
             ],
-            "anchor": "| `TabBar`          | Switching between *tab panels* (conten"
+            "anchor": "| `SegmentedControl` | An inline switch between views of the"
           },
           {
-            "label": "Inline setting: SegmentedControl",
+            "label": "TabBar",
             "lines": [
-              39,
-              39
+              27,
+              27
             ],
-            "anchor": "| `SegmentedControl`| Inline switch between alternative *vie"
+            "anchor": "| `TabBar` | The content area below swaps. | 2 to 7 |"
           },
           {
-            "label": "Form choice: RadioButton",
+            "label": "RadioButton",
             "lines": [
-              41,
-              41
+              28,
+              28
             ],
-            "anchor": "| `RadioButton`     | Form-style selection where the user re"
+            "anchor": "| `RadioButton` | The reader reads every option as text insi"
           },
           {
-            "label": "Many options: MenuSelect",
+            "label": "MenuSelect",
             "lines": [
-              42,
-              42
+              29,
+              29
             ],
-            "anchor": "| `MenuSelect`      | A list of options, one checked; render"
+            "anchor": "| `MenuSelect` | The options would overflow a row. | any |"
           },
           {
-            "label": "Labels that wrap: RadioButton",
+            "label": "Wrapped labels",
             "lines": [
-              47,
-              47
+              31,
+              31
             ],
-            "anchor": "- **Don't pick `SegmentedControl` when option labels are lon"
+            "anchor": "When a label would wrap in a `SegmentedControl`, use `RadioB"
+          },
+          {
+            "label": "URL or section navigation",
+            "lines": [
+              32,
+              32
+            ],
+            "anchor": "The URL changes: `SideNavigation`. Sections inside one page:"
           }
         ]
       },
       {
         "id": "pk-text",
-        "row": 4,
+        "row": 3,
         "kind": "ask",
-        "tag": "text entry",
-        "title": "Answer set?",
-        "desc": "Fixed answers take selection controls; open answers take Input. Slider suits position or two bounds; numeric Input suits values users prefer to type. Input's error state holds validation messages.",
+        "title": "Text entry",
+        "desc": "Can the page list the answers?",
         "lines": [
-          49,
-          55
+          34,
+          38
         ],
-        "anchor": "## Text entry: Input vs the selection family",
-        "anchorEnd": "- Its four variants are `default`, `focused`, `disabled`, an",
+        "anchor": "## Text entry",
+        "anchorEnd": "A number where the position on a track carries the meaning (",
         "chips": [
           {
-            "label": "Short list: selection family",
+            "label": "Input",
             "lines": [
-              52,
-              52
+              36,
+              36
             ],
-            "anchor": "- The boundary is whether you can list the answers. A short "
+            "anchor": "The page cannot list the answers (a name, an amount, a searc"
           },
           {
-            "label": "Long list: MenuSelect",
+            "label": "Single-selection family",
             "lines": [
-              52,
-              52
+              37,
+              37
             ],
-            "anchor": "- The boundary is whether you can list the answers. A short "
+            "anchor": "The page can list the answers: the single-selection family."
           },
           {
-            "label": "Open-ended: Input",
+            "label": "Slider or numeric Input",
             "lines": [
-              51,
-              51
+              38,
+              38
             ],
-            "anchor": "- `Input` takes an answer the page cannot enumerate: a name,"
-          },
-          {
-            "label": "Position or two bounds: Slider",
-            "lines": [
-              53,
-              53
-            ],
-            "anchor": "- `Slider` takes a number inside a known range where the pos"
-          },
-          {
-            "label": "Binary state: Toggle",
-            "lines": [
-              54,
-              54
-            ],
-            "anchor": "- **Don't use it for on/off.** That is `Toggle`, and a one-f"
-          }
-        ]
-      },
-      {
-        "id": "pk-con",
-        "row": 4,
-        "kind": "ask",
-        "tag": "containers",
-        "title": "Container role?",
-        "desc": "Card groups content. CollapsibleSection hides secondary content. Panel fixes a stage's height. Dialog pauses page interaction for a focused task.",
-        "lines": [
-          57,
-          69
-        ],
-        "anchor": "## Container family: Card vs CollapsibleSection vs Dialog",
-        "anchorEnd": "- **Don't use `Dialog` for routine forms.** Reach for it onl",
-        "chips": [
-          {
-            "label": "Grouped content: Card",
-            "lines": [
-              66,
-              66
-            ],
-            "anchor": "- Default to `Card`. It's the workhorse. For full-bleed medi"
-          },
-          {
-            "label": "Secondary content: CollapsibleSection",
-            "lines": [
-              67,
-              67
-            ],
-            "anchor": "- Reach for `CollapsibleSection` only when the content is *l"
-          },
-          {
-            "label": "Stage: Panel",
-            "lines": [
-              68,
-              68
-            ],
-            "anchor": "- `Panel` is a stage, not a content container. It pins its o"
-          },
-          {
-            "label": "Blocking task: Dialog",
-            "lines": [
-              69,
-              69
-            ],
-            "anchor": "- **Don't use `Dialog` for routine forms.** Reach for it onl"
-          }
-        ]
-      },
-      {
-        "id": "pk-msg",
-        "row": 4,
-        "kind": "ask",
-        "tag": "messaging",
-        "title": "Message role?",
-        "desc": "Callout provides persistent content; Notification provides transient feedback. Tooltip supplements visible content. Badge sits inline; CornerBadge overlays another element.",
-        "lines": [
-          71,
-          84
-        ],
-        "anchor": "## Messaging family: Callout vs Notification vs Tooltip vs B",
-        "anchorEnd": "- `Badge` and `CornerBadge` differ only in positioning. `Cor",
-        "chips": [
-          {
-            "label": "Persistent content: Callout",
-            "lines": [
-              81,
-              81
-            ],
-            "anchor": "- `Callout` is *content*. Part of the section, written into "
-          },
-          {
-            "label": "Transient feedback: Notification",
-            "lines": [
-              82,
-              82
-            ],
-            "anchor": "- `Notification` is *feedback*. Appears in response to an ac"
-          },
-          {
-            "label": "Supplementary hint: Tooltip",
-            "lines": [
-              83,
-              83
-            ],
-            "anchor": "- `Tooltip` is for *what an element means*. **Don't use `Too"
-          },
-          {
-            "label": "Status: Badge or CornerBadge",
-            "lines": [
-              84,
-              84
-            ],
-            "anchor": "- `Badge` and `CornerBadge` differ only in positioning. `Cor"
+            "anchor": "A number where the position on a track carries the meaning ("
           }
         ]
       },
       {
         "id": "pk-bin",
-        "row": 4,
+        "row": 3,
         "kind": "ask",
-        "tag": "on or off",
-        "title": "Binary-choice context?",
-        "desc": "Toggle controls one named feature and acts immediately. SegmentedControl compares two named states. RadioButton belongs in a larger form submission.",
+        "title": "On and off",
+        "desc": "Do the two states have their own names?",
         "lines": [
-          95,
-          107
+          40,
+          50
         ],
-        "anchor": "## Toggle vs SegmentedControl vs RadioButton (for on/off)",
-        "anchorEnd": "- `Toggle` flips immediately; `RadioButton` pair is for form",
+        "anchor": "## On and off",
+        "anchorEnd": "When the two states share the feature's one name, use `Toggl",
         "chips": [
           {
-            "label": "Same name: Toggle",
+            "label": "Toggle",
             "lines": [
-              105,
-              105
+              46,
+              46
             ],
-            "anchor": "- If the off and on states share a name (the feature itself)"
+            "anchor": "| `Toggle` | A setting that takes effect at once. The label "
           },
           {
-            "label": "Distinct names: SegmentedControl",
+            "label": "SegmentedControl",
             "lines": [
-              106,
-              106
+              47,
+              47
             ],
-            "anchor": "- If the two states have different names you want users to c"
+            "anchor": "| `SegmentedControl` | Two named alternatives the reader com"
           },
           {
-            "label": "Larger form: RadioButton pair",
+            "label": "RadioButton pair",
             "lines": [
-              107,
-              107
+              48,
+              48
             ],
-            "anchor": "- `Toggle` flips immediately; `RadioButton` pair is for form"
+            "anchor": "| `RadioButton` pair | A yes or no the reader answers inside"
+          }
+        ]
+      },
+      {
+        "id": "pk-con",
+        "row": 3,
+        "kind": "ask",
+        "title": "Container family",
+        "desc": "What does the content represent?",
+        "lines": [
+          52,
+          63
+        ],
+        "anchor": "## Container family",
+        "anchorEnd": "A set of items is one `Card` per item. A routine form goes i",
+        "chips": [
+          {
+            "label": "Card",
+            "lines": [
+              58,
+              58
+            ],
+            "anchor": "| `Card` | Inline, always open | One item, or each item in a"
+          },
+          {
+            "label": "Panel",
+            "lines": [
+              59,
+              59
+            ],
+            "anchor": "| `Panel` | Inline, always open | One section of the page's "
+          },
+          {
+            "label": "CollapsibleSection",
+            "lines": [
+              60,
+              60
+            ],
+            "anchor": "| `CollapsibleSection` | Inline, opened on demand | Secondar"
+          },
+          {
+            "label": "Dialog",
+            "lines": [
+              61,
+              61
+            ],
+            "anchor": "| `Dialog` | Modal, blocks the page | A decision the page ca"
+          }
+        ]
+      },
+      {
+        "id": "pk-msg",
+        "row": 3,
+        "kind": "ask",
+        "title": "Messaging family",
+        "desc": "What causes the message, and what does it describe?",
+        "lines": [
+          65,
+          77
+        ],
+        "anchor": "## Messaging family",
+        "anchorEnd": "`Badge` and `CornerBadge` differ in position only.",
+        "chips": [
+          {
+            "label": "Callout",
+            "lines": [
+              71,
+              71
+            ],
+            "anchor": "| `Callout` | A section | Always present | No | Something th"
+          },
+          {
+            "label": "Notification",
+            "lines": [
+              72,
+              72
+            ],
+            "anchor": "| `Notification` | The system | An action or event | Yes | F"
+          },
+          {
+            "label": "Tooltip",
+            "lines": [
+              73,
+              73
+            ],
+            "anchor": "| `Tooltip` | An element | Hover or focus | On leave | A def"
+          },
+          {
+            "label": "Badge",
+            "lines": [
+              74,
+              74
+            ],
+            "anchor": "| `Badge` | An element | Always present | No | A standing la"
+          },
+          {
+            "label": "CornerBadge",
+            "lines": [
+              75,
+              75
+            ],
+            "anchor": "| `CornerBadge` | A parent's corner | Always present | No | "
           }
         ]
       },
       {
         "id": "pk-disp",
-        "row": 4,
+        "row": 3,
         "kind": "ask",
-        "tag": "display",
-        "title": "Display content?",
-        "desc": "Table presents records; Cards present actionable items. ImageLightbox reveals detail; ProgressBar reports progress; CodeSnippet offers copyable commands or values. SideNavigation changes URLs; TabBar changes panels.",
+        "title": "Display family",
+        "desc": "What does the reader inspect or use?",
         "lines": [
-          86,
-          93
+          79,
+          85
         ],
-        "anchor": "## Display family: shown, not asked",
-        "anchorEnd": "- `SectionDivider` separates sections of one page. `SideNavi",
+        "anchor": "## Display family",
+        "anchorEnd": "A titled break between the sections of one page: `SectionDiv",
         "chips": [
           {
-            "label": "Inline picture: Image",
+            "label": "Image or ImageLightbox",
             "lines": [
-              88,
-              88
+              81,
+              81
             ],
-            "anchor": "- `Image` frames a picture in the flow at one of four sizes,"
+            "anchor": "A picture the page shows: `Image`. A picture whose detail th"
           },
           {
-            "label": "Detailed picture: ImageLightbox",
+            "label": "Table or Card",
             "lines": [
-              89,
-              89
+              82,
+              82
             ],
-            "anchor": "- `ImageLightbox` adds click-to-open at full size and takes "
+            "anchor": "Records the reader scans and compares: `Table`. A set of ite"
           },
           {
-            "label": "Records: Table",
+            "label": "ProgressBar or Slider",
             "lines": [
-              90,
-              90
+              83,
+              83
             ],
-            "anchor": "- `Table` themes your own rows and cells without owning the "
+            "anchor": "A read-out of progress: `ProgressBar`. A number the reader s"
           },
           {
-            "label": "Progress readout: ProgressBar",
+            "label": "CodeSnippet or prose",
             "lines": [
-              91,
-              91
+              84,
+              84
             ],
-            "anchor": "- `ProgressBar` reports progress against a labelled track. I"
+            "anchor": "Text the reader runs or pastes (an install command, a key, a"
           },
           {
-            "label": "Copyable command or value: CodeSnippet",
+            "label": "SectionDivider or SideNavigation",
             "lines": [
-              92,
-              92
+              85,
+              85
             ],
-            "anchor": "- `CodeSnippet` is for a single-line command or value the re"
-          },
-          {
-            "label": "Sections: SectionDivider; URLs: SideNavigation",
-            "lines": [
-              93,
-              93
-            ],
-            "anchor": "- `SectionDivider` separates sections of one page. `SideNavi"
+            "anchor": "A titled break between the sections of one page: `SectionDiv"
           }
         ]
       },
       {
         "id": "pk-fits",
-        "row": 5,
+        "row": 4,
         "kind": "decide",
-        "title": "Does anything in the catalogue fit?",
-        "desc": "A catalogue fit limits maintenance. A catalogue gap warrants a custom component.",
+        "title": "Catalogue fit",
+        "desc": "Does a catalogue component or native element fit, or does the task need a new component with chrome?",
         "lines": [
-          109,
-          111
+          87,
+          91
         ],
-        "anchor": "---",
-        "anchorEnd": "If nothing in the catalogue fits (a `DatePicker`, a `Stepper"
+        "anchor": "## Nothing fits",
+        "anchorEnd": "`npx live-tokens components <id>` prints one component's usa"
       },
       {
-        "id": "pk-place",
-        "row": 6,
-        "kind": "hand",
-        "title": "Continue with create-page",
-        "desc": "The page uses the selected component.",
+        "id": "pk-inspect",
+        "row": 5,
+        "kind": "cli",
+        "title": "Inspect the component contract",
         "lines": [
-          10,
-          10
+          91,
+          91
         ],
-        "anchor": "For composing a page once you've picked components, see **li"
+        "anchor": "`npx live-tokens components <id>` prints one component's usa",
+        "command": "npx live-tokens components <id> --json"
+      },
+      {
+        "id": "pk-native",
+        "row": 5,
+        "kind": "step",
+        "title": "Use the native element",
+        "lines": [
+          89,
+          89
+        ],
+        "anchor": "A native element with no chrome of its own needs no componen"
       },
       {
         "id": "pk-make",
+        "row": 5,
+        "kind": "hand",
+        "title": "live-tokens-create-component",
+        "lines": [
+          89,
+          89
+        ],
+        "anchor": "A native element with no chrome of its own needs no componen"
+      },
+      {
+        "id": "pk-page",
         "row": 6,
         "kind": "hand",
-        "title": "Continue with create-component",
-        "desc": "The custom path builds a token-driven DatePicker, Stepper, or other uncovered need.",
+        "title": "live-tokens-create-page",
+        "desc": "Continue with size, emphasis, and page layout.",
         "lines": [
-          111,
-          111
+          89,
+          89
         ],
-        "anchor": "If nothing in the catalogue fits (a `DatePicker`, a `Stepper"
+        "anchor": "A native element with no chrome of its own needs no componen"
       }
     ],
     "edges": [
       {
-        "from": "pk-trig",
-        "to": "pk-cat"
+        "to": "pk-cat",
+        "from": "pk-trig"
       },
       {
-        "from": "pk-cat",
-        "to": "pk-reg"
+        "to": "pk-fam",
+        "from": "pk-cat"
       },
       {
-        "from": "pk-fam",
         "to": "pk-act",
-        "label": "action"
+        "from": "pk-fam",
+        "label": "Action family"
       },
       {
+        "to": "pk-fits",
         "from": "pk-act",
-        "to": "pk-fits"
+        "label": "Button"
       },
       {
-        "from": "pk-fam",
+        "to": "pk-fits",
+        "from": "pk-act",
+        "label": "IconButton"
+      },
+      {
+        "to": "pk-fits",
+        "from": "pk-act",
+        "label": "InlineEditActions"
+      },
+      {
         "to": "pk-sel",
-        "label": "selection"
+        "from": "pk-fam",
+        "label": "Single-selection family"
       },
       {
+        "to": "pk-fits",
         "from": "pk-sel",
-        "to": "pk-fits"
+        "label": "SegmentedControl"
       },
       {
-        "from": "pk-fam",
-        "to": "pk-con",
-        "label": "container"
+        "to": "pk-fits",
+        "from": "pk-sel",
+        "label": "TabBar"
       },
       {
-        "from": "pk-con",
-        "to": "pk-fits"
+        "to": "pk-fits",
+        "from": "pk-sel",
+        "label": "RadioButton"
       },
       {
-        "from": "pk-fam",
-        "to": "pk-msg",
-        "label": "message"
+        "to": "pk-fits",
+        "from": "pk-sel",
+        "label": "MenuSelect"
       },
       {
-        "from": "pk-msg",
-        "to": "pk-fits"
+        "to": "pk-fits",
+        "from": "pk-sel",
+        "label": "RadioButton"
       },
       {
-        "from": "pk-fam",
-        "to": "pk-bin",
-        "label": "on/off"
+        "to": "pk-fits",
+        "from": "pk-sel",
+        "label": "SideNavigation or TabBar"
       },
       {
-        "from": "pk-bin",
-        "to": "pk-fits"
-      },
-      {
-        "from": "pk-fits",
-        "to": "pk-place",
-        "label": "catalogue fit"
-      },
-      {
-        "from": "pk-fits",
-        "to": "pk-make",
-        "label": "catalogue gap"
-      },
-      {
-        "from": "pk-fam",
         "to": "pk-text",
-        "label": "text entry"
-      },
-      {
-        "from": "pk-text",
-        "to": "pk-fits"
-      },
-      {
         "from": "pk-fam",
+        "label": "Text entry"
+      },
+      {
+        "to": "pk-fits",
+        "from": "pk-text",
+        "label": "Input"
+      },
+      {
+        "to": "pk-fits",
+        "from": "pk-text",
+        "label": "Single-selection family"
+      },
+      {
+        "to": "pk-fits",
+        "from": "pk-text",
+        "label": "Slider or numeric Input"
+      },
+      {
+        "to": "pk-bin",
+        "from": "pk-fam",
+        "label": "On and off"
+      },
+      {
+        "to": "pk-fits",
+        "from": "pk-bin",
+        "label": "Toggle"
+      },
+      {
+        "to": "pk-fits",
+        "from": "pk-bin",
+        "label": "SegmentedControl"
+      },
+      {
+        "to": "pk-fits",
+        "from": "pk-bin",
+        "label": "RadioButton pair"
+      },
+      {
+        "to": "pk-con",
+        "from": "pk-fam",
+        "label": "Container family"
+      },
+      {
+        "to": "pk-fits",
+        "from": "pk-con",
+        "label": "Card"
+      },
+      {
+        "to": "pk-fits",
+        "from": "pk-con",
+        "label": "Panel"
+      },
+      {
+        "to": "pk-fits",
+        "from": "pk-con",
+        "label": "CollapsibleSection"
+      },
+      {
+        "to": "pk-fits",
+        "from": "pk-con",
+        "label": "Dialog"
+      },
+      {
+        "to": "pk-msg",
+        "from": "pk-fam",
+        "label": "Messaging family"
+      },
+      {
+        "to": "pk-fits",
+        "from": "pk-msg",
+        "label": "Callout"
+      },
+      {
+        "to": "pk-fits",
+        "from": "pk-msg",
+        "label": "Notification"
+      },
+      {
+        "to": "pk-fits",
+        "from": "pk-msg",
+        "label": "Tooltip"
+      },
+      {
+        "to": "pk-fits",
+        "from": "pk-msg",
+        "label": "Badge"
+      },
+      {
+        "to": "pk-fits",
+        "from": "pk-msg",
+        "label": "CornerBadge"
+      },
+      {
         "to": "pk-disp",
-        "label": "display"
+        "from": "pk-fam",
+        "label": "Display family"
       },
       {
+        "to": "pk-fits",
         "from": "pk-disp",
-        "to": "pk-fits"
+        "label": "Image or ImageLightbox"
       },
       {
-        "from": "pk-reg",
-        "to": "pk-fam"
+        "to": "pk-fits",
+        "from": "pk-disp",
+        "label": "Table or Card"
+      },
+      {
+        "to": "pk-fits",
+        "from": "pk-disp",
+        "label": "ProgressBar or Slider"
+      },
+      {
+        "to": "pk-fits",
+        "from": "pk-disp",
+        "label": "CodeSnippet or prose"
+      },
+      {
+        "to": "pk-fits",
+        "from": "pk-disp",
+        "label": "SectionDivider or SideNavigation"
+      },
+      {
+        "to": "pk-inspect",
+        "from": "pk-fits",
+        "label": "catalogue component"
+      },
+      {
+        "to": "pk-native",
+        "from": "pk-fits",
+        "label": "native element"
+      },
+      {
+        "to": "pk-make",
+        "from": "pk-fits",
+        "label": "nothing in the catalogue fits"
+      },
+      {
+        "to": "pk-page",
+        "from": "pk-inspect"
+      },
+      {
+        "to": "pk-page",
+        "from": "pk-native"
       }
     ]
   },

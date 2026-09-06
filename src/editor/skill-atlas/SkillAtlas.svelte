@@ -8,6 +8,7 @@
   import TreeNodeCard from './TreeNodeCard.svelte';
   import { SKILL_DOC, skillDocs } from './skillSources';
   import { skillTrees } from './skillTrees';
+  import { mergeParallelEdges } from './edges';
   import type { Edge, LineRange, Selection, TreeNode } from './types';
 
   // `/skills#set-type` opens that skill, so a link can hand someone one tree
@@ -344,7 +345,7 @@
     }
     const all = [...boxes.values()];
 
-    const edges = tree.edges as Edge[];
+    const edges = mergeParallelEdges(tree.edges);
     const children = new Map<string, Edge[]>();
     const parents = new Map<string, Edge[]>();
     for (const edge of edges) {
@@ -506,7 +507,9 @@
                 text-anchor="middle"
                 dominant-baseline="central"
               >
-                {label.text}
+                {#each label.text.split('\n') as answer, j}
+                  <tspan x={label.x} dy={j === 0 ? `${-(label.text.split('\n').length - 1) * 0.6}em` : '1.2em'}>{answer}</tspan>
+                {/each}
               </text>
             {/each}
           </svg>

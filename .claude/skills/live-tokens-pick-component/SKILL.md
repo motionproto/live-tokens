@@ -1,6 +1,6 @@
 ---
 name: live-tokens-pick-component
-description: Recommend which shipped @motion-proto/live-tokens component fits a UX need, with a decision test for each confusable family. Called by live-tokens-create-page when more than one component could fit, and by live-tokens-create-component before it authors anything. Use when the user asks which component to use, or what the difference between two components is. Use when the user asks how to show or capture a UX outcome. Edits no file. For size, emphasis, or placement, read live-tokens-create-page.
+description: Recommend which shipped @motion-proto/live-tokens component fits a UX need, with a decision test for each confusable family. Called by live-tokens-create-page when more than one component could fit, and by live-tokens-create-component before it authors anything. Use when the user asks which component to use, or what the difference between two components is. Use when the user asks how to show or capture a UX outcome. Edits no file. For size, emphasis, or placement, read live-tokens-create-page. When the catalogue lacks a component with chrome, read live-tokens-create-component.
 ---
 
 # Picking a live-tokens component
