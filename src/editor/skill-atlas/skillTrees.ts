@@ -2251,531 +2251,878 @@ export const skillTrees: Record<string, SkillTree> = {
   },
   "create-page": {
     "id": "live-tokens-create-page",
-    "digest": "sha256:6bb7df43ef2c7de4",
+    "digest": "sha256:334a7506f185d60f",
     "title": "create-page",
-    "tagline": "Catalogue components cover established needs. Theme tokens drive every theme-owned value.",
+    "tagline": "Use the component and token contracts, choose a layout, wire the route, and verify the page.",
     "nodes": [
       {
-        "id": "bp-trig",
+        "id": "cp-trig",
         "row": 0,
         "kind": "trigger",
-        "title": "Build a page, route, or screen",
-        "desc": "The page combines catalogue components and theme tokens, then adds routing and repaint verification.",
+        "title": "Create a page or route",
+        "desc": "Use when the user asks for a page or a route. Use when the user asks to change the layout of a page.",
         "lines": [
-          2,
-          8
+          3,
+          3
         ],
-        "anchor": "name: live-tokens-create-page",
-        "anchorEnd": "Two rules above all else:"
+        "anchor": "description: Create a page in a @motion-proto/live-tokens pr"
       },
       {
-        "id": "bp-fit",
-        "row": 2,
-        "kind": "decide",
-        "n": "1",
-        "title": "Does an existing component fit?",
-        "desc": "A catalogue component enters contract inspection. A catalogue gap opens the custom UI paths.",
-        "lines": [
-          10,
-          10
-        ],
-        "anchor": "**Use a shipped component if one fits.** Import from `@motio"
-      },
-      {
-        "id": "bp-pick",
+        "id": "cp-components",
         "row": 1,
-        "kind": "hand",
-        "title": "Check with pick-component",
-        "desc": "pick-component tests the need against shipped and registered project components.",
-        "lines": [
-          10,
-          10
-        ],
-        "anchor": "**Use a shipped component if one fits.** Import from `@motio"
-      },
-      {
-        "id": "bp-use",
-        "row": 3,
-        "kind": "step",
-        "title": "Import the existing component",
-        "desc": "Shipped components come from @motion-proto/live-tokens/components/<Name>.svelte; project components come from their local path.",
-        "lines": [
-          10,
-          10
-        ],
-        "anchor": "**Use a shipped component if one fits.** Import from `@motio"
-      },
-      {
-        "id": "bp-custom-q",
-        "row": 3,
-        "kind": "decide",
-        "title": "Custom UI scope?",
-        "desc": "Page-local markup suits one-off layout. create-component supports reusable UI and Live Tokens editing.",
-        "lines": [
-          10,
-          10
-        ],
-        "anchor": "**Use a shipped component if one fits.** Import from `@motio"
-      },
-      {
-        "id": "bp-local",
-        "row": 4,
-        "kind": "step",
-        "title": "Write page-local markup",
-        "desc": "The markup follows the page's token, typography, grid, routing, and validation rules.",
-        "lines": [
-          10,
-          10
-        ],
-        "anchor": "**Use a shipped component if one fits.** Import from `@motio"
-      },
-      {
-        "id": "bp-make",
-        "row": 4,
-        "kind": "hand",
-        "title": "Create the missing component",
-        "desc": "create-component builds reusable, editable UI. The completed component returns here for contract inspection.",
-        "lines": [
-          10,
-          10
-        ],
-        "anchor": "**Use a shipped component if one fits.** Import from `@motio"
-      },
-      {
-        "id": "bp-props",
-        "row": 5,
-        "kind": "cli",
-        "title": "Inspect the component contract",
-        "desc": "The component receives declared props and accepted variant and size values. The checker flags unsupported values before the runtime drops them.",
-        "lines": [
-          10,
-          10
-        ],
-        "anchor": "**Use a shipped component if one fits.** Import from `@motio",
-        "command": "npx live-tokens components <id>"
-      },
-      {
-        "id": "bp-tok",
-        "row": 6,
-        "kind": "step",
-        "n": "2",
-        "title": "Use tokens for theme-owned values",
-        "desc": "Theme tokens supply colours, spacing, strokes, radii, shadows, font sizes, and font families in <style>, style=, and style: directives. Literals remain for layout dimensions.",
-        "lines": [
-          11,
-          11
-        ],
-        "anchor": "**Use theme tokens for every value.** Every color, spacing, "
-      },
-      {
-        "id": "bp-text",
-        "row": 7,
-        "kind": "step",
-        "title": "Use a complete text-style token",
-        "desc": "The --heading-*, --body-*, --editorial-*, --eyebrow, and --code tokens set family, size, weight, line height, and letter spacing together. Theme changes update the complete style.",
-        "lines": [
-          13,
-          13
-        ],
-        "anchor": "For text, reach for a whole text style rather than assemblin"
-      },
-      {
-        "id": "bp-prose-q",
-        "row": 8,
-        "kind": "decide",
-        "title": "Container prose override?",
-        "desc": "Card and CollapsibleSection style nested prose by default. Page-owned text and full-bleed media disable prose.",
-        "lines": [
-          15,
-          15
-        ],
-        "anchor": "Text inside a `Card` or a `CollapsibleSection` is typed by"
-      },
-      {
-        "id": "bp-prose",
-        "row": 9,
-        "kind": "step",
-        "title": "Pass prose={false}",
-        "desc": "This prop gives the page control of nested text and full-bleed media.",
-        "lines": [
-          15,
-          15
-        ],
-        "anchor": "Text inside a `Card` or a `CollapsibleSection` is typed by"
-      },
-      {
-        "id": "bp-grid",
-        "row": 12,
-        "kind": "step",
-        "title": "Use the page column grid",
-        "desc": "The page uses --columns-count, --columns-gutter, and --columns-max-width. Page-aligned children span 1 / -1 and redeclare repeat(var(--columns-count), 1fr) with --columns-gutter.",
-        "lines": [
-          35,
-          37
-        ],
-        "anchor": "Pages sit inside the column grid via `--columns-count`, `--c",
-        "anchorEnd": "To place children at specific page-column positions, span th"
-      },
-      {
-        "id": "bp-wire",
-        "row": 15,
-        "kind": "decide",
-        "title": "Does the app use LiveTokensRouter?",
-        "desc": "The route follows App.svelte's pattern and lazy-loads the page. Static imports evaluate every page module at startup and leak CSS into editor routes.",
-        "lines": [
-          53,
-          58
-        ],
-        "anchor": "## Wiring",
-        "anchorEnd": "Either way use `lazy`, not a static top-level import: static"
-      },
-      {
-        "id": "bp-router",
-        "row": 16,
-        "kind": "step",
-        "title": "Add a lazy page entry",
-        "desc": "The entry sets lazy and source. label and icon add navigation; resolve(path) handles dynamic routes. A URL-only route omits label.",
-        "lines": [
-          56,
-          56
-        ],
-        "anchor": "- **`<LiveTokensRouter pages={...}>`** (the usual case): add"
-      },
-      {
-        "id": "bp-overlay",
-        "row": 16,
-        "kind": "step",
-        "title": "Wire LiveEditorOverlay manually",
-        "desc": "$derived.by(() => import(...)) loads the page, and pageSources registers its source.",
-        "lines": [
-          57,
-          57
-        ],
-        "anchor": "- **Manual `<LiveEditorOverlay>`**: dispatch with `$derived."
-      },
-      {
-        "id": "bp-css",
-        "row": 17,
-        "kind": "step",
-        "title": "Import site.css in each page",
-        "desc": "Each page imports site.css in its script block. A main.ts import leaks page CSS into editor routes.",
-        "lines": [
-          59,
-          59
-        ],
-        "anchor": "- Import `site.css` from each page's `<script>` block, never"
-      },
-      {
-        "id": "bp-avoid",
-        "row": 18,
         "kind": "chipset",
-        "title": "Follow seven page safeguards",
+        "title": "Use the component contracts",
+        "lines": [
+          10,
+          17
+        ],
+        "anchor": "## Components",
+        "anchorEnd": "Text inside a `Card` or a `CollapsibleSection` takes the con",
         "chips": [
           {
-            "label": "Theme tokens for colour and geometry",
+            "label": "Use a shipped component",
             "lines": [
-              78,
-              78
+              12,
+              12
             ],
-            "anchor": "- Colour literals, and px or rem in spacing, stroke, radius,"
+            "anchor": "Use a shipped component when one fits. Import it from `@moti"
           },
           {
-            "label": "Page grids use --columns-count",
+            "label": "Inspect declared props",
+            "lines": [
+              13,
+              13
+            ],
+            "anchor": "`npx live-tokens components <id>` prints the declared props,"
+          },
+          {
+            "label": "Pass declared props",
+            "lines": [
+              14,
+              14
+            ],
+            "anchor": "Pass only the props a component declares."
+          },
+          {
+            "label": "Size the wrapper",
+            "lines": [
+              15,
+              15
+            ],
+            "anchor": "A shipped component fills its parent. To size one, size the "
+          },
+          {
+            "label": "Use native elements",
+            "lines": [
+              16,
+              16
+            ],
+            "anchor": "A native element with no chrome of its own needs no componen"
+          },
+          {
+            "label": "Assign content typography",
+            "lines": [
+              17,
+              17
+            ],
+            "anchor": "Text inside a `Card` or a `CollapsibleSection` takes the con"
+          }
+        ]
+      },
+      {
+        "id": "cp-tokens",
+        "row": 2,
+        "kind": "chipset",
+        "title": "Use design tokens",
+        "lines": [
+          19,
+          24
+        ],
+        "anchor": "## Tokens",
+        "anchorEnd": "A value that comes from data, such as a sheet's padding in p",
+        "chips": [
+          {
+            "label": "Token references",
+            "lines": [
+              21,
+              21
+            ],
+            "anchor": "When a design token exists for a value, page CSS takes the t"
+          },
+          {
+            "label": "Column widths",
+            "lines": [
+              22,
+              22
+            ],
+            "anchor": "A width is a span of page columns. The Layout section gives "
+          },
+          {
+            "label": "Content heights",
+            "lines": [
+              23,
+              23
+            ],
+            "anchor": "A height follows the content. A stage's `minHeight` is the o"
+          },
+          {
+            "label": "Data values",
+            "lines": [
+              24,
+              24
+            ],
+            "anchor": "A value that comes from data, such as a sheet's padding in p"
+          }
+        ]
+      },
+      {
+        "id": "cp-type",
+        "row": 3,
+        "kind": "chipset",
+        "title": "Assign text styles",
+        "lines": [
+          28,
+          43
+        ],
+        "anchor": "### Type",
+        "anchorEnd": "Use the semantic element for each place: one `h1`, an `h2` f",
+        "chips": [
+          {
+            "label": "Page title",
+            "lines": [
+              34,
+              34
+            ],
+            "anchor": "| Page title | `h1` in `--heading-xl-*` |"
+          },
+          {
+            "label": "Section title",
+            "lines": [
+              35,
+              35
+            ],
+            "anchor": "| Section title | `h2` in `--heading-lg-*`, or `SectionDivid"
+          },
+          {
+            "label": "Card title",
+            "lines": [
+              36,
+              36
+            ],
+            "anchor": "| Card title | the Card `title` prop |"
+          },
+          {
+            "label": "Label above a group",
+            "lines": [
+              37,
+              37
+            ],
+            "anchor": "| Label above a group | `--body-sm-*` in `--text-secondary` "
+          },
+          {
+            "label": "Body",
+            "lines": [
+              38,
+              38
+            ],
+            "anchor": "| Body | `p` in `--body-md-*` |"
+          },
+          {
+            "label": "Secondary line",
+            "lines": [
+              39,
+              39
+            ],
+            "anchor": "| Secondary line | `--body-sm-*` in `--text-secondary` |"
+          },
+          {
+            "label": "Count, status, read-out",
+            "lines": [
+              40,
+              40
+            ],
+            "anchor": "| Count, status, read-out | `--body-sm-*` in `--text-primary"
+          },
+          {
+            "label": "Command or value",
+            "lines": [
+              41,
+              41
+            ],
+            "anchor": "| Command or value | `code` in `--code-*` |"
+          }
+        ]
+      },
+      {
+        "id": "cp-size",
+        "row": 4,
+        "kind": "step",
+        "title": "Use the default size",
+        "lines": [
+          45,
+          47
+        ],
+        "anchor": "### Size",
+        "anchorEnd": "Omit `size` on every control and container. The shipped defa"
+      },
+      {
+        "id": "cp-emphasis",
+        "row": 5,
+        "kind": "step",
+        "title": "Assign action emphasis",
+        "lines": [
+          49,
+          53
+        ],
+        "anchor": "### Emphasis",
+        "anchorEnd": "In a row of actions the primary sits last, on the right. Up "
+      },
+      {
+        "id": "cp-spacing",
+        "row": 6,
+        "kind": "chipset",
+        "title": "Apply spacing by position",
+        "lines": [
+          55,
+          69
+        ],
+        "anchor": "### Spacing",
+        "anchorEnd": "Every section after the first opens with a hairline: `paddin",
+        "chips": [
+          {
+            "label": "Between controls in a row",
+            "lines": [
+              61,
+              61
+            ],
+            "anchor": "| Between controls in a row | `--space-8` |"
+          },
+          {
+            "label": "Inside a wrapper the page draws",
+            "lines": [
+              62,
+              62
+            ],
+            "anchor": "| Inside a wrapper the page draws | `--space-16` |"
+          },
+          {
+            "label": "Between fields in a form",
+            "lines": [
+              63,
+              63
+            ],
+            "anchor": "| Between fields in a form | `--space-20` |"
+          },
+          {
+            "label": "Between containers in a section",
+            "lines": [
+              64,
+              64
+            ],
+            "anchor": "| Between containers in a section | `--columns-gutter` acros"
+          },
+          {
+            "label": "Between sections",
+            "lines": [
+              65,
+              65
+            ],
+            "anchor": "| Between sections | `--space-16` above a hairline |"
+          },
+          {
+            "label": "Page title to first section",
+            "lines": [
+              66,
+              66
+            ],
+            "anchor": "| Page title to first section | `--space-24`, no hairline |"
+          },
+          {
+            "label": "Page margin",
+            "lines": [
+              67,
+              67
+            ],
+            "anchor": "| Page margin | `--space-32` |"
+          }
+        ]
+      },
+      {
+        "id": "cp-layout",
+        "row": 7,
+        "kind": "decide",
+        "title": "Page layout",
+        "desc": "Which layout matches the reader's task?",
+        "lines": [
+          73,
+          85
+        ],
+        "anchor": "### Page layouts",
+        "anchorEnd": "The stage is the canvas, player, or strip the work is about.",
+        "chips": [
+          {
+            "label": "Stacked sections",
             "lines": [
               79,
               79
             ],
-            "anchor": "- Hardcoded page-grid counts (`repeat(10, 1fr)`). Use `repea"
+            "anchor": "| Stacked sections | The reader moves top to bottom: an open"
           },
           {
-            "label": "Component changes through the editor",
+            "label": "Main with a supporting pane",
             "lines": [
               80,
               80
             ],
-            "anchor": "- Utility classes overriding shipped components. Extend via "
+            "anchor": "| Main with a supporting pane | One region is the work and t"
           },
           {
-            "label": "Label the box with a text style",
+            "label": "List with detail",
             "lines": [
               81,
               81
             ],
-            "anchor": "- A card header as a section label in a tool UI, and a page "
+            "anchor": "| List with detail | The reader picks an item from a list an"
           },
           {
-            "label": "Public package imports",
+            "label": "Grid of equals",
             "lines": [
               82,
               82
             ],
-            "anchor": "- Deep imports from `node_modules/@motion-proto/live-tokens/"
+            "anchor": "| Grid of equals | The reader compares or scans items of one"
           },
           {
-            "label": "Editor routes own editor mounts",
+            "label": "Single column",
             "lines": [
               83,
               83
             ],
-            "anchor": "- Mounting `Editor` or `ComponentEditorPage` outside their d"
-          },
-          {
-            "label": "The package owns /live-tokens/* routes",
-            "lines": [
-              84,
-              84
-            ],
-            "anchor": "- A page route under `/live-tokens/*`. That namespace is re"
+            "anchor": "| Single column | The reader fills a form or reads at length"
           }
-        ],
-        "lines": [
-          76,
-          76
-        ],
-        "anchor": "## Avoid",
-        "tag": "safeguards"
+        ]
       },
       {
-        "id": "bp-check",
-        "row": 19,
-        "kind": "cli",
-        "title": "Check the page",
-        "desc": "The checker rejects invalid components, props, imports, tokens, colours, and routes. Strict mode adds px/rem geometry, fixed page columns, raw type axes, and source-free routes.",
+        "id": "cp-grid",
+        "row": 8,
+        "kind": "step",
+        "title": "Read the page column count",
         "lines": [
-          88,
-          97
+          93,
+          93
         ],
-        "anchor": "Run the checker and fix what it reports. Repeat until it exi",
-        "anchorEnd": "Warnings do not fail the run. `--strict` makes them fail, wh",
-        "command": "npx live-tokens check-page src/pages/YourPage.svelte --strict --json"
+        "anchor": "Read `--columns-count` in the project's `tokens.css`.",
+        "n": "1"
       },
       {
-        "id": "bp-fail",
-        "row": 20,
-        "kind": "gate",
-        "title": "Fix page-check findings",
-        "desc": "Each repair clears one reported rule before the next run.",
+        "id": "cp-grid-span",
+        "row": 9,
+        "kind": "step",
+        "title": "Span the page grid",
         "lines": [
-          88,
-          97
+          94,
+          94
         ],
-        "anchor": "Run the checker and fix what it reports. Repeat until it exi",
-        "anchorEnd": "Warnings do not fail the run. `--strict` makes them fail, wh"
+        "anchor": "Span the parent grid with `grid-column: 1 / -1`.",
+        "n": "2"
       },
       {
-        "id": "bp-pass",
-        "row": 20,
-        "kind": "ok",
-        "title": "Page check passes",
-        "desc": "The page meets its component, token, import, and routing contracts.",
-        "lines": [
-          88,
-          97
-        ],
-        "anchor": "Run the checker and fix what it reports. Repeat until it exi",
-        "anchorEnd": "Warnings do not fail the run. `--strict` makes them fail, wh"
-      },
-      {
-        "id": "bp-ver",
-        "row": 21,
-        "kind": "done",
-        "title": "Verify the page repaints",
-        "desc": "A colour change confirms repainting. Page Source confirms the route source. The columns overlay confirms that content stays within --columns-max-width.",
-        "lines": [
-          103,
-          103
-        ],
-        "anchor": "Then in dev: change a colour in `/live-tokens/editor` and co"
-      },
-      {
-        "id": "bp-laws",
+        "id": "cp-grid-columns",
         "row": 10,
         "kind": "step",
-        "title": "The purpose of a layout",
-        "desc": "The page shows one thing; each mark that is not content must earn its place. Separate with the smallest difference that separates: space, then a hairline rule, then a second surface. Content, labels, and scaffolding each take their own token. On a tool page the stage takes the space and controls take the smallest size that still works.",
-        "reference": "references/layout-sources.md",
+        "title": "Redeclare the page columns",
         "lines": [
-          19,
-          29
+          95,
+          95
         ],
-        "anchor": "**The purpose of a layout.** The page shows one thing. All o",
-        "anchorEnd": "`references/layout-sources.md` names the sources for these l"
+        "anchor": "Redeclare `repeat(var(--columns-count), 1fr)` with `column-g",
+        "n": "3"
       },
       {
-        "id": "bp-bands",
+        "id": "cp-grid-children",
         "row": 11,
         "kind": "step",
-        "title": "Name the bands by their job",
-        "desc": "Name each band by its job: what the user looks at, types into, presses. A tool page runs stage, inputs, then one toolbar along the bottom edge. Separate bands with space and a rule; stretch a band's boxes to one height so their bottom edges make one line.",
-        "reference": "references/layout-sources.md",
+        "title": "Assign child columns",
         "lines": [
-          31,
-          33
+          96,
+          98
         ],
-        "anchor": "Decide the bands before the columns. Read the page top to bo",
-        "anchorEnd": "Separate bands with space and a rule, `padding-top: var(--sp"
+        "anchor": "Place each child by page-column numbers.",
+        "anchorEnd": "A grid that follows the page columns takes `var(--columns-co",
+        "n": "4"
       },
       {
-        "id": "bp-contain",
+        "id": "cp-separation",
+        "row": 12,
+        "kind": "chipset",
+        "title": "Separate content by purpose",
+        "lines": [
+          100,
+          117
+        ],
+        "anchor": "### Separation",
+        "anchorEnd": "`references/layout-sources.md` names the sources for these l",
+        "chips": [
+          {
+            "label": "Content",
+            "lines": [
+              110,
+              110
+            ],
+            "anchor": "| Content | `--text-primary`, or the color `site.css` gives "
+          },
+          {
+            "label": "Label",
+            "lines": [
+              111,
+              111
+            ],
+            "anchor": "| Label | `--text-secondary` |"
+          },
+          {
+            "label": "Chrome",
+            "lines": [
+              112,
+              112
+            ],
+            "anchor": "| Chrome | `--border-neutral` |"
+          },
+          {
+            "label": "Overlay on content, such as a grid or a selection",
+            "lines": [
+              113,
+              113
+            ],
+            "anchor": "| Overlay on content, such as a grid or a selection | `--bor"
+          }
+        ]
+      },
+      {
+        "id": "cp-containers",
         "row": 13,
-        "kind": "step",
-        "title": "Containers by job",
-        "desc": "Panel is a stage. Card is a titled block of content, typed by its own tokens; compact drops a size. A box in a tool UI is a bare compact Card labelled from a text style. A toolbar is a flex row of small buttons with no card around it.",
-        "reference": "references/layout-sources.md",
+        "kind": "chipset",
+        "title": "Choose containers by purpose",
         "lines": [
-          39,
-          44
+          119,
+          129
         ],
-        "anchor": "### Containers by job",
-        "anchorEnd": "- A toolbar is a flex row of small buttons on the band's bot"
+        "anchor": "## Containers by purpose",
+        "anchorEnd": "`MenuSelect` renders its list open. For a picker, toggle it ",
+        "chips": [
+          {
+            "label": "Stage",
+            "lines": [
+              121,
+              121
+            ],
+            "anchor": "`Panel` is a stage: a canvas, a player, a preview. `minHeigh"
+          },
+          {
+            "label": "Empty and error states",
+            "lines": [
+              122,
+              122
+            ],
+            "anchor": "An empty stage shows a heading that names the condition and "
+          },
+          {
+            "label": "Titled content",
+            "lines": [
+              123,
+              123
+            ],
+            "anchor": "`Card` is a titled block of content. Its `title` prop is the"
+          },
+          {
+            "label": "Tool labels",
+            "lines": [
+              124,
+              124
+            ],
+            "anchor": "A container in a tool UI labels itself: `Card variant=\"bare\""
+          },
+          {
+            "label": "Form fields",
+            "lines": [
+              125,
+              125
+            ],
+            "anchor": "A form puts the essential fields first and the secondary fie"
+          },
+          {
+            "label": "Field rows",
+            "lines": [
+              126,
+              126
+            ],
+            "anchor": "A row of fields is a flex row with `gap: var(--space-20)`. E"
+          },
+          {
+            "label": "Toolbar actions",
+            "lines": [
+              127,
+              127
+            ],
+            "anchor": "A toolbar is a flex row of Buttons on the section's bottom e"
+          },
+          {
+            "label": "Button stacks",
+            "lines": [
+              128,
+              128
+            ],
+            "anchor": "A vertical stack of Buttons sets `fullWidth` on each Button."
+          },
+          {
+            "label": "Menu picker",
+            "lines": [
+              129,
+              129
+            ],
+            "anchor": "`MenuSelect` renders its list open. For a picker, toggle it "
+          }
+        ]
       },
       {
-        "id": "bp-density",
+        "id": "cp-route",
         "row": 14,
-        "kind": "step",
-        "title": "Density",
-        "desc": "size=\"small\" in toolbars and compose rows; fullWidth comes off in a row. A custom wrapper forwards size. Text in a card body inherits the card's size unless typed. MenuSelect renders open; a picker toggles it from a Button.",
-        "reference": "references/layout-sources.md",
+        "kind": "decide",
+        "title": "Route integration",
+        "desc": "How does App.svelte wire routes?",
         "lines": [
-          46,
-          51
+          133,
+          133
         ],
-        "anchor": "### Density",
-        "anchorEnd": "- `MenuSelect` renders its list open. For a picker, toggle i"
+        "anchor": "Add the route the way `App.svelte` already wires routes."
+      },
+      {
+        "id": "cp-router",
+        "row": 15,
+        "kind": "step",
+        "title": "Add a router entry",
+        "lines": [
+          135,
+          135
+        ],
+        "anchor": "`<LiveTokensRouter pages={...}>`: add a `pages` entry with `"
+      },
+      {
+        "id": "cp-overlay",
+        "row": 15,
+        "kind": "step",
+        "title": "Register the manual route",
+        "lines": [
+          136,
+          136
+        ],
+        "anchor": "Manual `<LiveEditorOverlay>`: dispatch with `$derived.by(() "
+      },
+      {
+        "id": "cp-lazy",
+        "row": 17,
+        "kind": "step",
+        "title": "Isolate page imports",
+        "lines": [
+          138,
+          138
+        ],
+        "anchor": "Import the page with `lazy`, so page CSS stays off the edito"
+      },
+      {
+        "id": "cp-check",
+        "row": 18,
+        "kind": "step",
+        "title": "Run live-tokens-check-compliance",
+        "lines": [
+          153,
+          153
+        ],
+        "anchor": "Run **live-tokens-check-compliance**. Its report carries bot"
+      },
+      {
+        "id": "cp-findings",
+        "row": 19,
+        "kind": "decide",
+        "title": "Compliance findings",
+        "desc": "Does the report contain findings, or is the page clean?",
+        "lines": [
+          153,
+          153
+        ],
+        "anchor": "Run **live-tokens-check-compliance**. Its report carries bot"
+      },
+      {
+        "id": "cp-fix",
+        "row": 20,
+        "kind": "gate",
+        "title": "Run live-tokens-fix-findings",
+        "lines": [
+          153,
+          153
+        ],
+        "anchor": "Run **live-tokens-check-compliance**. Its report carries bot"
+      },
+      {
+        "id": "cp-verify",
+        "row": 21,
+        "kind": "chipset",
+        "title": "Verify the rendered page",
+        "lines": [
+          155,
+          170
+        ],
+        "anchor": "The checkers cannot see a layout. Open the page at the width",
+        "anchorEnd": "Every `img` has `alt` text. Focus order follows the reading ",
+        "chips": [
+          {
+            "label": "Main content first",
+            "lines": [
+              157,
+              157
+            ],
+            "anchor": "The first section holds what the user came for."
+          },
+          {
+            "label": "Heading hierarchy",
+            "lines": [
+              158,
+              158
+            ],
+            "anchor": "One `h1`. Heading levels run in order with no skipped level."
+          },
+          {
+            "label": "Label size",
+            "lines": [
+              159,
+              159
+            ],
+            "anchor": "No label is larger than the page's body copy."
+          },
+          {
+            "label": "Copy length",
+            "lines": [
+              160,
+              160
+            ],
+            "anchor": "A line of copy runs 45 to 90 characters."
+          },
+          {
+            "label": "Container alignment",
+            "lines": [
+              161,
+              161
+            ],
+            "anchor": "The containers in a section align at the bottom."
+          },
+          {
+            "label": "Control boundaries",
+            "lines": [
+              162,
+              162
+            ],
+            "anchor": "Every control stays inside its wrapper. A `width: 100%` fiel"
+          },
+          {
+            "label": "Primary action position",
+            "lines": [
+              163,
+              163
+            ],
+            "anchor": "The actions sit where the eye goes last, with the one primar"
+          },
+          {
+            "label": "Exit action",
+            "lines": [
+              164,
+              164
+            ],
+            "anchor": "Every row of actions holds an action that leaves without com"
+          },
+          {
+            "label": "Destructive confirmation",
+            "lines": [
+              165,
+              165
+            ],
+            "anchor": "An action that destroys saved work confirms in a `Dialog`."
+          },
+          {
+            "label": "Progress feedback",
+            "lines": [
+              166,
+              166
+            ],
+            "anchor": "An action that runs longer than a moment shows progress in a"
+          },
+          {
+            "label": "Field defaults",
+            "lines": [
+              167,
+              167
+            ],
+            "anchor": "Every field has a default, and Reset restores it."
+          },
+          {
+            "label": "Secondary settings",
+            "lines": [
+              168,
+              168
+            ],
+            "anchor": "Secondary settings sit in a `CollapsibleSection`. Every cont"
+          },
+          {
+            "label": "User vocabulary",
+            "lines": [
+              169,
+              169
+            ],
+            "anchor": "Labels use the user's words, such as \"Export slices\"."
+          },
+          {
+            "label": "Images and focus order",
+            "lines": [
+              170,
+              170
+            ],
+            "anchor": "Every `img` has `alt` text. Focus order follows the reading "
+          }
+        ]
+      },
+      {
+        "id": "cp-read",
+        "row": 22,
+        "kind": "done",
+        "title": "Verify the reading order",
+        "lines": [
+          174,
+          174
+        ],
+        "anchor": "Then read the page from a distance: the sections and their e"
       }
     ],
     "edges": [
       {
-        "from": "bp-trig",
-        "to": "bp-pick"
+        "to": "cp-components",
+        "from": "cp-trig"
       },
       {
-        "from": "bp-pick",
-        "to": "bp-fit"
+        "to": "cp-tokens",
+        "from": "cp-components"
       },
       {
-        "from": "bp-fit",
-        "to": "bp-use",
-        "label": "catalogue fit"
+        "to": "cp-type",
+        "from": "cp-tokens"
       },
       {
-        "from": "bp-fit",
-        "to": "bp-custom-q",
-        "label": "catalogue gap"
+        "to": "cp-size",
+        "from": "cp-type"
       },
       {
-        "from": "bp-custom-q",
-        "to": "bp-local",
-        "label": "one-off page"
+        "to": "cp-emphasis",
+        "from": "cp-size"
       },
       {
-        "from": "bp-custom-q",
-        "to": "bp-make",
-        "label": "reusable or editable"
+        "to": "cp-spacing",
+        "from": "cp-emphasis"
       },
       {
-        "from": "bp-use",
-        "to": "bp-props"
+        "to": "cp-layout",
+        "from": "cp-spacing"
       },
       {
-        "from": "bp-make",
-        "to": "bp-props"
+        "to": "cp-grid",
+        "from": "cp-layout",
+        "label": "Stacked sections"
       },
       {
-        "from": "bp-local",
-        "to": "bp-tok"
+        "to": "cp-grid",
+        "from": "cp-layout",
+        "label": "Main with a supporting pane"
       },
       {
-        "from": "bp-tok",
-        "to": "bp-text"
+        "to": "cp-grid",
+        "from": "cp-layout",
+        "label": "List with detail"
       },
       {
-        "from": "bp-text",
-        "to": "bp-prose-q"
+        "to": "cp-grid",
+        "from": "cp-layout",
+        "label": "Grid of equals"
       },
       {
-        "from": "bp-prose-q",
-        "to": "bp-prose",
-        "label": "page text or full bleed"
+        "to": "cp-grid",
+        "from": "cp-layout",
+        "label": "Single column"
       },
       {
-        "from": "bp-wire",
-        "to": "bp-router",
+        "to": "cp-grid-span",
+        "from": "cp-grid"
+      },
+      {
+        "to": "cp-grid-columns",
+        "from": "cp-grid-span"
+      },
+      {
+        "to": "cp-grid-children",
+        "from": "cp-grid-columns"
+      },
+      {
+        "to": "cp-separation",
+        "from": "cp-grid-children"
+      },
+      {
+        "to": "cp-containers",
+        "from": "cp-separation"
+      },
+      {
+        "to": "cp-route",
+        "from": "cp-containers"
+      },
+      {
+        "to": "cp-router",
+        "from": "cp-route",
         "label": "LiveTokensRouter"
       },
       {
-        "from": "bp-wire",
-        "to": "bp-overlay",
-        "label": "manual overlay"
+        "to": "cp-overlay",
+        "from": "cp-route",
+        "label": "LiveEditorOverlay"
       },
       {
-        "from": "bp-router",
-        "to": "bp-css"
+        "to": "cp-lazy",
+        "from": "cp-router"
       },
       {
-        "from": "bp-overlay",
-        "to": "bp-css"
+        "to": "cp-lazy",
+        "from": "cp-overlay"
       },
       {
-        "from": "bp-css",
-        "to": "bp-avoid"
+        "to": "cp-check",
+        "from": "cp-lazy"
       },
       {
-        "from": "bp-avoid",
-        "to": "bp-check"
+        "to": "cp-findings",
+        "from": "cp-check"
       },
       {
-        "from": "bp-props",
-        "to": "bp-tok"
+        "to": "cp-fix",
+        "from": "cp-findings",
+        "label": "findings"
       },
       {
-        "from": "bp-check",
-        "to": "bp-fail",
-        "label": "exit 1"
+        "to": "cp-verify",
+        "from": "cp-findings",
+        "label": "clean"
       },
       {
-        "from": "bp-check",
-        "to": "bp-pass",
-        "label": "exit 0"
-      },
-      {
-        "from": "bp-pass",
-        "to": "bp-ver"
-      },
-      {
-        "from": "bp-fail",
-        "to": "bp-check",
-        "label": "rerun",
+        "to": "cp-check",
+        "from": "cp-fix",
+        "label": "repeat until clean",
         "back": true
       },
       {
-        "from": "bp-prose-q",
-        "to": "bp-laws",
-        "label": "default handling"
-      },
-      {
-        "from": "bp-prose",
-        "to": "bp-laws"
-      },
-      {
-        "from": "bp-laws",
-        "to": "bp-bands"
-      },
-      {
-        "from": "bp-bands",
-        "to": "bp-grid"
-      },
-      {
-        "from": "bp-grid",
-        "to": "bp-contain"
-      },
-      {
-        "from": "bp-contain",
-        "to": "bp-density"
-      },
-      {
-        "from": "bp-density",
-        "to": "bp-wire"
+        "to": "cp-read",
+        "from": "cp-verify"
       }
     ]
   },
