@@ -41,6 +41,18 @@ function page(root: string, name: string, body: string): string {
   return rel;
 }
 
+function custom(root: string, name: string): void {
+  mkdirSync(join(root, 'src/system/components'), { recursive: true });
+  writeFileSync(
+    join(root, `src/system/components/${name}.svelte`),
+    `<script lang="ts">
+      interface Props { size?: 'default' | 'small' }
+      let { size = 'default' }: Props = $props();
+    </script>
+    <div>{size}</div>`,
+  );
+}
+
 function rulesFor(root: string, rel: string): string[] {
   const { findings } = checkPages([rel], { root });
   return findings.map((f: { rule: string }) => f.rule);
@@ -73,6 +85,32 @@ describe('check-page component rules', () => {
       const pages = { '/live-tokens/mine': { lazy: () => import('./x.svelte'), source: 'src/x.svelte' } };
     </script>`);
     expect(rulesFor(root, rel)).toContain('reserved-route');
+  });
+
+  it('flags a size on a shipped component and leaves a custom one alone', () => {
+    const root = fixtureRoot();
+    custom(root, 'Gauge');
+    const shipped = page(root, 'Sized.svelte', `<script>
+      import Card from '@motion-proto/live-tokens/components/Card.svelte';
+      import Badge from '@motion-proto/live-tokens/components/Badge.svelte';
+    </script>
+    <Card size="compact"><Badge size="small">New</Badge></Card>`);
+    const own = page(root, 'Own.svelte', `<script>
+      import Gauge from '../system/components/Gauge.svelte';
+    </script>
+    <Gauge size="small" />`);
+    expect(rulesFor(root, shipped).filter((r) => r === 'control-size')).toHaveLength(2);
+    expect(rulesFor(root, own)).toEqual([]);
+  });
+
+  it('names the components editor in the message', () => {
+    const root = fixtureRoot();
+    const rel = page(root, 'Retune.svelte', `<script>
+      import Badge from '@motion-proto/live-tokens/components/Badge.svelte';
+    </script>
+    <Badge size="small">New</Badge>`);
+    const { findings } = checkPages([rel], { root });
+    expect(findings[0].message).toContain('/live-tokens/components');
   });
 
   it('flags a route entry with no source, and accepts one with it', () => {
@@ -246,7 +284,7 @@ const CLEAN_PAGE = `<script lang="ts">
 
 <section class="hero" style="gap: var(--space-8)">
   <Card title="Welcome" hover={false} prose={false}>
-    <Badge variant="neutral" size="small">New</Badge>
+    <Badge variant="neutral">New</Badge>
     <Button variant="secondary" onclick={() => (count = count > 1 ? 0 : count + 1)}>
       Count
     </Button>
@@ -287,7 +325,8 @@ const PAGE_MUTATIONS: [string, (body: string) => string, string][] = [
   ['a prop the component does not declare', edit('hover={false}', 'elevation="high"'), 'unknown-prop'],
   ['a shorthand prop the component does not declare', edit('hover={false}', '{elevation}'), 'unknown-prop'],
   ['a variant outside the union', edit('variant="neutral"', 'variant="bogus"'), 'unknown-prop-value'],
-  ['a size outside the union', edit('size="small"', 'size="xl"'), 'unknown-prop-value'],
+  ['a size outside the union', edit('variant="neutral"', 'variant="neutral" size="xl"'), 'unknown-prop-value'],
+  ['a size on a shipped component', edit('variant="neutral"', 'variant="neutral" size="small"'), 'control-size'],
   ['a variant after an expression holding >', edit('variant="secondary"', 'variant="tertiary"'), 'unknown-prop-value'],
   ['a component outside the catalogue', edit('components/Badge.svelte', 'components/Sparkle.svelte'), 'unknown-component'],
   ['a hardcoded column count', edit('repeat(var(--columns-count), 1fr)', 'repeat(12, 1fr)'), 'hardcoded-columns'],
@@ -304,7 +343,7 @@ describe('the clean page and its mutations', () => {
   });
 
   it('skips a tag that spreads props, an expression value, and directives', () => {
-    const body = edit('<Badge variant="neutral" size="small">', '<Badge {...rest} variant="bogus">')(
+    const body = edit('<Badge variant="neutral">', '<Badge {...rest} variant="bogus">')(
       edit('hover={false}', 'variant={kind} bind:title on:click class:active')(CLEAN_PAGE),
     );
     const rules = strictPage(body).map((f: { rule: string }) => f.rule);
@@ -370,10 +409,10 @@ describe('the create template', () => {
   });
 });
 
-// src/app and src/demo set type from single axes, and site.css is the
-// consumer's file to own. The debt is named here so every other rule still
-// holds over this repo's pages.
-const REPO_PAGE_DEBT = { rules: { 'raw-text-axis': 'off' } };
+// src/app and src/demo set type from single axes and size one Badge, and
+// site.css is the consumer's file to own. The debt is named here so every
+// other rule still holds over this repo's pages.
+const REPO_PAGE_DEBT = { rules: { 'raw-text-axis': 'off', 'control-size': 'off' } };
 
 describe("this repo's own pages", () => {
   it('carry no finding under --strict outside the type-axis debt', () => {

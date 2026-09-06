@@ -30,6 +30,7 @@ export const PAGE_RULES = {
   'dimension-literal': 'warn',
   'hardcoded-columns': 'warn',
   'missing-source': 'warn',
+  'control-size': 'warn',
 };
 
 // Directories that hold the system, not pages built on it.
@@ -190,7 +191,10 @@ function tagAttributes(code, start) {
   return { attrs, end: tagEnd };
 }
 
-/** Props a page passes that the component does not declare, or values outside a prop's union. */
+/**
+ * Props a page passes that the component does not declare, values outside a
+ * prop's union, and a shipped component the page sizes itself.
+ */
 function checkComponentUsage(code, imports, add) {
   for (const [local, entry] of imports) {
     const props = entry.props;
@@ -208,6 +212,13 @@ function checkComponentUsage(code, imports, add) {
         const allowed = props.enums.get(name);
         if (allowed && value !== null && !allowed.has(value)) {
           add('unknown-prop-value', index, `${entry.name} ${name}="${value}" is not one of ${[...allowed].join(', ')}`);
+        }
+        if (name === 'size' && entry.origin === 'shipped') {
+          add(
+            'control-size',
+            index,
+            `${entry.name} ${value === null ? 'is sized here' : `size="${value}"`}. Drop it for the shipped default, or retune ${entry.name} for the whole project in /live-tokens/components.`,
+          );
         }
       }
     }
