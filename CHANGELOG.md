@@ -4,6 +4,15 @@
 
 ### Changed
 
+- **Callout owns its box; the page owns the space around it.** `.callout` no
+  longer sets `margin: var(--space-24) 0`. A stack of callouts now takes its
+  spacing from the page's own gap, and a page that wants the old rhythm sets
+  `margin-block` on the container. The four `--callout-*-accent-width` defaults
+  point at `--border-width-1`, so the left edge matches the other three sides,
+  and the default theme follows. The token stays, so a theme can set the thick
+  left rule back, and the seven other presets keep the accents they were
+  authored with.
+
 - **A CLI run shows up in the open editor, and a Save afterwards keeps it.**
   The dev server now watches the unsaved buffers and the active-theme pointer
   and streams every outside change to the page as one frame over
