@@ -43,7 +43,19 @@ Shipped editors live in `src/editor/component-editor/` because they are library-
    });
    ```
    `bootLiveTokens` calls `registerComponent` for you after its editor init hooks and before it seeds configs, so a standalone `registerComponent(...)` placed *before* `bootLiveTokens` lands in the wrong window and can leave editor changes disconnected from the live page. Call `registerComponent` directly only when the app mounts manually, and then before `mount(App, ...)`. Registering against a built-in id wins with a console warning; the right call is a unique id.
-4. **Say what it is for.** The runtime file's leading HTML comment is the component's description. `npx live-tokens components` prints it beside the id with the variants and props read from `interface Props` (`--json` for data), which is how **live-tokens-pick-component** weighs a project's own component against the shipped set: no skill file is edited, and nothing is lost when `setup-claude` refreshes the skills. Name the job it does and what it is not for. A directory other than `src/system/components` goes in `"componentDirs"` in `live-tokens.config.json`. A first-party component is also added to the picker's **Catalogue** line, which `check:skills` holds.
+4. **Say what it is for.** The runtime file's leading HTML comment is the component's description. `npx live-tokens components` prints it beside the id with the variants and props read from `interface Props` (`--json` for data), which is how **live-tokens-pick-component** weighs a project's own component against the shipped set: no skill file is edited, and nothing is lost when `setup-claude` refreshes the skills. Every shipped component carries one in this shape, and `npx live-tokens report` lists a component that has none:
+
+   ```
+   <!--
+     Button.svelte. A labelled action.
+     Use for: an action that needs a word to be unambiguous.
+     Not for: an icon-only action (IconButton); a link to another page.
+     Emphasis: one primary per page; secondary for the rest; outline for a
+     tertiary action; danger for a destructive one.
+   -->
+   ```
+
+   At most four lines, one sentence each: what it is, `Use for:`, `Not for:` with the component to reach for instead named in parentheses, and a fourth labelled line only where the component has an emphasis, level, or variant axis. No token or mechanics talk, and no line names a size, because the page takes the shipped default. A directory other than `src/system/components` goes in `"componentDirs"` in `live-tokens.config.json`. A first-party component is also added to the picker's **Catalogue** line, which `check:skills` holds.
 5. **Join the sketch layer.** The effect draws a fixed set of parts, so a new component stays crisp while the page around it goes hand-drawn until it opts in. A consumer component carries one of four reserved classes on its root and names the five `--sketch-*` values it is drawn with; a first-party component adds a `PartSpec` row instead. The layer also takes `background`, `border-color`, `box-shadow`, `overflow`, `position` and both pseudo-elements away from the element it draws, which constrains where the class can go. Read `references/sketch-mode.md`.
 6. **Gate on the checker.** Run it, fix every error, and run it again. Do not call the component done while it reports one:
    ```bash

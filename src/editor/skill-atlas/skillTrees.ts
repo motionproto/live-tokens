@@ -2596,7 +2596,7 @@ export const skillTrees: Record<string, SkillTree> = {
   },
   "create-component": {
     "id": "live-tokens-create-component",
-    "digest": "sha256:8bd2a011d9d5b878",
+    "digest": "sha256:3b8a2ccd7e5cb4e6",
     "title": "create-component",
     "tagline": "A runtime/editor pair exposes full token editing in the CUSTOM catalogue.",
     "nodes": [
@@ -2663,31 +2663,31 @@ export const skillTrees: Record<string, SkillTree> = {
           {
             "label": "Shared variants: linked siblings",
             "lines": [
-              169,
-              169
+              181,
+              181
             ],
             "anchor": "- `references/linked-siblings.md`: variants that share base "
           },
           {
             "label": "Structural controls: intrinsics",
             "lines": [
-              170,
-              170
+              182,
+              182
             ],
             "anchor": "- `references/intrinsics.md`: structural or display choices "
           },
           {
             "label": "Sketch mode, required",
             "lines": [
-              171,
-              171
+              183,
+              183
             ],
             "anchor": "- `references/sketch-mode.md`: joining the sketch layer. **E"
           }
         ],
         "lines": [
-          165,
-          171
+          177,
+          183
         ],
         "anchor": "## Extensions",
         "anchorEnd": "- `references/sketch-mode.md`: joining the sketch layer. **E",
@@ -2713,12 +2713,13 @@ export const skillTrees: Record<string, SkillTree> = {
         "kind": "step",
         "n": "4",
         "title": "Describe the component's purpose",
-        "desc": "A leading HTML comment names the job and limits; the catalogue pairs it with ID, variants, and props. componentDirs adds other source directories.",
+        "desc": "A leading HTML comment says what it is, what to use it for, and what to reach for instead; the catalogue pairs it with the id, variants, and props. componentDirs adds other source directories.",
         "lines": [
           46,
-          46
+          58
         ],
-        "anchor": "**Say what it is for.** The runtime file's leading HTML comm"
+        "anchor": "**Say what it is for.** The runtime file's leading HTML comm",
+        "anchorEnd": "At most four lines, one sentence each: what it is, `Use for:"
       },
       {
         "id": "cc-sk",
@@ -2728,8 +2729,8 @@ export const skillTrees: Record<string, SkillTree> = {
         "title": "Join the sketch layer",
         "desc": "Project components choose a reserved class by size and declare five --sketch-* values. The class requires normal flow, visible overflow, and free pseudo-elements. Package components register PartSpec.",
         "lines": [
-          47,
-          47
+          59,
+          59
         ],
         "anchor": "**Join the sketch layer.** The effect draws a fixed set of p"
       },
@@ -2741,8 +2742,8 @@ export const skillTrees: Record<string, SkillTree> = {
         "title": "Run the strict component check",
         "desc": "Strict mode turns warnings into failures; JSON adds stable rule IDs. An ID scopes one component; the default scope covers src/system/components/.",
         "lines": [
-          48,
-          54
+          60,
+          66
         ],
         "anchor": "**Gate on the checker.** Run it, fix every error, and run it",
         "anchorEnd": "If it rejects a suffix, do not invent a new name for the rol",
@@ -2758,7 +2759,7 @@ export const skillTrees: Record<string, SkillTree> = {
           {
             "label": "Token names",
             "lines": [
-              57,
+              69,
               81
             ],
             "anchor": "## Token discipline",
@@ -2767,8 +2768,8 @@ export const skillTrees: Record<string, SkillTree> = {
           {
             "label": "Allowed suffixes",
             "lines": [
-              71,
-              92
+              83,
+              104
             ],
             "anchor": "### Suffix vocabulary",
             "anchorEnd": "compete. A suffix outside that list fails `check-component`."
@@ -2776,8 +2777,8 @@ export const skillTrees: Record<string, SkillTree> = {
           {
             "label": "Common failures",
             "lines": [
-              97,
-              103
+              109,
+              115
             ],
             "anchor": "### Rules that bite",
             "anchorEnd": "- **Text aliases.** Neutral scale is `--text-primary` / `--t"
@@ -2785,8 +2786,8 @@ export const skillTrees: Record<string, SkillTree> = {
           {
             "label": "Typography groupKey",
             "lines": [
-              104,
-              114
+              116,
+              126
             ],
             "anchor": "- **Typography `groupKey` on multi-slot components must incl",
             "anchorEnd": "The helper strips the `--<component>-` prefix and those segm"
@@ -2794,8 +2795,8 @@ export const skillTrees: Record<string, SkillTree> = {
           {
             "label": "State model for stateful components",
             "lines": [
-              116,
-              159
+              128,
+              164
             ],
             "anchor": "## State model",
             "anchorEnd": "```"
@@ -2803,8 +2804,8 @@ export const skillTrees: Record<string, SkillTree> = {
           {
             "label": "Editor copy",
             "lines": [
-              142,
-              146
+              154,
+              158
             ],
             "anchor": "## User-facing copy",
             "anchorEnd": "Custom chrome inside an editor snippet is rare, since `Compo"
@@ -2812,8 +2813,8 @@ export const skillTrees: Record<string, SkillTree> = {
           {
             "label": "Public import paths",
             "lines": [
-              148,
-              163
+              160,
+              175
             ],
             "anchor": "## Public imports only",
             "anchorEnd": "**Never deep-import `node_modules/@motion-proto/live-tokens/"
@@ -2836,8 +2837,8 @@ export const skillTrees: Record<string, SkillTree> = {
         "title": "Fix component-check findings",
         "desc": "Each pass repairs one rule group. A rejected suffix takes the role name from a shipped component that paints the same element.",
         "lines": [
-          48,
-          54
+          60,
+          66
         ],
         "anchor": "**Gate on the checker.** Run it, fix every error, and run it",
         "anchorEnd": "If it rejects a suffix, do not invent a new name for the rol"
@@ -2850,8 +2851,8 @@ export const skillTrees: Record<string, SkillTree> = {
         "title": "Static contract passes",
         "desc": "The checker confirms file layout, token names, state order, imports, registration, editor/runtime parity, and valid theme-backed defaults or declared intrinsics.",
         "lines": [
-          173,
-          175
+          185,
+          187
         ],
         "anchor": "## Verification checklist",
         "anchorEnd": "Step 6 of the recipe is the static gate: `npx live-tokens ch",
@@ -2859,8 +2860,8 @@ export const skillTrees: Record<string, SkillTree> = {
           {
             "label": "Verification checklist",
             "lines": [
-              55,
-              55
+              67,
+              67
             ],
             "anchor": "**Verify** with the checklist at the bottom of this file, th"
           }
@@ -2873,8 +2874,8 @@ export const skillTrees: Record<string, SkillTree> = {
         "title": "Run the registry contract test",
         "desc": "The test checks registration, unique variables, runtime declarations, default.json seeds, opacity floors, and alias round trips. checkRegistryEntry covers custom components; builtInRegistry covers shipped components.",
         "lines": [
-          177,
-          177
+          189,
+          189
         ],
         "anchor": "**Then run the registry contract test.** `checkRegistryEntry"
       },
@@ -2885,8 +2886,8 @@ export const skillTrees: Record<string, SkillTree> = {
         "title": "Run the intrinsics contract test",
         "desc": "The test verifies that every intrinsic and variant has matching, allowed runtime and editor defaults.",
         "lines": [
-          179,
-          179
+          191,
+          191
         ],
         "anchor": "**If your component declares `intrinsics`, the intrinsics co"
       },
@@ -2897,8 +2898,8 @@ export const skillTrees: Record<string, SkillTree> = {
         "title": "Does the component declare intrinsics?",
         "desc": "Components with structural or display choices run the intrinsics contract test.",
         "lines": [
-          179,
-          179
+          191,
+          191
         ],
         "anchor": "**If your component declares `intrinsics`, the intrinsics co"
       },
@@ -2909,8 +2910,8 @@ export const skillTrees: Record<string, SkillTree> = {
         "title": "Verify the component at runtime",
         "desc": "The runtime review at /live-tokens/components checks the CUSTOM entry, token controls, default derivation, persistence, Reset, clean boot, and sketch mode. Linked components also verify linked-block sync.",
         "lines": [
-          181,
-          189
+          193,
+          201
         ],
         "anchor": "Finally navigate to `/live-tokens/components` and confirm th",
         "anchorEnd": "- [ ] Switch Sketch mode on in the editor and walk the check"
@@ -2922,8 +2923,8 @@ export const skillTrees: Record<string, SkillTree> = {
         "title": "Continue with build-page",
         "desc": "build-page places the completed component on a page.",
         "lines": [
-          55,
-          55
+          67,
+          67
         ],
         "anchor": "**Verify** with the checklist at the bottom of this file, th"
       }
