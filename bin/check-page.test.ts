@@ -23,6 +23,7 @@ function fixtureRoot(): string {
       --columns-count: 12;
       --heading-lg-font-size: 2rem;
       --text-secondary: #ccc;
+      --font-weight-semibold: 600;
       --font-size-lg: 1.125rem;
       --font-sans: system-ui;
       --body-md-font-size: 1rem;
@@ -230,6 +231,12 @@ describe('check-page token rules', () => {
     </style>`);
     expect(rulesFor(root, axis).filter((r) => r === 'raw-text-axis')).toHaveLength(2);
     expect(rulesFor(root, bundle)).not.toContain('raw-text-axis');
+  });
+
+  it('ignores a weight token, which cannot move the scale or the fonts', () => {
+    const root = fixtureRoot();
+    const bold = page(root, 'Bold.svelte', `<style>strong { font-weight: var(--font-weight-semibold); }</style>`);
+    expect(rulesFor(root, bold)).toEqual([]);
   });
 
   it('ignores a single-axis token inside a var() fallback', () => {

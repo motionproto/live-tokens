@@ -49,9 +49,10 @@ const TEXT_AXES = ['font-size', 'font-family', 'font-weight', 'line-height', 'le
 
 // The single-axis families in tokens.css. A text style bundle carries its axis
 // as a suffix (--body-md-font-size, --code-font-family), so no bundle name
-// matches, and neither does a custom property the page declares itself.
+// matches, and neither does a custom property the page declares itself. A
+// weight alone cannot move the scale or the fonts, so --font-weight-* is not one.
 const SINGLE_AXIS_TOKEN =
-  /^--(?:font-size|font-weight|line-height|letter-spacing)-|^--font-(?:sans|serif|mono|display|editorial)$/;
+  /^--(?:font-size|line-height|letter-spacing)-|^--font-(?:sans|serif|mono|display|editorial)$/;
 
 // The geometry the theme owns: spacing, stroke, radius, and shadow all have a
 // token scale, and `set-geometry` moves them. Sizing (a hero's height, a
