@@ -3128,417 +3128,796 @@ export const skillTrees: Record<string, SkillTree> = {
   },
   "create-component": {
     "id": "live-tokens-create-component",
-    "digest": "sha256:3b8a2ccd7e5cb4e6",
+    "digest": "sha256:e76b07ab702280f6",
     "title": "create-component",
-    "tagline": "A runtime/editor pair exposes full token editing in the CUSTOM catalogue.",
+    "tagline": "Map design tokens to semantic properties, build the runtime and editor, register the component, and verify it.",
     "nodes": [
       {
         "id": "cc-trig",
         "row": 0,
         "kind": "trigger",
-        "title": "Create or expose an editable component",
-        "desc": "A runtime/editor pair adds token editing to a new or existing Svelte component after the catalogue check.",
+        "title": "Create an editable component",
+        "desc": "Use when live-tokens-pick-component finds no suitable component, or the user asks for a new component. Use when the user asks to make an existing Svelte component editable in the live-tokens editor.",
         "lines": [
-          2,
-          8
+          3,
+          3
         ],
-        "anchor": "name: live-tokens-create-component",
-        "anchorEnd": "The end state is a runtime Svelte file, an editor Svelte fil"
+        "anchor": "description: Create an editable component for a @motion-prot"
       },
       {
-        "id": "cc-read",
+        "id": "cc-model",
         "row": 1,
-        "kind": "step",
-        "title": "Study the closest shipped example",
-        "desc": "Shipped patterns include Card parts, Badge variants, Button states, Dialog structure, and SegmentedControl linked siblings. Custom files live in src/system/components/.",
+        "kind": "chipset",
+        "title": "Use the two-layer design model",
         "lines": [
           10,
-          22
+          25
         ],
-        "anchor": "## Worked examples ship inside the package",
-        "anchorEnd": "Shipped editors live in `src/editor/component-editor/` becau"
-      },
-      {
-        "id": "cc-run",
-        "row": 3,
-        "kind": "step",
-        "n": "1",
-        "title": "Write the runtime file",
-        "desc": "Every editable CSS variable lives in :global(:root) with a theme-token default. The plugin seeds default.json from this block.",
-        "lines": [
-          24,
-          26
-        ],
-        "anchor": "## The recipe",
-        "anchorEnd": "**Runtime file**, `src/system/components/MyWidget.svelte`. D"
-      },
-      {
-        "id": "cc-ed",
-        "row": 4,
-        "kind": "step",
-        "n": "2",
-        "title": "Write the editor file",
-        "desc": "The module declares the component ID, one states map per VariantGroup, and the flat allTokens union. The markup renders those groups in ComponentEditorBase.",
-        "lines": [
-          27,
-          27
-        ],
-        "anchor": "**Editor file**, `src/system/components/MyWidgetEditor.svelt"
-      },
-      {
-        "id": "cc-ext",
-        "row": 5,
-        "kind": "chipset",
-        "title": "Choose the applicable extensions",
-        "desc": "The linked-sibling reference covers shared variant values; the intrinsics reference covers structural controls. Every component reads the sketch reference.",
+        "anchor": "## Design model",
+        "anchorEnd": "Props carry content and behavior: a value, a label, a callba",
         "chips": [
           {
-            "label": "Shared variants: linked siblings",
+            "label": "Design tokens",
             "lines": [
-              181,
-              181
+              16,
+              16
             ],
-            "anchor": "- `references/linked-siblings.md`: variants that share base "
+            "anchor": "| Design tokens | Name the available colors, typography, geo"
           },
           {
-            "label": "Structural controls: intrinsics",
+            "label": "Semantic properties",
             "lines": [
-              182,
-              182
+              17,
+              17
             ],
-            "anchor": "- `references/intrinsics.md`: structural or display choices "
-          },
-          {
-            "label": "Sketch mode, required",
-            "lines": [
-              183,
-              183
-            ],
-            "anchor": "- `references/sketch-mode.md`: joining the sketch layer. **E"
-          }
-        ],
-        "lines": [
-          177,
-          183
-        ],
-        "anchor": "## Extensions",
-        "anchorEnd": "- `references/sketch-mode.md`: joining the sketch layer. **E",
-        "tag": "extension references"
-      },
-      {
-        "id": "cc-reg",
-        "row": 6,
-        "kind": "step",
-        "n": "3",
-        "title": "Register through bootLiveTokens",
-        "desc": "bootLiveTokens receives a unique component ID and registers it after editor initialization. Manually mounted apps call registerComponent immediately before mount.",
-        "lines": [
-          28,
-          45
-        ],
-        "anchor": "**Register** by passing the component to `bootLiveTokens` in",
-        "anchorEnd": "`bootLiveTokens` calls `registerComponent` for you after its"
-      },
-      {
-        "id": "cc-desc",
-        "row": 7,
-        "kind": "step",
-        "n": "4",
-        "title": "Describe the component's purpose",
-        "desc": "A leading HTML comment says what it is, what to use it for, and what to reach for instead; the catalogue pairs it with the id, variants, and props. componentDirs adds other source directories.",
-        "lines": [
-          46,
-          58
-        ],
-        "anchor": "**Say what it is for.** The runtime file's leading HTML comm",
-        "anchorEnd": "At most four lines, one sentence each: what it is, `Use for:"
-      },
-      {
-        "id": "cc-sk",
-        "row": 8,
-        "kind": "step",
-        "n": "5",
-        "title": "Join the sketch layer",
-        "desc": "Project components choose a reserved class by size and declare five --sketch-* values. The class requires normal flow, visible overflow, and free pseudo-elements. Package components register PartSpec.",
-        "lines": [
-          59,
-          59
-        ],
-        "anchor": "**Join the sketch layer.** The effect draws a fixed set of p"
-      },
-      {
-        "id": "cc-gate",
-        "row": 9,
-        "kind": "cli",
-        "n": "6",
-        "title": "Run the strict component check",
-        "desc": "Strict mode turns warnings into failures; JSON adds stable rule IDs. An ID scopes one component; the default scope covers src/system/components/.",
-        "lines": [
-          60,
-          66
-        ],
-        "anchor": "**Gate on the checker.** Run it, fix every error, and run it",
-        "anchorEnd": "If it rejects a suffix, do not invent a new name for the rol",
-        "command": "npx live-tokens check-component <id> --strict --json"
-      },
-      {
-        "id": "cc-disc",
-        "row": 2,
-        "kind": "chipset",
-        "title": "Apply the token rules",
-        "desc": "These rules govern every token in the runtime and editor files.",
-        "chips": [
-          {
-            "label": "Token names",
-            "lines": [
-              69,
-              81
-            ],
-            "anchor": "## Token discipline",
-            "anchorEnd": ""
-          },
-          {
-            "label": "Allowed suffixes",
-            "lines": [
-              83,
-              104
-            ],
-            "anchor": "### Suffix vocabulary",
-            "anchorEnd": "compete. A suffix outside that list fails `check-component`."
-          },
-          {
-            "label": "Common failures",
-            "lines": [
-              109,
-              115
-            ],
-            "anchor": "### Rules that bite",
-            "anchorEnd": "- **Text aliases.** Neutral scale is `--text-primary` / `--t"
-          },
-          {
-            "label": "Typography groupKey",
-            "lines": [
-              116,
-              126
-            ],
-            "anchor": "- **Typography `groupKey` on multi-slot components must incl",
-            "anchorEnd": "The helper strips the `--<component>-` prefix and those segm"
-          },
-          {
-            "label": "State model for stateful components",
-            "lines": [
-              128,
-              164
-            ],
-            "anchor": "## State model",
-            "anchorEnd": "```"
-          },
-          {
-            "label": "Editor copy",
-            "lines": [
-              154,
-              158
-            ],
-            "anchor": "## User-facing copy",
-            "anchorEnd": "Custom chrome inside an editor snippet is rare, since `Compo"
-          },
-          {
-            "label": "Public import paths",
-            "lines": [
-              160,
-              175
-            ],
-            "anchor": "## Public imports only",
-            "anchorEnd": "**Never deep-import `node_modules/@motion-proto/live-tokens/"
-          },
-          {
-            "label": "Toggle example",
-            "lines": [
-              19,
-              19
-            ],
-            "anchor": "- Every rule below in the fewest lines: `Toggle`. Component "
-          }
-        ],
-        "tag": "global rules"
-      },
-      {
-        "id": "cc-fail",
-        "row": 10,
-        "kind": "gate",
-        "title": "Fix component-check findings",
-        "desc": "Each pass repairs one rule group. A rejected suffix takes the role name from a shipped component that paints the same element.",
-        "lines": [
-          60,
-          66
-        ],
-        "anchor": "**Gate on the checker.** Run it, fix every error, and run it",
-        "anchorEnd": "If it rejects a suffix, do not invent a new name for the rol"
-      },
-      {
-        "id": "cc-ver",
-        "row": 10,
-        "kind": "ok",
-        "n": "7",
-        "title": "Static contract passes",
-        "desc": "The checker confirms file layout, token names, state order, imports, registration, editor/runtime parity, and valid theme-backed defaults or declared intrinsics.",
-        "lines": [
-          185,
-          187
-        ],
-        "anchor": "## Verification checklist",
-        "anchorEnd": "Step 6 of the recipe is the static gate: `npx live-tokens ch",
-        "chips": [
-          {
-            "label": "Verification checklist",
-            "lines": [
-              67,
-              67
-            ],
-            "anchor": "**Verify** with the checklist at the bottom of this file, th"
+            "anchor": "| Semantic properties | Name the visual roles within a compo"
           }
         ]
       },
       {
-        "id": "cc-test",
+        "id": "cc-inspect",
+        "row": 2,
+        "kind": "step",
+        "title": "Read the project configuration",
+        "lines": [
+          31,
+          31
+        ],
+        "anchor": "Read the project's `package.json`, `live-tokens.config.json`",
+        "n": "1"
+      },
+      {
+        "id": "cc-catalogue",
+        "row": 3,
+        "kind": "step",
+        "title": "Run the catalogue",
+        "lines": [
+          32,
+          32
+        ],
+        "anchor": "Run `npx live-tokens components`. The list holds every compo",
+        "n": "2"
+      },
+      {
+        "id": "cc-tokens",
+        "row": 4,
+        "kind": "step",
+        "title": "Inspect the token families",
+        "lines": [
+          33,
+          33
+        ],
+        "anchor": "Run `npx live-tokens tokens --family <name>` for each family",
+        "n": "3"
+      },
+      {
+        "id": "cc-examples",
+        "row": 5,
+        "kind": "step",
+        "title": "Read a runtime and editor pair",
+        "lines": [
+          34,
+          34
+        ],
+        "anchor": "Read a shipped runtime and editor pair: `Toggle` for interac",
+        "n": "4"
+      },
+      {
+        "id": "cc-suffixes",
+        "row": 6,
+        "kind": "ref",
+        "title": "Read the property suffixes",
+        "lines": [
+          35,
+          35
+        ],
+        "anchor": "Read `references/token-naming.md` for the suffixes that sele",
+        "n": "5",
+        "reference": "references/token-naming.md"
+      },
+      {
+        "id": "cc-map",
+        "row": 7,
+        "kind": "chipset",
+        "title": "Map each editable role",
+        "lines": [
+          41,
+          54
+        ],
+        "anchor": "Before writing a file, identify the component's parts, text ",
+        "anchorEnd": "Assign from the tokens the project has. Match the token fami",
+        "chips": [
+          {
+            "label": "--statcard-surface",
+            "lines": [
+              45,
+              45
+            ],
+            "anchor": "| `--statcard-surface` | `--surface-neutral` | `background` "
+          },
+          {
+            "label": "--statcard-border",
+            "lines": [
+              46,
+              46
+            ],
+            "anchor": "| `--statcard-border` | `--border-neutral` | `border-color` "
+          },
+          {
+            "label": "--statcard-border-width",
+            "lines": [
+              47,
+              47
+            ],
+            "anchor": "| `--statcard-border-width` | `--border-width-1` | `border-w"
+          },
+          {
+            "label": "--statcard-radius",
+            "lines": [
+              48,
+              48
+            ],
+            "anchor": "| `--statcard-radius` | `--radius-md` | `border-radius` |"
+          },
+          {
+            "label": "--statcard-padding",
+            "lines": [
+              49,
+              49
+            ],
+            "anchor": "| `--statcard-padding` | `--space-16` | `padding` |"
+          },
+          {
+            "label": "--statcard-value",
+            "lines": [
+              50,
+              50
+            ],
+            "anchor": "| `--statcard-value` | `--text-primary` | `color` of the val"
+          },
+          {
+            "label": "--statcard-value-font-size",
+            "lines": [
+              51,
+              51
+            ],
+            "anchor": "| `--statcard-value-font-size` | `--font-size-2xl` | `font-s"
+          },
+          {
+            "label": "--statcard-label",
+            "lines": [
+              52,
+              52
+            ],
+            "anchor": "| `--statcard-label` | `--text-secondary` | `color` of the l"
+          }
+        ]
+      },
+      {
+        "id": "cc-name",
+        "row": 8,
+        "kind": "chipset",
+        "title": "Name semantic properties",
+        "lines": [
+          56,
+          68
+        ],
+        "anchor": "A property name starts with the component id and ends with t",
+        "anchorEnd": "For a state that affects several parts, follow Toggle: `--to",
+        "chips": [
+          {
+            "label": "Component id",
+            "lines": [
+              62,
+              62
+            ],
+            "anchor": "`componentId` is the runtime file name in lowercase with no "
+          },
+          {
+            "label": "Variant",
+            "lines": [
+              63,
+              63
+            ],
+            "anchor": "`variant` is present when the component has more than one: `"
+          },
+          {
+            "label": "Part",
+            "lines": [
+              64,
+              64
+            ],
+            "anchor": "`part` names a region inside the component: `header`, `body`"
+          },
+          {
+            "label": "State",
+            "lines": [
+              65,
+              65
+            ],
+            "anchor": "`state` comes before the property: `--card-hover-border`. `d"
+          },
+          {
+            "label": "Property suffix",
+            "lines": [
+              66,
+              66
+            ],
+            "anchor": "`property` is the suffix, and the suffix selects the editor "
+          }
+        ]
+      },
+      {
+        "id": "cc-align",
+        "row": 9,
+        "kind": "step",
+        "title": "Reuse the shipped role names",
+        "lines": [
+          70,
+          70
+        ],
+        "anchor": "Name a role as the shipped component that paints the same th"
+      },
+      {
+        "id": "cc-runtime",
+        "row": 10,
+        "kind": "step",
+        "title": "Create the runtime component",
+        "lines": [
+          72,
+          114
+        ],
+        "anchor": "## Runtime component",
+        "anchorEnd": "The excerpt shows the chain for part of the property map. Ev"
+      },
+      {
+        "id": "cc-intrinsic-q",
         "row": 11,
-        "kind": "step",
-        "title": "Run the registry contract test",
-        "desc": "The test checks registration, unique variables, runtime declarations, default.json seeds, opacity floors, and alias round trips. checkRegistryEntry covers custom components; builtInRegistry covers shipped components.",
-        "lines": [
-          189,
-          189
-        ],
-        "anchor": "**Then run the registry contract test.** `checkRegistryEntry"
-      },
-      {
-        "id": "cc-intr",
-        "row": 13,
-        "kind": "step",
-        "title": "Run the intrinsics contract test",
-        "desc": "The test verifies that every intrinsic and variant has matching, allowed runtime and editor defaults.",
-        "lines": [
-          191,
-          191
-        ],
-        "anchor": "**If your component declares `intrinsics`, the intrinsics co"
-      },
-      {
-        "id": "cc-intr-q",
-        "row": 12,
         "kind": "decide",
-        "title": "Does the component declare intrinsics?",
-        "desc": "Components with structural or display choices run the intrinsics contract test.",
+        "title": "Structural properties",
+        "desc": "Does a property carry a structural choice?",
         "lines": [
-          191,
-          191
+          114,
+          114
         ],
-        "anchor": "**If your component declares `intrinsics`, the intrinsics co"
+        "anchor": "The excerpt shows the chain for part of the property map. Ev"
       },
       {
-        "id": "cc-man",
+        "id": "cc-intrinsics",
+        "row": 12,
+        "kind": "ref",
+        "title": "Declare intrinsics",
+        "lines": [
+          114,
+          114
+        ],
+        "anchor": "The excerpt shows the chain for part of the property map. Ev",
+        "reference": "references/intrinsics.md"
+      },
+      {
+        "id": "cc-states",
+        "row": 13,
+        "kind": "chipset",
+        "title": "Separate parts, variants, and states",
+        "lines": [
+          116,
+          132
+        ],
+        "anchor": "## Variants and states",
+        "anchorEnd": "A component supplies its variants. The page chooses the one ",
+        "chips": [
+          {
+            "label": "Part",
+            "lines": [
+              122,
+              122
+            ],
+            "anchor": "| Part | Regions present at once | Dialog's overlay, header,"
+          },
+          {
+            "label": "Variant",
+            "lines": [
+              123,
+              123
+            ],
+            "anchor": "| Variant | Alternative presentations the page chooses | Bad"
+          },
+          {
+            "label": "State",
+            "lines": [
+              124,
+              124
+            ],
+            "anchor": "| State | A runtime condition | Toggle's on, hover, disabled"
+          }
+        ]
+      },
+      {
+        "id": "cc-editor",
         "row": 14,
         "kind": "step",
-        "title": "Verify the component at runtime",
-        "desc": "The runtime review at /live-tokens/components checks the CUSTOM entry, token controls, default derivation, persistence, Reset, clean boot, and sketch mode. Linked components also verify linked-block sync.",
+        "title": "Export the property schema",
         "lines": [
-          193,
-          201
+          138,
+          138
         ],
-        "anchor": "Finally navigate to `/live-tokens/components` and confirm th",
-        "anchorEnd": "- [ ] Switch Sketch mode on in the editor and walk the check"
+        "anchor": "A `<script module>` block exports `component`, the id, and `",
+        "n": "1"
       },
       {
-        "id": "cc-place",
+        "id": "cc-editor-preview",
         "row": 15,
-        "kind": "hand",
-        "title": "Continue with create-page",
-        "desc": "create-page places the completed component on a page.",
+        "kind": "step",
+        "title": "Map states to preview props",
         "lines": [
-          67,
-          67
+          139,
+          139
         ],
-        "anchor": "**Verify** with the checklist at the bottom of this file, th"
+        "anchor": "The instance script imports the runtime component and the ed",
+        "n": "2"
+      },
+      {
+        "id": "cc-editor-markup",
+        "row": 16,
+        "kind": "step",
+        "title": "Render the editor and preview",
+        "lines": [
+          140,
+          140
+        ],
+        "anchor": "The markup mounts `ComponentEditorBase` with one `VariantGro",
+        "n": "3"
+      },
+      {
+        "id": "cc-linked-q",
+        "row": 17,
+        "kind": "decide",
+        "title": "Shared values",
+        "desc": "Do variants share a value?",
+        "lines": [
+          176,
+          176
+        ],
+        "anchor": "When variants share a value, read `references/linked-sibling"
+      },
+      {
+        "id": "cc-linked",
+        "row": 18,
+        "kind": "ref",
+        "title": "Declare linked properties",
+        "lines": [
+          176,
+          176
+        ],
+        "anchor": "When variants share a value, read `references/linked-sibling",
+        "reference": "references/linked-siblings.md"
+      },
+      {
+        "id": "cc-register",
+        "row": 19,
+        "kind": "step",
+        "title": "Register the component",
+        "lines": [
+          178,
+          201
+        ],
+        "anchor": "## Registration",
+        "anchorEnd": "Inside the live-tokens repository, a first-party component k"
+      },
+      {
+        "id": "cc-sketch",
+        "row": 20,
+        "kind": "ref",
+        "title": "Integrate Sketch mode",
+        "lines": [
+          205,
+          205
+        ],
+        "anchor": "Every component joins the sketch layer: read `references/ske",
+        "reference": "references/sketch-mode.md"
+      },
+      {
+        "id": "cc-overlay-q",
+        "row": 21,
+        "kind": "decide",
+        "title": "Fixed overlays",
+        "desc": "Does the component have a fixed overlay?",
+        "lines": [
+          207,
+          207
+        ],
+        "anchor": "A fixed overlay portals to `<body>`: read `references/fixed-"
+      },
+      {
+        "id": "cc-portal",
+        "row": 22,
+        "kind": "ref",
+        "title": "Portal the fixed overlay",
+        "lines": [
+          207,
+          207
+        ],
+        "anchor": "A fixed overlay portals to `<body>`: read `references/fixed-",
+        "reference": "references/fixed-overlays.md"
+      },
+      {
+        "id": "cc-audit",
+        "row": 23,
+        "kind": "step",
+        "title": "Run live-tokens-check-compliance",
+        "lines": [
+          211,
+          211
+        ],
+        "anchor": "Run **live-tokens-check-compliance** and address its finding"
+      },
+      {
+        "id": "cc-check",
+        "row": 24,
+        "kind": "cli",
+        "title": "Run the strict component check",
+        "lines": [
+          211,
+          211
+        ],
+        "anchor": "Run **live-tokens-check-compliance** and address its finding",
+        "command": "npx live-tokens check-component <id> --strict --json",
+        "n": "1"
+      },
+      {
+        "id": "cc-fail",
+        "row": 25,
+        "kind": "gate",
+        "title": "Resolve the findings",
+        "desc": "Apply live-tokens-fix-findings using the rule sections, then rerun.",
+        "lines": [
+          211,
+          211
+        ],
+        "anchor": "Run **live-tokens-check-compliance** and address its finding",
+        "chips": [
+          {
+            "label": "unknown-suffix, state-after-property, disabled-is-terminal",
+            "lines": [
+              221,
+              221
+            ],
+            "anchor": "| `unknown-suffix`, `state-after-property`, `disabled-is-ter"
+          },
+          {
+            "label": "default-not-token, color-literal, dimension-literal, unknown-token-ref",
+            "lines": [
+              222,
+              222
+            ],
+            "anchor": "| `default-not-token`, `color-literal`, `dimension-literal`,"
+          },
+          {
+            "label": "invalid-id, missing-file, missing-root-block, no-tokens",
+            "lines": [
+              223,
+              223
+            ],
+            "anchor": "| `invalid-id`, `missing-file`, `missing-root-block`, `no-to"
+          },
+          {
+            "label": "missing-component-const, missing-all-tokens, phantom-editor-token, phantom-link, deep-import",
+            "lines": [
+              224,
+              224
+            ],
+            "anchor": "| `missing-component-const`, `missing-all-tokens`, `phantom-"
+          },
+          {
+            "label": "missing-registration",
+            "lines": [
+              225,
+              225
+            ],
+            "anchor": "| `missing-registration` | Registration |"
+          }
+        ]
+      },
+      {
+        "id": "cc-pass",
+        "row": 25,
+        "kind": "ok",
+        "title": "Component check passes",
+        "lines": [
+          211,
+          211
+        ],
+        "anchor": "Run **live-tokens-check-compliance** and address its finding"
+      },
+      {
+        "id": "cc-build",
+        "row": 27,
+        "kind": "step",
+        "title": "Run the Svelte check and build",
+        "lines": [
+          212,
+          212
+        ],
+        "anchor": "Run the project's Svelte check and its build.",
+        "n": "2"
+      },
+      {
+        "id": "cc-contract",
+        "row": 28,
+        "kind": "ref",
+        "title": "Verify the registry and intrinsics",
+        "lines": [
+          213,
+          213
+        ],
+        "anchor": "Verify the registry entry with `checkRegistryEntry`: read `r",
+        "n": "3",
+        "reference": "references/contract-tests.md"
+      },
+      {
+        "id": "cc-editor-check",
+        "row": 29,
+        "kind": "chipset",
+        "title": "Verify the component in the editor",
+        "lines": [
+          214,
+          214
+        ],
+        "anchor": "Open `/live-tokens/components` and check each line below.",
+        "n": "4",
+        "chips": [
+          {
+            "label": "Registry group",
+            "lines": [
+              229,
+              229
+            ],
+            "anchor": "A custom component appears under CUSTOM. A first-party compo"
+          },
+          {
+            "label": "Property controls",
+            "lines": [
+              230,
+              230
+            ],
+            "anchor": "Each property has the control its suffix selects, and change"
+          },
+          {
+            "label": "Preview and interaction",
+            "lines": [
+              231,
+              231
+            ],
+            "anchor": "The preview matches the state being edited. Keyboard and poi"
+          },
+          {
+            "label": "Linked values",
+            "lines": [
+              232,
+              232
+            ],
+            "anchor": "Linked properties change together. Separate roles stay indep"
+          },
+          {
+            "label": "Persistence and reset",
+            "lines": [
+              233,
+              233
+            ],
+            "anchor": "An edit persists across a reload. Reset restores the `:globa"
+          },
+          {
+            "label": "Theme propagation",
+            "lines": [
+              234,
+              234
+            ],
+            "anchor": "A theme change reaches every property."
+          },
+          {
+            "label": "Sketch rendering",
+            "lines": [
+              235,
+              235
+            ],
+            "anchor": "With Sketch mode on, every painted part is drawn in its own "
+          }
+        ]
+      },
+      {
+        "id": "cc-reply",
+        "row": 30,
+        "kind": "step",
+        "title": "Reply with the implementation results",
+        "lines": [
+          215,
+          215
+        ],
+        "anchor": "Reply with the files, the component id, the props, and the r",
+        "n": "5"
+      },
+      {
+        "id": "cc-page",
+        "row": 31,
+        "kind": "hand",
+        "title": "live-tokens-create-page",
+        "lines": [
+          237,
+          237
+        ],
+        "anchor": "Then place the component on a page with **live-tokens-create"
       }
     ],
     "edges": [
       {
-        "from": "cc-trig",
-        "to": "cc-read"
+        "to": "cc-model",
+        "from": "cc-trig"
       },
       {
-        "from": "cc-read",
-        "to": "cc-disc"
+        "to": "cc-inspect",
+        "from": "cc-model"
       },
       {
-        "from": "cc-disc",
-        "to": "cc-run"
+        "to": "cc-catalogue",
+        "from": "cc-inspect"
       },
       {
-        "from": "cc-run",
-        "to": "cc-ed"
+        "to": "cc-tokens",
+        "from": "cc-catalogue"
       },
       {
-        "from": "cc-ed",
-        "to": "cc-ext"
+        "to": "cc-examples",
+        "from": "cc-tokens"
       },
       {
-        "from": "cc-ext",
-        "to": "cc-reg"
+        "to": "cc-suffixes",
+        "from": "cc-examples"
       },
       {
-        "from": "cc-reg",
-        "to": "cc-desc"
+        "to": "cc-map",
+        "from": "cc-suffixes"
       },
       {
-        "from": "cc-desc",
-        "to": "cc-sk"
+        "to": "cc-name",
+        "from": "cc-map"
       },
       {
-        "from": "cc-sk",
-        "to": "cc-gate"
+        "to": "cc-align",
+        "from": "cc-name"
       },
       {
-        "from": "cc-ver",
-        "to": "cc-test"
+        "to": "cc-runtime",
+        "from": "cc-align"
       },
       {
-        "from": "cc-test",
-        "to": "cc-intr-q"
+        "to": "cc-intrinsic-q",
+        "from": "cc-runtime"
       },
       {
-        "from": "cc-intr-q",
-        "to": "cc-intr",
-        "label": "has intrinsics"
+        "to": "cc-intrinsics",
+        "from": "cc-intrinsic-q",
+        "label": "structural choice"
       },
       {
-        "from": "cc-intr-q",
-        "to": "cc-man",
-        "label": "token values only"
+        "to": "cc-states",
+        "from": "cc-intrinsic-q",
+        "label": "editable value"
       },
       {
-        "from": "cc-intr",
-        "to": "cc-man"
+        "to": "cc-states",
+        "from": "cc-intrinsics"
       },
       {
-        "from": "cc-man",
-        "to": "cc-place"
+        "to": "cc-editor",
+        "from": "cc-states"
       },
       {
-        "from": "cc-gate",
+        "to": "cc-editor-preview",
+        "from": "cc-editor"
+      },
+      {
+        "to": "cc-editor-markup",
+        "from": "cc-editor-preview"
+      },
+      {
+        "to": "cc-linked-q",
+        "from": "cc-editor-markup"
+      },
+      {
+        "to": "cc-linked",
+        "from": "cc-linked-q",
+        "label": "share a value"
+      },
+      {
+        "to": "cc-register",
+        "from": "cc-linked-q",
+        "label": "separate keys"
+      },
+      {
+        "to": "cc-register",
+        "from": "cc-linked"
+      },
+      {
+        "to": "cc-sketch",
+        "from": "cc-register"
+      },
+      {
+        "to": "cc-overlay-q",
+        "from": "cc-sketch"
+      },
+      {
+        "to": "cc-portal",
+        "from": "cc-overlay-q",
+        "label": "fixed overlay"
+      },
+      {
+        "to": "cc-audit",
+        "from": "cc-overlay-q",
+        "label": "container"
+      },
+      {
+        "to": "cc-audit",
+        "from": "cc-portal"
+      },
+      {
+        "to": "cc-check",
+        "from": "cc-audit"
+      },
+      {
         "to": "cc-fail",
+        "from": "cc-check",
         "label": "exit 1"
       },
       {
-        "from": "cc-gate",
-        "to": "cc-ver",
+        "to": "cc-pass",
+        "from": "cc-check",
         "label": "exit 0"
       },
       {
+        "to": "cc-check",
         "from": "cc-fail",
-        "to": "cc-gate",
         "label": "rerun",
         "back": true
+      },
+      {
+        "to": "cc-build",
+        "from": "cc-pass"
+      },
+      {
+        "to": "cc-contract",
+        "from": "cc-build"
+      },
+      {
+        "to": "cc-editor-check",
+        "from": "cc-contract"
+      },
+      {
+        "to": "cc-reply",
+        "from": "cc-editor-check"
+      },
+      {
+        "to": "cc-page",
+        "from": "cc-reply"
       }
     ]
   },

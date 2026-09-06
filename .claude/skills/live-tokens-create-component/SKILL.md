@@ -1,6 +1,6 @@
 ---
 name: live-tokens-create-component
-description: Create an editable component for a @motion-proto/live-tokens project. A component is a runtime Svelte file, an editor Svelte file, and one registration. The runtime file declares one semantic property per editable CSS property and assigns each an existing design token. The property names are semantic, based on function, and reuse the names of the existing components. Use when live-tokens-pick-component finds no suitable component, or the user asks for a new component. Use when the user asks to make an existing Svelte component editable in the live-tokens editor.
+description: Create an editable component for a @motion-proto/live-tokens project. A component is a runtime Svelte file, an editor Svelte file, and one registration. The runtime file declares one semantic property per editable CSS property and assigns each an existing design token. The property names are semantic, based on function, and reuse the names of the existing components. Use when live-tokens-pick-component finds no suitable component, or the user asks for a new component. Use when the user asks to make an existing Svelte component editable in the live-tokens editor. For page integration, read live-tokens-create-page.
 ---
 
 # Creating a component for a live-tokens project
@@ -53,7 +53,7 @@ Before writing a file, identify the component's parts, text roles, variants, and
 
 Assign from the tokens the project has. Match the token family to the role: `--surface-*` for a fill, `--border-*` for an outline, `--text-*` for text, and the space, radius, border-width, and icon-size scales for geometry. Give each text role five properties: `-font-family`, `-font-size`, `-font-weight`, `-line-height`, and `-letter-spacing`.
 
-A property name has this shape:
+A property name starts with the component id and ends with the property suffix. Use this shape for part-specific states:
 
 ```text
 --<componentId>[-<variant>][-<part>][-<state>]-<property>
@@ -64,6 +64,8 @@ A property name has this shape:
 - `part` names a region inside the component: `header`, `body`, `track`, `thumb`. The editor's `element` tag groups rows in the panel and is never a name segment.
 - `state` comes before the property: `--card-hover-border`. `disabled` is terminal, so no name pairs `disabled` with `hover` or `selected`.
 - `property` is the suffix, and the suffix selects the editor control: `-surface` for a fill, `-border` for a border color, `-border-width` for a stroke, `-radius` for corners, `-padding` and `-gap` for spacing, and the five typography suffixes. `references/token-naming.md` lists every suffix.
+
+For a state that affects several parts, follow Toggle: `--toggle-on-hover-track-surface`. State segments precede the affected part.
 
 Name a role as the shipped component that paints the same thing names it. A fill is `-surface` in every shipped component. A knob is `-thumb`. A text role's color sits on the role's own name, `-title`, `-body`, `-label`, `-value`, and its typography hangs off that name: `--card-default-title-font-size`. A component with one text role uses `-text`: `--badge-primary-text`.
 
@@ -146,6 +148,8 @@ Create `src/system/components/StatCardEditor.svelte` beside the runtime file. Th
     default: [
       { label: 'surface', element: 'frame', variable: '--statcard-surface' },
       { label: 'border', element: 'frame', variable: '--statcard-border' },
+      { label: 'border width', element: 'frame', variable: '--statcard-border-width' },
+      { label: 'radius', element: 'frame', variable: '--statcard-radius' },
       { label: 'padding', element: 'frame', variable: '--statcard-padding' },
       { label: 'text', element: 'value', variable: '--statcard-value' },
       { label: 'font size', element: 'value', variable: '--statcard-value-font-size' },
@@ -198,15 +202,15 @@ Inside the live-tokens repository, a first-party component keeps its editor in `
 
 ## Sketch mode and overlays
 
-Every component joins the sketch layer: read `references/sketch-mode.md`. The root carries one of the four reserved classes and names the five `--sketch-*` values from its own properties. A first-party component adds a `PartSpec` row instead.
+Every component joins the sketch layer: read `references/sketch-mode.md`. A suitable root or inner wrapper carries a reserved class and names five `--sketch-*` values from its own properties. Preserve positioning, clipping, and pseudo-elements as the reference specifies. A first-party component adds a `PartSpec` row instead.
 
 A fixed overlay portals to `<body>`: read `references/fixed-overlays.md`. A container that owns the typography of its content follows `Card` and its `prose` prop.
 
 ## Verification
 
-1. Run `npx live-tokens check-component <id> --strict --json`. Inside the live-tokens repository, run `node bin/cli.mjs check-component <id> --strict --json`. Each finding carries a rule id and a line; `--off=<rule>` silences a rule for one run. Fix every finding and rerun until exit 0.
+1. Run **live-tokens-check-compliance** and address its findings with **live-tokens-fix-findings**. Then run `npx live-tokens check-component <id> --strict --json`. Inside the live-tokens repository, run `node bin/cli.mjs check-component <id> --strict --json`. Each finding carries a rule id and a line; `--off=<rule>` silences a rule for one run. Fix every finding and rerun until exit 0.
 2. Run the project's Svelte check and its build.
-3. Verify the registry entry with `checkRegistryEntry`: read `references/contract-tests.md`. The contract holds registration, unique schema variables, runtime declarations, seeded defaults, alias round trips, and the intrinsics when the component declares them.
+3. Verify the registry entry with `checkRegistryEntry`: read `references/contract-tests.md`. The contract holds registration, unique schema variables, runtime declarations, seeded defaults, and alias round trips. For intrinsics, also compare each spec default with the runtime declaration and permitted values. The package covers first-party intrinsics in `src/editor/component-editor/intrinsicsContract.test.ts`.
 4. Open `/live-tokens/components` and check each line below.
 5. Reply with the files, the component id, the props, and the results of steps 1 to 4, naming any check the environment prevented.
 
@@ -222,7 +226,7 @@ A finding maps to the section that fixes it.
 
 In the editor:
 
-- The component appears under CUSTOM.
+- A custom component appears under CUSTOM. A first-party component appears among the system entries.
 - Each property has the control its suffix selects, and changes the matching part.
 - The preview matches the state being edited. Keyboard and pointer behavior work.
 - Linked properties change together. Separate roles stay independent.
