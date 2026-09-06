@@ -15,7 +15,7 @@ const ANCHOR_LENGTH = 60;
 // A workflow step carries its own number, and renumbering one is the most
 // common edit these files see. Anchoring on the prose after the marker lets a
 // step move without re-anchoring, while still breaking when its words change.
-export const normalize = (line) => line.trim().replace(/^\d+\.\s+/, '');
+export const normalize = (line) => line.trim().replace(/^(?:\d+\.|[-*+])\s+/, '');
 export const anchorOf = (line) => normalize(line).slice(0, ANCHOR_LENGTH);
 
 // The trees are a JSON literal wearing a TypeScript annotation, so the file
@@ -69,7 +69,7 @@ export function rebuild(node, extra, after = 'lines') {
 export function locate(lines, anchor, hint, from = 0) {
   const hits = [];
   for (let i = from; i < lines.length; i += 1) {
-    if (normalize(lines[i]).startsWith(anchor)) hits.push(i + 1);
+    if (normalize(lines[i]).startsWith(normalize(anchor))) hits.push(i + 1);
   }
   if (hits.length === 0) return null;
   return hits.reduce((best, n) => (Math.abs(n - hint) < Math.abs(best - hint) ? n : best));
@@ -173,4 +173,65 @@ export function auditCommands(trees, cli) {
 export function uncoveredSkills(trees, skillDirs) {
   const covered = new Set(Object.values(trees).map((t) => t.id));
   return skillDirs.filter((dir) => !covered.has(dir)).map((dir) => `${dir}: no tree in skillTrees.ts maps this skill`);
+}
+
+/** A readable plan needs valid branches as well as valid source anchors. */
+export function auditStructure(trees, skillIds = Object.values(trees).map((tree) => tree.id)) {
+  const problems = [];
+  const knownSkills = new Set(skillIds);
+  const banned = /\b(?:look|band|box|ladder|rung|you|your|unsaved)\b|report card|[→—]/i;
+  for (const tree of Object.values(trees)) {
+    const nodes = new Map(tree.nodes.map((node) => [node.id, node]));
+    const fail = (id, message) => problems.push(`${tree.id} ${id}: ${message}`);
+    if (nodes.size !== tree.nodes.length) fail('nodes', 'duplicate node id');
+    const triggers = tree.nodes.filter((node) => node.kind === 'trigger');
+    if (triggers.length !== 1) fail('nodes', 'expected one trigger');
+    for (const edge of tree.edges) {
+      const from = nodes.get(edge.from);
+      const to = nodes.get(edge.to);
+      if (!from || !to) { fail('edge', `missing endpoint ${edge.from} to ${edge.to}`); continue; }
+      if (!edge.back && from.row >= to.row) fail(edge.from, `forward edge must descend to ${edge.to}`);
+      if (edge.back && from.row <= to.row) fail(edge.from, `return edge must ascend to ${edge.to}`);
+    }
+    for (const node of tree.nodes) {
+      const edges = tree.edges.filter((edge) => edge.from === node.id);
+      if (!Number.isInteger(node.row) || node.row < 0) fail(node.id, 'invalid row');
+      for (const item of [node, ...(node.chips ?? [])]) {
+        if (!Array.isArray(item.lines) || item.lines.length !== 2 ||
+            !item.lines.every(Number.isInteger) || item.lines[0] < 1 || item.lines[1] < item.lines[0]) {
+          fail(node.id, 'missing or invalid source range');
+        }
+        for (const field of ['title', 'desc', 'label']) {
+          // A trigger quotes the description, which may include user vocabulary.
+          if (node.kind === 'trigger' && field === 'desc') continue;
+          if (banned.test(item[field] ?? '')) fail(node.id, `restricted vocabulary in ${field}`);
+        }
+        if (/^(?:what|where|when|why|which|who|how)\b/i.test(item.title ?? item.label ?? '')) {
+          fail(node.id, 'title or chip label starts with a question clause');
+        }
+      }
+      if (['decide', 'ask'].includes(node.kind)) {
+        if (edges.length < 2 || edges.some((edge) => !edge.label?.trim())) fail(node.id, 'decision needs two labelled answers');
+      } else if (['hand', 'done'].includes(node.kind)) {
+        if (edges.length) fail(node.id, 'terminal node has outgoing edges');
+      } else if (node.kind === 'cli') {
+        if (!edges.length || (edges.length > 1 && edges.some((edge) => !edge.label?.trim()))) fail(node.id, 'command needs a continuation or labelled outcomes');
+      } else if (edges.length !== 1) fail(node.id, 'node needs one continuation');
+      if (node.kind === 'gate' && !edges[0]?.back) fail(node.id, 'failure gate needs a return edge');
+      if (node.kind === 'hand' && ![...knownSkills].some((id) => `${node.title} ${node.desc ?? ''}`.includes(id))) {
+        fail(node.id, 'handoff must name an existing skill');
+      }
+    }
+    if (triggers.length === 1) {
+      const reached = new Set();
+      const visit = (id) => {
+        if (reached.has(id)) return;
+        reached.add(id);
+        tree.edges.filter((edge) => edge.from === id).forEach((edge) => visit(edge.to));
+      };
+      visit(triggers[0].id);
+      for (const node of tree.nodes) if (!reached.has(node.id)) fail(node.id, 'unreachable from trigger');
+    }
+  }
+  return problems;
 }

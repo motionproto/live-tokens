@@ -4,6 +4,7 @@ import {
   anchorOf,
   atlasNodes,
   auditCommands,
+  auditStructure,
   digestOf,
   locate,
   normalize,
@@ -269,5 +270,64 @@ describe('the shipped tree', () => {
     const source = readFileSync(new URL('../../src/editor/skill-atlas/skillTrees.ts', import.meta.url), 'utf8');
 
     expect(serializeTrees(parseTrees(source))).toBe(source);
+  });
+});
+
+describe('decision-tree structure', () => {
+  const plan = () => ({ example: {
+    id: 'live-tokens-example',
+    nodes: [
+      { id: 'start', row: 0, kind: 'trigger', title: 'Start', lines: [1, 1] },
+      { id: 'choice', row: 1, kind: 'decide', title: 'Result', lines: [2, 2] },
+      { id: 'retry', row: 2, kind: 'gate', title: 'Correct input', lines: [3, 3] },
+      { id: 'end', row: 2, kind: 'done', title: 'Complete', lines: [4, 4] },
+    ],
+    edges: [
+      { from: 'start', to: 'choice' },
+      { from: 'choice', to: 'retry', label: 'invalid' },
+      { from: 'choice', to: 'end', label: 'valid' },
+      { from: 'retry', to: 'choice', back: true },
+    ],
+  } });
+
+  it('accepts a complete plan with a retry loop', () => {
+    expect(auditStructure(plan())).toEqual([]);
+  });
+  it('rejects an answerless branch and a forward edge that ascends', () => {
+    const trees = plan();
+    delete (trees.example.edges[1] as { label?: string }).label;
+    trees.example.edges[3].back = false;
+    expect(auditStructure(trees).join('\n')).toContain('two labelled answers');
+    expect(auditStructure(trees).join('\n')).toContain('forward edge must descend');
+  });
+  it('rejects dangling edges, unreachable nodes, and duplicate ids', () => {
+    const trees = plan();
+    trees.example.nodes.push({ id: 'orphan', row: 3, kind: 'done', title: 'Orphan', lines: [5, 5] });
+    trees.example.nodes.push({ ...trees.example.nodes[3] });
+    trees.example.edges.push({ from: 'end', to: 'missing' });
+    const errors = auditStructure(trees).join('\n');
+    expect(errors).toContain('missing endpoint');
+    expect(errors).toContain('unreachable');
+    expect(errors).toContain('duplicate node');
+    expect(errors).toContain('terminal node');
+  });
+  it('requires a real skill for terminal handoffs', () => {
+    const trees = plan();
+    Object.assign(trees.example.nodes[3], { kind: 'hand', title: 'live-tokens-other' });
+    expect(auditStructure(trees).join('\n')).toContain('existing skill');
+    expect(auditStructure(trees, ['live-tokens-other'])).toEqual([]);
+  });
+  it('checks chip ranges and vocabulary while preserving trigger quotations', () => {
+    const trees = plan();
+    Object.assign(trees.example.nodes[0], { desc: 'Use when the user asks for a look.' });
+    Object.assign(trees.example.nodes[3], { chips: [{ label: 'A box', lines: [0, 0] }] });
+    const errors = auditStructure(trees).join('\n');
+    expect(errors).toContain('restricted vocabulary');
+    expect(errors).toContain('invalid source range');
+    expect(errors).not.toContain('start:');
+  });
+  it('normalizes bullet markers as well as numbered steps', () => {
+    expect(anchorOf('- Read the source.')).toBe('Read the source.');
+    expect(anchorOf('* Read the source.')).toBe('Read the source.');
   });
 });

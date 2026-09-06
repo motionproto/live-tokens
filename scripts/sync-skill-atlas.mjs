@@ -21,6 +21,7 @@ import { fileURLToPath } from 'node:url';
 import {
   atlasNodes,
   auditCommands,
+  auditStructure,
   parseTrees,
   serializeTrees,
   syncDigest,
@@ -37,6 +38,9 @@ const write = process.argv.slice(2).includes('--write');
 
 const parsed = parseTrees(readFileSync(ATLAS, 'utf8'));
 const { trees } = parsed;
+const selected = process.argv.find((arg) => arg.startsWith('--skill='))?.slice(8);
+if (selected && !trees[selected]) throw new Error(`Unknown atlas skill: ${selected}`);
+const activeTrees = selected ? { [selected]: trees[selected] } : trees;
 
 const bodies = new Map();
 const linesOf = (id) => {
@@ -56,9 +60,10 @@ const take = ({ error, moved: didMove, anchored: didAnchor, digested: didDigest 
   if (didDigest) digested += 1;
 };
 
-for (const tree of Object.values(trees)) take(syncDigest(tree, linesOf(tree.id), write));
-for (const { node, id, label } of atlasNodes(trees)) take(syncNode(node, { lines: linesOf(id), id, label, write }));
-errors.push(...auditCommands(trees, readFileSync(CLI, 'utf8')));
+for (const tree of Object.values(activeTrees)) take(syncDigest(tree, linesOf(tree.id), write));
+for (const { node, id, label } of atlasNodes(activeTrees)) take(syncNode(node, { lines: linesOf(id), id, label, write }));
+errors.push(...auditCommands(activeTrees, readFileSync(CLI, 'utf8')));
+errors.push(...auditStructure(activeTrees, Object.values(trees).map((tree) => tree.id)));
 
 // `check:skills` enumerates the same directory for the same reason.
 const skillDirs = readdirSync(SKILLS, { withFileTypes: true })
