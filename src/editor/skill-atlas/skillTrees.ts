@@ -404,174 +404,278 @@ export const skillTrees: Record<string, SkillTree> = {
   },
   "set-colors": {
     "id": "live-tokens-set-colors",
-    "digest": "sha256:ed316c987e1cb5c4",
+    "digest": "sha256:fbff02a0779adf59",
     "title": "set-colors",
-    "tagline": "Ten base colors become every ramp, gated on AA contrast, written into the live look.",
+    "tagline": "Read the color intent, write the input, run the CLI, and verify the result.",
     "nodes": [
       {
         "id": "sc-trig",
         "row": 0,
         "kind": "trigger",
         "title": "Set or refine a palette",
-        "desc": "A palette, colors, or hues by mood, style, or hue, and every color refinement. create-theme supplies the color intent for a whole look.",
+        "desc": "Use when the user asks for a palette, colors, or hues by mood, style, era, season, holiday, or hue. Use when the user names only a color. Use when the user refines a theme's color: warmer, cooler, calmer, louder, lighter, darker, moodier, more contrast.",
         "lines": [
-          2,
-          15
+          3,
+          3
         ],
-        "anchor": "name: live-tokens-set-colors",
-        "anchorEnd": "theme in the editor, or running `save-theme`, turns the live"
+        "anchor": "description: Set a live-tokens theme's color: ten OKLCH base"
       },
       {
         "id": "sc-anchor",
         "row": 1,
         "kind": "ref",
         "title": "Read the color anchor",
-        "desc": "An anchor the color intent names overrides the generic bands. Say which anchor you took.",
-        "reference": "references/color-anchors.md",
         "lines": [
           19,
           19
         ],
-        "anchor": "Read the color intent. When it names an anchor (a feeling, a"
+        "anchor": "Read the color intent and any anchor live-tokens-create-them",
+        "reference": "references/color-anchors.md",
+        "n": "1"
       },
       {
-        "id": "sc-base-colors",
+        "id": "sc-input",
         "row": 2,
         "kind": "step",
-        "n": "2",
-        "title": "Define ten OKLCH base colors",
-        "desc": "Brand, Accent, Special, Canvas, Neutral, Alternate, and four statuses go to scratch/<slug>-base-colors.json, which is the only copy.",
+        "title": "Write the input file",
+        "desc": "Write ten base colors, the scheme, and the optional canvas gradient.",
         "lines": [
           20,
           20
         ],
-        "anchor": "Translate the intent into ten base colors using the framewor"
-      },
-      {
-        "id": "sc-cons",
-        "row": 3,
-        "kind": "chipset",
-        "title": "Apply all palette constraints",
-        "lines": [
-          27,
-          120
-        ],
-        "anchor": "## The base color file",
-        "anchorEnd": "Shadow opacity derives from Canvas lightness and re-derives ",
+        "anchor": "Translate the intent into ten base colors with the framework",
+        "n": "2",
         "chips": [
           {
-            "label": "Base color file schema",
+            "label": "Input format",
             "lines": [
               27,
-              49
+              53
             ],
             "anchor": "## The base color file",
             "anchorEnd": "Roles: **Brand** is the dominant chromatic identity; **Accen"
-          },
-          {
-            "label": "Chroma budget",
-            "lines": [
-              51,
-              61
-            ],
-            "anchor": "## Chroma budget: color is inversely proportional to area",
-            "anchorEnd": "A good theme reads as 3 or 4 hue families on screen, never 1"
-          },
-          {
-            "label": "Role bands",
-            "lines": [
-              63,
-              75
-            ],
-            "anchor": "## Per-role bands",
-            "anchorEnd": "| Danger | shared status L, C 0.15 to 0.20 | same | H 20 to "
-          },
-          {
-            "label": "Canvas commitment",
-            "lines": [
-              77,
-              81
-            ],
-            "anchor": "**The canvas carries the theme's identity, so commit to it.*",
-            "anchorEnd": "*Full-color ground* (holiday and statement intents): the can"
-          },
-          {
-            "label": "Dark scheme and status lightness",
-            "lines": [
-              83,
-              89
-            ],
-            "anchor": "Also:",
-            "anchorEnd": "- Status hues never rotate with the harmony; only their L an"
-          },
-          {
-            "label": "Mood dials",
-            "lines": [
-              91,
-              97
-            ],
-            "anchor": "## Mood dials",
-            "anchorEnd": "Avoid mid-lightness yellow-green (H 100 to 120 at L 0.5 to 0"
-          },
-          {
-            "label": "Gamut guardrails",
-            "lines": [
-              99,
-              106
-            ],
-            "anchor": "## Gamut guardrails",
-            "anchorEnd": "- Peak chroma anchors: red H20 C 0.25 at L 0.63; orange H60 "
-          },
-          {
-            "label": "Hue harmony",
-            "lines": [
-              108,
-              114
-            ],
-            "anchor": "## Harmony",
-            "anchorEnd": "- Drama or maximum contrast: complementary, triadic, or tetr"
-          },
-          {
-            "label": "Canvas gradient and shadows",
-            "lines": [
-              116,
-              120
-            ],
-            "anchor": "## Canvas sky and shadows",
-            "anchorEnd": "Shadow opacity derives from Canvas lightness and re-derives "
           }
         ]
       },
       {
-        "id": "sc-cli",
+        "id": "sc-budget",
+        "row": 3,
+        "kind": "chipset",
+        "title": "Chroma budget",
+        "lines": [
+          55,
+          67
+        ],
+        "anchor": "## Chroma budget",
+        "anchorEnd": "A good theme reads as 3 or 4 hue families on screen, never 1",
+        "chips": [
+          {
+            "label": "Ground (about 60% of every screen)",
+            "lines": [
+              61,
+              61
+            ],
+            "anchor": "| Ground (about 60% of every screen) | Neutral, Alternate | "
+          },
+          {
+            "label": "Canvas (the largest single area)",
+            "lines": [
+              62,
+              62
+            ],
+            "anchor": "| Canvas (the largest single area) | Canvas | C 0.02 to 0.14"
+          },
+          {
+            "label": "Dominant chromatic (about 30%)",
+            "lines": [
+              63,
+              63
+            ],
+            "anchor": "| Dominant chromatic (about 30%) | Brand | C 0.10 to 0.20 |"
+          },
+          {
+            "label": "Garnish (about 10%)",
+            "lines": [
+              64,
+              64
+            ],
+            "anchor": "| Garnish (about 10%) | Accent, Special | may exceed Brand; "
+          },
+          {
+            "label": "Conditional",
+            "lines": [
+              65,
+              65
+            ],
+            "anchor": "| Conditional | Info, Success, Warning, Danger | C 0.12 to 0"
+          }
+        ]
+      },
+      {
+        "id": "sc-roles",
         "row": 4,
+        "kind": "chipset",
+        "title": "Role ranges",
+        "lines": [
+          69,
+          95
+        ],
+        "anchor": "## Per-role ranges",
+        "anchorEnd": "Blue tints cap very low at high L (H 264 at L 0.95 barely re",
+        "chips": [
+          {
+            "label": "Canvas",
+            "lines": [
+              73,
+              73
+            ],
+            "anchor": "| Canvas | L 0.92 to 0.98, C 0.02 to 0.06 | L 0.15 to 0.28, "
+          },
+          {
+            "label": "Neutral, Alternate",
+            "lines": [
+              74,
+              74
+            ],
+            "anchor": "| Neutral, Alternate | L about 0.55, C 0.008 to 0.02 | same "
+          },
+          {
+            "label": "Brand",
+            "lines": [
+              75,
+              75
+            ],
+            "anchor": "| Brand | L 0.45 to 0.62, C 0.12 to 0.20 | L 0.70 to 0.83, C"
+          },
+          {
+            "label": "Accent",
+            "lines": [
+              76,
+              76
+            ],
+            "anchor": "| Accent | harmony slot, or at least 0.25 L from Brand when "
+          },
+          {
+            "label": "Special",
+            "lines": [
+              77,
+              77
+            ],
+            "anchor": "| Special | most expressive; default Brand hue +60 at about "
+          },
+          {
+            "label": "Info",
+            "lines": [
+              78,
+              78
+            ],
+            "anchor": "| Info | shared status L (0.55 to 0.65 light) | lighten like"
+          },
+          {
+            "label": "Success",
+            "lines": [
+              79,
+              79
+            ],
+            "anchor": "| Success | shared status L | same | H 140 to 155 |"
+          },
+          {
+            "label": "Warning",
+            "lines": [
+              80,
+              80
+            ],
+            "anchor": "| Warning | L 0.75 or higher (vivid yellow must be light) | "
+          },
+          {
+            "label": "Danger",
+            "lines": [
+              81,
+              81
+            ],
+            "anchor": "| Danger | shared status L, C 0.15 to 0.20 | same | H 20 to "
+          }
+        ]
+      },
+      {
+        "id": "sc-mood",
+        "row": 5,
+        "kind": "step",
+        "title": "Mood dials",
+        "lines": [
+          97,
+          103
+        ],
+        "anchor": "## Mood dials",
+        "anchorEnd": "Avoid mid-lightness yellow-green (H 100 to 120 at L 0.5 to 0"
+      },
+      {
+        "id": "sc-gamut",
+        "row": 6,
+        "kind": "step",
+        "title": "Gamut constraints",
+        "lines": [
+          105,
+          112
+        ],
+        "anchor": "## Gamut guardrails",
+        "anchorEnd": "Peak chroma anchors: red H20 C 0.25 at L 0.63; orange H60 C "
+      },
+      {
+        "id": "sc-harmony",
+        "row": 7,
+        "kind": "step",
+        "title": "Harmony",
+        "lines": [
+          114,
+          120
+        ],
+        "anchor": "## Harmony",
+        "anchorEnd": "Drama or maximum contrast: complementary, triadic, or tetrad"
+      },
+      {
+        "id": "sc-sky",
+        "row": 8,
+        "kind": "step",
+        "title": "Canvas gradient and shadows",
+        "lines": [
+          122,
+          126
+        ],
+        "anchor": "## Canvas sky and shadows",
+        "anchorEnd": "Shadow opacity derives from Canvas lightness and re-derives "
+      },
+      {
+        "id": "sc-refine",
+        "row": 9,
+        "kind": "step",
+        "title": "Refine existing colors",
+        "lines": [
+          128,
+          134
+        ],
+        "anchor": "## Refining a theme's color",
+        "anchorEnd": "One adjective moves one dial. Warmer and cooler rotate hue; "
+      },
+      {
+        "id": "sc-cli",
+        "row": 10,
         "kind": "cli",
-        "n": "3",
-        "title": "Write the color buffer",
-        "desc": "The CLI builds every ramp, enforces AA contrast on the derived text tokens, writes the result into the unsaved buffer the page already runs, and prints a contrast report.",
+        "title": "Run set-colors",
         "lines": [
           21,
           21
         ],
         "anchor": "Run `npx live-tokens set-colors scratch/<slug>-base-colors.j",
         "command": "npx live-tokens set-colors scratch/<slug>-base-colors.json",
-        "chips": [
-          {
-            "label": "Flags",
-            "lines": [
-              25,
-              25
-            ],
-            "anchor": "Flags: `--dry-run` prints the contrast report without writin"
-          }
-        ]
+        "n": "3"
       },
       {
         "id": "sc-fail",
-        "row": 5,
+        "row": 11,
         "kind": "gate",
-        "title": "A base color fails validation",
-        "desc": "Each failure line names the base color to change, usually by raising its lightness or cutting its chroma.",
+        "title": "Correct the input file",
+        "desc": "Use the error details to correct the input and rerun the command.",
         "lines": [
           22,
           22
@@ -580,10 +684,9 @@ export const skillTrees: Record<string, SkillTree> = {
       },
       {
         "id": "sc-pass",
-        "row": 5,
+        "row": 11,
         "kind": "ok",
-        "title": "Colors pass validation",
-        "desc": "Auto-corrected values count as passing.",
+        "title": "Command passes",
         "lines": [
           22,
           22
@@ -592,112 +695,167 @@ export const skillTrees: Record<string, SkillTree> = {
       },
       {
         "id": "sc-report",
-        "row": 6,
+        "row": 13,
         "kind": "step",
-        "n": "5",
-        "title": "Report back",
-        "desc": "The line back to create-theme names the scheme, the hue families on screen, the canvas commitment level, and anything auto-corrected.",
+        "title": "Read the report",
+        "lines": [
+          22,
+          22
+        ],
+        "anchor": "Read the report. Exit 0 passes, and auto-corrected values co",
+        "n": "4"
+      },
+      {
+        "id": "sc-reply",
+        "row": 14,
+        "kind": "step",
+        "title": "Reply with the result",
         "lines": [
           23,
           23
         ],
-        "anchor": "Report back in a line: the scheme, the hue families on scree"
+        "anchor": "Reply with the anchor if any, the scheme, the hue families, ",
+        "n": "5"
       },
       {
-        "id": "sc-refine-q",
-        "row": 7,
-        "kind": "decide",
-        "title": "Refine the color?",
-        "desc": "Warmer, calmer, or more contrast arrives against a theme that is already open, and the answer is a new base color file.",
-        "lines": [
-          122,
-          124
-        ],
-        "anchor": "## Refining the color of a theme that exists",
-        "anchorEnd": "\"Warmer\", \"calmer\", \"more contrast\" arrive against a theme t"
-      },
-      {
-        "id": "sc-refine",
-        "row": 8,
+        "id": "sc-scope",
+        "row": 15,
         "kind": "step",
-        "title": "Move one dial and re-run",
-        "desc": "One adjective moves one dial. A re-run replaces the buffer's whole color state, so every base color the user did not name stays where it was.",
+        "title": "Preserve the other dimensions",
         "lines": [
-          126,
-          126
-        ],
-        "anchor": "One adjective moves one dial. Warmer and cooler rotate hue; "
-      },
-      {
-        "id": "sc-done",
-        "row": 8,
-        "kind": "done",
-        "title": "Color set",
-        "desc": "The buffer holds the new color state, and type and geometry carried forward. A Save or a save-theme run keeps it, Adopt ships it.",
-        "lines": [
-          128,
-          133
+          136,
+          140
         ],
         "anchor": "## Scope",
-        "anchorEnd": "run `save-theme`, to keep the result; Adopt ships it."
+        "anchorEnd": "every other value in it forward. `save-theme` keeps the resu"
+      },
+      {
+        "id": "sc-verify",
+        "row": 16,
+        "kind": "done",
+        "title": "Verify the color",
+        "lines": [
+          142,
+          148
+        ],
+        "anchor": "## Verify",
+        "anchorEnd": "To revert, re-run with the previous base color file, or load",
+        "chips": [
+          {
+            "label": "CLI checks",
+            "lines": [
+              144,
+              144
+            ],
+            "anchor": "The CLI exits 0 with every check passing (auto-corrected is "
+          },
+          {
+            "label": "Rendered palette",
+            "lines": [
+              145,
+              145
+            ],
+            "anchor": "The app (dev server running) shows the new palette."
+          },
+          {
+            "label": "Theme buffer status",
+            "lines": [
+              146,
+              146
+            ],
+            "anchor": "The editor's Theme panel marks the open theme unsaved. A dry"
+          },
+          {
+            "label": "Canvas identity",
+            "lines": [
+              147,
+              147
+            ],
+            "anchor": "The canvas is committed: on screen it reads as the theme's c"
+          },
+          {
+            "label": "Revert",
+            "lines": [
+              148,
+              148
+            ],
+            "anchor": "To revert, re-run with the previous base color file, or load"
+          }
+        ]
       }
     ],
     "edges": [
       {
-        "from": "sc-trig",
-        "to": "sc-anchor"
+        "to": "sc-anchor",
+        "from": "sc-trig"
       },
       {
-        "from": "sc-anchor",
-        "to": "sc-base-colors"
+        "to": "sc-input",
+        "from": "sc-anchor"
       },
       {
-        "from": "sc-base-colors",
-        "to": "sc-cons"
+        "to": "sc-budget",
+        "from": "sc-input"
       },
       {
-        "from": "sc-cons",
-        "to": "sc-cli"
+        "to": "sc-roles",
+        "from": "sc-budget"
       },
       {
-        "from": "sc-cli",
+        "to": "sc-mood",
+        "from": "sc-roles"
+      },
+      {
+        "to": "sc-gamut",
+        "from": "sc-mood"
+      },
+      {
+        "to": "sc-harmony",
+        "from": "sc-gamut"
+      },
+      {
+        "to": "sc-sky",
+        "from": "sc-harmony"
+      },
+      {
+        "to": "sc-refine",
+        "from": "sc-sky"
+      },
+      {
+        "to": "sc-cli",
+        "from": "sc-refine"
+      },
+      {
         "to": "sc-fail",
+        "from": "sc-cli",
         "label": "exit 1"
       },
       {
-        "from": "sc-cli",
         "to": "sc-pass",
+        "from": "sc-cli",
         "label": "exit 0"
       },
       {
-        "from": "sc-fail",
         "to": "sc-cli",
+        "from": "sc-fail",
         "label": "rerun",
         "back": true
       },
       {
-        "from": "sc-pass",
-        "to": "sc-report"
+        "to": "sc-report",
+        "from": "sc-pass"
       },
       {
-        "from": "sc-report",
-        "to": "sc-refine-q"
+        "to": "sc-reply",
+        "from": "sc-report"
       },
       {
-        "from": "sc-refine-q",
-        "to": "sc-refine",
-        "label": "refine"
+        "to": "sc-scope",
+        "from": "sc-reply"
       },
       {
-        "from": "sc-refine",
-        "to": "sc-cli",
-        "label": "regenerate",
-        "back": true
-      },
-      {
-        "from": "sc-refine-q",
-        "to": "sc-done",
-        "label": "done"
+        "to": "sc-verify",
+        "from": "sc-scope"
       }
     ]
   },

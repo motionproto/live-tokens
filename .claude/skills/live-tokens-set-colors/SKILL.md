@@ -16,8 +16,8 @@ theme in the editor discards it.
 
 ## Workflow
 
-1. Read the color intent and any anchor live-tokens-create-theme passed. When either names an anchor (a feeling, an idiom, an occasion), read its entry in `references/color-anchors.md`; it overrides the generic bands below.
-2. Translate the intent into ten base colors with the framework below and write them to `scratch/<slug>-base-colors.json`. This file is the only record of the base colors, and a later refinement edits it.
+1. Read the color intent and any anchor live-tokens-create-theme passed. When either names an anchor (a feeling, an idiom, an occasion), read its entry in `references/color-anchors.md`; it overrides the generic ranges below.
+2. Translate the intent into ten base colors with the framework below and write them to `scratch/<slug>-base-colors.json`. Keep this file for later refinements. The saved theme also records the base colors.
 3. Run `npx live-tokens set-colors scratch/<slug>-base-colors.json`.
 4. Read the report. Exit 0 passes, and auto-corrected values count as passing. Exit 1 names the base color to change, usually by raising its lightness or cutting its chroma. Fix the file and re-run.
 5. Reply with the anchor if any, the scheme, the hue families, the Canvas base color, and anything the contrast report auto-corrected.
@@ -66,7 +66,7 @@ The more area a palette covers, the less chroma it gets.
 
 A good theme reads as 3 or 4 hue families on screen, never 10. Neutral and Alternate stay near-grey, tinted toward the theme: Neutral near Brand's hue, Alternate offset 15 to 60 degrees or a warm/cool counterpoint. Pure C = 0 only when an anchor calls for it.
 
-## Per-role bands
+## Per-role ranges
 
 | Base color | Light scheme | Dark scheme | Hue |
 |---|---|---|---|
