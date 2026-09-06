@@ -6,6 +6,8 @@ import { join } from 'node:path';
 import { PAGE_RULES, checkPages, discoverPages } from './check-page.mjs';
 // @ts-expect-error — plain .mjs module, no types
 import { applySeverity, countBySeverity, parseCheckFlags } from './lib/findings.mjs';
+// @ts-expect-error — plain .mjs module, no types
+import { runCreate } from './create.mjs';
 
 const roots: string[] = [];
 function fixtureRoot(): string {
@@ -489,11 +491,21 @@ describe('the create template', () => {
     const resolved = applySeverity(checkPages(discoverPages(root), { root }).findings, PAGE_RULES, { strict: true });
     expect(resolved.map((f: { file: string; message: string }) => `${f.file}: ${f.message}`)).toEqual([]);
   });
+
+  // template/src/styles is empty in the repo; create seeds site.css from
+  // src/app, so only a scaffolded project shows the file a consumer builds.
+  it('scaffolds a project that passes check-page under --strict', () => {
+    const root = join(mkdtempSync(join(tmpdir(), 'lt-scaffold-')), 'app');
+    roots.push(root);
+    runCreate({ targetDir: root, pkgRoot: process.cwd() });
+    const resolved = applySeverity(checkPages(discoverPages(root), { root }).findings, PAGE_RULES, { strict: true });
+    expect(resolved.map((f: { file: string; message: string }) => `${f.file}: ${f.message}`)).toEqual([]);
+  });
 });
 
-// src/app and src/demo set type from single axes and size one Badge, and
-// site.css is the consumer's file to own. The debt is named here so every
-// other rule still holds over this repo's pages.
+// src/app and src/demo pages set type from single axes and size one Badge
+// (plan page-consistency, Wave 4). The debt is named here so every other
+// rule still holds over this repo's pages.
 const REPO_PAGE_DEBT = { rules: { 'raw-text-axis': 'off', 'control-size': 'off' } };
 
 describe("this repo's own pages", () => {

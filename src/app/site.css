@@ -111,10 +111,10 @@ ul {
 }
 
 ul li {
-  font-family: var(--font-serif);
-  font-size: var(--font-size-md);
+  font-family: var(--body-md-font-family);
+  font-size: var(--body-md-font-size);
   color: var(--text-secondary);
-  line-height: var(--line-height-relaxed);
+  line-height: var(--body-md-line-height);
   margin-bottom: var(--space-4);
 }
 
