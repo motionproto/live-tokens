@@ -99,6 +99,7 @@ enforces that.
 | `missing-source` | warn | A route entry with no `source`, so Page Source cannot open it |
 | `control-size` | warn | A `size` prop on a shipped component |
 | `multiple-primary` | warn | A second `variant="primary"` Button in one page |
+| `danger-without-dialog` | warn | A `variant="danger"` Button in a page that imports no Dialog |
 
 Baseline on this repo, 2026-09-06: **87 errors, 1 warning across 19 files** (87
 `raw-text-axis`, 1 `control-size`). `src/app` and `src/demo` were written

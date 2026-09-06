@@ -137,5 +137,13 @@ The checker cannot see a layout. Open the page at the width it is built for and 
 - The boxes in a band end on one line.
 - Every control stays inside its box. A `width: 100%` field without `box-sizing: border-box` pushes past it by its padding.
 - The actions sit where the eye goes last, with the one primary at the end.
+- Every row of actions holds an exit in `outline`.
+- An action that destroys saved work confirms in a `Dialog`.
+- An action that runs longer than a moment shows progress in a `ProgressBar` or a `Notification`.
+- Every field has a default, and Reset restores it.
+- Secondary settings sit in a `CollapsibleSection`. No control is hidden in the content area.
+- Labels use the user's words, such as "Export slices".
+
+`references/interaction-sources.md` names the sources for these reads.
 
 Then read the page from a distance. The bands and their edges are the only shapes that show. Then read it closely. For each border, header bar, and box, ask whether the page loses information when the element is removed. When the answer is no, remove the element. Find the element a reader sees first, second, and third, and confirm that is the reading order the page needs.

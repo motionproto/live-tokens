@@ -79,6 +79,7 @@ When `package.json` has no `check:design` script, add `"check:design": "live-tok
 | `unknown-prop-value` | Use a value from the union the message lists. |
 | `control-size` | Delete the `size` prop. The shipped default is the page's size. When that default is wrong for the project, retune the component in `/live-tokens/components`. |
 | `multiple-primary` | Keep the most important action `variant="primary"`. Make every other Button `secondary`, or `outline` for a tertiary action. |
+| `danger-without-dialog` | Open a `Dialog` from the danger Button and run the action from the Dialog's confirm. When the action destroys nothing saved, the Button is `outline`. |
 | `hardcoded-columns` | `repeat(var(--columns-count), 1fr)` for the page grid. `calc(var(--columns-count) - 2)` for a sub-grid spanning fewer columns. |
 | `site-css-in-main` | Delete the import from `main.ts`. Add it to each page's `<script>`. Page CSS then stays off the editor routes. |
 | `missing-source` | Add `source: 'src/...'` to the route entry. |

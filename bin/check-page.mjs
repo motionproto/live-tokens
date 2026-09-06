@@ -32,6 +32,7 @@ export const PAGE_RULES = {
   'missing-source': 'warn',
   'control-size': 'warn',
   'multiple-primary': 'warn',
+  'danger-without-dialog': 'warn',
 };
 
 // Directories that hold the system, not pages built on it.
@@ -252,6 +253,27 @@ function checkPrimaryActions(code, imports, add) {
   );
 }
 
+/**
+ * One finding when a page holds a danger Button and imports no Dialog. A
+ * danger action destroys saved work, and the page has nothing to confirm it.
+ */
+function checkDestructiveActions(code, imports, add) {
+  if ([...imports.values()].some((entry) => entry.id === 'dialog')) return;
+  for (const [local, entry] of imports) {
+    if (entry.id !== 'button' && entry.id !== 'iconbutton') continue;
+    for (const m of code.matchAll(new RegExp(`<${local}(?=[\\s/>])`, 'g'))) {
+      const tag = tagAttributes(code, m.index);
+      if (!tag?.attrs.some((a) => a.name === 'variant' && a.value === 'danger')) continue;
+      add(
+        'danger-without-dialog',
+        m.index,
+        `${entry.name} variant="danger" with no Dialog in this page. A destructive action confirms in a Dialog before it runs.`,
+      );
+      return;
+    }
+  }
+}
+
 /** The object literal enclosing `index`, found by balancing braces outward. */
 function enclosingObject(text, index) {
   let depth = 0;
@@ -312,6 +334,7 @@ function checkFile(file, text, vocab, root) {
     }
     checkComponentUsage(code, imports, add);
     checkPrimaryActions(code, imports, add);
+    checkDestructiveActions(code, imports, add);
 
     for (const m of code.matchAll(/['"](\/live-tokens[^'"]*)['"]\s*:/g)) {
       add('reserved-route', m.index, `route '${m[1]}' is inside the reserved /live-tokens/* namespace`);

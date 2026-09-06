@@ -134,6 +134,22 @@ describe('check-page component rules', () => {
     expect(rulesFor(root, one)).not.toContain('multiple-primary');
   });
 
+  it('flags a danger Button in a page with no Dialog', () => {
+    const root = fixtureRoot();
+    const bare = page(root, 'Danger.svelte', `<script>
+      import Button from '@motion-proto/live-tokens/components/Button.svelte';
+    </script>
+    <Button variant="danger">Delete</Button><Button variant="danger">Purge</Button>`);
+    const confirmed = page(root, 'Confirmed.svelte', `<script>
+      import Button from '@motion-proto/live-tokens/components/Button.svelte';
+      import Dialog from '@motion-proto/live-tokens/components/Dialog.svelte';
+    </script>
+    <Button variant="danger">Delete</Button>
+    <Dialog show={false} title="Delete?"><Button variant="secondary">Cancel</Button></Dialog>`);
+    expect(rulesFor(root, bare).filter((r) => r === 'danger-without-dialog')).toHaveLength(1);
+    expect(rulesFor(root, confirmed)).not.toContain('danger-without-dialog');
+  });
+
   it('counts a Button with no variant as primary', () => {
     const root = fixtureRoot();
     const bare = page(root, 'Bare.svelte', `<script>
