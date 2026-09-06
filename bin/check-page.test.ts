@@ -23,6 +23,10 @@ function fixtureRoot(): string {
       --columns-count: 12;
       --heading-lg-font-size: 2rem;
       --text-secondary: #ccc;
+      --font-size-lg: 1.125rem;
+      --font-sans: system-ui;
+      --body-md-font-size: 1rem;
+      --body-md-font-family: system-ui;
     }`,
   );
   return dir;
@@ -143,6 +147,27 @@ describe('check-page token rules', () => {
     const rel = page(root, 'TypeRel.svelte', `<style>.a { line-height: 1.6; font-size: 0.9em; }</style>`);
     expect(rulesFor(root, abs)).toContain('raw-text-axis');
     expect(rulesFor(root, rel)).not.toContain('raw-text-axis');
+  });
+
+  it('flags a single-axis token but not a text style bundle', () => {
+    const root = fixtureRoot();
+    const axis = page(root, 'Axis.svelte', `<style>
+      .a { font-size: var(--font-size-lg); font-family: var(--font-sans); }
+    </style>`);
+    const bundle = page(root, 'Bundle.svelte', `<style>
+      .a { font-size: var(--body-md-font-size); font-family: var(--body-md-font-family); }
+      .b { font-size: var(--heading-lg-font-size); }
+    </style>`);
+    expect(rulesFor(root, axis).filter((r) => r === 'raw-text-axis')).toHaveLength(2);
+    expect(rulesFor(root, bundle)).not.toContain('raw-text-axis');
+  });
+
+  it('names the axis token in the message and reads a font shorthand', () => {
+    const root = fixtureRoot();
+    const rel = page(root, 'Shorthand.svelte', `<style>.a { font: var(--font-size-lg)/1.2 var(--font-sans); }</style>`);
+    const { findings } = checkPages([rel], { root });
+    expect(findings).toHaveLength(1);
+    expect(findings[0].message).toContain('--font-size-lg is one axis');
   });
 
   it('flags a hardcoded page grid but not a local two-up', () => {
@@ -345,11 +370,16 @@ describe('the create template', () => {
   });
 });
 
+// src/app and src/demo set type from single axes, and site.css is the
+// consumer's file to own. The debt is named here so every other rule still
+// holds over this repo's pages.
+const REPO_PAGE_DEBT = { rules: { 'raw-text-axis': 'off' } };
+
 describe("this repo's own pages", () => {
-  it('carry no finding at all under --strict', () => {
+  it('carry no finding under --strict outside the type-axis debt', () => {
     const root = process.cwd();
     const { findings } = checkPages(discoverPages(root), { root });
-    const resolved = applySeverity(findings, PAGE_RULES, { strict: true });
+    const resolved = applySeverity(findings, PAGE_RULES, { strict: true }, REPO_PAGE_DEBT);
     expect(resolved.map((f: { file: string; message: string }) => `${f.file}: ${f.message}`)).toEqual([]);
   });
 });

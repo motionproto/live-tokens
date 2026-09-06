@@ -46,8 +46,6 @@
   }
 
   h1 {
-    font-family: var(--font-display);
-    font-size: var(--font-size-4xl);
     color: var(--text-primary);
     margin: 0 0 var(--space-12);
   }
@@ -61,8 +59,6 @@
     background: var(--surface-neutral-high);
     padding: var(--space-2) var(--space-6);
     border-radius: var(--radius-sm);
-    font-family: var(--font-mono, monospace);
-    font-size: 0.9em;
   }
 
   .actions {

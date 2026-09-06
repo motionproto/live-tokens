@@ -26,9 +26,9 @@ export const PAGE_RULES = {
   'color-literal': 'error',
   'reserved-route': 'error',
   'site-css-in-main': 'error',
+  'raw-text-axis': 'error',
   'dimension-literal': 'warn',
   'hardcoded-columns': 'warn',
-  'raw-text-axis': 'warn',
   'missing-source': 'warn',
 };
 
@@ -44,6 +44,12 @@ const DEEP_IMPORT_PATTERNS = [
 ];
 
 const TEXT_AXES = ['font-size', 'font-family', 'font-weight', 'line-height', 'letter-spacing'];
+
+// The single-axis families in tokens.css. A text style bundle carries its axis
+// as a suffix (--body-md-font-size, --code-font-family), so no bundle name
+// matches, and neither does a custom property the page declares itself.
+const SINGLE_AXIS_TOKEN =
+  /^--(?:font-size|font-weight|line-height|letter-spacing)-|^--font-(?:sans|serif|mono|display|editorial)$/;
 
 // The geometry the theme owns: spacing, stroke, radius, and shadow all have a
 // token scale, and `set-geometry` moves them. Sizing (a hero's height, a
@@ -332,21 +338,34 @@ function checkFile(file, text, vocab, root) {
         continue;
       }
 
-      // Only absolute type values are a finding. `em`, `%`, and a unitless
-      // line-height are relative to the inherited type, so they ride whatever
-      // the theme sets rather than overriding it.
-      if (
-        (TEXT_AXES.includes(prop) || prop === 'font') &&
-        !value.includes('var(') &&
-        !/^(inherit|initial|unset|normal)$/.test(value) &&
-        /\d(px|rem|pt)\b|^[a-z"']/i.test(value)
-      ) {
-        add(
-          'raw-text-axis',
-          at(index),
-          `${prop}: ${value}. Set type from a text style bundle (--heading-*, --body-*, --editorial-*).`,
-        );
-        continue;
+      if (TEXT_AXES.includes(prop) || prop === 'font') {
+        const axis = [...value.matchAll(/var\(\s*(--[a-z0-9-]+)/g)]
+          .map((m) => m[1])
+          .find((name) => SINGLE_AXIS_TOKEN.test(name));
+        if (axis) {
+          add(
+            'raw-text-axis',
+            at(index),
+            `${prop}: ${value}. ${axis} is one axis. Set every axis from one text style bundle (--heading-*, --body-*, --editorial-*, --code-*).`,
+          );
+          continue;
+        }
+
+        // Of the literals only absolute type values are a finding. `em`, `%`,
+        // and a unitless line-height are relative to the inherited type, so
+        // they ride whatever the theme sets rather than overriding it.
+        if (
+          !value.includes('var(') &&
+          !/^(inherit|initial|unset|normal)$/.test(value) &&
+          /\d(px|rem|pt)\b|^[a-z"']/i.test(value)
+        ) {
+          add(
+            'raw-text-axis',
+            at(index),
+            `${prop}: ${value}. Set type from a text style bundle (--heading-*, --body-*, --editorial-*, --code-*).`,
+          );
+          continue;
+        }
       }
 
       if (THEMED_GEOMETRY.test(prop) && hasDimensionLiteral(painted)) {
