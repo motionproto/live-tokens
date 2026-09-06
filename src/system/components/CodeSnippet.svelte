@@ -1,8 +1,8 @@
 <!--
   CodeSnippet.svelte. A command or value with a copy button.
   Use for: text the reader is meant to run or paste somewhere else.
-  Not for: prose the reader only reads (Card); a value the reader edits
-  (Input).
+  Not for: prose the reader only reads (a paragraph in its Card or Panel); a
+  value the reader edits (Input).
 -->
 <script lang="ts">
   import Tooltip from './Tooltip.svelte';
