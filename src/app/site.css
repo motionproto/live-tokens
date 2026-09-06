@@ -128,8 +128,8 @@ ol {
 }
 
 ol li {
-  font-family: var(--font-sans);
-  font-size: var(--font-size-md);
+  font-family: var(--body-md-font-family);
+  font-size: var(--body-md-font-size);
   color: var(--text-secondary);
   line-height: 1.6;
   margin-bottom: var(--space-4);

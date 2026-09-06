@@ -375,7 +375,7 @@ function checkFile(file, text, vocab, root) {
       }
 
       if (TEXT_AXES.includes(prop) || prop === 'font') {
-        const axis = [...value.matchAll(/var\(\s*(--[a-z0-9-]+)/g)]
+        const axis = [...painted.matchAll(/var\(\s*(--[a-z0-9-]+)/g)]
           .map((m) => m[1])
           .find((name) => SINGLE_AXIS_TOKEN.test(name));
         if (axis) {

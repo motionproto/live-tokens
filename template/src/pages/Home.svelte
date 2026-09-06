@@ -56,6 +56,7 @@
   }
 
   code {
+    font-size: 0.9em;
     background: var(--surface-neutral-high);
     padding: var(--space-2) var(--space-6);
     border-radius: var(--radius-sm);

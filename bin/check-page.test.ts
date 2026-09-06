@@ -232,6 +232,14 @@ describe('check-page token rules', () => {
     expect(rulesFor(root, bundle)).not.toContain('raw-text-axis');
   });
 
+  it('ignores a single-axis token inside a var() fallback', () => {
+    const root = fixtureRoot();
+    const rel = page(root, 'Fallback.svelte', `<style>
+      .a { --lede: var(--body-md-font-size); font-size: var(--lede, var(--font-size-lg)); }
+    </style>`);
+    expect(rulesFor(root, rel)).not.toContain('raw-text-axis');
+  });
+
   it('names the axis token in the message and reads a font shorthand', () => {
     const root = fixtureRoot();
     const rel = page(root, 'Shorthand.svelte', `<style>.a { font: var(--font-size-lg)/1.2 var(--font-sans); }</style>`);
