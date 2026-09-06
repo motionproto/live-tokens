@@ -517,3 +517,27 @@ The template's `Home.svelte` calls `<Button on:click={...}>`, and `Button`
 declares `onclick` with the note "Preferred over `on:click` from 0.5.0 onward".
 Every page built from the scaffold copies the older form. `check-page` skips
 any attribute whose name holds a colon, so nothing reports it.
+
+### Triage
+
+2026-09-06. Each gap is one of: a skill sentence (S), a decision the user
+makes (U), or closed (C). Every S proposal is stated in shipped values.
+
+| Gap | Class | Proposal |
+|---|---|---|
+| 1 Page title has two forms | S | One form. The Page title row becomes `h1` in `--heading-xl-*`. `SectionDivider` stays the band title (`sm`). Its comment still says `md` titles a page; the component can, the skill does not recommend it. |
+| 2 Title hairline stacks with the band rule | C | Closed by 1: an `h1` draws no hairline. |
+| 3 No `h1` under a divider title | C | Closed by 1. Verify's read becomes "Heading elements run `h1`, `h2`, `h3` with no gap", which names the outline. |
+| 4 site.css already types bare elements | S | Add to Hierarchy: "The scaffold's `site.css` types bare `h1` to `h4`, `p`, `code`, `pre`, and list items from these styles. A bare element arrives typed. Type an element only when its place differs from its tag." |
+| 5 `p` is `--text-secondary` in site.css | U | Either site.css paints `p` in `--text-primary` (every fresh project's body copy darkens), or the layer rule reads "Content is `--text-primary`, or the colour `site.css` gives the element." Recommendation: the second; the starter is the design source and the skill describes it. |
+| 6 Status line has no colour | S | Split the row. "Secondary line" stays `--body-sm-*` in `--text-secondary`. New row "Count, status, read-out" is `--body-sm-*` in `--text-primary`: a read-out of the stage is content. |
+| 7 Four fields in a row | S | Add to Containers by job: "A row of fields is a flex row with `gap: var(--space-20)`; each field wrapper takes `flex: 1`." No checker change; `hardcoded-columns` keeps its threshold, and a form row is not a grid claim. |
+| 8 Width on a shipped component | S | Same sentence as 7 carries it, plus one in Rules: "A shipped component fills its parent. To size one, size the element the page wraps it in." |
+| 9 Native control the catalogue lacks | S | Add to Rules 1: "A native element with no chrome of its own needs no component: an `<input type="file">` behind a Button, a `<canvas>`, an `<img>` inside a stage." |
+| 10 Value from data | S | Add to Rules 2: "A value that comes from data (a sheet's padding in pixels, a chart's scale) is not a theme value. Set it through a `{}` expression." The checker already skips expressions, so rule and checker then agree. |
+| 11 Mark over content | S | Add a fourth layer sentence: "A mark drawn over content that must stay visible on any pixel (a grid, a selection) is `--border-brand`." |
+| 12 Tertiary undefined | S | Rewrite the emphasis sentences: "`secondary` is every other action the task needs. `outline` is an action that undoes or leaves: Reset, Cancel, Back. `danger` destroys saved work." Reset is `outline`. |
+| 13 Page padding and un-ruled gap | S | Two rows: "Page edge: `--space-32`" and "Page title to first band: `--space-24`, no rule". Every later band takes the rule. |
+| 14 Stage height invented | S | One sentence under Panel: "Its `minHeight` is a literal chosen from what the stage must show at the page's width." Sizing stays the page's judgment; the sentence names the source. |
+| Checker gap | C | Fixed on main, 5ab81f6. |
+| Oddity `on:click` in the template | S | Change the two calls in `template/src/pages/Home.svelte` to `onclick`, the form Button prefers. |
