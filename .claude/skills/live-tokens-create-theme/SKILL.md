@@ -17,7 +17,7 @@ label that `references/design-directions.md` and each set skill list under the
 same names: a feeling, an idiom, or an occasion. Naming it once points every set
 skill at the same row of its own table.
 
-Each set skill writes its dimension into the unsaved buffers the app already
+Each set skill writes its dimension into the working buffers the app already
 renders. This skill runs one CLI of its own, `save-theme`, which composes those
 buffers into a **theme**, the document at `themes/<slug>.json`, and opens it.
 Never hand-author theme JSON and never edit the data tree directly.
@@ -30,14 +30,14 @@ Never hand-author theme JSON and never edit the data tree directly.
 4. Invoke **live-tokens-set-colors** with the anchor and the color intent. Skip only when the user asked to leave the color alone.
 5. Invoke **live-tokens-set-type** with the anchor and the type intent. Skip only when the user asked to leave the type alone.
 6. Invoke **live-tokens-set-geometry** with the anchor and the geometry intent. Skip when the geometry intent is to leave the geometry alone.
-7. Take the theme name from the design direction and run `npx live-tokens save-theme "<name>"`. It composes the buffers into `themes/<slug>.json` and opens it, so nothing is left unsaved; `--dry-run` prints what it would write instead. Adopt, in the editor, publishes the theme to the site.
-8. Assemble the three set skill responses into the assembled report: the design direction, what each set skill changed, any dimension left alone, and anything one of them flagged. Tell the user to review it in the running app. Offer refinements (see Refining a theme).
+7. Take the theme name from the design direction and run `npx live-tokens save-theme "<name>"`. It composes the buffers into `themes/<slug>.json` and opens it; `--dry-run` prints what it would write instead. Adopt, in the editor, publishes the theme to the site.
+8. Assemble the three set skill responses into the assembled report: the design direction, what each set skill changed, any dimension left alone, and anything one of them flagged. Review the result in the running app. Offer refinements (see Refining a theme).
 
 A set of themes runs steps 4 to 7 once per theme, with `--no-activate` on every
 save but the last. That writes the theme and leaves the buffers alone, so each
 theme starts from the same state.
 
-## What each set skill owns
+## Set skill responsibilities
 
 Invoke set skills with the anchor and the matching intent.
 
@@ -65,14 +65,16 @@ dimension. Route it to the matching set skill:
 | more editorial, friendlier, more technical, a serif for headings | live-tokens-set-type |
 | rounder, sharper, pill buttons, tighter, airier, thicker borders | live-tokens-set-geometry |
 
+When no refinement is requested, the theme is complete.
+
 Keep this skill for a refinement that spans dimensions ("make it feel more
 serious"), or one that names no dimension at all. State a new design direction
 and route all three again.
 
 ## Verify
 
-- Each set skill reports back, and `set-colors` exits 0 with every check passing (auto-corrected is fine).
+- Each invoked set skill reports its result. When invoked, `set-colors` exits 0 with every check passing (auto-corrected is fine).
 - `save-theme` exits 0 and names the theme it wrote and opened.
-- The app (dev server running) shows the whole theme, and the editor's Theme panel names that theme with no unsaved marker.
+- The app (dev server running) shows the whole theme, and the editor's Theme panel names that theme with no pending changes.
 - The assembled report names one design direction, and the three intents come from it.
 - To return to the previous theme, load it from the Theme panel; loading clears the buffers too.

@@ -3,304 +3,402 @@ import type { SkillTree } from './types';
 export const skillTrees: Record<string, SkillTree> = {
   "create-theme": {
     "id": "live-tokens-create-theme",
-    "digest": "sha256:60f4c500446b8e6b",
+    "digest": "sha256:9dd2e8bf69f722b5",
     "title": "create-theme",
-    "tagline": "One reading of the request becomes three intents, routed to three skills and saved as one theme.",
+    "tagline": "Derive one design direction, invoke the required set skills, and save one theme.",
     "nodes": [
       {
         "id": "ct-trig",
         "row": 0,
         "kind": "trigger",
-        "title": "Define or refine a whole look",
-        "desc": "A theme, look, vibe, or brand feel by mood, style, era, season, holiday, or hue. One dimension alone goes straight to set-colors, set-type, or set-geometry.",
+        "title": "Create or refine a theme",
+        "desc": "Use when the user asks for a theme, look, vibe, or brand feel by mood, style, era, season, holiday, or hue. Use when the user names only a color and wants a theme around it. Use when the user refines a theme across more than one dimension.",
         "lines": [
-          2,
-          19
+          3,
+          3
         ],
-        "anchor": "name: live-tokens-create-theme",
-        "anchorEnd": "never edit the data tree directly."
+        "anchor": "description: Create or modify a complete live-tokens theme f"
       },
       {
         "id": "ct-direction",
         "row": 1,
         "kind": "step",
-        "n": "1",
-        "title": "State the design direction",
-        "desc": "One or two lines fix the mood, the hue family, the scheme, and the type and geometry that mood implies, naming the default where the request leaves a dimension open.",
+        "title": "Generate the design direction",
         "lines": [
-          23,
-          23
+          27,
+          27
         ],
-        "anchor": "Read the request once and state the design direction to the "
+        "anchor": "Read the request once and generate the design direction base",
+        "n": "1"
       },
       {
         "id": "ct-index",
         "row": 2,
         "kind": "ref",
         "title": "Name the anchor",
-        "desc": "A feeling, an idiom, or an occasion. An idiom sets constraints and a feeling moves dials inside them, so a request matching both reads the idiom first.",
-        "reference": "references/design-directions.md",
         "lines": [
-          24,
-          24
+          28,
+          28
         ],
-        "anchor": "Read `references/design-directions.md` and name the **anchor"
+        "anchor": "Read `references/design-directions.md` and name the **anchor",
+        "reference": "references/design-directions.md",
+        "n": "2"
       },
       {
         "id": "ct-intents",
         "row": 3,
         "kind": "step",
-        "n": "3",
-        "title": "State the three intents",
-        "desc": "The color, type, and geometry intents each name an outcome in a line. The anchor name travels with each one so the contributing skill can read its own column.",
-        "lines": [
-          25,
-          25
-        ],
-        "anchor": "State the three intents the design direction and the anchor ",
-        "chips": [
-          {
-            "label": "What each contributing skill owns",
-            "lines": [
-              39,
-              43
-            ],
-            "anchor": "| Dimension | Contributing skill | It decides |",
-            "anchorEnd": "| geometry | live-tokens-set-geometry | radius, padding, gap"
-          }
-        ]
-      },
-      {
-        "id": "ct-colors",
-        "row": 4,
-        "kind": "hand",
-        "title": "Hand the color intent to set-colors",
-        "desc": "This hand-off never skips: a theme request names a color identity, so color is the one dimension every look fixes.",
-        "lines": [
-          26,
-          26
-        ],
-        "anchor": "Invoke **live-tokens-set-colors** with the color intent. Thi"
-      },
-      {
-        "id": "ct-type-q",
-        "row": 5,
-        "kind": "decide",
-        "title": "Does the look need new type?",
-        "desc": "Type is skipped only when the user asked to leave it alone.",
-        "lines": [
-          27,
-          27
-        ],
-        "anchor": "Invoke **live-tokens-set-type** with the type intent. Skip o"
-      },
-      {
-        "id": "ct-type",
-        "row": 6,
-        "kind": "hand",
-        "title": "Hand the type intent to set-type",
-        "desc": "The contributing skill chooses the families. This skill passes an outcome and never a family name.",
-        "lines": [
-          27,
-          27
-        ],
-        "anchor": "Invoke **live-tokens-set-type** with the type intent. Skip o"
-      },
-      {
-        "id": "ct-geo-q",
-        "row": 7,
-        "kind": "decide",
-        "title": "Does the look need geometry changes?",
-        "desc": "Geometry is skipped when the geometry intent is to leave it alone.",
-        "lines": [
-          28,
-          28
-        ],
-        "anchor": "Invoke **live-tokens-set-geometry** with the geometry intent"
-      },
-      {
-        "id": "ct-geo",
-        "row": 8,
-        "kind": "hand",
-        "title": "Hand the geometry intent to set-geometry",
-        "desc": "The contributing skill chooses the ops. This skill passes an outcome and never a radius or a token.",
-        "lines": [
-          28,
-          28
-        ],
-        "anchor": "Invoke **live-tokens-set-geometry** with the geometry intent"
-      },
-      {
-        "id": "ct-save",
-        "row": 9,
-        "kind": "cli",
-        "n": "7",
-        "title": "Save the theme",
-        "desc": "One verb composes the three buffers into themes/<slug>.json and opens it, so nothing is left unsaved.",
+        "title": "Generate the three intents",
         "lines": [
           29,
           29
         ],
-        "anchor": "Take the theme name from the design direction and run `npx l",
-        "command": "npx live-tokens save-theme \"<name>\"",
+        "anchor": "Generate the three intents the design direction and the anch",
+        "n": "3",
         "chips": [
           {
-            "label": "A set of themes",
+            "label": "color",
             "lines": [
-              32,
-              33
+              46,
+              46
+            ],
+            "anchor": "| color | live-tokens-set-colors | ten base colors, the sche"
+          },
+          {
+            "label": "type",
+            "lines": [
+              47,
+              47
+            ],
+            "anchor": "| type | live-tokens-set-type | the two families, the form m"
+          },
+          {
+            "label": "geometry",
+            "lines": [
+              48,
+              48
+            ],
+            "anchor": "| geometry | live-tokens-set-geometry | radius, padding, gap"
+          }
+        ]
+      },
+      {
+        "id": "ct-colors-q",
+        "row": 4,
+        "kind": "decide",
+        "title": "Color scope",
+        "desc": "Does the request leave color alone?",
+        "lines": [
+          30,
+          30
+        ],
+        "anchor": "Invoke **live-tokens-set-colors** with the anchor and the co"
+      },
+      {
+        "id": "ct-colors",
+        "row": 5,
+        "kind": "step",
+        "title": "Invoke live-tokens-set-colors",
+        "lines": [
+          30,
+          30
+        ],
+        "anchor": "Invoke **live-tokens-set-colors** with the anchor and the co",
+        "n": "4"
+      },
+      {
+        "id": "ct-type-q",
+        "row": 6,
+        "kind": "decide",
+        "title": "Type scope",
+        "desc": "Does the request leave type alone?",
+        "lines": [
+          31,
+          31
+        ],
+        "anchor": "Invoke **live-tokens-set-type** with the anchor and the type"
+      },
+      {
+        "id": "ct-type",
+        "row": 7,
+        "kind": "step",
+        "title": "Invoke live-tokens-set-type",
+        "lines": [
+          31,
+          31
+        ],
+        "anchor": "Invoke **live-tokens-set-type** with the anchor and the type",
+        "n": "5"
+      },
+      {
+        "id": "ct-geo-q",
+        "row": 8,
+        "kind": "decide",
+        "title": "Geometry scope",
+        "desc": "Does the request leave geometry alone?",
+        "lines": [
+          32,
+          32
+        ],
+        "anchor": "Invoke **live-tokens-set-geometry** with the anchor and the "
+      },
+      {
+        "id": "ct-geo",
+        "row": 9,
+        "kind": "step",
+        "title": "Invoke live-tokens-set-geometry",
+        "lines": [
+          32,
+          32
+        ],
+        "anchor": "Invoke **live-tokens-set-geometry** with the anchor and the ",
+        "n": "6"
+      },
+      {
+        "id": "ct-save",
+        "row": 10,
+        "kind": "cli",
+        "title": "Save the theme",
+        "lines": [
+          33,
+          33
+        ],
+        "anchor": "Take the theme name from the design direction and run `npx l",
+        "command": "npx live-tokens save-theme \"<name>\"",
+        "n": "7",
+        "chips": [
+          {
+            "label": "Multiple themes",
+            "lines": [
+              36,
+              38
             ],
             "anchor": "A set of themes runs steps 4 to 7 once per theme, with `--no",
-            "anchorEnd": "save but the last, so each theme starts from the same live l"
+            "anchorEnd": "theme starts from the same state."
           }
         ]
       },
       {
         "id": "ct-assemble",
-        "row": 10,
+        "row": 11,
         "kind": "step",
-        "n": "8",
-        "title": "Assemble the three reports",
-        "desc": "One summary carries the design direction, what each contributing skill changed, the theme that was written, and anything one of them flagged.",
+        "title": "Assemble the reports",
         "lines": [
-          30,
-          30
+          34,
+          34
         ],
-        "anchor": "Assemble the three reports into the assembled report: the de"
+        "anchor": "Assemble the three set skill responses into the assembled re",
+        "n": "8"
       },
       {
         "id": "ct-ver",
-        "row": 11,
+        "row": 12,
         "kind": "step",
-        "title": "Verify the whole look",
-        "desc": "Each contributing skill reports back, save-theme names the theme it wrote, and the running app shows the look after a reload.",
+        "title": "Verify the theme",
         "lines": [
           74,
           80
         ],
         "anchor": "## Verify",
-        "anchorEnd": "- To return to the previous look, load the earlier theme fro"
+        "anchorEnd": "To return to the previous theme, load it from the Theme pane",
+        "chips": [
+          {
+            "label": "Set skill results",
+            "lines": [
+              76,
+              76
+            ],
+            "anchor": "Each invoked set skill reports its result. When invoked, `se"
+          },
+          {
+            "label": "Saved theme",
+            "lines": [
+              77,
+              77
+            ],
+            "anchor": "`save-theme` exits 0 and names the theme it wrote and opened"
+          },
+          {
+            "label": "Rendered theme",
+            "lines": [
+              78,
+              78
+            ],
+            "anchor": "The app (dev server running) shows the whole theme, and the "
+          },
+          {
+            "label": "Consistent intents",
+            "lines": [
+              79,
+              79
+            ],
+            "anchor": "The assembled report names one design direction, and the thr"
+          },
+          {
+            "label": "Revert",
+            "lines": [
+              80,
+              80
+            ],
+            "anchor": "To return to the previous theme, load it from the Theme pane"
+          }
+        ]
       },
       {
         "id": "ct-refine-q",
-        "row": 12,
+        "row": 13,
         "kind": "decide",
-        "title": "Refine the look?",
-        "desc": "One adjective usually names one dimension, and that dimension owns the refinement.",
+        "title": "Refinement scope",
+        "desc": "Does the refinement name one dimension or span dimensions?",
         "lines": [
-          49,
-          52
+          57,
+          72
         ],
-        "anchor": "## Refining a look",
-        "anchorEnd": "usually names one dimension. Route it rather than re-reading"
+        "anchor": "## Refining a theme",
+        "anchorEnd": "and route all three again."
       },
       {
-        "id": "ct-refine",
-        "row": 13,
-        "kind": "step",
-        "title": "Route the refinement to one contributing skill",
-        "desc": "Warmer and calmer go to set-colors, a type voice to set-type, rounder and tighter to set-geometry.",
+        "id": "ct-refine-colors",
+        "row": 17,
+        "kind": "hand",
+        "title": "live-tokens-set-colors",
         "lines": [
-          54,
-          58
+          64,
+          64
         ],
-        "anchor": "| The user says | Goes to |",
-        "anchorEnd": "| rounder, sharper, pill buttons, tighter, airier, thicker b"
+        "anchor": "| warmer, cooler, calmer, louder, lighter, darker, moodier, "
+      },
+      {
+        "id": "ct-refine-type",
+        "row": 17,
+        "kind": "hand",
+        "title": "live-tokens-set-type",
+        "lines": [
+          65,
+          65
+        ],
+        "anchor": "| more editorial, friendlier, more technical, a serif for he"
+      },
+      {
+        "id": "ct-refine-geometry",
+        "row": 17,
+        "kind": "hand",
+        "title": "live-tokens-set-geometry",
+        "lines": [
+          66,
+          66
+        ],
+        "anchor": "| rounder, sharper, pill buttons, tighter, airier, thicker b"
       },
       {
         "id": "ct-done",
-        "row": 13,
+        "row": 17,
         "kind": "done",
-        "title": "Look complete",
-        "desc": "save-theme wrote the theme and opened it, which cleared the three buffers. Adopt, in the editor, ships it.",
+        "title": "Theme complete",
         "lines": [
-          66,
-          72
+          74,
+          80
         ],
-        "anchor": "Color, type, and geometry each write an unsaved buffer, whic",
-        "anchorEnd": "new families."
+        "anchor": "## Verify",
+        "anchorEnd": "To return to the previous theme, load it from the Theme pane"
       }
     ],
     "edges": [
       {
-        "from": "ct-trig",
-        "to": "ct-direction"
+        "to": "ct-direction",
+        "from": "ct-trig"
       },
       {
-        "from": "ct-direction",
-        "to": "ct-index"
+        "to": "ct-index",
+        "from": "ct-direction"
       },
       {
-        "from": "ct-index",
-        "to": "ct-intents"
+        "to": "ct-intents",
+        "from": "ct-index"
       },
       {
-        "from": "ct-intents",
-        "to": "ct-colors"
+        "to": "ct-colors-q",
+        "from": "ct-intents"
       },
       {
-        "from": "ct-colors",
-        "to": "ct-type-q"
+        "to": "ct-colors",
+        "from": "ct-colors-q",
+        "label": "set color"
       },
       {
-        "from": "ct-type-q",
+        "to": "ct-type-q",
+        "from": "ct-colors-q",
+        "label": "leave color alone"
+      },
+      {
+        "to": "ct-type-q",
+        "from": "ct-colors"
+      },
+      {
         "to": "ct-type",
+        "from": "ct-type-q",
         "label": "set type"
       },
       {
-        "from": "ct-type-q",
         "to": "ct-geo-q",
-        "label": "keep type"
+        "from": "ct-type-q",
+        "label": "leave type alone"
       },
       {
-        "from": "ct-type",
-        "to": "ct-geo-q"
+        "to": "ct-geo-q",
+        "from": "ct-type"
       },
       {
-        "from": "ct-geo-q",
         "to": "ct-geo",
+        "from": "ct-geo-q",
         "label": "set geometry"
       },
       {
-        "from": "ct-geo-q",
         "to": "ct-save",
-        "label": "keep geometry"
+        "from": "ct-geo-q",
+        "label": "leave geometry alone"
       },
       {
-        "from": "ct-geo",
-        "to": "ct-save"
+        "to": "ct-save",
+        "from": "ct-geo"
       },
       {
-        "from": "ct-save",
-        "to": "ct-assemble"
+        "to": "ct-assemble",
+        "from": "ct-save"
       },
       {
-        "from": "ct-assemble",
-        "to": "ct-ver"
+        "to": "ct-ver",
+        "from": "ct-assemble"
       },
       {
-        "from": "ct-ver",
-        "to": "ct-refine-q"
+        "to": "ct-refine-q",
+        "from": "ct-ver"
       },
       {
+        "to": "ct-refine-colors",
         "from": "ct-refine-q",
-        "to": "ct-refine",
-        "label": "one dimension"
+        "label": "color"
       },
       {
+        "to": "ct-refine-type",
         "from": "ct-refine-q",
+        "label": "type"
+      },
+      {
+        "to": "ct-refine-geometry",
+        "from": "ct-refine-q",
+        "label": "geometry"
+      },
+      {
         "to": "ct-direction",
+        "from": "ct-refine-q",
         "label": "spans dimensions",
         "back": true
       },
       {
-        "from": "ct-refine-q",
         "to": "ct-done",
-        "label": "done"
-      },
-      {
-        "from": "ct-refine",
-        "to": "ct-done"
+        "from": "ct-refine-q",
+        "label": "no refinement"
       }
     ]
   },
