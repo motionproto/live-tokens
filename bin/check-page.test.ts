@@ -503,16 +503,11 @@ describe('the create template', () => {
   });
 });
 
-// src/app and src/demo pages set type from single axes and size one Badge
-// (plan page-consistency, Wave 4). The debt is named here so every other
-// rule still holds over this repo's pages.
-const REPO_PAGE_DEBT = { rules: { 'raw-text-axis': 'off', 'control-size': 'off' } };
-
 describe("this repo's own pages", () => {
-  it('carry no finding under --strict outside the type-axis debt', () => {
+  it('carry no finding under --strict', () => {
     const root = process.cwd();
     const { findings } = checkPages(discoverPages(root), { root });
-    const resolved = applySeverity(findings, PAGE_RULES, { strict: true }, REPO_PAGE_DEBT);
+    const resolved = applySeverity(findings, PAGE_RULES, { strict: true });
     expect(resolved.map((f: { file: string; message: string }) => `${f.file}: ${f.message}`)).toEqual([]);
   });
 });
