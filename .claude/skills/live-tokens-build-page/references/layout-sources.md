@@ -15,8 +15,8 @@ is an information display with controls on it.
 | Smallest effective difference | Make all visual distinctions as subtle as possible, but still clear and effective. | Separate with space first, then a hairline rule, then a second surface. |
 | 1+1=3 | Two heavy marks side by side make a third mark: the space between them. | A band of boxes with borders and header bars looks like a set of posters. |
 | Layering and separation | Put data on top, labels next, and scaffolding faintest. | Content, labels, and scaffolding each take their own token. |
-| Administrative debris | The metaphor for the interface is the information. Remove the chrome that the tool adds for itself. | The stage takes the space. Controls take the smallest size that still works. |
-| Spatial over temporal | Show information adjacent in space, not stacked in time behind controls. | Show related items side by side. Frames in a strip are small multiples. |
+| Administrative debris | The metaphor for the interface is the information. Remove the chrome that the tool adds for itself. | The stage takes the space. Controls take their shipped default. |
+| Spatial over temporal | Show information adjacent in space. A control that hides it stacks it in time. | Show related items side by side. Frames in a strip are small multiples. |
 | Erase non-data ink | Remove each mark that carries no information. | The Verify question: does the page lose information if this element is removed? |
 | Micro and macro readings | A good display reads at a distance and up close. | Verify from a distance, then closely. |
 

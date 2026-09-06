@@ -1,11 +1,11 @@
 ---
 name: live-tokens-pick-component
-description: Recommend which shipped @motion-proto/live-tokens component fits a UX need, with a decision test for each confusable family (SegmentedControl / TabBar / RadioButton / MenuSelect, Card / CollapsibleSection / Dialog / Panel, Callout / Notification / Tooltip / Badge, and others). Use when the user asks which component to use, should I use X or Y, what the difference between two components is, how to show or capture some UX outcome, or starts authoring a custom component before checking the catalogue. Read this before live-tokens-create-component. Size, emphasis, and placement are live-tokens-build-page's.
+description: Recommend which shipped @motion-proto/live-tokens component fits a UX need, with a decision test for each confusable family (SegmentedControl / TabBar / RadioButton / MenuSelect, Card / CollapsibleSection / Dialog / Panel, Callout / Notification / Tooltip / Badge, and others). Use when the user asks which component to use, should I use X or Y, what the difference between two components is, how to show or capture some UX outcome, or starts authoring a custom component before checking the catalogue. Read this before live-tokens-create-component. Edits no file. Size, emphasis, and placement are live-tokens-build-page's.
 ---
 
 # Picking a live-tokens component
 
-Choose between shipped components when several could fit. A `RadioButton` set and a `SegmentedControl` render alike and say different things. The test for each family below is what the choice means to the reader. Each component states its own job in its usage comment. `npx live-tokens components <id>` prints that comment, the declared props, and the values each union accepts. `--json` returns the same as data.
+Choose between shipped components when several could fit. A `RadioButton` set and a `SegmentedControl` render alike and say different things. The test for each family below is what the choice means to the reader.
 
 ## Catalogue
 
@@ -28,14 +28,14 @@ Four components pick one option from a set. The test is the option count, whethe
 | `SegmentedControl` | An inline switch between views of the same data; one switch among others in a row | 2 to 4 |
 | `TabBar` | The content area below swaps; the choice changes the page | 2 to 7 |
 | `RadioButton` | The reader reviews every option as text before committing to a larger form | any |
-| `MenuSelect` | The options would overflow a row; the list renders open, so a Button toggles it | any |
+| `MenuSelect` | The options would overflow a row | any |
 
 - Labels long enough to wrap rule out `SegmentedControl`. Use `RadioButton` rows.
 - The URL changes: `SideNavigation`. Panels inside one page: `TabBar`.
 
 ## Text entry
 
-- The page cannot list the answers (a name, an email, a search string, an amount): `Input`. Its label, hint, and error line are parts. A validation message goes in the `error` variant.
+- The page cannot list the answers (a name, an email, a search string, an amount): `Input`. A validation message goes in its `error` prop.
 - A short fixed set is the single-selection family. A long fixed set is `MenuSelect`.
 - A number where the position on a track carries the meaning (a volume, a price band, a percentage): `Slider`. The `range` variant takes a low and a high bound on one track. A number the reader knows and would rather type: `Input` with `type="number"`.
 
@@ -60,9 +60,8 @@ When the off and on states share a name (the feature itself), it is `Toggle`. "E
 | `Dialog` | Modal, blocks the page | A decision the page cannot continue without: a destructive confirmation, payment, sign-in. |
 | `Panel` | Inline, fixed stage | A demo, preview, or live example whose height must not move the page. |
 
-- A routine form goes inline in a `Card`, never in a `Dialog`.
-- Content that matters stays open. Collapse is for secondary content, never a styling choice.
-- Full-bleed media in a `Card` takes `flush` with `prose={false}`. Cover art, a poster, and a chart that reaches its own border are full-bleed. Never zero the card's padding tokens from the page.
+- A routine form goes inline in a `Card`.
+- Content that matters stays open. Collapse is for secondary content.
 
 ## Messaging family
 
@@ -74,13 +73,13 @@ When the off and on states share a name (the feature itself), it is `Toggle`. "E
 | `Badge` | An element | Always present | No | A standing label read at a glance ("Beta", "New", "v2") |
 | `CornerBadge` | A parent's corner | Always present | No | A count or status marker on the thing it describes |
 
-- A persistent message is a `Callout`, never a `Notification`.
+- A persistent message is a `Callout`.
 - Content the reader must not miss never lives in a `Tooltip`.
 - `Badge` and `CornerBadge` differ in position only.
 
 ## Display family
 
-- A picture the page shows: `Image`. A picture whose detail the reader must open, or a gallery: `ImageLightbox`. It puts a modal behind every picture it wraps.
+- A picture the page shows: `Image`. A picture whose detail the reader must open, or a gallery: `ImageLightbox`.
 - Records the reader scans and compares: `Table`. A set of things the reader acts on: a stack of `Card`s.
 - A read-out of progress: `ProgressBar`. A number the reader sets: `Slider`.
 - Text the reader runs or pastes (an install command, a key, an id): `CodeSnippet`. Prose the reader only reads: `Card`.
@@ -89,3 +88,5 @@ When the off and on states share a name (the feature itself), it is `Toggle`. "E
 ## Nothing fits
 
 When nothing in the catalogue fits (a `DatePicker`, a `Stepper`, a custom widget), author it with **live-tokens-create-component**. A custom component is a maintenance commitment, so confirm the catalogue first. Placement on the page, emphasis, and size are **live-tokens-build-page**'s.
+
+Each component states its own job in its usage comment. `npx live-tokens components <id>` prints that comment, the declared props, and the values each union accepts. `--json` returns the same as data.

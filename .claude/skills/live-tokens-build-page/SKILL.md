@@ -9,10 +9,10 @@ Assemble the page from shipped components at their defaults. Type the page's own
 
 ## Rules
 
-1. **Use a shipped component when one fits.** Import from `@motion-proto/live-tokens/components/<Name>.svelte`. `npx live-tokens components <id>` prints the declared props, the values each union accepts, and the usage comment. `--json` returns the same as data. The list includes the project's own components. Pass only the props a component declares. When nothing fits, read **live-tokens-pick-component**, then author the piece with **live-tokens-create-component**.
+1. **Use a shipped component when one fits.** Import from `@motion-proto/live-tokens/components/<Name>.svelte`. `npx live-tokens components <id>` prints the declared props, the values each union accepts, and the usage comment. `--json` returns the same as data. The list includes the project's own components. Pass only the props a component declares. When nothing fits, read **live-tokens-pick-component**. Then author the piece with **live-tokens-create-component**.
 2. **Use a theme token for every value.** Every color, spacing, radius, stroke, and shadow in page CSS is a `var(--token)`. That holds in the `<style>` block, an inline `style=` attribute, and a `style:` directive. Sizing is layout and stays literal: a hero's height, a max content width, a column's minimum width.
 
-Text inside a `Card` or a `CollapsibleSection` takes the container's type. The slot pins the axes the container owns onto nested `p`, `ul`, `ol`, and `li`. Pass `prose={false}` when the page owns that type, which full-bleed media wants.
+Text inside a `Card` or a `CollapsibleSection` takes the container's type. The slot pins the axes the container owns onto nested `p`, `ul`, `ol`, and `li`. When the page owns that type, as full-bleed media does, pass `prose={false}`.
 
 ## Hierarchy
 
@@ -28,7 +28,7 @@ Text inside a `Card` or a `CollapsibleSection` takes the container's type. The s
 | Secondary line, count, status | `--body-sm-*` |
 | Command or value | `--code-*` |
 
-A text style carries `-font-family`, `-font-size`, `-font-weight`, `-line-height`, and `-letter-spacing`. Set all five from one style. A single axis such as `--font-size-lg` or `--font-sans` never appears in page CSS. It drops the family and weight the style carries, and the checker reports it. A weight alone, on `strong` or a list marker, is the one axis a page sets by itself.
+A text style carries `-font-family`, `-font-size`, `-font-weight`, `-line-height`, and `-letter-spacing`. Set all five from one style. A single axis such as `--font-size-lg` or `--font-sans` never appears in page CSS. A single axis drops the family and weight the style carries, and the checker reports the axis. A weight alone, on `strong` or a list marker, is the one axis a page sets by itself. A page shows at most two weights.
 
 **One size.** Omit `size` on every control and container. The shipped default is the page's size. When a component's default voice is wrong for the project, retune the component in `/live-tokens/components`. That moves every instance at once.
 
@@ -77,7 +77,7 @@ Never write a local `repeat(N, 1fr)` with a hardcoded count. The widths drift fr
 ## Containers by job
 
 - `Panel` is a stage: a canvas, a player, a preview. It pins its height so the page holds still while what it shows changes.
-- `Card` is a titled block of content. Its `title` prop is the card's title, typed by the card's own tokens.
+- `Card` is a titled block of content. Its `title` prop is the card's title. The card's own tokens type it.
 - A box in a tool UI labels itself. Use `Card variant="bare"` and put the label in the body as `--body-sm-*` in `--text-secondary`. Leave the shipped header alone.
 - A toolbar is a flex row of Buttons on the band's bottom edge. Group them left and right with `justify-content: space-between`, the primary last. No card around it.
 - A stacked rail sets `fullWidth` on each Button. `fullWidth` comes off in a row.
@@ -135,5 +135,3 @@ The checker cannot see a layout. Open the page at the width it is built for and 
 - The actions sit where the eye goes last, with the one primary at the end.
 
 Then read the page from a distance. The bands and their edges are the only shapes that show. Then read it closely. For each border, header bar, and box, ask whether the page loses information when the element is removed. When the answer is no, remove the element. Find the element a reader sees first, second, and third, and confirm that is the reading order the page needs.
-
-Then in dev: change a colour in `/live-tokens/editor` and confirm the page repaints. The overlay's "Page Source" button on the new route opens the page in VS Code. The columns overlay shows content sitting inside `--columns-max-width`.
