@@ -4325,485 +4325,691 @@ export const skillTrees: Record<string, SkillTree> = {
   },
   "fix-findings": {
     "id": "live-tokens-fix-findings",
-    "digest": "sha256:f31b82cb3aefa302",
+    "digest": "sha256:cdf856b3ea69482a",
     "title": "fix-findings",
-    "tagline": "The repair loop clears the largest error group first, repeats by rule, and ends with strict validation.",
+    "tagline": "Migrate tokens, repair findings by rule and scope, rerun the checkers, and report the result.",
     "nodes": [
       {
         "id": "ff-trig",
         "row": 0,
         "kind": "trigger",
         "title": "Fix design-system findings",
-        "desc": "The loop groups existing findings by rule, applies each recipe, and reruns both checkers. check-compliance supplies the read-only report.",
+        "desc": "Use when the user asks to fix the project.",
         "lines": [
-          2,
+          3,
           3
         ],
-        "anchor": "name: live-tokens-fix-findings",
-        "anchorEnd": "description: Bring an existing @motion-proto/live-tokens pro"
+        "anchor": "description: Fix every finding of check-page and check-compo"
       },
       {
-        "id": "ff-why",
+        "id": "ff-migrate",
         "row": 1,
         "kind": "step",
-        "title": "Enforce page and component contracts",
-        "desc": "The page checker enforces catalogue components, declared props, and tokenized CSS. The component checker enforces semantic token names and theme-backed defaults. Passing files repaint.",
+        "title": "Run the token migration",
         "lines": [
-          8,
-          10
+          14,
+          14
         ],
-        "anchor": "Two checkers hold a project to its design system. `check-pag",
-        "anchorEnd": "This skill is the loop for code that already exists. When th"
+        "anchor": "Run `npx live-tokens migrate --check`, then `--write`.",
+        "n": "1",
+        "command": "npx live-tokens migrate --check\nnpx live-tokens migrate --write"
       },
       {
         "id": "ff-run",
         "row": 2,
         "kind": "cli",
-        "n": "1",
-        "title": "Collect all findings",
-        "desc": "Each finding includes a stable rule, file, and line. A page path scopes check-page; a component ID scopes check-component.",
+        "title": "Run both checkers",
         "lines": [
-          14,
-          19
+          15,
+          16
         ],
-        "anchor": "Run both checkers with `--json`. Each finding carries a stab",
-        "anchorEnd": "`check-page src/pages/Home.svelte` and `check-component <id>",
+        "anchor": "Run both checkers with `--json`. Each finding carries a `rul",
+        "anchorEnd": "```sh",
+        "n": "2",
         "command": "npx live-tokens check-page --json\nnpx live-tokens check-component --json"
       },
       {
-        "id": "ff-blocked",
+        "id": "ff-upgrade",
         "row": 3,
         "kind": "gate",
-        "title": "Upgrade to get the checkers",
-        "desc": "A package upgrade supplies the checkers. migrate --check plans token changes; migrate --write applies them. --tokens identifies a custom tokens.css path.",
+        "title": "Upgrade the checker commands",
         "lines": [
-          19,
-          19
+          12,
+          12
         ],
-        "anchor": "`check-page src/pages/Home.svelte` and `check-component <id>"
+        "anchor": "When `check-page` is an unknown command, upgrade `@motion-pr"
       },
       {
-        "id": "ff-empty",
+        "id": "ff-clean",
         "row": 3,
         "kind": "ok",
         "title": "Default checks pass",
-        "desc": "Strict validation now reveals advisory warnings.",
         "lines": [
-          23,
-          23
+          24,
+          24
         ],
-        "anchor": "Run once with `--strict` and report what it adds, so the use"
+        "anchor": "When the errors are clear, run both checkers with `--strict`"
       },
       {
-        "id": "ff-loop",
-        "row": 4,
+        "id": "ff-group",
+        "row": 5,
         "kind": "step",
-        "n": "2",
         "title": "Group findings by rule",
-        "desc": "Errors precede warnings. The largest rule group gives one recipe the widest effect.",
         "lines": [
           20,
           20
         ],
-        "anchor": "Group by rule. Take errors before warnings, and the rule wit"
+        "anchor": "Group the findings by rule.",
+        "n": "3"
       },
       {
-        "id": "ff-never",
-        "row": 5,
-        "kind": "chipset",
-        "title": "Protect three constraints",
-        "desc": "--off applies to one working run. Severity changes require user approval. Repairs use existing tokens and report every visible shift.",
-        "chips": [
-          {
-            "label": "Keep project rule severity",
-            "lines": [
-              29,
-              29
-            ],
-            "anchor": "- **Silence a rule to pass.** `--off=<rule>` is for a single"
-          },
-          {
-            "label": "Map to existing tokens",
-            "lines": [
-              30,
-              30
-            ],
-            "anchor": "- **Mint a token.** A literal with no token behind it is rem"
-          },
-          {
-            "label": "Report visible changes",
-            "lines": [
-              31,
-              31
-            ],
-            "anchor": "- **Change what the page looks like without saying so.** Mos"
-          }
-        ]
-      },
-      {
-        "id": "ff-recipe",
+        "id": "ff-order",
         "row": 6,
         "kind": "decide",
-        "n": "3",
-        "title": "Finding type?",
-        "desc": "One recipe covers the group: page colours by role, geometry by scale, or the rule table. Unknown components enter a separate hand-off.",
+        "title": "Repair order",
+        "desc": "Which group remains within the repair scope?",
         "lines": [
           21,
           21
         ],
-        "anchor": "Apply that rule's recipe to every finding in the group: colo"
+        "anchor": "Take the largest error group first, then the remaining error"
       },
       {
-        "id": "ff-colour",
+        "id": "ff-recipe",
         "row": 7,
-        "kind": "step",
-        "title": "Map page colours by role",
-        "desc": "Each page literal maps by job: text, fill, stroke, scrim, tint, transparency, or gradient. Role tokens then move coherently with the theme.",
+        "kind": "decide",
+        "title": "Rule family",
+        "desc": "Which section covers the rule?",
         "lines": [
-          33,
-          48
+          22,
+          22
         ],
-        "anchor": "## Colour by role, never by hue",
-        "anchorEnd": "A `var(--x, #fff)` fallback is not a finding. A named colour"
+        "anchor": "Fix every finding in the group with its section: Color by ro",
+        "n": "5"
       },
       {
-        "id": "ff-geom",
-        "row": 7,
-        "kind": "step",
-        "title": "Map geometry to its scale",
-        "desc": "Theme-owned geometry maps to token scales: nearest-step spacing, matching stroke and corner tokens, whole-shadow replacements, and tokenized geometry inside calc(). Layout sizing remains intact.",
+        "id": "ff-color",
+        "row": 8,
+        "kind": "chipset",
+        "title": "Color by role",
         "lines": [
-          50,
-          62
+          41,
+          55
+        ],
+        "anchor": "## Color by role",
+        "anchorEnd": "| A gradient | `--gradient-*` | Or compose one from surface ",
+        "chips": [
+          {
+            "label": "Text on a surface",
+            "lines": [
+              47,
+              47
+            ],
+            "anchor": "| Text on a surface | `--text-primary` through `--text-disab"
+          },
+          {
+            "label": "Light text on a dark chip",
+            "lines": [
+              48,
+              48
+            ],
+            "anchor": "| Light text on a dark chip | `--text-inverted` | No AA guar"
+          },
+          {
+            "label": "A surface fill",
+            "lines": [
+              49,
+              49
+            ],
+            "anchor": "| A surface fill | `--surface-<family>-<level>` | The role n"
+          },
+          {
+            "label": "A stroke",
+            "lines": [
+              50,
+              50
+            ],
+            "anchor": "| A stroke | `--border-<family>-<level>` | Levels run `faint"
+          },
+          {
+            "label": "A translucent layer that dims what is behind it",
+            "lines": [
+              51,
+              51
+            ],
+            "anchor": "| A translucent layer that dims what is behind it | `--scrim"
+          },
+          {
+            "label": "A translucent wash on a surface",
+            "lines": [
+              52,
+              52
+            ],
+            "anchor": "| A translucent wash on a surface | `--tint-low`, `--tint`, "
+          },
+          {
+            "label": "Any other translucent color",
+            "lines": [
+              53,
+              53
+            ],
+            "anchor": "| Any other translucent color | The role's token at an opaci"
+          },
+          {
+            "label": "Fully transparent",
+            "lines": [
+              54,
+              54
+            ],
+            "anchor": "| Fully transparent | `--color-transparent` | |"
+          },
+          {
+            "label": "A gradient",
+            "lines": [
+              55,
+              55
+            ],
+            "anchor": "| A gradient | `--gradient-*` | Or compose one from surface "
+          }
+        ]
+      },
+      {
+        "id": "ff-geometry",
+        "row": 8,
+        "kind": "chipset",
+        "title": "Geometry by scale",
+        "lines": [
+          57,
+          69
         ],
         "anchor": "## Geometry by scale",
-        "anchorEnd": "While in the file, motion values take `--duration-*` and `--"
+        "anchorEnd": "| A `blur()` | `--blur-*` | No rule reports it. Fix it while",
+        "chips": [
+          {
+            "label": "Spacing",
+            "lines": [
+              63,
+              63
+            ],
+            "anchor": "| Spacing | `--space-<px>` | `npx live-tokens tokens --famil"
+          },
+          {
+            "label": "A stroke width",
+            "lines": [
+              64,
+              64
+            ],
+            "anchor": "| A stroke width | `--border-width-1`, `-2`, `-4` | Also for"
+          },
+          {
+            "label": "A corner",
+            "lines": [
+              65,
+              65
+            ],
+            "anchor": "| A corner | `--radius-sm` through `--radius-4xl`, or `--rad"
+          },
+          {
+            "label": "A shadow",
+            "lines": [
+              66,
+              66
+            ],
+            "anchor": "| A shadow | `--shadow-sm` through `--shadow-xl` | Replace t"
+          },
+          {
+            "label": "Part of a calc()",
+            "lines": [
+              67,
+              67
+            ],
+            "anchor": "| Part of a `calc()` | The token inside the calc | `calc(var"
+          },
+          {
+            "label": "A duration or easing",
+            "lines": [
+              68,
+              68
+            ],
+            "anchor": "| A duration or easing | `--duration-*`, `--ease-*` | No rul"
+          },
+          {
+            "label": "A blur()",
+            "lines": [
+              69,
+              69
+            ],
+            "anchor": "| A `blur()` | `--blur-*` | No rule reports it. Fix it while"
+          }
+        ]
       },
       {
-        "id": "ff-rest",
-        "row": 7,
+        "id": "ff-remaining",
+        "row": 8,
         "kind": "chipset",
-        "title": "Apply the rule's recipe",
-        "desc": "The table supplies one repair for every finding in the current rule group.",
+        "title": "The remaining rules",
         "lines": [
-          64,
-          81
+          71,
+          91
         ],
-        "anchor": "## Every other rule",
+        "anchor": "## The remaining rules",
         "anchorEnd": "| `invalid-id`, `missing-file`, `missing-root-block`, `no-to",
         "chips": [
           {
             "label": "unknown-token",
             "lines": [
-              68,
-              68
+              75,
+              75
             ],
-            "anchor": "| `unknown-token` | A typo or a rename. Search `tokens.css` "
+            "anchor": "| `unknown-token` | Search `tokens.css` for the stem. When a"
           },
           {
             "label": "raw-text-axis",
             "lines": [
-              69,
-              69
-            ],
-            "anchor": "| `raw-text-axis` | Set the whole axis set from one text sty"
-          },
-          {
-            "label": "unknown-prop, unknown-prop-value",
-            "lines": [
-              71,
-              72
-            ],
-            "anchor": "| `unknown-prop` | The component drops it at runtime. `npx l",
-            "anchorEnd": "| `unknown-prop-value` | Pick a value from the union the mes"
-          },
-          {
-            "label": "hardcoded-columns",
-            "lines": [
-              73,
-              73
-            ],
-            "anchor": "| `hardcoded-columns` | `repeat(var(--columns-count), 1fr)` "
-          },
-          {
-            "label": "site-css-in-main, missing-source, reserved-route",
-            "lines": [
-              74,
+              76,
               76
             ],
-            "anchor": "| `site-css-in-main` | Delete the import from `main.ts` and ",
-            "anchorEnd": "| `reserved-route` | Move the route out of `/live-tokens/*`;"
+            "anchor": "| `raw-text-axis` | Set every axis from one text style, `-fo"
           },
           {
-            "label": "deep-import",
+            "label": "unknown-component",
             "lines": [
               77,
               77
             ],
-            "anchor": "| `deep-import` | Import from `@motion-proto/live-tokens` or"
+            "anchor": "| `unknown-component` | Read **live-tokens-pick-component** "
           },
           {
-            "label": "Token naming",
+            "label": "unknown-prop",
             "lines": [
               78,
               78
             ],
-            "anchor": "| `unknown-suffix`, `state-after-property`, `disabled-is-ter"
+            "anchor": "| `unknown-prop` | `npx live-tokens components <id>` prints "
           },
           {
-            "label": "Component defaults",
+            "label": "unknown-prop-value",
             "lines": [
               79,
               79
             ],
-            "anchor": "| `color-literal`, `unknown-token-ref`, `default-not-token` "
+            "anchor": "| `unknown-prop-value` | Use a value from the union the mess"
           },
           {
-            "label": "Editor/runtime mismatches",
+            "label": "control-size",
             "lines": [
               80,
               80
             ],
-            "anchor": "| `phantom-editor-token`, `phantom-link` | The editor names "
+            "anchor": "| `control-size` | Delete the `size` prop. The shipped defau"
           },
           {
-            "label": "Component wiring",
+            "label": "multiple-primary",
             "lines": [
               81,
               81
+            ],
+            "anchor": "| `multiple-primary` | Keep the action that completes the ma"
+          },
+          {
+            "label": "danger-without-dialog",
+            "lines": [
+              82,
+              82
+            ],
+            "anchor": "| `danger-without-dialog` | Open a `Dialog` from the danger "
+          },
+          {
+            "label": "hardcoded-columns",
+            "lines": [
+              83,
+              83
+            ],
+            "anchor": "| `hardcoded-columns` | `repeat(var(--columns-count), 1fr)` "
+          },
+          {
+            "label": "site-css-in-main",
+            "lines": [
+              84,
+              84
+            ],
+            "anchor": "| `site-css-in-main` | Delete the import from `main.ts`. Add"
+          },
+          {
+            "label": "missing-source",
+            "lines": [
+              85,
+              85
+            ],
+            "anchor": "| `missing-source` | Add `source: 'src/...'` to the route en"
+          },
+          {
+            "label": "reserved-route",
+            "lines": [
+              86,
+              86
+            ],
+            "anchor": "| `reserved-route` | Move the route out of `/live-tokens/*`."
+          },
+          {
+            "label": "deep-import",
+            "lines": [
+              87,
+              87
+            ],
+            "anchor": "| `deep-import` | Import from `@motion-proto/live-tokens`, `"
+          },
+          {
+            "label": "unknown-suffix, state-after-property, disabled-is-terminal",
+            "lines": [
+              88,
+              88
+            ],
+            "anchor": "| `unknown-suffix`, `state-after-property`, `disabled-is-ter"
+          },
+          {
+            "label": "color-literal, unknown-token-ref, default-not-token (component)",
+            "lines": [
+              89,
+              89
+            ],
+            "anchor": "| `color-literal`, `unknown-token-ref`, `default-not-token` "
+          },
+          {
+            "label": "phantom-editor-token, phantom-link",
+            "lines": [
+              90,
+              90
+            ],
+            "anchor": "| `phantom-editor-token`, `phantom-link` | The editor names "
+          },
+          {
+            "label": "invalid-id, missing-file, missing-root-block, no-tokens, missing-component-const, missing-all-tokens, missing-registration",
+            "lines": [
+              91,
+              91
             ],
             "anchor": "| `invalid-id`, `missing-file`, `missing-root-block`, `no-to"
           }
         ]
       },
       {
-        "id": "ff-hand",
-        "row": 7,
-        "kind": "hand",
-        "title": "Resolve the unknown component",
-        "desc": "pick-component finds a catalogue match. create-component builds a new editable component.",
+        "id": "ff-rerun",
+        "row": 11,
+        "kind": "cli",
+        "title": "Rerun both checkers",
+        "desc": "Retain --strict when the repair scope includes warnings.",
         "lines": [
-          70,
-          70
+          23,
+          23
         ],
-        "anchor": "| `unknown-component` | Not in the catalogue. Read **live-to"
+        "anchor": "Run both checkers again. When repairable findings remain in ",
+        "command": "npx live-tokens check-page --json\nnpx live-tokens check-component --json",
+        "n": "6"
       },
       {
-        "id": "ff-gate",
-        "row": 8,
-        "kind": "decide",
-        "n": "4",
-        "title": "Rerun result?",
-        "desc": "Repairable findings return to the grouped loop. An unmatched literal enters the report with its rationale.",
+        "id": "ff-repeat",
+        "row": 12,
+        "kind": "gate",
+        "title": "Regroup the remaining findings",
         "lines": [
-          22,
-          22
+          23,
+          23
         ],
-        "anchor": "Run again. New findings can appear as old ones clear: a toke"
+        "anchor": "Run both checkers again. When repairable findings remain in "
+      },
+      {
+        "id": "ff-unresolved",
+        "row": 12,
+        "kind": "step",
+        "title": "Record the unresolved findings",
+        "desc": "Leave findings with no fitting token and state the reason in the reply.",
+        "lines": [
+          37,
+          37
+        ],
+        "anchor": "Add no token to `tokens.css`. Map a literal with no matching"
       },
       {
         "id": "ff-strict",
-        "row": 9,
+        "row": 14,
         "kind": "cli",
-        "n": "5",
-        "title": "Run strict validation",
-        "desc": "--strict exposes advisory warnings after the default checks pass.",
+        "title": "Run strict checks",
         "lines": [
-          23,
-          23
+          24,
+          24
         ],
-        "anchor": "Run once with `--strict` and report what it adds, so the use",
-        "command": "npx live-tokens check-page --strict --json\nnpx live-tokens check-component --strict --json"
+        "anchor": "When the errors are clear, run both checkers with `--strict`",
+        "command": "npx live-tokens check-page --strict --json\nnpx live-tokens check-component --strict --json",
+        "n": "7"
       },
       {
-        "id": "ff-warn",
-        "row": 10,
+        "id": "ff-warnings",
+        "row": 15,
         "kind": "decide",
-        "title": "Clear strict warnings now?",
-        "desc": "The user selects the warnings to repair. Accepted warnings return to the rule loop and both validation stages.",
+        "title": "Warning scope",
+        "desc": "Does the request include warnings, or does the user choose to clear them?",
         "lines": [
-          23,
-          23
+          24,
+          25
         ],
-        "anchor": "Run once with `--strict` and report what it adds, so the use"
+        "anchor": "When the errors are clear, run both checkers with `--strict`",
+        "anchorEnd": "When the repair scope includes warnings, return to step 3 wi"
       },
       {
-        "id": "ff-clean",
-        "row": 10,
-        "kind": "ok",
-        "title": "Strict checks pass",
-        "desc": "Both strict checks exit 0.",
-        "lines": [
-          23,
-          23
-        ],
-        "anchor": "Run once with `--strict` and report what it adds, so the use"
-      },
-      {
-        "id": "ff-report",
-        "row": 11,
-        "kind": "step",
-        "title": "Report changes by rule",
-        "desc": "The final report gives each rule's count and visible shifts, explains unresolved findings, records approved config entries, and includes both commands with exit codes.",
-        "lines": [
-          83,
-          85
-        ],
-        "anchor": "## Report",
-        "anchorEnd": "Say what changed by rule, one line per rule with the count a"
-      },
-      {
-        "id": "ff-script",
-        "row": 12,
-        "kind": "step",
-        "title": "Gate builds with check:design",
-        "desc": "Scaffolded projects include check:design. Other projects add both checkers to that script and run it before vite build.",
+        "id": "ff-warning-loop",
+        "row": 16,
+        "kind": "gate",
+        "title": "Include warnings in the repair scope",
         "lines": [
           25,
           25
         ],
-        "anchor": "A project scaffolded by `create` has a `check:design` script"
+        "anchor": "When the repair scope includes warnings, return to step 3 wi",
+        "n": "8"
       },
       {
-        "id": "ff-ver",
-        "row": 13,
-        "kind": "done",
-        "title": "Verify that every touched file repaints",
-        "desc": "A surface-colour and spacing change in /live-tokens/editor tests every touched file. Any repaint failure becomes a reported checker gap.",
+        "id": "ff-build",
+        "row": 17,
+        "kind": "step",
+        "title": "Gate the existing build",
+        "desc": "Add check:design when absent. Preserve the existing build command when adding the gate.",
         "lines": [
-          87,
-          89
+          33,
+          33
         ],
-        "anchor": "## Verify",
-        "anchorEnd": "Open `/live-tokens/editor` in dev and change a surface colou"
+        "anchor": "When `package.json` has no `check:design` script, add `\"chec"
+      },
+      {
+        "id": "ff-reply",
+        "row": 18,
+        "kind": "chipset",
+        "title": "Reply with the repair results",
+        "lines": [
+          26,
+          29
+        ],
+        "anchor": "Reply with:",
+        "anchorEnd": "both checker commands with their exit codes",
+        "n": "9",
+        "chips": [
+          {
+            "label": "Changes by rule",
+            "lines": [
+              27,
+              27
+            ],
+            "anchor": "the changes by rule, each with its count and any visible shi"
+          },
+          {
+            "label": "Remaining findings",
+            "lines": [
+              28,
+              28
+            ],
+            "anchor": "the findings left, each with its reason and any config entry"
+          },
+          {
+            "label": "Checker commands and exit codes",
+            "lines": [
+              29,
+              29
+            ],
+            "anchor": "both checker commands with their exit codes"
+          }
+        ]
+      },
+      {
+        "id": "ff-done",
+        "row": 19,
+        "kind": "done",
+        "title": "Repair results complete",
+        "lines": [
+          26,
+          29
+        ],
+        "anchor": "Reply with:",
+        "anchorEnd": "both checker commands with their exit codes"
       }
     ],
     "edges": [
       {
-        "from": "ff-trig",
-        "to": "ff-why"
+        "to": "ff-migrate",
+        "from": "ff-trig"
       },
       {
-        "from": "ff-why",
-        "to": "ff-run"
+        "to": "ff-run",
+        "from": "ff-migrate"
       },
       {
+        "to": "ff-upgrade",
         "from": "ff-run",
-        "to": "ff-blocked",
         "label": "unknown command"
       },
       {
-        "from": "ff-blocked",
         "to": "ff-run",
-        "label": "retry",
+        "from": "ff-upgrade",
+        "label": "rerun",
         "back": true
       },
       {
+        "to": "ff-group",
         "from": "ff-run",
-        "to": "ff-loop",
         "label": "findings"
       },
       {
+        "to": "ff-clean",
         "from": "ff-run",
-        "to": "ff-empty",
-        "label": "clean"
+        "label": "exit 0"
       },
       {
-        "from": "ff-empty",
-        "to": "ff-strict"
-      },
-      {
-        "from": "ff-loop",
-        "to": "ff-never"
-      },
-      {
-        "from": "ff-never",
-        "to": "ff-recipe"
-      },
-      {
-        "from": "ff-recipe",
-        "to": "ff-colour",
-        "label": "page colour"
-      },
-      {
-        "from": "ff-recipe",
-        "to": "ff-geom",
-        "label": "geometry"
-      },
-      {
-        "from": "ff-recipe",
-        "to": "ff-rest",
-        "label": "other rule"
-      },
-      {
-        "from": "ff-recipe",
-        "to": "ff-hand",
-        "label": "unknown component"
-      },
-      {
-        "from": "ff-colour",
-        "to": "ff-gate"
-      },
-      {
-        "from": "ff-geom",
-        "to": "ff-gate"
-      },
-      {
-        "from": "ff-rest",
-        "to": "ff-gate"
-      },
-      {
-        "from": "ff-hand",
-        "to": "ff-gate"
-      },
-      {
-        "from": "ff-gate",
-        "to": "ff-loop",
-        "label": "repairable findings",
-        "back": true
-      },
-      {
-        "from": "ff-gate",
-        "to": "ff-report",
-        "label": "unmatched literal"
-      },
-      {
-        "from": "ff-gate",
         "to": "ff-strict",
-        "label": "clean"
+        "from": "ff-clean"
       },
       {
-        "from": "ff-strict",
-        "to": "ff-warn",
+        "to": "ff-order",
+        "from": "ff-group"
+      },
+      {
+        "to": "ff-recipe",
+        "from": "ff-order",
+        "label": "largest error group"
+      },
+      {
+        "to": "ff-recipe",
+        "from": "ff-order",
+        "label": "remaining errors"
+      },
+      {
+        "to": "ff-recipe",
+        "from": "ff-order",
         "label": "warnings"
       },
       {
-        "from": "ff-strict",
-        "to": "ff-clean",
-        "label": "clean"
+        "to": "ff-color",
+        "from": "ff-recipe",
+        "label": "Color by role"
       },
       {
-        "from": "ff-warn",
-        "to": "ff-loop",
-        "label": "clear now",
+        "to": "ff-rerun",
+        "from": "ff-color"
+      },
+      {
+        "to": "ff-geometry",
+        "from": "ff-recipe",
+        "label": "Geometry by scale"
+      },
+      {
+        "to": "ff-rerun",
+        "from": "ff-geometry"
+      },
+      {
+        "to": "ff-remaining",
+        "from": "ff-recipe",
+        "label": "The remaining rules"
+      },
+      {
+        "to": "ff-rerun",
+        "from": "ff-remaining"
+      },
+      {
+        "to": "ff-repeat",
+        "from": "ff-rerun",
+        "label": "repairable findings"
+      },
+      {
+        "to": "ff-group",
+        "from": "ff-repeat",
+        "label": "return to step 3",
         "back": true
       },
       {
-        "from": "ff-warn",
-        "to": "ff-report",
-        "label": "defer repairs"
+        "to": "ff-unresolved",
+        "from": "ff-rerun",
+        "label": "no token fits"
       },
       {
-        "from": "ff-clean",
-        "to": "ff-report"
+        "to": "ff-reply",
+        "from": "ff-unresolved"
       },
       {
-        "from": "ff-report",
-        "to": "ff-script"
+        "to": "ff-strict",
+        "from": "ff-rerun",
+        "label": "errors clear"
       },
       {
-        "from": "ff-script",
-        "to": "ff-ver"
+        "to": "ff-warnings",
+        "from": "ff-strict",
+        "label": "warnings"
+      },
+      {
+        "to": "ff-build",
+        "from": "ff-strict",
+        "label": "strict checks pass"
+      },
+      {
+        "to": "ff-warning-loop",
+        "from": "ff-warnings",
+        "label": "repair scope includes warnings"
+      },
+      {
+        "to": "ff-build",
+        "from": "ff-warnings",
+        "label": "user defers warnings"
+      },
+      {
+        "to": "ff-group",
+        "from": "ff-warning-loop",
+        "label": "use --strict",
+        "back": true
+      },
+      {
+        "to": "ff-reply",
+        "from": "ff-build"
+      },
+      {
+        "to": "ff-done",
+        "from": "ff-reply"
       }
     ]
   }
