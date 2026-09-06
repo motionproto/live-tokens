@@ -67,11 +67,12 @@
   }
 
   .offering-quote p {
-    font-family: var(--font-serif);
-    font-size: var(--font-size-3xl);
-    font-weight: var(--font-weight-normal);
+    font-family: var(--editorial-xl-font-family);
+    font-size: var(--editorial-xl-font-size);
+    font-weight: var(--editorial-xl-font-weight);
+    line-height: var(--editorial-xl-line-height);
+    letter-spacing: var(--editorial-xl-letter-spacing);
     color: var(--text-primary);
-    line-height: 1.2;
     margin: 0;
     hyphens: none;
     text-indent: -0.55em;
@@ -79,7 +80,6 @@
 
   .open-quote,
   .close-quote {
-    font-family: var(--font-serif);
     color: var(--color-brand-300);
   }
 
@@ -93,11 +93,12 @@
 
   .offering-quote figcaption {
     margin-top: 0;
-    font-family: var(--font-serif);
-    font-weight: var(--font-weight-normal);
-    font-size: var(--font-size-3xl);
+    font-family: var(--body-sm-font-family);
+    font-size: var(--body-sm-font-size);
+    font-weight: var(--body-sm-font-weight);
+    line-height: var(--body-sm-line-height);
+    letter-spacing: var(--body-sm-letter-spacing);
     font-variation-settings: 'opsz' 144, 'SOFT' 100;
-    letter-spacing: 0.01em;
     color: var(--text-primary);
     text-align: right;
     padding-right: 0.4em;
@@ -109,9 +110,6 @@
     }
     .offering-quote {
       grid-column: 7 / -2;
-    }
-    .offering-quote p {
-      font-size: var(--font-size-xl);
     }
   }
 
@@ -127,9 +125,6 @@
       width: auto;
       margin: var(--space-16) 0 0;
       padding-left: 0;
-    }
-    .offering-quote p {
-      font-size: var(--font-size-4xl);
     }
   }
 </style>

@@ -88,18 +88,17 @@
   }
 
   .hero-title {
-    font-family: var(--font-display);
-    font-size: var(--font-size-7xl);
-    font-weight: var(--font-weight-semibold);
+    font-family: var(--heading-xl-font-family);
+    font-size: var(--heading-xl-font-size);
+    font-weight: var(--heading-xl-font-weight);
+    line-height: var(--heading-xl-line-height);
+    letter-spacing: var(--heading-xl-letter-spacing);
     font-variation-settings: 'opsz' 144, 'SOFT' 30;
     color: var(--text-primary);
-    line-height: .9;
     margin: 0;
   }
 
   .hero-italic {
-    font-family: var(--heading-xl-font-family);
-    font-size: var(--font-size-6xl);
     font-weight: var(--font-weight-normal);
     color: var(--text-brand);
     font-variation-settings: 'opsz' 144, 'SOFT' 100;
@@ -107,10 +106,12 @@
   }
 
   .hero-tagline {
-    font-family: var(--body-md-font-family);
-    font-size: var(--font-size-2xl);
+    font-family: var(--editorial-xl-font-family);
+    font-size: var(--editorial-xl-font-size);
+    font-weight: var(--editorial-xl-font-weight);
+    line-height: var(--editorial-xl-line-height);
+    letter-spacing: var(--editorial-xl-letter-spacing);
     color: var(--text-primary);
-    line-height: 1.2;
     max-width: 48rem;
     margin: var(--space-8) 0 0;
   }
@@ -147,10 +148,11 @@
   }
 
   .hero-byline {
-    font-family: var(--font-sans);
-    font-size: var(--font-size-md);
-    font-weight: var(--font-weight-normal);
-    line-height: var(--line-height-normal);
+    font-family: var(--body-sm-font-family);
+    font-size: var(--body-sm-font-size);
+    font-weight: var(--body-sm-font-weight);
+    line-height: var(--body-sm-line-height);
+    letter-spacing: var(--body-sm-letter-spacing);
     color: var(--text-secondary);
     margin: 0;
   }
@@ -190,9 +192,6 @@
   }
 
   @media (max-width: 600px) {
-    .hero-title {
-      font-size: var(--font-size-5xl);
-    }
     .hero-controls {
       grid-template-columns: minmax(0, 1fr);
       row-gap: var(--space-12);

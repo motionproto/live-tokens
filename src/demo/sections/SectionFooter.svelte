@@ -33,8 +33,11 @@
 
   .license {
     margin: 0;
-    font-family: var(--font-sans);
-    font-size: var(--font-size-lg);
+    font-family: var(--body-md-font-family);
+    font-size: var(--body-md-font-size);
+    font-weight: var(--body-md-font-weight);
+    line-height: var(--body-md-line-height);
+    letter-spacing: var(--body-md-letter-spacing);
     color: var(--text-secondary);
   }
 
@@ -51,8 +54,11 @@
 
   .copyright {
     margin: 0;
-    font-family: var(--font-sans);
-    font-size: var(--font-size-md);
+    font-family: var(--body-sm-font-family);
+    font-size: var(--body-sm-font-size);
+    font-weight: var(--body-sm-font-weight);
+    line-height: var(--body-sm-line-height);
+    letter-spacing: var(--body-sm-letter-spacing);
     color: var(--text-secondary);
   }
 

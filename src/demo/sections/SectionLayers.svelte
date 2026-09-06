@@ -38,8 +38,11 @@
   }
 
   .arch :global(code) {
-    font-family: var(--font-mono);
-    font-size: 0.9em;
+    font-family: var(--code-font-family);
+    font-size: var(--code-font-size);
+    font-weight: var(--code-font-weight);
+    line-height: var(--code-line-height);
+    letter-spacing: var(--code-letter-spacing);
     color: var(--text-primary);
     background: var(--tint-low);
     padding: var(--space-2) var(--space-6);

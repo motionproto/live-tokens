@@ -93,10 +93,11 @@
   }
 
   .intro {
-    font-family: var(--font-sans);
-    font-size: var(--font-size-xl);
-    line-height: var(--line-height-tighter);
-    font-weight: var(--font-weight-semibold);
+    font-family: var(--editorial-xl-font-family);
+    font-size: var(--editorial-xl-font-size);
+    font-weight: var(--editorial-xl-font-weight);
+    line-height: var(--editorial-xl-line-height);
+    letter-spacing: var(--editorial-xl-letter-spacing);
     color: var(--text-primary);
     margin: 0;
   }
@@ -109,9 +110,11 @@
 
   .install-caption {
     margin: 0;
-    font-family: var(--font-sans);
-    font-size: var(--font-size-md);
-    line-height: var(--line-height-normal);
+    font-family: var(--body-sm-font-family);
+    font-size: var(--body-sm-font-size);
+    font-weight: var(--body-sm-font-weight);
+    line-height: var(--body-sm-line-height);
+    letter-spacing: var(--body-sm-letter-spacing);
     color: var(--text-secondary);
   }
 
@@ -160,10 +163,11 @@
   }
 
   .skill-name {
-    font-family: var(--font-sans);
-    font-size: var(--font-size-2xl);
-    font-weight: var(--font-weight-medium);
-    line-height: var(--line-height-normal);
+    font-family: var(--heading-lg-font-family);
+    font-size: var(--heading-lg-font-size);
+    font-weight: var(--heading-lg-font-weight);
+    line-height: var(--heading-lg-line-height);
+    letter-spacing: var(--heading-lg-letter-spacing);
     color: var(--text-primary);
   }
 

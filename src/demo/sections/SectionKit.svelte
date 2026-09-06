@@ -222,18 +222,20 @@
 
   .kit-title {
     color: var(--text-primary);
-    font-family: var(--font-sans);
-    font-size: var(--font-size-2xl);
-    font-weight: var(--font-weight-medium);
-    line-height: var(--line-height-normal);
+    font-family: var(--heading-lg-font-family);
+    font-size: var(--heading-lg-font-size);
+    font-weight: var(--heading-lg-font-weight);
+    line-height: var(--heading-lg-line-height);
+    letter-spacing: var(--heading-lg-letter-spacing);
   }
 
   .kit-body {
     padding: var(--space-12) 0 0;
-    font-family: var(--font-sans);
-    font-size: var(--font-size-xl);
-    line-height: var(--line-height-normal);
-    font-weight: var(--font-weight-normal);
+    font-family: var(--body-md-font-family);
+    font-size: var(--body-md-font-size);
+    font-weight: var(--body-md-font-weight);
+    line-height: var(--body-md-line-height);
+    letter-spacing: var(--body-md-letter-spacing);
     color: var(--text-secondary);
 
     @include slot-prose;
@@ -300,14 +302,16 @@
   }
 
   .kit-lead .kit-title {
-    font-size: var(--font-size-4xl);
-    font-weight: var(--font-weight-bold);
+    font-family: var(--heading-xl-font-family);
+    font-size: var(--heading-xl-font-size);
+    font-weight: var(--heading-xl-font-weight);
+    line-height: var(--heading-xl-line-height);
+    letter-spacing: var(--heading-xl-letter-spacing);
   }
 
   .kit-lead .kit-body {
     grid-column: 4 / span 6;
     padding: var(--space-32) 0;
-    font-size: var(--font-size-2xl);
     color: var(--text-primary);
   }
 
@@ -368,10 +372,11 @@
 
   .stage-eyebrow {
     align-self: center;
-    font-family: var(--font-sans);
-    font-size: var(--font-size-md);
-    font-weight: var(--font-weight-medium);
-    letter-spacing: var(--letter-spacing-wide);
+    font-family: var(--body-sm-font-family);
+    font-size: var(--body-sm-font-size);
+    font-weight: var(--body-sm-font-weight);
+    line-height: var(--body-sm-line-height);
+    letter-spacing: var(--body-sm-letter-spacing);
     text-transform: uppercase;
     color: var(--text-secondary);
   }
@@ -424,7 +429,6 @@
     }
     .kit-lead .kit-body {
       padding: var(--space-16) var(--space-20);
-      font-size: var(--font-size-xl);
     }
   }
 </style>

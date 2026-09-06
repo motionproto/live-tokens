@@ -67,10 +67,11 @@ npm run dev`;
   }
 
   .intro {
-    font-family: var(--font-sans);
-    font-size: var(--font-size-xl);
-    line-height: var(--line-height-tighter);
-    font-weight: var(--font-weight-semibold);
+    font-family: var(--editorial-xl-font-family);
+    font-size: var(--editorial-xl-font-size);
+    font-weight: var(--editorial-xl-font-weight);
+    line-height: var(--editorial-xl-line-height);
+    letter-spacing: var(--editorial-xl-letter-spacing);
     color: var(--text-primary);
     margin: 0;
   }
