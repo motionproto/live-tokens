@@ -327,7 +327,7 @@ npx @motion-proto/live-tokens <command>
 | `tokens [--family <name>] [--json]` | List every theme token the project's `tokens.css` declares, by family, with its value. |
 | `report [--json]` | The project as facts: pending migrations, tokens each component reads, which page renders which component, and both checkers' findings by rule. Always exits 0. |
 | `check-component [id]` | Validate a component's runtime, editor, and registration against the authoring contract; with no id, every component authored under `src/system/components`. |
-| `check-page [paths...]` | Validate pages against the build-page contract: catalogue components and their props, theme tokens over literals, route wiring. |
+| `check-page [paths...]` | Validate pages against the create-page contract: catalogue components and their props, theme tokens over literals, route wiring. |
 | `set-colors <base-colors.json> [--dry-run]` | Build the theme's whole color identity from 10 OKLCH base colors, enforce AA contrast on the derived text tokens, and write the result to the unsaved colors-and-type buffer. |
 | `set-type <pairing.json> [--dry-run] [--no-verify]` | Bind Google Fonts families to the theme's font stacks, verified against the API. |
 | `set-geometry <ops.json> [--dry-run]` | Move radius, padding, gap, and border-width aliases along their token scales. |
@@ -358,7 +358,7 @@ Ask "TabBar or SegmentedControl?", "how do I let someone pick one of four option
 
 The skill holds the catalogue grouped by job (action, input, selection, containers, messaging, display) and a decision table for each confusable family: `SegmentedControl` vs `TabBar` vs `RadioButton` vs `MenuSelect`, `Card` vs `CollapsibleSection` vs `Dialog`, `Callout` vs `Notification` vs `Tooltip` vs `Badge`, `Button` vs `IconButton`, and the on/off case. It answers the question and writes nothing. Read it before authoring anything new.
 
-### `live-tokens-build-page`
+### `live-tokens-create-page`
 
 Ask for a page, a route, or a screen: "build a pricing page", "add a /settings route", "put a hero at the top of Home".
 

@@ -1,6 +1,6 @@
 ---
 name: live-tokens-create-component
-description: Author a brand-new editable component for a @motion-proto/live-tokens project when nothing in the shipped catalogue fits: runtime and editor Svelte files, registration, naming, state model, and verification. Use when the user asks to author, create, or build a new tokenized component; make an existing Svelte component editable in the live-tokens editor; add a component to the catalogue; register a custom component with the editor; or build a [Thing] component that does not exist in the shipped set. Not for placing an existing shipped component on a page (see live-tokens-build-page); read live-tokens-pick-component first to confirm nothing in the catalogue fits.
+description: Author a new editable component for a @motion-proto/live-tokens project: runtime and editor Svelte files, registration, naming, state model, and verification. Use when the user asks for a component the shipped catalogue lacks. Use when the user asks to make an existing Svelte component editable in the live-tokens editor. Read live-tokens-pick-component first to confirm nothing in the catalogue fits. For placing a shipped component on a page, read live-tokens-create-page.
 ---
 
 # Authoring a component for a live-tokens project
@@ -64,7 +64,7 @@ Shipped editors live in `src/editor/component-editor/` because they are library-
    `--json` gives each finding a stable `rule` id and a line number, so work one rule at a time. `--strict` fails on warnings too, the right setting for a new component: every warning is a naming or token decision that is cheaper to make now than to migrate later. `--off=<rule>` silences a rule for one run, which a component still being authored has no use for: the finding is a decision to make. Exit code 0 is the gate. With no id it checks every component under `src/system/components`; a project scaffolded by `create` runs that as `npm run check:design` before every `vite build`.
 
    If it rejects a suffix, do not invent a new name for the role. Find a shipped component that paints the same thing and use the name it uses: every shipped component passes this same check, so the catalogue is the worked reference.
-7. **Verify** with the checklist at the bottom of this file, then place the component on a page with **live-tokens-build-page**.
+7. **Verify** with the checklist at the bottom of this file, then place the component on a page with **live-tokens-create-page**.
 
 ## Token discipline
 

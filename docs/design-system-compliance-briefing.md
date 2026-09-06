@@ -27,7 +27,7 @@ Four, as stated:
 
 The system's premise is that a change in the editor repaints the site. A page
 that writes `#6a4ce8`, or a component whose default is a raw `16rem`, opts out of
-that silently. Nothing caught it. `live-tokens-build-page` said "use theme tokens
+that silently. Nothing caught it. `live-tokens-create-page` said "use theme tokens
 for every value" and verified it by asking a human to change a colour and look.
 
 There was one static checker, `check-component`, covering the *naming* half of the
@@ -215,7 +215,7 @@ exits 0. Plus the instruction that only became honest once the catalogue passed:
 *if a suffix is rejected, do not invent a name — find a shipped component that
 paints the same role and use its name.*
 
-**`live-tokens-build-page`** — the Verify section led with "change a colour and
+**`live-tokens-create-page`** — the Verify section led with "change a colour and
 look". It now leads with `check-page`, the same iterate-until-zero framing, and
 documents `--strict`, `--json`, `--off=`, and the config block. The manual checks
 remain, after, for what no static check can see.
@@ -262,7 +262,7 @@ skills *say* run the check and iterate; nothing makes them.
 
 - Run `live-tokens-create-component` end to end on a genuinely new component and
   watch whether the agent reaches step 6, parses `--json`, and iterates. Do the
-  same for `live-tokens-build-page` with `check-page`.
+  same for `live-tokens-create-page` with `check-page`.
 - When the checker rejects a suffix, does the agent take the documented route
   (find a shipped component that paints the same role) or invent a name? That
   instruction is the difference between the gate improving naming and the gate

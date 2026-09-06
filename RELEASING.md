@@ -124,7 +124,7 @@ What should be in the tarball:
   `tokens`, `report`, `check-component`, `check-page`, `set-colors`,
   `set-type`, `set-geometry`, `save-theme`, `migrate`)
 - `template/**` (the `create` scaffold)
-- `.claude/skills/**` (the Claude skills: build-page, create-component,
+- `.claude/skills/**` (the Claude skills: create-page, create-component,
   pick-component, check-compliance, fix-findings, create-theme, set-colors,
   set-type, set-geometry)
 - These files only, out of `src/live-tokens/data/`: `tokens.generated.css`,

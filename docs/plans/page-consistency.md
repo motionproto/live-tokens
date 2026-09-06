@@ -1,6 +1,6 @@
 # Page consistency
 
-Overhaul of build-page and pick-component so a generated page takes the
+Overhaul of create-page and pick-component so a generated page takes the
 shipped components at their established defaults: one type scale from the
 shipped text styles, the default size on every control, one primary action.
 No new type size, token, or definition is created. The simplification method
@@ -71,7 +71,7 @@ coverage.
 
 ### The skill prose
 
-build-page's Density section says `size="small"` belongs in "toolbars, compose
+create-page's Density section says `size="small"` belongs in "toolbars, compose
 rows, and any band that holds more than a couple of actions", and the Layout
 section says "give the controls the smallest size that still works". Both
 rules ask for the extreme, and both contradict "take the shipped default".
@@ -81,7 +81,7 @@ says nothing about hierarchy.
 
 The user-level `frontend-design` skill also triggers on "build a page" and
 asks for asymmetry, grid-breaking elements, and distinctive fonts. In a
-live-tokens project that guidance competes with the theme. build-page's
+live-tokens project that guidance competes with the theme. create-page's
 description should claim the case.
 
 ## Sources
@@ -138,7 +138,7 @@ Every rule below is stated in shipped values: the text styles in tokens.css,
 the `--space-*` scale, the props each component declares. Nothing is added
 to the system.
 
-### A. Hierarchy rules in build-page
+### A. Hierarchy rules in create-page
 
 A new Hierarchy section replaces Density. Four rule groups, each a short table
 or list.
@@ -210,7 +210,7 @@ stacked rail) move under Containers by job without a size.
 ### D. Component usage comments
 
 Every shipped component gets a leading HTML comment in one shape. The CLI
-already prints it; pick-component and build-page read it at build time.
+already prints it; pick-component and create-page read it at build time.
 
 ```
 <!--
@@ -239,12 +239,12 @@ The create-component recipe cites the shape.
 
 ### E. Skill rewrites
 
-After A to D, under the simplification method. build-page: Rules, Hierarchy
+After A to D, under the simplification method. create-page: Rules, Hierarchy
 (new), Layout (as is, minus the size sentence), Containers by job, Wiring,
 Avoid, Verify. Avoid gains "a `size` prop on a shipped component". The
 description adds "sizes, type scale, and button emphasis" to its triggers so
 it claims the case from `frontend-design`. pick-component: description states
-the boundary ("emphasis and placement are build-page's"), catalogue line, one
+the boundary ("emphasis and placement are create-page's"), catalogue line, one
 section per confusable family, and a closing pointer to `components <id>` for
 the usage comment.
 
@@ -268,7 +268,7 @@ and 17c2894 stand. Wave
 2. B. Checker rules with tests over fixture pages in `bin/`. Gate: a fixture
    with two button sizes, two primaries, and a raw axis fails; the same page
    with the props removed passes.
-3. A, C, E. build-page then pick-component, section by section per the
+3. A, C, E. create-page then pick-component, section by section per the
    simplification method; `sync:skill-sources`. Gate: the sweep grep is clean
    and no sentence in either skill chooses a size.
 4. The package's own pages. Promoting `raw-text-axis` to an error turned
@@ -299,7 +299,7 @@ Settled 2026-09-06:
    CLI is the reader either way.
 3. No eyebrow. The skills never recommend the `--eyebrow-*` text style or the
    `.eyebrow` class; a label above a group is `--body-sm` in
-   `--text-secondary`. build-page's current mentions (`.eyebrow` for "a quiet
+   `--text-secondary`. create-page's current mentions (`.eyebrow` for "a quiet
    section label"; the eyebrow layer in Layout) go in Wave 3. The style and
    the SectionDivider part stay in the system for a project that asks for
    them; nothing recommends or uses them by default. The SectionDivider
@@ -307,7 +307,7 @@ Settled 2026-09-06:
 
 Open:
 
-4. Settled 2026-09-06 in build-page's Hierarchy table: controls in a row
+4. Settled 2026-09-06 in create-page's Hierarchy table: controls in a row
    `--space-8`, inside a box `--space-16`, between fields `--space-20`,
    between boxes `--columns-gutter` across and `--space-24` down, between
    bands `--space-16` above the hairline.
@@ -329,7 +329,7 @@ Open:
        a file the package wrote.
    (c) drop `--font-weight-*` from the single-axis families. A weight alone
        cannot move the scale or the fonts, which is the drift the rule
-       exists for; "at most two weights on a screen" is build-page prose.
+       exists for; "at most two weights on a screen" is create-page prose.
    Recommendation: (c). It is the smallest rule and needs no block-level
    reasoning. Whichever path, the fix-findings row states it in Wave 3.
 
@@ -522,7 +522,7 @@ any attribute whose name holds a colon, so nothing reports it.
 
 2026-09-06. Each gap is one of: a skill sentence (S), a decision the user
 makes (U), or closed (C). Every S proposal is stated in shipped values.
-Applied 2026-09-06 (commit "build-page closes the acceptance gaps"); the
+Applied 2026-09-06 (commit "create-page closes the acceptance gaps"); the
 user took the recommendation on 5.
 
 | Gap | Class | Proposal |

@@ -1,6 +1,6 @@
 ---
 name: live-tokens-set-type
-description: Set a live-tokens theme's type: a Google Fonts pairing bound to the shipped --font-* stacks, each family verified for the weights it ships. Called with an anchor and a type intent by live-tokens-create-theme, or with the user's request directly. Use whenever the user asks to pair fonts, pick a typeface, or set the fonts; describes type by voice: editorial, friendlier, technical, elegant, less generic; or names a face for a role: a serif for headings, a display font. Changes type only, never color or geometry. Not for a request that also names color or geometry (see live-tokens-create-theme).
+description: Set a live-tokens theme's type: a Google Fonts pairing bound to the shipped --font-* stacks, each family verified for the weights it ships. Called with an anchor and a type intent by live-tokens-create-theme, or with the user's request directly. Use when the user asks to pair fonts, pick a typeface, or set the fonts. Use when the user describes type by voice: editorial, friendlier, technical, elegant, less generic. Use when the user names a face for a role: a serif for headings, a display font. Changes type only. For a request that also names color or geometry, read live-tokens-create-theme.
 ---
 
 # Setting a theme's type

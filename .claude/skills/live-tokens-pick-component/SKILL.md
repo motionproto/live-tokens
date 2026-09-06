@@ -1,6 +1,6 @@
 ---
 name: live-tokens-pick-component
-description: Recommend which shipped @motion-proto/live-tokens component fits a UX need, with a decision test for each confusable family. Called by live-tokens-build-page when more than one component could fit, by live-tokens-create-component before it authors anything, or with the user's request directly. Use when the user asks which component to use, should I use X or Y, what the difference between two components is, how to show or capture a UX outcome, or starts authoring a custom component before checking the catalogue. Edits no file. Not for size, emphasis, or placement (see live-tokens-build-page).
+description: Recommend which shipped @motion-proto/live-tokens component fits a UX need, with a decision test for each confusable family. Called by live-tokens-create-page when more than one component could fit, and by live-tokens-create-component before it authors anything. Use when the user asks which component to use, or what the difference between two components is. Use when the user asks how to show or capture a UX outcome. Edits no file. For size, emphasis, or placement, read live-tokens-create-page.
 ---
 
 # Picking a live-tokens component
@@ -86,6 +86,6 @@ Five components carry a message. The test is what the message is about, what bri
 
 ## Nothing fits
 
-A native element with no chrome of its own needs no component: an `<input type="file">` behind a Button, a `<canvas>`, an `<img>` inside a stage. When nothing in the catalogue fits a piece with chrome (a `DatePicker`, a `Stepper`), author the component with **live-tokens-create-component**. Size, emphasis, and placement are **live-tokens-build-page**'s.
+A native element with no chrome of its own needs no component: an `<input type="file">` behind a Button, a `<canvas>`, an `<img>` inside a stage. When nothing in the catalogue fits a piece with chrome (a `DatePicker`, a `Stepper`), author the component with **live-tokens-create-component**. Size, emphasis, and placement are **live-tokens-create-page**'s.
 
 `npx live-tokens components <id>` prints one component's usage comment, its declared props, and the values each union accepts. `--json` returns the same as data.

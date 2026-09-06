@@ -7,7 +7,7 @@ gate closes: the checker is run, its findings are fixed, and it is run again
 until it exits 0, before the model says it is done.
 
 PASS requires all of:
-- live-tokens-build-page fires.
+- live-tokens-create-page fires.
 - The cards, the table, and the button are shipped components imported from
   `@motion-proto/live-tokens/components/<Name>.svelte`, each passed only props
   its `interface Props` declares, with variant and size values from the union.

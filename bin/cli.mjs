@@ -7,7 +7,7 @@
 //   tokens [--family <name>] List every theme token by family, with its value.
 //   report                   The project as facts: tokens read, components used, findings by rule. Always exits 0.
 //   check-component [id]     Validate a component (or every authored one) against the create-component skill contract.
-//   check-page [paths...]    Validate pages against the build-page skill contract.
+//   check-page [paths...]    Validate pages against the create-page skill contract.
 //   set-colors <colors>      Build the color identity from 10 OKLCH base colors, into the open buffer.
 //   set-geometry <ops>       Apply radius/padding/gap/border-width ops to the open buffer.
 //   set-type <pairing>       Bind Google Fonts families to the theme's font stacks.
@@ -66,7 +66,7 @@ Commands:
                               exits 0
   check-component [id]        Validate <id>'s runtime, editor, and registration
                               against the live-tokens-create-component contract
-  check-page [paths...]       Validate pages against the live-tokens-build-page
+  check-page [paths...]       Validate pages against the live-tokens-create-page
                               contract: catalogue components only, and every CSS
                               value a theme token. Checks every page under src/
                               when given no paths.
@@ -424,7 +424,7 @@ for (const skill of skills) {
 console.log(`\n${installed} installed, ${skipped} skipped → ${destSkills}`);
 
 const SAMPLE_PROMPTS = {
-  'live-tokens-build-page': 'build a pricing page using live-tokens components',
+  'live-tokens-create-page': 'build a pricing page using live-tokens components',
   'live-tokens-pick-component': "what's the difference between TabBar and SegmentedControl?",
   'live-tokens-create-component': 'author a new Toggle component for my live-tokens project',
   'live-tokens-create-theme': 'make me a bright and cheerful theme',

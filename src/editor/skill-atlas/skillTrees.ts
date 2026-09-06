@@ -1955,7 +1955,7 @@ export const skillTrees: Record<string, SkillTree> = {
         "id": "pk-place",
         "row": 6,
         "kind": "hand",
-        "title": "Continue with build-page",
+        "title": "Continue with create-page",
         "desc": "The page uses the selected component.",
         "lines": [
           10,
@@ -2064,10 +2064,10 @@ export const skillTrees: Record<string, SkillTree> = {
       }
     ]
   },
-  "build-page": {
-    "id": "live-tokens-build-page",
+  "create-page": {
+    "id": "live-tokens-create-page",
     "digest": "sha256:6bb7df43ef2c7de4",
-    "title": "build-page",
+    "title": "create-page",
     "tagline": "Catalogue components cover established needs. Theme tokens drive every theme-owned value.",
     "nodes": [
       {
@@ -2080,7 +2080,7 @@ export const skillTrees: Record<string, SkillTree> = {
           2,
           8
         ],
-        "anchor": "name: live-tokens-build-page",
+        "anchor": "name: live-tokens-create-page",
         "anchorEnd": "Two rules above all else:"
       },
       {
@@ -2920,8 +2920,8 @@ export const skillTrees: Record<string, SkillTree> = {
         "id": "cc-place",
         "row": 15,
         "kind": "hand",
-        "title": "Continue with build-page",
-        "desc": "build-page places the completed component on a page.",
+        "title": "Continue with create-page",
+        "desc": "create-page places the completed component on a page.",
         "lines": [
           67,
           67

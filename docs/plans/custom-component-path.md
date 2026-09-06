@@ -15,7 +15,7 @@ it. Background: `docs/design-system-compliance-audit.md`.
   component declares that nothing in its file reads.
 - `live-tokens components` and `tokens` are the registry as a query;
   `componentDirs` extends discovery; `getComponentRegistryEntries` is public.
-- Skills: pick, build-page, create-component, check-compliance, fix-findings
+- Skills: pick, create-page, create-component, check-compliance, fix-findings
   all read the query rather than a list.
 - The consumer `../live-tokens-online` is clean under `--strict`, installs
   0.68.1, has one unpushed local commit, and no `.claude/skills`.

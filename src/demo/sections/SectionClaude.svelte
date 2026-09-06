@@ -7,7 +7,7 @@
 
   const skills = [
     { icon: 'fas fa-list-check', name: 'pick-component' },
-    { icon: 'fas fa-table-columns', name: 'build-page' },
+    { icon: 'fas fa-table-columns', name: 'create-page' },
     { icon: 'fas fa-cube', name: 'create-component' },
     { icon: 'fas fa-wand-magic-sparkles', name: 'create-theme' },
     { icon: 'fas fa-palette', name: 'set-colors' },

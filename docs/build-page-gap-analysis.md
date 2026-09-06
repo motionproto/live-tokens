@@ -1,8 +1,8 @@
-# build-page gap analysis
+# create-page gap analysis
 
 A consumer (Robosprite, a sprite-sheet studio) asked for its Studio page to be
 rearranged: frames and preview on top, inputs below, smaller type. The first
-pass followed `live-tokens-build-page` and passed `check-page`,
+pass followed `live-tokens-create-page` and passed `check-page`,
 `check-component --strict`, and `svelte-check`, and the result was still
 wrong. This records what the skill could not say and what now closes each gap.
 

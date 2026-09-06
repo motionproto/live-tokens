@@ -1,6 +1,6 @@
 ---
 name: live-tokens-fix-findings
-description: Fix every finding of check-page and check-component in an existing @motion-proto/live-tokens project until both exit 0. Called with the fix list by live-tokens-check-compliance, or whenever the user asks to fix the project. Edits the files the checkers name, never tokens.css.
+description: Fix every finding of check-page and check-component in an existing @motion-proto/live-tokens project until both exit 0. Called with the fix list by live-tokens-check-compliance. Use when the user asks to fix the project. Edits the files the checkers name. Leaves tokens.css as it is.
 ---
 
 # Fixing the findings of check-page and check-component

@@ -32,7 +32,7 @@ Every item is closed except the two the audit itself made conditional.
 
 Per-skill: generate-theme's step 1 split, its anchor precedence rule, and an
 atlas node for the refinement section landed in cdfc522; create-component's
-suffix extraction in ca43d51; build-page's route scaffold in 781fadf;
+suffix extraction in ca43d51; create-page's route scaffold in 781fadf;
 set-fonts' superfamily list now reads as a starting set rather than a closed
 one. adjust-geometry needed nothing, as the audit said.
 
@@ -80,11 +80,11 @@ built so either answer can show up rather than assuming this one.
 | adjust-geometry | Reload before Save | Same trap, same mechanism, and this skill also ends by telling the user to reload. |
 | adjust-geometry | Pointed `target` at the picker's Catalogue | The Catalogue is gate-checked complete against `component-configs/`, so it is the one component list that cannot go stale. |
 | pick-component | New Display family section | `Image`, `ImageLightbox`, `Table`, `ProgressBar`, `SideNavigation` were in the Catalogue with no guidance at all. `Image` against `ImageLightbox` and `SideNavigation` against `TabBar` are both real confusable pairs. |
-| build-page | Slot typography and the `prose` opt-out | A page author putting text in a `Card` hits this immediately, and only `pick-component` mentioned it, in passing. |
-| build-page | `/live-tokens/*` is reserved | The namespace exists so package surfaces can never shadow consumer routes. Nothing said so to the model writing the routes. |
+| create-page | Slot typography and the `prose` opt-out | A page author putting text in a `Card` hits this immediately, and only `pick-component` mentioned it, in passing. |
+| create-page | `/live-tokens/*` is reserved | The namespace exists so package surfaces can never shadow consumer routes. Nothing said so to the model writing the routes. |
 | create-component | Naming scheme admits the variant segment | The documented scheme was `<part>[-<state>][-<element>]`, with no slot for a variant, while the shipped set is full of `--badge-accent-surface` and `--callout-danger-border`. |
 | create-component | "five `--sketch-*` colours" is now "values" | One of the five is a radius. |
-| create-component | Ends by handing off to build-page | The tree had no edge from authoring to placing. |
+| create-component | Ends by handing off to create-page | The tree had no edge from authoring to placing. |
 | references/intrinsics.md | Registration example uses `bootLiveTokens` | It showed a bare `registerComponent(...)` call that the parent SKILL.md explicitly warns against. |
 | references/fixed-overlays.md | One paragraph became structured | Six distinct claims, including the modal accessibility requirements, were in a single block. |
 | all | `[[wiki-links]]` became bold sibling names | Four skills used bold, two used `[[ ]]`. The brackets carry no meaning in a skill. |
@@ -106,7 +106,7 @@ worth reading and not worth trusting to the digit.
 | `live-tokens-set-fonts/SKILL.md` | 88 → 90 | +2 | 6,739 → 7,403 | +664 | +166 |
 | `live-tokens-adjust-geometry/SKILL.md` | 93 → 93 | +0 | 8,056 → 8,382 | +326 | +82 |
 | `live-tokens-pick-component/SKILL.md` | 88 → 95 | +7 | 9,271 → 10,210 | +939 | +235 |
-| `live-tokens-build-page/SKILL.md` | 39 → 42 | +3 | 3,931 → 4,452 | +521 | +130 |
+| `live-tokens-create-page/SKILL.md` | 39 → 42 | +3 | 3,931 → 4,452 | +521 | +130 |
 | `live-tokens-create-component/SKILL.md` | 243 → 243 | +0 | 20,970 → 21,323 | +353 | +88 |
 | **Six skills** | **700 → 718** | **+18** | **62,094 → 66,337** | **+4,243** | **+1,061** |
 
@@ -119,7 +119,7 @@ worth reading and not worth trusting to the digit.
 Net across everything the pass touched: **+4,459 characters, roughly +1,115
 tokens**, against a 66,430-character corpus. About 7% growth. Per skill it runs
 from 2% (`create-component`, which was already at its ceiling) to 13%
-(`build-page`, which was the thinnest and had the most missing). Only one
+(`create-page`, which was the thinnest and had the most missing). Only one
 skill's body loads on any given trigger, so no reader pays the total.
 
 Three notes on where it went:
@@ -202,7 +202,7 @@ Remaining:
   paragraph after the heading. That is a reasonable trade, but it means the
   format is pinned by the gate rather than by the reader.
 
-### build-page
+### create-page
 
 The thinnest skill, and it is thin because it delegates well: components go to
 the picker, authoring goes to create-component. The two rules at the top are the
@@ -319,11 +319,11 @@ incomplete, which is the hardest kind of gap to notice.
 generate-theme ──> set-fonts
                └─> adjust-geometry
 
-pick-component ──> build-page
+pick-component ──> create-page
                └─> create-component ──> pick-component (step 4)
-                                    └─> build-page (added this pass)
+                                    └─> create-page (added this pass)
 ```
 
 `set-fonts` and `adjust-geometry` never point back up at `generate-theme`,
 which is right: they are leaves and they say so in their descriptions.
-`build-page` points at neither theme skill, which is the one edge I would add.
+`create-page` points at neither theme skill, which is the one edge I would add.

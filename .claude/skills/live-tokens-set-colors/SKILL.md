@@ -1,6 +1,6 @@
 ---
 name: live-tokens-set-colors
-description: Set a live-tokens theme's color: ten OKLCH base colors, a light or dark scheme, and a WCAG AA-gated contrast check. Called with an anchor and a color intent by live-tokens-create-theme, or with the user's request directly. Use whenever the user asks for a palette, colors, or hues by mood, style, era, season, holiday, or hue; when they name only a color; or when they refine a theme's color: warmer, cooler, calmer, louder, lighter, darker, moodier, more contrast. Changes color only, never fonts or geometry. Not for a request that also names type or geometry (see live-tokens-create-theme).
+description: Set a live-tokens theme's color: ten OKLCH base colors, a light or dark scheme, and a WCAG AA-gated contrast check. Called with an anchor and a color intent by live-tokens-create-theme, or with the user's request directly. Use when the user asks for a palette, colors, or hues by mood, style, era, season, holiday, or hue. Use when the user names only a color. Use when the user refines a theme's color: warmer, cooler, calmer, louder, lighter, darker, moodier, more contrast. Changes color only. For a request that also names type or geometry, read live-tokens-create-theme.
 ---
 
 # Setting a theme's colors

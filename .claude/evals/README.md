@@ -18,7 +18,7 @@ Ten cases, seven on triggering and three on outcome:
 | `trigger-ambiguous-buttons` | Does an ambiguous request get a question rather than a guess? |
 | `outcome-theme-from-request` | Does create-theme route three intents and produce a real theme? |
 | `outcome-component-from-brief` | Does create-component reach its gate, run `check-component --strict`, and iterate to exit 0? |
-| `outcome-page-from-brief` | Does build-page run `check-page --strict` on the new page and iterate to exit 0? |
+| `outcome-page-from-brief` | Does create-page run `check-page --strict` on the new page and iterate to exit 0? |
 
 Three of these are negatives, and that is the point. A suite of only positive
 cases scores an added trigger word as a free win, which is how a description

@@ -597,7 +597,7 @@ An enumerated sweep. The executor changes the listed lines and nothing else.
   `command` (it renders `npx live-tokens adjust`, which no CLI has dispatched
   since `9f6a37e`, and `check:skill-atlas` cannot see it because `command` is
   not anchored to skill text), `live-tokens-create-component/SKILL.md:93`,
-  `live-tokens-build-page/SKILL.md:11`, and `bin/check-page.mjs:49`.
+  `live-tokens-create-page/SKILL.md:11`, and `bin/check-page.mjs:49`.
 - Two claims the set-colors skill makes that its formatter does not bear out:
   `SKILL.md:137` says the report names the buffer it wrote, and `:138` says the
   Theme panel marks the theme unsaved. The success path prints neither a path

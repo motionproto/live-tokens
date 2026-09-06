@@ -1,7 +1,7 @@
 // Static validator for a live-tokens page.
 //
 // Asserts that a page satisfies the contract described in the
-// live-tokens-build-page skill: it is assembled from catalogue components, and
+// live-tokens-create-page skill: it is assembled from catalogue components, and
 // every value in its CSS is a theme token rather than a literal. The rules and
 // their default severities are in PAGE_RULES; each is overridable per project
 // (live-tokens.config.json) or per run (--off/--warn/--error/--strict), because

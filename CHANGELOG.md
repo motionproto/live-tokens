@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+- **`live-tokens-build-page` is renamed `live-tokens-create-page`.** The verb
+  now matches `create-theme` and `create-component`. A project that copied the
+  skill keeps the old directory until it deletes it.
+
 ## 0.75.0 — The app follows the CLI
 
 ### Changed

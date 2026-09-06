@@ -13,9 +13,9 @@ executor runs only the automated commands and reports the manual checklist as
 pending.
 
 **Precondition.** At the time of writing, this tree carries the layout-laws
-edit to `live-tokens-build-page` (SKILL.md, `references/layout-sources.md`,
+edit to `live-tokens-create-page` (SKILL.md, `references/layout-sources.md`,
 the pick-component row, CHANGELOG, `skillTrees.ts`, and
-`docs/build-page-gap-analysis.md`). Commit that as its own commit before
+`docs/create-page-gap-analysis.md`). Commit that as its own commit before
 Wave 1. `../live-tokens-online` carries uncommitted atlas work in
 `src/skill-atlas/`, `scripts/skill-atlas-review.py`, and
 `docs/skill-atlas-review/`. That work is the source Waves 1 and 3 copy from.
@@ -55,8 +55,8 @@ skills out of `node_modules`, is the deployed public page, and has moved ahead
 of this repo: labelled edges, reference tabs in the source pane, a digest per
 tree that fails the check when a rewrite survives the anchors, wrapped titles,
 decision titles as questions, and a review script with flag rules. The two
-trees also disagree on nodes: the online build-page tree was recast around
-decisions, and this repo's build-page tree gained the layout nodes.
+trees also disagree on nodes: the online create-page tree was recast around
+decisions, and this repo's create-page tree gained the layout nodes.
 
 Every skill edit here breaks the online atlas on the next upgrade unless the
 trees are ported by hand. The STE rewrite of all eight skills is next, and it
@@ -198,7 +198,7 @@ Edit one word in a reference file, confirm `check:skill-sources` fails, revert.
    each node present only in this repo's tree, add it to the online-based
    tree with its edges, in online edge shape (`{ from, to, label?, back? }`),
    placing it by row where its anchor text sits in the current skill. At the
-   time of writing the known set is build-page's `bp-laws`, `bp-bands`,
+   time of writing the known set is create-page's `bp-laws`, `bp-bands`,
    `bp-contain`, `bp-density`; the executor recomputes the set and lists it in
    the report, with any node it chose not to carry and why (judgment call 5).
 3. Run `npm run sync:skill-atlas`. A range whose anchor text is gone must be
@@ -218,7 +218,7 @@ Edit one word in a reference file, confirm `check:skill-sources` fails, revert.
      it, the way `check:skills` enumerates them, and confirm it fails on a
      deliberately removed tree before reverting.
    - **Point the layout nodes at the reference document.** The generated
-     module now carries `references/layout-sources.md`, so the build-page
+     module now carries `references/layout-sources.md`, so the create-page
      tree's `bp-laws` / `bp-bands` / `bp-contain` / `bp-density` nodes can
      open it. Use that exact key.
    - **Give the masthead its own typography.** Wave 1 dropped the
@@ -254,7 +254,7 @@ worse: the first offers an edit that the next install destroys, the second
 blinds the site to consumer routes that genuinely lack a source.
 
 The online site's tracked `.claude/skills` copies are stale against 0.73.0
-(`build-page` and `pick-component` differ, and `build-page` has no
+(`create-page` and `pick-component` differ, and `create-page` has no
 `references/`). Re-run `setup-claude` there.
 
 ### Open for the user after Wave 4
@@ -282,7 +282,7 @@ is a follow-up outside this plan.
 ### Open for the user after Wave 3
 
 Online's recast of `bp-ver` into three checker nodes leaves lines 99 and 101
-of `live-tokens-build-page/SKILL.md` (the "read it band by band" and "look
+of `live-tokens-create-page/SKILL.md` (the "read it band by band" and "look
 from a distance" paragraphs, both from the layout-laws edit) opening from no
 node. Judgment call 5 gives online the node, so adding one for the by-eye
 verification step is new authoring and a plan amendment, not an executor's

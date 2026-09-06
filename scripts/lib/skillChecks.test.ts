@@ -25,7 +25,7 @@ const USAGE = \`Usage: npx @motion-proto/live-tokens <command> [options]
 Commands:
   create <dir> [--force]      Scaffold a new app
   components [id] [--json]    List every component the project has
-  check-page [paths...]       Validate pages against the build-page contract
+  check-page [paths...]       Validate pages against the create-page contract
 
 check-page also accepts:
   --json                      Machine-readable findings
@@ -48,7 +48,7 @@ const SAMPLE_PROMPTS = {
   'live-tokens-set-geometry': 'make the buttons pill shaped',
   'live-tokens-create-component': 'author a new Toggle component',
   'live-tokens-pick-component': 'which component groups a title and a body?',
-  'live-tokens-build-page': 'build me a pricing page',
+  'live-tokens-create-page': 'build me a pricing page',
 };
 `;
 
@@ -73,9 +73,9 @@ function repo(edit: (r: Repo) => void = () => {}): Repo {
     components: ['button', 'card'],
     aliasKinds: ALIAS_KINDS,
     skills: {
-      'live-tokens-build-page': {
+      'live-tokens-create-page': {
         'SKILL.md': `---
-name: live-tokens-build-page
+name: live-tokens-create-page
 description: Compose a page from catalogue components and theme tokens.
 ---
 
@@ -377,11 +377,11 @@ describe('flags USAGE shares between the check commands', () => {
 
   it('are owed by the skill that runs the checker', () => {
     const problems = checkSkills(
-      repo(edited('live-tokens-build-page', '--strict fails on warnings too, and\n', '')),
+      repo(edited('live-tokens-create-page', '--strict fails on warnings too, and\n', '')),
     );
 
     expect(problems).toEqual([
-      'live-tokens-build-page: documents `live-tokens check-page` but never names --strict, which bin/cli.mjs offers',
+      'live-tokens-create-page: documents `live-tokens check-page` but never names --strict, which bin/cli.mjs offers',
     ]);
   });
 });
@@ -415,8 +415,8 @@ describe('skills a skill names', () => {
     const problems = checkSkills(
       repo((r) => {
         r.cli = r.cli.replace(
-          "  'live-tokens-build-page':",
-          "  'live-tokens-adopt-theme': 'ship the open theme',\n  'live-tokens-build-page':",
+          "  'live-tokens-create-page':",
+          "  'live-tokens-adopt-theme': 'ship the open theme',\n  'live-tokens-create-page':",
         );
       }),
     );

@@ -1,6 +1,6 @@
 ---
 name: live-tokens-create-theme
-description: Create or modify a complete live-tokens theme from a natural-language request by deriving one design direction and routing a color intent, a type intent, and a geometry intent to live-tokens-set-colors, live-tokens-set-type, and live-tokens-set-geometry. Use whenever the user asks for a theme, look, vibe, or brand feel by mood, style, era, season, holiday, or hue; when they name only a color and want a theme around it; or when they refine a theme across more than one dimension. Not for one dimension alone: color, type, or geometry named by itself goes straight to that set skill.
+description: Create or modify a complete live-tokens theme from a natural-language request. Derives one design direction and routes a color intent, a type intent, and a geometry intent to live-tokens-set-colors, live-tokens-set-type, and live-tokens-set-geometry. Use when the user asks for a theme, look, vibe, or brand feel by mood, style, era, season, holiday, or hue. Use when the user names only a color and wants a theme around it. Use when the user refines a theme across more than one dimension. For color, type, or geometry named on its own, read that set skill.
 ---
 
 # Creating a theme from a request

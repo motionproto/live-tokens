@@ -3,7 +3,7 @@
 Rewrite each `.claude/skills/*/SKILL.md` for clarity and simplicity, one section at a time,
 in conversation. Done: set-colors, set-type, set-geometry, create-theme (commit
 `68a95f3 set skills` and earlier), check-compliance (`e6577d3`), fix-findings
-(`c374575`), pick-component and build-page (whole rewrites under
+(`c374575`), pick-component and create-page (whole rewrites under
 `page-consistency.md`, 2026-09-06). Remaining: create-component. Each skill's
 references are swept right after its SKILL.md.
 
@@ -86,8 +86,9 @@ These are borrowed from ASD-STE100 (Simplified Technical English) and ISO
 - **A sequence is a numbered list, one action per step.** A warning or
   precondition goes before the step it guards, never after.
 - **A series of more than three items is a vertical list.** Three or fewer
-  stay in the sentence. A description is one line and keeps its series, one
-  per sentence. A table cell likewise.
+  stay in the sentence. A description is one line. Its sentences follow the
+  same caps; a trigger list of words may stay in one sentence. A table cell
+  keeps its series.
 - **Sentences of at most 20 words.** One topic per sentence. A sentence over
   the cap splits, or its series becomes a list.
 
@@ -100,12 +101,12 @@ Five sentences, in this order. Drop a sentence only when it has no content.
 2. Who calls it: "Called with an anchor and a type intent by
    live-tokens-create-theme, or with the user's request directly." Only when
    another skill invokes it. For the check/fix pair this is the handoff.
-3. Triggers, grouped by kind: "Use whenever the user asks to A, B, or C;
-   describes X by voice: ...; or names ...". Trim synonyms that duplicate a
+3. Triggers, one sentence per kind: "Use when the user asks to A, B, or C.
+   Use when the user describes X by voice: ...". Trim synonyms that duplicate a
    listed word. Keep every word that maps to a row in the body's tables.
-4. Scope: "Changes type only, never color or geometry."
-5. Boundary that names a skill: "Not for a request that also names color or
-   geometry (see live-tokens-create-theme)." A boundary that points at nothing
+4. Scope, in positive form: "Changes type only."
+5. Boundary in positive form, naming the skill to read: "For a request that
+   also names color or geometry, read live-tokens-create-theme." A boundary that points at nothing
    the model can invoke ("use the editor") is dropped.
 
 ## Body shape for the set skills
@@ -150,7 +151,7 @@ the editor's canonical form, `color-mix(in srgb, var(--token) NN%, transparent)`
 one. The test for each sentence is "does this decide between two components".
 Sections are one per confusable family.
 
-**Recipe skills: build-page, create-component.** Same prose rules with one added
+**Recipe skills: create-page, create-component.** Same prose rules with one added
 constraint: cut explanation, never a step or a check. A step survives when a
 file, command, or test names it; record the check in the change list ("step 4
 kept: enforced by the Catalogue in pick-component"). The picker-catalogue step

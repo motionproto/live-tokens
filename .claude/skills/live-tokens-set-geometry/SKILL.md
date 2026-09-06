@@ -1,6 +1,6 @@
 ---
 name: live-tokens-set-geometry
-description: Set a live-tokens theme's geometry: corner radius, padding, gap, and border width, moved per component along the shipped scales. Called with an anchor and a geometry intent by live-tokens-create-theme, or with the user's request directly. Use whenever the user asks for pill or capsule buttons; rounded, sharp, square, softer, or harder corners; thicker or thinner borders; or density: space it out, tighter, denser, airier. Changes geometry only, never color, type, or tokens.css. Not for a request that also names color or type (see live-tokens-create-theme).
+description: Set a live-tokens theme's geometry: corner radius, padding, gap, and border width, moved per component along the shipped scales. Called with an anchor and a geometry intent by live-tokens-create-theme, or with the user's request directly. Use when the user asks for pill or capsule buttons. Use when the user asks for rounded, sharp, square, softer, or harder corners. Use when the user asks for thicker or thinner borders. Use when the user asks for density: space it out, tighter, denser, airier. Changes geometry only. For a request that also names color or type, read live-tokens-create-theme.
 ---
 
 # Setting a theme's geometry

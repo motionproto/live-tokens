@@ -1,11 +1,11 @@
 ---
 name: live-tokens-check-compliance
-description: Report an existing project's adherence to @motion-proto/live-tokens from one run of npx live-tokens report. The report names the tokens each component reads, the component each page renders, the findings of both checkers, and the recommended fixes. Called as the verification step by live-tokens-build-page and live-tokens-create-component, or whenever the user asks to check, audit, or review the project. Hands the fix list to live-tokens-fix-findings. Edits no file. Not for applying the fixes (see live-tokens-fix-findings).
+description: Report an existing project's adherence to @motion-proto/live-tokens from one run of npx live-tokens report. The report names the tokens each component reads, the component each page renders, the findings of both checkers, and the recommended fixes. Called as the verification step by live-tokens-create-page and live-tokens-create-component. Use when the user asks to check, audit, or review the project. Edits no file. Hands the fix list to live-tokens-fix-findings.
 ---
 
 # Checking a project's adherence to live-tokens
 
-Run `npx live-tokens report`. The CLI prints a report with the sections in the Report sections table. Say what each finding means and what the fix would cost. When live-tokens-build-page or live-tokens-create-component calls this skill, lead with the findings on the file it built. Edit no file. When the user wants the fixes applied, hand the fix list to **live-tokens-fix-findings**.
+Run `npx live-tokens report`. The CLI prints a report with the sections in the Report sections table. Say what each finding means and what the fix would cost. When live-tokens-create-page or live-tokens-create-component calls this skill, lead with the findings on the file it built. Edit no file. When the user wants the fixes applied, hand the fix list to **live-tokens-fix-findings**.
 
 ## Workflow
 
