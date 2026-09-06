@@ -1,62 +1,98 @@
 ---
 name: live-tokens-build-page
-description: Apply the @motion-proto/live-tokens project conventions when building a page: shipped components, theme tokens over hex/pixel literals, dynamic route mounting, per-page site.css. Use when the user asks to build, create, lay out, or rearrange a page, route, hero, landing page, dashboard, settings screen, pricing page, or a tool screen with a stage and controls; add a route; place an existing component on a page; assemble a screen from the catalogue; or says the layout, label sizes, or control sizes of a page are off. For component choice see live-tokens-pick-component; for a brand-new component, live-tokens-create-component; for look and feel mid-build, live-tokens-create-theme or live-tokens-set-geometry.
+description: Build a page in a @motion-proto/live-tokens project from the shipped components at their defaults: one text style per place, one size, one primary action, a theme token for every value, a lazy route, per-page site.css. Use when the user asks to build, create, lay out, or rearrange a page, route, hero, landing page, dashboard, settings screen, pricing page, or a tool screen with a stage and controls; add a route; place an existing component on a page; assemble a screen from the catalogue; or says the layout, sizes, type scale, button emphasis, or labels of a page are off. Edits page files and the route table only, never a component or the theme. Not for choosing between two components (see live-tokens-pick-component), a component the catalogue lacks (live-tokens-create-component), or a theme change mid-build (live-tokens-create-theme, live-tokens-set-geometry).
 ---
 
-# Building pages in a live-tokens project
+# Building a page in a live-tokens project
 
-Two rules above all else:
+Assemble the page from shipped components at their defaults. Type the page's own elements from the text styles. Never edit a component or `tokens.css` for a page. The components editor at `/live-tokens/components` retunes a component for the whole project.
 
-1. **Use a shipped component if one fits.** Import from `@motion-proto/live-tokens/components/<Name>.svelte`. See **live-tokens-pick-component** for the catalogue and the confusing-pair decisions. Pass only the props it declares, with variant and size values from its union: `npx live-tokens components <id>` prints them (`--json` for data), and the list includes the project's own components beside the shipped ones. A prop a component does not declare is dropped silently at runtime, and the checker reports it. Author custom markup only when nothing fits, and then consider **live-tokens-create-component** so the new piece is editable too.
-2. **Use theme tokens for every value.** Every color, spacing, radius, font-size, and font-family in page CSS is a `var(--token-*)`, whether it sits in the `<style>` block, an inline `style=` attribute, or a `style:` directive. No colour literals in any notation, `white` and `rgb()` included. No px or rem in spacing, stroke, radius, or shadow: that is the geometry the theme owns and `set-geometry` moves. Sizing is layout, not theme: a hero's height, a max content width, or a column's minimum width stays a literal. A change in `/live-tokens/editor` should repaint your page.
+## Rules
 
-For text, reach for a whole text style rather than assembling one: `--heading-xl` through `--heading-sm`, `--body-md`, `--body-sm`, `--editorial-xl` through `--editorial-sm`, `--eyebrow`, and `--code` each carry a `-font-family`, `-font-size`, `-font-weight`, `-line-height`, and `-letter-spacing`. A heading set from `--heading-lg-*` retypes when the theme's fonts change; one set from a raw `font-size` does not.
+1. **Use a shipped component when one fits.** Import from `@motion-proto/live-tokens/components/<Name>.svelte`. `npx live-tokens components <id>` prints the declared props, the values each union accepts, and the usage comment. `--json` returns the same as data. The list includes the project's own components. Pass only the props a component declares. When nothing fits, read **live-tokens-pick-component**, then author the piece with **live-tokens-create-component**.
+2. **Use a theme token for every value.** Every color, spacing, radius, stroke, and shadow in page CSS is a `var(--token)`. That holds in the `<style>` block, an inline `style=` attribute, and a `style:` directive. Sizing is layout and stays literal: a hero's height, a max content width, a column's minimum width.
 
-Text inside a `Card` or a `CollapsibleSection` is typed by that container, not by the page: the slot pins the axes the container owns onto nested `p`, `ul`, `ol`, and `li`, so a consumer's global element rules cannot break a card's body. Pass `prose={false}` when the page should own the type instead, which is also what full-bleed media wants.
+Text inside a `Card` or a `CollapsibleSection` takes the container's type. The slot pins the axes the container owns onto nested `p`, `ul`, `ol`, and `li`. Pass `prose={false}` when the page owns that type, which full-bleed media wants.
+
+## Hierarchy
+
+**Type by place.** One text style per place. A page uses each level in order with no skipped level.
+
+| Place | Style |
+|---|---|
+| Page title | `--heading-xl-*`, or `SectionDivider variant="md"` |
+| Band or section title | `--heading-lg-*`, or `SectionDivider variant="sm"` |
+| Card or box title | the Card `title` prop |
+| Label above a group | `--body-sm-*` in `--text-secondary` |
+| Body | `--body-md-*` |
+| Secondary line, count, status | `--body-sm-*` |
+| Command or value | `--code-*` |
+
+A text style carries `-font-family`, `-font-size`, `-font-weight`, `-line-height`, and `-letter-spacing`. Set all five from one style. A single axis such as `--font-size-lg` or `--font-sans` never appears in page CSS. It drops the family and weight the style carries, and the checker reports it. A weight alone, on `strong` or a list marker, is the one axis a page sets by itself.
+
+**One size.** Omit `size` on every control and container. The shipped default is the page's size. When a component's default voice is wrong for the project, retune the component in `/live-tokens/components`. That moves every instance at once.
+
+**One primary action.** One `variant="primary"` Button per page or dialog. Every other action is `secondary`. A tertiary action is `outline`. `danger` marks a destructive action only. In a row of actions the primary sits last, on the right. Fewer than five actions are individual Buttons. Five or more collapse into a `MenuSelect` behind one Button.
+
+**Spacing by place.** Each place takes one step of the `--space-*` scale. Inside is smaller than between.
+
+| Place | Step |
+|---|---|
+| Between controls in a row | `--space-8` |
+| Inside a box the page draws | `--space-16` |
+| Between fields in a form | `--space-20` |
+| Between boxes in a band | `--columns-gutter` across, `--space-24` down |
+| Between bands | `--space-16` above a hairline |
+
+The hairline does the band's separating, so the band takes less space than the boxes inside it. A band's rule is `padding-top: var(--space-16)` with `border-top: var(--border-width-1) solid var(--border-neutral)`. Card chrome does not separate bands.
 
 ## Layout
 
-**The purpose of a layout.** The page shows one thing. All other content must stay out of its way. Each mark that is not content costs attention: a rule, a border, a header bar, a shadow. Each mark must do a job that no other mark does.
+The page shows one thing. All other content stays out of its way. Each mark that is not content costs attention: a rule, a border, a header bar, a shadow. Each mark must do a job that no other mark does.
 
-Separate elements with the smallest difference that separates them. Use space first. If space is not sufficient, add a hairline rule. If a rule is not sufficient, use a second surface. Do not stack these separators. Two heavy edges side by side make a third shape between them. A band of boxes with borders and header bars looks like a set of posters.
+Separate elements with the smallest difference that separates them. Use space first. When space is not sufficient, add a hairline rule. When a rule is not sufficient, use a second surface. Do not stack these separators. Two heavy edges side by side make a third shape between them. A band of boxes with borders and header bars reads as a set of posters.
 
-Put each element in one of three layers, and type it from that layer. Content is `--text-primary`. Labels are `--eyebrow-*` or `--text-secondary`. Scaffolding is `--border-neutral`.
+Put each element in one of three layers, and color it from that layer. Content is `--text-primary`. A label is `--text-secondary`. Scaffolding is `--border-neutral`.
 
 Show related items side by side when the width permits. Do not put them behind a toggle.
 
-On a tool page, the stage is the content. Each control is administration. Give the space to the stage. Give the controls the smallest size that still works.
+On a tool page, the stage is the content. Each control is administration. Give the space to the stage.
 
 `references/layout-sources.md` names the sources for these laws.
 
-Decide the bands before the columns. Read the page top to bottom and name each band by its job: what the user looks at, what they type into, what they press. A content page runs hero, sections, footer. A tool page runs the stage on top (the canvas, player, or strip the work is about), the inputs under it, and one toolbar of actions along the bottom edge. Each band is a row of the page grid; a band that needs columns of its own spans the grid and redeclares it, as below.
+Decide the bands before the columns. Read the page top to bottom. Name each band by its job: what the user looks at, types into, or presses. A content page runs hero, sections, footer. A tool page runs the stage on top, the inputs under it, and one toolbar along the bottom edge. The stage is the canvas, player, or strip the work is about. Each band is a row of the page grid. A band that needs columns of its own spans the grid and redeclares it, as below.
 
-Separate bands with space and a rule, `padding-top: var(--space-16)` and `border-top: var(--border-width-1) solid var(--border-neutral)`, and stretch a band's boxes to one height (`align-items: stretch`) so their bottom edges make one line. Card chrome does not separate bands.
+Stretch a band's boxes to one height (`align-items: stretch`) so their bottom edges make one line.
 
-Pages sit inside the column grid via `--columns-count`, `--columns-gutter`, `--columns-max-width`. The columns button in the overlay's header (the vertical-lines icon) draws the grid over the page while you place content.
+Pages sit inside the column grid via `--columns-count`, `--columns-gutter`, `--columns-max-width`. The columns button in the overlay's header (the vertical-lines icon) draws the grid over the page.
 
-To place children at specific page-column positions, span the parent grid (`grid-column: 1 / -1`), redeclare `repeat(var(--columns-count), 1fr)` with `--columns-gutter`, then refer to children by real page-column numbers. Never fabricate a local `repeat(N, 1fr)` with a hardcoded count: the widths drift from the page grid and the numbers stop matching `ColumnsOverlay`.
+To place children at page-column positions:
 
-### Containers by job
+1. Span the parent grid with `grid-column: 1 / -1`.
+2. Redeclare `repeat(var(--columns-count), 1fr)` with `--columns-gutter`.
+3. Refer to children by page-column numbers.
+
+Never write a local `repeat(N, 1fr)` with a hardcoded count. The widths drift from the page grid and the numbers stop matching `ColumnsOverlay`.
+
+## Containers by job
 
 - `Panel` is a stage: a canvas, a player, a preview. It pins its height so the page holds still while what it shows changes.
-- `Card` is a titled block of content. Its header is typed by the card's own tokens, `--card-default-title-*` at `--font-size-2xl` with a body at `--font-size-xl` by default; `size="compact"` drops the title to md, the body to sm, and tightens the padding. That is a content card's voice, and the theme editor retunes it for the whole project.
-- A box in a tool UI labels itself. Use `variant="bare" size="compact"` and put your own label in the body, typed from a text style: the `.eyebrow` class from `site.css` for a quiet section label, `.heading-sm` for one that leads. Leave the shipped header alone rather than shrinking it with a page rule.
-- A toolbar is a flex row of small buttons on the band's bottom edge, grouped left and right with `justify-content: space-between`. No card around it.
-
-### Density
-
-- `Button` and `IconButton` take `size="small"` in toolbars, compose rows, and any band that holds more than a couple of actions; the default size is for the page's primary action. `fullWidth` belongs to a stacked rail and comes off in a row.
-- A project component that wraps shipped buttons forwards a `size` prop to them, so a page sets density the same way for shipped and custom pieces.
-- Text in your own elements inside a `Card` inherits the card's body size unless you type it. A label, count, or status line inside a card sets a text style of its own (`--body-sm-*`, `--code-*`).
-- `MenuSelect` renders its list open. For a picker, toggle it from a small `Button` with a trailing chevron (`icon="fa-solid fa-chevron-down" iconPosition="right"`) and position the list absolutely under the button, `top: 100%` with a `--space-*` margin.
+- `Card` is a titled block of content. Its `title` prop is the card's title, typed by the card's own tokens.
+- A box in a tool UI labels itself. Use `Card variant="bare"` and put the label in the body as `--body-sm-*` in `--text-secondary`. Leave the shipped header alone.
+- A toolbar is a flex row of Buttons on the band's bottom edge. Group them left and right with `justify-content: space-between`, the primary last. No card around it.
+- A stacked rail sets `fullWidth` on each Button. `fullWidth` comes off in a row.
+- `MenuSelect` renders its list open. For a picker, toggle it from a Button with a trailing chevron (`icon="fa-solid fa-chevron-down" iconPosition="right"`). Position the list absolutely under the button, `top: 100%` with a `--space-*` margin.
 
 ## Wiring
 
-- Add the route the way `App.svelte` already wires routes:
-  - **`<LiveTokensRouter pages={...}>`** (the usual case): add a `pages` entry as `lazy: () => import('./YourPage.svelte')` with a `source: 'src/...'` (and a `label`/`icon` to show it in the nav rail). For a route you can't enumerate (a `/:id`, a path prefix, a gated page), add a `resolve(path) => RouteEntry | null` instead of a `pages` key; same entry shape, so `props` and `source` (hence "Page Source") work identically.
-  - **Manual `<LiveEditorOverlay>`**: dispatch with `$derived.by(() => import(...))` and register the route's source in `pageSources={...}`.
-  Either way use `lazy`, not a static top-level import: static imports evaluate every page module at boot and leak page CSS into the editor routes.
-- Import `site.css` from each page's `<script>` block, never from `main.ts` (would leak into editor routes).
+Add the route the way `App.svelte` already wires routes.
+
+- **`<LiveTokensRouter pages={...}>`** (the usual case): add a `pages` entry with `lazy: () => import('./YourPage.svelte')` and `source: 'src/...'`. Add `label` and `icon` to show it in the nav rail. A `/:id`, a path prefix, or a gated page cannot sit in the table. For one of those, add `resolve(path) => RouteEntry | null` in place of a `pages` key. The entry shape is the same, so `props` and `source` (hence "Page Source") work the same way.
+- **Manual `<LiveEditorOverlay>`**: dispatch with `$derived.by(() => import(...))` and register the route's source in `pageSources={...}`.
+
+Either way use `lazy`. A static top-level import evaluates every page module at boot and leaks page CSS into the editor routes.
+
+Import `site.css` from each page's `<script>` block. An import from `main.ts` leaks it into the editor routes.
 
 The entry shape, for a project whose `App.svelte` has moved on from the template:
 
@@ -71,33 +107,33 @@ const pages = {
 };
 ```
 
-`source` is what makes Page Source work; drop `label` to keep a route reachable by URL but off the nav rail.
+`source` is what makes Page Source work. Drop `label` to keep a route reachable by URL and off the nav rail.
 
 ## Avoid
 
-- Colour literals, and px or rem in spacing, stroke, radius, or shadow.
-- Hardcoded page-grid counts (`repeat(10, 1fr)`). Use `repeat(var(--columns-count), 1fr)`, or `calc(var(--columns-count) - 2)` for a sub-grid that spans fewer page columns. A local two-up or three-up is a layout and is fine.
-- Utility classes overriding shipped components. Extend via the `/live-tokens/components` editor instead.
-- A card header as a section label in a tool UI, and a page rule that shrinks it. Label the box yourself with a text style.
-- Deep imports from `node_modules/@motion-proto/live-tokens/src/...`. Use public entry points only.
-- Mounting `Editor` or `ComponentEditorPage` outside their dedicated routes.
-- A page route under `/live-tokens/*`. That namespace is reserved for the package's own dev surfaces so they can never shadow your routes; the rest of the URL space is yours.
+- A colour literal, or px or rem in spacing, stroke, radius, or shadow.
+- A single type axis in page CSS. Set the five axes from one text style.
+- A `size` prop on a shipped component.
+- A second `variant="primary"` Button on one page.
+- A hardcoded page-grid count (`repeat(10, 1fr)`). Use `repeat(var(--columns-count), 1fr)`, or `calc(var(--columns-count) - 2)` for a sub-grid that spans fewer page columns. A local two-up or three-up is a layout and is fine.
+- A utility class that overrides a shipped component. Extend via the `/live-tokens/components` editor.
+- A card header as a section label in a tool UI, and a page rule that shrinks it. Label the box with a text style.
+- A deep import from `node_modules/@motion-proto/live-tokens/src/...`. Use the public entry points.
+- `Editor` or `ComponentEditorPage` mounted outside their dedicated routes.
+- A page route under `/live-tokens/*`. That namespace is reserved for the package's own dev surfaces.
 
 ## Verify
 
-Run the checker and fix what it reports. Repeat until it exits 0:
+Run **live-tokens-check-compliance**. Its report carries both checkers' findings by rule, and **live-tokens-fix-findings** takes the fix list. Repeat until the page is clean.
 
-```sh
-npx live-tokens check-page src/pages/YourPage.svelte
-# or: npx @motion-proto/live-tokens check-page      (every page under src/)
-```
+The checker cannot see a layout. Open the page at the width it is built for and read it band by band:
 
-It fails on a component outside the catalogue, a prop or value the component does not declare, a deep import, a `var()` that resolves to nothing, a colour literal in any notation, a route under `/live-tokens/*`, and `site.css` imported from `main.ts`. It warns on a px or rem literal in the geometry the theme owns, a hardcoded page-column count, a raw type axis, and a route entry with no `source`. Inline `style=` attributes and `style:` directives are read the same way as the `<style>` block; a `var()` fallback is never a finding. The recipe for each rule is in **live-tokens-fix-findings**.
+- Heading levels run in order with no gap.
+- No label is larger than the page's body copy.
+- The boxes in a band end on one line.
+- Every control stays inside its box. A `width: 100%` field without `box-sizing: border-box` pushes past it by its padding.
+- The actions sit where the eye goes last, with the one primary at the end.
 
-Warnings do not fail the run. `--strict` makes them fail, which is the setting to use when the page is meant to be fully tokenized. `--json` prints findings with a stable `rule` id, so you can work through one rule at a time and re-run. `--off=<rule>` silences a rule for a run; `"checks": { "rules": { ... } }` in `live-tokens.config.json` sets it for the project. A project scaffolded by `create` runs the checker, with `check-component`, as `npm run check:design` before every `vite build`, so the page has to pass before it can ship.
+Then read the page from a distance. The bands and their edges are the only shapes that show. Then read it closely. For each border, header bar, and box, ask whether the page loses information when the element is removed. When the answer is no, remove the element. Find the element a reader sees first, second, and third, and confirm that is the reading order the page needs.
 
-The checker cannot see a layout. Open the page at the width it is built for and read it band by band: the boxes in a band end on one line, no label is larger than the page's body copy, every control stays inside its box (a `width: 100%` field without `box-sizing: border-box` pushes past it by its padding), and the actions sit where the eye goes last. Fix what you see before you move on.
-
-Then look at the page from a distance. The bands and their edges must be the only shapes that you see. Then look closely. For each border, header bar, and box, ask this question: does the page lose information if this element is removed? If the answer is no, remove the element. Find the element that a reader sees first, second, and third. Make sure that this is the reading order the page needs.
-
-Then in dev: change a colour in `/live-tokens/editor` and confirm your page repaints (proves token usage). The overlay's "Page Source" button on the new route opens the page in VS Code (proves the route's `source`). The columns overlay shows content sitting inside `--columns-max-width`.
+Then in dev: change a colour in `/live-tokens/editor` and confirm the page repaints. The overlay's "Page Source" button on the new route opens the page in VS Code. The columns overlay shows content sitting inside `--columns-max-width`.

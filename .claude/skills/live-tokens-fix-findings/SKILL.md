@@ -73,7 +73,7 @@ When `package.json` has no `check:design` script, add `"check:design": "live-tok
 | Rule | Fix |
 | --- | --- |
 | `unknown-token` | Search `tokens.css` for the stem. When a contract-family name is gone, `npx live-tokens migrate --check` names the rename. |
-| `raw-text-axis` | Set every axis from one text style, `-font-family` through `-letter-spacing`. `npx live-tokens tokens --family heading` prints one style family. The families are `heading`, `body`, `editorial`, `eyebrow`, and `code`. Rewrite a `font:` shorthand the same way. |
+| `raw-text-axis` | Set every axis from one text style, `-font-family` through `-letter-spacing`. `npx live-tokens tokens --family heading` prints one style family. The families are `heading`, `body`, `editorial`, and `code`. Rewrite a `font:` shorthand the same way. |
 | `unknown-component` | Read **live-tokens-pick-component** for the shipped component that fits. When none fits, author one with **live-tokens-create-component**. |
 | `unknown-prop` | `npx live-tokens components <id>` prints the declared props and their values. Map the prop to one of them, or delete it. |
 | `unknown-prop-value` | Use a value from the union the message lists. |

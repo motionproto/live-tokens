@@ -1,111 +1,91 @@
 ---
 name: live-tokens-pick-component
-description: Recommend which shipped @motion-proto/live-tokens component fits a UX need, with decision trees for the confusable pairs (SegmentedControl / TabBar / RadioButton / MenuSelect, Card / CollapsibleSection / Dialog, Callout / Notification / Tooltip, and others). Use when the user asks which component to use, should I use X or Y, what is the difference between two components, how do I show / let the user / capture some UX outcome, or starts authoring a custom component before checking the catalogue. Read this before live-tokens-create-component. Not for placing the chosen component on a page (see live-tokens-build-page).
+description: Recommend which shipped @motion-proto/live-tokens component fits a UX need, with a decision test for each confusable family (SegmentedControl / TabBar / RadioButton / MenuSelect, Card / CollapsibleSection / Dialog / Panel, Callout / Notification / Tooltip / Badge, and others). Use when the user asks which component to use, should I use X or Y, what the difference between two components is, how to show or capture some UX outcome, or starts authoring a custom component before checking the catalogue. Read this before live-tokens-create-component. Size, emphasis, and placement are live-tokens-build-page's.
 ---
 
-# Picking the right live-tokens component
+# Picking a live-tokens component
 
-This skill helps you choose between shipped components when several could plausibly fit. The catalogue is small; the hard part is semantic intent. A `RadioButton` set and a `SegmentedControl` can render identical-looking UIs but communicate different things.
-
-For composing a page once you've picked components, see **live-tokens-build-page**. For authoring a brand-new component when nothing fits, see **live-tokens-create-component** (but read this skill first to confirm nothing in the catalogue fits).
+Choose between shipped components when several could fit. A `RadioButton` set and a `SegmentedControl` render alike and say different things. The test for each family below is what the choice means to the reader. Each component states its own job in its usage comment. `npx live-tokens components <id>` prints that comment, the declared props, and the values each union accepts. `--json` returns the same as data.
 
 ## Catalogue
 
 Action: `Button`, `IconButton`, `InlineEditActions`. Input: `Input`, `Slider`. Selection: `SegmentedControl`, `TabBar`, `RadioButton`, `MenuSelect`, `Toggle`. Containers: `Card`, `CollapsibleSection`, `Dialog`, `Panel`. Messaging: `Callout`, `Notification`, `Tooltip`, `Badge`, `CornerBadge`. Display: `Table`, `Image`, `ImageLightbox`, `ProgressBar`, `SectionDivider`, `SideNavigation`, `CodeSnippet`.
 
-That line is the shipped set. A project can register components of its own,
-and those never appear in this file: run `npx live-tokens components` before
-choosing. It lists every component the project has, shipped and custom, with
-the variants each takes and the purpose its header comment states, so a custom
-component is weighed against the shipped set on the same footing.
-`npx live-tokens components <id>` prints one component's props, the values each
-union accepts, and its tokens with defaults; `--json` returns the same as data.
+That line is the shipped set. A project can register components of its own, and those never appear in this file. Run `npx live-tokens components` before choosing. It lists every component the project has, shipped and custom, with each one's variants and the job its comment states. A custom component is weighed against the shipped set on the same footing.
 
-## Action family: Button vs IconButton
+## Action family
 
-Both trigger an action and share the same six variants (primary, secondary, outline, success, danger, warning), three states (default, hover, disabled) and two sizes (default, small). They differ only in content.
+- The action needs a word to be unambiguous: `Button`.
+- The glyph alone is plain (close, edit, delete) and space is short: `IconButton`, with an `ariaLabel`.
+- The pair that confirms or cancels an inline edit: `InlineEditActions`. Every inline edit on the page then resolves the same way.
 
-- `Button` carries a text label, optionally with a leading or trailing icon. Use it whenever the action needs a word to be unambiguous.
-- `IconButton` is icon-only and square. Use it for compact, space-constrained actions whose meaning is obvious from the glyph alone (toolbar controls, close/edit/delete affordances, card overflow menus). It has no text slot, so an `ariaLabel` is required for accessibility.
-- **Don't reach for `IconButton` when the icon's meaning isn't self-evident.** A labelled `Button` (or a `Button` with an icon) avoids the guessing game.
-- `InlineEditActions` is the confirm-and-cancel pair that follows an inline edit (rename a row, edit a value in place). Use it rather than two loose `IconButton`s so every inline edit on the page resolves the same way.
+## Single-selection family
 
-## Single-selection family: SegmentedControl vs TabBar vs RadioButton vs MenuSelect
+Four components pick one option from a set. The test is the option count, whether the selection swaps what renders below, and how much weight the choice carries.
 
-All four pick one option from a set. The right one depends on **option count**, **whether the selection changes what's rendered below**, and **how much visual weight** you want.
+| Component | Test | Option count |
+|---|---|---|
+| `SegmentedControl` | An inline switch between views of the same data; one switch among others in a row | 2 to 4 |
+| `TabBar` | The content area below swaps; the choice changes the page | 2 to 7 |
+| `RadioButton` | The reader reviews every option as text before committing to a larger form | any |
+| `MenuSelect` | The options would overflow a row; the list renders open, so a Button toggles it | any |
 
-| Component         | Best for                                                                | Visual weight    | Option count |
-|-------------------|-------------------------------------------------------------------------|------------------|--------------|
-| `SegmentedControl`| Inline switch between alternative *views of the same data*              | Compact pill     | 2–4          |
-| `TabBar`          | Switching between *tab panels* (content area swaps below)               | Page-section     | 2–7          |
-| `RadioButton`     | Form-style selection where the user reviews all options as text         | Form-row         | Any          |
-| `MenuSelect`      | A list of options, one checked; renders open, so a dropdown toggles it from a `Button` | Open list        | Any          |
+- Labels long enough to wrap rule out `SegmentedControl`. Use `RadioButton` rows.
+- The URL changes: `SideNavigation`. Panels inside one page: `TabBar`.
 
-- `TabBar` implies "this changes the page"; `SegmentedControl` implies "this is one knob among others."
-- Use `RadioButton` when labels deserve room to breathe and the user is committing to a larger form.
-- Use `MenuSelect` when options would overflow horizontally or there are too many to display at once.
-- **Don't pick `SegmentedControl` when option labels are long enough to wrap.** It loses its compactness; use `RadioButton` rows instead.
+## Text entry
 
-## Text entry: Input vs the selection family
+- The page cannot list the answers (a name, an email, a search string, an amount): `Input`. Its label, hint, and error line are parts. A validation message goes in the `error` variant.
+- A short fixed set is the single-selection family. A long fixed set is `MenuSelect`.
+- A number where the position on a track carries the meaning (a volume, a price band, a percentage): `Slider`. The `range` variant takes a low and a high bound on one track. A number the reader knows and would rather type: `Input` with `type="number"`.
 
-- `Input` takes an answer the page cannot enumerate: a name, an email, a search string, an amount. It ships the label, the hint line, and the error state as parts (`--input-label-*`, `--input-hint-*`, `--input-error-*`), so style those rather than stacking your own text under a bare field.
-- The boundary is whether you can list the answers. A short fixed set is the single-selection family above; a long fixed set is `MenuSelect`; anything you cannot write down is `Input`.
-- `Slider` takes a number inside a known range where the position carries the meaning: a volume, a price band, a percentage. Its `range` variant takes a low and a high bound on one track. A number the user knows exactly and would rather type is `Input` with `type="number"`.
-- **Don't use it for on/off.** That is `Toggle`, and a one-field form asking for yes or no is the usual way this goes wrong.
-- Its four variants are `default`, `focused`, `disabled`, and `error`. A validation message belongs in the `error` variant, not in a `Callout` next to the field.
+## On and off
 
-## Container family: Card vs CollapsibleSection vs Dialog
+Three components express a binary choice. The test is what the choice is.
 
-| Component             | Modality            | Use for                                                     |
-|-----------------------|---------------------|-------------------------------------------------------------|
-| `Card`                | Inline, always open | Default container for grouped content                       |
-| `CollapsibleSection`  | Inline, toggleable  | Progressive disclosure inside a longer page                 |
-| `Dialog`              | Modal, blocks page  | Confirmations, focused tasks the page can't continue around |
-| `Panel`               | Inline, fixed stage | A demo or preview surface whose height must not reflow     |
+| Component | Test |
+|---|---|
+| `Toggle` | A setting that is on or off. The label names the setting; the switch shows the state. It takes effect at once. |
+| `SegmentedControl` | Two named alternatives the reader compares (Light / Dark, List / Grid). Both labels show at once. |
+| `RadioButton` pair | A yes or no the reader answers inside a larger form. |
 
-- Default to `Card`. It's the workhorse. For full-bleed media (cover art, a poster, a chart that reaches its own border) pass `flush` (with `prose={false}`) rather than zeroing its padding tokens from the page.
-- Reach for `CollapsibleSection` only when the content is *legitimately secondary* (advanced users open it; most skip). Don't use collapse as a styling choice when the content matters.
-- `Panel` is a stage, not a content container. It pins its own height so what it shows can resize without moving the page, which is what a component preview or a live example needs and what article content does not. Content goes in `Card`.
-- **Don't use `Dialog` for routine forms.** Reach for it only when the page cannot meaningfully continue until the user decides (destructive confirmations, payment, sign-in). Routine forms go inline in a `Card`.
+When the off and on states share a name (the feature itself), it is `Toggle`. "Email notifications" has no "off" label because the switch position is the state.
 
-## Messaging family: Callout vs Notification vs Tooltip vs Badge
+## Container family
 
-| Component       | Scope          | Triggered by    | Dismissable | Use for                                              |
-|-----------------|----------------|-----------------|-------------|------------------------------------------------------|
-| `Callout`       | Section-inline | Always present  | No          | "Heads up about this section"                        |
-| `Notification`  | System-level   | Event / save    | Yes         | "Your changes were saved"                            |
-| `Tooltip`       | Element-inline | Hover / focus   | Auto        | Definition or hint anchored to an element            |
-| `Badge`         | Element-inline | Always present  | No          | Status pill ("Beta", "New", "v2")                    |
-| `CornerBadge`   | Element-corner | Always present  | No          | Position-anchored marker (count, status dot)         |
+| Component | Modality | Test |
+|---|---|---|
+| `Card` | Inline, always open | Grouped content the page shows. The default. |
+| `CollapsibleSection` | Inline, toggleable | Secondary content most readers skip. |
+| `Dialog` | Modal, blocks the page | A decision the page cannot continue without: a destructive confirmation, payment, sign-in. |
+| `Panel` | Inline, fixed stage | A demo, preview, or live example whose height must not move the page. |
 
-- `Callout` is *content*. Part of the section, written into the markup, says something important about what surrounds it. Variants (`info`, `success`, `warning`, `danger`) set the tone.
-- `Notification` is *feedback*. Appears in response to an action, then dismisses. **Don't use `Notification` for static content;** persistent messages belong in a `Callout`.
-- `Tooltip` is for *what an element means*. **Don't use `Tooltip` as the primary location of important content;** it auto-dismisses and isn't accessible for must-read content.
-- `Badge` and `CornerBadge` differ only in positioning. `CornerBadge` lives at a `top-right` / `bottom-left` anchor on a parent (notification counts, "NEW" stickers).
+- A routine form goes inline in a `Card`, never in a `Dialog`.
+- Content that matters stays open. Collapse is for secondary content, never a styling choice.
+- Full-bleed media in a `Card` takes `flush` with `prose={false}`. Cover art, a poster, and a chart that reaches its own border are full-bleed. Never zero the card's padding tokens from the page.
 
-## Display family: shown, not asked
+## Messaging family
 
-- `Image` frames a picture in the flow at one of four sizes, with an optional hover zoom. It is the default for any picture the page simply shows.
-- `ImageLightbox` adds click-to-open at full size and takes an array for a gallery. Use it when the detail is the point (screenshots, artwork, charts that need reading), and not for decoration: it puts a modal behind every picture it wraps.
-- `Table` themes your own rows and cells without owning the data. Records go here; a set of *things the user acts on* is a stack of `Card`s instead.
-- `ProgressBar` reports progress against a labelled track. It is a read-out, never a control.
-- `CodeSnippet` is for a single-line command or value the reader is meant to copy back into a terminal (install commands, generated keys, ids), with click-to-copy and a brief "Copied" popover. Use it whenever the page asks the reader to *run* something rather than just *read* it.
-- `SectionDivider` separates sections of one page. `SideNavigation` moves between pages, driven by the current path. **Don't use `SideNavigation` to switch panels inside one page;** that is `TabBar`, and the difference is whether the URL changes.
+| Component | Scope | Trigger | Dismissable | Test |
+|---|---|---|---|---|
+| `Callout` | A section | Always present | No | Something the reader must know about the content around it |
+| `Notification` | The system | An action or event | Yes | Feedback about something that just happened |
+| `Tooltip` | An element | Hover or focus | Auto | A definition or hint the reader can do without |
+| `Badge` | An element | Always present | No | A standing label read at a glance ("Beta", "New", "v2") |
+| `CornerBadge` | A parent's corner | Always present | No | A count or status marker on the thing it describes |
 
-## Toggle vs SegmentedControl vs RadioButton (for on/off)
+- A persistent message is a `Callout`, never a `Notification`.
+- Content the reader must not miss never lives in a `Tooltip`.
+- `Badge` and `CornerBadge` differ in position only.
 
-All three can express a binary choice. The right one depends on what the choice *is*.
+## Display family
 
-| Component          | Best for                                                                                                              |
-|--------------------|-----------------------------------------------------------------------------------------------------------------------|
-| `Toggle`           | A *setting* that's either on or off (notifications on/off, dark mode). The label names the setting; the switch shows the state. |
-| `SegmentedControl` | A *choice between two named alternatives* (Light / Dark, List / Grid). Both labels are visible at once.                |
-| `RadioButton` pair | A *form-style choice* where the user reviews both labels before committing (Yes / No questions, opt-in selections).    |
+- A picture the page shows: `Image`. A picture whose detail the reader must open, or a gallery: `ImageLightbox`. It puts a modal behind every picture it wraps.
+- Records the reader scans and compares: `Table`. A set of things the reader acts on: a stack of `Card`s.
+- A read-out of progress: `ProgressBar`. A number the reader sets: `Slider`.
+- Text the reader runs or pastes (an install command, a key, an id): `CodeSnippet`. Prose the reader only reads: `Card`.
+- A titled break between the sections of one page: `SectionDivider`. Movement between pages: `SideNavigation`.
 
-- If the off and on states share a name (the feature itself), it's `Toggle`. "Email notifications" has no "off" label because the switch position is the state.
-- If the two states have different names you want users to compare, it's `SegmentedControl`.
-- `Toggle` flips immediately; `RadioButton` pair is for forms where the choice is part of a larger submission.
+## Nothing fits
 
----
-
-If nothing in the catalogue fits (a `DatePicker`, a `Stepper`, a custom widget), author it via **live-tokens-create-component**. **Don't reach for a custom component before checking the catalogue;** a custom component is a maintenance commitment.
+When nothing in the catalogue fits (a `DatePicker`, a `Stepper`, a custom widget), author it with **live-tokens-create-component**. A custom component is a maintenance commitment, so confirm the catalogue first. Placement on the page, emphasis, and size are **live-tokens-build-page**'s.
