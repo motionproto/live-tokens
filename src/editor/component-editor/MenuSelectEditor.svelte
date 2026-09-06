@@ -81,7 +81,10 @@
     }],
   };
 
-  const typeGroupTokens: Token[] = buildTypeGroupTokens(typeGroups);
+  const typeGroupTokens: Token[] = buildTypeGroupTokens(typeGroups, {
+    component,
+    variants: ['default', 'hover', 'selected', 'disabled'],
+  });
   export const allTokens: Token[] = [...Object.values(states).flat(), ...typeGroupTokens];
 
   const linkableContexts = new Map<string, string>([

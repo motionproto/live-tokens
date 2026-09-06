@@ -110,7 +110,12 @@
 
   // allTokens unions BOTH sizes so the store registers every editable variable.
   // The visibleStates filter is purely UI (which subset to render now).
-  const typeGroupTokens: Token[] = buildTypeGroupTokens(typeGroups);
+  // option-hover precedes option: the stripper removes the first match and
+  // would otherwise leave hover-text behind.
+  const typeGroupTokens: Token[] = buildTypeGroupTokens(typeGroups, {
+    component,
+    variants: ['option-hover', 'option', 'selected', 'disabled'],
+  });
   export const allTokens: Token[] = [
     ...Object.values(defaultStates).flat(),
     ...Object.values(smallStates).flat(),
