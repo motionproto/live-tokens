@@ -4,6 +4,26 @@
 
 ### Changed
 
+- **A page's type comes from a text style, and the checker fails a page that
+  names a raw axis.** `raw-text-axis` is an error, and it now reads a `var()`
+  as well as a literal. A `--font-size-*`, `--line-height-*`,
+  `--letter-spacing-*`, or a family stack such as `--font-sans` on a text
+  property is a finding. A text style token such as `--body-md-font-size` is
+  not. A `--font-weight-*` alone is not either, because a weight cannot move
+  the scale or the fonts. Two warnings join it. `control-size` reports a
+  `size` prop on a shipped component in a page file. `multiple-primary`
+  reports a second `variant="primary"` Button in one page file. A project
+  retunes a component's default size once, in the components editor. The
+  package's own pages, the template, and the `create` starter are all clean
+  under `--strict`. The starter's bulleted lists now take the `--body-md-*`
+  bundle instead of a serif at relaxed leading.
+
+  **Every shipped component carries a usage comment.** `npx live-tokens
+  components` prints it as the component's description, and `report` checks
+  the shipped set the way it already checks a custom component. The comment
+  names what the component is, what it is for, and what to reach for instead.
+  It never mentions size.
+
 - **Callout owns its box; the page owns the space around it.** `.callout` no
   longer sets `margin: var(--space-24) 0`. A stack of callouts now takes its
   spacing from the page's own gap, and a page that wants the old rhythm sets
