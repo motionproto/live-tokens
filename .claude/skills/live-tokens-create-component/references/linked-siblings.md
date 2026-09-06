@@ -1,6 +1,6 @@
 # Extension: linked siblings
 
-Read this when your component has more than one variant and those variants share base properties (surface, radius, padding) that should move together. Toggle and SectionDivider have no linked tokens and skip all of it.
+Read this when the component has more than one variant and those variants share base properties (surface, radius, padding) that should move together. Toggle and SectionDivider have no linked tokens and skip all of it.
 
 Toggle's tokens are flat per state. Most multi-variant components (Badge, Card, SegmentedControl) share base properties across variants and surface that equality via a *linked block*: one edit propagates to every variant, while per-variant properties stay independent. Five additions to the Toggle pattern; see `BadgeEditor.svelte` in `node_modules` for the full file.
 
@@ -67,4 +67,4 @@ Toggle's tokens are flat per state. Most multi-variant components (Badge, Card, 
    </ComponentEditorBase>
    ```
 
-Single-variant components with multi-state linked tokens still set `canBeLinked` + `linkableContexts`, but skip `buildSiblings` and the `{#each}` loop. Components with no linked tokens (Toggle, SectionDivider) skip all five steps — `ComponentEditorBase` renders fine without a `{linked}` prop.
+Single-variant components with multi-state linked tokens still set `canBeLinked` + `linkableContexts`, but skip `buildSiblings` and the `{#each}` loop. Components with no linked tokens (Toggle, SectionDivider) skip all five steps; `ComponentEditorBase` renders without a `{linked}` prop.

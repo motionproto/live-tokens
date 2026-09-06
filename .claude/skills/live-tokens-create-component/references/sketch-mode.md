@@ -3,7 +3,7 @@
 Sketch mode blanks each part's real background and border and repaints them onto
 `::before`/`::after` through a shared noise field. It draws a fixed set of
 selectors: the shipped components, plus four classes reserved for everyone else.
-Your component is skipped until it opts in, so it stays crisp while the page
+A component is skipped until it opts in, so it stays crisp while the page
 around it goes hand-drawn.
 
 The whole contract is CSS. There is nothing to import and no function to call:
@@ -15,7 +15,7 @@ and naming five custom properties.
 An opted-in element is no longer painting itself. On every drawn part the layer
 forces:
 
-| It forces                                    | So you must                                              |
+| It forces                                    | So the component must                                              |
 |----------------------------------------------|----------------------------------------------------------|
 | `background: transparent !important`          | Name the fill again as `--sketch-fill`                    |
 | `border-color: transparent !important`        | Name the outline again as `--sketch-stroke`               |
@@ -40,8 +40,8 @@ A card and a modal are both containers; a badge and a pill are both chips.
 | `sketch-chip`       | A small box. Finer fill mask, more rotation, less travel.     |
 | `sketch-rule`       | A line rather than a box. No rotation, no rounded ends.       |
 
-The class opts you in and nothing more. It names no colour, so the layer emits
-no rule for it and whatever your component declares survives.
+The class opts the component in and nothing more. It names no colour, so the layer emits
+no rule for it and whatever the component declares survives.
 
 ```svelte
 <div class="mywidget sketch-container {variant}">…</div>
@@ -71,8 +71,8 @@ picks up the card's corners.
 
 ## Variants, states and inner parts
 
-Nothing competes with you for these values, so every case is one more
-declaration at the specificity you already use.
+Nothing competes for these values, so every case is one more
+declaration at the specificity already in use.
 
 ```css
 .mywidget.danger      { --sketch-fill: var(--mywidget-danger-surface); }
@@ -86,7 +86,7 @@ no hover at all once the real background is transparent.
 
 An inner part that carries its own surface (a header strip, a footer) takes its
 own class and its own five values. The class is easy to forget, because the part
-already has its own values and looks finished without it — a part carrying only
+already has its own values and looks finished without it. A part carrying only
 the values is left crisp, and reads as a hard-edged rectangle dropped inside a
 drawn box. No checker sees it. Where such a part draws no outline, bind the
 hatch ink to the ink its **parent** is outlined in, so the component reads as one
@@ -124,7 +124,7 @@ colour or an image, so `--sketch-fill` accepts either.
 - **An element that owns `::before` or `::after`.** The layer claims both. A
   shimmer, a caret or a decorative arrow on the opted-in element is gone.
 - **A shipped part's selector** (`.card`, `.panel`). Borrowing one to get drawn
-  works, but it hands your component that part's colours and its damping, and it
+  works, but it hands the component that part's colours and its damping, and it
   is package-internal. The reserved classes are the contract.
 
 ## Rules, which are not boxes
@@ -143,12 +143,12 @@ Make the rule an element, give it `sketch-rule`, and name its ink as the fill.
 }
 ```
 
-## Media inside your component
+## Media inside the component
 
 A drawn part's `overflow` is visible so the fill and outline can travel past the
 box. A background that bleeds is the effect working. An image that bleeds is
 not, since it keeps square corners while the part around it turns. Media running
-to your component's edge has to carry the corners itself:
+to the component's edge has to carry the corners itself:
 
 ```css
 .mywidget-cover {
@@ -166,7 +166,7 @@ high spread the crop is the mean rather than an exact trace of the drawn edge.
 
 Icons and inline SVG take the wobble directly, since a glyph has no box to
 redraw. Body type is left alone deliberately: an icon is a shape and survives a
-wobble, a paragraph is not. You opt into none of this; it applies to every
+wobble, a paragraph is not. Nothing opts into this; it applies to every
 `[class*="fa-"]` and every `svg` under the scope.
 
 `--sketch-icon-off` names what a subtree's glyphs are drawn with instead. It
@@ -190,7 +190,7 @@ soft bank before reaching for `none`.
 A component authored inside the package does not use the reserved classes. Add a
 `PartSpec` row to `PART_SPECS` in `src/editor/core/sketch/sketchLayer.ts`
 instead, which is keyed to the component's own token stem and gets the shipped
-damping. `sketchPartTokens.test.ts` then holds you to it: every colour the layer
+damping. `sketchPartTokens.test.ts` then holds the component to it: every colour the layer
 paints must be one the component itself assigns to that same element, checked
 against the compiled `<style>` block.
 

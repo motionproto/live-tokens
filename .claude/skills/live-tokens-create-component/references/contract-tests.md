@@ -1,4 +1,4 @@
-# The registry contract as a test in your own project
+# The registry contract as a test in a consumer project
 
 `checkRegistryEntry` is the contract the package holds its own 26 components
 to, exported so a project outside the package can run it over its own. It takes
@@ -39,7 +39,7 @@ Two lines there are load-bearing.
 - **Filter on `origin`.** The registry always carries the shipped components
   too, and their `sourceFile` paths are relative to the package root, not
   yours. Without the filter every built-in fails on a path that does not exist
-  in your project.
+  in the project.
 
 ## Setup
 
@@ -81,17 +81,17 @@ checkRegistryEntry(entry, { projectRoot, componentConfigsDir });
 
 ## What it holds
 
-1. **Registration** — `sourceFile` resolves to a real file, the schema is non-empty.
-2. **Uniqueness** — no schema variable is declared twice.
-3. **Editor to runtime** — every editable token's CSS var is declared in the
+1. **Registration**: `sourceFile` resolves to a real file, the schema is non-empty.
+2. **Uniqueness**: no schema variable is declared twice.
+3. **Editor to runtime**: every editable token's CSS var is declared in the
    runtime's `<style>` block, so an edit has something to repaint.
-4. **Editor to default config** — every editable token has a seed alias in
+4. **Editor to default config**: every editable token has a seed alias in
    `component-configs/<id>/default.json`, so the component adopts with full
    defaults. A component with no `default.json` is editor-only; this check and
    the next one skip it.
-5. **Opacity floors** — a token declaring `minOpacity` ships a default at or
+5. **Opacity floors**: a token declaring `minOpacity` ships a default at or
    above it, so a floating panel starts out legible over page content.
-6. **Round-trip** — `setComponentAlias` persists into the slice under the same key.
+6. **Round-trip**: `setComponentAlias` persists into the slice under the same key.
 
 Checks 3 and 4 exclude `hidden: true` tokens, `kind: 'gradient'` tokens (stored
 as gradient objects, not vars), and `-padding-(top|right|bottom|left)` suffixes

@@ -80,6 +80,6 @@ when one fits; a stroke is `-border-width` even where the CSS says `outline:`.
 | `-line-height`     | Line height              |
 | `-letter-spacing`  | Letter spacing           |
 
-A suffix you need that is not here is either a rename away from one that is, or
+A suffix that is not here is either a rename away from one that is, or
 an issue against `@motion-proto/live-tokens`. Inventing one costs the token its
 picker: the editor falls back to a plain text input.

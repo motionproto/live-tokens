@@ -1,6 +1,6 @@
 # Extension: intrinsics
 
-Some components expose **structural or display choices** that aren't token values: an alignment (start / center), an element's visibility (show / hide), a layout position. These ride a bespoke `<select>` or checkbox you author in an editor snippet, not the generic token grid, so they don't belong in `allTokens`. Toggle and most components have none. SectionDivider is the worked example (alignment, hairline position, eyebrow / description visibility).
+Some components expose **structural or display choices** that are not token values: an alignment (start / center), an element's visibility (show / hide), a layout position. These ride a custom `<select>` or checkbox authored in an editor snippet, outside the generic token grid, so they do not belong in `allTokens`. Toggle and most components have none. SectionDivider is the worked example (alignment, hairline position, eyebrow / description visibility).
 
 An intrinsic still cascades through a CSS custom property with a default in the runtime `:global(:root)`. The trap: that default now lives in two places, the runtime `:global(:root)` AND the editor's read-back getter. When they disagree the control displays a state the page never renders, and a native `<select>` won't even fire `onchange` to write the "change" the user thinks they made. `:global(:root)` is the source of truth.
 
@@ -57,4 +57,4 @@ Declare intrinsics so the editor and the contract test stay honest:
    });
    ```
 
-Use `normalize` only when two raw values render identically and the dropdown lists just one (SectionDivider folds `above-description` into `below-label`). Properties that look like intrinsics but aren't: preview-only props with no persistence (a size selector that only changes the demo), `setComponentConfig` editor metadata (Dialog's button variants), and token-valued selects (a control choosing between two tokens). None carry a duplicated runtime default, so none need an `IntrinsicSpec`.
+Use `normalize` only when two raw values render identically and the dropdown lists one (SectionDivider folds `above-description` into `below-label`). Properties that resemble intrinsics but are not: preview-only props with no persistence (a size selector that only changes the demo), `setComponentConfig` editor metadata (Dialog's button variants), and token-valued selects (a control choosing between two tokens). None carry a duplicated runtime default, so none need an `IntrinsicSpec`.

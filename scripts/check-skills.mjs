@@ -34,7 +34,6 @@ for (const skill of dirNames(SKILLS)) {
 const errors = checkSkills({
   skills,
   cli: read(join(ROOT, 'bin/cli.mjs')),
-  components: dirNames(CONFIGS),
   aliasKinds: read(join(ROOT, 'src/editor/core/components/aliasKinds.ts')),
 });
 
@@ -47,6 +46,5 @@ if (errors.length > 0) {
 console.log(
   `check:skills OK — ${Object.keys(skills).length} skill(s), each under ${MAX_SKILL_LINES} lines with references resolved, ` +
     `CLI verbs real and their flags documented on the verb that takes them, every dispatched verb outside ` +
-    `UNSKILLED_VERBS reached by a skill, ` +
-    `and the picker catalogue complete.`,
+    `UNSKILLED_VERBS reached by a skill.`,
 );

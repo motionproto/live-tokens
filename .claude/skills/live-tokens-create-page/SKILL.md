@@ -10,7 +10,7 @@ Assemble the page from the shipped components at their defaults and the theme's 
 ## Components
 
 - Use a shipped component when one fits. Import it from `@motion-proto/live-tokens/components/<Name>.svelte`.
-- `npx live-tokens components <id>` prints the declared props, the values each union accepts, and the usage comment. The list includes the project's own components.
+- `npx live-tokens components <id>` prints the declared props, the values each union accepts, and the usage comment. `--json` prints the same as data. The list includes the project's own components.
 - Pass only the props a component declares.
 - A shipped component fills its parent. To size one, size the element the page wraps it in.
 - A native element with no chrome of its own needs no component: an `<input type="file">` behind a Button, a `<canvas>`, an `<img>` inside a stage.
@@ -18,7 +18,7 @@ Assemble the page from the shipped components at their defaults and the theme's 
 
 ## Tokens
 
-- When the theme has a token for a value, page CSS takes the token as `var(--token)`. That holds in the `<style>` block, an inline `style=` attribute, and a `style:` directive.
+- When a design token exists for a value, page CSS takes the token as `var(--token)`. That holds in the `<style>` block, an inline `style=` attribute, and a `style:` directive.
 - A width is a span of page columns. The Layout section gives the grid.
 - A height follows the content. A stage's `minHeight` is the one fixed height, set from what the stage must show.
 - A value that comes from data, such as a sheet's padding in pixels or a chart's scale, is set through a `{}` expression.

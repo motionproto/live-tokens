@@ -5,7 +5,7 @@ description: Fix every finding of check-page and check-component in an existing 
 
 # Fixing the findings of check-page and check-component
 
-Fix every finding of `check-page` and `check-component` until both exit 0. `check-page` checks pages. Every component comes from the catalogue, every prop is declared, and every value in page CSS is a theme token. `check-component` checks authored components. Every token names a semantic property, and its default is the theme token that property reads. Never edit `tokens.css`. When live-tokens-check-compliance hands over a fix list, the user's choices in it stand.
+Fix every finding of `check-page` and `check-component` until both exit 0. `check-page` checks pages. Every component comes from the catalogue, every prop is declared, and every value in page CSS is a design token. `check-component` checks authored components. Every token names a semantic property, and its default is the design token that property reads. Never edit `tokens.css`. When live-tokens-check-compliance hands over a fix list, the user's choices in it stand.
 
 ## Workflow
 
@@ -86,6 +86,6 @@ When `package.json` has no `check:design` script, add `"check:design": "live-tok
 | `reserved-route` | Move the route out of `/live-tokens/*`. |
 | `deep-import` | Import from `@motion-proto/live-tokens`, `/component-editor`, or `/components/<Name>.svelte`. |
 | `unknown-suffix`, `state-after-property`, `disabled-is-terminal` | Rename the token to the name a shipped component uses for the same role. The vocabulary and the state model are in **live-tokens-create-component**. |
-| `color-literal`, `unknown-token-ref`, `default-not-token` (component) | Make the `:global(:root)` default read a theme token, composed when needed. Declare a structural keyword, such as `start`, in the editor's `intrinsics`. |
+| `color-literal`, `unknown-token-ref`, `default-not-token` (component) | Make the `:global(:root)` default read a design token, composed when needed. Declare a structural keyword, such as `start`, in the editor's `intrinsics`. |
 | `phantom-editor-token`, `phantom-link` | The editor names a token the runtime never declares, or one font helper spans several slots. Fix the editor file by the recipe in **live-tokens-create-component**. |
 | `invalid-id`, `missing-file`, `missing-root-block`, `no-tokens`, `missing-component-const`, `missing-all-tokens`, `missing-registration` | Wire the component as the recipe in **live-tokens-create-component** wires it. |

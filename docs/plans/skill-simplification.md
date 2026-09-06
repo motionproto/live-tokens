@@ -4,8 +4,9 @@ Rewrite each `.claude/skills/*/SKILL.md` for clarity and simplicity, one section
 in conversation. Done: set-colors, set-type, set-geometry, create-theme (commit
 `68a95f3 set skills` and earlier), check-compliance (`e6577d3`), fix-findings
 (`c374575`), pick-component and create-page (whole rewrites under
-`page-consistency.md`, 2026-09-06). Remaining: create-component. Each skill's
-references are swept right after its SKILL.md.
+`page-consistency.md`, 2026-09-06), create-component (rebuilt on the user's
+draft, 2026-09-07). Every skill is done. Each skill's references were swept
+right after its SKILL.md.
 
 ## Method
 

@@ -38,7 +38,6 @@ const UNSKILLED_VERBS = new Map([
   ['setup-claude', 'installs the skills, so no skill can be what runs it'],
 ]);
 
-const CONFIGS = 'src/live-tokens/data/component-configs';
 const PICKER = 'live-tokens-pick-component';
 
 // One reading of a request produces three intents, and each contributing skill
@@ -74,13 +73,12 @@ const anchorKeys = (text) =>
 // they sat inline next to the rule they serve, drift had nowhere to hide.
 const SUFFIX_SOURCES = [
   ['live-tokens-create-component/references/token-naming.md', (t) => t],
-  ['live-tokens-create-component/SKILL.md', (t) => t.match(/^### Suffix vocabulary\n([\s\S]*?)\n### /m)?.[1] ?? ''],
 ];
 
 // `skills` maps a skill's directory name to its files keyed by the path within
 // it, `SKILL.md` and `references/*.md`; the other three are the sources those
 // files are checked against.
-export function checkSkills({ skills, cli, components = [], aliasKinds = '' }) {
+export function checkSkills({ skills, cli, aliasKinds = '' }) {
   const errors = [];
   const skillDirs = Object.keys(skills).sort();
   const fileAt = (path) => {
@@ -205,20 +203,6 @@ export function checkSkills({ skills, cli, components = [], aliasKinds = '' }) {
 
   for (const skill of samplePrompts) {
     if (!skillDirs.includes(skill)) errors.push(`bin/cli.mjs: SAMPLE_PROMPTS names "${skill}", which is not bundled`);
-  }
-
-  // The picker is the only skill that enumerates components, and a component it
-  // does not know is one it can never recommend.
-  const picker = fileAt(`${PICKER}/SKILL.md`);
-  if (picker !== undefined) {
-    const catalogue = picker.match(/^## Catalogue\n\n([\s\S]*?)\n\n/m)?.[1] ?? '';
-    const listed = new Set([...catalogue.matchAll(/`([A-Za-z]+)`/g)].map((m) => m[1].toLowerCase()));
-    for (const comp of components) {
-      if (!listed.has(comp)) errors.push(`${PICKER}: catalogue does not list "${comp}" (${CONFIGS}/${comp})`);
-    }
-    for (const item of listed) {
-      if (!components.includes(item)) errors.push(`${PICKER}: catalogue lists "${item}", which has no component config`);
-    }
   }
 
   const directions = fileAt(DIRECTIONS);

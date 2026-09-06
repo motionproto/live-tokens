@@ -6,7 +6,6 @@ import { checkSkills } from './skillChecks.mjs';
 type Repo = {
   skills: Record<string, Record<string, string>>;
   cli: string;
-  components: string[];
   aliasKinds: string;
 };
 
@@ -70,7 +69,6 @@ const anchorTable = (title: string, column: string) => `# ${title}
 function repo(edit: (r: Repo) => void = () => {}): Repo {
   const r: Repo = {
     cli: CLI,
-    components: ['button', 'card'],
     aliasKinds: ALIAS_KINDS,
     skills: {
       'live-tokens-create-page': {
@@ -138,9 +136,6 @@ name: live-tokens-create-component
 description: Author a component against the contract the checker enforces.
 ---
 
-### Suffix vocabulary
-
-\`-radius\` rounds the frame. \`-padding\` is the space inside it.
 
 ### Naming
 
@@ -190,7 +185,6 @@ describe('a SKILL.md file', () => {
 
     expect(problems).toEqual([
       'live-tokens-create-component: SKILL.md is missing',
-      'live-tokens-create-component/SKILL.md: missing, so the suffix vocabulary has nowhere to live',
     ]);
   });
 
@@ -427,26 +421,6 @@ describe('skills a skill names', () => {
   });
 });
 
-describe('the picker catalogue', () => {
-  it('rejects a component the catalogue does not list', () => {
-    const problems = checkSkills(repo((r) => { r.components = [...r.components, 'banner']; }));
-
-    expect(problems).toEqual([
-      'live-tokens-pick-component: catalogue does not list "banner" (src/live-tokens/data/component-configs/banner)',
-    ]);
-  });
-
-  it('rejects a catalogue entry with no component config', () => {
-    const problems = checkSkills(
-      repo(edited('live-tokens-pick-component', '`Card` groups a title and a body.', '`Card` groups a title and a body. `Banner` announces.')),
-    );
-
-    expect(problems).toEqual([
-      'live-tokens-pick-component: catalogue lists "banner", which has no component config',
-    ]);
-  });
-});
-
 describe('the anchor index', () => {
   it('rejects a missing index', () => {
     const problems = checkSkills(
@@ -515,11 +489,13 @@ describe('the suffix vocabulary', () => {
 
   it('rejects a source missing a suffix check-component accepts', () => {
     const problems = checkSkills(
-      repo(edited('live-tokens-create-component', ' \`-padding\` is the space inside it.', '')),
+      repo((r) => {
+        r.skills['live-tokens-create-component']['references/token-naming.md'] = 'Corners take \`-radius\`.\n';
+      }),
     );
 
     expect(problems).toEqual([
-      'live-tokens-create-component/SKILL.md: does not list `-padding`, which check-component accepts',
+      'live-tokens-create-component/references/token-naming.md: does not list `-padding`, which check-component accepts',
     ]);
   });
 
@@ -537,14 +513,14 @@ describe('the suffix vocabulary', () => {
 });
 
 // The module's comment claims the tests prove each rule bites, and six of
-// twenty-seven did: MAX_SKILL_LINES could go to 99999 and the picker catalogue
-// loop could return nothing with the whole suite green. Every `errors.push` is
-// one rule and has a case above, so a twenty-eighth arrives with its own case
+// twenty-seven did: MAX_SKILL_LINES could go to 99999 with the whole suite
+// green. Every `errors.push` is one rule and has a case above, so a
+// twenty-sixth arrives with its own case
 // or this fails.
 describe('the rules this file pins', () => {
   it('is every rule the module carries', () => {
     const source = readFileSync(new URL('./skillChecks.mjs', import.meta.url), 'utf8');
 
-    expect(source.match(/errors\.push\(/g)).toHaveLength(27);
+    expect(source.match(/errors\.push\(/g)).toHaveLength(25);
   });
 });

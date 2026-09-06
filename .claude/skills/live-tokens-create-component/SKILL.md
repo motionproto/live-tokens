@@ -1,201 +1,233 @@
 ---
 name: live-tokens-create-component
-description: Author a new editable component for a @motion-proto/live-tokens project: runtime and editor Svelte files, registration, naming, state model, and verification. Use when the user asks for a component the shipped catalogue lacks. Use when the user asks to make an existing Svelte component editable in the live-tokens editor. Read live-tokens-pick-component first to confirm nothing in the catalogue fits. For placing a shipped component on a page, read live-tokens-create-page.
+description: Create an editable component for a @motion-proto/live-tokens project. A component is a runtime Svelte file, an editor Svelte file, and one registration. The runtime file declares one semantic property per editable CSS property and assigns each an existing design token. The property names are semantic, based on function, and reuse the names of the existing components. Use when live-tokens-pick-component finds no suitable component, or the user asks for a new component. Use when the user asks to make an existing Svelte component editable in the live-tokens editor.
 ---
 
-# Authoring a component for a live-tokens project
+# Creating a component for a live-tokens project
 
-The end state is a runtime Svelte file, an editor Svelte file, one registration, and an entry on `/live-tokens/components` under the **CUSTOM** group with full token editing, linked-block sharing, and persistence.
+Create a component whose structure and behavior serve the user's purpose. Give each editable visual property a semantic name. Assign its default from the existing design tokens. Deliver the runtime file, the editor file, and the registration together.
 
-## Worked examples ship inside the package
+## Design model
 
-Read a shipped component's source from the consumer's `node_modules` rather than from memory, because the files are the contract and this skill is not:
+A live-tokens project has two layers.
 
-- Runtime files: `node_modules/@motion-proto/live-tokens/src/system/components/<Name>.svelte`.
-  - Simplest reads (no state, no linked-block): `Card` (single variant with parts), `Badge` and `Callout` (multi-variant).
-  - Multi-state (hover, disabled, focus): `Button`, `Input`.
-  - Multi-part (overlay / header / body / footer): `Dialog`.
-  - Multi-variant with linked siblings (`canBeLinked` + `groupKey`): `SegmentedControl`, `TabBar`. Composes another shipped component: `CodeSnippet`.
-  - Every rule below in the fewest lines: `Toggle`. Component states name themselves in the token (`--toggle-on-*`, `--toggle-disabled-*`), interaction states layer on top (`--toggle-hover-*`, `--toggle-on-hover-*`), disabled is terminal (no `--toggle-disabled-hover-*`), and each `:hover` selector has a `.force-hover` sibling so the editor's preview can paint hover tokens without a pointer.
-- Editor files: `node_modules/@motion-proto/live-tokens/src/editor/component-editor/<Name>Editor.svelte`. `ToggleEditor` has no `groupKey` and no `canBeLinked`; for components that share base properties across variants, read `references/linked-siblings.md`.
+| Layer | Responsibility | Example |
+|---|---|---|
+| Design tokens | Name the available colors, typography, geometry, and motion values. A theme sets the values. | `--space-16`, `--radius-md`, `--surface-neutral` |
+| Semantic properties | Name the visual roles within a component and reference tokens. A component config records these assignments. | `--statcard-padding: var(--space-16)` |
 
-Shipped editors live in `src/editor/component-editor/` because they are library-internal. For *your* component, co-locate both files in `src/system/components/`. Read the shipped files for pattern, ignore their location.
+A token is assigned to a property, and a CSS declaration reads the property. The editor changes the assignment; the runtime reads the property. Keep the assignment a token reference, so a theme change reaches the component.
 
-## The recipe
+A property describes its purpose: `--statcard-value`, `--statcard-radius`, `--statcard-label-font-size`. Its name stays stable when its assigned color or size changes. Use role names such as `surface` and `text`. Use full words for component ids and parts.
 
-1. **Runtime file**, `src/system/components/MyWidget.svelte`. Declare every editable slot as a CSS custom property inside `:global(:root)`, defaulting to a theme token (never a raw value). The plugin parses `:global(:root)` to seed `component-configs/<id>/default.json`; variables declared anywhere else cannot be edited.
-2. **Editor file**, `src/system/components/MyWidgetEditor.svelte`. In a `<script module>` block, declare `const component = 'mywidget'`, build a `states: Record<string, Token[]>` for each VariantGroup, and export the flat union as `allTokens: Token[]`. Components with linked siblings also build a `linkableContexts: Map<string, string>` (read `references/linked-siblings.md`). Components with structural or display controls that are not token values (alignment, element visibility, layout position) also export an `intrinsics: IntrinsicSpec[]` (read `references/intrinsics.md`). In the runtime `<script>` block, mount `ComponentEditorBase` with one `VariantGroup` per variant.
-3. **Register** by passing the component to `bootLiveTokens` in `src/main.ts`, the boot the scaffold generates:
-   ```ts
-   import { bootLiveTokens } from '@motion-proto/live-tokens';
-   import App from './App.svelte';
-   import MyWidgetEditor, { allTokens as myWidgetTokens } from './system/components/MyWidgetEditor.svelte';
+A component is distinct in its anatomy, its proportions, its content hierarchy, and its behavior. Its appearance comes from the existing tokens. Create only the variants and states the task requires. The tokens stay as they are; a new token is a separate change to the design system.
 
-   bootLiveTokens(App, '#app', {
-     components: [{
-       id: 'mywidget',
-       label: 'My Widget',
-       icon: 'fas fa-magic',
-       sourceFile: 'src/system/components/MyWidget.svelte',
-       editorComponent: MyWidgetEditor,
-       schema: myWidgetTokens,
-     }],
-   });
-   ```
-   `bootLiveTokens` calls `registerComponent` for you after its editor init hooks and before it seeds configs, so a standalone `registerComponent(...)` placed *before* `bootLiveTokens` lands in the wrong window and can leave editor changes disconnected from the live page. Call `registerComponent` directly only when the app mounts manually, and then before `mount(App, ...)`. Registering against a built-in id wins with a console warning; the right call is a unique id.
-4. **Say what it is for.** The runtime file's leading HTML comment is the component's description. `npx live-tokens components` prints it beside the id with the variants and props read from `interface Props` (`--json` for data), which is how **live-tokens-pick-component** weighs a project's own component against the shipped set: no skill file is edited, and nothing is lost when `setup-claude` refreshes the skills. Every shipped component carries one in this shape, and `npx live-tokens report` lists a component that has none:
+Props carry content and behavior: a value, a label, a callback. Properties carry the editable appearance. When a variant is a choice the page makes, expose it as a prop.
 
-   ```
-   <!--
-     Button.svelte. A labelled action.
-     Use for: an action that needs a word to be unambiguous.
-     Not for: an icon-only action (IconButton); a link to another page.
-     Emphasis: one primary per page; secondary for the rest; outline for a
-     tertiary action; danger for a destructive one.
-   -->
-   ```
+## Source inspection
 
-   At most four lines, one sentence each: what it is, `Use for:`, `Not for:` with the component to reach for instead named in parentheses, and a fourth labelled line only where the component has an emphasis, level, or variant axis. No token or mechanics talk, and no line names a size, because the page takes the shipped default. A directory other than `src/system/components` goes in `"componentDirs"` in `live-tokens.config.json`. A first-party component is also added to the picker's **Catalogue** line, which `check:skills` holds.
-5. **Join the sketch layer.** The effect draws a fixed set of parts, so a new component stays crisp while the page around it goes hand-drawn until it opts in. A consumer component carries one of four reserved classes on its root and names the five `--sketch-*` values it is drawn with; a first-party component adds a `PartSpec` row instead. The layer also takes `background`, `border-color`, `box-shadow`, `overflow`, `position` and both pseudo-elements away from the element it draws, which constrains where the class can go. Read `references/sketch-mode.md`.
-6. **Gate on the checker.** Run it, fix every error, and run it again. Do not call the component done while it reports one:
-   ```bash
-   npx live-tokens check-component <id> --strict --json
-   ```
-   `--json` gives each finding a stable `rule` id and a line number, so work one rule at a time. `--strict` fails on warnings too, the right setting for a new component: every warning is a naming or token decision that is cheaper to make now than to migrate later. `--off=<rule>` silences a rule for one run, which a component still being authored has no use for: the finding is a decision to make. Exit code 0 is the gate. With no id it checks every component under `src/system/components`; a project scaffolded by `create` runs that as `npm run check:design` before every `vite build`.
+Before writing a file:
 
-   If it rejects a suffix, do not invent a new name for the role. Find a shipped component that paints the same thing and use the name it uses: every shipped component passes this same check, so the catalogue is the worked reference.
-7. **Verify** with the checklist at the bottom of this file, then place the component on a page with **live-tokens-create-page**.
+1. Read the project's `package.json`, `live-tokens.config.json`, and `src/main.ts`.
+2. Run `npx live-tokens components`. The list holds every component the project has, with its props and usage comment.
+3. Run `npx live-tokens tokens --family <name>` for each family the component will use. Those names are the tokens a property can reference.
+4. Read a shipped runtime and editor pair: `Toggle` for interaction states, `Badge` for variants and linked values, `Card` for text and container parts.
+5. Read `references/token-naming.md` for the suffixes that select editor controls.
 
-## Token discipline
+The shipped sources are in `node_modules/@motion-proto/live-tokens/src/`: the runtime at `system/components/<Name>.svelte`, the editor at `editor/component-editor/<Name>Editor.svelte`. Inside the live-tokens repository, read them from the repository root. The source is the contract.
 
-### Naming scheme
+## Property design
 
-```
---<componentId>-<part|variant>[-<state>][-<element>]-<property>
+Before writing a file, identify the component's parts, text roles, variants, and states. Then write a property map: one row per editable role, with the token it is assigned and the CSS property it controls. Keep separate roles independent even when they start with the same value.
+
+| Property | Assigned token | CSS use |
+|---|---|---|
+| `--statcard-surface` | `--surface-neutral` | `background` |
+| `--statcard-border` | `--border-neutral` | `border-color` |
+| `--statcard-border-width` | `--border-width-1` | `border-width` |
+| `--statcard-radius` | `--radius-md` | `border-radius` |
+| `--statcard-padding` | `--space-16` | `padding` |
+| `--statcard-value` | `--text-primary` | `color` of the value |
+| `--statcard-value-font-size` | `--font-size-2xl` | `font-size` of the value |
+| `--statcard-label` | `--text-secondary` | `color` of the label |
+
+Assign from the tokens the project has. Match the token family to the role: `--surface-*` for a fill, `--border-*` for an outline, `--text-*` for text, and the space, radius, border-width, and icon-size scales for geometry. Give each text role five properties: `-font-family`, `-font-size`, `-font-weight`, `-line-height`, and `-letter-spacing`.
+
+A property name has this shape:
+
+```text
+--<componentId>[-<variant>][-<part>][-<state>]-<property>
 ```
 
-- `componentId`: the literal id passed to `registerComponent()`. Lowercase, no dashes, no abbreviations (`segmentedcontrol` not `sc`). The file id matches: `MyWidget.svelte` is id `mywidget`.
-- `part` or `variant`: the sub-region (`bar`, `option`, `track`, `header`, `body`, `footer`, `overlay`, `value`, `label`), or, on a component whose variants differ in more than one property, the variant name: `--badge-accent-surface`, `--callout-danger-border`. A component with both stacks them outer to inner, so the bar in its small size is `--segmentedcontrol-bar-small-padding`.
-- `state` (optional): interaction or component state (`hover`, `disabled`, `selected`, `focus`). **Always before the property.**
-- `element` (optional): sub-element inside the part (`dot`, `icon`, `label`, `text`).
-- `property`: theme role or CSS property. Always last.
+- `componentId` is the runtime file name in lowercase with no dashes: `StatCard.svelte` is `statcard`.
+- `variant` is present when the component has more than one: `--card-default-surface`, `--card-bare-surface`. A component with one variant has no variant segment: `--toggle-track-surface`.
+- `part` names a region inside the component: `header`, `body`, `track`, `thumb`. The editor's `element` tag groups rows in the panel and is never a name segment.
+- `state` comes before the property: `--card-hover-border`. `disabled` is terminal, so no name pairs `disabled` with `hover` or `selected`.
+- `property` is the suffix, and the suffix selects the editor control: `-surface` for a fill, `-border` for a border color, `-border-width` for a stroke, `-radius` for corners, `-padding` and `-gap` for spacing, and the five typography suffixes. `references/token-naming.md` lists every suffix.
 
-### Suffix vocabulary
+Name a role as the shipped component that paints the same thing names it. A fill is `-surface` in every shipped component. A knob is `-thumb`. A text role's color sits on the role's own name, `-title`, `-body`, `-label`, `-value`, and its typography hangs off that name: `--card-default-title-font-size`. A component with one text role uses `-text`: `--badge-primary-text`.
 
-The editor picker is chosen by the token's suffix, so the suffix is the naming
-decision that matters. Color and surface: `-surface`, `-border`, `-text`,
-`-icon`, `-label`, `-fill`, `-divider`, `-color`, `-shadow`, `-opacity`,
-`-tint`, `-background`, `-accent`, `-indicator`, `-thumb`, and the
-element-named text roles `-title`, `-body`, `-eyebrow`, `-description`,
-`-hint`, `-error`, `-placeholder`, `-value`. Geometry: `-radius`,
-`-border-width`, `-accent-width`, `-hairline-thickness`, `-thickness`,
-`-width`, `-height`, `-size`, `-padding`, `-margin`, `-gap`, `-inset`,
-`-divider-width`, `-divider-thickness`, `-divider-height`, `-divider-inset`,
-`-track-height`, `-dot-size`, `-thumb-size`, `-icon-size`, `-scale`, `-blur`.
-Motion: `-duration`, `-easing`. Typography: `-font-family`, `-font-weight`,
-`-font-size`, `-line-height`, `-letter-spacing`.
+## Runtime component
 
-A token that carries a structural keyword rather than a value takes no suffix
-from this list. Declare it in the editor's `intrinsics` instead, which is what
-exempts it, and never end its name in a state word, which reads as
-state-after-property and fails.
+Create `src/system/components/StatCard.svelte`. A component in another directory is named in `"componentDirs"` in `live-tokens.config.json`. Use Svelte 5 props and snippets, semantic HTML, and the behavior the task requires.
 
-Read `references/token-naming.md` for what each one means and when two of them
-compete. A suffix outside that list fails `check-component`. The list lives in
-`KIND_RULES` in the editor's `aliasKinds.ts`, which the picker, the
-`set-geometry` CLI, and `check-component` all read, so a name accepted here
-always has a control behind it.
+Open the file with an HTML comment in the shape every shipped component carries. `npx live-tokens components` prints the comment and `interface Props` beside the id.
 
-### Rules that bite
-
-- **Fixed overlays must portal to `<body>`.** Any `position: fixed` layer is trapped by a transformed or `contain`ed ancestor, which real pages and the editor's preview pane both have. `check:overlay-portal` fails the build without it. Read `references/fixed-overlays.md` before authoring a modal, lightbox, or backdrop.
-- **State before property.** `--mywidget-button-hover-surface` passes; `--mywidget-button-surface-hover` breaks sibling matching. Disabled is terminal in the name too: `-disabled-hover-` and `-selected-disabled-` describe states that never paint, and `check-component` rejects both.
-- **Every default resolves to a theme token.** A component token names a semantic property; its default is the theme token that property reads, which is what makes the component repaint when the theme changes. `var(--surface-primary)` passes; `#6a4ce8`, `white`, `var(--surface-imaginary)`, and a bare `16rem` all fail, because `check-component` rejects a colour literal in any notation, a `var()` naming a token that does not exist, and a default with no token behind it. Composing tokens counts and is common: `color-mix(in srgb, var(--surface-neutral-lower) 70%, transparent)`, or `calc(var(--space-64) * 4)` for a width the spacing scale does not reach. The one value allowed without a token is a structural keyword (`contain`, `start`, `none`), and only when the editor declares it in `intrinsics`.
-- **No abbreviations.** `bg` is `surface`; `fg` is `text`; component ids are never abbreviated.
-- **Text aliases.** Neutral scale is `--text-primary` / `--text-secondary` / `--text-tertiary` / `--text-muted` / `--text-disabled`. Family-tinted is `--text-primary-color`, `--text-accent`, `--text-success`. There is no `--text-neutral`.
-- **Typography `groupKey` on multi-slot components must include the slot prefix.** `groupKey: 'value-font-family'` and `groupKey: 'label-font-family'` stay distinct; a bare `groupKey: 'font-family'` silently merges the slots into one link tree. Single-slot components can use a bare typography `groupKey`; add the slot prefix the moment a second slot appears. The same trap applies to type-group colours (two slots ending in `-text` collapsing to one `text` key).
-- **Let the type-group helpers derive slot-scoped keys.** When you build typography tokens with `buildTypeGroupColorTokens` / `buildTypeGroupTokens` / `buildTypeGroupFontTokens`, pass `{ component, variants }` so each slot gets a distinct, structural `groupKey`:
-
-  ```ts
-  // variants = the variant/state segment strings as they appear in the variable name
-  const VARIANTS = ['default', 'hover'] as const;
-  ...buildTypeGroupColorTokens(typeGroups, { component, variants: [...VARIANTS] }),
-  ...buildTypeGroupFontTokens(typeGroups, { component, variants: [...VARIANTS] }),
-  ```
-
-  The helper strips the `--<component>-` prefix and those segments, keeping the rest: `--mywidget-header-default-text` becomes `header-text`, and `--mywidget-header-default-text-font-family` becomes `header-text-font-family`. Two parts ending in the same word stay distinct; one slot across variants collapses to one key. To override a single derived key, set `colorGroupKey` on that type-group config; it wins and is never recomputed. There is no name-based fallback: a bare `buildTypeGroupColorTokens` call emits un-grouped (solo) colours rather than guessing, and a bare *font* helper across multiple slots is a `check-component` warning, because its default keys would merge the slots' fonts.
-
-## State model
-
-Components *can* have two state axes. Many do not: container and messaging components (Card, Badge, Callout, CollapsibleSection) have only variants, no hover or disabled. Skip the rest of this section for those.
-
-When a component does have states, keep the two axes apart:
-
-- **Component states** are mutually exclusive top-level fieldsets: `default`, `selected`, `disabled` (names vary by component). One fieldset per component state.
-- **Interaction states** are a select *inside* each component-state fieldset: `default`, `hover`. Add `focus` or `active` later if needed.
-
-Rules:
-
-- **Disabled is terminal.** A disabled component cannot be hovered or focused. The `disabled` fieldset is flat, with no interaction selector.
-- **`selected-disabled` is impossible.** Do not author tokens or fieldsets for it.
-- **Parts are not states.** Dialog's `overlay | header | body | footer` are *parts* (all present at once), not states. The VariantGroup tab strip defaults its label to "Element" (neutral). If you label tabs anywhere, use **part** for structure and **state** for runtime conditions. Never call a footer a state.
-- **Do not call interaction states "option states" or "selected states"** in the UI. `selected` is a *component* state.
-
-Token naming consequence:
-
-```
---mywidget-disabled-surface          ✓  component-state-level
---mywidget-option-disabled-surface   ✗  implies disabled is an interaction state
---mywidget-option-hover-surface      ✓  default-component-state, hover-interaction
---mywidget-selected-hover-surface    ✓  selected-component-state, hover-interaction
---mywidget-selected-disabled-text    ✗  selected-disabled does not exist
+```svelte
+<!--
+  StatCard.svelte. A figure with its label.
+  Use for: one number the reader takes in at a glance.
+  Not for: a set of records (Table); a titled block of content (Card).
+-->
 ```
 
-## User-facing copy
+Declare every editable property in a literal `:global(:root)` block, each assigned a token. The plugin parses the Svelte source to seed `component-configs/<id>/default.json`, so the block holds plain declarations with no SCSS loop or interpolation.
 
-Strings you author for the editor UI use periods and commas, never em-dashes, which read as an AI tell. This applies to `title=` and `description=` on `ComponentEditorBase`, token row labels, info popovers, and any text inside `previewActions` / `canvasToolbarExtras` snippets. Code comments are unaffected.
+```svelte
+<style>
+  :global(:root) {
+    --statcard-surface: var(--surface-neutral);
+    --statcard-border: var(--border-neutral);
+    --statcard-border-width: var(--border-width-1);
+    --statcard-radius: var(--radius-md);
+    --statcard-padding: var(--space-16);
+    --statcard-value: var(--text-primary);
+    --statcard-value-font-size: var(--font-size-2xl);
+    --statcard-label: var(--text-secondary);
+  }
 
-Custom chrome inside an editor snippet is rare, since `ComponentEditorBase` and `VariantGroup` carry the standard chrome. Where you add some, keep it greyscale (no accent colours) and reference heading sizes via `--ui-font-size-md` / `-lg` / `-2xl` rather than pixel literals.
+  .statcard {
+    display: grid;
+    background: var(--statcard-surface);
+    border: var(--statcard-border-width) solid var(--statcard-border);
+    border-radius: var(--statcard-radius);
+    padding: var(--statcard-padding);
+  }
 
-## Public imports only
+  .value { color: var(--statcard-value); font-size: var(--statcard-value-font-size); }
+  .label { color: var(--statcard-label); }
+</style>
+```
 
-Imports in your runtime, editor, and `main.ts` come from exactly two paths:
+The excerpt shows the chain for part of the property map. Every editable value reads a property. Structural CSS (`display: grid`, `width: 100%`, `align-items: center`) stays in the layout rules. A value beyond a scale is a token expression: `calc(var(--space-64) * 4)`. A property that carries a structural choice, an alignment or a visibility, is an intrinsic: read `references/intrinsics.md`.
+
+## Variants and states
+
+A component has three kinds of division. Keep them apart in the props, the names, and the editor.
+
+| Kind | Meaning | Example |
+|---|---|---|
+| Part | Regions present at once | Dialog's overlay, header, body, footer |
+| Variant | Alternative presentations the page chooses | Badge's primary, danger |
+| State | A runtime condition | Toggle's on, hover, disabled |
+
+States have two axes. A component state is one of a set that excludes the others: default, selected (or on), disabled. An interaction state layers on a component state: default, hover, and later focus or active. `disabled` is terminal: no hover or selected layers on it, in the names or in the editor.
+
+The default state carries the shared geometry and typography. A state adds properties only for the values that change: `--toggle-on-track-surface`, `--toggle-on-hover-track-surface`.
+
+The preview renders the state being edited. Pair each `:hover` selector with a `.force-hover` selector and expose a `class` prop, so the editor shows hover without a pointer. Keep native disabled behavior, keyboard operation, and visible focus on an interactive control.
+
+A component supplies its variants. The page chooses the one primary action.
+
+## Component editor
+
+Create `src/system/components/StatCardEditor.svelte` beside the runtime file. The editor has three parts.
+
+1. A `<script module>` block exports `component`, the id, and `allTokens`, one row per property in the map. A row is `{ label, variable, element? }`; `element` groups rows in the panel by part, and `label` names the property in the row.
+2. The instance script imports the runtime component and the editor primitives from the package's public paths, and maps the state being edited to preview props.
+3. The markup mounts `ComponentEditorBase` with one `VariantGroup` per variant, each rendering a preview.
+
+```svelte
+<script module lang="ts">
+  import type { Token } from '@motion-proto/live-tokens/component-editor';
+
+  export const component = 'statcard';
+  const states: Record<string, Token[]> = {
+    default: [
+      { label: 'surface', element: 'frame', variable: '--statcard-surface' },
+      { label: 'border', element: 'frame', variable: '--statcard-border' },
+      { label: 'padding', element: 'frame', variable: '--statcard-padding' },
+      { label: 'text', element: 'value', variable: '--statcard-value' },
+      { label: 'font size', element: 'value', variable: '--statcard-value-font-size' },
+      { label: 'text', element: 'label', variable: '--statcard-label' },
+    ],
+  };
+  export const allTokens: Token[] = Object.values(states).flat();
+</script>
+
+<script lang="ts">
+  import { ComponentEditorBase, VariantGroup } from '@motion-proto/live-tokens/component-editor';
+  import StatCard from './StatCard.svelte';
+</script>
+
+<ComponentEditorBase {component} title="Stat Card" tokens={allTokens}>
+  <VariantGroup name="statcard" title="Stat Card" {states} {component}>
+    <StatCard value="1,204" label="Sessions" />
+  </VariantGroup>
+</ComponentEditorBase>
+```
+
+The shipped editor for the closest component gives the preview snippet for a component with states. Custom chrome in an editor takes `--ui-*` tokens and no accent color; its copy uses periods and commas, never em-dashes.
+
+When variants share a value, read `references/linked-siblings.md`. A `groupKey` is scoped to the text role: `value-font-size` and `label-font-size` stay separate keys. A `buildTypeGroup*` helper takes `{ component, variants }` so it derives one key per role.
+
+## Registration
+
+Add the component to the project's `bootLiveTokens` call in `src/main.ts`, beside any registration already there. The id is unique; a registration that repeats a shipped id replaces that component.
 
 ```ts
-import { registerComponent, editorState } from '@motion-proto/live-tokens';
-import {
-  ComponentEditorBase, VariantGroup,
-  computeLinkedBlock, withLinkedDisabled, buildSiblings,
-} from '@motion-proto/live-tokens/component-editor';
-import type { Token } from '@motion-proto/live-tokens/component-editor';
+import StatCardEditor, { allTokens as statCardTokens } from './system/components/StatCardEditor.svelte';
+
+bootLiveTokens(App, '#app', {
+  components: [{
+    id: 'statcard',
+    label: 'Stat Card',
+    icon: 'fas fa-chart-simple',
+    sourceFile: 'src/system/components/StatCard.svelte',
+    editorComponent: StatCardEditor,
+    schema: statCardTokens,
+  }],
+});
 ```
 
-That covers everything the worked examples use. Additional primitives (`LinkedBlock`, `TypeEditor`, `TokenLayout`, `buildTypeGroupTokens`, `buildTypeGroupColorTokens`, `buildTypeGroupFontTokens`, `buildTypeGroupShareableContexts`, the `TypeGroupConfig` type, more types) are exported from the same paths for advanced cases.
+A component that declares intrinsics adds `intrinsics` to the entry. When the app mounts by hand, call `registerComponent(entry)` before `mount(App, ...)`.
 
-**Never deep-import `node_modules/@motion-proto/live-tokens/src/...`.** Reading those files for pattern reference is fine; importing them at runtime is not. If you need something not exported, file an issue rather than reaching in.
+At boot the plugin reads the `:global(:root)` block and writes `component-configs/<id>/default.json`, one token per property. An edit in the editor writes `_working.json`; Save As writes a named config. The assignments stay token references through that flow.
 
-## Extensions
+Inside the live-tokens repository, a first-party component keeps its editor in `src/editor/component-editor/` and takes an entry in `builtInRegistry` in `src/editor/component-editor/registry.ts`.
 
-Read the sketch reference for every component; the other two only when they apply.
+## Sketch mode and overlays
 
-- `references/linked-siblings.md`: variants that share base properties and should move together (Badge, Card, SegmentedControl).
-- `references/intrinsics.md`: structural or display choices that are not token values (an alignment, an element's visibility), where the runtime default and the editor's read-back must agree.
-- `references/sketch-mode.md`: joining the sketch layer. **Every component needs this.** One class on the root, the five `--sketch-*` values the layer draws with, and the list of what it takes over from the element. Skip it and the component stays crisp while the page around it goes hand-drawn.
+Every component joins the sketch layer: read `references/sketch-mode.md`. The root carries one of the four reserved classes and names the five `--sketch-*` values from its own properties. A first-party component adds a `PartSpec` row instead.
 
-## Verification checklist
+A fixed overlay portals to `<body>`: read `references/fixed-overlays.md`. A container that owns the typography of its content follows `Card` and its `prose` prop.
 
-Step 6 of the recipe is the static gate: `npx live-tokens check-component <id>` at exit 0, with `--strict` clean or its warnings resolved. It enforces the file layout, the `:global(:root)` block, the suffix vocabulary, state-before-property, the terminal disabled state, public imports, that every token an editor row names is declared in the runtime, that every default reads a theme token, and that the id is registered through `bootLiveTokens({ components: [{ id }] })` or a direct `registerComponent({ id })` call.
+## Verification
 
-**Then run the registry contract test.** `checkRegistryEntry`, from `@motion-proto/live-tokens/component-editor/contract`, takes one registry entry and returns a violation line per failure, so a suite over your own components is a `describe.each` and one call. It verifies that the registration resolves to a real `sourceFile` and a non-empty schema, that schema variables are unique, that every editable token is declared in the runtime `<style>` block and seeded in `component-configs/<id>/default.json`, that a token declaring `minOpacity` seeds at or above its floor, and that `setComponentAlias` round-trips the alias through the slice. The test file and its path options are in `references/contract-tests.md`. Inside the package, `registryContract.test.ts` runs that same check over `builtInRegistry`, so a first-party component is covered the moment it lands there.
+1. Run `npx live-tokens check-component <id> --strict --json`. Inside the live-tokens repository, run `node bin/cli.mjs check-component <id> --strict --json`. Each finding carries a rule id and a line; `--off=<rule>` silences a rule for one run. Fix every finding and rerun until exit 0.
+2. Run the project's Svelte check and its build.
+3. Verify the registry entry with `checkRegistryEntry`: read `references/contract-tests.md`. The contract holds registration, unique schema variables, runtime declarations, seeded defaults, alias round trips, and the intrinsics when the component declares them.
+4. Open `/live-tokens/components` and check each line below.
+5. Reply with the files, the component id, the props, and the results of steps 1 to 4, naming any check the environment prevented.
 
-**If your component declares `intrinsics`, the intrinsics contract test covers it too.** `intrinsicsContract.test.ts` asserts, per (intrinsic, variant), that the runtime `:global(:root)` declares a default, that it is one of the spec's `values`, and that the editor's `default` equals it. This is what would have caught a getter defaulting to `center` while `:global(:root)` says `start`.
+A finding maps to the section that fixes it.
 
-Finally navigate to `/live-tokens/components` and confirm the runtime behaviours no static check can see:
+| Rule | Section |
+|---|---|
+| `unknown-suffix`, `state-after-property`, `disabled-is-terminal` | Property design, the name |
+| `default-not-token`, `color-literal`, `dimension-literal`, `unknown-token-ref` | Property design, the assigned token |
+| `invalid-id`, `missing-file`, `missing-root-block`, `no-tokens` | Runtime component |
+| `missing-component-const`, `missing-all-tokens`, `phantom-editor-token`, `phantom-link`, `deep-import` | Component editor |
+| `missing-registration` | Registration |
 
-- [ ] The new component appears in the nav rail under the **CUSTOM** group (system entries above, custom below the labeled divider).
-- [ ] Token rows render. Color pickers, radius selectors, font selectors all work.
-- [ ] Linked-block (if your component has linked siblings): shared rows appear with the link toggle. Changing the linked value broadcasts across every variant.
-- [ ] `component-configs/<id>/default.json` is derived from the `:global(:root)` block at boot. Save writes `_working.json`, the unsaved buffer the open theme captures; Save As also writes a named preset.
-- [ ] Reset returns each variable to its `:global(:root)` default.
-- [ ] Boot validation is clean (no warnings about the component being missing from the server scan, or about disk-vs-registry drift).
-- [ ] Switch Sketch mode on in the editor and walk the checklist at the end of `references/sketch-mode.md`. The component is drawn in every variant and on hover, in its own colours, not crisp and not wearing another part's palette. Switch it off again and the component is unchanged.
+In the editor:
+
+- The component appears under CUSTOM.
+- Each property has the control its suffix selects, and changes the matching part.
+- The preview matches the state being edited. Keyboard and pointer behavior work.
+- Linked properties change together. Separate roles stay independent.
+- An edit persists across a reload. Reset restores the `:global(:root)` defaults.
+- A theme change reaches every property.
+- With Sketch mode on, every painted part is drawn in its own colors. With it off, the component is unchanged.
+
+Then place the component on a page with **live-tokens-create-page**.
