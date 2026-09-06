@@ -1246,496 +1246,352 @@ export const skillTrees: Record<string, SkillTree> = {
   },
   "set-geometry": {
     "id": "live-tokens-set-geometry",
-    "digest": "sha256:c5b43383a2da10d2",
+    "digest": "sha256:f58fba78bb20463d",
     "title": "set-geometry",
-    "tagline": "The CLI reads a small ops file, moves each alias along its token scale, and reports the result.",
+    "tagline": "Read the geometry intent, write the input, run the CLI, and verify the result.",
     "nodes": [
       {
         "id": "sg-trig",
         "row": 0,
         "kind": "trigger",
-        "title": "Adjust shape or spacing",
-        "desc": "Geometry changes cover radius, padding, gaps, border width, and density. create-theme supplies the geometry intent for complete themes.",
+        "title": "Set shape and spacing",
+        "desc": "Use when the user asks for pill or capsule buttons. Use when the user asks for rounded, sharp, square, softer, or harder corners. Use when the user asks for thicker or thinner borders. Use when the user asks for density: space it out, tighter, denser, airier.",
         "lines": [
-          2,
-          8
+          3,
+          3
         ],
-        "anchor": "name: live-tokens-set-geometry",
-        "anchorEnd": "You translate the request into a small ops file; the CLI res"
+        "anchor": "description: Set a live-tokens theme's geometry: corner radi"
       },
       {
         "id": "sg-anchor",
         "row": 1,
         "kind": "ref",
         "title": "Read the geometry anchor",
-        "desc": "An anchor the geometry intent names overrides the idiom table. Occasions fix color only, so their geometry comes from the feeling they imply.",
-        "reference": "references/geometry-anchors.md",
         "lines": [
-          12,
-          12
+          14,
+          14
         ],
-        "anchor": "Read the geometry intent. When it names an anchor (a feeling"
+        "anchor": "Read the geometry intent and any anchor live-tokens-create-t",
+        "reference": "references/geometry-anchors.md",
+        "n": "1"
       },
       {
-        "id": "sg-live",
+        "id": "sg-input",
         "row": 2,
         "kind": "step",
-        "title": "Read the live configuration",
-        "desc": "Each run reads the buffer or falls back to the open theme and shipped default. Relative shifts compound across runs.",
-        "lines": [
-          18,
-          18
-        ],
-        "anchor": "Each run reads the LIVE config (buffer, else the open theme,"
-      },
-      {
-        "id": "sg-target",
-        "row": 3,
-        "kind": "step",
-        "title": "Choose a global or component target",
-        "desc": "An absent target applies globally. Component IDs map windows and modals to dialog, cards to card, and tabs to tabbar. Unknown IDs fail.",
-        "lines": [
-          35,
-          35
-        ],
-        "anchor": "- `target` (optional): a component id (the folder names unde"
-      },
-      {
-        "id": "sg-kind",
-        "row": 4,
-        "kind": "chipset",
-        "title": "Choose the geometry property",
-        "chips": [
-          {
-            "label": "radius",
-            "lines": [
-              36,
-              36
-            ],
-            "anchor": "- `kind`: `radius | padding | gap | border-width`."
-          },
-          {
-            "label": "padding",
-            "lines": [
-              36,
-              36
-            ],
-            "anchor": "- `kind`: `radius | padding | gap | border-width`."
-          },
-          {
-            "label": "gap",
-            "lines": [
-              36,
-              36
-            ],
-            "anchor": "- `kind`: `radius | padding | gap | border-width`."
-          },
-          {
-            "label": "border-width",
-            "lines": [
-              36,
-              36
-            ],
-            "anchor": "- `kind`: `radius | padding | gap | border-width`."
-          }
-        ],
-        "tag": "property"
-      },
-      {
-        "id": "sg-op",
-        "row": 5,
-        "kind": "decide",
-        "title": "Set or shift?",
-        "desc": "Set selects a token on the property's scale. Shift moves a whole number of steps and clamps at either end.",
-        "lines": [
-          37,
-          37
-        ],
-        "anchor": "- `set` or `shift`, exactly one of the two. `set` takes an e"
-      },
-      {
-        "id": "sg-shift",
-        "row": 6,
-        "kind": "step",
-        "title": "Shift by steps",
-        "desc": "'Slightly' and 'a bit' each move 1 step; an unqualified request moves 1–2; 'much,' 'way,' and 'really' move 2–3. 'Softer' increases radius and spacing.",
-        "lines": [
-          58,
-          58
-        ],
-        "anchor": "Magnitude words: \"slightly\" or \"a bit\" is 1 step, unqualifie"
-      },
-      {
-        "id": "sg-set",
-        "row": 6,
-        "kind": "step",
-        "title": "Set an exact token",
-        "desc": "Set selects a token from the property's scale. A pill operation sets --radius-full. The full flag belongs to radius shifts.",
-        "lines": [
-          38,
-          38
-        ],
-        "anchor": "- `full` (radius shifts only): admits `--radius-full` as the"
-      },
-      {
-        "id": "sg-idiom",
-        "row": 7,
-        "kind": "step",
-        "title": "Map common phrases to operations",
-        "desc": "The table translates pill, corner, density, and border requests into exact operations.",
-        "lines": [
-          40,
-          54
-        ],
-        "anchor": "## Idioms",
-        "anchorEnd": "| thicker, thinner borders | border-width `shift: 1` or `-1`"
-      },
-      {
-        "id": "sg-squeeze",
-        "row": 8,
-        "kind": "step",
-        "title": "Protect controls during compaction",
-        "desc": "Global compaction stops at shift: -1 because larger shifts crush controls. Further compaction targets named containers. Global expansion remains safe.",
-        "lines": [
-          60,
-          64
-        ],
-        "anchor": "## Controls squeeze before containers",
-        "anchorEnd": "So a global compaction is `shift: -1`. When the request wants "
-      },
-      {
-        "id": "sg-pill",
-        "row": 9,
-        "kind": "decide",
-        "title": "Does the request create a pill?",
-        "desc": "--radius-full curves into the end glyphs. Large-text pills need at least --space-8 horizontal padding.",
-        "lines": [
-          66,
-          66
-        ],
-        "anchor": "A pill needs the room most. `--radius-full` bends the corner"
-      },
-      {
-        "id": "sg-pillop",
-        "row": 10,
-        "kind": "step",
-        "title": "Set pill radius and padding together",
-        "desc": "The radius and padding operations share a target. The padding set follows global compaction so it wins.",
-        "lines": [
-          68,
-          68
-        ],
-        "anchor": "```json",
-        "anchorEnd": "```"
-      },
-      {
-        "id": "sg-ladder",
-        "row": 11,
-        "kind": "chipset",
-        "title": "Respect token scales and padding floors",
-        "chips": [
-          {
-            "label": "Radius, space, and border-width scales",
-            "lines": [
-              78,
-              78
-            ],
-            "anchor": "Radius runs `none, sm, md, lg, xl, 2xl, 3xl, 4xl`, with `ful"
-          },
-          {
-            "label": "Content padding floor: --space-4",
-            "lines": [
-              80,
-              80
-            ],
-            "anchor": "Content insets stop at `--space-4`. Below it the text sits a"
-          },
-          {
-            "label": "Text-control padding floor: --space-6",
-            "lines": [
-              82,
-              82
-            ],
-            "anchor": "Padding that wraps a line of type stops a rung higher, at `-"
-          },
-          {
-            "label": "Margin shifts use the full scale",
-            "lines": [
-              84,
-              84
-            ],
-            "anchor": "The floor guards `-padding` only. Outer space is exempt, bec"
-          },
-          {
-            "label": "Off-subset aliases first reach a listed rung",
-            "lines": [
-              86,
-              86
-            ],
-            "anchor": "An alias sitting off the subset spends its first step reachi"
-          }
-        ],
-        "lines": [
-          76,
-          76
-        ],
-        "anchor": "## Ladders",
-        "tag": "ladders and floors"
-      },
-      {
-        "id": "sg-write",
-        "row": 12,
-        "kind": "step",
-        "n": "1",
-        "title": "Write scratch/geometry-ops.json",
-        "lines": [
-          12,
-          12
-        ],
-        "anchor": "Read the geometry intent. When it names an anchor (a feeling"
-      },
-      {
-        "id": "sg-shapes",
-        "row": 13,
-        "kind": "chipset",
-        "title": "Check operation forms",
-        "chips": [
-          {
-            "label": "Global, relative",
-            "lines": [
-              22,
-              24
-            ],
-            "anchor": "Global, relative:",
-            "anchorEnd": "```"
-          },
-          {
-            "label": "Targeted, absolute",
-            "lines": [
-              28,
-              30
-            ],
-            "anchor": "Targeted, absolute:",
-            "anchorEnd": "```"
-          },
-          {
-            "label": "The CLI ignores name",
-            "lines": [
-              34,
-              34
-            ],
-            "anchor": "- `name`: ignored. Buffers are fixed slots, so a name names "
-          }
-        ],
-        "lines": [
-          20,
-          20
-        ],
-        "anchor": "## The ops file",
-        "tag": "ops file"
-      },
-      {
-        "id": "sg-cli",
-        "row": 14,
-        "kind": "cli",
-        "n": "2",
-        "title": "Apply the geometry operations",
-        "desc": "The CLI writes each changed component to component-configs/<id>/_working.json, the page's active buffer. --dry-run limits the operation to reporting.",
-        "lines": [
-          13,
-          13
-        ],
-        "anchor": "Run `npx live-tokens set-geometry scratch/geometry-ops.json",
-        "command": "npx live-tokens set-geometry scratch/geometry-ops.json"
-      },
-      {
-        "id": "sg-fail",
-        "row": 15,
-        "kind": "gate",
-        "title": "The CLI rejects an operation",
-        "desc": "The report names the invalid operation or missing input. The repair resolves that issue before the next run.",
-        "lines": [
-          14,
-          14
-        ],
-        "anchor": "Read the report card: every changed alias old → new, plus sk"
-      },
-      {
-        "id": "sg-card",
-        "row": 15,
-        "kind": "ok",
-        "n": "3",
-        "title": "The buffers hold the new geometry",
-        "desc": "The report lists every outcome. --space-6 is the padding floor for buttons, badges, inputs, and tabs. Pills at that floor need a targeted lift.",
-        "lines": [
-          14,
-          14
-        ],
-        "anchor": "Read the report card: every changed alias old → new, plus sk"
-      },
-      {
-        "id": "sg-report",
-        "row": 16,
-        "kind": "step",
-        "n": "4",
-        "title": "Report back",
-        "desc": "The line back to create-theme names every alias that moved and any skip or clamp worth naming.",
+        "title": "Write the input file",
+        "desc": "Write global or targeted set and shift operations.",
         "lines": [
           15,
           15
         ],
-        "anchor": "Report back in a line: every alias that moved, and any skip "
+        "anchor": "Write the ops file to `scratch/geometry-ops.json`.",
+        "n": "2",
+        "chips": [
+          {
+            "label": "Input format",
+            "lines": [
+              24,
+              41
+            ],
+            "anchor": "## The ops file",
+            "anchorEnd": "`full` (radius shifts only): admits `--radius-full` as the t"
+          }
+        ]
       },
       {
-        "id": "sg-tell",
-        "row": 17,
+        "id": "sg-idioms",
+        "row": 3,
+        "kind": "chipset",
+        "title": "Translate geometry intent",
+        "lines": [
+          43,
+          61
+        ],
+        "anchor": "## Idioms",
+        "anchorEnd": "Magnitude: \"slightly\" or \"a bit\" is 1 step, unqualified is 1",
+        "chips": [
+          {
+            "label": "pill, capsule",
+            "lines": [
+              49,
+              49
+            ],
+            "anchor": "| pill, capsule | radius `set: \"--radius-full\"`, plus the pa"
+          },
+          {
+            "label": "sharp, square corners",
+            "lines": [
+              50,
+              50
+            ],
+            "anchor": "| sharp, square corners | radius `set: \"--radius-none\"`, or "
+          },
+          {
+            "label": "rounded (a named component)",
+            "lines": [
+              51,
+              51
+            ],
+            "anchor": "| rounded (a named component) | radius `shift: 2` |"
+          },
+          {
+            "label": "softer, rounder (global)",
+            "lines": [
+              52,
+              52
+            ],
+            "anchor": "| softer, rounder (global) | radius `shift: 1` to `2`, no `f"
+          },
+          {
+            "label": "harder, sharper",
+            "lines": [
+              53,
+              53
+            ],
+            "anchor": "| harder, sharper | radius `shift: -1` to `-2` |"
+          },
+          {
+            "label": "increase the radius, less round, more round",
+            "lines": [
+              54,
+              54
+            ],
+            "anchor": "| increase the radius, less round, more round | radius `shif"
+          },
+          {
+            "label": "space it out, airier, breathing room",
+            "lines": [
+              55,
+              55
+            ],
+            "anchor": "| space it out, airier, breathing room | padding and gap `sh"
+          },
+          {
+            "label": "tighter, denser, more compact",
+            "lines": [
+              56,
+              56
+            ],
+            "anchor": "| tighter, denser, more compact | padding and gap `shift: -1"
+          },
+          {
+            "label": "thicker, thinner borders",
+            "lines": [
+              57,
+              57
+            ],
+            "anchor": "| thicker, thinner borders | border-width `shift: 1` or `-1`"
+          }
+        ]
+      },
+      {
+        "id": "sg-controls",
+        "row": 4,
         "kind": "step",
-        "n": "5",
-        "title": "Offer the undo",
-        "desc": "The inverse op undoes the change. Save keeps it.",
+        "title": "Compact containers before controls",
+        "lines": [
+          63,
+          77
+        ],
+        "anchor": "## Compact containers before controls",
+        "anchorEnd": "```"
+      },
+      {
+        "id": "sg-scales",
+        "row": 5,
+        "kind": "step",
+        "title": "Apply scales and floors",
+        "lines": [
+          79,
+          89
+        ],
+        "anchor": "## Scales",
+        "anchorEnd": "An alias off the subset spends its first step reaching the s"
+      },
+      {
+        "id": "sg-cli",
+        "row": 6,
+        "kind": "cli",
+        "title": "Run set-geometry",
         "lines": [
           16,
           16
         ],
-        "anchor": "Offer the inverse op as the undo and say the edit is unsaved"
+        "anchor": "Run `npx live-tokens set-geometry scratch/geometry-ops.json`",
+        "command": "npx live-tokens set-geometry scratch/geometry-ops.json",
+        "n": "3"
+      },
+      {
+        "id": "sg-fail",
+        "row": 7,
+        "kind": "gate",
+        "title": "Correct the input file",
+        "desc": "Use the error details to correct the input and rerun the command.",
+        "lines": [
+          17,
+          17
+        ],
+        "anchor": "Read the report: every changed alias, old and new, plus skip"
+      },
+      {
+        "id": "sg-pass",
+        "row": 7,
+        "kind": "ok",
+        "title": "Command passes",
+        "lines": [
+          17,
+          17
+        ],
+        "anchor": "Read the report: every changed alias, old and new, plus skip"
+      },
+      {
+        "id": "sg-report",
+        "row": 9,
+        "kind": "step",
+        "title": "Read the report",
+        "lines": [
+          17,
+          17
+        ],
+        "anchor": "Read the report: every changed alias, old and new, plus skip",
+        "n": "4"
+      },
+      {
+        "id": "sg-reply",
+        "row": 10,
+        "kind": "step",
+        "title": "Reply with the result",
+        "lines": [
+          18,
+          18
+        ],
+        "anchor": "Reply with every alias that moved and any skip or clamp wort",
+        "n": "5"
       },
       {
         "id": "sg-scope",
-        "row": 18,
-        "kind": "chipset",
-        "title": "Geometry scope",
-        "desc": "Geometry operations remap component aliases to existing tokens and preserve colors, fonts, tokens.css, and saved themes.",
-        "chips": [
-          {
-            "label": "Buffers, Save, and Adopt",
-            "lines": [
-              88,
-              90
-            ],
-            "anchor": "## Scope",
-            "anchorEnd": "Every value written is an existing token; nothing new is min"
-          }
+        "row": 11,
+        "kind": "step",
+        "title": "Preserve the other dimensions",
+        "lines": [
+          91,
+          93
         ],
-        "tag": "scope"
+        "anchor": "## Scope",
+        "anchorEnd": "Geometry only. Color, type, saved themes, and `tokens.css` a"
       },
       {
-        "id": "sg-ver",
-        "row": 19,
+        "id": "sg-verify",
+        "row": 12,
         "kind": "done",
         "title": "Verify the geometry",
-        "desc": "The command exits 0 with expected changes and explained skips. Controls remain readable after reload. Each reported component has a _working.json.",
         "lines": [
-          92,
-          98
+          95,
+          101
         ],
         "anchor": "## Verify",
-        "anchorEnd": "- To revert, run the inverse ops, or load a theme in the The"
+        "anchorEnd": "To revert, run the inverse ops, or load the open theme to di",
+        "chips": [
+          {
+            "label": "Expected changes",
+            "lines": [
+              97,
+              97
+            ],
+            "anchor": "The CLI exits 0 and the report lists the expected changes, w"
+          },
+          {
+            "label": "Rendered geometry",
+            "lines": [
+              98,
+              98
+            ],
+            "anchor": "The app shows the new shape on each changed component."
+          },
+          {
+            "label": "Control padding",
+            "lines": [
+              99,
+              99
+            ],
+            "anchor": "Buttons still read as buttons: the label has room at both en"
+          },
+          {
+            "label": "Component buffers",
+            "lines": [
+              100,
+              100
+            ],
+            "anchor": "`component-configs/<id>/_working.json` exists for every comp"
+          },
+          {
+            "label": "Revert",
+            "lines": [
+              101,
+              101
+            ],
+            "anchor": "To revert, run the inverse ops, or load the open theme to di"
+          }
+        ]
       }
     ],
     "edges": [
       {
-        "from": "sg-trig",
-        "to": "sg-anchor"
+        "to": "sg-anchor",
+        "from": "sg-trig"
       },
       {
-        "from": "sg-anchor",
-        "to": "sg-live"
+        "to": "sg-input",
+        "from": "sg-anchor"
       },
       {
-        "from": "sg-live",
-        "to": "sg-target"
+        "to": "sg-idioms",
+        "from": "sg-input"
       },
       {
-        "from": "sg-target",
-        "to": "sg-kind"
+        "to": "sg-controls",
+        "from": "sg-idioms"
       },
       {
-        "from": "sg-kind",
-        "to": "sg-op"
+        "to": "sg-scales",
+        "from": "sg-controls"
       },
       {
-        "from": "sg-op",
-        "to": "sg-shift",
-        "label": "shift"
+        "to": "sg-cli",
+        "from": "sg-scales"
       },
       {
-        "from": "sg-op",
-        "to": "sg-set",
-        "label": "set"
-      },
-      {
-        "from": "sg-shift",
-        "to": "sg-idiom"
-      },
-      {
-        "from": "sg-set",
-        "to": "sg-idiom"
-      },
-      {
-        "from": "sg-idiom",
-        "to": "sg-squeeze"
-      },
-      {
-        "from": "sg-squeeze",
-        "to": "sg-pill"
-      },
-      {
-        "from": "sg-pill",
-        "to": "sg-pillop",
-        "label": "pill"
-      },
-      {
-        "from": "sg-pillop",
-        "to": "sg-ladder"
-      },
-      {
-        "from": "sg-ladder",
-        "to": "sg-write"
-      },
-      {
-        "from": "sg-write",
-        "to": "sg-shapes"
-      },
-      {
-        "from": "sg-shapes",
-        "to": "sg-cli"
-      },
-      {
-        "from": "sg-cli",
         "to": "sg-fail",
+        "from": "sg-cli",
         "label": "exit 1"
       },
       {
+        "to": "sg-pass",
         "from": "sg-cli",
-        "to": "sg-card",
         "label": "exit 0"
       },
       {
-        "from": "sg-fail",
         "to": "sg-cli",
+        "from": "sg-fail",
         "label": "rerun",
         "back": true
       },
       {
-        "from": "sg-card",
-        "to": "sg-report"
+        "to": "sg-report",
+        "from": "sg-pass"
       },
       {
-        "from": "sg-report",
-        "to": "sg-tell"
+        "to": "sg-reply",
+        "from": "sg-report"
       },
       {
-        "from": "sg-tell",
-        "to": "sg-scope"
+        "to": "sg-scope",
+        "from": "sg-reply"
       },
       {
-        "from": "sg-scope",
-        "to": "sg-ver"
-      },
-      {
-        "from": "sg-pill",
-        "to": "sg-ladder",
-        "label": "other geometry"
+        "to": "sg-verify",
+        "from": "sg-scope"
       }
     ]
   },
