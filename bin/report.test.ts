@@ -85,6 +85,25 @@ describe('buildReport', () => {
     expect(r.findings.components.checked).toEqual(['widget']);
   });
 
+  it('lists a component with no usage comment, shipped or custom', () => {
+    const root = project();
+    const pkgRoot = mkdtempSync(join(tmpdir(), 'lt-report-pkg-'));
+    roots.push(pkgRoot);
+    mkdirSync(join(pkgRoot, 'src/system/components'), { recursive: true });
+    writeFileSync(
+      join(pkgRoot, 'src/system/components/Knob.svelte'),
+      `<div />\n<style>:global(:root) { --knob-surface: var(--surface-neutral); }</style>`,
+    );
+    const text = formatReport(buildReport(loadVocabulary({ root, pkgRoot }), { root }));
+    expect(text).toContain('no description comment: knob, stray');
+  });
+
+  it('finds a usage comment on every shipped component', () => {
+    const root = project();
+    const r = buildReport(loadVocabulary({ root }), { root });
+    expect(r.components.filter((c: { origin: string; described: boolean }) => c.origin === 'shipped' && !c.described)).toEqual([]);
+  });
+
   it('formats every section with its count', () => {
     const root = project();
     const text = formatReport(buildReport(loadVocabulary({ root }), { root }));

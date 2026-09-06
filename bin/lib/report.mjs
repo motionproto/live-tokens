@@ -131,11 +131,11 @@ export function formatReport(r) {
   const unread = r.components.filter((c) => c.unread.length);
   out.push(`  tokens declared and read by their own CSS: ${r.components.reduce((n, c) => n + c.tokens - c.unread.length, 0)} of ${r.components.reduce((n, c) => n + c.tokens, 0)}`);
   for (const c of unread) out.push(`    ${c.id}: ${c.unread.length} unread (${list(c.unread, 6)})`);
+  const undescribed = r.components.filter((c) => !c.described).map((c) => c.id);
+  if (undescribed.length) out.push(`  no description comment: ${list(undescribed)}`);
   const custom = r.components.filter((c) => c.origin === 'custom');
   out.push(`  custom: ${custom.length}${custom.length ? ` (${list(custom.map((c) => c.id))})` : ''}`);
   if (r.usage.customUnregistered.length) out.push(`    not registered: ${list(r.usage.customUnregistered)}`);
-  const undescribed = custom.filter((c) => !c.described).map((c) => c.id);
-  if (undescribed.length) out.push(`    no description comment: ${list(undescribed)}`);
 
   out.push('');
   out.push('Usage');
