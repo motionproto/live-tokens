@@ -20,7 +20,7 @@
   };
 
   // Header tokens per variant. Chromeless has no chrome; divider exposes the
-  // bottom-border (the divider line) per state; container's outer chrome lives
+  // hairline under the header per state; container's outer chrome lives
   // in the Container part so the header strip just owns surface + padding + text.
   function headerStateTokens(v: Variant, s: HeaderState): Token[] {
     const p = `--collapsiblesection-${v}-${s}`;
@@ -32,8 +32,8 @@
     ];
     if (v === 'divider') {
       base.splice(1, 0,
-        { label: 'divider color', groupKey: 'border', variable: `${p}-border` },
-        { label: 'divider width', canBeLinked: true, groupKey: 'border-width', variable: `${p}-border-width` },
+        { label: 'divider color', groupKey: 'hairline-color', variable: `${p}-hairline-color` },
+        { label: 'divider thickness', canBeLinked: true, groupKey: 'hairline-thickness', variable: `${p}-hairline-thickness` },
       );
     }
     return base;
@@ -107,7 +107,7 @@
         [`--collapsiblesection-${v}-${s}-label-font-weight`, `${v} ${s}`],
         [`--collapsiblesection-${v}-${s}-label-line-height`, `${v} ${s}`],
       ];
-      if (v === 'divider') base.push([`--collapsiblesection-divider-${s}-border-width`, `divider ${s}`]);
+      if (v === 'divider') base.push([`--collapsiblesection-divider-${s}-hairline-thickness`, `divider ${s}`]);
       return base;
     })),
     ['--collapsiblesection-container-frame-border-width', 'container frame'],

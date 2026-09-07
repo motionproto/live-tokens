@@ -197,7 +197,7 @@
     background: var(--_surface);
     border: var(--_border-width) solid var(--_border-color);
     /* Indicator accent owns the bottom edge. Both width and color rebind
-       per state — `--tabbar-{state}-indicator-border-width` and
+       per state — `--tabbar-{state}-indicator-width` and
        `--tabbar-{state}-border` (the indicator color slot). */
     border-bottom: var(--_indicator-width) solid var(--_indicator-color);
     border-radius: var(--_top-radius) var(--_top-radius) var(--_bottom-radius) var(--_bottom-radius);

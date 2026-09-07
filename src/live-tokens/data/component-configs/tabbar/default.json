@@ -69,5 +69,5 @@
     "--tabbar-disabled-tab-bottom-radius": "--radius-none",
     "--tabbar-disabled-indicator-width": "--border-width-2"
   },
-  "schemaVersion": 26
+  "schemaVersion": 27
 }

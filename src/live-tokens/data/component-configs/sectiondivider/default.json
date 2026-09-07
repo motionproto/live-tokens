@@ -86,5 +86,5 @@
     "--sectiondivider-sm-border": "--color-transparent",
     "--sectiondivider-sm-hairline-color": "color-mix(in srgb, var(--border-brand-medium) 50%, transparent)"
   },
-  "schemaVersion": 26
+  "schemaVersion": 27
 }

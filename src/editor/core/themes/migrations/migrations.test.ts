@@ -177,9 +177,9 @@ describe('migration runner — schemaVersion gating', () => {
     expect(migrated['--collapsiblesection-chromeless-hover-border-width']).toBeUndefined();
     expect(migrated['--collapsiblesection-chromeless-active-radius']).toBeUndefined();
     expect(migrated['--collapsiblesection-chromeless-default-padding']).toBe('--space-4');
-    // Divider border / border-width survive; radius drops
-    expect(migrated['--collapsiblesection-divider-default-border']).toBe('--border-neutral-faint');
-    expect(migrated['--collapsiblesection-divider-default-border-width']).toBe('--border-width-1');
+    // Divider stroke survives under its v27 hairline names; radius drops
+    expect(migrated['--collapsiblesection-divider-default-hairline-color']).toBe('--border-neutral-faint');
+    expect(migrated['--collapsiblesection-divider-default-hairline-thickness']).toBe('--border-width-1');
     expect(migrated['--collapsiblesection-divider-default-radius']).toBeUndefined();
     // Expanded panel cleanup
     expect(migrated['--collapsiblesection-chromeless-expanded-border']).toBeUndefined();
@@ -339,7 +339,7 @@ describe('migration runner — schemaVersion gating', () => {
     expect(out).toEqual(v15);
   });
 
-  it('component-config v17 → v18 tabbar: bar-level indicator-thickness fans out into per-state border-widths', () => {
+  it('component-config v17 → v18 tabbar: bar-level indicator-thickness fans out into per-state widths (named by v27)', () => {
     const v17 = {
       '--tabbar-bar-indicator-thickness': '--border-width-3',
       // Unrelated bar/tab keys pass through.
@@ -350,7 +350,7 @@ describe('migration runner — schemaVersion gating', () => {
     expect(out['--tabbar-bar-indicator-thickness']).toBeUndefined();
     // Seed value fans out unchanged across all four states.
     for (const s of ['default', 'hover', 'active', 'disabled']) {
-      expect(out[`--tabbar-${s}-indicator-border-width`]).toBe('--border-width-3');
+      expect(out[`--tabbar-${s}-indicator-width`]).toBe('--border-width-3');
     }
     expect(out['--tabbar-bar-divider-thickness']).toBe('--border-width-1');
     expect(out['--tabbar-active-text']).toBe('--text-primary');
@@ -359,7 +359,7 @@ describe('migration runner — schemaVersion gating', () => {
   it('component-config v17 → v18 tabbar: absent bar key seeds states with the runtime fallback', () => {
     const out = runMigrations('component-config', 17, {}, { component: 'tabbar' });
     for (const s of ['default', 'hover', 'active', 'disabled']) {
-      expect(out[`--tabbar-${s}-indicator-border-width`]).toBe('--border-width-2');
+      expect(out[`--tabbar-${s}-indicator-width`]).toBe('--border-width-2');
     }
   });
 
@@ -367,7 +367,7 @@ describe('migration runner — schemaVersion gating', () => {
     const v17 = { '--segmentedcontrol-bar-indicator-thickness': '--border-width-3' };
     const out = runMigrations('component-config', 17, v17, { component: 'segmentedcontrol' });
     expect(out['--segmentedcontrol-bar-indicator-thickness']).toBe('--border-width-3');
-    expect(out['--tabbar-default-indicator-border-width']).toBeUndefined();
+    expect(out['--tabbar-default-indicator-width']).toBeUndefined();
   });
 
   it('component-config v18 → v19 segmentedcontrol: small-divider tokens reorder so the suffix matches the picker', () => {
@@ -422,6 +422,36 @@ describe('migration runner — schemaVersion gating', () => {
     const v19 = { '--badge-track-width': '--space-32' };
     const out = runMigrations('component-config', 19, v19, { component: 'badge' });
     expect(out).toEqual(v19);
+  });
+
+  it('component-config v26 → v27: dividers and accents leave the -border suffix, values unchanged', () => {
+    const cases: Array<[string, Record<string, string>, Record<string, string>]> = [
+      ['tabbar',
+        { '--tabbar-active-indicator-border-width': '--border-width-3', '--tabbar-active-border': '--color-brand-500' },
+        { '--tabbar-active-indicator-width': '--border-width-3', '--tabbar-active-border': '--color-brand-500' }],
+      ['collapsiblesection',
+        { '--collapsiblesection-divider-hover-border': '--border-neutral', '--collapsiblesection-divider-hover-border-width': '--border-width-1',
+          '--collapsiblesection-container-frame-border': '--border-neutral' },
+        { '--collapsiblesection-divider-hover-hairline-color': '--border-neutral', '--collapsiblesection-divider-hover-hairline-thickness': '--border-width-1',
+          '--collapsiblesection-container-frame-border': '--border-neutral' }],
+      ['dialog',
+        { '--dialog-header-border': '--border-neutral-subtle', '--dialog-footer-border-width': '--border-width-1', '--dialog-border': '--border-neutral' },
+        { '--dialog-header-divider': '--border-neutral-subtle', '--dialog-footer-divider-width': '--border-width-1', '--dialog-border': '--border-neutral' }],
+      ['table',
+        { '--table-default-header-border': '--border-neutral', '--table-default-header-border-width': '--border-width-1', '--table-default-border': '--border-neutral' },
+        { '--table-default-header-divider': '--border-neutral', '--table-default-header-divider-width': '--border-width-1', '--table-default-border': '--border-neutral' }],
+    ];
+    for (const [component, input, expected] of cases) {
+      const out = runMigrations('component-config', 26, input, { component });
+      expect(out, component).toEqual(expected);
+      expect(runMigrations('component-config', 26, out, { component }), `${component} idempotent`).toEqual(expected);
+    }
+  });
+
+  it('component-config v26 → v27 only fires for the four renamed components', () => {
+    const v26 = { '--button-primary-border-width': '--border-width-1' };
+    const out = runMigrations('component-config', 26, v26, { component: 'button' });
+    expect(out).toEqual(v26);
   });
 
   it('component-config at current version → no migrations run', () => {

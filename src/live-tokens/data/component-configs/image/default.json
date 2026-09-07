@@ -10,5 +10,5 @@
     "--image-default-shadow": "--shadow-md",
     "--image-zoom-scale": "--scale-sm"
   },
-  "schemaVersion": 26
+  "schemaVersion": 27
 }

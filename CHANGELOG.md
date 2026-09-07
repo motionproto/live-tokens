@@ -4,6 +4,16 @@
 
 ### Changed
 
+- **Dividers and accents name their stroke role.** Three stroke roles share
+  the `--border-width-*` scale: a border encloses, a divider separates, an
+  accent emphasises. `set-geometry` moves each role on its own and reads the
+  role off the suffix, so a divider named `-border` moved with the borders.
+  TabBar's indicator is `--tabbar-<state>-indicator-width`, CollapsibleSection's
+  divider is `--collapsiblesection-divider-<state>-hairline-color` and
+  `-hairline-thickness`, Dialog's header and footer rules are
+  `--dialog-<part>-divider` and `-divider-width`, and Table's header rule is
+  `--table-default-header-divider` and `-divider-width`. Component migration 27
+  renames the keys in a saved theme; values are unchanged.
 - **CLI output uses the skills' vocabulary.** Every verb's help and report
   lines say "the buffer" for edits a theme file does not hold yet, "load" for
   making a theme the open one, "design token" and "semantic property" for the

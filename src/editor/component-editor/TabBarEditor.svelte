@@ -20,7 +20,7 @@
       { label: 'padding', element: 'frame', canBeLinked: true, groupKey: 'padding', variable: `--tabbar-${s}-padding` },
       { label: 'size', element: 'icon', canBeLinked: true, groupKey: 'icon-size', variable: `--tabbar-${s}-icon-size` },
       { label: 'color', element: 'indicator', groupKey: 'indicator-color', variable: `--tabbar-${s}-border` },
-      { label: 'width', element: 'indicator', canBeLinked: true, groupKey: 'indicator-border-width', variable: `--tabbar-${s}-indicator-border-width` },
+      { label: 'width', element: 'indicator', canBeLinked: true, groupKey: 'indicator-width', variable: `--tabbar-${s}-indicator-width` },
     ];
   }
   function tabStateTypeGroups(s: TabState): TypeGroupConfig[] {

@@ -32,5 +32,5 @@
     "--dialog-footer-divider-width": "--border-width-1",
     "--dialog-footer-padding": "--space-16"
   },
-  "schemaVersion": 26
+  "schemaVersion": 27
 }
