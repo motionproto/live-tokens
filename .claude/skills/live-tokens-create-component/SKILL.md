@@ -29,7 +29,7 @@ Props carry content and behavior: a value, a label, a callback. Properties carry
 Before writing a file:
 
 1. Read the project's `package.json`, `live-tokens.config.json`, and `src/main.ts`.
-2. Run `npx live-tokens components`. The list holds every component the project has, with its props and usage comment.
+2. Run `npx live-tokens components`. The list holds every component the project has, with its variants and usage comment. `npx live-tokens components <id>` prints one component's props.
 3. Run `npx live-tokens tokens --family <name>` for each family the component will use. Those names are the tokens a property can reference.
 4. Read a shipped runtime and editor pair: `Toggle` for interaction states, `Badge` for variants and linked values, `Card` for text and container parts.
 5. Read `references/token-naming.md` for the suffixes that select editor controls.
@@ -62,7 +62,7 @@ A property name starts with the component id and ends with the property suffix. 
 - `componentId` is the runtime file name in lowercase with no dashes: `StatCard.svelte` is `statcard`.
 - `variant` is present when the component has more than one: `--card-default-surface`, `--card-bare-surface`. A component with one variant has no variant segment: `--toggle-track-surface`.
 - `part` names a region inside the component: `header`, `body`, `track`, `thumb`. The editor's `element` tag groups rows in the panel and is never a name segment.
-- `state` comes before the property: `--card-hover-border`. `disabled` is terminal, so no name pairs `disabled` with `hover` or `selected`.
+- `state` comes before the property: `--card-hover-border`. `disabled` is terminal, so no name pairs `disabled` with another state.
 - `property` is the suffix, and the suffix selects the editor control: `-surface` for a fill, `-border` for a border color, `-border-width` for a stroke, `-radius` for corners, `-padding` and `-gap` for spacing, and the five typography suffixes. `references/token-naming.md` lists every suffix.
 
 For a state that affects several parts, follow Toggle: `--toggle-on-hover-track-surface`. State segments precede the affected part.
@@ -71,9 +71,9 @@ Name a role as the shipped component that paints the same thing names it. A fill
 
 ## Runtime component
 
-Create `src/system/components/StatCard.svelte`. A component in another directory is named in `"componentDirs"` in `live-tokens.config.json`. Use Svelte 5 props and snippets, semantic HTML, and the behavior the task requires.
+Create `src/system/components/StatCard.svelte`. `check-component` finds a runtime there only. A component in another directory is listed by `components` and `report` when that directory is named in `"componentDirs"` in `live-tokens.config.json`, and `check-component` does not check it. Use Svelte 5 props and snippets, semantic HTML, and the behavior the task requires.
 
-Open the file with an HTML comment in the shape every shipped component carries. `npx live-tokens components` prints the comment and `interface Props` beside the id.
+Open the file with an HTML comment in the shape every shipped component carries. `npx live-tokens components` prints the comment beside the id, and `components <id>` prints the props.
 
 ```svelte
 <!--
@@ -123,7 +123,7 @@ A component has three kinds of division. Keep them apart in the props, the names
 | Variant | Alternative presentations the page chooses | Badge's primary, danger |
 | State | A runtime condition | Toggle's on, hover, disabled |
 
-States have two axes. A component state is one of a set that excludes the others: default, selected (or on), disabled. An interaction state layers on a component state: default, hover, and later focus or active. `disabled` is terminal: no hover or selected layers on it, in the names or in the editor.
+States have two axes. A component state is one of a set that excludes the others: default, selected (or on), disabled. An interaction state layers on a component state: default, hover, and later focus or active. `disabled` is terminal: no other state layers on it, in the names or in the editor.
 
 The default state carries the shared geometry and typography. A state adds properties only for the values that change: `--toggle-on-track-surface`, `--toggle-on-hover-track-surface`.
 
@@ -194,7 +194,7 @@ bootLiveTokens(App, '#app', {
 });
 ```
 
-A component that declares intrinsics adds `intrinsics` to the entry. When the app mounts by hand, call `registerComponent(entry)` before `mount(App, ...)`.
+A component that declares intrinsics adds `intrinsics` to the entry. When the app mounts by hand, call `registerComponent({ id: 'statcard', ... })` before `mount(App, ...)`. `check-component` finds the registration by the id literal inside the call.
 
 At boot the plugin reads the `:global(:root)` block and writes `component-configs/<id>/default.json`, one token per property. An edit in the editor writes `_working.json`; Save As writes a named config. The assignments stay token references through that flow.
 

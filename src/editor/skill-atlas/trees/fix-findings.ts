@@ -2,7 +2,7 @@ import type { SkillTree } from '../types';
 
 export const fixFindings: SkillTree = {
   "id": "live-tokens-fix-findings",
-  "digest": "sha256:cdf856b3ea69482a",
+  "digest": "sha256:310d6849e5e314a9",
   "title": "fix-findings",
   "tagline": "Repair Deviations from the Design System",
   "nodes": [
@@ -21,7 +21,7 @@ export const fixFindings: SkillTree = {
       "kind": "step",
       "title": "Run the token migration",
       "lines": [14, 14],
-      "anchor": "Run `npx live-tokens migrate --check`, then `--write`.",
+      "anchor": "Run `npx live-tokens migrate --check` to see the plan, then ",
       "n": "1",
       "command": "npx live-tokens migrate --check\nnpx live-tokens migrate --write"
     },

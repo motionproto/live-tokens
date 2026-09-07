@@ -13,9 +13,9 @@ The result is on screen as soon as the run finishes. The three set skills write 
 
 1. Read the type intent and any anchor live-tokens-create-theme passed. When either names an anchor (a feeling, an idiom, or a genre), read its entry in `references/type-anchors.md`; it overrides the Voice table below.
 2. Choose the pairing and write it to `scratch/font-pairing.json`.
-3. Run `npx live-tokens set-type scratch/font-pairing.json`. It prints each stack that moved, each family's weights and URL, and the weights the typography tokens ask for that the family lacks.
-4. Read the report. Name a weight gap and offer an alternative only when it matters: a body face without 400, 700, or italic matters; a display face without 300 does not. A family not on Google Fonts fails the run; fix the spelling and re-run.
-5. Reply with the two families, the form model behind each, the matrix verdict, and any weight gap worth naming.
+3. Run `npx live-tokens set-type scratch/font-pairing.json`. It prints each stack that moved, each family's weights and URL, and, under Weight coverage, the weights the typography tokens ask for that the family lacks.
+4. Read the report. Name a missing weight and offer an alternative only when it matters: a body face without 400, 700, or italic matters, and a display face without 300 does not. A family not on Google Fonts fails the run. Fix the spelling and re-run. A pairing the stacks already hold prints "Nothing to change" and writes nothing. A pairing equal to the open theme's discards the buffer, and the report says so.
+5. Reply with the two families, the form model behind each, the matrix verdict, and any missing weight worth naming.
 
 Flags: `--dry-run` reports without writing. `--no-verify` skips the network and requires a URL per family; use it only offline.
 
@@ -25,7 +25,7 @@ Flags: `--dry-run` reports without writing. `--no-verify` skips the network and 
 { "display": "Fraunces", "body": "Nunito Sans" }
 ```
 
-Every slot is optional; an omitted slot keeps its family. `display` is `--font-display` and `body` is `--font-sans`. `serif`, `mono`, and `editorial` exist when a theme needs them. `editorial` is `--font-editorial`, the long-reading face behind the `--editorial-*` text styles. It tracks the body face until a theme repoints it, so set it only when essays and articles need a face of their own. A slot may be `{ "name": "...", "url": "..." }` to pin a URL. Spell families as Google does; the CLI reports the canonical spelling.
+Every slot is optional; an omitted slot keeps its family. `display` is `--font-display` and `body` is `--font-sans`. `serif`, `mono`, and `editorial` exist when a theme needs them. `editorial` is `--font-editorial`, the long-reading face behind the `--editorial-*` text styles. An omitted `editorial` keeps its family, so set it only when essays and articles need a face of their own. Weight coverage is reported for `display`, `body`, `serif`, and `mono`. A family bound to `editorial` gets no coverage line. A slot may be `{ "name": "...", "url": "..." }` to pin a URL. A pinned URL is not probed, so the report shows no weights for it and coverage skips it. Spell families as Google does; the CLI reports the canonical spelling.
 
 ## Choose the body face first
 
@@ -88,6 +88,6 @@ Type only. Color, component aliases, shape, and the type scale are untouched: `s
 ## Verify
 
 - The CLI exits 0 and names each stack that moved, before and after.
-- Each URL matches the family's weights: a range for a variable family, an enumeration for a static one, a bare URL for a single-weight face.
+- Each URL matches the family's weights: a range for a variable family, an enumeration for a static one, a bare URL for a single-weight face. A pinned URL is written as given.
 - The app shows the new type, and the editor's Fonts section lists both families with their fallbacks.
 - To revert, run the previous pairing file, or load the open theme to discard the buffer.

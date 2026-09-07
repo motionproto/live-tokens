@@ -7,7 +7,7 @@ the direction the three intents come from.
 The mechanics live with the executors. Color anchors are in
 live-tokens-set-colors, type anchors in live-tokens-set-type, geometry anchors
 in live-tokens-set-geometry, each keyed on the same names as the tables below.
-Name the anchor when you state an intent and the sibling reads its own column.
+Name the anchor in the intent, and the sibling reads its own column.
 
 Three axes place any request, including one no entry lists:
 

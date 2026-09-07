@@ -25,14 +25,14 @@ For one component, run `npx live-tokens components <id>`. For one scale, run `np
 
 | Section | Contents | Fix |
 | --- | --- | --- |
-| `migrations` | Whether `tokens.css` is behind the installed package. A stale file shows downstream as unknown tokens. | Fix this first. Run `npx live-tokens migrate --check`, then `--write`. `--tokens <path>` names a tokens.css in an unusual place. |
-| `findings.pages`, `findings.components` | Both checkers' findings by rule, counted under the project's severities and again with every warning as an error. Errors fail the build today. The strict count is what a fully tokenized project would fail. | Classify each finding under Finding classes. |
-| `components[].unread` | Tokens a component declares and never reads. Each is an editor row that edits nothing. | Wire each token into the CSS, or remove it. |
+| `migrations` | Whether `tokens.css` is behind the installed package. `status` is `pending`, `none pending`, `no tokens.css`, or `unavailable`. A stale file shows downstream as unknown tokens. | Fix this first. Run `npx live-tokens migrate --check` to see the plan, then `npx live-tokens migrate` to apply it. `--write` also rewrites the route references the plan lists. `--tokens <path>` names a tokens.css in an unusual place. |
+| `findings.pages`, `findings.components` | Both checkers' findings by rule under the project's severities, and one strict total with every warning as an error. Errors fail the build today. The strict total is what a fully tokenized project would fail. | Classify each finding under Finding classes. |
+| `components[].unread` | Tokens a component declares and never reads. Each is an editor row that edits nothing. | Wire each token into the CSS, or remove it. No checker rule covers this, so confirm with a second `report` run. |
 | `components[].registered` | Whether the component has a `bootLiveTokens` or `registerComponent` entry. Without one it renders with no editor. | Register it. |
-| `components[].described` | Whether the runtime file has the header comment the picker reads. Without one, `live-tokens components` cannot say what the component is for. | Add the comment. |
-| `usage.byPage` | Which catalogue component each page renders, and how many times. | When a page renders none, say whether it is chrome or markup that a shipped component covers. |
+| `components[].described` | Whether the runtime file has the header comment the picker reads. Without one, `live-tokens components` cannot say what the component is for. | Add the comment. No checker rule covers this, so confirm with a second `report` run. |
+| `usage.byPage` | Which component each page imports, and how many times the page renders it. | When a page renders none, say whether it is chrome or markup that a shipped component covers. |
 | `usage.unusedShipped` | Shipped components no page renders. | None. Information only. |
-| `usage.customUnregistered`, `usage.customUnused` | The project's own components that are unregistered or unused. | Register or delete each. |
+| `usage.customUnregistered`, `usage.customUnused` | The project's own components that are unregistered or unused. | Register or delete each. `check-component` sees a component only under `src/system/components`, so confirm with a second `report` run. |
 
 ## Finding classes
 

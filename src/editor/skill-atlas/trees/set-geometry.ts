@@ -2,7 +2,7 @@ import type { SkillTree } from '../types';
 
 export const setGeometry: SkillTree = {
   "id": "live-tokens-set-geometry",
-  "digest": "sha256:4a54c56723f15eb5",
+  "digest": "sha256:fbe78a12bbd4791a",
   "title": "set-geometry",
   "tagline": "Set Spacing, Corner Radius, Line Weight",
   "nodes": [
@@ -160,7 +160,7 @@ export const setGeometry: SkillTree = {
       "kind": "step",
       "title": "Reply with the result",
       "lines": [19, 19],
-      "anchor": "Reply with every alias that moved and any skip or clamp wort",
+      "anchor": "Reply with every alias that moved and any skip worth naming.",
       "n": "6"
     },
     {

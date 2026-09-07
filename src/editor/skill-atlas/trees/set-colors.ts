@@ -2,7 +2,7 @@ import type { SkillTree } from '../types';
 
 export const setColors: SkillTree = {
   "id": "live-tokens-set-colors",
-  "digest": "sha256:fbff02a0779adf59",
+  "digest": "sha256:d83d60fcbfa2f662",
   "title": "set-colors",
   "tagline": "Set the Color Palettes",
   "nodes": [
@@ -37,7 +37,7 @@ export const setColors: SkillTree = {
       "chips": [
         {
           "label": "Input format",
-          "lines": [27, 53],
+          "lines": [27, 54],
           "anchor": "## The base color file",
           "anchorEnd": "Roles: **Brand** is the dominant chromatic identity; **Accen"
         }
@@ -48,33 +48,33 @@ export const setColors: SkillTree = {
       "row": 3,
       "kind": "chipset",
       "title": "Chroma budget",
-      "lines": [55, 67],
+      "lines": [56, 68],
       "anchor": "## Chroma budget",
       "anchorEnd": "A good theme reads as 3 or 4 hue families on screen, never 1",
       "chips": [
         {
           "label": "Ground (about 60% of every screen)",
-          "lines": [61, 61],
+          "lines": [62, 62],
           "anchor": "| Ground (about 60% of every screen) | Neutral, Alternate | "
         },
         {
           "label": "Canvas (the largest single area)",
-          "lines": [62, 62],
+          "lines": [63, 63],
           "anchor": "| Canvas (the largest single area) | Canvas | C 0.02 to 0.14"
         },
         {
           "label": "Dominant chromatic (about 30%)",
-          "lines": [63, 63],
+          "lines": [64, 64],
           "anchor": "| Dominant chromatic (about 30%) | Brand | C 0.10 to 0.20 |"
         },
         {
           "label": "Garnish (about 10%)",
-          "lines": [64, 64],
+          "lines": [65, 65],
           "anchor": "| Garnish (about 10%) | Accent, Special | may exceed Brand; "
         },
         {
           "label": "Conditional",
-          "lines": [65, 65],
+          "lines": [66, 66],
           "anchor": "| Conditional | Info, Success, Warning, Danger | C 0.12 to 0"
         }
       ]
@@ -84,53 +84,53 @@ export const setColors: SkillTree = {
       "row": 4,
       "kind": "chipset",
       "title": "Role ranges",
-      "lines": [69, 95],
+      "lines": [70, 96],
       "anchor": "## Per-role ranges",
       "anchorEnd": "Blue tints cap very low at high L (H 264 at L 0.95 barely re",
       "chips": [
         {
           "label": "Canvas",
-          "lines": [73, 73],
+          "lines": [74, 74],
           "anchor": "| Canvas | L 0.92 to 0.98, C 0.02 to 0.06 | L 0.15 to 0.28, "
         },
         {
           "label": "Neutral, Alternate",
-          "lines": [74, 74],
+          "lines": [75, 75],
           "anchor": "| Neutral, Alternate | L about 0.55, C 0.008 to 0.02 | same "
         },
         {
           "label": "Brand",
-          "lines": [75, 75],
+          "lines": [76, 76],
           "anchor": "| Brand | L 0.45 to 0.62, C 0.12 to 0.20 | L 0.70 to 0.83, C"
         },
         {
           "label": "Accent",
-          "lines": [76, 76],
+          "lines": [77, 77],
           "anchor": "| Accent | harmony slot, or at least 0.25 L from Brand when "
         },
         {
           "label": "Special",
-          "lines": [77, 77],
+          "lines": [78, 78],
           "anchor": "| Special | most expressive; default Brand hue +60 at about "
         },
         {
           "label": "Info",
-          "lines": [78, 78],
+          "lines": [79, 79],
           "anchor": "| Info | shared status L (0.55 to 0.65 light) | lighten like"
         },
         {
           "label": "Success",
-          "lines": [79, 79],
+          "lines": [80, 80],
           "anchor": "| Success | shared status L | same | H 140 to 155 |"
         },
         {
           "label": "Warning",
-          "lines": [80, 80],
+          "lines": [81, 81],
           "anchor": "| Warning | L 0.75 or higher (vivid yellow must be light) | "
         },
         {
           "label": "Danger",
-          "lines": [81, 81],
+          "lines": [82, 82],
           "anchor": "| Danger | shared status L, C 0.15 to 0.20 | same | H 20 to "
         }
       ]
@@ -140,7 +140,7 @@ export const setColors: SkillTree = {
       "row": 5,
       "kind": "step",
       "title": "Mood dials",
-      "lines": [97, 103],
+      "lines": [98, 104],
       "anchor": "## Mood dials",
       "anchorEnd": "Avoid mid-lightness yellow-green (H 100 to 120 at L 0.5 to 0"
     },
@@ -149,7 +149,7 @@ export const setColors: SkillTree = {
       "row": 6,
       "kind": "step",
       "title": "Gamut constraints",
-      "lines": [105, 112],
+      "lines": [106, 113],
       "anchor": "## Gamut guardrails",
       "anchorEnd": "Peak chroma anchors: red H20 C 0.25 at L 0.63; orange H60 C "
     },
@@ -158,7 +158,7 @@ export const setColors: SkillTree = {
       "row": 7,
       "kind": "step",
       "title": "Harmony",
-      "lines": [114, 120],
+      "lines": [115, 121],
       "anchor": "## Harmony",
       "anchorEnd": "Drama or maximum contrast: complementary, triadic, or tetrad"
     },
@@ -167,7 +167,7 @@ export const setColors: SkillTree = {
       "row": 8,
       "kind": "step",
       "title": "Canvas gradient and shadows",
-      "lines": [122, 126],
+      "lines": [123, 127],
       "anchor": "## Canvas sky and shadows",
       "anchorEnd": "Shadow opacity derives from Canvas lightness and re-derives "
     },
@@ -176,7 +176,7 @@ export const setColors: SkillTree = {
       "row": 9,
       "kind": "step",
       "title": "Refine existing colors",
-      "lines": [128, 134],
+      "lines": [129, 135],
       "anchor": "## Refining a theme's color",
       "anchorEnd": "One adjective moves one dial. Warmer and cooler rotate hue; "
     },
@@ -230,7 +230,7 @@ export const setColors: SkillTree = {
       "row": 15,
       "kind": "step",
       "title": "Preserve the other dimensions",
-      "lines": [136, 140],
+      "lines": [137, 141],
       "anchor": "## Scope",
       "anchorEnd": "every other value in it forward. `save-theme` keeps the resu"
     },
@@ -239,33 +239,33 @@ export const setColors: SkillTree = {
       "row": 16,
       "kind": "done",
       "title": "Verify the color",
-      "lines": [142, 148],
+      "lines": [143, 149],
       "anchor": "## Verify",
       "anchorEnd": "To revert, re-run with the previous base color file, or load",
       "chips": [
         {
           "label": "CLI checks",
-          "lines": [144, 144],
+          "lines": [145, 145],
           "anchor": "The CLI exits 0 with every check passing (auto-corrected is "
         },
         {
           "label": "Rendered palette",
-          "lines": [145, 145],
+          "lines": [146, 146],
           "anchor": "The app (dev server running) shows the new palette."
         },
         {
           "label": "Theme buffer status",
-          "lines": [146, 146],
-          "anchor": "The editor's Theme panel marks the open theme unsaved. A dry"
+          "lines": [147, 147],
+          "anchor": "The editor's Theme panel marks the open theme as edited. A d"
         },
         {
           "label": "Canvas identity",
-          "lines": [147, 147],
+          "lines": [148, 148],
           "anchor": "The canvas is committed: on screen it reads as the theme's c"
         },
         {
           "label": "Revert",
-          "lines": [148, 148],
+          "lines": [149, 149],
           "anchor": "To revert, re-run with the previous base color file, or load"
         }
       ]

@@ -5,13 +5,13 @@ description: Fix every finding of check-page and check-component in an existing 
 
 # Fixing the findings of check-page and check-component
 
-Fix every finding of `check-page` and `check-component` until both exit 0. `check-page` checks pages. Every component comes from the catalogue, every prop is declared, and every value in page CSS is a design token. `check-component` checks authored components. Every token names a semantic property, and its default is the design token that property reads. Update `tokens.css` only through the migration command. When live-tokens-check-compliance hands over a fix list, the user's choices in it stand.
+Fix every finding of `check-page` and `check-component` until both exit 0. `check-page` checks pages. Every component comes from the catalogue, every prop is declared, and every value in page CSS is a design token. `check-component` checks authored components. Every token names a semantic property, and its default is the design token that property reads. Update `tokens.css` only through the migration command. That command also heals the data tree, and with `--write` rewrites the route references it lists. When live-tokens-check-compliance hands over a fix list, the user's choices in it stand.
 
 ## Workflow
 
 When `check-page` is an unknown command, upgrade `@motion-proto/live-tokens` first.
 
-1. Run `npx live-tokens migrate --check`, then `--write`.
+1. Run `npx live-tokens migrate --check` to see the plan, then `npx live-tokens migrate` to apply it. `--tokens <path>` names a tokens.css in an unusual place.
 2. Run both checkers with `--json`. Each finding carries a `rule`, a file, and a line.
    ```sh
    npx live-tokens check-page --json
@@ -28,7 +28,7 @@ When `check-page` is an unknown command, upgrade `@motion-proto/live-tokens` fir
    - the findings left, each with its reason and any config entry the user chose
    - both checker commands with their exit codes
 
-`check-page <path>` and `check-component <id>` scope a run to one file. `--tokens <path>` names a tokens.css outside the default locations.
+`check-page <path>` scopes a run to one page. `check-component <id>` scopes a run to one component: its runtime, its editor, and its registration. The checkers read tokens.css from its default location.
 
 When `package.json` has no `check:design` script, add `"check:design": "live-tokens check-page && live-tokens check-component"`. When both checkers exit 0, prepend `npm run check:design &&` to the existing build command. Preserve its other build steps.
 
@@ -72,14 +72,14 @@ When `package.json` has no `check:design` script, add `"check:design": "live-tok
 
 | Rule | Fix |
 | --- | --- |
-| `unknown-token` | Search `tokens.css` for the stem. When a contract-family name is gone, `npx live-tokens migrate --check` names the rename. |
+| `unknown-token` | Search `tokens.css` for the stem. When a contract-family name is gone, `npx live-tokens migrate --check` lists the migration that adds the current name. |
 | `raw-text-axis` | Set every axis from one text style, `-font-family` through `-letter-spacing`. `npx live-tokens tokens --family heading` prints one style family. The families are `heading`, `body`, `editorial`, and `code`. Rewrite a `font:` shorthand the same way. |
 | `unknown-component` | Read **live-tokens-pick-component** for the shipped component that fits. When none fits, author one with **live-tokens-create-component**. |
 | `unknown-prop` | `npx live-tokens components <id>` prints the declared props and their values. Map the prop to one of them, or delete it. |
 | `unknown-prop-value` | Use a value from the union the message lists. |
 | `control-size` | Delete the `size` prop. The shipped default is the page's size. When that default is wrong for the project, retune the component in `/live-tokens/components`. |
-| `multiple-primary` | Keep the action that completes the main task `primary`. Use `secondary` for supporting or related actions and `outline` for unrelated or informational actions. |
-| `danger-without-dialog` | Open a `Dialog` from the danger Button and run the action from the Dialog's confirm. For other actions, assign emphasis by the action's relationship to the main task. |
+| `multiple-primary` | Keep the action that completes the main task `primary`. A Button with no `variant` counts as `primary`. Use `secondary` for supporting or related actions and `outline` for unrelated or informational actions. |
+| `danger-without-dialog` | Open a `Dialog` from the danger Button or IconButton and run the action from the Dialog's confirm. The rule fires once per page, when the page imports no Dialog. For other actions, assign emphasis by the action's relationship to the main task. |
 | `hardcoded-columns` | `repeat(var(--columns-count), 1fr)` for the page grid. `calc(var(--columns-count) - 2)` for a sub-grid spanning fewer columns. |
 | `site-css-in-main` | Delete the import from `main.ts`. Add it to each page's `<script>`. Page CSS then stays off the editor routes. |
 | `missing-source` | Add `source: 'src/...'` to the route entry. |

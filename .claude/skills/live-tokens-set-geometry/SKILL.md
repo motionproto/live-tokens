@@ -16,11 +16,11 @@ The result is on screen as soon as the run finishes. The three set skills write 
 3. Run `npx live-tokens set-geometry scratch/geometry-ops.json`. It writes `component-configs/<id>/_working.json` for every component the ops change.
 4. Read the report. It lists every changed alias, old and new, and every skip with its reason.
 5. When the CLI exits 1, fix the op or the input the message names, then re-run.
-6. Reply with every alias that moved and any skip or clamp worth naming.
+6. Reply with every alias that moved and any skip worth naming.
 
 `--dry-run` prints the report without writing.
 
-Each run reads the live config, so "a bit more" and "back one" compound. The live config is the buffer, else the open theme, else the shipped default.
+Each run reads the live config, so "a bit more" and "back one" compound. The live config is the buffer, else the open theme. With no theme loaded, the open theme is the shipped default.
 
 ## The ops file
 
@@ -37,8 +37,8 @@ Targeted, absolute:
 ```
 
 - `target` (optional): a component id, one of the folder names under `src/live-tokens/data/component-configs/`. "Windows" or "modals" is `dialog`, "cards" is `card`, "tabs" is `tabbar`. "The UI", "everything", or no noun means global, so omit `target`.
-- `kind`: `radius | padding | gap | border-width`.
-- `set` or `shift`, one of the two. `set` takes a token on that kind's scale. `shift` is a whole number of steps, clamped at the ends of the scale.
+- `kind`: `radius | padding | gap | border-width | divider-width | accent-width`. `border-width` moves `-border-width` aliases. `divider-width` moves dividers, hairline rules, and `-thickness` aliases. `accent-width` moves accent bars and indicators.
+- `set` or `shift`, one of the two. `set` takes a token on that kind's scale. `shift` is a whole number of steps and stops at the ends of the scale.
 - `full` (radius shifts only): admits `--radius-full` as the top of the scale. A pill request is `set: "--radius-full"` with no `full` flag.
 
 ## Idioms
@@ -70,7 +70,7 @@ Magnitude follows the qualifier. "Slightly" or "a bit" is 1 step. No qualifier i
 
 ## Compact containers before controls
 
-A global op spends the same number of steps everywhere, but a step costs a control more than a container. `padding shift: -2` takes a card from a 16px inset to 10px and it is still a card. The same op takes a button from 8px to 4px, which the button doubles to 8px at each end, around an 18px line. The button stops reading as a button.
+A global op spends the same number of steps everywhere, but a step costs a control more than a container. `padding shift: -2` takes a card from a 16px inset to 10px and it is still a card. The same op takes a button from 8px to its 6px floor, 12px at each end around an 18px line, and the floor stops it there. Below the floor the button stops reading as a button.
 
 So a global compaction is `shift: -1`. When the request wants more, spend the extra steps on the containers by name and leave the controls alone. The containers are:
 
@@ -96,13 +96,13 @@ A pill needs the most room. `--radius-full` bends the corner in over the first a
 
 ## Scales
 
-Radius runs `none, sm, md, lg, xl, 2xl, 3xl, 4xl`, with `full` as the gated ninth step. Space (padding and gap) is the editor picker's subset, `0, 2, 4, 6, 8, 10, 12, 16, 20, 24, 32, 48`, so the editor can select every value the CLI writes. Border width is the full `--border-width-*` scale.
+Radius runs `none, sm, md, lg, xl, 2xl, 3xl, 4xl`, with `full` as the gated ninth step. Space (padding and gap) is the editor picker's subset, `0, 2, 4, 6, 8, 10, 12, 16, 20, 24, 32, 48`, so the editor can select every value the CLI writes. Border width is the `--border-width-*` scale from `1` to `24`. A shift never reaches `--border-width-0`, and an alias at 0 is skipped. "No borders" is `set: "--border-width-0"`.
 
 An alias off the subset spends its first step reaching the subset, so `--space-2` with `shift: 1` lands on `--space-4`.
 
 ## Floors
 
-Content insets stop at `--space-4`. Below `--space-4` the text sits against its own edge, so `--space-0` and `--space-2` are values a person picks on purpose, through the editor picker or `set`. An alias below the floor still moves up. A shift that would push one under `--space-4` reports as clamped and writes nothing.
+Content insets stop at `--space-4`. Below `--space-4` the text sits against its own edge, so `--space-0` and `--space-2` are values a person picks on purpose, through the editor picker or `set`. An alias below the floor still moves up. A shift that would push one under `--space-4` lands on `--space-4`. An alias already at `--space-4` is skipped, and the report says so.
 
 Padding around a line of type stops at `--space-6`. A variant that declares a `-text-font-size` holds text. A component that holds text doubles its padding horizontally, so `--space-4` there is 4px over an 18px line and 8px at each end. No shipped default puts text below `--space-6`.
 

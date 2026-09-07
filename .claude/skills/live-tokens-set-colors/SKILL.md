@@ -19,7 +19,7 @@ theme in the editor discards it.
 1. Read the color intent and any anchor live-tokens-create-theme passed. When either names an anchor (a feeling, an idiom, an occasion), read its entry in `references/color-anchors.md`; it overrides the generic ranges below.
 2. Translate the intent into ten base colors with the framework below and write them to `scratch/<slug>-base-colors.json`. Keep this file for later refinements. The saved theme also records the base colors.
 3. Run `npx live-tokens set-colors scratch/<slug>-base-colors.json`.
-4. Read the report. Exit 0 passes, and auto-corrected values count as passing. Exit 1 names the base color to change, usually by raising its lightness or cutting its chroma. Fix the file and re-run.
+4. Read the report. Exit 0 passes, and auto-corrected values count as passing. On a contrast failure, exit 1 names the base color to change and the move: raise its lightness or reduce its chroma. On a bad file, exit 1 names the field. Fix the file and re-run.
 5. Reply with the anchor if any, the scheme, the hue families, the Canvas base color, and anything the contrast report auto-corrected.
 
 `--dry-run` prints the report without writing.
@@ -46,9 +46,10 @@ theme in the editor discards it.
 
 A base color is the one color a palette's whole ramp derives from.
 
-- `baseColors`: all ten required. Each is an OKLCH triple, where `l` is lightness 0 to 1, `c` is chroma (0 grey, about 0.37 max), and `h` is hue in degrees, or a `"#rrggbb"` string in its place.
+- `baseColors`: all ten required. Each is an OKLCH triple or a `"#rrggbb"` string in its place. `l` is lightness, above 0 and below 1. `c` is chroma, 0 for grey and at most 0.4. `h` is hue in degrees.
 - `scheme`: `"light"` or `"dark"`.
 - `canvasGradient` (optional): a boolean, default off. See Canvas sky and shadows.
+- `harmony` (optional): `{ "mode": "<mode>" }`, a record of the harmony the base colors follow. The CLI validates the mode and derives nothing from it. The modes are the ones the Harmony section names, plus `custom`.
 
 Roles: **Brand** is the dominant chromatic identity; **Accent** the supporting color; **Special** the rare expressive tertiary; **Canvas** is the page background verbatim; **Neutral** drives neutral surfaces and body text; **Alternate** is the second near-grey family; the four statuses are conventional signals.
 
@@ -121,15 +122,15 @@ Hue offsets from Brand: complementary +180; split-complementary +150/+210; triad
 
 ## Canvas sky and shadows
 
-`"canvasGradient": true` renders the page background as a vertical gradient from the Canvas ramp. Default off. Turn it on only when the intent evokes atmosphere (sky, night, dusk, glow, underwater) or asks for a gradient outright; keep it off for crisp, flat, minimal, or corporate intents and whenever in doubt, because a sky on every theme stops meaning anything. It needs a committed canvas (level 2 or 3); at the ramp edge the engine skips it and says so. Say why it is on, in one line.
+`"canvasGradient": true` renders the page background as a vertical gradient from the Canvas ramp. Default off. Turn it on only when the intent evokes atmosphere (sky, night, dusk, glow, underwater) or asks for a gradient outright; keep it off for crisp, flat, minimal, or corporate intents and whenever in doubt, because a sky on every theme stops meaning anything. It needs a Canvas base color with L above 0.10 and below 0.90. Outside that range the engine skips it and says so. Say why it is on, in one line.
 
 Shadow opacity derives from Canvas lightness and re-derives on every run, so there is nothing to choose. When shadows read heavy or muddy, raise the Canvas base color's L.
 
 ## Refining a theme's color
 
-"Warmer", "calmer", "more contrast" arrive against a theme that is already open, and the answer is a new base color file. Edit `scratch/<slug>-base-colors.json` when it is still there. When it is not, recover the ten base colors from `src/live-tokens/data/themes/<slug>.json`: each one sits verbatim at `colorsAndType.editorConfigs.<Palette>.baseColor`, in either form the file accepts, and the Canvas base color's lightness gives the scheme. Rebuild the base color file from those values, move the dial the user named, and re-run.
+"Warmer", "calmer", "more contrast" arrive against a theme that is already open, and the answer is a new base color file. Edit `scratch/<slug>-base-colors.json` when it is still there. When it is not, recover the ten base colors from `src/live-tokens/data/themes/<slug>.json`: each one sits at `colorsAndType.editorConfigs.<Palette>.baseColor` as an OKLCH triple, and the Canvas base color's lightness gives the scheme. Rebuild the base color file from those values, move the dial the user named, and re-run.
 
-A re-run replaces the buffer's whole color state, including palette edits made in the editor since the last run, so say so once when iterating.
+A re-run replaces the buffer's palette state, including palette edits made in the editor since the last run. Swatch gradients tuned in the editor carry through, and the report says which. Say so once when iterating.
 
 One adjective moves one dial. Warmer and cooler rotate hue; calmer and louder move chroma; lighter, darker, and moodier move Canvas L and the scheme; more contrast widens the L gap between Canvas and Brand and takes chroma out of the ground rather than adding it to the garnish. Leave every base color the user did not name alone, because a refinement that re-rolls the whole palette reads as a different theme and loses the thing they liked.
 
@@ -143,6 +144,6 @@ every other value in it forward. `save-theme` keeps the result; Adopt ships it.
 
 - The CLI exits 0 with every check passing (auto-corrected is fine), and the report names which layer the non-color values came from.
 - The app (dev server running) shows the new palette.
-- The editor's Theme panel marks the open theme unsaved. A dry run marks nothing, and neither does a run whose report says the layer under the buffer, the open theme or the package default, already holds these colors.
+- The editor's Theme panel marks the open theme as edited. A dry run marks nothing, and neither does a run whose report says the open theme or the shipped default already holds these colors.
 - The canvas is committed: on screen it reads as the theme's color rather than as generic near-white.
 - To revert, re-run with the previous base color file, or load the open theme again to discard the buffer.

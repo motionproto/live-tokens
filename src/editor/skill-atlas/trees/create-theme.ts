@@ -2,7 +2,7 @@ import type { SkillTree } from '../types';
 
 export const createTheme: SkillTree = {
   "id": "live-tokens-create-theme",
-  "digest": "sha256:9dd2e8bf69f722b5",
+  "digest": "sha256:d29f68b8c7319dd9",
   "title": "create-theme",
   "tagline": "Create a Live Tokens Theme",
   "nodes": [
@@ -51,7 +51,7 @@ export const createTheme: SkillTree = {
         {
           "label": "type",
           "lines": [47, 47],
-          "anchor": "| type | live-tokens-set-type | the two families, the form m"
+          "anchor": "| type | live-tokens-set-type | the families for up to five "
         },
         {
           "label": "geometry",

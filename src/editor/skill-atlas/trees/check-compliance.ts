@@ -2,7 +2,7 @@ import type { SkillTree } from '../types';
 
 export const checkCompliance: SkillTree = {
   "id": "live-tokens-check-compliance",
-  "digest": "sha256:bd4b6b454ef0f2f2",
+  "digest": "sha256:61c6a9c224cc8556",
   "title": "check-compliance",
   "tagline": "Check to Ensure Live Tokens Is Used",
   "nodes": [
@@ -71,7 +71,7 @@ export const checkCompliance: SkillTree = {
         {
           "label": "usage.byPage",
           "lines": [33, 33],
-          "anchor": "| `usage.byPage` | Which catalogue component each page rende"
+          "anchor": "| `usage.byPage` | Which component each page imports, and ho"
         },
         {
           "label": "usage.unusedShipped",
@@ -192,7 +192,7 @@ export const checkCompliance: SkillTree = {
         {
           "label": "usage.byPage",
           "lines": [33, 33],
-          "anchor": "| `usage.byPage` | Which catalogue component each page rende"
+          "anchor": "| `usage.byPage` | Which component each page imports, and ho"
         },
         {
           "label": "usage.unusedShipped",

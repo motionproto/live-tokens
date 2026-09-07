@@ -30,7 +30,7 @@ Never hand-author theme JSON and never edit the data tree directly.
 4. Invoke **live-tokens-set-colors** with the anchor and the color intent. Skip only when the user asked to leave the color alone.
 5. Invoke **live-tokens-set-type** with the anchor and the type intent. Skip only when the user asked to leave the type alone.
 6. Invoke **live-tokens-set-geometry** with the anchor and the geometry intent. Skip when the geometry intent is to leave the geometry alone.
-7. Take the theme name from the design direction and run `npx live-tokens save-theme "<name>"`. It composes the buffers into `themes/<slug>.json` and opens it; `--dry-run` prints what it would write instead. Adopt, in the editor, publishes the theme to the site.
+7. Take the theme name from the design direction and run `npx live-tokens save-theme "<name>"`. It composes the buffers into `themes/<slug>.json` and loads it. `--dry-run` prints the file path and the layers instead. A blank name and the name `default` exit 1. A name whose slug exists overwrites that theme in place. Adopt, in the editor, ships the theme to the site.
 8. Assemble the three set skill responses into the assembled report: the design direction, what each set skill changed, any dimension left alone, and anything one of them flagged. Review the result in the running app. Offer refinements (see Refining a theme).
 
 A set of themes runs steps 4 to 7 once per theme, with `--no-activate` on every
@@ -43,16 +43,16 @@ Invoke set skills with the anchor and the matching intent.
 
 | Dimension | Set skill | It decides |
 |---|---|---|
-| color | live-tokens-set-colors | ten base colors, the scheme, harmony, the canvas commitment, the contrast pass |
-| type | live-tokens-set-type | the two families, the form models behind them, the weights |
+| color | live-tokens-set-colors | ten base colors, the scheme, harmony, the Canvas base color and its gradient, the contrast pass |
+| type | live-tokens-set-type | the families for up to five slots, the form models behind them, the weights |
 | geometry | live-tokens-set-geometry | radius, padding, gap, and border-width |
 
 A dimension the request left open still gets an intent, taken from the anchor.
 A dimension the request excludes gets no invocation at all, and the assembled report says which.
 
-Component aliases and gradients carry forward from the buffers into the theme
-`save-theme` writes: user-tuned gradients survive, and stock ones rebuild from
-the new families.
+Component aliases and swatch gradients carry forward from the buffers by value
+into the theme `save-theme` writes. At a set-colors run, gradients tuned in the
+editor survive and stock ones rebuild from the new families.
 
 ## Refining a theme
 

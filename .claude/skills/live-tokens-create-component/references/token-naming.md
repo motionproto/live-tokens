@@ -44,6 +44,7 @@ to that list, so the two cannot drift apart.
 | `-border-width` | Stroke thickness (used even when CSS uses `outline:`)         |
 | `-thickness`    | Alternative to `-width` when fallback siblings would collide  |
 | `-accent-width` | An accent bar's thickness                                     |
+| `-indicator-width` | An indicator's thickness, moved with `-accent-width`      |
 | `-hairline-thickness` | A hairline rule's thickness                             |
 | `-dot-size`     | A dot indicator's diameter                                    |
 | `-divider-width` | A divider's thickness                                        |

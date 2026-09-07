@@ -2,7 +2,7 @@ import type { SkillTree } from '../types';
 
 export const setType: SkillTree = {
   "id": "live-tokens-set-type",
-  "digest": "sha256:f3b99197199d9bef",
+  "digest": "sha256:0c8d26a16313f9ee",
   "title": "set-type",
   "tagline": "Set Typefaces from Google Fonts",
   "nodes": [
@@ -159,7 +159,7 @@ export const setType: SkillTree = {
       "title": "Correct the input file",
       "desc": "Use the error details to correct the input and rerun the command.",
       "lines": [17, 17],
-      "anchor": "Read the report. Name a weight gap and offer an alternative "
+      "anchor": "Read the report. Name a missing weight and offer an alternat"
     },
     {
       "id": "st-pass",
@@ -167,7 +167,7 @@ export const setType: SkillTree = {
       "kind": "ok",
       "title": "Command passes",
       "lines": [17, 17],
-      "anchor": "Read the report. Name a weight gap and offer an alternative "
+      "anchor": "Read the report. Name a missing weight and offer an alternat"
     },
     {
       "id": "st-report",
@@ -175,7 +175,7 @@ export const setType: SkillTree = {
       "kind": "step",
       "title": "Read the report",
       "lines": [17, 17],
-      "anchor": "Read the report. Name a weight gap and offer an alternative ",
+      "anchor": "Read the report. Name a missing weight and offer an alternat",
       "n": "4"
     },
     {
