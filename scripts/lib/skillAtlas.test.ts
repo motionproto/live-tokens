@@ -313,6 +313,22 @@ describe('decision-tree structure', () => {
   it('accepts a complete plan with a retry loop', () => {
     expect(auditStructure(plan())).toEqual([]);
   });
+  it('accepts unlabelled parallel continuations from a step and rejects labelled ones', () => {
+    const trees = plan();
+    trees.example.nodes.push(
+      { id: 'left', row: 3, kind: 'step', title: 'Left', lines: [5, 5] },
+      { id: 'right', row: 3, kind: 'step', title: 'Right', lines: [5, 5] },
+      { id: 'join', row: 4, kind: 'done', title: 'Joined', lines: [6, 6] },
+    );
+    trees.example.nodes[3].kind = 'step';
+    trees.example.edges.push(
+      { from: 'end', to: 'left' }, { from: 'end', to: 'right' },
+      { from: 'left', to: 'join' }, { from: 'right', to: 'join' },
+    );
+    expect(auditStructure(trees)).toEqual([]);
+    trees.example.edges[4].label = 'first';
+    expect(auditStructure(trees).join('\n')).toContain('unlabelled parallel continuations');
+  });
   it('rejects an answerless branch and a forward edge that ascends', () => {
     const trees = plan();
     delete (trees.example.edges[1] as { label?: string }).label;

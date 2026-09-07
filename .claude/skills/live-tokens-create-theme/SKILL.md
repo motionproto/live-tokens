@@ -1,6 +1,6 @@
 ---
 name: live-tokens-create-theme
-description: Create or modify a complete live-tokens theme from a natural-language request. Derives one design direction and routes a color intent, a type intent, and a geometry intent to live-tokens-set-colors, live-tokens-set-type, and live-tokens-set-geometry. Use when the user asks for a theme, look, vibe, or brand feel by mood, style, era, season, holiday, or hue. Use when the user names only a color and wants a theme around it. Use when the user refines a theme across more than one dimension. For color, type, or geometry named on its own, read that set skill.
+description: Create or modify a complete live-tokens theme from a natural-language request. A theme has three dimensions: color, typography, and geometry. The skill adjusts design token values and their assignment to semantic properties to create a new theme. Derives one design direction and routes a color intent, a type intent, and a geometry intent to live-tokens-set-colors, live-tokens-set-type, and live-tokens-set-geometry. Use when the user asks for a theme, look, vibe, or brand feel by mood, style, era, season, holiday, or hue. Use when the user names only a color and wants a theme around it. Use when the user refines a theme across more than one dimension. For color, type, or geometry named on its own, read that set skill.
 ---
 
 # Creating a theme from a request
@@ -30,12 +30,8 @@ Never hand-author theme JSON and never edit the data tree directly.
 4. Invoke **live-tokens-set-colors** with the anchor and the color intent. Skip only when the user asked to leave the color alone.
 5. Invoke **live-tokens-set-type** with the anchor and the type intent. Skip only when the user asked to leave the type alone.
 6. Invoke **live-tokens-set-geometry** with the anchor and the geometry intent. Skip when the geometry intent is to leave the geometry alone.
-7. Take the theme name from the design direction and run `npx live-tokens save-theme "<name>"`. It composes the buffers into `themes/<slug>.json` and loads it. `--dry-run` prints the file path and the layers instead. A blank name and the name `default` exit 1. A name whose slug exists overwrites that theme in place. Adopt, in the editor, ships the theme to the site.
+7. Take the theme name from the design direction and run `npx live-tokens save-theme "<name>"`. It composes the buffers into `themes/<slug>.json` and loads it. `--dry-run` prints the file path and the layers instead. `--no-activate` writes the theme without loading it. A blank name and the name `default` exit 1. A name whose slug exists overwrites that theme in place. Adopt, in the editor, ships the theme to the site.
 8. Assemble the three set skill responses into the assembled report: the design direction, what each set skill changed, any dimension left alone, and anything one of them flagged. Review the result in the running app. Offer refinements (see Refining a theme).
-
-A set of themes runs steps 4 to 7 once per theme, with `--no-activate` on every
-save but the last. That writes the theme and leaves the buffers alone, so each
-theme starts from the same state.
 
 ## Set skill responsibilities
 

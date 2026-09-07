@@ -219,7 +219,9 @@ export function auditStructure(trees, skillIds = Object.values(trees).map((tree)
         if (edges.length) fail(node.id, 'terminal node has outgoing edges');
       } else if (node.kind === 'cli') {
         if (!edges.length || (edges.length > 1 && edges.some((edge) => !edge.label?.trim()))) fail(node.id, 'command needs a continuation or labelled outcomes');
-      } else if (edges.length !== 1) fail(node.id, 'node needs one continuation');
+      } else if (!edges.length || (edges.length > 1 && edges.some((edge) => edge.label))) {
+        fail(node.id, 'node needs one continuation, or unlabelled parallel continuations');
+      }
       if (node.kind === 'gate' && !edges[0]?.back) fail(node.id, 'failure gate needs a return edge');
       if (node.kind === 'hand' && ![...knownSkills].some((id) => `${node.title} ${node.desc ?? ''}`.includes(id))) {
         fail(node.id, 'handoff must name an existing skill');
