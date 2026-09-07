@@ -1,4 +1,4 @@
-import { readFileSync } from 'node:fs';
+import { readdirSync, readFileSync } from 'node:fs';
 import { describe, it, expect } from 'vitest';
 import {
   anchorOf,
@@ -8,9 +8,9 @@ import {
   digestOf,
   locate,
   normalize,
-  parseTrees,
+  parseTree,
   rebuild,
-  serializeTrees,
+  serializeTree,
   syncDigest,
   syncNode,
   uncoveredSkills,
@@ -26,24 +26,23 @@ if (command === 'set-geometry') {
 if (command === 'set-type') {
 `;
 
-const atlas = (command: string) => `import type { SkillTree } from './types';
+const atlas = (command: string) => `import type { SkillTree } from '../types';
 
-export const skillTrees: Record<string, SkillTree> = {
-  "set-geometry": {
-    "id": "live-tokens-set-geometry",
-    "title": "set-geometry",
-    "nodes": [
-      {
-        "id": "sg-run",
-        "title": "Run the verb",
-        "command": ${JSON.stringify(command)}
-      }
-    ]
-  }
+export const setGeometry: SkillTree = {
+  "id": "live-tokens-set-geometry",
+  "title": "set-geometry",
+  "nodes": [
+    {
+      "id": "sg-run",
+      "title": "Run the verb",
+      "command": ${JSON.stringify(command)}
+    }
+  ]
 };
 `;
 
-const audit = (command: string) => auditCommands(parseTrees(atlas(command)).trees, CLI);
+const trees = (command: string) => ({ 'set-geometry': parseTree(atlas(command)).tree });
+const audit = (command: string) => auditCommands(trees(command), CLI);
 
 const BODY = [
   '---',
@@ -241,10 +240,8 @@ describe('a command a card prints', () => {
 
 describe('the skills the trees map', () => {
   it('names a bundled skill no tree maps', () => {
-    const { trees } = parseTrees(atlas('npx live-tokens set-geometry scratch/geometry-ops.json'));
-
-    expect(uncoveredSkills(trees, ['live-tokens-set-colors', 'live-tokens-set-geometry'])).toEqual([
-      'live-tokens-set-colors: no tree in skillTrees.ts maps this skill',
+    expect(uncoveredSkills(trees('npx live-tokens set-geometry ops.json'), ['live-tokens-set-colors', 'live-tokens-set-geometry'])).toEqual([
+      'live-tokens-set-colors: no tree under src/editor/skill-atlas/trees maps this skill',
     ]);
   });
 
@@ -254,7 +251,7 @@ describe('the skills the trees map', () => {
       '"title": "Run the verb", "chips": [{ "label": "Dry run" }]',
     );
 
-    expect(atlasNodes(parseTrees(source).trees).map((n: { label: string }) => n.label)).toEqual([
+    expect(atlasNodes({ 'set-geometry': parseTree(source).tree }).map((n: { label: string }) => n.label)).toEqual([
       'live-tokens-set-geometry live-tokens-set-geometry',
       'live-tokens-set-geometry sg-run',
       'live-tokens-set-geometry.nodes[0].chips[0]',
@@ -262,14 +259,16 @@ describe('the skills the trees map', () => {
   });
 });
 
-// `sync:skill-atlas --write` rewrites the file from the parsed value, so a
+// `sync:skill-atlas --write` rewrites each file from the parsed value, so a
 // clean tree has to serialize back to its own bytes: anything else means every
 // sync carries a formatting diff nobody asked for.
-describe('the shipped tree', () => {
-  it('round-trips through the parse the sync writes from', () => {
-    const source = readFileSync(new URL('../../src/editor/skill-atlas/skillTrees.ts', import.meta.url), 'utf8');
+describe('the shipped trees', () => {
+  const dir = new URL('../../src/editor/skill-atlas/trees/', import.meta.url);
 
-    expect(serializeTrees(parseTrees(source))).toBe(source);
+  it.each(readdirSync(dir).filter((file) => file.endsWith('.ts')))('%s round-trips through the parse the sync writes from', (file) => {
+    const source = readFileSync(new URL(file, dir), 'utf8');
+
+    expect(serializeTree(parseTree(source))).toBe(source);
   });
 });
 

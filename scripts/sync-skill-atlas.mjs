@@ -22,22 +22,25 @@ import {
   atlasNodes,
   auditCommands,
   auditStructure,
-  parseTrees,
-  serializeTrees,
+  auditSource,
+  parseTree,
+  serializeTree,
   syncDigest,
   syncNode,
   uncoveredSkills,
 } from './lib/skillAtlas.mjs';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
-const ATLAS = join(ROOT, 'src/editor/skill-atlas/skillTrees.ts');
+const TREES = join(ROOT, 'src/editor/skill-atlas/trees');
 const SKILLS = join(ROOT, '.claude/skills');
 const CLI = join(ROOT, 'bin/cli.mjs');
 
 const write = process.argv.slice(2).includes('--write');
 
-const parsed = parseTrees(readFileSync(ATLAS, 'utf8'));
-const { trees } = parsed;
+// One file per skill, named by the atlas key.
+const files = readdirSync(TREES).filter((file) => file.endsWith('.ts')).sort();
+const parsed = files.map((file) => ({ file, path: join(TREES, file), ...parseTree(readFileSync(join(TREES, file), 'utf8')) }));
+const trees = Object.fromEntries(parsed.map(({ file, tree }) => [file.replace(/\.ts$/, ''), tree]));
 const selected = process.argv.find((arg) => arg.startsWith('--skill='))?.slice(8);
 if (selected && !trees[selected]) throw new Error(`Unknown atlas skill: ${selected}`);
 const activeTrees = selected ? { [selected]: trees[selected] } : trees;
@@ -62,6 +65,7 @@ const take = ({ error, moved: didMove, anchored: didAnchor, digested: didDigest 
 
 for (const tree of Object.values(activeTrees)) take(syncDigest(tree, linesOf(tree.id), write));
 for (const { node, id, label } of atlasNodes(activeTrees)) take(syncNode(node, { lines: linesOf(id), id, label, write }));
+for (const tree of Object.values(activeTrees)) errors.push(...auditSource(tree, linesOf(tree.id)));
 errors.push(...auditCommands(activeTrees, readFileSync(CLI, 'utf8')));
 errors.push(...auditStructure(activeTrees, Object.values(trees).map((tree) => tree.id)));
 
@@ -80,7 +84,10 @@ if (errors.length > 0) {
 }
 
 if (write) {
-  writeFileSync(ATLAS, serializeTrees(parsed));
+  for (const entry of parsed) {
+    const next = serializeTree(entry);
+    if (next !== readFileSync(entry.path, 'utf8')) writeFileSync(entry.path, next);
+  }
   const parts = [];
   if (anchored > 0) parts.push(`anchored ${anchored} range(s)`);
   if (moved > 0) parts.push(`re-pointed ${moved} range(s)`);

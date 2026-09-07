@@ -32,6 +32,14 @@ function fixture(): Record<string, ComponentConfig> {
       '--card-hero-radius': 'clamp(4px, 1vw, 12px)',
       '--card-media-padding': '--space-full',
     }),
+    table: config('table', {
+      '--table-default-border-width': '--border-width-1',
+      '--table-default-header-divider-width': '--border-width-1',
+      '--table-default-row-divider-width': '--border-width-1',
+      '--table-default-hairline-thickness': '--border-width-1',
+      '--table-default-accent-width': '--border-width-3',
+      '--table-default-tab-border-width': '--border-width-0',
+    }),
   };
 }
 
@@ -189,6 +197,46 @@ describe('adjustAliases', () => {
 
     expect(configs.card.aliases['--card-default-header-padding']).toBe('--space-16');
     expect(configs.card.aliases['--card-default-header-padding-top']).toBe('--space-20');
+  });
+
+  it('moves each stroke role on its own kind', () => {
+    const { configs } = adjustAliases(fixture(), [{ kind: 'border-width', shift: 1 }], NOW);
+    expect(configs.table.aliases['--table-default-border-width']).toBe('--border-width-2');
+    expect(configs.table.aliases['--table-default-header-divider-width']).toBe('--border-width-1');
+    expect(configs.table.aliases['--table-default-accent-width']).toBe('--border-width-3');
+
+    const dividers = adjustAliases(fixture(), [{ kind: 'divider-width', shift: 1 }], NOW).configs;
+    expect(dividers.table.aliases['--table-default-border-width']).toBe('--border-width-1');
+    expect(dividers.table.aliases['--table-default-header-divider-width']).toBe('--border-width-2');
+    expect(dividers.table.aliases['--table-default-row-divider-width']).toBe('--border-width-2');
+    expect(dividers.table.aliases['--table-default-hairline-thickness']).toBe('--border-width-2');
+    expect(dividers.table.aliases['--table-default-accent-width']).toBe('--border-width-3');
+
+    const accents = adjustAliases(fixture(), [{ kind: 'accent-width', shift: -1 }], NOW).configs;
+    expect(accents.table.aliases['--table-default-accent-width']).toBe('--border-width-2');
+    expect(accents.table.aliases['--table-default-border-width']).toBe('--border-width-1');
+  });
+
+  it('never draws a line a shift did not ask for', () => {
+    const { configs, report } = adjustAliases(fixture(), [{ kind: 'border-width', shift: 2 }], NOW);
+    expect(configs.table.aliases['--table-default-tab-border-width']).toBe('--border-width-0');
+    expect(skipReason(report, 'table', '--table-default-tab-border-width')).toBe('none-preserved');
+  });
+
+  it('never shifts a stroke down to nothing', () => {
+    const { configs, report } = adjustAliases(fixture(), [{ kind: 'border-width', shift: -1 }], NOW);
+    expect(configs.table.aliases['--table-default-border-width']).toBe('--border-width-1');
+    expect(skipReason(report, 'table', '--table-default-border-width')).toBe('clamped');
+  });
+
+  it('still sets a stroke to nothing by name', () => {
+    const { configs } = adjustAliases(
+      fixture(),
+      [{ target: 'table', kind: 'border-width', set: '--border-width-0' }],
+      NOW,
+    );
+    expect(configs.table.aliases['--table-default-border-width']).toBe('--border-width-0');
+    expect(configs.table.aliases['--table-default-header-divider-width']).toBe('--border-width-1');
   });
 
   it('applies a targeted op to that component alone', () => {

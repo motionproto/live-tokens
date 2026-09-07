@@ -2,8 +2,9 @@ export type TokenKind =
   | 'surface'
   | 'border'
   | 'border-width'
-  | 'radius'
   | 'divider-width'
+  | 'accent-width'
+  | 'radius'
   | 'divider-height'
   | 'divider-inset'
   | 'dot-size'
@@ -28,7 +29,7 @@ export type TokenKind =
     `suffix:` arrays out of this file, which is why they are plain literals.
 
     Order matters: `-text` must run before `-border`/`-surface`, and
-    `-accent-width` before `-accent`, because the first match wins. A variable
+    `-accent-width` before `-accent` and `-width`, because the first match wins. A variable
     matching nothing falls through to `text-color` (a palette picker), but that
     fall-through is a smell — `check-component` rejects an unrecognised suffix,
     so add the name here rather than letting it drift. */
@@ -47,7 +48,10 @@ export const KIND_RULES: ReadonlyArray<{
                                      '-description', '-hint', '-error', '-placeholder', '-value'],
                             prefix: ['--text-'] },
   { kind: 'radius',         suffix: ['-radius'], prefix: ['--radius-'] },
-  { kind: 'divider-width',  suffix: ['-divider-width', '-divider-thickness'] },
+  // Three stroke roles share the `--border-width-*` scale: a border encloses,
+  // a divider separates, an accent emphasises. `set-geometry` moves each role
+  // on its own, so a suffix has to say which line it names.
+  { kind: 'divider-width',  suffix: ['-divider-width', '-divider-thickness', '-hairline-thickness', '-thickness'] },
   { kind: 'divider-height', suffix: ['-divider-height', '-track-height'] },
   { kind: 'divider-inset',  suffix: ['-divider-inset', '-inset'] },
   { kind: 'dot-size',       suffix: ['-dot-size'] },
@@ -58,8 +62,8 @@ export const KIND_RULES: ReadonlyArray<{
   { kind: 'gap',            suffix: ['-gap'] },
   { kind: 'duration',       suffix: ['-duration'], prefix: ['--duration-'] },
   { kind: 'easing',         suffix: ['-easing'], prefix: ['--ease-'] },
-  { kind: 'border-width',   suffix: ['-border-width', '-accent-width', '-hairline-thickness', '-thickness'],
-                            prefix: ['--border-width-'] },
+  { kind: 'accent-width',   suffix: ['-accent-width', '-indicator-width'] },
+  { kind: 'border-width',   suffix: ['-border-width'], prefix: ['--border-width-'] },
   { kind: 'border',         suffix: ['-border'], prefix: ['--border-'] },
   // A dimension with no more specific name behind it — a panel's width, an
   // avatar's size. Last of the geometry rules, so every `-border-width`,

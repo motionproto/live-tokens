@@ -15,8 +15,8 @@
     ],
     header: [
       { label: 'surface color', groupKey: 'header-surface', variable: '--table-default-header-surface' },
-      { label: 'border color', canBeLinked: true, groupKey: 'border', variable: '--table-default-header-border' },
-      { label: 'border width', canBeLinked: true, groupKey: 'width', variable: '--table-default-header-border-width' },
+      { label: 'divider color', canBeLinked: true, groupKey: 'border', variable: '--table-default-header-divider' },
+      { label: 'divider width', canBeLinked: true, groupKey: 'width', variable: '--table-default-header-divider-width' },
       { label: 'padding', groupKey: 'header-padding', variable: '--table-default-header-padding' },
     ],
     cell: [

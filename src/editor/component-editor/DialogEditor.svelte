@@ -28,8 +28,8 @@
     ],
     header: [
       { label: 'surface color', groupKey: 'surface', variable: '--dialog-header-surface' },
-      { label: 'border color', groupKey: 'border', variable: '--dialog-header-border' },
-      { label: 'border width', groupKey: 'width', variable: '--dialog-header-border-width' },
+      { label: 'divider color', groupKey: 'border', variable: '--dialog-header-divider' },
+      { label: 'divider width', groupKey: 'width', variable: '--dialog-header-divider-width' },
       { label: 'padding', groupKey: 'padding', variable: '--dialog-header-padding' },
       { label: 'close icon color', groupKey: 'icon', variable: '--dialog-close-icon' },
       { label: 'close icon size', groupKey: 'size', variable: '--dialog-close-icon-size' },
@@ -38,8 +38,8 @@
       { label: 'padding', groupKey: 'padding', variable: '--dialog-body-padding' },
     ],
     footer: [
-      { label: 'border color', groupKey: 'border', variable: '--dialog-footer-border' },
-      { label: 'border width', groupKey: 'width', variable: '--dialog-footer-border-width' },
+      { label: 'divider color', groupKey: 'border', variable: '--dialog-footer-divider' },
+      { label: 'divider width', groupKey: 'width', variable: '--dialog-footer-divider-width' },
       { label: 'padding', groupKey: 'padding', variable: '--dialog-footer-padding' },
     ],
   };

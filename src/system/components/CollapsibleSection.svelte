@@ -114,8 +114,8 @@
 
       /* Divider — default */
       --collapsiblesection-divider-default-surface: var(--color-transparent);
-      --collapsiblesection-divider-default-border: var(--border-brand);
-      --collapsiblesection-divider-default-border-width: var(--border-width-1);
+      --collapsiblesection-divider-default-hairline-color: var(--border-brand);
+      --collapsiblesection-divider-default-hairline-thickness: var(--border-width-1);
       --collapsiblesection-divider-default-padding: var(--space-4);
       --collapsiblesection-divider-default-label: var(--text-primary);
       --collapsiblesection-divider-default-label-font-family: var(--font-sans);
@@ -126,8 +126,8 @@
       --collapsiblesection-divider-default-icon-size: var(--icon-size-xs);
       /* Divider — hover */
       --collapsiblesection-divider-hover-surface: var(--color-transparent);
-      --collapsiblesection-divider-hover-border: var(--border-neutral);
-      --collapsiblesection-divider-hover-border-width: var(--border-width-1);
+      --collapsiblesection-divider-hover-hairline-color: var(--border-neutral);
+      --collapsiblesection-divider-hover-hairline-thickness: var(--border-width-1);
       --collapsiblesection-divider-hover-padding: var(--space-4);
       --collapsiblesection-divider-hover-label: var(--text-primary);
       --collapsiblesection-divider-hover-label-font-family: var(--font-sans);
@@ -245,7 +245,7 @@
    }
 
    @mixin divider-bottom($state) {
-      border-bottom: var(--collapsiblesection-divider-#{$state}-border-width) solid var(--collapsiblesection-divider-#{$state}-border);
+      border-bottom: var(--collapsiblesection-divider-#{$state}-hairline-thickness) solid var(--collapsiblesection-divider-#{$state}-hairline-color);
    }
 
    .es-root.variant-chromeless {

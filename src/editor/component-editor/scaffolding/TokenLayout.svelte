@@ -68,7 +68,6 @@
     'font-size',
     'line-height',
     'letter-spacing',
-    'divider-width',
     'divider-height',
     'divider-inset',
     'dot-size',
@@ -85,6 +84,8 @@
     'text-color',
     'surface',
     'border-width',
+    'divider-width',
+    'accent-width',
     'border',
   ];
   const orderRank: Record<Kind, number> = Object.fromEntries(
@@ -135,6 +136,7 @@
     'letter-spacing': { component: UILetterSpacingSelector },
     'border-width': { component: UIVariantSelector, extra: () => ({ ...BORDER_WIDTH }) },
     'divider-width': { component: UIVariantSelector, extra: () => ({ ...BORDER_WIDTH }) },
+    'accent-width': { component: UIVariantSelector, extra: () => ({ ...BORDER_WIDTH }) },
     'divider-height': { component: UIVariantSelector, extra: () => ({ ...DIVIDER_HEIGHT }) },
     'divider-inset': { component: UIVariantSelector, extra: () => ({ ...DIVIDER_INSET }) },
     'dot-size': { component: UIVariantSelector, extra: () => ({ ...DOT_SIZE }) },
@@ -165,7 +167,7 @@
   };
 
   /** Multi-col rank: same as `orderRank` but with `text-color` hoisted between
-      `line-height` and `divider-width` so typography reads as one logical block
+      `line-height` and `divider-height` so typography reads as one logical block
       in column flow. Single-col mode keeps `orderRank` (linked-first sort
       already segregates text-color to the bottom). */
   const multiColRank: Record<Kind, number> = (() => {
@@ -176,7 +178,6 @@
       'line-height',
       'letter-spacing',
       'text-color',
-      'divider-width',
       'divider-height',
       'divider-inset',
       'dot-size',
@@ -192,6 +193,8 @@
       'shadow',
       'surface',
       'border-width',
+      'divider-width',
+      'accent-width',
       'border',
     ];
     return Object.fromEntries(reordered.map((k, i) => [k, i])) as Record<Kind, number>;

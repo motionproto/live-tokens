@@ -2934,8 +2934,8 @@
         "--collapsiblesection-chromeless-hover-icon-size": "--icon-size-xs",
         "--collapsiblesection-chromeless-expanded-padding": "--space-4",
         "--collapsiblesection-divider-default-surface": "--color-transparent",
-        "--collapsiblesection-divider-default-border": "--border-brand",
-        "--collapsiblesection-divider-default-border-width": "--border-width-3",
+        "--collapsiblesection-divider-default-hairline-color": "--border-brand",
+        "--collapsiblesection-divider-default-hairline-thickness": "--border-width-3",
         "--collapsiblesection-divider-default-padding": "--space-4",
         "--collapsiblesection-divider-default-label": "--text-primary",
         "--collapsiblesection-divider-default-label-font-family": "--font-sans",
@@ -2945,8 +2945,8 @@
         "--collapsiblesection-divider-default-icon": "--text-primary",
         "--collapsiblesection-divider-default-icon-size": "--icon-size-xs",
         "--collapsiblesection-divider-hover-surface": "--color-transparent",
-        "--collapsiblesection-divider-hover-border": "--border-neutral",
-        "--collapsiblesection-divider-hover-border-width": "--border-width-3",
+        "--collapsiblesection-divider-hover-hairline-color": "--border-neutral",
+        "--collapsiblesection-divider-hover-hairline-thickness": "--border-width-3",
         "--collapsiblesection-divider-hover-padding": "--space-4",
         "--collapsiblesection-divider-hover-label": "--text-primary",
         "--collapsiblesection-divider-hover-label-font-family": "--font-sans",
@@ -3043,8 +3043,8 @@
         "--dialog-shadow": "--shadow-2xl",
         "--dialog-blur": "--blur-none",
         "--dialog-header-surface": "--surface-neutral-lower",
-        "--dialog-header-border": "--border-neutral-subtle",
-        "--dialog-header-border-width": "--border-width-3",
+        "--dialog-header-divider": "--border-neutral-subtle",
+        "--dialog-header-divider-width": "--border-width-3",
         "--dialog-header-padding": "--space-6",
         "--dialog-title": "--text-primary",
         "--dialog-title-font-family": "--font-sans",
@@ -3059,8 +3059,8 @@
         "--dialog-body-font-size": "--font-size-md",
         "--dialog-body-font-weight": "--font-weight-normal",
         "--dialog-body-line-height": "--line-height-normal",
-        "--dialog-footer-border": "--border-neutral-subtle",
-        "--dialog-footer-border-width": "--border-width-3",
+        "--dialog-footer-divider": "--border-neutral-subtle",
+        "--dialog-footer-divider-width": "--border-width-3",
         "--dialog-footer-padding": "--space-12"
       }
     },
@@ -3847,7 +3847,7 @@
         "--tabbar-default-tab-border-width": "--border-width-2",
         "--tabbar-default-tab-top-radius": "--radius-none",
         "--tabbar-default-tab-bottom-radius": "--radius-none",
-        "--tabbar-default-indicator-border-width": "--border-width-4",
+        "--tabbar-default-indicator-width": "--border-width-4",
         "--tabbar-hover-text": "--text-secondary",
         "--tabbar-hover-surface": "--surface-neutral-lower",
         "--tabbar-hover-text-font-family": "--font-sans",
@@ -3861,7 +3861,7 @@
         "--tabbar-hover-tab-border-width": "--border-width-2",
         "--tabbar-hover-tab-top-radius": "--radius-none",
         "--tabbar-hover-tab-bottom-radius": "--radius-none",
-        "--tabbar-hover-indicator-border-width": "--border-width-4",
+        "--tabbar-hover-indicator-width": "--border-width-4",
         "--tabbar-active-text": "--text-primary",
         "--tabbar-active-border": "--color-brand-500",
         "--tabbar-active-surface": "--tint-low",
@@ -3875,7 +3875,7 @@
         "--tabbar-active-tab-border-width": "--border-width-2",
         "--tabbar-active-tab-top-radius": "--radius-none",
         "--tabbar-active-tab-bottom-radius": "--radius-none",
-        "--tabbar-active-indicator-border-width": "--border-width-4",
+        "--tabbar-active-indicator-width": "--border-width-4",
         "--tabbar-disabled-text": "--text-disabled",
         "--tabbar-disabled-text-font-family": "--font-sans",
         "--tabbar-disabled-text-font-size": "--font-size-md",
@@ -3889,7 +3889,7 @@
         "--tabbar-disabled-tab-border-width": "--border-width-2",
         "--tabbar-disabled-tab-top-radius": "--radius-none",
         "--tabbar-disabled-tab-bottom-radius": "--radius-none",
-        "--tabbar-disabled-indicator-border-width": "--border-width-4"
+        "--tabbar-disabled-indicator-width": "--border-width-4"
       }
     },
     "table": {
@@ -3910,8 +3910,8 @@
         "--table-default-header-font-weight": "--font-weight-semibold",
         "--table-default-header-line-height": "--line-height-none",
         "--table-default-header-padding": "--space-10",
-        "--table-default-header-border": "--border-neutral",
-        "--table-default-header-border-width": "--border-width-3",
+        "--table-default-header-divider": "--border-neutral",
+        "--table-default-header-divider-width": "--border-width-3",
         "--table-default-cell-text": "--text-secondary",
         "--table-default-cell-font-family": "--font-sans",
         "--table-default-cell-font-size": "--font-size-md",
@@ -4033,5 +4033,5 @@
       }
     }
   },
-  "componentSchemaVersion": 26
+  "componentSchemaVersion": 27
 }

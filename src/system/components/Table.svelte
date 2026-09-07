@@ -34,8 +34,8 @@
     --table-default-header-font-weight: var(--font-weight-semibold);
     --table-default-header-line-height: var(--line-height-none);
     --table-default-header-padding: var(--space-12);
-    --table-default-header-border: var(--border-neutral);
-    --table-default-header-border-width: var(--border-width-1);
+    --table-default-header-divider: var(--border-neutral);
+    --table-default-header-divider-width: var(--border-width-1);
 
     /* Cell */
     --table-default-cell-text: var(--text-secondary);
@@ -82,7 +82,7 @@
     line-height: var(--table-default-header-line-height);
     @include themed-padding(--table-default-header-padding);
     text-align: left;
-    border-bottom: var(--table-default-header-border-width) solid var(--table-default-header-border);
+    border-bottom: var(--table-default-header-divider-width) solid var(--table-default-header-divider);
     border-right: var(--table-default-column-divider-width) solid var(--table-default-column-divider);
     white-space: nowrap;
   }

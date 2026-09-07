@@ -186,8 +186,8 @@
 
     /* Header */
     --dialog-header-surface: var(--surface-neutral-lower);
-    --dialog-header-border: var(--border-neutral-subtle);
-    --dialog-header-border-width: var(--border-width-1);
+    --dialog-header-divider: var(--border-neutral-subtle);
+    --dialog-header-divider-width: var(--border-width-1);
     --dialog-header-padding: var(--space-8);
 
     /* Title */
@@ -210,8 +210,8 @@
     --dialog-body-line-height: var(--line-height-normal);
 
     /* Footer */
-    --dialog-footer-border: var(--border-neutral-subtle);
-    --dialog-footer-border-width: var(--border-width-1);
+    --dialog-footer-divider: var(--border-neutral-subtle);
+    --dialog-footer-divider-width: var(--border-width-1);
     --dialog-footer-padding: var(--space-16);
   }
 
@@ -271,7 +271,7 @@
       var(--dialog-header-padding-right, calc(var(--dialog-header-padding) * 3))
       var(--dialog-header-padding-bottom, var(--dialog-header-padding))
       var(--dialog-header-padding-left, calc(var(--dialog-header-padding) * 3));
-    border-bottom: var(--dialog-header-border-width) solid var(--dialog-header-border);
+    border-bottom: var(--dialog-header-divider-width) solid var(--dialog-header-divider);
     background: var(--dialog-header-surface);
     display: flex;
     justify-content: space-between;
@@ -327,7 +327,7 @@
       var(--dialog-footer-padding-right, var(--dialog-footer-padding))
       var(--dialog-footer-padding-bottom, var(--dialog-footer-padding))
       var(--dialog-footer-padding-left, var(--dialog-footer-padding));
-    border-top: var(--dialog-footer-border-width) solid var(--dialog-footer-border);
+    border-top: var(--dialog-footer-divider-width) solid var(--dialog-footer-divider);
     display: flex;
     justify-content: space-between;
     align-items: center;

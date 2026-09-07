@@ -12,8 +12,8 @@
     "--dialog-shadow": "--shadow-2xl",
     "--dialog-blur": "--blur-none",
     "--dialog-header-surface": "--surface-neutral-lower",
-    "--dialog-header-border": "--border-neutral-subtle",
-    "--dialog-header-border-width": "--border-width-1",
+    "--dialog-header-divider": "--border-neutral-subtle",
+    "--dialog-header-divider-width": "--border-width-1",
     "--dialog-header-padding": "--space-8",
     "--dialog-title": "--text-primary",
     "--dialog-title-font-family": "--font-sans",
@@ -28,8 +28,8 @@
     "--dialog-body-font-size": "--font-size-md",
     "--dialog-body-font-weight": "--font-weight-normal",
     "--dialog-body-line-height": "--line-height-normal",
-    "--dialog-footer-border": "--border-neutral-subtle",
-    "--dialog-footer-border-width": "--border-width-1",
+    "--dialog-footer-divider": "--border-neutral-subtle",
+    "--dialog-footer-divider-width": "--border-width-1",
     "--dialog-footer-padding": "--space-16"
   },
   "schemaVersion": 26

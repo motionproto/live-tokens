@@ -1,5 +1,5 @@
-// The Skill Atlas as data: the tree literal parsed out of skillTrees.ts, the
-// nodes in the order a sync walks them, and every rule that decides whether a
+// The Skill Atlas as data: the tree literal parsed out of one trees/*.ts file,
+// the nodes in the order a sync walks them, and every rule that decides whether a
 // node still points at the text it was written for. Each rule is a function of
 // its inputs, so the suite can drive it; scripts/sync-skill-atlas.mjs reads the
 // files, counts the repairs, and writes.
@@ -18,20 +18,23 @@ const ANCHOR_LENGTH = 60;
 export const normalize = (line) => line.trim().replace(/^(?:\d+\.|[-*+])\s+/, '');
 export const anchorOf = (line) => normalize(line).slice(0, ANCHOR_LENGTH);
 
-// The trees are a JSON literal wearing a TypeScript annotation, so the file
-// splits into the text before it, the value, and the text after.
-export function parseTrees(source) {
-  const open = source.indexOf('= {', source.indexOf('skillTrees')) + 2;
+// A tree file is a JSON literal wearing a TypeScript annotation, so it splits
+// into the text before the value, the value, and the text after.
+export function parseTree(source) {
+  const open = source.indexOf('= {', source.indexOf(': SkillTree')) + 2;
   const close = source.lastIndexOf('}');
   return {
     head: source.slice(0, open),
-    trees: JSON.parse(source.slice(open, close + 1)),
+    tree: JSON.parse(source.slice(open, close + 1)),
     tail: source.slice(close + 1),
   };
 }
 
-/** The write path, so a caller can prove a clean tree round-trips unchanged. */
-export const serializeTrees = ({ head, trees, tail }) => head + JSON.stringify(trees, null, 2) + tail;
+// The write path, so a caller can prove a clean tree round-trips unchanged. A
+// two-number range stays on one line, so a node reads as one block instead of
+// spreading its `lines` over four.
+export const serializeTree = ({ head, tree, tail }) =>
+  head + JSON.stringify(tree, null, 2).replace(/\[\n\s+(\d+),\n\s+(\d+)\n\s+\]/g, '[$1, $2]') + tail;
 
 // Collected up front rather than yielded: a caller repairs the nodes it is
 // handed, and rebuilding a node's keys under a live traversal is a trap.
@@ -168,11 +171,11 @@ export function auditCommands(trees, cli) {
   return problems;
 }
 
-// The sync only ever iterates the trees that exist, so a skill dropped from
-// skillTrees.ts — in full, or by a bad merge — passed with nothing to check.
+// The sync only ever iterates the tree files that exist, so a skill whose tree
+// was never written, or was lost in a merge, passed with nothing to check.
 export function uncoveredSkills(trees, skillDirs) {
   const covered = new Set(Object.values(trees).map((t) => t.id));
-  return skillDirs.filter((dir) => !covered.has(dir)).map((dir) => `${dir}: no tree in skillTrees.ts maps this skill`);
+  return skillDirs.filter((dir) => !covered.has(dir)).map((dir) => `${dir}: no tree under src/editor/skill-atlas/trees maps this skill`);
 }
 
 /** A readable plan needs valid branches as well as valid source anchors. */
@@ -231,6 +234,39 @@ export function auditStructure(trees, skillIds = Object.values(trees).map((tree)
       };
       visit(triggers[0].id);
       for (const node of tree.nodes) if (!reached.has(node.id)) fail(node.id, 'unreachable from trigger');
+    }
+  }
+  return problems;
+}
+
+/** Validate decisions against the source, including choices that share a wire. */
+export function auditSource(tree, lines) {
+  const problems = [];
+  const plain = (text) => text.replace(/[`*_]/g, '').replace(/\s+/g, ' ').toLowerCase();
+  const source = plain(lines.join('\n'));
+  const description = lines.find((line) => line.startsWith('description: '))?.slice(13) ?? '';
+  const triggers = description.split(/(?<=\.)\s+/).filter((sentence) => sentence.startsWith('Use when')).join(' ');
+  for (const node of tree.nodes) {
+    if (node.kind === 'trigger' && node.desc !== triggers) problems.push(`${tree.id} ${node.id}: trigger must quote the description's trigger sentences`);
+    for (const item of [node, ...(node.chips ?? [])]) {
+      if (!item.lines) continue;
+      const [start, end] = item.lines;
+      if (end > lines.length || !lines[start - 1]?.trim() || !lines[end - 1]?.trim()) {
+        problems.push(`${tree.id} ${node.id}: source range ends outside meaningful text`);
+        continue;
+      }
+      if (item.anchor !== anchorOf(lines[start - 1]) || (end > start && item.anchorEnd !== anchorOf(lines[end - 1]))) {
+        problems.push(`${tree.id} ${node.id}: anchors must contain the first 60 characters of the cited lines`);
+      }
+    }
+    if (['decide', 'ask'].includes(node.kind)) {
+      for (const edge of tree.edges.filter((edge) => edge.from === node.id)) {
+        if (edge.label && !source.includes(plain(edge.label))) problems.push(`${tree.id} ${node.id}: answer ${JSON.stringify(edge.label)} does not appear in the skill`);
+      }
+    }
+    if (node.kind === 'hand') {
+      const target = `${node.title} ${node.desc ?? ''}`.match(/live-tokens-[a-z-]+/)?.[0];
+      if (target && !description.includes(target)) problems.push(`${tree.id} ${node.id}: handoff target is absent from the skill description`);
     }
   }
   return problems;

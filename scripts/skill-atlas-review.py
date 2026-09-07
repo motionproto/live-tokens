@@ -1,8 +1,6 @@
 import json, pathlib
-src = pathlib.Path('src/editor/skill-atlas/skillTrees.ts')
-text = src.read_text()
-trees = json.loads(text.split('= ', 1)[1].split('\n};', 1)[0] + '\n}')
-lines = text.split('\n')
+trees_dir = pathlib.Path('src/editor/skill-atlas/trees')
+lines = []
 
 def line_of(needle, start=0):
     for i in range(start, len(lines)):
@@ -12,7 +10,7 @@ def line_of(needle, start=0):
 out_dir = pathlib.Path('scratch/skill-atlas-review')
 out_dir.mkdir(parents=True, exist_ok=True)
 index = ['# Skill atlas review', '',
- 'One file per skill. Line numbers refer to `src/editor/skill-atlas/skillTrees.ts`. Each node lists its title, description, chips, outputs, and any decision-tree flag. Regenerate with `python3 scripts/skill-atlas-review.py`.', '',
+ 'One file per skill. Line numbers refer to that skill\'s file under `src/editor/skill-atlas/trees/`. Each node lists its title, description, chips, outputs, and any decision-tree flag. Regenerate with `python3 scripts/skill-atlas-review.py`.', '',
  '## Flag rules', '',
  '- **Branch labels.** Every fan-out edge names the answer that selects it.',
  '- **Decision forks.** Every fan-out begins at a decision. Labelled CLI exit-code branches form the command exception.',
@@ -23,8 +21,12 @@ index = ['# Skill atlas review', '',
  '| Skill | Nodes | Flags |', '|---|---|---|']
 
 
-for key, tree in trees.items():
-    tree_line = line_of(f'"{key}": {{')
+for path in sorted(trees_dir.glob('*.ts')):
+    key = path.stem
+    text = path.read_text()
+    tree = json.loads(text.split('= ', 1)[1].rsplit('};', 1)[0] + '}')
+    lines = text.split('\n')
+    tree_line = line_of(': SkillTree = {')
     nodes = {n['id']: n for n in tree['nodes']}
     outs, ins = {}, {}
     for e in tree['edges']:
@@ -32,7 +34,7 @@ for key, tree in trees.items():
         ins.setdefault(e['to'], []).append(e)
     tag_line = line_of('"tagline"', tree_line)
     md = [f"# {tree['title']} (`{tree['id']}`)", '',
-          f"Source: `skillTrees.ts:{tree_line}`. Tagline at L{tag_line}:", '',
+          f"Source: `trees/{key}.ts:{tree_line}`. Tagline at L{tag_line}:", '',
           f"> {tree['tagline']}", '']
     total = 0
     for n in sorted(tree['nodes'], key=lambda node: node['row']):

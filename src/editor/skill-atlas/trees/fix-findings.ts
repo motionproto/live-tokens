@@ -1,0 +1,524 @@
+import type { SkillTree } from '../types';
+
+export const fixFindings: SkillTree = {
+  "id": "live-tokens-fix-findings",
+  "digest": "sha256:cdf856b3ea69482a",
+  "title": "fix-findings",
+  "tagline": "Repair Deviations from the Design System",
+  "nodes": [
+    {
+      "id": "ff-trig",
+      "row": 0,
+      "kind": "trigger",
+      "title": "Fix design-system findings",
+      "desc": "Use when the user asks to fix the project.",
+      "lines": [3, 3],
+      "anchor": "description: Fix every finding of check-page and check-compo"
+    },
+    {
+      "id": "ff-migrate",
+      "row": 1,
+      "kind": "step",
+      "title": "Run the token migration",
+      "lines": [14, 14],
+      "anchor": "Run `npx live-tokens migrate --check`, then `--write`.",
+      "n": "1",
+      "command": "npx live-tokens migrate --check\nnpx live-tokens migrate --write"
+    },
+    {
+      "id": "ff-run",
+      "row": 2,
+      "kind": "cli",
+      "title": "Run both checkers",
+      "lines": [15, 19],
+      "anchor": "Run both checkers with `--json`. Each finding carries a `rul",
+      "anchorEnd": "```",
+      "n": "2",
+      "command": "npx live-tokens check-page --json\nnpx live-tokens check-component --json"
+    },
+    {
+      "id": "ff-upgrade",
+      "row": 3,
+      "kind": "gate",
+      "title": "Upgrade the checker commands",
+      "lines": [12, 12],
+      "anchor": "When `check-page` is an unknown command, upgrade `@motion-pr"
+    },
+    {
+      "id": "ff-clean",
+      "row": 3,
+      "kind": "ok",
+      "title": "Default checks pass",
+      "lines": [24, 24],
+      "anchor": "When the errors are clear, run both checkers with `--strict`"
+    },
+    {
+      "id": "ff-group",
+      "row": 5,
+      "kind": "step",
+      "title": "Group findings by rule",
+      "lines": [20, 20],
+      "anchor": "Group the findings by rule.",
+      "n": "3"
+    },
+    {
+      "id": "ff-order",
+      "row": 6,
+      "kind": "decide",
+      "title": "Repair order",
+      "desc": "Which group remains within the repair scope?",
+      "lines": [21, 21],
+      "anchor": "Take the largest error group first, then the remaining error"
+    },
+    {
+      "id": "ff-recipe",
+      "row": 7,
+      "kind": "decide",
+      "title": "Rule family",
+      "desc": "Which section covers the rule?",
+      "lines": [22, 22],
+      "anchor": "Fix every finding in the group with its section: Color by ro",
+      "n": "5"
+    },
+    {
+      "id": "ff-color",
+      "row": 8,
+      "kind": "chipset",
+      "title": "Color by role",
+      "lines": [41, 55],
+      "anchor": "## Color by role",
+      "anchorEnd": "| A gradient | `--gradient-*` | Or compose one from surface ",
+      "chips": [
+        {
+          "label": "Text on a surface",
+          "lines": [47, 47],
+          "anchor": "| Text on a surface | `--text-primary` through `--text-disab"
+        },
+        {
+          "label": "Light text on a dark chip",
+          "lines": [48, 48],
+          "anchor": "| Light text on a dark chip | `--text-inverted` | No AA guar"
+        },
+        {
+          "label": "A surface fill",
+          "lines": [49, 49],
+          "anchor": "| A surface fill | `--surface-<family>-<level>` | The role n"
+        },
+        {
+          "label": "A stroke",
+          "lines": [50, 50],
+          "anchor": "| A stroke | `--border-<family>-<level>` | Levels run `faint"
+        },
+        {
+          "label": "A translucent layer that dims what is behind it",
+          "lines": [51, 51],
+          "anchor": "| A translucent layer that dims what is behind it | `--scrim"
+        },
+        {
+          "label": "A translucent wash on a surface",
+          "lines": [52, 52],
+          "anchor": "| A translucent wash on a surface | `--tint-low`, `--tint`, "
+        },
+        {
+          "label": "Any other translucent color",
+          "lines": [53, 53],
+          "anchor": "| Any other translucent color | The role's token at an opaci"
+        },
+        {
+          "label": "Fully transparent",
+          "lines": [54, 54],
+          "anchor": "| Fully transparent | `--color-transparent` | |"
+        },
+        {
+          "label": "A gradient",
+          "lines": [55, 55],
+          "anchor": "| A gradient | `--gradient-*` | Or compose one from surface "
+        }
+      ]
+    },
+    {
+      "id": "ff-geometry",
+      "row": 8,
+      "kind": "chipset",
+      "title": "Geometry by scale",
+      "lines": [57, 69],
+      "anchor": "## Geometry by scale",
+      "anchorEnd": "| A `blur()` | `--blur-*` | No rule reports it. Fix it while",
+      "chips": [
+        {
+          "label": "Spacing",
+          "lines": [63, 63],
+          "anchor": "| Spacing | `--space-<px>` | `npx live-tokens tokens --famil"
+        },
+        {
+          "label": "A stroke width",
+          "lines": [64, 64],
+          "anchor": "| A stroke width | `--border-width-1`, `-2`, `-4` | Also for"
+        },
+        {
+          "label": "A corner",
+          "lines": [65, 65],
+          "anchor": "| A corner | `--radius-sm` through `--radius-4xl`, or `--rad"
+        },
+        {
+          "label": "A shadow",
+          "lines": [66, 66],
+          "anchor": "| A shadow | `--shadow-sm` through `--shadow-xl` | Replace t"
+        },
+        {
+          "label": "Part of a calc()",
+          "lines": [67, 67],
+          "anchor": "| Part of a `calc()` | The token inside the calc | `calc(var"
+        },
+        {
+          "label": "A duration or easing",
+          "lines": [68, 68],
+          "anchor": "| A duration or easing | `--duration-*`, `--ease-*` | No rul"
+        },
+        {
+          "label": "A blur()",
+          "lines": [69, 69],
+          "anchor": "| A `blur()` | `--blur-*` | No rule reports it. Fix it while"
+        }
+      ]
+    },
+    {
+      "id": "ff-remaining",
+      "row": 8,
+      "kind": "chipset",
+      "title": "The remaining rules",
+      "lines": [71, 91],
+      "anchor": "## The remaining rules",
+      "anchorEnd": "| `invalid-id`, `missing-file`, `missing-root-block`, `no-to",
+      "chips": [
+        {
+          "label": "unknown-token",
+          "lines": [75, 75],
+          "anchor": "| `unknown-token` | Search `tokens.css` for the stem. When a"
+        },
+        {
+          "label": "raw-text-axis",
+          "lines": [76, 76],
+          "anchor": "| `raw-text-axis` | Set every axis from one text style, `-fo"
+        },
+        {
+          "label": "unknown-component",
+          "lines": [77, 77],
+          "anchor": "| `unknown-component` | Read **live-tokens-pick-component** "
+        },
+        {
+          "label": "unknown-prop",
+          "lines": [78, 78],
+          "anchor": "| `unknown-prop` | `npx live-tokens components <id>` prints "
+        },
+        {
+          "label": "unknown-prop-value",
+          "lines": [79, 79],
+          "anchor": "| `unknown-prop-value` | Use a value from the union the mess"
+        },
+        {
+          "label": "control-size",
+          "lines": [80, 80],
+          "anchor": "| `control-size` | Delete the `size` prop. The shipped defau"
+        },
+        {
+          "label": "multiple-primary",
+          "lines": [81, 81],
+          "anchor": "| `multiple-primary` | Keep the action that completes the ma"
+        },
+        {
+          "label": "danger-without-dialog",
+          "lines": [82, 82],
+          "anchor": "| `danger-without-dialog` | Open a `Dialog` from the danger "
+        },
+        {
+          "label": "hardcoded-columns",
+          "lines": [83, 83],
+          "anchor": "| `hardcoded-columns` | `repeat(var(--columns-count), 1fr)` "
+        },
+        {
+          "label": "site-css-in-main",
+          "lines": [84, 84],
+          "anchor": "| `site-css-in-main` | Delete the import from `main.ts`. Add"
+        },
+        {
+          "label": "missing-source",
+          "lines": [85, 85],
+          "anchor": "| `missing-source` | Add `source: 'src/...'` to the route en"
+        },
+        {
+          "label": "reserved-route",
+          "lines": [86, 86],
+          "anchor": "| `reserved-route` | Move the route out of `/live-tokens/*`."
+        },
+        {
+          "label": "deep-import",
+          "lines": [87, 87],
+          "anchor": "| `deep-import` | Import from `@motion-proto/live-tokens`, `"
+        },
+        {
+          "label": "unknown-suffix, state-after-property, disabled-is-terminal",
+          "lines": [88, 88],
+          "anchor": "| `unknown-suffix`, `state-after-property`, `disabled-is-ter"
+        },
+        {
+          "label": "color-literal, unknown-token-ref, default-not-token (component)",
+          "lines": [89, 89],
+          "anchor": "| `color-literal`, `unknown-token-ref`, `default-not-token` "
+        },
+        {
+          "label": "phantom-editor-token, phantom-link",
+          "lines": [90, 90],
+          "anchor": "| `phantom-editor-token`, `phantom-link` | The editor names "
+        },
+        {
+          "label": "invalid-id, missing-file, missing-root-block, no-tokens, missing-component-const, missing-all-tokens, missing-registration",
+          "lines": [91, 91],
+          "anchor": "| `invalid-id`, `missing-file`, `missing-root-block`, `no-to"
+        }
+      ]
+    },
+    {
+      "id": "ff-rerun",
+      "row": 11,
+      "kind": "cli",
+      "title": "Rerun both checkers",
+      "desc": "Retain --strict when the repair scope includes warnings.",
+      "lines": [23, 23],
+      "anchor": "Run both checkers again. When repairable findings remain in ",
+      "command": "npx live-tokens check-page --json\nnpx live-tokens check-component --json",
+      "n": "6"
+    },
+    {
+      "id": "ff-repeat",
+      "row": 12,
+      "kind": "gate",
+      "title": "Regroup the remaining findings",
+      "lines": [23, 23],
+      "anchor": "Run both checkers again. When repairable findings remain in "
+    },
+    {
+      "id": "ff-unresolved",
+      "row": 12,
+      "kind": "step",
+      "title": "Record the unresolved findings",
+      "desc": "Leave findings with no fitting token and state the reason in the reply.",
+      "lines": [37, 37],
+      "anchor": "Add no token to `tokens.css`. Map a literal with no matching"
+    },
+    {
+      "id": "ff-strict",
+      "row": 14,
+      "kind": "cli",
+      "title": "Run strict checks",
+      "lines": [24, 24],
+      "anchor": "When the errors are clear, run both checkers with `--strict`",
+      "command": "npx live-tokens check-page --strict --json\nnpx live-tokens check-component --strict --json",
+      "n": "7"
+    },
+    {
+      "id": "ff-warnings",
+      "row": 15,
+      "kind": "decide",
+      "title": "Warning scope",
+      "desc": "Does the request include warnings, or does the user choose to clear them?",
+      "lines": [24, 25],
+      "anchor": "When the errors are clear, run both checkers with `--strict`",
+      "anchorEnd": "When the repair scope includes warnings, return to step 3 wi"
+    },
+    {
+      "id": "ff-warning-loop",
+      "row": 16,
+      "kind": "gate",
+      "title": "Include warnings in the repair scope",
+      "lines": [25, 25],
+      "anchor": "When the repair scope includes warnings, return to step 3 wi",
+      "n": "8"
+    },
+    {
+      "id": "ff-build",
+      "row": 17,
+      "kind": "step",
+      "title": "Gate the existing build",
+      "desc": "Add check:design when absent. Preserve the existing build command when adding the gate.",
+      "lines": [33, 33],
+      "anchor": "When `package.json` has no `check:design` script, add `\"chec"
+    },
+    {
+      "id": "ff-reply",
+      "row": 18,
+      "kind": "chipset",
+      "title": "Reply with the repair results",
+      "lines": [26, 29],
+      "anchor": "Reply with:",
+      "anchorEnd": "both checker commands with their exit codes",
+      "n": "9",
+      "chips": [
+        {
+          "label": "Changes by rule",
+          "lines": [27, 27],
+          "anchor": "the changes by rule, each with its count and any visible shi"
+        },
+        {
+          "label": "Remaining findings",
+          "lines": [28, 28],
+          "anchor": "the findings left, each with its reason and any config entry"
+        },
+        {
+          "label": "Checker commands and exit codes",
+          "lines": [29, 29],
+          "anchor": "both checker commands with their exit codes"
+        }
+      ]
+    },
+    {
+      "id": "ff-done",
+      "row": 19,
+      "kind": "done",
+      "title": "Repair results complete",
+      "lines": [26, 29],
+      "anchor": "Reply with:",
+      "anchorEnd": "both checker commands with their exit codes"
+    }
+  ],
+  "edges": [
+    {
+      "to": "ff-migrate",
+      "from": "ff-trig"
+    },
+    {
+      "to": "ff-run",
+      "from": "ff-migrate"
+    },
+    {
+      "to": "ff-upgrade",
+      "from": "ff-run",
+      "label": "unknown command"
+    },
+    {
+      "to": "ff-run",
+      "from": "ff-upgrade",
+      "label": "rerun",
+      "back": true
+    },
+    {
+      "to": "ff-group",
+      "from": "ff-run",
+      "label": "findings"
+    },
+    {
+      "to": "ff-clean",
+      "from": "ff-run",
+      "label": "exit 0"
+    },
+    {
+      "to": "ff-strict",
+      "from": "ff-clean"
+    },
+    {
+      "to": "ff-order",
+      "from": "ff-group"
+    },
+    {
+      "to": "ff-recipe",
+      "from": "ff-order",
+      "label": "largest error group"
+    },
+    {
+      "to": "ff-recipe",
+      "from": "ff-order",
+      "label": "remaining errors"
+    },
+    {
+      "to": "ff-recipe",
+      "from": "ff-order",
+      "label": "warnings"
+    },
+    {
+      "to": "ff-color",
+      "from": "ff-recipe",
+      "label": "Color by role"
+    },
+    {
+      "to": "ff-rerun",
+      "from": "ff-color"
+    },
+    {
+      "to": "ff-geometry",
+      "from": "ff-recipe",
+      "label": "Geometry by scale"
+    },
+    {
+      "to": "ff-rerun",
+      "from": "ff-geometry"
+    },
+    {
+      "to": "ff-remaining",
+      "from": "ff-recipe",
+      "label": "The remaining rules"
+    },
+    {
+      "to": "ff-rerun",
+      "from": "ff-remaining"
+    },
+    {
+      "to": "ff-repeat",
+      "from": "ff-rerun",
+      "label": "repairable findings"
+    },
+    {
+      "to": "ff-group",
+      "from": "ff-repeat",
+      "label": "return to step 3",
+      "back": true
+    },
+    {
+      "to": "ff-unresolved",
+      "from": "ff-rerun",
+      "label": "no token fits"
+    },
+    {
+      "to": "ff-reply",
+      "from": "ff-unresolved"
+    },
+    {
+      "to": "ff-strict",
+      "from": "ff-rerun",
+      "label": "errors clear"
+    },
+    {
+      "to": "ff-warnings",
+      "from": "ff-strict",
+      "label": "warnings"
+    },
+    {
+      "to": "ff-build",
+      "from": "ff-strict",
+      "label": "strict checks pass"
+    },
+    {
+      "to": "ff-warning-loop",
+      "from": "ff-warnings",
+      "label": "repair scope includes warnings"
+    },
+    {
+      "to": "ff-build",
+      "from": "ff-warnings",
+      "label": "user defers warnings"
+    },
+    {
+      "to": "ff-group",
+      "from": "ff-warning-loop",
+      "label": "use --strict",
+      "back": true
+    },
+    {
+      "to": "ff-reply",
+      "from": "ff-build"
+    },
+    {
+      "to": "ff-done",
+      "from": "ff-reply"
+    }
+  ]
+};

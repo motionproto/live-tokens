@@ -150,7 +150,7 @@ describe('formatSetGeometryResult', () => {
     const result = await run(root, { ops: [{ kind: 'padding', shift: 1 }] }, { dryRun: true });
     const out = formatSetGeometryResult(result);
 
-    expect(out).toContain('skipped, already at the ladder end: --card-hero-padding');
+    expect(out).toContain('skipped, at the end of the scale: --card-hero-padding');
     expect(out).not.toContain('--space-64 → ');
     expect(out).toContain('--button-primary-padding');
     expect(out).toContain('1 component(s) changed, 1 alias(es), 1 skipped.');
@@ -168,7 +168,7 @@ describe('formatSetGeometryResult', () => {
 
     expect(out).toContain('button  (from: theme "default")');
     expect(out).toContain('skipped, raw value, not a token: --button-ghost-radius');
-    expect(out).toContain('skipped, already at the ladder end: --button-primary-radius');
+    expect(out).toContain('skipped, at the end of the scale: --button-primary-radius');
     expect(out).toContain('skipped, pill preserved (pass "full": true to move it): --button-pill-radius');
     expect(out).toContain('0 component(s) changed, 0 alias(es), 3 skipped.');
     expect(out).toContain('Nothing changed: every matching alias was skipped');

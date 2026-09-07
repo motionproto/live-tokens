@@ -23,9 +23,10 @@ const SOURCE_LABELS = {
 
 const SKIP_LABELS = [
   ['raw-value', 'raw value, not a token'],
-  ['off-ladder', 'off the ladder'],
-  ['clamped', 'already at the ladder end'],
+  ['off-ladder', 'off the scale'],
+  ['clamped', 'at the end of the scale'],
   ['pill-preserved', 'pill preserved (pass "full": true to move it)'],
+  ['none-preserved', 'no line drawn, preserved (use "set" to draw one)'],
 ];
 
 async function loadEngine() {

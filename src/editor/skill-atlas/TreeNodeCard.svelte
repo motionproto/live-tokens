@@ -18,13 +18,13 @@
     step: 'step',
     decide: 'decision',
     cli: 'command',
-    hand: 'hands off',
+    hand: 'handoff',
     gate: 'failure',
     ok: 'pass',
     ref: 'reference',
     ask: 'question',
-    chipset: 'reference set',
-    done: 'verify',
+    chipset: 'step',
+    done: 'complete',
   };
 
   let kindLabel = $derived(node.tag ?? KIND_LABEL[node.kind]);

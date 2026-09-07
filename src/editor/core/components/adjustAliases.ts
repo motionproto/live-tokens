@@ -1,7 +1,7 @@
 import { matchesKind, stripSide } from './aliasKinds';
 import type { AliasDiskValue, ComponentConfig } from '../themes/themeTypes';
 
-export type AdjustKind = 'radius' | 'padding' | 'gap' | 'border-width';
+export type AdjustKind = 'radius' | 'padding' | 'gap' | 'border-width' | 'divider-width' | 'accent-width';
 
 export interface AdjustOp {
   /** Component id; omitted applies the op to every config. */
@@ -13,7 +13,7 @@ export interface AdjustOp {
   full?: boolean;
 }
 
-export type SkipReason = 'raw-value' | 'off-ladder' | 'clamped' | 'pill-preserved';
+export type SkipReason = 'raw-value' | 'off-ladder' | 'clamped' | 'pill-preserved' | 'none-preserved';
 
 export interface AliasChange {
   variable: string;
@@ -74,12 +74,27 @@ const TEXT_INSET_RUNGS = SPACE_SETTABLE.slice(SPACE_SETTABLE.indexOf('--space-6'
 
 const SPACE_FAMILY = [...SPACE_SETTABLE, '--space-40', '--space-64', '--space-96', '--space-128'];
 
-const BORDER_WIDTH_RUNGS = [
-  '--border-width-0', '--border-width-1', '--border-width-2', '--border-width-3',
+const BORDER_WIDTH_NONE = '--border-width-0';
+
+const BORDER_WIDTH_SETTABLE = [
+  BORDER_WIDTH_NONE, '--border-width-1', '--border-width-2', '--border-width-3',
   '--border-width-4', '--border-width-5', '--border-width-6', '--border-width-8',
   '--border-width-10', '--border-width-12', '--border-width-16', '--border-width-20',
   '--border-width-24',
 ];
+
+/** A line that is not drawn is a decision, so a shift never draws one and
+    never erases one. Zero is reached by `set` alone, like `--radius-full`. */
+const STROKE_RUNGS = BORDER_WIDTH_SETTABLE.slice(1);
+
+/** Three stroke roles ride the one `--border-width-*` scale. A border
+    encloses, a divider separates, an accent emphasises, and an intent
+    such as "hairline rules" names one role without the others. */
+const STROKE_LADDER = {
+  rungs: STROKE_RUNGS,
+  settable: BORDER_WIDTH_SETTABLE,
+  family: BORDER_WIDTH_SETTABLE,
+};
 
 const LADDERS: Record<AdjustKind, { rungs: string[]; settable: string[]; family: string[] }> = {
   radius: {
@@ -89,11 +104,9 @@ const LADDERS: Record<AdjustKind, { rungs: string[]; settable: string[]; family:
   },
   padding: { rungs: SPACE_RUNGS, settable: SPACE_SETTABLE, family: SPACE_FAMILY },
   gap: { rungs: SPACE_RUNGS, settable: SPACE_SETTABLE, family: SPACE_FAMILY },
-  'border-width': {
-    rungs: BORDER_WIDTH_RUNGS,
-    settable: BORDER_WIDTH_RUNGS,
-    family: BORDER_WIDTH_RUNGS,
-  },
+  'border-width': STROKE_LADDER,
+  'divider-width': STROKE_LADDER,
+  'accent-width': STROKE_LADDER,
 };
 
 const TOKEN_NAME = /^--[a-z0-9-]+$/;
@@ -145,6 +158,7 @@ function resolve(
   let shift = op.shift!;
   if (index < 0) {
     if (value === RADIUS_FULL) return { skip: 'pill-preserved' };
+    if (value === BORDER_WIDTH_NONE) return { skip: 'none-preserved' };
     index = snapRung(value, rungs, shift);
     if (index < 0) return { skip: 'clamped' };
     shift -= Math.sign(shift);

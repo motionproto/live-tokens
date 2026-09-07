@@ -1,0 +1,297 @@
+import type { SkillTree } from '../types';
+
+export const setType: SkillTree = {
+  "id": "live-tokens-set-type",
+  "digest": "sha256:f3b99197199d9bef",
+  "title": "set-type",
+  "tagline": "Set Typefaces from Google Fonts",
+  "nodes": [
+    {
+      "id": "st-trig",
+      "row": 0,
+      "kind": "trigger",
+      "title": "Choose or pair font families",
+      "desc": "Use when the user asks to pair fonts, pick a typeface, or set the fonts. Use when the user describes type by voice: editorial, friendlier, technical, elegant, less generic. Use when the user names a face for a role: a serif for headings, a display font.",
+      "lines": [3, 3],
+      "anchor": "description: Set a live-tokens theme's type: a Google Fonts "
+    },
+    {
+      "id": "st-anchor",
+      "row": 1,
+      "kind": "ref",
+      "title": "Read the type anchor",
+      "lines": [14, 14],
+      "anchor": "Read the type intent and any anchor live-tokens-create-theme",
+      "reference": "references/type-anchors.md",
+      "n": "1"
+    },
+    {
+      "id": "st-input",
+      "row": 2,
+      "kind": "step",
+      "title": "Write the input file",
+      "desc": "Choose the pairing and write scratch/font-pairing.json.",
+      "lines": [15, 15],
+      "anchor": "Choose the pairing and write it to `scratch/font-pairing.jso",
+      "n": "2",
+      "chips": [
+        {
+          "label": "Input format",
+          "lines": [22, 28],
+          "anchor": "## The pairing file",
+          "anchorEnd": "Every slot is optional; an omitted slot keeps its family. `d"
+        }
+      ]
+    },
+    {
+      "id": "st-body",
+      "row": 3,
+      "kind": "step",
+      "title": "Choose the body face first",
+      "lines": [30, 34],
+      "anchor": "## Choose the body face first",
+      "anchorEnd": "The shipped text styles ask the display face for 600 and the"
+    },
+    {
+      "id": "st-matrix",
+      "row": 4,
+      "kind": "chipset",
+      "title": "Compare font construction",
+      "lines": [36, 50],
+      "anchor": "## The font matrix",
+      "anchorEnd": "Many faces sit between columns. When one straddles, say so a",
+      "chips": [
+        {
+          "label": "Dynamic",
+          "lines": [42, 42],
+          "anchor": "| **Dynamic** | diagonal stress, open apertures, written ori"
+        },
+        {
+          "label": "Rational",
+          "lines": [43, 43],
+          "anchor": "| **Rational** | vertical stress, closed apertures, drawn no"
+        },
+        {
+          "label": "Geometric",
+          "lines": [44, 44],
+          "anchor": "| **Geometric** | monolinear, circle-and-line | technical, m"
+        }
+      ]
+    },
+    {
+      "id": "st-voice",
+      "row": 5,
+      "kind": "chipset",
+      "title": "Match the type voice",
+      "lines": [52, 66],
+      "anchor": "## Voice",
+      "anchorEnd": "Match the type to the design direction the color came from. ",
+      "chips": [
+        {
+          "label": "editorial, literary, considered",
+          "lines": [56, 56],
+          "anchor": "| editorial, literary, considered | dynamic serif display ov"
+        },
+        {
+          "label": "elegant, luxurious, formal",
+          "lines": [57, 57],
+          "anchor": "| elegant, luxurious, formal | rational high-contrast serif "
+        },
+        {
+          "label": "friendly, warm, approachable",
+          "lines": [58, 58],
+          "anchor": "| friendly, warm, approachable | dynamic sans on both sides,"
+        },
+        {
+          "label": "technical, systematic, precise",
+          "lines": [59, 59],
+          "anchor": "| technical, systematic, precise | geometric or neo-grotesqu"
+        },
+        {
+          "label": "playful, informal",
+          "lines": [60, 60],
+          "anchor": "| playful, informal | an expressive display face over a plai"
+        },
+        {
+          "label": "serious, institutional, trustworthy",
+          "lines": [61, 61],
+          "anchor": "| serious, institutional, trustworthy | rational sans body, "
+        },
+        {
+          "label": "quiet, minimal, unbranded",
+          "lines": [62, 62],
+          "anchor": "| quiet, minimal, unbranded | one superfamily across both sl"
+        }
+      ]
+    },
+    {
+      "id": "st-shortcuts",
+      "row": 6,
+      "kind": "step",
+      "title": "Choose a quiet pairing",
+      "lines": [68, 75],
+      "anchor": "## Shortcuts",
+      "anchorEnd": "**Serif display over sans body** when nothing else decides i"
+    },
+    {
+      "id": "st-risks",
+      "row": 7,
+      "kind": "step",
+      "title": "Check the pairing",
+      "lines": [77, 82],
+      "anchor": "## Watch for",
+      "anchorEnd": "**Sets of themes.** No two share a display face or a body fa"
+    },
+    {
+      "id": "st-cli",
+      "row": 8,
+      "kind": "cli",
+      "title": "Run set-type",
+      "lines": [16, 16],
+      "anchor": "Run `npx live-tokens set-type scratch/font-pairing.json`. It",
+      "command": "npx live-tokens set-type scratch/font-pairing.json",
+      "n": "3"
+    },
+    {
+      "id": "st-fail",
+      "row": 9,
+      "kind": "gate",
+      "title": "Correct the input file",
+      "desc": "Use the error details to correct the input and rerun the command.",
+      "lines": [17, 17],
+      "anchor": "Read the report. Name a weight gap and offer an alternative "
+    },
+    {
+      "id": "st-pass",
+      "row": 9,
+      "kind": "ok",
+      "title": "Command passes",
+      "lines": [17, 17],
+      "anchor": "Read the report. Name a weight gap and offer an alternative "
+    },
+    {
+      "id": "st-report",
+      "row": 11,
+      "kind": "step",
+      "title": "Read the report",
+      "lines": [17, 17],
+      "anchor": "Read the report. Name a weight gap and offer an alternative ",
+      "n": "4"
+    },
+    {
+      "id": "st-reply",
+      "row": 12,
+      "kind": "step",
+      "title": "Reply with the result",
+      "lines": [18, 18],
+      "anchor": "Reply with the two families, the form model behind each, the",
+      "n": "5"
+    },
+    {
+      "id": "st-scope",
+      "row": 13,
+      "kind": "step",
+      "title": "Preserve the other dimensions",
+      "lines": [84, 86],
+      "anchor": "## Scope",
+      "anchorEnd": "Type only. Color, component aliases, shape, and the type sca"
+    },
+    {
+      "id": "st-verify",
+      "row": 14,
+      "kind": "done",
+      "title": "Verify the type",
+      "lines": [88, 93],
+      "anchor": "## Verify",
+      "anchorEnd": "To revert, run the previous pairing file, or load the open t",
+      "chips": [
+        {
+          "label": "Changed font stacks",
+          "lines": [90, 90],
+          "anchor": "The CLI exits 0 and names each stack that moved, before and "
+        },
+        {
+          "label": "Family weights and URLs",
+          "lines": [91, 91],
+          "anchor": "Each URL matches the family's weights: a range for a variabl"
+        },
+        {
+          "label": "Rendered type",
+          "lines": [92, 92],
+          "anchor": "The app shows the new type, and the editor's Fonts section l"
+        },
+        {
+          "label": "Revert",
+          "lines": [93, 93],
+          "anchor": "To revert, run the previous pairing file, or load the open t"
+        }
+      ]
+    }
+  ],
+  "edges": [
+    {
+      "to": "st-anchor",
+      "from": "st-trig"
+    },
+    {
+      "to": "st-input",
+      "from": "st-anchor"
+    },
+    {
+      "to": "st-body",
+      "from": "st-input"
+    },
+    {
+      "to": "st-matrix",
+      "from": "st-body"
+    },
+    {
+      "to": "st-voice",
+      "from": "st-matrix"
+    },
+    {
+      "to": "st-shortcuts",
+      "from": "st-voice"
+    },
+    {
+      "to": "st-risks",
+      "from": "st-shortcuts"
+    },
+    {
+      "to": "st-cli",
+      "from": "st-risks"
+    },
+    {
+      "to": "st-fail",
+      "from": "st-cli",
+      "label": "exit 1"
+    },
+    {
+      "to": "st-pass",
+      "from": "st-cli",
+      "label": "exit 0"
+    },
+    {
+      "to": "st-cli",
+      "from": "st-fail",
+      "label": "rerun",
+      "back": true
+    },
+    {
+      "to": "st-report",
+      "from": "st-pass"
+    },
+    {
+      "to": "st-reply",
+      "from": "st-report"
+    },
+    {
+      "to": "st-scope",
+      "from": "st-reply"
+    },
+    {
+      "to": "st-verify",
+      "from": "st-scope"
+    }
+  ]
+};
