@@ -32,15 +32,7 @@ export const setGeometry: SkillTree = {
       "title": "Write the input file",
       "desc": "Each op is global or targeted, and sets a step or shifts by steps.",
       "lines": [15, 15],
-      "anchor": "Write the ops file to `scratch/geometry-ops.json`.",
-      "chips": [
-        {
-          "label": "Input format",
-          "lines": [25, 42],
-          "anchor": "## The ops file",
-          "anchorEnd": "`full` (radius shifts only): admits `--radius-full` as the t"
-        }
-      ]
+      "anchor": "Write the ops file to `scratch/geometry-ops.json`."
     },
     {
       "id": "sg-idioms",
@@ -183,34 +175,7 @@ export const setGeometry: SkillTree = {
       "desc": "The app shows the new shape and buttons still read as buttons.",
       "lines": [115, 121],
       "anchor": "## Verify",
-      "anchorEnd": "To revert, run the inverse ops, or load the open theme to di",
-      "chips": [
-        {
-          "label": "Expected changes",
-          "lines": [117, 117],
-          "anchor": "The CLI exits 0 and the report lists the expected changes, w"
-        },
-        {
-          "label": "Rendered geometry",
-          "lines": [118, 118],
-          "anchor": "The app shows the new shape on each changed component."
-        },
-        {
-          "label": "Control padding",
-          "lines": [119, 119],
-          "anchor": "Buttons still read as buttons: the label has room at both en"
-        },
-        {
-          "label": "Component buffers",
-          "lines": [120, 120],
-          "anchor": "`component-configs/<id>/_working.json` exists for every comp"
-        },
-        {
-          "label": "Revert",
-          "lines": [121, 121],
-          "anchor": "To revert, run the inverse ops, or load the open theme to di"
-        }
-      ]
+      "anchorEnd": "To revert, run the inverse ops, or load the open theme to di"
     }
   ],
   "edges": [

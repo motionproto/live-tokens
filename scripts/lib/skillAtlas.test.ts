@@ -347,6 +347,16 @@ describe('decision-tree structure', () => {
     expect(errors).toContain('duplicate node');
     expect(errors).toContain('terminal node');
   });
+  it('lets a handoff loop back and refuses a forward edge from it', () => {
+    const trees = plan();
+    trees.example.nodes.push({ id: 'hand', row: 3, kind: 'hand', title: 'live-tokens-example', lines: [5, 5] });
+    trees.example.edges.push({ from: 'end', to: 'hand' });
+    trees.example.nodes[3].kind = 'step';
+    trees.example.edges.push({ from: 'hand', to: 'choice', back: true });
+    expect(auditStructure(trees)).toEqual([]);
+    trees.example.edges.push({ from: 'hand', to: 'end', back: false });
+    expect(auditStructure(trees).join('\n')).toContain('handoff continues only by a return wire');
+  });
   it('requires a real skill for terminal handoffs', () => {
     const trees = plan();
     Object.assign(trees.example.nodes[3], { kind: 'hand', title: 'live-tokens-other' });

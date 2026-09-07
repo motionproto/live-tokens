@@ -1,12 +1,13 @@
 import type { Edge, TreeNode } from './types';
 
-/** An answer the card already shows as a chip says nothing more on the wire. */
+/** An answer the card already shows as a chip says nothing more on the wire. It
+ *  moves to `answers`, so selecting the chip still lights its wire. */
 export function withoutChipAnswers(edges: Edge[], nodes: TreeNode[]): Edge[] {
   const chips = new Map(nodes.map((node) => [node.id, new Set((node.chips ?? []).map((chip) => chip.label))]));
   return edges.map((edge) => {
     if (!edge.label || !chips.get(edge.from)?.has(edge.label)) return edge;
-    const { label: _, ...bare } = edge;
-    return bare;
+    const { label, ...bare } = edge;
+    return { ...bare, answers: [label] };
   });
 }
 
@@ -18,9 +19,12 @@ export function mergeParallelEdges(edges: Edge[]): Edge[] {
     const existing = groups.get(key);
     if (!existing) {
       groups.set(key, { ...edge });
-    } else if (edge.label) {
-      const labels = new Set([...(existing.label?.split('\n') ?? []), edge.label]);
-      existing.label = [...labels].join('\n');
+    } else {
+      if (edge.label) {
+        const labels = new Set([...(existing.label?.split('\n') ?? []), edge.label]);
+        existing.label = [...labels].join('\n');
+      }
+      if (edge.answers) existing.answers = [...new Set([...(existing.answers ?? []), ...edge.answers])];
     }
   }
   return [...groups.values()];

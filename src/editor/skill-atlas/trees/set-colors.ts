@@ -32,15 +32,7 @@ export const setColors: SkillTree = {
       "title": "Write the input file",
       "desc": "Ten base colors and a scheme go in one file. Keep it for refinements.",
       "lines": [20, 20],
-      "anchor": "Translate the intent into ten base colors with the framework",
-      "chips": [
-        {
-          "label": "Input format",
-          "lines": [27, 54],
-          "anchor": "## The base color file",
-          "anchorEnd": "Roles: **Brand** is the dominant chromatic identity; **Accen"
-        }
-      ]
+      "anchor": "Translate the intent into ten base colors with the framework"
     },
     {
       "id": "sc-budget",
@@ -50,34 +42,7 @@ export const setColors: SkillTree = {
       "desc": "The more area a palette covers, the less chroma it gets.",
       "lines": [56, 68],
       "anchor": "## Chroma budget",
-      "anchorEnd": "A good theme reads as 3 or 4 hue families on screen, never 1",
-      "chips": [
-        {
-          "label": "Ground (about 60% of every screen)",
-          "lines": [62, 62],
-          "anchor": "| Ground (about 60% of every screen) | Neutral, Alternate | "
-        },
-        {
-          "label": "Canvas (the largest single area)",
-          "lines": [63, 63],
-          "anchor": "| Canvas (the largest single area) | Canvas | C 0.02 to 0.14"
-        },
-        {
-          "label": "Dominant chromatic (about 30%)",
-          "lines": [64, 64],
-          "anchor": "| Dominant chromatic (about 30%) | Brand | C 0.10 to 0.20 |"
-        },
-        {
-          "label": "Garnish (about 10%)",
-          "lines": [65, 65],
-          "anchor": "| Garnish (about 10%) | Accent, Special | may exceed Brand; "
-        },
-        {
-          "label": "Conditional",
-          "lines": [66, 66],
-          "anchor": "| Conditional | Info, Success, Warning, Danger | C 0.12 to 0"
-        }
-      ]
+      "anchorEnd": "A good theme reads as 3 or 4 hue families on screen, never 1"
     },
     {
       "id": "sc-roles",
@@ -250,34 +215,7 @@ export const setColors: SkillTree = {
       "desc": "The CLI passes, the app shows the new palette, and the theme reads as edited.",
       "lines": [143, 149],
       "anchor": "## Verify",
-      "anchorEnd": "To revert, re-run with the previous base color file, or load",
-      "chips": [
-        {
-          "label": "CLI checks",
-          "lines": [145, 145],
-          "anchor": "The CLI exits 0 with every check passing (auto-corrected is "
-        },
-        {
-          "label": "Rendered palette",
-          "lines": [146, 146],
-          "anchor": "The app (dev server running) shows the new palette."
-        },
-        {
-          "label": "Theme buffer status",
-          "lines": [147, 147],
-          "anchor": "The editor's Theme panel marks the open theme as edited. A d"
-        },
-        {
-          "label": "Canvas identity",
-          "lines": [148, 148],
-          "anchor": "The canvas is committed: on screen it reads as the theme's c"
-        },
-        {
-          "label": "Revert",
-          "lines": [149, 149],
-          "anchor": "To revert, re-run with the previous base color file, or load"
-        }
-      ]
+      "anchorEnd": "To revert, re-run with the previous base color file, or load"
     }
   ],
   "edges": [

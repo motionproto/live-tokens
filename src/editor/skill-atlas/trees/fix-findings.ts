@@ -57,28 +57,11 @@ export const fixFindings: SkillTree = {
     {
       "id": "ff-order",
       "row": 6,
-      "kind": "decide",
+      "kind": "chipset",
       "title": "Repair order",
       "desc": "Errors first, largest group first. Warnings only when the repair scope includes them.",
       "lines": [21, 21],
-      "anchor": "Take the largest error group first, then the remaining error",
-      "chips": [
-        {
-          "label": "largest error group",
-          "lines": [21, 21],
-          "anchor": "Take the largest error group first, then the remaining error"
-        },
-        {
-          "label": "remaining errors",
-          "lines": [21, 21],
-          "anchor": "Take the largest error group first, then the remaining error"
-        },
-        {
-          "label": "warnings",
-          "lines": [21, 21],
-          "anchor": "Take the largest error group first, then the remaining error"
-        }
-      ]
+      "anchor": "Take the largest error group first, then the remaining error"
     },
     {
       "id": "ff-recipe",
@@ -171,44 +154,7 @@ export const fixFindings: SkillTree = {
       "desc": "A dimension literal moves to the nearest step of its scale. A layout size stays.",
       "lines": [57, 69],
       "anchor": "## Geometry by scale",
-      "anchorEnd": "| A `blur()` | `--blur-*` | No rule reports it. Fix it while",
-      "chips": [
-        {
-          "label": "Spacing",
-          "lines": [63, 63],
-          "anchor": "| Spacing | `--space-<px>` | `npx live-tokens tokens --scale"
-        },
-        {
-          "label": "A stroke width",
-          "lines": [64, 64],
-          "anchor": "| A stroke width | `--border-width-1`, `-2`, `-4` | Also for"
-        },
-        {
-          "label": "A corner",
-          "lines": [65, 65],
-          "anchor": "| A corner | `--radius-sm` through `--radius-4xl`, or `--rad"
-        },
-        {
-          "label": "A shadow",
-          "lines": [66, 66],
-          "anchor": "| A shadow | `--shadow-sm` through `--shadow-xl` | Replace t"
-        },
-        {
-          "label": "Part of a calc()",
-          "lines": [67, 67],
-          "anchor": "| Part of a `calc()` | The token inside the calc | `calc(var"
-        },
-        {
-          "label": "A duration or easing",
-          "lines": [68, 68],
-          "anchor": "| A duration or easing | `--duration-*`, `--ease-*` | No rul"
-        },
-        {
-          "label": "A blur()",
-          "lines": [69, 69],
-          "anchor": "| A `blur()` | `--blur-*` | No rule reports it. Fix it while"
-        }
-      ]
+      "anchorEnd": "| A `blur()` | `--blur-*` | No rule reports it. Fix it while"
     },
     {
       "id": "ff-remaining",
@@ -393,24 +339,7 @@ export const fixFindings: SkillTree = {
       "desc": "Report the changes by rule, the findings left with their reasons, and both exit codes.",
       "lines": [26, 29],
       "anchor": "Reply with:",
-      "anchorEnd": "both checker commands with their exit codes",
-      "chips": [
-        {
-          "label": "Changes by rule",
-          "lines": [27, 27],
-          "anchor": "the changes by rule, each with its count and any visible shi"
-        },
-        {
-          "label": "Remaining findings",
-          "lines": [28, 28],
-          "anchor": "the findings left, each with its reason and any config entry"
-        },
-        {
-          "label": "Checker commands and exit codes",
-          "lines": [29, 29],
-          "anchor": "both checker commands with their exit codes"
-        }
-      ]
+      "anchorEnd": "both checker commands with their exit codes"
     },
     {
       "id": "ff-done",
@@ -449,21 +378,6 @@ export const fixFindings: SkillTree = {
     {
       "to": "ff-order",
       "from": "ff-group"
-    },
-    {
-      "to": "ff-recipe",
-      "from": "ff-order",
-      "label": "largest error group"
-    },
-    {
-      "to": "ff-recipe",
-      "from": "ff-order",
-      "label": "remaining errors"
-    },
-    {
-      "to": "ff-recipe",
-      "from": "ff-order",
-      "label": "warnings"
     },
     {
       "to": "ff-color",
@@ -550,6 +464,10 @@ export const fixFindings: SkillTree = {
     {
       "to": "ff-done",
       "from": "ff-reply"
+    },
+    {
+      "to": "ff-recipe",
+      "from": "ff-order"
     }
   ]
 };

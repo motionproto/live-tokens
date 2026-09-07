@@ -2,7 +2,7 @@ import type { SkillTree } from '../types';
 
 export const createTheme: SkillTree = {
   "id": "live-tokens-create-theme",
-  "digest": "sha256:fda6dc70621f2938",
+  "digest": "sha256:9de2cd5d34861cd6",
   "title": "create-theme",
   "tagline": "Create a Live Tokens Theme",
   "nodes": [
@@ -22,24 +22,7 @@ export const createTheme: SkillTree = {
       "title": "Generate the design direction",
       "desc": "A short summary of the request: the mood, and the intent it sets for color, type, and geometry.",
       "lines": [27, 27],
-      "anchor": "Read the request once and generate the design direction base",
-      "chips": [
-        {
-          "label": "color",
-          "lines": [42, 42],
-          "anchor": "| color | live-tokens-set-colors | ten base colors, the sche"
-        },
-        {
-          "label": "type",
-          "lines": [43, 43],
-          "anchor": "| type | live-tokens-set-type | the families for up to five "
-        },
-        {
-          "label": "geometry",
-          "lines": [44, 44],
-          "anchor": "| geometry | live-tokens-set-geometry | radius, padding, gap"
-        }
-      ]
+      "anchor": "Read the request once and generate the design direction base"
     },
     {
       "id": "ct-index",
@@ -92,8 +75,8 @@ export const createTheme: SkillTree = {
       "id": "ct-assemble",
       "row": 5,
       "kind": "step",
-      "title": "Reply with Result",
-      "desc": "Respond to the user with the design direction: what each set skill changed, and any dimension that was left alone. .",
+      "title": "Reply with the result",
+      "desc": "Reply with the design direction, what each set skill did, any dimension omitted, and anything flagged by a skill.",
       "lines": [34, 34],
       "anchor": "Assemble the three set skill responses into the assembled re"
     },
@@ -103,46 +86,19 @@ export const createTheme: SkillTree = {
       "kind": "step",
       "title": "Verify the theme",
       "desc": "Each set skill passed, the theme is saved, and the app shows it.",
-      "lines": [70, 76],
+      "lines": [78, 84],
       "anchor": "## Verify",
-      "anchorEnd": "To return to the previous theme, load it from the Theme pane",
-      "chips": [
-        {
-          "label": "Set skill results",
-          "lines": [72, 72],
-          "anchor": "Each invoked set skill reports its result. When invoked, `se"
-        },
-        {
-          "label": "Saved theme",
-          "lines": [73, 73],
-          "anchor": "`save-theme` exits 0 and names the theme it wrote and opened"
-        },
-        {
-          "label": "Rendered theme",
-          "lines": [74, 74],
-          "anchor": "The app (dev server running) shows the whole theme, and the "
-        },
-        {
-          "label": "Consistent intents",
-          "lines": [75, 75],
-          "anchor": "The assembled report names one design direction, and the thr"
-        },
-        {
-          "label": "Revert",
-          "lines": [76, 76],
-          "anchor": "To return to the previous theme, load it from the Theme pane"
-        }
-      ]
+      "anchorEnd": "To return to the previous theme, load it from the Theme pane"
     },
     {
       "id": "ct-refine-q",
       "row": 7,
       "kind": "decide",
-      "title": "Refinement scope",
-      "desc": "One adjective usually names one dimension and goes to that set skill. A refinement across dimensions starts again from the design direction.",
-      "lines": [53, 68],
+      "title": "User feedback",
+      "desc": "The user sees the theme and may ask for a change. One adjective usually names one dimension and goes to that set skill. A change across dimensions starts again from the design direction.",
+      "lines": [53, 76],
       "anchor": "## Refining a theme",
-      "anchorEnd": "and route all three again.",
+      "anchorEnd": "loading it from the editor's Theme panel; loading clears the",
       "chips": [
         {
           "label": "color",
@@ -161,13 +117,13 @@ export const createTheme: SkillTree = {
         },
         {
           "label": "spans dimensions",
-          "lines": [66, 68],
+          "lines": [69, 71],
           "anchor": "Keep this skill for a refinement that spans dimensions (\"mak",
           "anchorEnd": "and route all three again."
         },
         {
           "label": "no refinement",
-          "lines": [64, 64],
+          "lines": [67, 67],
           "anchor": "When no refinement is requested, the theme is complete."
         }
       ]
@@ -177,7 +133,7 @@ export const createTheme: SkillTree = {
       "row": 8,
       "kind": "hand",
       "title": "live-tokens-set-colors",
-      "desc": "Warmer, cooler, calmer, louder, lighter, darker, moodier, more contrast.",
+      "desc": "Any request that names color, such as warmer, calmer, darker, or more contrast.",
       "lines": [60, 60],
       "anchor": "| warmer, cooler, calmer, louder, lighter, darker, moodier, "
     },
@@ -186,7 +142,7 @@ export const createTheme: SkillTree = {
       "row": 8,
       "kind": "hand",
       "title": "live-tokens-set-type",
-      "desc": "More editorial, friendlier, more technical, a serif for headings.",
+      "desc": "Any request that names type, such as more editorial, friendlier, or a serif for headings.",
       "lines": [61, 61],
       "anchor": "| more editorial, friendlier, more technical, a serif for he"
     },
@@ -195,17 +151,17 @@ export const createTheme: SkillTree = {
       "row": 8,
       "kind": "hand",
       "title": "live-tokens-set-geometry",
-      "desc": "Rounder, sharper, pill buttons, tighter, airier, thicker borders.",
+      "desc": "Any request that names geometry, such as rounder, pill buttons, tighter, or thicker borders.",
       "lines": [62, 62],
       "anchor": "| rounder, sharper, pill buttons, tighter, airier, thicker b"
     },
     {
       "id": "ct-done",
-      "row": 8,
+      "row": 9,
       "kind": "done",
       "title": "Theme complete",
       "desc": "The theme is saved, open in the editor, and shown in the app.",
-      "lines": [70, 76],
+      "lines": [78, 84],
       "anchor": "## Verify",
       "anchorEnd": "To return to the previous theme, load it from the Theme pane"
     }
@@ -280,6 +236,21 @@ export const createTheme: SkillTree = {
     {
       "to": "ct-save",
       "from": "ct-geo"
+    },
+    {
+      "to": "ct-refine-q",
+      "from": "ct-refine-colors",
+      "back": true
+    },
+    {
+      "to": "ct-refine-q",
+      "from": "ct-refine-type",
+      "back": true
+    },
+    {
+      "to": "ct-refine-q",
+      "from": "ct-refine-geometry",
+      "back": true
     }
   ]
 };

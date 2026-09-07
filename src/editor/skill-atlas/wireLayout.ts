@@ -163,21 +163,29 @@ function alone(box: Box, all: Box[]): boolean {
 }
 
 /** Re-run loops ride a lane in the left gutter the centred spine opens up,
- *  rather than bulging around the card they leave. */
-function backEdge(out: Drawing, a: Box, b: Box, lane: number, edge: Edge, lit: boolean) {
+ *  rather than bulging around the card they leave. A card with siblings to
+ *  its left leaves from its bottom and runs under the row, so the wire never
+ *  passes through the cards beside it. */
+function backEdge(out: Drawing, a: Box, b: Box, lane: number, edge: Edge, lit: boolean, under?: number) {
   const dir = Math.sign(b.midY - a.midY) || -1;
   const r = Math.max(0, Math.min(CORNER, (a.left - STANDOFF - lane) / 2, Math.abs(a.midY - b.midY) / 2));
+  const d =
+    under === undefined
+      ? `M ${a.left - STANDOFF} ${a.midY} L ${lane + r} ${a.midY}` +
+        ` Q ${lane} ${a.midY}, ${lane} ${a.midY + dir * r}`
+      : `M ${a.midX} ${a.bottom + STANDOFF} L ${a.midX} ${under - r}` +
+        ` Q ${a.midX} ${under}, ${a.midX - r} ${under} L ${lane + r} ${under}` +
+        ` Q ${lane} ${under}, ${lane} ${under - r}`;
   out.wires.push({
     back: true,
     arrow: true,
     lit,
     d:
-      `M ${a.left - STANDOFF} ${a.midY} L ${lane + r} ${a.midY}` +
-      ` Q ${lane} ${a.midY}, ${lane} ${a.midY + dir * r}` +
+      d +
       ` L ${lane} ${b.midY - dir * r} Q ${lane} ${b.midY}, ${lane + r} ${b.midY}` +
       ` L ${b.left - STANDOFF} ${b.midY}`,
   });
-  label(out, edge.label ?? 're-run', lane, (a.midY + b.midY) / 2, lit, true);
+  label(out, edge.label, lane, (a.midY + b.midY) / 2, lit, true);
 }
 
 /** A branch that skips a row rides the right gutter, the mirror of a loop,
@@ -201,7 +209,7 @@ function skipEdge(out: Drawing, a: Box, b: Box, lane: number, edge: Edge, lit: b
  * Routes every edge between the measured cards. `lit` answers whether a wire
  * joining the given node ids belongs to the current selection.
  */
-export function routeWires(boxes: Map<string, Box>, edges: Edge[], lit: (...ids: string[]) => boolean): Drawing {
+export function routeWires(boxes: Map<string, Box>, edges: Edge[], lit: (edge: Edge) => boolean): Drawing {
   const all = [...boxes.values()];
   const children = new Map<string, Edge[]>();
   const parents = new Map<string, Edge[]>();
@@ -221,7 +229,7 @@ export function routeWires(boxes: Map<string, Box>, edges: Edge[], lit: (...ids:
     const kept = kids as Box[];
     if (!aligned(kept.map((k) => k.top))) continue;
     kidEdges.forEach((e) => claimed.add(e));
-    fanOut(out, a, kept, kidEdges, (i) => lit(from, kidEdges[i].to));
+    fanOut(out, a, kept, kidEdges, (i) => lit(kidEdges[i]));
   }
 
   for (const [to, parentEdges] of parents) {
@@ -232,7 +240,7 @@ export function routeWires(boxes: Map<string, Box>, edges: Edge[], lit: (...ids:
     const kept = ups as Box[];
     if (!aligned(kept.map((u) => u.bottom))) continue;
     open.forEach((e) => claimed.add(e));
-    fanIn(out, kept, b, open, (i) => lit(open[i].from, to));
+    fanIn(out, kept, b, open, (i) => lit(open[i]));
   }
 
   // Longest skip first, so a long one always rides outside the skips it spans.
@@ -244,7 +252,7 @@ export function routeWires(boxes: Map<string, Box>, edges: Edge[], lit: (...ids:
     if (!a || !b) continue;
     const over = alone(a, all) && alone(b, all) ? crossed(a, b, all) : [];
     if (over.length > 0) skips.push({ edge, a, b, over });
-    else curve(out, a, b, edge, lit(edge.from, edge.to));
+    else curve(out, a, b, edge, lit(edge));
   }
   skips.sort((x, y) => Math.abs(y.a.midY - y.b.midY) - Math.abs(x.a.midY - x.b.midY));
   let outer = -Infinity;
@@ -252,7 +260,7 @@ export function routeWires(boxes: Map<string, Box>, edges: Edge[], lit: (...ids:
     const lane = Math.max(...over.map((x) => x.right), a.right, b.right) + LANE_INSET;
     const placed = Math.max(lane, outer + LANE_STEP);
     outer = placed;
-    skipEdge(out, a, b, placed, edge, lit(edge.from, edge.to));
+    skipEdge(out, a, b, placed, edge, lit(edge));
   }
 
   // Shortest loop first, so a long one always nests outside the loops it spans.
@@ -263,11 +271,16 @@ export function routeWires(boxes: Map<string, Box>, edges: Edge[], lit: (...ids:
     .sort((x, y) => Math.abs(x.a.midY - x.b.midY) - Math.abs(y.a.midY - y.b.midY));
 
   let inner = Infinity;
+  let unders = 0;
   for (const { edge, a, b } of loops) {
-    const clear = Math.min(...crossed(a, b, all).map((x) => x.left), a.left, b.left) - LANE_INSET;
+    const beside = all.filter((x) => x !== a && x.right <= a.left && x.bottom > a.midY && x.top < a.midY);
+    const clear = Math.min(...crossed(a, b, all).map((x) => x.left), ...beside.map((x) => x.left), a.left, b.left) - LANE_INSET;
     const lane = Math.max(4, Math.min(clear, inner - LANE_STEP));
     inner = lane;
-    backEdge(out, a, b, lane, edge, lit(edge.from, edge.to));
+    // Each wire under the row takes its own height, in step with its lane, so
+    // the loops nest instead of sharing one line.
+    const under = beside.length ? a.bottom + STANDOFF + CORNER + LANE_STEP * unders++ : undefined;
+    backEdge(out, a, b, lane, edge, lit(edge), under);
   }
 
   return out;

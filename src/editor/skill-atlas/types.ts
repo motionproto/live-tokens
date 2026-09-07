@@ -1,6 +1,6 @@
 export type NodeKind =
   | 'trigger' | 'step' | 'decide' | 'cli' | 'hand'
-  | 'gate' | 'ok' | 'ref' | 'ask' | 'chipset' | 'done';
+  | 'gate' | 'ok' | 'ref' | 'chipset' | 'done';
 
 /** Inclusive 1-based line range into the skill's SKILL.md. */
 export type LineRange = [number, number];
@@ -40,6 +40,8 @@ export interface Edge {
   to: string;
   /** The answer that selects this branch, drawn on the wire. */
   label?: string;
+  /** Answers the card already shows as badges. They light the wire when a badge is selected and are not drawn. */
+  answers?: string[];
   /** A re-run loop, routed up the gutter lane. */
   back?: boolean;
 }

@@ -129,24 +129,7 @@ export const checkCompliance: SkillTree = {
       "title": "Classify the findings",
       "desc": "Mechanical maps a value to an existing token.\nJudgement asks the user to decide.\nDeliberate records a decision the project made.",
       "lines": [17, 17],
-      "anchor": "Classify each finding as Mechanical, Judgement, or Deliberat",
-      "chips": [
-        {
-          "label": "Mechanical",
-          "lines": [41, 41],
-          "anchor": "**Mechanical.** The value determines the token, such as a sp"
-        },
-        {
-          "label": "Judgement",
-          "lines": [42, 42],
-          "anchor": "**Judgement.** A role determines the token, such as a color "
-        },
-        {
-          "label": "Deliberate",
-          "lines": [43, 43],
-          "anchor": "**Deliberate.** The finding records a decision, such as a la"
-        }
-      ]
+      "anchor": "Classify each finding as Mechanical, Judgement, or Deliberat"
     },
     {
       "id": "cc2-handoff",

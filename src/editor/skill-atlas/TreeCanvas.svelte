@@ -2,7 +2,7 @@
   import TreeNodeCard from './TreeNodeCard.svelte';
   import { mergeParallelEdges, withoutChipAnswers } from './edges';
   import { routeWires, type Box, type Label, type Wire } from './wireLayout';
-  import type { LineRange, SkillTree, TreeNode } from './types';
+  import type { Edge, LineRange, SkillTree, TreeNode } from './types';
 
   interface Props {
     tree: SkillTree;
@@ -49,7 +49,16 @@
     if (!canvas) return;
     const base = canvas.getBoundingClientRect();
     canvasSize = { w: base.width, h: base.height };
-    const selectedNode = selected?.split(':')[0] ?? '';
+    const [selectedNode = '', chipIndex] = selected?.split(':') ?? [];
+    const chip = chipIndex === undefined
+      ? undefined
+      : tree.nodes.find((node) => node.id === selectedNode)?.chips?.[Number(chipIndex)]?.label;
+    // A selected badge lights only the wire that carries its answer; a selected
+    // card lights every wire that touches it.
+    const lit = (edge: Edge) => {
+      if (chip === undefined) return edge.from === selectedNode || edge.to === selectedNode;
+      return edge.from === selectedNode && (edge.answers?.includes(chip) ?? true);
+    };
 
     const boxes = new Map<string, Box>();
     for (const node of tree.nodes) {
@@ -66,9 +75,10 @@
       });
     }
 
-    const drawing = routeWires(boxes, edges, (...ids) => ids.includes(selectedNode));
-    wires = drawing.wires;
-    labels = drawing.labels;
+    const drawing = routeWires(boxes, edges, lit);
+    // Lit last, so the selected wire paints over the ones it crosses.
+    wires = [...drawing.wires].sort((a, b) => Number(a.lit) - Number(b.lit));
+    labels = [...drawing.labels].sort((a, b) => Number(a.lit) - Number(b.lit));
   }
 
   $effect(() => {

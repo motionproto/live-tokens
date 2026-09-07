@@ -32,15 +32,7 @@ export const setType: SkillTree = {
       "title": "Write the input file",
       "desc": "A display family and a body family go in one file.",
       "lines": [15, 15],
-      "anchor": "Choose the pairing and write it to `scratch/font-pairing.jso",
-      "chips": [
-        {
-          "label": "Input format",
-          "lines": [22, 28],
-          "anchor": "## The pairing file",
-          "anchorEnd": "Every slot is optional; an omitted slot keeps its family. `d"
-        }
-      ]
+      "anchor": "Choose the pairing and write it to `scratch/font-pairing.jso"
     },
     {
       "id": "st-body",
@@ -60,24 +52,7 @@ export const setType: SkillTree = {
       "desc": "Classify each candidate by construction, so the pair contrasts on purpose.",
       "lines": [36, 50],
       "anchor": "## The font matrix",
-      "anchorEnd": "Many faces sit between columns. When one straddles, say so a",
-      "chips": [
-        {
-          "label": "Dynamic",
-          "lines": [42, 42],
-          "anchor": "| **Dynamic** | diagonal stress, open apertures, written ori"
-        },
-        {
-          "label": "Rational",
-          "lines": [43, 43],
-          "anchor": "| **Rational** | vertical stress, closed apertures, drawn no"
-        },
-        {
-          "label": "Geometric",
-          "lines": [44, 44],
-          "anchor": "| **Geometric** | monolinear, circle-and-line | technical, m"
-        }
-      ]
+      "anchorEnd": "Many faces sit between columns. When one straddles, say so a"
     },
     {
       "id": "st-voice",
@@ -87,44 +62,7 @@ export const setType: SkillTree = {
       "desc": "Each voice maps to a display and a body construction.",
       "lines": [52, 66],
       "anchor": "## Voice",
-      "anchorEnd": "Match the type to the design direction the color came from. ",
-      "chips": [
-        {
-          "label": "editorial",
-          "lines": [56, 56],
-          "anchor": "| editorial, literary, considered | dynamic serif display ov"
-        },
-        {
-          "label": "elegant",
-          "lines": [57, 57],
-          "anchor": "| elegant, luxurious, formal | rational high-contrast serif "
-        },
-        {
-          "label": "friendly",
-          "lines": [58, 58],
-          "anchor": "| friendly, warm, approachable | dynamic sans on both sides,"
-        },
-        {
-          "label": "technical",
-          "lines": [59, 59],
-          "anchor": "| technical, systematic, precise | geometric or neo-grotesqu"
-        },
-        {
-          "label": "playful",
-          "lines": [60, 60],
-          "anchor": "| playful, informal | an expressive display face over a plai"
-        },
-        {
-          "label": "serious",
-          "lines": [61, 61],
-          "anchor": "| serious, institutional, trustworthy | rational sans body, "
-        },
-        {
-          "label": "quiet",
-          "lines": [62, 62],
-          "anchor": "| quiet, minimal, unbranded | one superfamily across both sl"
-        }
-      ]
+      "anchorEnd": "Match the type to the design direction the color came from. "
     },
     {
       "id": "st-shortcuts",
@@ -210,29 +148,7 @@ export const setType: SkillTree = {
       "desc": "The CLI passes, each URL matches the family's weights, and the app shows the new type.",
       "lines": [88, 93],
       "anchor": "## Verify",
-      "anchorEnd": "To revert, run the previous pairing file, or load the open t",
-      "chips": [
-        {
-          "label": "Changed font stacks",
-          "lines": [90, 90],
-          "anchor": "The CLI exits 0 and names each stack that moved, before and "
-        },
-        {
-          "label": "Family weights and URLs",
-          "lines": [91, 91],
-          "anchor": "Each URL matches the family's weights: a range for a variabl"
-        },
-        {
-          "label": "Rendered type",
-          "lines": [92, 92],
-          "anchor": "The app shows the new type, and the editor's Fonts section l"
-        },
-        {
-          "label": "Revert",
-          "lines": [93, 93],
-          "anchor": "To revert, run the previous pairing file, or load the open t"
-        }
-      ]
+      "anchorEnd": "To revert, run the previous pairing file, or load the open t"
     }
   ],
   "edges": [

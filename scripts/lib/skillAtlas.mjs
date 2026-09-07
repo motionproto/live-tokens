@@ -213,10 +213,12 @@ export function auditStructure(trees, skillIds = Object.values(trees).map((tree)
           fail(node.id, 'title or chip label starts with a question clause');
         }
       }
-      if (['decide', 'ask'].includes(node.kind)) {
+      if (node.kind === 'decide') {
         if (edges.length < 2 || edges.some((edge) => !edge.label?.trim())) fail(node.id, 'decision needs two labelled answers');
-      } else if (['hand', 'done'].includes(node.kind)) {
+      } else if (node.kind === 'done') {
         if (edges.length) fail(node.id, 'terminal node has outgoing edges');
+      } else if (node.kind === 'hand') {
+        if (edges.some((edge) => !edge.back)) fail(node.id, 'handoff continues only by a return wire');
       } else if (node.kind === 'cli') {
         if (!edges.length || (edges.length > 1 && edges.some((edge) => !edge.label?.trim()))) fail(node.id, 'command needs a continuation or labelled outcomes');
       } else if (!edges.length || (edges.length > 1 && edges.some((edge) => edge.label))) {
@@ -266,7 +268,7 @@ export function auditSource(tree, lines) {
         problems.push(`${tree.id} ${node.id}: anchors must contain the first 60 characters of the cited lines`);
       }
     }
-    if (['decide', 'ask'].includes(node.kind)) {
+    if (node.kind === 'decide') {
       for (const edge of tree.edges.filter((edge) => edge.from === node.id)) {
         if (edge.label && !source.includes(plain(edge.label))) problems.push(`${tree.id} ${node.id}: answer ${JSON.stringify(edge.label)} does not appear in the skill`);
       }

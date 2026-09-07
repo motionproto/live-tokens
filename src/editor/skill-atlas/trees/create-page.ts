@@ -23,39 +23,7 @@ export const createPage: SkillTree = {
       "desc": "Use shipped components with their declared props. Size the wrapper around them.",
       "lines": [10, 17],
       "anchor": "## Components",
-      "anchorEnd": "Text inside a `Card` or a `CollapsibleSection` takes the con",
-      "chips": [
-        {
-          "label": "Use a shipped component",
-          "lines": [12, 12],
-          "anchor": "Use a shipped component when one fits. Import it from `@moti"
-        },
-        {
-          "label": "Inspect declared props",
-          "lines": [13, 13],
-          "anchor": "`npx live-tokens components <id>` prints the declared props,"
-        },
-        {
-          "label": "Pass declared props",
-          "lines": [14, 14],
-          "anchor": "Pass only the props a component declares."
-        },
-        {
-          "label": "Size the wrapper",
-          "lines": [15, 15],
-          "anchor": "A shipped component fills its parent. To size one, size the "
-        },
-        {
-          "label": "Use native elements",
-          "lines": [16, 16],
-          "anchor": "A native element with no chrome of its own needs no componen"
-        },
-        {
-          "label": "Assign content typography",
-          "lines": [17, 17],
-          "anchor": "Text inside a `Card` or a `CollapsibleSection` takes the con"
-        }
-      ]
+      "anchorEnd": "Text inside a `Card` or a `CollapsibleSection` takes the con"
     },
     {
       "id": "cp-tokens",
@@ -65,29 +33,7 @@ export const createPage: SkillTree = {
       "desc": "Page CSS takes a token wherever one exists. Widths are column spans and heights follow content.",
       "lines": [19, 24],
       "anchor": "## Tokens",
-      "anchorEnd": "A value that comes from data, such as a sheet's padding in p",
-      "chips": [
-        {
-          "label": "Token references",
-          "lines": [21, 21],
-          "anchor": "When a design token exists for a value, page CSS takes the t"
-        },
-        {
-          "label": "Column widths",
-          "lines": [22, 22],
-          "anchor": "A width is a span of page columns. The Layout section gives "
-        },
-        {
-          "label": "Content heights",
-          "lines": [23, 23],
-          "anchor": "A height follows the content. A stage's `minHeight` is the o"
-        },
-        {
-          "label": "Data values",
-          "lines": [24, 24],
-          "anchor": "A value that comes from data, such as a sheet's padding in p"
-        }
-      ]
+      "anchorEnd": "A value that comes from data, such as a sheet's padding in p"
     },
     {
       "id": "cp-type",
@@ -169,81 +115,17 @@ export const createPage: SkillTree = {
       "desc": "Each position takes one step of the space scale. Space inside a group is smaller than space between groups.",
       "lines": [55, 69],
       "anchor": "### Spacing",
-      "anchorEnd": "Every section after the first opens with a hairline: `paddin",
-      "chips": [
-        {
-          "label": "Between controls in a row",
-          "lines": [61, 61],
-          "anchor": "| Between controls in a row | `--space-8` |"
-        },
-        {
-          "label": "Inside a wrapper the page draws",
-          "lines": [62, 62],
-          "anchor": "| Inside a wrapper the page draws | `--space-16` |"
-        },
-        {
-          "label": "Between fields in a form",
-          "lines": [63, 63],
-          "anchor": "| Between fields in a form | `--space-20` |"
-        },
-        {
-          "label": "Between containers in a section",
-          "lines": [64, 64],
-          "anchor": "| Between containers in a section | `--columns-gutter` acros"
-        },
-        {
-          "label": "Between sections",
-          "lines": [65, 65],
-          "anchor": "| Between sections | `--space-16` above a hairline |"
-        },
-        {
-          "label": "Page title to first section",
-          "lines": [66, 66],
-          "anchor": "| Page title to first section | `--space-24`, no hairline |"
-        },
-        {
-          "label": "Page margin",
-          "lines": [67, 67],
-          "anchor": "| Page margin | `--space-32` |"
-        }
-      ]
+      "anchorEnd": "Every section after the first opens with a hairline: `paddin"
     },
     {
       "id": "cp-layout",
       "row": 7,
-      "kind": "decide",
+      "kind": "chipset",
       "title": "Page layout",
       "desc": "Name each section by its purpose. The layout then gives each section its column spans.",
       "lines": [73, 85],
       "anchor": "### Page layouts",
-      "anchorEnd": "The stage is the canvas, player, or strip the work is about.",
-      "chips": [
-        {
-          "label": "Stacked sections",
-          "lines": [79, 79],
-          "anchor": "| Stacked sections | The reader moves top to bottom: an open"
-        },
-        {
-          "label": "Main with a supporting pane",
-          "lines": [80, 80],
-          "anchor": "| Main with a supporting pane | One region is the work and t"
-        },
-        {
-          "label": "List with detail",
-          "lines": [81, 81],
-          "anchor": "| List with detail | The reader picks an item from a list an"
-        },
-        {
-          "label": "Grid of equals",
-          "lines": [82, 82],
-          "anchor": "| Grid of equals | The reader compares or scans items of one"
-        },
-        {
-          "label": "Single column",
-          "lines": [83, 83],
-          "anchor": "| Single column | The reader fills a form or reads at length"
-        }
-      ]
+      "anchorEnd": "The stage is the canvas, player, or strip the work is about."
     },
     {
       "id": "cp-grid",
@@ -291,29 +173,7 @@ export const createPage: SkillTree = {
       "desc": "Separate elements with the smallest difference that works: space, then a hairline, then a surface.",
       "lines": [100, 117],
       "anchor": "### Separation",
-      "anchorEnd": "`references/layout-sources.md` names the sources for these l",
-      "chips": [
-        {
-          "label": "Content",
-          "lines": [110, 110],
-          "anchor": "| Content | `--text-primary`, or the color `site.css` gives "
-        },
-        {
-          "label": "Label",
-          "lines": [111, 111],
-          "anchor": "| Label | `--text-secondary` |"
-        },
-        {
-          "label": "Chrome",
-          "lines": [112, 112],
-          "anchor": "| Chrome | `--border-neutral` |"
-        },
-        {
-          "label": "Overlay on content, such as a grid or a selection",
-          "lines": [113, 113],
-          "anchor": "| Overlay on content, such as a grid or a selection | `--bor"
-        }
-      ]
+      "anchorEnd": "`references/layout-sources.md` names the sources for these l"
     },
     {
       "id": "cp-containers",
@@ -581,31 +441,6 @@ export const createPage: SkillTree = {
       "from": "cp-spacing"
     },
     {
-      "to": "cp-grid",
-      "from": "cp-layout",
-      "label": "Stacked sections"
-    },
-    {
-      "to": "cp-grid",
-      "from": "cp-layout",
-      "label": "Main with a supporting pane"
-    },
-    {
-      "to": "cp-grid",
-      "from": "cp-layout",
-      "label": "List with detail"
-    },
-    {
-      "to": "cp-grid",
-      "from": "cp-layout",
-      "label": "Grid of equals"
-    },
-    {
-      "to": "cp-grid",
-      "from": "cp-layout",
-      "label": "Single column"
-    },
-    {
       "to": "cp-grid-span",
       "from": "cp-grid"
     },
@@ -674,6 +509,10 @@ export const createPage: SkillTree = {
     {
       "to": "cp-read",
       "from": "cp-verify"
+    },
+    {
+      "to": "cp-grid",
+      "from": "cp-layout"
     }
   ]
 };

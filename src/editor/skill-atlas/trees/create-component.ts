@@ -23,19 +23,7 @@ export const createComponent: SkillTree = {
       "desc": "Design tokens hold the theme's values. Semantic properties say what a component paints with them.",
       "lines": [10, 25],
       "anchor": "## Design model",
-      "anchorEnd": "Props carry content and behavior: a value, a label, a callba",
-      "chips": [
-        {
-          "label": "Design tokens",
-          "lines": [16, 16],
-          "anchor": "| Design tokens | Name the available colors, typography, geo"
-        },
-        {
-          "label": "Semantic properties",
-          "lines": [17, 17],
-          "anchor": "| Semantic properties | Name the visual roles within a compo"
-        }
-      ]
+      "anchorEnd": "Props carry content and behavior: a value, a label, a callba"
     },
     {
       "id": "cc-inspect",
@@ -143,34 +131,7 @@ export const createComponent: SkillTree = {
       "desc": "A name runs from the component id to the property suffix, with variant, part, and state between.",
       "lines": [56, 68],
       "anchor": "A property name starts with the component id and ends with t",
-      "anchorEnd": "For a state that affects several parts, follow Toggle: `--to",
-      "chips": [
-        {
-          "label": "Component id",
-          "lines": [62, 62],
-          "anchor": "`componentId` is the runtime file name in lowercase with no "
-        },
-        {
-          "label": "Variant",
-          "lines": [63, 63],
-          "anchor": "`variant` is present when the component has more than one: `"
-        },
-        {
-          "label": "Part",
-          "lines": [64, 64],
-          "anchor": "`part` names a region inside the component: `header`, `body`"
-        },
-        {
-          "label": "State",
-          "lines": [65, 65],
-          "anchor": "`state` comes before the property: `--card-hover-border`. `d"
-        },
-        {
-          "label": "Property suffix",
-          "lines": [66, 66],
-          "anchor": "`property` is the suffix, and the suffix selects the editor "
-        }
-      ]
+      "anchorEnd": "For a state that affects several parts, follow Toggle: `--to"
     },
     {
       "id": "cc-align",
@@ -230,24 +191,7 @@ export const createComponent: SkillTree = {
       "desc": "Parts, variants, and states are different things. Keep them apart in the props, the names, and the editor.",
       "lines": [116, 132],
       "anchor": "## Variants and states",
-      "anchorEnd": "A component supplies its variants. The page chooses the one ",
-      "chips": [
-        {
-          "label": "Part",
-          "lines": [122, 122],
-          "anchor": "| Part | Regions present at once | Dialog's overlay, header,"
-        },
-        {
-          "label": "Variant",
-          "lines": [123, 123],
-          "anchor": "| Variant | Alternative presentations the page chooses | Bad"
-        },
-        {
-          "label": "State",
-          "lines": [124, 124],
-          "anchor": "| State | A runtime condition | Toggle's on, hover, disabled"
-        }
-      ]
+      "anchorEnd": "A component supplies its variants. The page chooses the one "
     },
     {
       "id": "cc-editor",
@@ -384,34 +328,7 @@ export const createComponent: SkillTree = {
       "title": "Resolve the findings",
       "desc": "Each rule names the section that fixes it. Repair and rerun until exit 0.",
       "lines": [211, 211],
-      "anchor": "Run **live-tokens-check-compliance** and address its finding",
-      "chips": [
-        {
-          "label": "Property design, the name",
-          "lines": [221, 221],
-          "anchor": "| `unknown-suffix`, `state-after-property`, `disabled-is-ter"
-        },
-        {
-          "label": "Property design, the assigned token",
-          "lines": [222, 222],
-          "anchor": "| `default-not-token`, `color-literal`, `dimension-literal`,"
-        },
-        {
-          "label": "Runtime component",
-          "lines": [223, 223],
-          "anchor": "| `invalid-id`, `missing-file`, `missing-root-block`, `no-to"
-        },
-        {
-          "label": "Component editor",
-          "lines": [224, 224],
-          "anchor": "| `missing-component-const`, `missing-all-tokens`, `phantom-"
-        },
-        {
-          "label": "Registration",
-          "lines": [225, 225],
-          "anchor": "| `missing-registration` | Registration |"
-        }
-      ]
+      "anchor": "Run **live-tokens-check-compliance** and address its finding"
     },
     {
       "id": "cc-pass",
@@ -448,44 +365,7 @@ export const createComponent: SkillTree = {
       "title": "Verify the component in the editor",
       "desc": "Open the component in the editor and confirm each behaviour.",
       "lines": [214, 214],
-      "anchor": "Open `/live-tokens/components` and check each line below.",
-      "chips": [
-        {
-          "label": "Registry group",
-          "lines": [229, 229],
-          "anchor": "A custom component appears under CUSTOM. A first-party compo"
-        },
-        {
-          "label": "Property controls",
-          "lines": [230, 230],
-          "anchor": "Each property has the control its suffix selects, and change"
-        },
-        {
-          "label": "Preview and interaction",
-          "lines": [231, 231],
-          "anchor": "The preview matches the state being edited. Keyboard and poi"
-        },
-        {
-          "label": "Linked values",
-          "lines": [232, 232],
-          "anchor": "Linked properties change together. Separate roles stay indep"
-        },
-        {
-          "label": "Persistence and reset",
-          "lines": [233, 233],
-          "anchor": "An edit persists across a reload. Reset restores the `:globa"
-        },
-        {
-          "label": "Theme propagation",
-          "lines": [234, 234],
-          "anchor": "A theme change reaches every property."
-        },
-        {
-          "label": "Sketch rendering",
-          "lines": [235, 235],
-          "anchor": "With Sketch mode on, every painted part is drawn in its own "
-        }
-      ]
+      "anchor": "Open `/live-tokens/components` and check each line below."
     },
     {
       "id": "cc-reply",

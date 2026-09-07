@@ -24,7 +24,6 @@
     gate: 'failure',
     ok: 'pass',
     ref: 'reference',
-    ask: 'question',
     chipset: 'step',
     done: 'complete',
   };
@@ -39,7 +38,6 @@
     gate: 'A check that failed. Its one wire returns up the chart to the command that runs again.',
     ok: 'A check that passed, so the chart continues.',
     ref: 'A step that reads a references document. The link opens it beside the source.',
-    ask: 'A branch on the need the user brings, which the skill infers or asks. The chips are the candidate answers, and each wire carries one.',
     chipset: 'One action the skill takes. It has a single continuation.',
     done: 'The chart ends.',
   };
@@ -106,9 +104,9 @@
       <ul class="chips">
         {#each node.chips as chip, i (chip.label)}
           {@const key = `${node.id}:${i}`}
-          <li>
+          <li class:picked={selected === key}>
             <Button
-              variant={selected === key ? 'secondary' : 'outline'}
+              variant="outline"
               size="small"
               onclick={() => onselect(key, chip.label, chip.lines)}
             >
@@ -292,5 +290,19 @@
     margin: var(--space-12) 0 0;
     padding: 0;
     list-style: none;
+  }
+
+  /* The selected badge takes the lit wire's colour, and its focus ring does
+     too, so a click never shows the browser's blue ring over it. */
+  .chips li.picked {
+    --button-outline-border: var(--text-accent);
+    --button-outline-hover-border: var(--text-accent);
+    --button-outline-text: var(--text-accent);
+    --button-outline-surface: var(--surface-accent-lower);
+  }
+
+  .chips :global(button:focus-visible) {
+    outline: var(--border-width-2) solid var(--text-accent);
+    outline-offset: var(--space-2);
   }
 </style>

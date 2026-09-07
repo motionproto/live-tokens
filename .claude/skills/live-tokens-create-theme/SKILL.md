@@ -61,11 +61,19 @@ dimension. Route it to the matching set skill:
 | more editorial, friendlier, more technical, a serif for headings | live-tokens-set-type |
 | rounder, sharper, pill buttons, tighter, airier, thicker borders | live-tokens-set-geometry |
 
+The table gives examples. Route every refinement request, whether or not its
+words appear there.
+
 When no refinement is requested, the theme is complete.
 
 Keep this skill for a refinement that spans dimensions ("make it feel more
 serious"), or one that names no dimension at all. State a new design direction
 and route all three again.
+
+Feedback about a page or a component ("make the buttons bigger", "move the
+hero up") is not a theme change: read **live-tokens-create-page** or
+**live-tokens-create-component**. A request for the previous theme is met by
+loading it from the editor's Theme panel; loading clears the buffers.
 
 ## Verify
 
