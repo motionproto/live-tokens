@@ -48,27 +48,26 @@ const USAGE = `Usage: npx @motion-proto/live-tokens <command> [options]
 
 Commands:
   create <dir> [--force]      Scaffold a new Svelte + Vite app wired up with
-                              live-tokens (editor, components, theme tokens)
+                              live-tokens (editor, components, design tokens)
   setup-claude [--force]      Install bundled Claude Code skills into ./.claude/skills/
   components [id] [--json]    List every component the project has, shipped and
                               its own (src/system/components plus any
-                              "componentDirs" in live-tokens.config.json), with
-                              the props each takes; with an id, that component's
-                              props, variants, tokens, and defaults
+                              "componentDirs" in live-tokens.config.json). With
+                              an id, that component's props, variants, tokens,
+                              and defaults
   tokens [--family <name>] [--json]
-                              List every theme token the project's tokens.css
+                              List every design token the project's tokens.css
                               declares, by family, with its value
   report [--json]             The project as facts: pending migrations, tokens
                               each component declares and reads, which page
                               renders which component, and both checkers'
                               findings by rule under the project's severities
-                              and under --strict. A reading, not a gate: always
-                              exits 0
+                              and under --strict. Always exits 0
   check-component [id]        Validate <id>'s runtime, editor, and registration
                               against the live-tokens-create-component contract
   check-page [paths...]       Validate pages against the live-tokens-create-page
                               contract: catalogue components only, and every CSS
-                              value a theme token. Checks every page under src/
+                              value a design token. Checks every page under src/
                               when given no paths.
 
 check-component and check-page also accept:
@@ -84,44 +83,42 @@ check-component and check-page also accept:
                               OKLCH base colors (see the live-tokens-set-colors
                               skill) and enforce AA contrast on the derived text
                               tokens. Reads the live colors and type and writes
-                              the result to the unsaved colors-and-type buffer,
-                              so save the open theme in the editor or run
-                              save-theme to keep it. Fonts and every override no
-                              palette owns carry forward. --dry-run prints the
-                              contrast report without writing.
+                              the result to the colors-and-type buffer. Run
+                              save-theme to keep it as a theme. Fonts and every
+                              override no palette owns carry forward. --dry-run
+                              prints the contrast report without writing.
   set-geometry <ops.json> [--dry-run]
                               Move radius, padding, gap, and border-width
                               aliases along their token scales (see the
                               live-tokens-set-geometry skill). Reads each
                               component's live config and writes the result to
-                              that component's unsaved buffer, so save the open
-                              theme in the editor to keep it. --dry-run prints
-                              the report without writing.
+                              that component's buffer. Run save-theme to keep it
+                              as a theme. --dry-run prints the report without
+                              writing.
   set-type <pairing.json> [--dry-run] [--no-verify]
                               Bind Google Fonts families to --font-display,
                               --font-sans, --font-serif, --font-mono and
                               --font-editorial (see
                               the live-tokens-set-type skill). Each family is
                               verified against the Google Fonts API and the URL
-                              is negotiated from the weights it actually has.
-                              Writes the result to the unsaved colors-and-type
-                              buffer, so save the open theme in the editor to
-                              keep it. --dry-run prints the report without
-                              writing; --no-verify skips the network and
-                              requires an explicit URL per family.
+                              is negotiated from the weights it has. Writes the
+                              result to the colors-and-type buffer. Run
+                              save-theme to keep it as a theme. --dry-run prints
+                              the report without writing. --no-verify skips the
+                              network and requires an explicit URL per family.
   save-theme <name> [--no-activate] [--dry-run]
-                              Compose the live state (the unsaved buffers, the
-                              open theme under them, the shipped defaults under
-                              that) into themes/<slug>.json and open it, which
-                              clears the buffers. With no unsaved edits it saves
-                              a copy of the open theme under the new name.
-                              Opening never changes what your site ships; Adopt
-                              in the editor does that. --no-activate writes the
-                              theme and leaves the live state alone, so a set of
-                              themes comes off one starting look; --dry-run
-                              prints the report without writing.
+                              Compose the live state (the buffers, the open
+                              theme under them, the shipped defaults under that)
+                              into themes/<slug>.json and load it, which clears
+                              the buffers. With no buffer it saves a copy of the
+                              open theme under the new name. Loading never
+                              changes what the site ships. Adopt in the editor
+                              does that. --no-activate writes the theme and does
+                              not load it, so a set of themes comes off one
+                              starting theme. --dry-run prints the report
+                              without writing.
   migrate [--check] [--write] [--tokens <path>]
-                              Reconcile your project with the installed package:
+                              Reconcile the project with the installed package:
                               applies additive tokens.css migrations, moves a
                               pre-0.48 data tree onto the current directory
                               names, heals what the retired pointer files named,
@@ -265,7 +262,7 @@ if (command === 'set-colors') {
   }
   if (rest.includes('--carry-from')) {
     fail(
-      `set-colors has no --carry-from: it reads the live look and edits it in place, so a second theme ` +
+      `set-colors has no --carry-from: it reads the live theme and edits it in place, so a second theme ` +
         `already starts from the first. Run save-theme --no-activate between themes.`,
     );
   }
@@ -421,7 +418,7 @@ for (const skill of skills) {
   installed++;
 }
 
-console.log(`\n${installed} installed, ${skipped} skipped → ${destSkills}`);
+console.log(`\n${installed} installed, ${skipped} skipped, in ${destSkills}`);
 
 const SAMPLE_PROMPTS = {
   'live-tokens-create-page': 'build a pricing page using live-tokens components',
@@ -442,6 +439,6 @@ const installedSamples = skills
 if (installedSamples.length > 0) {
   console.log(`\nIn Claude Code, prompts like these auto-trigger the matching skill:`);
   for (const [skill, prompt] of installedSamples) {
-    console.log(`  • "${prompt}"\n    → ${skill}`);
+    console.log(`  "${prompt}"\n    ${skill}`);
   }
 }
