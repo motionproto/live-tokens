@@ -11,7 +11,7 @@ export const createTheme: SkillTree = {
       "row": 0,
       "kind": "trigger",
       "title": "Create or refine a theme",
-      "desc": "Use when the user asks for a theme, look, vibe, or brand feel by mood, style, era, season, holiday, or hue. Use when the user names only a color and wants a theme around it. Use when the user refines a theme across more than one dimension.",
+      "desc": "For color, type, or geometry named on its own, read that set skill.",
       "lines": [3, 3],
       "anchor": "description: Create or modify a complete live-tokens theme f"
     },
@@ -67,7 +67,19 @@ export const createTheme: SkillTree = {
       "title": "Color scope",
       "desc": "Does the request leave color alone?",
       "lines": [30, 30],
-      "anchor": "Invoke **live-tokens-set-colors** with the anchor and the co"
+      "anchor": "Invoke **live-tokens-set-colors** with the anchor and the co",
+      "chips": [
+        {
+          "label": "color intent",
+          "lines": [30, 30],
+          "anchor": "Invoke **live-tokens-set-colors** with the anchor and the co"
+        },
+        {
+          "label": "leave the color alone",
+          "lines": [30, 30],
+          "anchor": "Invoke **live-tokens-set-colors** with the anchor and the co"
+        }
+      ]
     },
     {
       "id": "ct-colors",
@@ -85,7 +97,19 @@ export const createTheme: SkillTree = {
       "title": "Type scope",
       "desc": "Does the request leave type alone?",
       "lines": [31, 31],
-      "anchor": "Invoke **live-tokens-set-type** with the anchor and the type"
+      "anchor": "Invoke **live-tokens-set-type** with the anchor and the type",
+      "chips": [
+        {
+          "label": "type intent",
+          "lines": [31, 31],
+          "anchor": "Invoke **live-tokens-set-type** with the anchor and the type"
+        },
+        {
+          "label": "leave the type alone",
+          "lines": [31, 31],
+          "anchor": "Invoke **live-tokens-set-type** with the anchor and the type"
+        }
+      ]
     },
     {
       "id": "ct-type",
@@ -103,7 +127,19 @@ export const createTheme: SkillTree = {
       "title": "Geometry scope",
       "desc": "Does the request leave geometry alone?",
       "lines": [32, 32],
-      "anchor": "Invoke **live-tokens-set-geometry** with the anchor and the "
+      "anchor": "Invoke **live-tokens-set-geometry** with the anchor and the ",
+      "chips": [
+        {
+          "label": "geometry intent",
+          "lines": [32, 32],
+          "anchor": "Invoke **live-tokens-set-geometry** with the anchor and the "
+        },
+        {
+          "label": "leave the geometry alone",
+          "lines": [32, 32],
+          "anchor": "Invoke **live-tokens-set-geometry** with the anchor and the "
+        }
+      ]
     },
     {
       "id": "ct-geo",
@@ -185,7 +221,35 @@ export const createTheme: SkillTree = {
       "desc": "Does the refinement name one dimension or span dimensions?",
       "lines": [57, 72],
       "anchor": "## Refining a theme",
-      "anchorEnd": "and route all three again."
+      "anchorEnd": "and route all three again.",
+      "chips": [
+        {
+          "label": "color",
+          "lines": [64, 64],
+          "anchor": "| warmer, cooler, calmer, louder, lighter, darker, moodier, "
+        },
+        {
+          "label": "type",
+          "lines": [65, 65],
+          "anchor": "| more editorial, friendlier, more technical, a serif for he"
+        },
+        {
+          "label": "geometry",
+          "lines": [66, 66],
+          "anchor": "| rounder, sharper, pill buttons, tighter, airier, thicker b"
+        },
+        {
+          "label": "spans dimensions",
+          "lines": [70, 72],
+          "anchor": "Keep this skill for a refinement that spans dimensions (\"mak",
+          "anchorEnd": "and route all three again."
+        },
+        {
+          "label": "no refinement",
+          "lines": [68, 68],
+          "anchor": "When no refinement is requested, the theme is complete."
+        }
+      ]
     },
     {
       "id": "ct-refine-colors",

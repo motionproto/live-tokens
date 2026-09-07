@@ -11,7 +11,6 @@ export const fixFindings: SkillTree = {
       "row": 0,
       "kind": "trigger",
       "title": "Fix design-system findings",
-      "desc": "Use when the user asks to fix the project.",
       "lines": [3, 3],
       "anchor": "description: Fix every finding of check-page and check-compo"
     },
@@ -68,7 +67,24 @@ export const fixFindings: SkillTree = {
       "title": "Repair order",
       "desc": "Which group remains within the repair scope?",
       "lines": [21, 21],
-      "anchor": "Take the largest error group first, then the remaining error"
+      "anchor": "Take the largest error group first, then the remaining error",
+      "chips": [
+        {
+          "label": "largest error group",
+          "lines": [21, 21],
+          "anchor": "Take the largest error group first, then the remaining error"
+        },
+        {
+          "label": "remaining errors",
+          "lines": [21, 21],
+          "anchor": "Take the largest error group first, then the remaining error"
+        },
+        {
+          "label": "warnings",
+          "lines": [21, 21],
+          "anchor": "Take the largest error group first, then the remaining error"
+        }
+      ]
     },
     {
       "id": "ff-recipe",
@@ -78,7 +94,24 @@ export const fixFindings: SkillTree = {
       "desc": "Which section covers the rule?",
       "lines": [22, 22],
       "anchor": "Fix every finding in the group with its section: Color by ro",
-      "n": "5"
+      "n": "5",
+      "chips": [
+        {
+          "label": "Color by role",
+          "lines": [41, 41],
+          "anchor": "## Color by role"
+        },
+        {
+          "label": "Geometry by scale",
+          "lines": [57, 57],
+          "anchor": "## Geometry by scale"
+        },
+        {
+          "label": "The remaining rules",
+          "lines": [71, 71],
+          "anchor": "## The remaining rules"
+        }
+      ]
     },
     {
       "id": "ff-color",
@@ -257,22 +290,22 @@ export const fixFindings: SkillTree = {
           "anchor": "| `deep-import` | Import from `@motion-proto/live-tokens`, `"
         },
         {
-          "label": "unknown-suffix, state-after-property, disabled-is-terminal",
+          "label": "Component name rules",
           "lines": [88, 88],
           "anchor": "| `unknown-suffix`, `state-after-property`, `disabled-is-ter"
         },
         {
-          "label": "color-literal, unknown-token-ref, default-not-token (component)",
+          "label": "Component token rules",
           "lines": [89, 89],
           "anchor": "| `color-literal`, `unknown-token-ref`, `default-not-token` "
         },
         {
-          "label": "phantom-editor-token, phantom-link",
+          "label": "Component editor rules",
           "lines": [90, 90],
           "anchor": "| `phantom-editor-token`, `phantom-link` | The editor names "
         },
         {
-          "label": "invalid-id, missing-file, missing-root-block, no-tokens, missing-component-const, missing-all-tokens, missing-registration",
+          "label": "Component wiring rules",
           "lines": [91, 91],
           "anchor": "| `invalid-id`, `missing-file`, `missing-root-block`, `no-to"
         }
@@ -324,7 +357,19 @@ export const fixFindings: SkillTree = {
       "desc": "Does the request include warnings, or does the user choose to clear them?",
       "lines": [24, 25],
       "anchor": "When the errors are clear, run both checkers with `--strict`",
-      "anchorEnd": "When the repair scope includes warnings, return to step 3 wi"
+      "anchorEnd": "When the repair scope includes warnings, return to step 3 wi",
+      "chips": [
+        {
+          "label": "repair scope includes warnings",
+          "lines": [25, 25],
+          "anchor": "When the repair scope includes warnings, return to step 3 wi"
+        },
+        {
+          "label": "user defers warnings",
+          "lines": [25, 25],
+          "anchor": "When the repair scope includes warnings, return to step 3 wi"
+        }
+      ]
     },
     {
       "id": "ff-warning-loop",
@@ -340,7 +385,7 @@ export const fixFindings: SkillTree = {
       "row": 17,
       "kind": "step",
       "title": "Gate the existing build",
-      "desc": "Add check:design when absent. Preserve the existing build command when adding the gate.",
+      "desc": "Adds check:design when absent and keeps the existing build command.",
       "lines": [33, 33],
       "anchor": "When `package.json` has no `check:design` script, add `\"chec"
     },

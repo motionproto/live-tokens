@@ -1,6 +1,6 @@
 <script lang="ts">
   import TreeNodeCard from './TreeNodeCard.svelte';
-  import { mergeParallelEdges } from './edges';
+  import { mergeParallelEdges, withoutChipAnswers } from './edges';
   import { routeWires, type Box, type Label, type Wire } from './wireLayout';
   import type { LineRange, SkillTree, TreeNode } from './types';
 
@@ -14,6 +14,8 @@
 
   let { tree, selected, onselect, onopen }: Props = $props();
 
+  let edges = $derived(mergeParallelEdges(withoutChipAnswers(tree.edges, tree.nodes)));
+
   /** The cards of each row, with the tallest stacked answer leaving it so the
    *  row can reserve room for the label under its fan-out. */
   let rows = $derived.by(() => {
@@ -23,7 +25,6 @@
       if (group) group.push(node);
       else byRow.set(node.row, [node]);
     }
-    const edges = mergeParallelEdges(tree.edges);
     return [...byRow.entries()]
       .sort((a, b) => a[0] - b[0])
       .map(([, nodes]) => ({
@@ -65,7 +66,7 @@
       });
     }
 
-    const drawing = routeWires(boxes, tree.edges, (...ids) => ids.includes(selectedNode));
+    const drawing = routeWires(boxes, edges, (...ids) => ids.includes(selectedNode));
     wires = drawing.wires;
     labels = drawing.labels;
   }
@@ -208,12 +209,12 @@
        stretch a card that has nothing to say at its right edge. Capping the
        track turns the column into a spine and gives the wires somewhere to
        travel. */
-    --node-w: 30rem;
+    --node-w: 24rem;
 
     position: relative;
     display: flex;
     flex-direction: column;
-    gap: var(--space-40);
+    gap: var(--space-24);
   }
 
   /* Sibling branch rows share a column count so a family and its follow-up
@@ -225,12 +226,12 @@
 
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(min(100%, var(--track)), 1fr));
-    gap: var(--space-24);
+    gap: var(--space-16);
     align-items: start;
     /* The auto margins that centre the row also switch off the flex stretch,
        so the width has to be asked for rather than inherited. */
     width: 100%;
-    max-width: calc(var(--n) * var(--node-w) + (var(--n) - 1) * var(--space-24));
+    max-width: calc(var(--n) * var(--node-w) + (var(--n) - 1) * var(--space-16));
     margin-inline: auto;
     margin-bottom: calc(var(--answer-lines) * var(--space-20));
   }
@@ -238,8 +239,8 @@
   /* A flat step would spend the same gap on "next" as on "the tree splits
      here". The extra margin lets a branch announce itself before it is read. */
   .row:not([data-count='1']) {
-    margin-top: var(--space-48);
-    margin-bottom: calc(var(--space-48) + var(--answer-lines) * var(--space-20));
+    margin-top: var(--space-32);
+    margin-bottom: calc(var(--space-32) + var(--answer-lines) * var(--space-20));
   }
 
   /* Past four, one line would shave the cards past reading; wrap them in pairs
@@ -247,6 +248,6 @@
   .row[data-count='5'],
   .row[data-count='6'],
   .row[data-count='7'] {
-    --track: 17rem;
+    --track: 14rem;
   }
 </style>

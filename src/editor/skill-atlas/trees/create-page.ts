@@ -11,7 +11,6 @@ export const createPage: SkillTree = {
       "row": 0,
       "kind": "trigger",
       "title": "Create a page or route",
-      "desc": "Use when the user asks for a page or a route. Use when the user asks to change the layout of a page.",
       "lines": [3, 3],
       "anchor": "description: Create a page in a @motion-proto/live-tokens pr"
     },
@@ -371,7 +370,19 @@ export const createPage: SkillTree = {
       "title": "Route integration",
       "desc": "How does App.svelte wire routes?",
       "lines": [133, 133],
-      "anchor": "Add the route the way `App.svelte` already wires routes."
+      "anchor": "Add the route the way `App.svelte` already wires routes.",
+      "chips": [
+        {
+          "label": "LiveTokensRouter",
+          "lines": [135, 135],
+          "anchor": "`<LiveTokensRouter pages={...}>`: add a `pages` entry with `"
+        },
+        {
+          "label": "LiveEditorOverlay",
+          "lines": [136, 136],
+          "anchor": "Manual `<LiveEditorOverlay>`: dispatch with `$derived.by(() "
+        }
+      ]
     },
     {
       "id": "cp-router",
@@ -412,7 +423,19 @@ export const createPage: SkillTree = {
       "title": "Compliance findings",
       "desc": "Does the report contain findings, or is the page clean?",
       "lines": [153, 153],
-      "anchor": "Run **live-tokens-check-compliance**. Its report carries bot"
+      "anchor": "Run **live-tokens-check-compliance**. Its report carries bot",
+      "chips": [
+        {
+          "label": "findings",
+          "lines": [153, 153],
+          "anchor": "Run **live-tokens-check-compliance**. Its report carries bot"
+        },
+        {
+          "label": "clean",
+          "lines": [153, 153],
+          "anchor": "Run **live-tokens-check-compliance**. Its report carries bot"
+        }
+      ]
     },
     {
       "id": "cp-fix",

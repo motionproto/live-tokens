@@ -1,7 +1,9 @@
 <script lang="ts">
+  import Badge from '../../system/components/Badge.svelte';
   import Button from '../../system/components/Button.svelte';
   import Card from '../../system/components/Card.svelte';
   import CodeSnippet from '../../system/components/CodeSnippet.svelte';
+  import Tooltip from '../../system/components/Tooltip.svelte';
   import type { LineRange, NodeKind, TreeNode } from './types';
 
   interface Props {
@@ -27,12 +29,29 @@
     done: 'complete',
   };
 
+  /** The structural rule that puts a node in each kind, as the audit enforces it. */
+  const KIND_MEANING: Record<NodeKind, string> = {
+    trigger: 'The request that starts the skill. Each chart has one, and it quotes the scope of the skill description.',
+    step: 'One action the skill takes. It has a single continuation.',
+    decide: 'A branch on a fact the skill reads from the request, the report, or a file. Each wire carries the answer that selects it, and there are at least two.',
+    cli: 'A CLI command the skill runs. The wires carry its exit outcomes, or a single continuation when it cannot fail.',
+    hand: 'The chart ends by invoking the named skill.',
+    gate: 'A check that failed. Its one wire returns up the chart to the command that runs again.',
+    ok: 'A check that passed, so the chart continues.',
+    ref: 'A step that reads a references document. The link opens it beside the source.',
+    ask: 'A branch on the need the user brings, which the skill infers or asks. The chips are the candidate answers, and each wire carries one.',
+    chipset: 'One action the skill takes. It has a single continuation.',
+    done: 'The chart ends.',
+  };
+
   let kindLabel = $derived(node.tag ?? KIND_LABEL[node.kind]);
+  let kindMeaning = $derived(node.tag ? undefined : KIND_MEANING[node.kind]);
+  let meaningOpen = $state(false);
   let cardSelected = $derived(selected === node.id);
   let range = $derived(node.lines ? rangeLabel(node.lines) : '');
 
   function rangeLabel([a, b]: LineRange): string {
-    return a === b ? `line ${a}` : `lines ${a}–${b}`;
+    return a === b ? `Ln ${a}` : `Ln ${a}–${b}`;
   }
 
   function selectSelf() {
@@ -51,13 +70,25 @@
     ></button>
   {/if}
 
-  <Card title={node.title} prose={false}>
-    <div class="meta">
-      <h3 class="kind">
-        {#if node.n}<span class="step-n">{node.n}</span>{/if}{kindLabel}
-      </h3>
-      {#if range}<span class="range">{range}</span>{/if}
-    </div>
+  <Card title={node.title} size="compact" prose={false}>
+    {#snippet aside()}
+      <div class="meta">
+        <Tooltip text={kindMeaning} position="bottom" open={meaningOpen}>
+          <button
+            type="button"
+            class="kind"
+            aria-pressed={meaningOpen}
+            aria-label="{kindLabel}. What this kind of node means"
+            onclick={() => (meaningOpen = !meaningOpen)}
+          >
+            <Badge variant="neutral" size="small">
+              {#if node.n}<span class="step-n">{node.n}</span>{/if}{kindLabel}
+            </Badge>
+          </button>
+        </Tooltip>
+        {#if range}<span class="range">{range}</span>{/if}
+      </div>
+    {/snippet}
 
     {#if node.desc}<p class="desc">{node.desc}</p>{/if}
 
@@ -78,6 +109,7 @@
           <li>
             <Button
               variant={selected === key ? 'secondary' : 'outline'}
+              size="small"
               onclick={() => onselect(key, chip.label, chip.lines)}
             >
               {chip.label}
@@ -93,6 +125,9 @@
   .shell {
     position: relative;
     border-radius: var(--card-default-radius);
+    /* Without the blur (below), the shipped 70% lets the wires read through
+       the body. */
+    --card-default-surface: color-mix(in srgb, var(--surface-neutral-lower) 80%, transparent);
   }
 
   /* A transparent overlay makes the whole card the click target without
@@ -110,9 +145,25 @@
 
   /* The package Card clips its title to one line; a node title is the step
      itself, so it has to read whole. */
-  .shell :global(.card-title) {
+  .shell :global(.card.compact .card-title) {
+    font-weight: var(--font-weight-bold);
+    line-height: var(--line-height-tight);
     white-space: normal;
     overflow-wrap: anywhere;
+  }
+
+  /* The package Card clips to its corners and its backdrop blur makes it a
+     stacking context, which would both clip the kind tooltip and keep the
+     chips under the hit overlay. The header takes the rounding instead. */
+  .shell :global(.card.compact) {
+    overflow: visible;
+    backdrop-filter: none;
+  }
+
+  .shell :global(.card.compact .card-header) {
+    align-items: flex-start;
+    border-radius: calc(var(--card-default-radius) - var(--card-default-border-width))
+      calc(var(--card-default-radius) - var(--card-default-border-width)) 0 0;
   }
 
   .shell:has(.hit:hover) {
@@ -129,19 +180,28 @@
      stay clickable. */
   .chips,
   .command,
-  .doclink {
+  .doclink,
+  .meta :global(.tooltip-wrapper) {
     position: relative;
     z-index: 2;
   }
 
+  /* A shown tooltip hangs over the command block and the row below, which
+     also sit at z-index 2 and come later in the DOM. Hover reveals it
+     without the open class. */
+  .meta :global(.tooltip-wrapper:hover),
+  .meta :global(.tooltip-wrapper.open) {
+    z-index: var(--z-tooltip);
+  }
+
   .doclink {
     max-width: 100%;
-    padding: var(--space-4) var(--space-8);
+    padding: var(--space-2) var(--space-6);
     border: var(--border-width-1) solid var(--border-accent-subtle);
     border-radius: var(--radius-sm);
     background: var(--surface-accent-lower);
     font-family: var(--code-font-family);
-    font-size: var(--font-size-sm);
+    font-size: var(--font-size-xs);
     color: var(--text-accent);
     overflow-wrap: break-word;
     text-align: left;
@@ -152,54 +212,88 @@
     background: var(--surface-accent-low);
   }
 
+  /* The title's half-leading pushes its glyphs below the header padding;
+     the badge gets the same offset so the two tops line up. */
   .meta {
     display: flex;
-    align-items: center;
-    gap: var(--space-12);
-    flex-wrap: wrap;
-    margin-bottom: var(--space-12);
+    flex-direction: column;
+    align-items: flex-end;
+    gap: var(--space-2);
+    padding-top: calc(var(--font-size-md) * (var(--line-height-tight) - 1) / 2);
+    font-size: var(--font-size-xs);
   }
 
   .kind {
+    --badge-neutral-text-font-size: 1em;
+    --badge-neutral-padding: var(--space-2);
+    --badge-neutral-padding-right: var(--space-6);
+    --badge-neutral-padding-left: var(--space-6);
+    display: inline-flex;
     margin: 0;
-    font-family: var(--heading-sm-font-family);
-    font-size: var(--heading-sm-font-size);
-    font-weight: var(--heading-sm-font-weight);
-    line-height: var(--heading-sm-line-height);
-    letter-spacing: var(--heading-sm-letter-spacing);
-    color: var(--text-secondary);
+    padding: 0;
+    font-size: inherit;
+    border: none;
+    background: transparent;
+    cursor: pointer;
   }
 
   .step-n {
-    margin-right: var(--space-8);
+    margin-right: var(--space-4);
     font-weight: var(--font-weight-bold);
   }
 
   .range {
     font-family: var(--code-font-family);
-    font-size: var(--font-size-md);
+    font-size: inherit;
     color: var(--text-tertiary);
+  }
+
+  /* The package Tooltip is a one-line hint; a kind's meaning is a sentence
+     or two, so it wraps and hangs from the badge's right edge, which sits at
+     the card's edge. */
+  .meta :global(.tooltip.bottom) {
+    right: 0;
+    left: auto;
+    width: max-content;
+    max-width: 36ch;
+    transform: none;
+    white-space: normal;
+    text-align: left;
+  }
+
+  .meta :global(.tooltip.bottom)::after {
+    right: var(--space-16);
+    left: auto;
+    transform: none;
   }
 
   .desc {
     margin: 0;
-    font-family: var(--body-md-font-family);
-    font-size: var(--body-md-font-size);
-    font-weight: var(--body-md-font-weight);
-    line-height: var(--body-md-line-height);
-    letter-spacing: var(--body-md-letter-spacing);
+    font-family: var(--body-sm-font-family);
+    font-size: var(--body-sm-font-size);
+    font-weight: var(--body-sm-font-weight);
+    line-height: var(--body-sm-line-height);
+    letter-spacing: var(--body-sm-letter-spacing);
     color: var(--text-secondary);
   }
 
   .command {
-    margin-top: var(--space-16);
+    --codesnippet-padding: var(--space-8);
+    --codesnippet-code-font-size: var(--font-size-sm);
+
+    margin-top: var(--space-8);
+  }
+
+  .desc + .command,
+  .doclink + .command {
+    margin-top: var(--space-12);
   }
 
   .chips {
     display: flex;
     flex-wrap: wrap;
-    gap: var(--space-12);
-    margin: var(--space-20) 0 0;
+    gap: var(--space-8);
+    margin: var(--space-12) 0 0;
     padding: 0;
     list-style: none;
   }

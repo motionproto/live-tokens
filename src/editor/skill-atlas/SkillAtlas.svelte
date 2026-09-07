@@ -109,10 +109,11 @@
       The {Object.keys(skillTrees).length} live-tokens authoring skills as decision trees. Select a step and its lines light up in
       the skill on the right; select a line number and the step that owns it lights up on the left.
     </p>
-    <div class="tabs">
-      <TabBar {tabs} selectedTab={active} ontabChange={changeTab} />
-    </div>
   </header>
+
+  <div class="tabs">
+    <TabBar {tabs} selectedTab={active} ontabChange={changeTab} />
+  </div>
 
   <div class="split">
     <section class="pane" aria-label="{tree.id} decision tree">
@@ -146,19 +147,6 @@
       </div>
     </section>
   </div>
-
-  <footer class="statusbar">
-    {#if selection}
-      <span class="status-label">{selection.label}</span>
-      <span class="status-range">
-        SKILL.md {selection.lines[0] === selection.lines[1]
-          ? `line ${selection.lines[0]}`
-          : `lines ${selection.lines[0]}–${selection.lines[1]}`}
-      </span>
-    {:else}
-      <span class="status-range">Select a step to map it onto the skill.</span>
-    {/if}
-  </footer>
 </div>
 
 <style>
@@ -172,7 +160,7 @@
   }
 
   .masthead {
-    margin-bottom: var(--space-40);
+    margin-bottom: var(--space-32);
   }
 
   .masthead-top {
@@ -199,7 +187,7 @@
 
   .standfirst {
     max-width: 68ch;
-    margin: 0 0 var(--space-32);
+    margin: 0;
     font-family: var(--body-md-font-family);
     font-size: var(--body-md-font-size);
     font-weight: var(--body-md-font-weight);
@@ -208,7 +196,17 @@
     color: var(--text-secondary);
   }
 
+  /* Below the desktop lock the page scrolls, and the strip pins at the top;
+     it sits outside the masthead so the standfirst can scroll away without
+     it. The gap below is padding: a margin would leave a slit the panes show
+     through once the strip is pinned. */
   .tabs {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    padding-bottom: var(--space-40);
+    background: var(--page-bg);
+    background-attachment: var(--page-bg-attachment, fixed);
     overflow-x: auto;
   }
 
@@ -225,10 +223,39 @@
     gap: var(--space-32);
   }
 
+  /* Desktop: the surface locks to the viewport and each pane scrolls on its
+     own, so nothing ever slides under the tab strip. The router wrapper
+     assumes window-scroll pages (min-height + a 12rem bottom pad); the doubled
+     .lt-app outranks its scoped rule on a specificity tie. */
   @media (min-width: 64rem) {
+    :global(.lt-app.lt-app:has(.atlas)) {
+      height: 100vh;
+      min-height: 0;
+      padding-bottom: 0;
+      overflow: hidden;
+    }
+
+    .atlas {
+      height: 100%;
+      overflow: hidden;
+    }
+
+    .masthead,
+    .tabs {
+      flex: 0 0 auto;
+    }
+
+    /* minmax(0, 1fr) pins the row to the remaining height; an auto row would
+       grow to the panes' content and break their scroll. */
     .split {
+      flex: 1 1 auto;
+      min-height: 0;
       grid-template-columns: 3fr 2fr;
-      align-items: start;
+      grid-template-rows: minmax(0, 1fr);
+    }
+
+    .pane {
+      height: 100%;
     }
   }
 
@@ -308,29 +335,6 @@
     line-height: var(--heading-xl-line-height);
     letter-spacing: var(--heading-xl-letter-spacing);
     color: var(--text-primary);
-  }
-
-  .statusbar {
-    display: flex;
-    align-items: baseline;
-    gap: var(--space-16);
-    flex-wrap: wrap;
-    margin-top: var(--space-24);
-    padding-top: var(--space-16);
-    border-top: var(--border-width-1) solid var(--border-neutral-faint);
-  }
-
-  .status-label {
-    font-family: var(--body-md-font-family);
-    font-size: var(--font-size-md);
-    font-weight: var(--font-weight-bold);
-    color: var(--text-primary);
-  }
-
-  .status-range {
-    font-family: var(--code-font-family);
-    font-size: var(--font-size-md);
-    color: var(--text-tertiary);
   }
 
   @media (prefers-reduced-motion: reduce) {

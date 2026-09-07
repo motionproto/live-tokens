@@ -11,7 +11,6 @@ export const pickComponent: SkillTree = {
       "row": 0,
       "kind": "trigger",
       "title": "Choose a component for a UX need",
-      "desc": "Use when the user asks which component to use, or what the difference between two components is. Use when the user asks how to show or capture a UX outcome.",
       "lines": [3, 3],
       "anchor": "description: Recommend which shipped @motion-proto/live-toke"
     },
@@ -32,7 +31,44 @@ export const pickComponent: SkillTree = {
       "title": "Component purpose",
       "desc": "Which family matches the UX need?",
       "lines": [8, 8],
-      "anchor": "When more than one shipped component could fit, find the fam"
+      "anchor": "When more than one shipped component could fit, find the fam",
+      "chips": [
+        {
+          "label": "Action family",
+          "lines": [14, 14],
+          "anchor": "## Action family"
+        },
+        {
+          "label": "Single-selection family",
+          "lines": [20, 20],
+          "anchor": "## Single-selection family"
+        },
+        {
+          "label": "Text entry",
+          "lines": [34, 34],
+          "anchor": "## Text entry"
+        },
+        {
+          "label": "On and off",
+          "lines": [40, 40],
+          "anchor": "## On and off"
+        },
+        {
+          "label": "Container family",
+          "lines": [52, 52],
+          "anchor": "## Container family"
+        },
+        {
+          "label": "Messaging family",
+          "lines": [65, 65],
+          "anchor": "## Messaging family"
+        },
+        {
+          "label": "Display family",
+          "lines": [79, 79],
+          "anchor": "## Display family"
+        }
+      ]
     },
     {
       "id": "pk-act",
@@ -92,12 +128,7 @@ export const pickComponent: SkillTree = {
           "anchor": "| `MenuSelect` | The options would overflow a row. | any |"
         },
         {
-          "label": "Wrapped labels",
-          "lines": [31, 31],
-          "anchor": "When a label would wrap in a `SegmentedControl`, use `RadioB"
-        },
-        {
-          "label": "URL or section navigation",
+          "label": "SideNavigation",
           "lines": [32, 32],
           "anchor": "The URL changes: `SideNavigation`. Sections inside one page:"
         }
@@ -124,7 +155,7 @@ export const pickComponent: SkillTree = {
           "anchor": "The page can list the answers: the single-selection family."
         },
         {
-          "label": "Slider or numeric Input",
+          "label": "Slider",
           "lines": [38, 38],
           "anchor": "A number where the position on a track carries the meaning ("
         }
@@ -237,27 +268,52 @@ export const pickComponent: SkillTree = {
       "anchorEnd": "A titled break between the sections of one page: `SectionDiv",
       "chips": [
         {
-          "label": "Image or ImageLightbox",
+          "label": "Image",
           "lines": [81, 81],
           "anchor": "A picture the page shows: `Image`. A picture whose detail th"
         },
         {
-          "label": "Table or Card",
+          "label": "ImageLightbox",
+          "lines": [81, 81],
+          "anchor": "A picture the page shows: `Image`. A picture whose detail th"
+        },
+        {
+          "label": "Table",
           "lines": [82, 82],
           "anchor": "Records the reader scans and compares: `Table`. A set of ite"
         },
         {
-          "label": "ProgressBar or Slider",
+          "label": "Card",
+          "lines": [82, 82],
+          "anchor": "Records the reader scans and compares: `Table`. A set of ite"
+        },
+        {
+          "label": "ProgressBar",
           "lines": [83, 83],
           "anchor": "A read-out of progress: `ProgressBar`. A number the reader s"
         },
         {
-          "label": "CodeSnippet or prose",
+          "label": "Slider",
+          "lines": [83, 83],
+          "anchor": "A read-out of progress: `ProgressBar`. A number the reader s"
+        },
+        {
+          "label": "CodeSnippet",
           "lines": [84, 84],
           "anchor": "Text the reader runs or pastes (an install command, a key, a"
         },
         {
-          "label": "SectionDivider or SideNavigation",
+          "label": "prose",
+          "lines": [84, 84],
+          "anchor": "Text the reader runs or pastes (an install command, a key, a"
+        },
+        {
+          "label": "SectionDivider",
+          "lines": [85, 85],
+          "anchor": "A titled break between the sections of one page: `SectionDiv"
+        },
+        {
+          "label": "SideNavigation",
           "lines": [85, 85],
           "anchor": "A titled break between the sections of one page: `SectionDiv"
         }
@@ -271,7 +327,29 @@ export const pickComponent: SkillTree = {
       "desc": "Does a catalogue component or native element fit, or does the task need a new component with chrome?",
       "lines": [87, 91],
       "anchor": "## Nothing fits",
-      "anchorEnd": "`npx live-tokens components <id>` prints one component's usa"
+      "anchorEnd": "`npx live-tokens components <id>` prints one component's usa",
+      "chips": [
+        {
+          "label": "shipped component",
+          "lines": [12, 12],
+          "anchor": "Before choosing, run `npx live-tokens components`. The list "
+        },
+        {
+          "label": "custom component",
+          "lines": [12, 12],
+          "anchor": "Before choosing, run `npx live-tokens components`. The list "
+        },
+        {
+          "label": "native element",
+          "lines": [89, 89],
+          "anchor": "A native element with no chrome of its own needs no componen"
+        },
+        {
+          "label": "nothing in the catalogue fits",
+          "lines": [89, 89],
+          "anchor": "A native element with no chrome of its own needs no componen"
+        }
+      ]
     },
     {
       "id": "pk-inspect",
@@ -365,17 +443,7 @@ export const pickComponent: SkillTree = {
     {
       "to": "pk-fits",
       "from": "pk-sel",
-      "label": "RadioButton"
-    },
-    {
-      "to": "pk-fits",
-      "from": "pk-sel",
       "label": "SideNavigation"
-    },
-    {
-      "to": "pk-fits",
-      "from": "pk-sel",
-      "label": "TabBar"
     },
     {
       "to": "pk-text",
@@ -396,11 +464,6 @@ export const pickComponent: SkillTree = {
       "to": "pk-fits",
       "from": "pk-text",
       "label": "Slider"
-    },
-    {
-      "to": "pk-fits",
-      "from": "pk-text",
-      "label": "Input"
     },
     {
       "to": "pk-bin",

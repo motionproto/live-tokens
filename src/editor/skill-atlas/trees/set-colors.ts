@@ -11,7 +11,7 @@ export const setColors: SkillTree = {
       "row": 0,
       "kind": "trigger",
       "title": "Set or refine a palette",
-      "desc": "Use when the user asks for a palette, colors, or hues by mood, style, era, season, holiday, or hue. Use when the user names only a color. Use when the user refines a theme's color: warmer, cooler, calmer, louder, lighter, darker, moodier, more contrast.",
+      "desc": "Changes color only. For a request that also names type or geometry, read live-tokens-create-theme.",
       "lines": [3, 3],
       "anchor": "description: Set a live-tokens theme's color: ten OKLCH base"
     },
@@ -30,7 +30,6 @@ export const setColors: SkillTree = {
       "row": 2,
       "kind": "step",
       "title": "Write the input file",
-      "desc": "Write ten base colors, the scheme, and the optional canvas gradient.",
       "lines": [20, 20],
       "anchor": "Translate the intent into ten base colors with the framework",
       "n": "2",
@@ -195,7 +194,6 @@ export const setColors: SkillTree = {
       "row": 11,
       "kind": "gate",
       "title": "Correct the input file",
-      "desc": "Use the error details to correct the input and rerun the command.",
       "lines": [22, 22],
       "anchor": "Read the report. Exit 0 passes, and auto-corrected values co"
     },

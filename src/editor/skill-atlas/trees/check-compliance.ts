@@ -11,7 +11,6 @@ export const checkCompliance: SkillTree = {
       "row": 0,
       "kind": "trigger",
       "title": "Review design-system compliance",
-      "desc": "Use when the user asks to check, audit, or review the project.",
       "lines": [3, 3],
       "anchor": "description: Report an existing project's adherence to @moti"
     },
@@ -30,7 +29,7 @@ export const checkCompliance: SkillTree = {
       "row": 2,
       "kind": "gate",
       "title": "Route the dependency upgrade",
-      "desc": "Invoke live-tokens-fix-findings for the dependency upgrade, then resume the audit.",
+      "desc": "The upgrade goes to live-tokens-fix-findings.",
       "lines": [12, 12],
       "anchor": "When `report` is an unknown command, route the dependency up"
     },
@@ -92,7 +91,24 @@ export const checkCompliance: SkillTree = {
       "title": "Inspection details",
       "desc": "Does the finding need component or scale details?",
       "lines": [16, 16],
-      "anchor": "When a finding needs component or scale details, run the mat"
+      "anchor": "When a finding needs component or scale details, run the mat",
+      "chips": [
+        {
+          "label": "component",
+          "lines": [22, 22],
+          "anchor": "For one component, run `npx live-tokens components <id>`. Fo"
+        },
+        {
+          "label": "scale",
+          "lines": [22, 22],
+          "anchor": "For one component, run `npx live-tokens components <id>`. Fo"
+        },
+        {
+          "label": "continue with classification",
+          "lines": [17, 17],
+          "anchor": "Classify each finding as Mechanical, Judgement, or Deliberat"
+        }
+      ]
     },
     {
       "id": "cc2-component",
@@ -145,7 +161,24 @@ export const checkCompliance: SkillTree = {
       "title": "Finding class",
       "desc": "Does the finding require a deliberate config decision?",
       "lines": [17, 17],
-      "anchor": "Classify each finding as Mechanical, Judgement, or Deliberat"
+      "anchor": "Classify each finding as Mechanical, Judgement, or Deliberat",
+      "chips": [
+        {
+          "label": "Mechanical",
+          "lines": [41, 41],
+          "anchor": "**Mechanical.** The value determines the token, such as a sp"
+        },
+        {
+          "label": "Judgement",
+          "lines": [42, 42],
+          "anchor": "**Judgement.** A role determines the token, such as a color "
+        },
+        {
+          "label": "Deliberate",
+          "lines": [43, 43],
+          "anchor": "**Deliberate.** The finding records a decision, such as a la"
+        }
+      ]
     },
     {
       "id": "cc2-deliberate",
@@ -158,53 +191,11 @@ export const checkCompliance: SkillTree = {
     {
       "id": "cc2-reply",
       "row": 10,
-      "kind": "chipset",
+      "kind": "step",
       "title": "Reply in report order",
       "lines": [18, 18],
       "anchor": "Reply with the findings of each section in the table's order",
-      "n": "5",
-      "chips": [
-        {
-          "label": "migrations",
-          "lines": [28, 28],
-          "anchor": "| `migrations` | Whether `tokens.css` is behind the installe"
-        },
-        {
-          "label": "findings.pages, findings.components",
-          "lines": [29, 29],
-          "anchor": "| `findings.pages`, `findings.components` | Both checkers' f"
-        },
-        {
-          "label": "components[].unread",
-          "lines": [30, 30],
-          "anchor": "| `components[].unread` | Tokens a component declares and ne"
-        },
-        {
-          "label": "components[].registered",
-          "lines": [31, 31],
-          "anchor": "| `components[].registered` | Whether the component has a `b"
-        },
-        {
-          "label": "components[].described",
-          "lines": [32, 32],
-          "anchor": "| `components[].described` | Whether the runtime file has th"
-        },
-        {
-          "label": "usage.byPage",
-          "lines": [33, 33],
-          "anchor": "| `usage.byPage` | Which component each page imports, and ho"
-        },
-        {
-          "label": "usage.unusedShipped",
-          "lines": [34, 34],
-          "anchor": "| `usage.unusedShipped` | Shipped components no page renders"
-        },
-        {
-          "label": "usage.customUnregistered, usage.customUnused",
-          "lines": [35, 35],
-          "anchor": "| `usage.customUnregistered`, `usage.customUnused` | The pro"
-        }
-      ]
+      "n": "5"
     },
     {
       "id": "cc2-fix-list",

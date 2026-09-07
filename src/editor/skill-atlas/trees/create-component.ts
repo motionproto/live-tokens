@@ -11,7 +11,6 @@ export const createComponent: SkillTree = {
       "row": 0,
       "kind": "trigger",
       "title": "Create an editable component",
-      "desc": "Use when live-tokens-pick-component finds no suitable component, or the user asks for a new component. Use when the user asks to make an existing Svelte component editable in the live-tokens editor.",
       "lines": [3, 3],
       "anchor": "description: Create an editable component for a @motion-prot"
     },
@@ -193,7 +192,19 @@ export const createComponent: SkillTree = {
       "title": "Structural properties",
       "desc": "Does a property carry a structural choice?",
       "lines": [114, 114],
-      "anchor": "The excerpt shows the chain for part of the property map. Ev"
+      "anchor": "The excerpt shows the chain for part of the property map. Ev",
+      "chips": [
+        {
+          "label": "structural choice",
+          "lines": [114, 114],
+          "anchor": "The excerpt shows the chain for part of the property map. Ev"
+        },
+        {
+          "label": "editable value",
+          "lines": [114, 114],
+          "anchor": "The excerpt shows the chain for part of the property map. Ev"
+        }
+      ]
     },
     {
       "id": "cc-intrinsics",
@@ -264,7 +275,19 @@ export const createComponent: SkillTree = {
       "title": "Shared values",
       "desc": "Do variants share a value?",
       "lines": [176, 176],
-      "anchor": "When variants share a value, read `references/linked-sibling"
+      "anchor": "When variants share a value, read `references/linked-sibling",
+      "chips": [
+        {
+          "label": "share a value",
+          "lines": [176, 176],
+          "anchor": "When variants share a value, read `references/linked-sibling"
+        },
+        {
+          "label": "separate keys",
+          "lines": [176, 176],
+          "anchor": "When variants share a value, read `references/linked-sibling"
+        }
+      ]
     },
     {
       "id": "cc-linked",
@@ -300,7 +323,19 @@ export const createComponent: SkillTree = {
       "title": "Fixed overlays",
       "desc": "Does the component have a fixed overlay?",
       "lines": [207, 207],
-      "anchor": "A fixed overlay portals to `<body>`: read `references/fixed-"
+      "anchor": "A fixed overlay portals to `<body>`: read `references/fixed-",
+      "chips": [
+        {
+          "label": "fixed overlay",
+          "lines": [207, 207],
+          "anchor": "A fixed overlay portals to `<body>`: read `references/fixed-"
+        },
+        {
+          "label": "container",
+          "lines": [207, 207],
+          "anchor": "A fixed overlay portals to `<body>`: read `references/fixed-"
+        }
+      ]
     },
     {
       "id": "cc-portal",
@@ -334,32 +369,32 @@ export const createComponent: SkillTree = {
       "row": 25,
       "kind": "gate",
       "title": "Resolve the findings",
-      "desc": "Apply live-tokens-fix-findings using the rule sections, then rerun.",
+      "desc": "The repair for each section is in live-tokens-fix-findings.",
       "lines": [211, 211],
       "anchor": "Run **live-tokens-check-compliance** and address its finding",
       "chips": [
         {
-          "label": "unknown-suffix, state-after-property, disabled-is-terminal",
+          "label": "Property design, the name",
           "lines": [221, 221],
           "anchor": "| `unknown-suffix`, `state-after-property`, `disabled-is-ter"
         },
         {
-          "label": "default-not-token, color-literal, dimension-literal, unknown-token-ref",
+          "label": "Property design, the assigned token",
           "lines": [222, 222],
           "anchor": "| `default-not-token`, `color-literal`, `dimension-literal`,"
         },
         {
-          "label": "invalid-id, missing-file, missing-root-block, no-tokens",
+          "label": "Runtime component",
           "lines": [223, 223],
           "anchor": "| `invalid-id`, `missing-file`, `missing-root-block`, `no-to"
         },
         {
-          "label": "missing-component-const, missing-all-tokens, phantom-editor-token, phantom-link, deep-import",
+          "label": "Component editor",
           "lines": [224, 224],
           "anchor": "| `missing-component-const`, `missing-all-tokens`, `phantom-"
         },
         {
-          "label": "missing-registration",
+          "label": "Registration",
           "lines": [225, 225],
           "anchor": "| `missing-registration` | Registration |"
         }

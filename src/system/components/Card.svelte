@@ -23,6 +23,8 @@
         default; `true`/`false` force this instance on/off. */
     hover?: boolean | undefined;
     class?: string;
+    /** Content at the header's trailing edge: a badge, a count, an action. */
+    aside?: import('svelte').Snippet;
     children?: import('svelte').Snippet;
   }
 
@@ -36,6 +38,7 @@
     flush = false,
     hover = undefined,
     class: className = '',
+    aside,
     children
   }: Props = $props();
 
@@ -47,7 +50,7 @@
     hover === undefined ? undefined : hover ? 'var(--card-hover-shadow)' : 'var(--card-default-shadow)',
   );
 
-  let showHeader = $derived(variant !== 'bare' && Boolean(icon || title));
+  let showHeader = $derived(variant !== 'bare' && Boolean(icon || title || aside));
 
   $effect(() => {
     if (import.meta.env.DEV && variant === 'default' && !icon && !title) {
@@ -71,6 +74,9 @@
       {/if}
       {#if title}
         <span class="card-title">{title}</span>
+      {/if}
+      {#if aside}
+        <div class="card-aside">{@render aside()}</div>
       {/if}
     </div>
   {/if}
@@ -161,6 +167,11 @@
     gap: var(--card-default-header-gap);
     @include themed-padding(--card-default-header-padding);
     background: var(--card-default-header-surface);
+  }
+
+  .card-aside {
+    flex-shrink: 0;
+    margin-left: auto;
   }
 
   .card.compact .card-header,

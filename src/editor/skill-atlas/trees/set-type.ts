@@ -11,7 +11,7 @@ export const setType: SkillTree = {
       "row": 0,
       "kind": "trigger",
       "title": "Choose or pair font families",
-      "desc": "Use when the user asks to pair fonts, pick a typeface, or set the fonts. Use when the user describes type by voice: editorial, friendlier, technical, elegant, less generic. Use when the user names a face for a role: a serif for headings, a display font.",
+      "desc": "Changes type only. For a request that also names color or geometry, read live-tokens-create-theme.",
       "lines": [3, 3],
       "anchor": "description: Set a live-tokens theme's type: a Google Fonts "
     },
@@ -30,7 +30,6 @@ export const setType: SkillTree = {
       "row": 2,
       "kind": "step",
       "title": "Write the input file",
-      "desc": "Choose the pairing and write scratch/font-pairing.json.",
       "lines": [15, 15],
       "anchor": "Choose the pairing and write it to `scratch/font-pairing.jso",
       "n": "2",
@@ -88,37 +87,37 @@ export const setType: SkillTree = {
       "anchorEnd": "Match the type to the design direction the color came from. ",
       "chips": [
         {
-          "label": "editorial, literary, considered",
+          "label": "editorial",
           "lines": [56, 56],
           "anchor": "| editorial, literary, considered | dynamic serif display ov"
         },
         {
-          "label": "elegant, luxurious, formal",
+          "label": "elegant",
           "lines": [57, 57],
           "anchor": "| elegant, luxurious, formal | rational high-contrast serif "
         },
         {
-          "label": "friendly, warm, approachable",
+          "label": "friendly",
           "lines": [58, 58],
           "anchor": "| friendly, warm, approachable | dynamic sans on both sides,"
         },
         {
-          "label": "technical, systematic, precise",
+          "label": "technical",
           "lines": [59, 59],
           "anchor": "| technical, systematic, precise | geometric or neo-grotesqu"
         },
         {
-          "label": "playful, informal",
+          "label": "playful",
           "lines": [60, 60],
           "anchor": "| playful, informal | an expressive display face over a plai"
         },
         {
-          "label": "serious, institutional, trustworthy",
+          "label": "serious",
           "lines": [61, 61],
           "anchor": "| serious, institutional, trustworthy | rational sans body, "
         },
         {
-          "label": "quiet, minimal, unbranded",
+          "label": "quiet",
           "lines": [62, 62],
           "anchor": "| quiet, minimal, unbranded | one superfamily across both sl"
         }
@@ -157,7 +156,6 @@ export const setType: SkillTree = {
       "row": 9,
       "kind": "gate",
       "title": "Correct the input file",
-      "desc": "Use the error details to correct the input and rerun the command.",
       "lines": [17, 17],
       "anchor": "Read the report. Name a missing weight and offer an alternat"
     },

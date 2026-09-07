@@ -11,7 +11,7 @@ export const setGeometry: SkillTree = {
       "row": 0,
       "kind": "trigger",
       "title": "Set shape and spacing",
-      "desc": "Use when the user asks for pill or capsule buttons. Use when the user asks for rounded, sharp, square, softer, or harder corners. Use when the user asks for thicker or thinner borders. Use when the user asks for density: space it out, tighter, denser, airier.",
+      "desc": "Changes geometry only. For a request that also names color or type, read live-tokens-create-theme.",
       "lines": [3, 3],
       "anchor": "description: Set a live-tokens theme's geometry: corner radi"
     },
@@ -30,7 +30,7 @@ export const setGeometry: SkillTree = {
       "row": 2,
       "kind": "step",
       "title": "Write the input file",
-      "desc": "Write global or targeted set and shift operations.",
+      "desc": "An operation is global or targeted, and it sets a step or shifts by steps.",
       "lines": [15, 15],
       "anchor": "Write the ops file to `scratch/geometry-ops.json`.",
       "n": "2",
@@ -53,47 +53,47 @@ export const setGeometry: SkillTree = {
       "anchorEnd": "Magnitude follows the qualifier. \"Slightly\" or \"a bit\" is 1 ",
       "chips": [
         {
-          "label": "pill, capsule",
+          "label": "pill",
           "lines": [50, 50],
           "anchor": "| pill, capsule | radius `set: \"--radius-full\"`, plus the pa"
         },
         {
-          "label": "sharp, square corners",
+          "label": "sharp",
           "lines": [51, 51],
           "anchor": "| sharp, square corners | radius `set: \"--radius-none\"`, or "
         },
         {
-          "label": "rounded (a named component)",
+          "label": "rounded, one component",
           "lines": [52, 52],
           "anchor": "| rounded (a named component) | radius `shift: 2` |"
         },
         {
-          "label": "softer, rounder (global)",
+          "label": "softer, global",
           "lines": [53, 53],
           "anchor": "| softer, rounder (global) | radius `shift: 1` to `2`, no `f"
         },
         {
-          "label": "harder, sharper",
+          "label": "harder",
           "lines": [54, 54],
           "anchor": "| harder, sharper | radius `shift: -1` to `-2` |"
         },
         {
-          "label": "increase the radius, less round, more round",
+          "label": "more or less round",
           "lines": [55, 55],
           "anchor": "| increase the radius, less round, more round | radius `shif"
         },
         {
-          "label": "space it out, airier, breathing room",
+          "label": "airier",
           "lines": [56, 56],
           "anchor": "| space it out, airier, breathing room | padding and gap `sh"
         },
         {
-          "label": "tighter, denser, more compact",
+          "label": "denser",
           "lines": [57, 57],
           "anchor": "| tighter, denser, more compact | padding and gap `shift: -1"
         },
         {
-          "label": "thicker, thinner borders",
+          "label": "thicker or thinner borders",
           "lines": [58, 58],
           "anchor": "| thicker, thinner borders | border-width `shift: 1` or `-1`"
         }
@@ -132,7 +132,6 @@ export const setGeometry: SkillTree = {
       "row": 7,
       "kind": "gate",
       "title": "Correct the input file",
-      "desc": "Use the error details to correct the input and rerun the command.",
       "lines": [18, 18],
       "anchor": "When the CLI exits 1, fix the op or the input the message na",
       "n": "5"

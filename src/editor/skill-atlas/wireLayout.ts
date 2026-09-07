@@ -1,4 +1,3 @@
-import { mergeParallelEdges } from './edges';
 import type { Edge } from './types';
 
 /** A card's laid-out rectangle, relative to the canvas. */
@@ -202,9 +201,8 @@ function skipEdge(out: Drawing, a: Box, b: Box, lane: number, edge: Edge, lit: b
  * Routes every edge between the measured cards. `lit` answers whether a wire
  * joining the given node ids belongs to the current selection.
  */
-export function routeWires(boxes: Map<string, Box>, rawEdges: Edge[], lit: (...ids: string[]) => boolean): Drawing {
+export function routeWires(boxes: Map<string, Box>, edges: Edge[], lit: (...ids: string[]) => boolean): Drawing {
   const all = [...boxes.values()];
-  const edges = mergeParallelEdges(rawEdges);
   const children = new Map<string, Edge[]>();
   const parents = new Map<string, Edge[]>();
   for (const edge of edges) {

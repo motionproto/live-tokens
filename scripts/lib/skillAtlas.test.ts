@@ -4,6 +4,7 @@ import {
   anchorOf,
   atlasNodes,
   auditCommands,
+  auditSource,
   auditStructure,
   digestOf,
   locate,
@@ -269,6 +270,26 @@ describe('the shipped trees', () => {
     const source = readFileSync(new URL(file, dir), 'utf8');
 
     expect(serializeTree(parseTree(source))).toBe(source);
+  });
+});
+
+describe('the sentence a trigger card quotes', () => {
+  const lines = [
+    '---',
+    "description: Set a theme's color. Use when the user asks for a palette. Changes color only. For a request that also names type, read live-tokens-create-theme.",
+    '---',
+  ];
+  const tree = (desc?: string) => ({ id: 'live-tokens-example', nodes: [{ id: 'start', row: 0, kind: 'trigger', title: 'Start', desc }], edges: [] });
+
+  it('accepts a bare card', () => {
+    expect(auditSource(tree(), lines)).toEqual([]);
+  });
+  it('accepts the scope sentences', () => {
+    expect(auditSource(tree('Changes color only. For a request that also names type, read live-tokens-create-theme.'), lines)).toEqual([]);
+  });
+  it('rejects a trigger sentence, and one the description never says', () => {
+    expect(auditSource(tree('Use when the user asks for a palette.'), lines).join('\n')).toContain('scope sentences');
+    expect(auditSource(tree('Changes color only. Sets ten colors.'), lines).join('\n')).toContain('"Sets ten colors."');
   });
 });
 

@@ -1,4 +1,14 @@
-import type { Edge } from './types';
+import type { Edge, TreeNode } from './types';
+
+/** An answer the card already shows as a chip says nothing more on the wire. */
+export function withoutChipAnswers(edges: Edge[], nodes: TreeNode[]): Edge[] {
+  const chips = new Map(nodes.map((node) => [node.id, new Set((node.chips ?? []).map((chip) => chip.label))]));
+  return edges.map((edge) => {
+    if (!edge.label || !chips.get(edge.from)?.has(edge.label)) return edge;
+    const { label: _, ...bare } = edge;
+    return bare;
+  });
+}
 
 /** Several answers can lead to the same next step. Draw their shared wire once. */
 export function mergeParallelEdges(edges: Edge[]): Edge[] {

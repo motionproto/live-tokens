@@ -245,9 +245,14 @@ export function auditSource(tree, lines) {
   const plain = (text) => text.replace(/[`*_]/g, '').replace(/\s+/g, ' ').toLowerCase();
   const source = plain(lines.join('\n'));
   const description = lines.find((line) => line.startsWith('description: '))?.slice(13) ?? '';
-  const triggers = description.split(/(?<=\.)\s+/).filter((sentence) => sentence.startsWith('Use when')).join(' ');
+  const sentences = (text) => text.split(/(?<=\.)\s+/).filter(Boolean);
+  const scope = new Set(sentences(description).filter((sentence) => !sentence.startsWith('Use when')));
   for (const node of tree.nodes) {
-    if (node.kind === 'trigger' && node.desc !== triggers) problems.push(`${tree.id} ${node.id}: trigger must quote the description's trigger sentences`);
+    if (node.kind === 'trigger' && node.desc) {
+      for (const sentence of sentences(node.desc)) {
+        if (!scope.has(sentence)) problems.push(`${tree.id} ${node.id}: trigger quotes a sentence outside the description's scope sentences: ${JSON.stringify(sentence)}`);
+      }
+    }
     for (const item of [node, ...(node.chips ?? [])]) {
       if (!item.lines) continue;
       const [start, end] = item.lines;
