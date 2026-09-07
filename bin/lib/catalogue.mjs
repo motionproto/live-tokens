@@ -90,7 +90,7 @@ export function formatComponents(list, { id } = {}) {
   if (id) {
     const c = list.find((x) => x.id === id);
     if (!c) return `No component "${id}". Run \`live-tokens components\` for the list.`;
-    lines.push(`${c.name} (${c.id}, ${c.origin}${c.registered ? '' : ', NOT registered'})  ${c.file}`);
+    lines.push(`${c.name} (${c.id}, ${c.origin}${c.registered ? '' : ', unregistered'})  ${c.file}`);
     for (const line of describeLines(c)) lines.push(`  ${line}`);
     if (c.props.length) {
       lines.push('  props:');
@@ -120,7 +120,7 @@ export function formatTokens(desc, { family } = {}) {
   if (family && families.length === 0) {
     return `No family "${family}". Families: ${desc.families.map((f) => f.family).join(', ')}.`;
   }
-  lines.push(`Theme tokens from ${desc.tokensCss ?? '(no tokens.css found)'}`);
+  lines.push(`Design tokens from ${desc.tokensCss ?? '(no tokens.css found)'}`);
   for (const f of families) {
     lines.push('');
     lines.push(`${f.family} (${f.tokens.length})`);
@@ -128,7 +128,7 @@ export function formatTokens(desc, { family } = {}) {
   }
   if (!family) {
     lines.push('');
-    lines.push(`Component tokens: ${desc.components.reduce((n, c) => n + c.tokens.length, 0)} across ${desc.components.length} component(s). \`live-tokens components <id>\` lists one component's.`);
+    lines.push(`Semantic properties: ${desc.components.reduce((n, c) => n + c.tokens.length, 0)} across ${desc.components.length} component(s). \`live-tokens components <id>\` lists one component's.`);
   }
   return lines.join('\n');
 }

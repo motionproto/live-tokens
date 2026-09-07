@@ -383,8 +383,8 @@ function checkFile(file, text, vocab, root) {
         'unknown-token',
         at(m.index),
         isContractToken(name)
-          ? `${name} looks like a theme token but no longer exists; check tokens.css for a rename`
-          : `${name} is not a theme token, a component token, or declared in this file`,
+          ? `${name} has the shape of a design token but no longer exists. Check tokens.css for a rename`
+          : `${name} is not a design token, a semantic property, or declared in this file`,
       );
     }
 
@@ -396,7 +396,7 @@ function checkFile(file, text, vocab, root) {
       // inside one is not the page's value.
       const painted = stripVarFallbacks(value);
       if (!TEXT_AXES.includes(prop) && hasColorLiteral(painted)) {
-        add('color-literal', at(index), `${prop}: ${value}. Use a theme token, not a colour literal.`);
+        add('color-literal', at(index), `${prop}: ${value}. Use a design token.`);
         continue;
       }
 

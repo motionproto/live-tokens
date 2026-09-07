@@ -120,7 +120,7 @@ const list = (items, max = 20) =>
 
 export function formatReport(r) {
   const out = [];
-  out.push(`Project: ${r.project.pages} page file(s), ${r.project.components} component(s), ${r.project.themeTokens} theme tokens from ${r.project.tokensCss ?? '(no tokens.css)'}`);
+  out.push(`Project: ${r.project.pages} page file(s), ${r.project.components} component(s), ${r.project.themeTokens} design tokens from ${r.project.tokensCss ?? '(no tokens.css)'}`);
   if (r.migrations) {
     out.push('');
     out.push(`Migrations: ${r.migrations.status}${r.migrations.pending?.length ? ` (${list(r.migrations.pending)})` : ''}`);

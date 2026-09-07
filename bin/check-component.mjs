@@ -267,10 +267,10 @@ function checkDefaultsAreSemantic({ blocks, runtime, editor, root, runtimePath, 
         record(
           'unknown-token-ref',
           STATE_TOKENS.includes(ref.replace(/^--/, '').split('-')[0])
-            ? `${rel}: ${name} reads ${ref}, but a state is a segment of a property name, not a token of its own; read the token the state should paint`
+            ? `${rel}: ${name} reads ${ref}, but a state is a segment of a property name. Read the token the state should paint`
             : isContractToken(ref)
-              ? `${rel}: ${name} reads ${ref}, which looks like a theme token but no longer exists; check tokens.css for a rename`
-              : `${rel}: ${name} reads ${ref}, which is not a theme token or a component token`,
+              ? `${rel}: ${name} reads ${ref}, which has the shape of a design token but no longer exists. Check tokens.css for a rename`
+              : `${rel}: ${name} reads ${ref}, which is not a design token or a semantic property`,
           at,
         );
       }
@@ -278,7 +278,7 @@ function checkDefaultsAreSemantic({ blocks, runtime, editor, root, runtimePath, 
       if (hasColorLiteral(painted)) {
         record(
           'color-literal',
-          `${rel}: ${name}: ${value} is a colour literal; defaults must reference theme tokens (e.g. var(--surface-primary))`,
+          `${rel}: ${name}: ${value} is a colour literal; defaults must reference design tokens (e.g. var(--surface-primary))`,
           at,
         );
         continue;
@@ -287,7 +287,7 @@ function checkDefaultsAreSemantic({ blocks, runtime, editor, root, runtimePath, 
       if (refs.length === 0 && !matchers.some((re) => re.test(name))) {
         record(
           'default-not-token',
-          `${rel}: ${name}: ${value} has no theme token behind it; back it with a token, or declare it in the editor's \`intrinsics\` if it is a structural keyword`,
+          `${rel}: ${name}: ${value} has no design token behind it. Back it with a token, or declare it in the editor's \`intrinsics\` when it is a structural keyword`,
           at,
         );
       }
@@ -381,7 +381,7 @@ export function checkComponent(id, root = process.cwd(), { vocabulary } = {}) {
       record(
         'state-after-property',
         `${relative(root, runtimePath)}: ${token} has '${trailingState}' after the property; ` +
-          `state must come before property (e.g. -${trailingState}-surface, not -surface-${trailingState})`,
+          `state must come before property (e.g. -${trailingState}-surface)`,
         runtime.indexOf(token),
       );
     }
@@ -512,7 +512,7 @@ export function checkComponent(id, root = process.cwd(), { vocabulary } = {}) {
   if (!registrationFile) {
     record(
       'missing-registration',
-      `no registration for '${id}' under src/ — expected registerComponent({ id: '${id}', ... }) or bootLiveTokens({ components: [{ id: '${id}', ... }] })`,
+      `no registration for '${id}' under src/. Expected registerComponent({ id: '${id}', ... }) or bootLiveTokens({ components: [{ id: '${id}', ... }] })`,
     );
   } else {
     // Check the registration file's imports too.
