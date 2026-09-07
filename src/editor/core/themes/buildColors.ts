@@ -307,7 +307,7 @@ function runContrastGate(
       const hint = scheme === 'dark'
         ? `raise the ${label} base color lightness (derived text tops out at 2× its L)`
         : `raise the ${label} base color lightness or reduce its chroma`;
-      return `${c.textVar} reaches ${c.ratio.toFixed(2)}:1 vs ${c.against} (floor ${c.floor}:1) — ${hint}`;
+      return `${c.textVar} reaches ${c.ratio.toFixed(2)}:1 vs ${c.against} (floor ${c.floor}:1): ${hint}`;
     });
 
   return { scheme, checks, failures };
@@ -371,7 +371,7 @@ function applyCanvasGradient(canvas: PaletteConfig, scheme: SchemeDirection): st
     ? Math.min(anchor + 2, labels.length - 1)
     : Math.max(anchor - 2, 0);
   if (sky === anchor) {
-    return `skipped — the Canvas base color anchors at the ramp edge (${labels[anchor]}), leaving no room for a sky; commit the canvas further from ${scheme === 'dark' ? 'black' : 'white'}`;
+    return `skipped: the Canvas base color anchors at the ramp edge (${labels[anchor]}), leaving no room for a sky; commit the canvas further from ${scheme === 'dark' ? 'black' : 'white'}`;
   }
   canvas.emptyMode = 'gradient';
   canvas.gradientStyle = 'linear';
@@ -382,7 +382,7 @@ function applyCanvasGradient(canvas: PaletteConfig, scheme: SchemeDirection): st
     { position: 100, paletteLabel: labels[anchor] },
   ];
   canvas.gradientSize = 'window';
-  return `on, ${labels[sky]} → ${labels[anchor]}`;
+  return `on, ${labels[sky]} to ${labels[anchor]}`;
 }
 
 /** The tokens.css scale, the starting point when a theme carries no shadows.

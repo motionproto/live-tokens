@@ -122,7 +122,7 @@ describe('buildColors', () => {
     const anchorLabel = canvas.gradientStops![1].paletteLabel;
     const skyLabel = canvas.gradientStops![0].paletteLabel;
     expect(Number(skyLabel)).toBeGreaterThan(Number(anchorLabel));
-    expect(dark.report.canvasGradient).toBe(`on, ${skyLabel} → ${anchorLabel}`);
+    expect(dark.report.canvasGradient).toBe(`on, ${skyLabel} to ${anchorLabel}`);
 
     // A committed light canvas has room on the light side.
     const committed = { ...lightInput, canvasGradient: true, baseColors: baseColors({ Brand: '#2f9e44', Canvas: { l: 0.88, c: 0.06, h: 120 } }) };

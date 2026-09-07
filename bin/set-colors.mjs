@@ -28,9 +28,9 @@ const pkgRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const ENGINE = resolve(pkgRoot, 'dist-plugin/setColors/index.js');
 
 const SOURCE_LABELS = {
-  working: 'your unsaved edits',
+  working: 'the buffer',
   theme: 'the open theme',
-  default: 'the package default',
+  default: 'the shipped default',
 };
 
 async function loadEngine() {
@@ -142,7 +142,7 @@ export function formatSetColorsResult(result) {
   if (result.ignoredName !== null) {
     lines.push(
       `Ignored "name": "${result.ignoredName}". The base color file no longer names a theme; ` +
-        `name it when you run save-theme.`,
+        `name it in save-theme.`,
     );
   }
 
@@ -156,13 +156,13 @@ export function formatSetColorsResult(result) {
     );
   }
   if (result.report.failures.length > 0) {
-    lines.push(`\nUnmet floors — adjust the base colors and re-run:`);
+    lines.push(`\nUnmet floors. Adjust the base colors and re-run:`);
     for (const f of result.report.failures) lines.push(`  ! ${f}`);
   }
 
   lines.push(
     result.report.gradients === 'carried'
-      ? '\nGradients: kept your tuned swatch gradients.'
+      ? '\nGradients: kept the tuned swatch gradients.'
       : '\nGradients: swatch tokens rebuilt from the theme families.',
   );
   lines.push(`Shadows: ${result.report.shadows}; carried geometry kept.`);
@@ -172,16 +172,15 @@ export function formatSetColorsResult(result) {
 
   if (result.wrote === 'buffer') {
     lines.push(
-      `\nThis is an unsaved edit: save the open theme in the editor's Theme panel to keep it, ` +
-        `or run save-theme to write a new one.`,
+      `\nThe buffer holds this edit. Run save-theme to keep it as a theme.`,
     );
   } else if (result.wrote === 'cleared') {
     const held =
-      result.savedSource === 'theme' ? `theme "${result.openTheme}"` : 'the package default';
+      result.savedSource === 'theme' ? `theme "${result.openTheme}"` : 'the shipped default';
     lines.push(
       result.source === 'working'
-        ? `\nThat is what ${held} already holds, so the unsaved buffer was discarded.`
-        : `\nThat is what ${held} already holds, and there was no unsaved buffer, so nothing was written.`,
+        ? `\nThat is what ${held} already holds, so the buffer was discarded.`
+        : `\nThat is what ${held} already holds, and there was no buffer, so nothing was written.`,
     );
   } else if (result.dryRun) {
     lines.push(`\nDry run: nothing written under ${relative(root, result.colorsAndTypeDir)}.`);

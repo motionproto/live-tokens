@@ -75,7 +75,7 @@ afterEach(() => {
 });
 
 describe('runSetColors', () => {
-  it('writes the color state into the unsaved buffer', async () => {
+  it('writes the color state into the buffer', async () => {
     const root = project();
     const result = await run(root);
 
@@ -117,7 +117,7 @@ describe('runSetColors', () => {
     expect(hasBuffer(root)).toBe(false);
   });
 
-  it('keeps the fonts of the buffer over the open theme over the package default', async () => {
+  it('keeps the fonts of the buffer over the open theme over the shipped default', async () => {
     const root = project();
     expect((await run(root)).source).toBe('default');
     expect(buffer(root).fontStacks).toEqual(fonts('from-default'));
@@ -225,8 +225,8 @@ describe('formatSetColorsResult', () => {
     expect(out).toContain('Replaced the color identity, carrying everything else forward from theme "sunset"');
     expect(out).toContain('Contrast report (light scheme)');
     expect(out).toContain('Gradients: swatch tokens rebuilt from the theme families.');
-    expect(out).toContain('or run save-theme to write a new one');
-    expect(out).not.toContain('Opened');
+    expect(out).toContain('Run save-theme to keep it as a theme');
+    expect(out).not.toContain('Loaded');
   });
 
   it('names the open theme when the buffer is discarded against it', async () => {
@@ -236,18 +236,18 @@ describe('formatSetColorsResult', () => {
     openTheme(root, 'sunset', buffer(root));
 
     expect(formatSetColorsResult(await run(root))).toContain(
-      'That is what theme "sunset" already holds, so the unsaved buffer was discarded',
+      'That is what theme "sunset" already holds, so the buffer was discarded',
     );
   });
 
-  it('names the package default, not a theme, when no theme is open', async () => {
+  it('names the shipped default when no theme is open', async () => {
     const root = project();
     await run(root);
     writeFileSync(join(root, 'colors-and-type', 'default.json'), JSON.stringify(buffer(root)));
 
     const out = formatSetColorsResult(await run(root));
 
-    expect(out).toContain('That is what the package default already holds, so the unsaved buffer was discarded');
+    expect(out).toContain('That is what the shipped default already holds, so the buffer was discarded');
     expect(out).not.toContain('theme');
   });
 
@@ -258,7 +258,7 @@ describe('formatSetColorsResult', () => {
     rmSync(join(root, 'colors-and-type', '_working.json'));
 
     expect(formatSetColorsResult(await run(root))).toContain(
-      'That is what the package default already holds, and there was no unsaved buffer, so nothing was written',
+      'That is what the shipped default already holds, and there was no buffer, so nothing was written',
     );
   });
 
@@ -268,7 +268,7 @@ describe('formatSetColorsResult', () => {
 
     expect(out).toContain('Would replace the color identity');
     expect(out).toContain('Ignored "name": "Spring Meadow"');
-    expect(out).toContain('name it when you run save-theme');
+    expect(out).toContain('name it in save-theme');
     expect(out).toContain('Dry run: nothing written under');
   });
 });
