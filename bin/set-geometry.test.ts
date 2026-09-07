@@ -145,13 +145,13 @@ describe('runSetGeometry', () => {
 });
 
 describe('formatSetGeometryResult', () => {
-  it('reports an above-ladder value as clamped rather than pulling it down', async () => {
+  it('reports an above-scale value as clamped and leaves it', async () => {
     const root = fixture();
     const result = await run(root, { ops: [{ kind: 'padding', shift: 1 }] }, { dryRun: true });
     const out = formatSetGeometryResult(result);
 
     expect(out).toContain('skipped, at the end of the scale: --card-hero-padding');
-    expect(out).not.toContain('--space-64 → ');
+    expect(out).not.toContain('--space-64 to ');
     expect(out).toContain('--button-primary-padding');
     expect(out).toContain('1 component(s) changed, 1 alias(es), 1 skipped.');
   });
@@ -167,7 +167,7 @@ describe('formatSetGeometryResult', () => {
     const out = formatSetGeometryResult(await run(root, { ops: [{ kind: 'radius', shift: 1 }] }));
 
     expect(out).toContain('button  (from: theme "default")');
-    expect(out).toContain('skipped, raw value, not a token: --button-ghost-radius');
+    expect(out).toContain('skipped, raw value: --button-ghost-radius');
     expect(out).toContain('skipped, at the end of the scale: --button-primary-radius');
     expect(out).toContain('skipped, pill preserved (pass "full": true to move it): --button-pill-radius');
     expect(out).toContain('0 component(s) changed, 0 alias(es), 3 skipped.');
@@ -191,7 +191,7 @@ describe('formatSetGeometryResult', () => {
     expect(buffer(root, 'button').aliases['--button-primary-radius']).toBe('--radius-full');
   });
 
-  it('names the open theme as the source and says the edit is unsaved', async () => {
+  it('names the open theme as the source and says the buffer holds the edit', async () => {
     const root = fixture();
     openTheme(root, 'sunset', {
       button: { name: 'sunset', aliases: { '--button-primary-radius': '--radius-sm' } },
@@ -199,7 +199,7 @@ describe('formatSetGeometryResult', () => {
     const out = formatSetGeometryResult(await run(root, { ops: [{ target: 'button', kind: 'radius', shift: 1 }] }));
 
     expect(out).toContain('button  (from: theme "sunset")');
-    expect(out).toContain('This is an unsaved edit');
+    expect(out).toContain('The buffer holds this edit');
   });
 
   it('says an ops-file name is ignored', async () => {

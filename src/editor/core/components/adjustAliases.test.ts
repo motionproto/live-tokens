@@ -54,7 +54,7 @@ function skipReason(report: AdjustReport, component: string, variable: string): 
 }
 
 describe('adjustAliases', () => {
-  it('shifts matching aliases up their ladder and leaves other kinds alone', () => {
+  it('shifts matching aliases up their scale and leaves other kinds alone', () => {
     const { configs, report } = adjustAliases(fixture(), [{ kind: 'radius', shift: 2 }], NOW);
 
     expect(configs.button.aliases['--button-primary-radius']).toBe('--radius-3xl');
@@ -67,48 +67,48 @@ describe('adjustAliases', () => {
     });
   });
 
-  it('shifts matching aliases down their ladder', () => {
+  it('shifts matching aliases down their scale', () => {
     const { configs } = adjustAliases(fixture(), [{ kind: 'radius', shift: -1 }], NOW);
 
     expect(configs.button.aliases['--button-primary-radius']).toBe('--radius-lg');
     expect(configs.card.aliases['--card-default-radius']).toBe('--radius-3xl');
   });
 
-  it('clamps at the top rung and reports the alias as clamped', () => {
+  it('clamps at the top step and reports the alias as clamped', () => {
     const { configs, report } = adjustAliases(fixture(), [{ kind: 'radius', shift: 1 }], NOW);
 
     expect(configs.card.aliases['--card-default-radius']).toBe('--radius-4xl');
     expect(skipReason(report, 'card', '--card-default-radius')).toBe('clamped');
   });
 
-  it('clamps at the bottom rung and reports the alias as clamped', () => {
+  it('clamps at the bottom step and reports the alias as clamped', () => {
     const { configs, report } = adjustAliases(fixture(), [{ kind: 'gap', shift: -1 }], NOW);
 
     expect(configs.card.aliases['--card-default-gap']).toBe('--space-0');
     expect(skipReason(report, 'card', '--card-default-gap')).toBe('clamped');
   });
 
-  it('preserves pill radii when the op does not opt into the full rung', () => {
+  it('preserves pill radii when the op does not opt into the full step', () => {
     const { configs, report } = adjustAliases(fixture(), [{ kind: 'radius', shift: 1 }], NOW);
 
     expect(configs.button.aliases['--button-pill-radius']).toBe('--radius-full');
     expect(skipReason(report, 'button', '--button-pill-radius')).toBe('pill-preserved');
   });
 
-  it('shifts into the full rung when full is set', () => {
+  it('shifts into the full step when full is set', () => {
     const { configs } = adjustAliases(fixture(), [{ kind: 'radius', shift: 1, full: true }], NOW);
 
     expect(configs.card.aliases['--card-default-radius']).toBe('--radius-full');
     expect(configs.button.aliases['--button-pill-radius']).toBe('--radius-full');
   });
 
-  it('shifts out of the full rung when full is set', () => {
+  it('shifts out of the full step when full is set', () => {
     const { configs } = adjustAliases(fixture(), [{ kind: 'radius', shift: -1, full: true }], NOW);
 
     expect(configs.button.aliases['--button-pill-radius']).toBe('--radius-4xl');
   });
 
-  it('spends the shift reaching the first rung past an off-subset space value', () => {
+  it('spends the shift reaching the first step past an off-subset space value', () => {
     const { configs } = adjustAliases(fixture(), [{ kind: 'padding', shift: -1 }], NOW);
 
     expect(configs.card.aliases['--card-hero-padding']).toBe('--space-32');
@@ -178,11 +178,11 @@ describe('adjustAliases', () => {
     expect(configs.card.aliases['--card-default-header-padding']).toBe('--space-2');
   });
 
-  it('keeps --space-full off the ladder', () => {
+  it('keeps --space-full off the scale', () => {
     const { configs, report } = adjustAliases(fixture(), [{ kind: 'padding', shift: 1 }], NOW);
 
     expect(configs.card.aliases['--card-media-padding']).toBe('--space-full');
-    expect(skipReason(report, 'card', '--card-media-padding')).toBe('off-ladder');
+    expect(skipReason(report, 'card', '--card-media-padding')).toBe('off-scale');
   });
 
   it('skips aliases holding raw CSS', () => {
@@ -280,24 +280,24 @@ describe('adjustAliases', () => {
 });
 
 describe('adjustAliases op validation', () => {
-  it('rejects a set value that is not on the kind ladder', () => {
+  it('rejects a set value that is not on the kind scale', () => {
     expect(() => adjustAliases(fixture(), [{ kind: 'radius', set: '--radius-huge' }], NOW))
-      .toThrow(/not on the radius ladder/);
+      .toThrow(/not on the radius scale/);
   });
 
   it('rejects a set value from another token family', () => {
     expect(() => adjustAliases(fixture(), [{ kind: 'padding', set: '--radius-full' }], NOW))
-      .toThrow(/not on the padding ladder/);
+      .toThrow(/not on the padding scale/);
   });
 
   it('rejects --space-full as a set value', () => {
     expect(() => adjustAliases(fixture(), [{ kind: 'gap', set: '--space-full' }], NOW))
-      .toThrow(/not on the gap ladder/);
+      .toThrow(/not on the gap scale/);
   });
 
   it('rejects an off-subset space token as a set value', () => {
     expect(() => adjustAliases(fixture(), [{ kind: 'padding', set: '--space-64' }], NOW))
-      .toThrow(/not on the padding ladder/);
+      .toThrow(/not on the padding scale/);
   });
 
   it('accepts --radius-full as a set value without the full flag', () => {

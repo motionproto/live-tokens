@@ -17,13 +17,13 @@ const pkgRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const ENGINE = resolve(pkgRoot, 'dist-plugin/setGeometry/index.js');
 
 const SOURCE_LABELS = {
-  working: 'your unsaved edits',
+  working: 'the buffer',
   theme: 'the open theme',
 };
 
 const SKIP_LABELS = [
-  ['raw-value', 'raw value, not a token'],
-  ['off-ladder', 'off the scale'],
+  ['raw-value', 'raw value'],
+  ['off-scale', 'off the scale'],
   ['clamped', 'at the end of the scale'],
   ['pill-preserved', 'pill preserved (pass "full": true to move it)'],
   ['none-preserved', 'no line drawn, preserved (use "set" to draw one)'],
@@ -175,7 +175,7 @@ export function formatSetGeometryResult(result) {
 
     const width = Math.max(0, ...entry.changes.map((c) => c.variable.length));
     for (const c of entry.changes) {
-      lines.push(`    ${c.variable.padEnd(width)}  ${c.from} → ${c.to}`);
+      lines.push(`    ${c.variable.padEnd(width)}  ${c.from} to ${c.to}`);
     }
 
     for (const [reason, label] of SKIP_LABELS) {
@@ -190,8 +190,7 @@ export function formatSetGeometryResult(result) {
   );
   if (result.buffered) {
     lines.push(
-      `This is an unsaved edit: save the open theme in the editor's Theme panel to keep it, ` +
-        `or load a theme to discard it.`,
+      `The buffer holds this edit. Run save-theme to keep it as a theme.`,
     );
   } else if (result.dryRun) {
     lines.push(`Dry run: nothing written under ${relative(root, result.configsDir)}.`);
