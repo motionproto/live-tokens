@@ -4,6 +4,16 @@
 
 ### Changed
 
+- **CLI output uses the skills' vocabulary.** Every verb's help and report
+  lines say "the buffer" for edits a theme file does not hold yet, "load" for
+  making a theme the open one, "design token" and "semantic property" for the
+  two token classes, "shipped default", and "scale" and "step". The three set
+  verbs close with "The buffer holds this edit. Run save-theme to keep it as a
+  theme." Report lines print "old to new" in place of an arrow, and
+  `set-geometry` labels a skip "raw value", "off the scale", or "at the end of
+  the scale". `bin/cliStrings.test.ts` holds the line. The skills are corrected
+  where they described the CLI wrongly; the audit is
+  `docs/plans/cli-skill-alignment.md`.
 - **`live-tokens-build-page` is renamed `live-tokens-create-page`.** The verb
   now matches `create-theme` and `create-component`. A project that copied the
   skill keeps the old directory until it deletes it.
