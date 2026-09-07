@@ -78,7 +78,7 @@ export function runCreate({ targetDir, pkgRoot, force = false }) {
 export function formatCreateResult({ appName, targetDir }, targetArg) {
   return [
     ``,
-    `Scaffolded ${appName} → ${targetDir}`,
+    `Scaffolded ${appName} in ${targetDir}`,
     ``,
     `Next steps:`,
     `  cd ${targetArg}`,

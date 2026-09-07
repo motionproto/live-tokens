@@ -149,8 +149,8 @@ export function formatRouteResult(result, { check = false } = {}) {
   const { rewritten, pendingWrite, advisory } = result;
   if (!rewritten.length && !pendingWrite.length && !advisory.length) return '';
 
-  const ref = (h) => `      ${h.file}:${h.line}  ${h.kind} '${h.old}' → '${h.next}'`;
-  const lines = ['Route references — /editor, /components, /docs moved to /live-tokens/* in 0.35.0:'];
+  const ref = (h) => `      ${h.file}:${h.line}  ${h.kind} '${h.old}' to '${h.next}'`;
+  const lines = ['Route references: /editor, /components, /docs moved to /live-tokens/* in 0.35.0:'];
 
   if (rewritten.length) {
     lines.push(`  ✓ Rewrote ${rewritten.length} reference(s):`);
@@ -160,7 +160,7 @@ export function formatRouteResult(result, { check = false } = {}) {
     lines.push(
       check
         ? `  Would rewrite ${pendingWrite.length} reference(s) with --write:`
-        : `  ${pendingWrite.length} reference(s) can be rewritten — re-run with --write to apply:`,
+        : `  ${pendingWrite.length} reference(s) can be rewritten. Re-run with --write to apply:`,
     );
     pendingWrite.forEach((h) => lines.push(ref(h)));
   }
@@ -169,8 +169,8 @@ export function formatRouteResult(result, { check = false } = {}) {
     advisory.forEach((h) => {
       const why =
         h.reason === 'docs-never'
-          ? `/docs is never auto-rewritten — update to '${h.next}' only if it points at the package guide`
-          : `you declare or relocate '${h.old}' yourself — leave it if it's your route`;
+          ? `/docs is never auto-rewritten. Update to '${h.next}' only when it points at the package guide`
+          : `the project declares or relocates '${h.old}'. Leave it when it is the project's own route`;
       lines.push(`      ${h.file}:${h.line}  ${h.kind} '${h.old}'  (${why})`);
     });
   }

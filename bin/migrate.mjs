@@ -127,13 +127,13 @@ export function formatMigrateDataResult(result) {
     // `sketch-presets/` → `sketch-styles/`. Told apart by the destination
     // name, since `LegacyRename` carries no reason of its own.
     const reason = basename(to) === 'sketch-styles' ? 'sketchstyle rename' : '0.48 layout';
-    lines.push(`  ${planned ? 'would move' : 'moved'} ${rel(from)} → ${rel(to)} (${reason})`);
+    lines.push(`  ${planned ? 'would move' : 'moved'} ${rel(from)} to ${rel(to)} (${reason})`);
   }
   for (const p of result.upgradedThemes) {
     lines.push(`  ${planned ? 'would carry' : 'carried'} ${rel(p)} by value (was a pre-v3 theme naming files)`);
   }
   if (result.production) {
-    lines.push(`  production theme → "${result.production.slug}" (${HOW_SAID[result.production.how]})`);
+    lines.push(`  production theme: "${result.production.slug}" (${HOW_SAID[result.production.how]})`);
   }
   if (result.recoveredThemePath) {
     lines.push(`  ${planned ? 'would write' : 'wrote'} ${rel(result.recoveredThemePath)}`);
@@ -148,13 +148,13 @@ export function formatMigrateDataResult(result) {
     lines.push(`  ${planned ? 'would delete' : 'deleted'} ${rel(p)}: a copy of a saved theme`);
   }
   for (const p of result.keptUserFiles) {
-    lines.push(`  kept ${rel(p)}: it matches no theme, so it is yours`);
+    lines.push(`  kept ${rel(p)}: it matches no theme, so it stays`);
   }
   for (const note of result.droppedRefs) {
     lines.push(`  ${note}`);
   }
   for (const p of result.notThemes) {
-    lines.push(`  left ${rel(p)} alone: it is a colors-and-type file, not a theme`);
+    lines.push(`  left ${rel(p)} alone: it is a colors-and-type file`);
   }
   for (const p of result.shadowedDefaults) {
     lines.push(`  kept ${rel(p)}: it shadows the default the package ships, which has moved on`);
