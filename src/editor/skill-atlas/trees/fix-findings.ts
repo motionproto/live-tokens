@@ -2,7 +2,7 @@ import type { SkillTree } from '../types';
 
 export const fixFindings: SkillTree = {
   "id": "live-tokens-fix-findings",
-  "digest": "sha256:310d6849e5e314a9",
+  "digest": "sha256:c271a51766a3ea96",
   "title": "fix-findings",
   "tagline": "Repair Deviations from the Design System",
   "nodes": [
@@ -11,6 +11,7 @@ export const fixFindings: SkillTree = {
       "row": 0,
       "kind": "trigger",
       "title": "Fix design-system findings",
+      "desc": "Edits the files the checkers name. Updates tokens.css only through the migration command.",
       "lines": [3, 3],
       "anchor": "description: Fix every finding of check-page and check-compo"
     },
@@ -19,9 +20,9 @@ export const fixFindings: SkillTree = {
       "row": 1,
       "kind": "step",
       "title": "Run the token migration",
+      "desc": "Bring tokens.css up to the installed package first. A stale file shows as unknown tokens.",
       "lines": [14, 14],
       "anchor": "Run `npx live-tokens migrate --check` to see the plan, then ",
-      "n": "1",
       "command": "npx live-tokens migrate --check\nnpx live-tokens migrate --write"
     },
     {
@@ -29,25 +30,18 @@ export const fixFindings: SkillTree = {
       "row": 2,
       "kind": "cli",
       "title": "Run both checkers",
+      "desc": "Each finding names a rule, a file, and a line.",
       "lines": [15, 19],
       "anchor": "Run both checkers with `--json`. Each finding carries a `rul",
       "anchorEnd": "```",
-      "n": "2",
       "command": "npx live-tokens check-page --json\nnpx live-tokens check-component --json"
-    },
-    {
-      "id": "ff-upgrade",
-      "row": 3,
-      "kind": "gate",
-      "title": "Upgrade the checker commands",
-      "lines": [12, 12],
-      "anchor": "When `check-page` is an unknown command, upgrade `@motion-pr"
     },
     {
       "id": "ff-clean",
       "row": 3,
       "kind": "ok",
       "title": "Default checks pass",
+      "desc": "Both checkers exit 0.",
       "lines": [24, 24],
       "anchor": "When the errors are clear, run both checkers with `--strict`"
     },
@@ -56,16 +50,16 @@ export const fixFindings: SkillTree = {
       "row": 5,
       "kind": "step",
       "title": "Group findings by rule",
+      "desc": "Findings of one rule share one fix.",
       "lines": [20, 20],
-      "anchor": "Group the findings by rule.",
-      "n": "3"
+      "anchor": "Group the findings by rule."
     },
     {
       "id": "ff-order",
       "row": 6,
       "kind": "decide",
       "title": "Repair order",
-      "desc": "Which group remains within the repair scope?",
+      "desc": "Errors first, largest group first. Warnings only when the repair scope includes them.",
       "lines": [21, 21],
       "anchor": "Take the largest error group first, then the remaining error",
       "chips": [
@@ -91,10 +85,9 @@ export const fixFindings: SkillTree = {
       "row": 7,
       "kind": "decide",
       "title": "Rule family",
-      "desc": "Which section covers the rule?",
+      "desc": "Each rule belongs to one section, and that section gives the fix.",
       "lines": [22, 22],
       "anchor": "Fix every finding in the group with its section: Color by ro",
-      "n": "5",
       "chips": [
         {
           "label": "Color by role",
@@ -118,6 +111,7 @@ export const fixFindings: SkillTree = {
       "row": 8,
       "kind": "chipset",
       "title": "Color by role",
+      "desc": "A color literal becomes the token for the role it plays.",
       "lines": [41, 55],
       "anchor": "## Color by role",
       "anchorEnd": "| A gradient | `--gradient-*` | Or compose one from surface ",
@@ -174,6 +168,7 @@ export const fixFindings: SkillTree = {
       "row": 8,
       "kind": "chipset",
       "title": "Geometry by scale",
+      "desc": "A dimension literal moves to the nearest step of its scale. A layout size stays.",
       "lines": [57, 69],
       "anchor": "## Geometry by scale",
       "anchorEnd": "| A `blur()` | `--blur-*` | No rule reports it. Fix it while",
@@ -181,7 +176,7 @@ export const fixFindings: SkillTree = {
         {
           "label": "Spacing",
           "lines": [63, 63],
-          "anchor": "| Spacing | `--space-<px>` | `npx live-tokens tokens --famil"
+          "anchor": "| Spacing | `--space-<px>` | `npx live-tokens tokens --scale"
         },
         {
           "label": "A stroke width",
@@ -220,6 +215,7 @@ export const fixFindings: SkillTree = {
       "row": 8,
       "kind": "chipset",
       "title": "The remaining rules",
+      "desc": "Every other rule has its fix in the table.",
       "lines": [71, 91],
       "anchor": "## The remaining rules",
       "anchorEnd": "| `invalid-id`, `missing-file`, `missing-root-block`, `no-to",
@@ -316,17 +312,17 @@ export const fixFindings: SkillTree = {
       "row": 11,
       "kind": "cli",
       "title": "Rerun both checkers",
-      "desc": "Retain --strict when the repair scope includes warnings.",
+      "desc": "Run both checkers again to see what remains.",
       "lines": [23, 23],
       "anchor": "Run both checkers again. When repairable findings remain in ",
-      "command": "npx live-tokens check-page --json\nnpx live-tokens check-component --json",
-      "n": "6"
+      "command": "npx live-tokens check-page --json\nnpx live-tokens check-component --json"
     },
     {
       "id": "ff-repeat",
       "row": 12,
       "kind": "gate",
       "title": "Regroup the remaining findings",
+      "desc": "Findings a token can fix go back through grouping.",
       "lines": [23, 23],
       "anchor": "Run both checkers again. When repairable findings remain in "
     },
@@ -335,7 +331,7 @@ export const fixFindings: SkillTree = {
       "row": 12,
       "kind": "step",
       "title": "Record the unresolved findings",
-      "desc": "Leave findings with no fitting token and state the reason in the reply.",
+      "desc": "A finding no token fits stays, and the reply says why.",
       "lines": [37, 37],
       "anchor": "Add no token to `tokens.css`. Map a literal with no matching"
     },
@@ -344,17 +340,17 @@ export const fixFindings: SkillTree = {
       "row": 14,
       "kind": "cli",
       "title": "Run strict checks",
+      "desc": "Strict mode counts every warning as an error.",
       "lines": [24, 24],
       "anchor": "When the errors are clear, run both checkers with `--strict`",
-      "command": "npx live-tokens check-page --strict --json\nnpx live-tokens check-component --strict --json",
-      "n": "7"
+      "command": "npx live-tokens check-page --strict --json\nnpx live-tokens check-component --strict --json"
     },
     {
       "id": "ff-warnings",
       "row": 15,
       "kind": "decide",
       "title": "Warning scope",
-      "desc": "Does the request include warnings, or does the user choose to clear them?",
+      "desc": "Warnings are cleared when the request includes them. Otherwise the user chooses.",
       "lines": [24, 25],
       "anchor": "When the errors are clear, run both checkers with `--strict`",
       "anchorEnd": "When the repair scope includes warnings, return to step 3 wi",
@@ -376,16 +372,16 @@ export const fixFindings: SkillTree = {
       "row": 16,
       "kind": "gate",
       "title": "Include warnings in the repair scope",
+      "desc": "The warnings go back through grouping, with --strict on every run.",
       "lines": [25, 25],
-      "anchor": "When the repair scope includes warnings, return to step 3 wi",
-      "n": "8"
+      "anchor": "When the repair scope includes warnings, return to step 3 wi"
     },
     {
       "id": "ff-build",
       "row": 17,
       "kind": "step",
       "title": "Gate the existing build",
-      "desc": "Adds check:design when absent and keeps the existing build command.",
+      "desc": "The build runs check:design first, so findings fail the build from now on.",
       "lines": [33, 33],
       "anchor": "When `package.json` has no `check:design` script, add `\"chec"
     },
@@ -394,10 +390,10 @@ export const fixFindings: SkillTree = {
       "row": 18,
       "kind": "chipset",
       "title": "Reply with the repair results",
+      "desc": "Report the changes by rule, the findings left with their reasons, and both exit codes.",
       "lines": [26, 29],
       "anchor": "Reply with:",
       "anchorEnd": "both checker commands with their exit codes",
-      "n": "9",
       "chips": [
         {
           "label": "Changes by rule",
@@ -421,6 +417,7 @@ export const fixFindings: SkillTree = {
       "row": 19,
       "kind": "done",
       "title": "Repair results complete",
+      "desc": "Both checkers pass, or every finding left has a reason.",
       "lines": [26, 29],
       "anchor": "Reply with:",
       "anchorEnd": "both checker commands with their exit codes"
@@ -434,17 +431,6 @@ export const fixFindings: SkillTree = {
     {
       "to": "ff-run",
       "from": "ff-migrate"
-    },
-    {
-      "to": "ff-upgrade",
-      "from": "ff-run",
-      "label": "unknown command"
-    },
-    {
-      "to": "ff-run",
-      "from": "ff-upgrade",
-      "label": "rerun",
-      "back": true
     },
     {
       "to": "ff-group",

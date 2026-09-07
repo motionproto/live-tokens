@@ -1,11 +1,11 @@
 // The registry as a query. Every component a project has, shipped or its own,
 // with the props each takes and the tokens each declares, and every theme token
-// grouped by family. Read from files through the same vocabulary the checkers
+// grouped by scale. Read from files through the same vocabulary the checkers
 // use, so a skill or a script sees exactly what the checkers will hold it to.
 
 import { readFileSync } from 'node:fs';
 import { relative } from 'node:path';
-import { CONTRACT_FAMILIES } from './tokenVocabulary.mjs';
+import { CONTRACT_SCALES } from './tokenVocabulary.mjs';
 
 /** The runtime file's leading HTML comment, which is where a component says what
     it is for. A labelled line (`Use for:`, `Not for:`, `Emphasis:`) opens a line
@@ -25,9 +25,9 @@ function descriptionOf(source) {
   return lines.join('\n');
 }
 
-function familyOf(name) {
+function scaleOf(name) {
   const stem = name.replace(/^--/, '');
-  const hit = CONTRACT_FAMILIES
+  const hit = CONTRACT_SCALES
     .filter((f) => stem === f || stem.startsWith(`${f}-`))
     .sort((a, b) => b.length - a.length)[0];
   return hit ?? stem.split('-')[0];
@@ -67,15 +67,15 @@ export function describeTokens(vocab, { root = process.cwd() } = {}) {
       if (!values.has(m[1])) values.set(m[1], m[2].trim());
     }
   }
-  const byFamily = new Map();
+  const byScale = new Map();
   for (const name of vocab.themeTokens) {
-    const family = familyOf(name);
-    if (!byFamily.has(family)) byFamily.set(family, []);
-    byFamily.get(family).push({ name, value: values.get(name) ?? '' });
+    const scale = scaleOf(name);
+    if (!byScale.has(scale)) byScale.set(scale, []);
+    byScale.get(scale).push({ name, value: values.get(name) ?? '' });
   }
   return {
     tokensCss: vocab.tokensCssPath ? relative(root, vocab.tokensCssPath) : null,
-    families: [...byFamily].map(([family, tokens]) => ({ family, tokens })),
+    scales: [...byScale].map(([scale, tokens]) => ({ scale, tokens })),
     components: [...vocab.components.values()].map((c) => ({
       id: c.id,
       tokens: [...c.tokens].map(([name, value]) => ({ name, default: value })),
@@ -114,19 +114,19 @@ export function formatComponents(list, { id } = {}) {
   return lines.join('\n');
 }
 
-export function formatTokens(desc, { family } = {}) {
+export function formatTokens(desc, { scale } = {}) {
   const lines = [];
-  const families = family ? desc.families.filter((f) => f.family === family) : desc.families;
-  if (family && families.length === 0) {
-    return `No family "${family}". Families: ${desc.families.map((f) => f.family).join(', ')}.`;
+  const scales = scale ? desc.scales.filter((s) => s.scale === scale) : desc.scales;
+  if (scale && scales.length === 0) {
+    return `No token scale "${scale}". Scales: ${desc.scales.map((s) => s.scale).join(', ')}.`;
   }
   lines.push(`Design tokens from ${desc.tokensCss ?? '(no tokens.css found)'}`);
-  for (const f of families) {
+  for (const s of scales) {
     lines.push('');
-    lines.push(`${f.family} (${f.tokens.length})`);
-    for (const t of f.tokens) lines.push(`  ${t.name}: ${t.value}`);
+    lines.push(`${s.scale} (${s.tokens.length})`);
+    for (const t of s.tokens) lines.push(`  ${t.name}: ${t.value}`);
   }
-  if (!family) {
+  if (!scale) {
     lines.push('');
     lines.push(`Semantic properties: ${desc.components.reduce((n, c) => n + c.tokens.length, 0)} across ${desc.components.length} component(s). \`live-tokens components <id>\` lists one component's.`);
   }

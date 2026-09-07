@@ -15,7 +15,7 @@ const FILES = [
 // every string a verb prints. The concept terms are the shared vocabulary in
 // docs/plans/cli-skill-alignment.md.
 const BANNED =
-  /\b(ladder|rung|rungs|unsaved|you|your|yours|actually|look|looks)\b|→|—|, not \b|\btheme tokens?\b|\bcomponent tokens?\b|\bpackage defaults?\b/i;
+  /\b(ladder|rung|rungs|unsaved|you|your|yours|actually|look|looks)\b|→|—|, not \b|\btheme tokens?\b|\bcomponent tokens?\b|\bpackage defaults?\b|\btoken famil(?:y|ies)\b|--family\b/i;
 
 function stringLiterals(source: string): string[] {
   const withoutComments = source

@@ -20,19 +20,19 @@ export const setType: SkillTree = {
       "row": 1,
       "kind": "ref",
       "title": "Read the type anchor",
+      "desc": "An anchor's entry overrides the Voice table.",
       "lines": [14, 14],
       "anchor": "Read the type intent and any anchor live-tokens-create-theme",
-      "reference": "references/type-anchors.md",
-      "n": "1"
+      "reference": "references/type-anchors.md"
     },
     {
       "id": "st-input",
       "row": 2,
       "kind": "step",
       "title": "Write the input file",
+      "desc": "A display family and a body family go in one file.",
       "lines": [15, 15],
       "anchor": "Choose the pairing and write it to `scratch/font-pairing.jso",
-      "n": "2",
       "chips": [
         {
           "label": "Input format",
@@ -47,6 +47,7 @@ export const setType: SkillTree = {
       "row": 3,
       "kind": "step",
       "title": "Choose the body face first",
+      "desc": "The body face carries most of the words, so choose it first and the display face against it.",
       "lines": [30, 34],
       "anchor": "## Choose the body face first",
       "anchorEnd": "The shipped text styles ask the display face for 600 and the"
@@ -56,6 +57,7 @@ export const setType: SkillTree = {
       "row": 4,
       "kind": "chipset",
       "title": "Compare font construction",
+      "desc": "Classify each candidate by construction, so the pair contrasts on purpose.",
       "lines": [36, 50],
       "anchor": "## The font matrix",
       "anchorEnd": "Many faces sit between columns. When one straddles, say so a",
@@ -82,6 +84,7 @@ export const setType: SkillTree = {
       "row": 5,
       "kind": "chipset",
       "title": "Match the type voice",
+      "desc": "Each voice maps to a display and a body construction.",
       "lines": [52, 66],
       "anchor": "## Voice",
       "anchorEnd": "Match the type to the design direction the color came from. ",
@@ -128,6 +131,7 @@ export const setType: SkillTree = {
       "row": 6,
       "kind": "step",
       "title": "Choose a quiet pairing",
+      "desc": "A superfamily or one family across weights keeps the type quiet.",
       "lines": [68, 75],
       "anchor": "## Shortcuts",
       "anchorEnd": "**Serif display over sans body** when nothing else decides i"
@@ -137,6 +141,7 @@ export const setType: SkillTree = {
       "row": 7,
       "kind": "step",
       "title": "Check the pairing",
+      "desc": "Check x-height parity, small sizes, the download count, and no shared face across themes.",
       "lines": [77, 82],
       "anchor": "## Watch for",
       "anchorEnd": "**Sets of themes.** No two share a display face or a body fa"
@@ -146,16 +151,17 @@ export const setType: SkillTree = {
       "row": 8,
       "kind": "cli",
       "title": "Run set-type",
+      "desc": "The command verifies each family on Google Fonts and reports missing weights.",
       "lines": [16, 16],
       "anchor": "Run `npx live-tokens set-type scratch/font-pairing.json`. It",
-      "command": "npx live-tokens set-type scratch/font-pairing.json",
-      "n": "3"
+      "command": "npx live-tokens set-type scratch/font-pairing.json"
     },
     {
       "id": "st-fail",
       "row": 9,
       "kind": "gate",
       "title": "Correct the input file",
+      "desc": "A family not on Google Fonts fails the run. Fix the file and run again.",
       "lines": [17, 17],
       "anchor": "Read the report. Name a missing weight and offer an alternat"
     },
@@ -164,6 +170,7 @@ export const setType: SkillTree = {
       "row": 9,
       "kind": "ok",
       "title": "Command passes",
+      "desc": "Both families resolve.",
       "lines": [17, 17],
       "anchor": "Read the report. Name a missing weight and offer an alternat"
     },
@@ -172,24 +179,25 @@ export const setType: SkillTree = {
       "row": 11,
       "kind": "step",
       "title": "Read the report",
+      "desc": "A missing weight matters only for the body face: 400, 700, or italic.",
       "lines": [17, 17],
-      "anchor": "Read the report. Name a missing weight and offer an alternat",
-      "n": "4"
+      "anchor": "Read the report. Name a missing weight and offer an alternat"
     },
     {
       "id": "st-reply",
       "row": 12,
       "kind": "step",
       "title": "Reply with the result",
+      "desc": "Report the two families, their construction, and any missing weight.",
       "lines": [18, 18],
-      "anchor": "Reply with the two families, the form model behind each, the",
-      "n": "5"
+      "anchor": "Reply with the two families, the form model behind each, the"
     },
     {
       "id": "st-scope",
       "row": 13,
       "kind": "step",
       "title": "Preserve the other dimensions",
+      "desc": "Only the fonts change. Color, shape, and the type scale carry forward.",
       "lines": [84, 86],
       "anchor": "## Scope",
       "anchorEnd": "Type only. Color, component aliases, shape, and the type sca"
@@ -199,6 +207,7 @@ export const setType: SkillTree = {
       "row": 14,
       "kind": "done",
       "title": "Verify the type",
+      "desc": "The CLI passes, each URL matches the family's weights, and the app shows the new type.",
       "lines": [88, 93],
       "anchor": "## Verify",
       "anchorEnd": "To revert, run the previous pairing file, or load the open t",

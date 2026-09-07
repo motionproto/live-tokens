@@ -119,21 +119,21 @@ describe('describeComponents', () => {
 });
 
 describe('describeTokens', () => {
-  it('groups theme tokens by contract family with their values', () => {
+  it('groups design tokens by contract scale with their values', () => {
     const root = project();
     const desc = describeTokens(loadVocabulary({ root }), { root });
     expect(desc.tokensCss).toBe('src/system/styles/tokens.css');
-    const families = Object.fromEntries(desc.families.map((f: { family: string; tokens: unknown[] }) => [f.family, f.tokens]));
-    expect(families.space).toEqual([{ name: '--space-8', value: '0.5rem' }]);
-    expect(families.heading).toEqual([{ name: '--heading-lg-font-size', value: '2rem' }]);
-    expect(families.columns).toHaveLength(1);
+    const scales = Object.fromEntries(desc.scales.map((s: { scale: string; tokens: unknown[] }) => [s.scale, s.tokens]));
+    expect(scales.space).toEqual([{ name: '--space-8', value: '0.5rem' }]);
+    expect(scales.heading).toEqual([{ name: '--heading-lg-font-size', value: '2rem' }]);
+    expect(scales.columns).toHaveLength(1);
     expect(desc.components.find((c: { id: string }) => c.id === 'widget').tokens).toHaveLength(2);
   });
 
-  it('formats one family and names a missing one', () => {
+  it('formats one scale and names a missing one', () => {
     const root = project();
     const desc = describeTokens(loadVocabulary({ root }), { root });
-    expect(formatTokens(desc, { family: 'space' })).toContain('--space-8: 0.5rem');
-    expect(formatTokens(desc, { family: 'nope' })).toContain('No family "nope"');
+    expect(formatTokens(desc, { scale: 'space' })).toContain('--space-8: 0.5rem');
+    expect(formatTokens(desc, { scale: 'nope' })).toContain('No token scale "nope"');
   });
 });

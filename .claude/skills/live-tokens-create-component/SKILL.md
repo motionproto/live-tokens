@@ -30,7 +30,7 @@ Before writing a file:
 
 1. Read the project's `package.json`, `live-tokens.config.json`, and `src/main.ts`.
 2. Run `npx live-tokens components`. The list holds every component the project has, with its variants and usage comment. `npx live-tokens components <id>` prints one component's props.
-3. Run `npx live-tokens tokens --family <name>` for each family the component will use. Those names are the tokens a property can reference.
+3. Run `npx live-tokens tokens --scale <name>` for each token scale the component will use. Those names are the tokens a property can reference.
 4. Read a shipped runtime and editor pair: `Toggle` for interaction states, `Badge` for variants and linked values, `Card` for text and container parts.
 5. Read `references/token-naming.md` for the suffixes that select editor controls.
 
@@ -51,7 +51,7 @@ Before writing a file, identify the component's parts, text roles, variants, and
 | `--statcard-value-font-size` | `--font-size-2xl` | `font-size` of the value |
 | `--statcard-label` | `--text-secondary` | `color` of the label |
 
-Assign from the tokens the project has. Match the token family to the role: `--surface-*` for a fill, `--border-*` for an outline, `--text-*` for text, and the space, radius, border-width, and icon-size scales for geometry. Give each text role five properties: `-font-family`, `-font-size`, `-font-weight`, `-line-height`, and `-letter-spacing`.
+Assign from the tokens the project has. Match the token scale to the role: `--surface-*` for a fill, `--border-*` for an outline, `--text-*` for text, and the space, radius, border-width, and icon-size scales for geometry. Give each text role five properties: `-font-family`, `-font-size`, `-font-weight`, `-line-height`, and `-letter-spacing`.
 
 A property name starts with the component id and ends with the property suffix. Use this shape for part-specific states:
 

@@ -20,20 +20,19 @@ export const setGeometry: SkillTree = {
       "row": 1,
       "kind": "ref",
       "title": "Read the geometry anchor",
+      "desc": "An anchor's entry overrides the idiom table.",
       "lines": [14, 14],
       "anchor": "Read the geometry intent and the anchor, when live-tokens-cr",
-      "reference": "references/geometry-anchors.md",
-      "n": "1"
+      "reference": "references/geometry-anchors.md"
     },
     {
       "id": "sg-input",
       "row": 2,
       "kind": "step",
       "title": "Write the input file",
-      "desc": "An operation is global or targeted, and it sets a step or shifts by steps.",
+      "desc": "Each op is global or targeted, and sets a step or shifts by steps.",
       "lines": [15, 15],
       "anchor": "Write the ops file to `scratch/geometry-ops.json`.",
-      "n": "2",
       "chips": [
         {
           "label": "Input format",
@@ -48,6 +47,7 @@ export const setGeometry: SkillTree = {
       "row": 3,
       "kind": "chipset",
       "title": "Translate geometry intent",
+      "desc": "Each idiom maps to ops on radius, padding, gap, or border width.",
       "lines": [44, 69],
       "anchor": "## Idioms",
       "anchorEnd": "Magnitude follows the qualifier. \"Slightly\" or \"a bit\" is 1 ",
@@ -104,6 +104,7 @@ export const setGeometry: SkillTree = {
       "row": 4,
       "kind": "step",
       "title": "Compact containers before controls",
+      "desc": "A step costs a control more than a container. Spend extra steps on the containers by name.",
       "lines": [71, 94],
       "anchor": "## Compact containers before controls",
       "anchorEnd": "] }"
@@ -113,6 +114,7 @@ export const setGeometry: SkillTree = {
       "row": 5,
       "kind": "step",
       "title": "Apply scales and floors",
+      "desc": "Radius and space move along fixed scales, and a control's padding has a floor.",
       "lines": [97, 109],
       "anchor": "## Scales",
       "anchorEnd": "The floor guards `-padding` only. A 2px gap between an icon "
@@ -122,25 +124,26 @@ export const setGeometry: SkillTree = {
       "row": 6,
       "kind": "cli",
       "title": "Run set-geometry",
+      "desc": "The command writes a buffer for every component the ops change.",
       "lines": [16, 16],
       "anchor": "Run `npx live-tokens set-geometry scratch/geometry-ops.json`",
-      "command": "npx live-tokens set-geometry scratch/geometry-ops.json",
-      "n": "3"
+      "command": "npx live-tokens set-geometry scratch/geometry-ops.json"
     },
     {
       "id": "sg-fail",
       "row": 7,
       "kind": "gate",
       "title": "Correct the input file",
+      "desc": "Exit 1 names the op or the input to fix.",
       "lines": [18, 18],
-      "anchor": "When the CLI exits 1, fix the op or the input the message na",
-      "n": "5"
+      "anchor": "When the CLI exits 1, fix the op or the input the message na"
     },
     {
       "id": "sg-pass",
       "row": 7,
       "kind": "ok",
       "title": "Command passes",
+      "desc": "Every op applied, or was skipped with a reason.",
       "lines": [17, 17],
       "anchor": "Read the report. It lists every changed alias, old and new, "
     },
@@ -149,24 +152,25 @@ export const setGeometry: SkillTree = {
       "row": 9,
       "kind": "step",
       "title": "Read the report",
+      "desc": "The report lists every alias that moved and every skip with its reason.",
       "lines": [17, 17],
-      "anchor": "Read the report. It lists every changed alias, old and new, ",
-      "n": "4"
+      "anchor": "Read the report. It lists every changed alias, old and new, "
     },
     {
       "id": "sg-reply",
       "row": 10,
       "kind": "step",
       "title": "Reply with the result",
+      "desc": "Report every alias that moved and any skip worth naming.",
       "lines": [19, 19],
-      "anchor": "Reply with every alias that moved and any skip worth naming.",
-      "n": "6"
+      "anchor": "Reply with every alias that moved and any skip worth naming."
     },
     {
       "id": "sg-scope",
       "row": 11,
       "kind": "step",
       "title": "Preserve the other dimensions",
+      "desc": "Only geometry changes. Color, type, and saved themes carry forward.",
       "lines": [111, 113],
       "anchor": "## Scope",
       "anchorEnd": "Geometry only. Color, type, saved themes, and `tokens.css` a"
@@ -176,6 +180,7 @@ export const setGeometry: SkillTree = {
       "row": 12,
       "kind": "done",
       "title": "Verify the geometry",
+      "desc": "The app shows the new shape and buttons still read as buttons.",
       "lines": [115, 121],
       "anchor": "## Verify",
       "anchorEnd": "To revert, run the inverse ops, or load the open theme to di",

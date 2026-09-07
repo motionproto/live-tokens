@@ -82,7 +82,7 @@
             onclick={() => (meaningOpen = !meaningOpen)}
           >
             <Badge variant="neutral" size="small">
-              {#if node.n}<span class="step-n">{node.n}</span>{/if}{kindLabel}
+              {kindLabel}
             </Badge>
           </button>
         </Tooltip>
@@ -237,11 +237,6 @@
     cursor: pointer;
   }
 
-  .step-n {
-    margin-right: var(--space-4);
-    font-weight: var(--font-weight-bold);
-  }
-
   .range {
     font-family: var(--code-font-family);
     font-size: inherit;
@@ -275,6 +270,7 @@
     line-height: var(--body-sm-line-height);
     letter-spacing: var(--body-sm-letter-spacing);
     color: var(--text-secondary);
+    white-space: pre-line;
   }
 
   .command {

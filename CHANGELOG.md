@@ -4,6 +4,12 @@
 
 ### Changed
 
+- **Breaking: `tokens --scale` replaces `tokens --family`, and there is no
+  alias.** A token scale is the progression of one token across its range,
+  such as `space` or `radius`, and it is the one term for that grouping in the
+  CLI, the skills, and the skill atlas. "Family" now means a typeface only.
+  The `--json` output names the grouping `scales`, each with a `scale` and its
+  `tokens`. `bin/cliStrings.test.ts` bans "token family" and `--family`.
 - **Dividers and accents name their stroke role.** Three stroke roles share
   the `--border-width-*` scale: a border encloses, a divider separates, an
   accent emphasises. `set-geometry` moves each role on its own and reads the

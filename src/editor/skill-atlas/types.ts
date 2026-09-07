@@ -27,8 +27,6 @@ export interface TreeNode extends Anchored {
   title: string;
   /** Overrides the kind's default eyebrow. */
   tag?: string;
-  /** The skill's own step number, where the skill numbers its workflow. */
-  n?: string;
   desc?: string;
   /** A `references/*.md` the node stands for, opened as a tab in the source pane. */
   reference?: string;

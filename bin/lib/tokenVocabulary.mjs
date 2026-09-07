@@ -25,18 +25,18 @@ const PKG_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
 
 const SHIPPED_COMPONENTS_DIR = 'src/system/components';
 
-/** Families whose names are governed by the token contract (see TOKENS.md). */
-export const CONTRACT_FAMILIES = [
+/** Token scales whose names are governed by the token contract (see TOKENS.md). */
+export const CONTRACT_SCALES = [
   'surface', 'text', 'border', 'color', 'space', 'radius', 'font', 'line-height',
   'letter-spacing', 'shadow', 'blur', 'icon-size', 'scrim', 'tint', 'columns',
   'heading', 'body', 'editorial', 'eyebrow', 'code', 'easing', 'duration', 'zoom',
   'gradient', 'stroke',
 ];
 
-/** True when `name` belongs to a contract-governed family, so a miss is a typo. */
+/** True when `name` belongs to a contract-governed scale, so a miss is a typo. */
 export function isContractToken(name) {
   const stem = name.replace(/^--/, '');
-  return CONTRACT_FAMILIES.some((f) => stem === f || stem.startsWith(`${f}-`));
+  return CONTRACT_SCALES.some((f) => stem === f || stem.startsWith(`${f}-`));
 }
 
 /** Every `--name:` declared anywhere in a stylesheet or style block. */

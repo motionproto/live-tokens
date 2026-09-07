@@ -4,7 +4,7 @@
 //   create <dir>             Scaffold a new app that depends on this package.
 //   setup-claude [--force]   Copy bundled Claude Code skills into ./.claude/skills/.
 //   components [id]          List every component the project has, shipped and its own, with props and tokens.
-//   tokens [--family <name>] List every theme token by family, with its value.
+//   tokens [--scale <name>]  List every design token by scale, with its value.
 //   report                   The project as facts: tokens read, components used, findings by rule. Always exits 0.
 //   check-component [id]     Validate a component (or every authored one) against the create-component skill contract.
 //   check-page [paths...]    Validate pages against the create-page skill contract.
@@ -55,9 +55,9 @@ Commands:
                               "componentDirs" in live-tokens.config.json). With
                               an id, that component's props, variants, tokens,
                               and defaults
-  tokens [--family <name>] [--json]
+  tokens [--scale <name>] [--json]
                               List every design token the project's tokens.css
-                              declares, by family, with its value
+                              declares, by scale, with its value
   report [--json]             The project as facts: pending migrations, tokens
                               each component declares and reads, which page
                               renders which component, and both checkers'
@@ -195,14 +195,14 @@ if (command === 'components') {
 
 if (command === 'tokens') {
   const opts = parseCheckFlags(rest);
-  const at = opts.rest.indexOf('--family');
-  const family = at >= 0 ? opts.rest[at + 1] : undefined;
+  const at = opts.rest.indexOf('--scale');
+  const scale = at >= 0 ? opts.rest[at + 1] : undefined;
   const desc = describeTokens(loadVocabulary());
-  if (family && !desc.families.some((f) => f.family === family)) fail(formatTokens(desc, { family }));
+  if (scale && !desc.scales.some((s) => s.scale === scale)) fail(formatTokens(desc, { scale }));
   writeOut(
     opts.json
-      ? JSON.stringify(family ? desc.families.find((f) => f.family === family) : desc, null, 2)
-      : formatTokens(desc, { family }),
+      ? JSON.stringify(scale ? desc.scales.find((s) => s.scale === scale) : desc, null, 2)
+      : formatTokens(desc, { scale }),
   );
   process.exit(0);
 }

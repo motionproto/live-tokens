@@ -48,7 +48,7 @@ const DEEP_IMPORT_PATTERNS = [
 
 const TEXT_AXES = ['font-size', 'font-family', 'font-weight', 'line-height', 'letter-spacing'];
 
-// The single-axis families in tokens.css. A text style bundle carries its axis
+// The single-axis scales in tokens.css. A text style bundle carries its axis
 // as a suffix (--body-md-font-size, --code-font-family), so no bundle name
 // matches, and neither does a custom property the page declares itself. A
 // weight alone cannot move the scale or the fonts, so --font-weight-* is not one.

@@ -40,7 +40,7 @@ When `package.json` has no `check:design` script, add `"check:design": "live-tok
 
 ## Color by role
 
-`color-literal` is a judgement finding. The replacement is the token for the role the color plays. The theme moves every role together. `npx live-tokens tokens --family <name>` prints a family's names and values, with `--json` for data.
+`color-literal` is a judgement finding. The replacement is the token for the role the color plays. The theme moves every role together. `npx live-tokens tokens --scale <name>` prints a scale's names and values, with `--json` for data.
 
 | Literal | Token | Notes |
 | --- | --- | --- |
@@ -60,7 +60,7 @@ When `package.json` has no `check:design` script, add `"check:design": "live-tok
 
 | Literal | Token | Notes |
 | --- | --- | --- |
-| Spacing | `--space-<px>` | `npx live-tokens tokens --family space` prints the steps. Round to the nearest step. |
+| Spacing | `--space-<px>` | `npx live-tokens tokens --scale space` prints the steps. Round to the nearest step. |
 | A stroke width | `--border-width-1`, `-2`, `-4` | Also for `outline`. |
 | A corner | `--radius-sm` through `--radius-4xl`, or `--radius-full` | |
 | A shadow | `--shadow-sm` through `--shadow-xl` | Replace the whole value. |
@@ -73,7 +73,7 @@ When `package.json` has no `check:design` script, add `"check:design": "live-tok
 | Rule | Fix |
 | --- | --- |
 | `unknown-token` | Search `tokens.css` for the stem. When a contract-family name is gone, `npx live-tokens migrate --check` lists the migration that adds the current name. |
-| `raw-text-axis` | Set every axis from one text style, `-font-family` through `-letter-spacing`. `npx live-tokens tokens --family heading` prints one style family. The families are `heading`, `body`, `editorial`, and `code`. Rewrite a `font:` shorthand the same way. |
+| `raw-text-axis` | Set every axis from one text style, `-font-family` through `-letter-spacing`. `npx live-tokens tokens --scale heading` prints one text style. The text styles are `heading`, `body`, `editorial`, and `code`. Rewrite a `font:` shorthand the same way. |
 | `unknown-component` | Read **live-tokens-pick-component** for the shipped component that fits. When none fits, author one with **live-tokens-create-component**. |
 | `unknown-prop` | `npx live-tokens components <id>` prints the declared props and their values. Map the prop to one of them, or delete it. |
 | `unknown-prop-value` | Use a value from the union the message lists. |

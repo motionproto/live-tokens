@@ -2,7 +2,7 @@ import type { SkillTree } from '../types';
 
 export const createComponent: SkillTree = {
   "id": "live-tokens-create-component",
-  "digest": "sha256:11dd2ebbee8b7e08",
+  "digest": "sha256:a86ea205c59c907b",
   "title": "create-component",
   "tagline": "Create a New Component Using Semantic Properties and Design Tokens",
   "nodes": [
@@ -11,6 +11,7 @@ export const createComponent: SkillTree = {
       "row": 0,
       "kind": "trigger",
       "title": "Create an editable component",
+      "desc": "A component is a runtime Svelte file, an editor Svelte file, and one registration.",
       "lines": [3, 3],
       "anchor": "description: Create an editable component for a @motion-prot"
     },
@@ -19,6 +20,7 @@ export const createComponent: SkillTree = {
       "row": 1,
       "kind": "chipset",
       "title": "Use the two-layer design model",
+      "desc": "Design tokens hold the theme's values. Semantic properties say what a component paints with them.",
       "lines": [10, 25],
       "anchor": "## Design model",
       "anchorEnd": "Props carry content and behavior: a value, a label, a callba",
@@ -40,45 +42,45 @@ export const createComponent: SkillTree = {
       "row": 2,
       "kind": "step",
       "title": "Read the project configuration",
+      "desc": "Learn the package version, the check settings, and what is already registered.",
       "lines": [31, 31],
-      "anchor": "Read the project's `package.json`, `live-tokens.config.json`",
-      "n": "1"
+      "anchor": "Read the project's `package.json`, `live-tokens.config.json`"
     },
     {
       "id": "cc-catalogue",
       "row": 3,
       "kind": "step",
       "title": "Run the catalogue",
+      "desc": "See every component the project already has, so the new one fits beside them.",
       "lines": [32, 32],
-      "anchor": "Run `npx live-tokens components`. The list holds every compo",
-      "n": "2"
+      "anchor": "Run `npx live-tokens components`. The list holds every compo"
     },
     {
       "id": "cc-tokens",
       "row": 4,
       "kind": "step",
-      "title": "Inspect the token families",
+      "title": "Inspect the token scales",
+      "desc": "See which tokens a property can reference.",
       "lines": [33, 33],
-      "anchor": "Run `npx live-tokens tokens --family <name>` for each family",
-      "n": "3"
+      "anchor": "Run `npx live-tokens tokens --scale <name>` for each token s"
     },
     {
       "id": "cc-examples",
       "row": 5,
       "kind": "step",
       "title": "Read a runtime and editor pair",
+      "desc": "Shipped pairs show the pattern for states, variants, linked values, and parts.",
       "lines": [34, 34],
-      "anchor": "Read a shipped runtime and editor pair: `Toggle` for interac",
-      "n": "4"
+      "anchor": "Read a shipped runtime and editor pair: `Toggle` for interac"
     },
     {
       "id": "cc-suffixes",
       "row": 6,
       "kind": "ref",
       "title": "Read the property suffixes",
+      "desc": "The suffix of a property name picks the editor control for it.",
       "lines": [35, 35],
       "anchor": "Read `references/token-naming.md` for the suffixes that sele",
-      "n": "5",
       "reference": "references/token-naming.md"
     },
     {
@@ -86,9 +88,10 @@ export const createComponent: SkillTree = {
       "row": 7,
       "kind": "chipset",
       "title": "Map each editable role",
+      "desc": "Plan every editable role before writing a file: its property, its token, and the CSS it controls.",
       "lines": [41, 54],
       "anchor": "Before writing a file, identify the component's parts, text ",
-      "anchorEnd": "Assign from the tokens the project has. Match the token fami",
+      "anchorEnd": "Assign from the tokens the project has. Match the token scal",
       "chips": [
         {
           "label": "--statcard-surface",
@@ -137,6 +140,7 @@ export const createComponent: SkillTree = {
       "row": 8,
       "kind": "chipset",
       "title": "Name semantic properties",
+      "desc": "A name runs from the component id to the property suffix, with variant, part, and state between.",
       "lines": [56, 68],
       "anchor": "A property name starts with the component id and ends with t",
       "anchorEnd": "For a state that affects several parts, follow Toggle: `--to",
@@ -173,6 +177,7 @@ export const createComponent: SkillTree = {
       "row": 9,
       "kind": "step",
       "title": "Reuse the shipped role names",
+      "desc": "Name each role as the shipped components name it, so a fill is -surface everywhere.",
       "lines": [70, 70],
       "anchor": "Name a role as the shipped component that paints the same th"
     },
@@ -181,6 +186,7 @@ export const createComponent: SkillTree = {
       "row": 10,
       "kind": "step",
       "title": "Create the runtime component",
+      "desc": "The runtime file declares each property with its token and reads it in the CSS.",
       "lines": [72, 114],
       "anchor": "## Runtime component",
       "anchorEnd": "The excerpt shows the chain for part of the property map. Ev"
@@ -190,7 +196,7 @@ export const createComponent: SkillTree = {
       "row": 11,
       "kind": "decide",
       "title": "Structural properties",
-      "desc": "Does a property carry a structural choice?",
+      "desc": "A choice such as alignment or visibility is an intrinsic. A value on a scale is a property.",
       "lines": [114, 114],
       "anchor": "The excerpt shows the chain for part of the property map. Ev",
       "chips": [
@@ -211,6 +217,7 @@ export const createComponent: SkillTree = {
       "row": 12,
       "kind": "ref",
       "title": "Declare intrinsics",
+      "desc": "An intrinsic declares its allowed values and its default, and the editor offers them as a choice.",
       "lines": [114, 114],
       "anchor": "The excerpt shows the chain for part of the property map. Ev",
       "reference": "references/intrinsics.md"
@@ -220,6 +227,7 @@ export const createComponent: SkillTree = {
       "row": 13,
       "kind": "chipset",
       "title": "Separate parts, variants, and states",
+      "desc": "Parts, variants, and states are different things. Keep them apart in the props, the names, and the editor.",
       "lines": [116, 132],
       "anchor": "## Variants and states",
       "anchorEnd": "A component supplies its variants. The page chooses the one ",
@@ -246,34 +254,34 @@ export const createComponent: SkillTree = {
       "row": 14,
       "kind": "step",
       "title": "Export the property schema",
+      "desc": "The editor exports the component id and one row per property, so the panel knows what to show.",
       "lines": [138, 138],
-      "anchor": "A `<script module>` block exports `component`, the id, and `",
-      "n": "1"
+      "anchor": "A `<script module>` block exports `component`, the id, and `"
     },
     {
       "id": "cc-editor-preview",
       "row": 15,
       "kind": "step",
       "title": "Map states to preview props",
+      "desc": "The editor maps the state under edit onto the runtime component's props for the preview.",
       "lines": [139, 139],
-      "anchor": "The instance script imports the runtime component and the ed",
-      "n": "2"
+      "anchor": "The instance script imports the runtime component and the ed"
     },
     {
       "id": "cc-editor-markup",
       "row": 16,
       "kind": "step",
       "title": "Render the editor and preview",
+      "desc": "One VariantGroup per variant, each with a live preview.",
       "lines": [140, 140],
-      "anchor": "The markup mounts `ComponentEditorBase` with one `VariantGro",
-      "n": "3"
+      "anchor": "The markup mounts `ComponentEditorBase` with one `VariantGro"
     },
     {
       "id": "cc-linked-q",
       "row": 17,
       "kind": "decide",
       "title": "Shared values",
-      "desc": "Do variants share a value?",
+      "desc": "Variants that share one value need a linked group, so the editor moves them together.",
       "lines": [176, 176],
       "anchor": "When variants share a value, read `references/linked-sibling",
       "chips": [
@@ -294,6 +302,7 @@ export const createComponent: SkillTree = {
       "row": 18,
       "kind": "ref",
       "title": "Declare linked properties",
+      "desc": "A groupKey per text role links the siblings.",
       "lines": [176, 176],
       "anchor": "When variants share a value, read `references/linked-sibling",
       "reference": "references/linked-siblings.md"
@@ -303,6 +312,7 @@ export const createComponent: SkillTree = {
       "row": 19,
       "kind": "step",
       "title": "Register the component",
+      "desc": "Add the component to bootLiveTokens in src/main.ts, so the editor and the checkers find it.",
       "lines": [178, 201],
       "anchor": "## Registration",
       "anchorEnd": "Inside the live-tokens repository, a first-party component k"
@@ -312,6 +322,7 @@ export const createComponent: SkillTree = {
       "row": 20,
       "kind": "ref",
       "title": "Integrate Sketch mode",
+      "desc": "The component names its --sketch-* values, so Sketch mode can draw it.",
       "lines": [205, 205],
       "anchor": "Every component joins the sketch layer: read `references/ske",
       "reference": "references/sketch-mode.md"
@@ -321,7 +332,7 @@ export const createComponent: SkillTree = {
       "row": 21,
       "kind": "decide",
       "title": "Fixed overlays",
-      "desc": "Does the component have a fixed overlay?",
+      "desc": "A fixed overlay and a container that owns its content's typography each have a reference.",
       "lines": [207, 207],
       "anchor": "A fixed overlay portals to `<body>`: read `references/fixed-",
       "chips": [
@@ -342,6 +353,7 @@ export const createComponent: SkillTree = {
       "row": 22,
       "kind": "ref",
       "title": "Portal the fixed overlay",
+      "desc": "The overlay renders under <body>, so no ancestor can move or clip it.",
       "lines": [207, 207],
       "anchor": "A fixed overlay portals to `<body>`: read `references/fixed-",
       "reference": "references/fixed-overlays.md"
@@ -351,6 +363,7 @@ export const createComponent: SkillTree = {
       "row": 23,
       "kind": "step",
       "title": "Run live-tokens-check-compliance",
+      "desc": "The compliance report names the findings, and the repair skill fixes them.",
       "lines": [211, 211],
       "anchor": "Run **live-tokens-check-compliance** and address its finding"
     },
@@ -359,17 +372,17 @@ export const createComponent: SkillTree = {
       "row": 24,
       "kind": "cli",
       "title": "Run the strict component check",
+      "desc": "The strict check reads the runtime, the editor, and the registration.",
       "lines": [211, 211],
       "anchor": "Run **live-tokens-check-compliance** and address its finding",
-      "command": "npx live-tokens check-component <id> --strict --json",
-      "n": "1"
+      "command": "npx live-tokens check-component <id> --strict --json"
     },
     {
       "id": "cc-fail",
       "row": 25,
       "kind": "gate",
       "title": "Resolve the findings",
-      "desc": "The repair for each section is in live-tokens-fix-findings.",
+      "desc": "Each rule names the section that fixes it. Repair and rerun until exit 0.",
       "lines": [211, 211],
       "anchor": "Run **live-tokens-check-compliance** and address its finding",
       "chips": [
@@ -405,6 +418,7 @@ export const createComponent: SkillTree = {
       "row": 25,
       "kind": "ok",
       "title": "Component check passes",
+      "desc": "Every rule passes, warnings included.",
       "lines": [211, 211],
       "anchor": "Run **live-tokens-check-compliance** and address its finding"
     },
@@ -413,18 +427,18 @@ export const createComponent: SkillTree = {
       "row": 27,
       "kind": "step",
       "title": "Run the Svelte check and build",
+      "desc": "The project's Svelte check and build both pass.",
       "lines": [212, 212],
-      "anchor": "Run the project's Svelte check and its build.",
-      "n": "2"
+      "anchor": "Run the project's Svelte check and its build."
     },
     {
       "id": "cc-contract",
       "row": 28,
       "kind": "ref",
       "title": "Verify the registry and intrinsics",
+      "desc": "checkRegistryEntry confirms the registration and that the defaults match the runtime.",
       "lines": [213, 213],
       "anchor": "Verify the registry entry with `checkRegistryEntry`: read `r",
-      "n": "3",
       "reference": "references/contract-tests.md"
     },
     {
@@ -432,9 +446,9 @@ export const createComponent: SkillTree = {
       "row": 29,
       "kind": "chipset",
       "title": "Verify the component in the editor",
+      "desc": "Open the component in the editor and confirm each behaviour.",
       "lines": [214, 214],
       "anchor": "Open `/live-tokens/components` and check each line below.",
-      "n": "4",
       "chips": [
         {
           "label": "Registry group",
@@ -478,15 +492,16 @@ export const createComponent: SkillTree = {
       "row": 30,
       "kind": "step",
       "title": "Reply with the implementation results",
+      "desc": "Report the files, the id, the props, and each check's result.",
       "lines": [215, 215],
-      "anchor": "Reply with the files, the component id, the props, and the r",
-      "n": "5"
+      "anchor": "Reply with the files, the component id, the props, and the r"
     },
     {
       "id": "cc-page",
       "row": 31,
       "kind": "hand",
       "title": "live-tokens-create-page",
+      "desc": "The component is done. Placing it on a page is the next skill.",
       "lines": [237, 237],
       "anchor": "Then place the component on a page with **live-tokens-create"
     }

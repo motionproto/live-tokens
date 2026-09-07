@@ -20,28 +20,28 @@ export const createTheme: SkillTree = {
       "row": 1,
       "kind": "step",
       "title": "Generate the design direction",
+      "desc": "One design direction names the mood and what it implies for color, type, and geometry.",
       "lines": [27, 27],
-      "anchor": "Read the request once and generate the design direction base",
-      "n": "1"
+      "anchor": "Read the request once and generate the design direction base"
     },
     {
       "id": "ct-index",
       "row": 2,
       "kind": "ref",
       "title": "Name the anchor",
+      "desc": "The anchor is the feeling, idiom, or occasion the reference lists for the request.",
       "lines": [28, 28],
       "anchor": "Read `references/design-directions.md` and name the **anchor",
-      "reference": "references/design-directions.md",
-      "n": "2"
+      "reference": "references/design-directions.md"
     },
     {
       "id": "ct-intents",
       "row": 3,
       "kind": "step",
       "title": "Generate the three intents",
+      "desc": "One line per dimension names the outcome. The set skills choose the values.",
       "lines": [29, 29],
       "anchor": "Generate the three intents the design direction and the anch",
-      "n": "3",
       "chips": [
         {
           "label": "color",
@@ -65,7 +65,7 @@ export const createTheme: SkillTree = {
       "row": 4,
       "kind": "decide",
       "title": "Color scope",
-      "desc": "Does the request leave color alone?",
+      "desc": "Color is skipped only when the user asked to leave it alone.",
       "lines": [30, 30],
       "anchor": "Invoke **live-tokens-set-colors** with the anchor and the co",
       "chips": [
@@ -86,16 +86,16 @@ export const createTheme: SkillTree = {
       "row": 5,
       "kind": "step",
       "title": "Invoke live-tokens-set-colors",
+      "desc": "The set skill turns the color intent into the theme's color.",
       "lines": [30, 30],
-      "anchor": "Invoke **live-tokens-set-colors** with the anchor and the co",
-      "n": "4"
+      "anchor": "Invoke **live-tokens-set-colors** with the anchor and the co"
     },
     {
       "id": "ct-type-q",
       "row": 6,
       "kind": "decide",
       "title": "Type scope",
-      "desc": "Does the request leave type alone?",
+      "desc": "Type is skipped only when the user asked to leave it alone.",
       "lines": [31, 31],
       "anchor": "Invoke **live-tokens-set-type** with the anchor and the type",
       "chips": [
@@ -116,16 +116,16 @@ export const createTheme: SkillTree = {
       "row": 7,
       "kind": "step",
       "title": "Invoke live-tokens-set-type",
+      "desc": "The set skill turns the type intent into a font pairing.",
       "lines": [31, 31],
-      "anchor": "Invoke **live-tokens-set-type** with the anchor and the type",
-      "n": "5"
+      "anchor": "Invoke **live-tokens-set-type** with the anchor and the type"
     },
     {
       "id": "ct-geo-q",
       "row": 8,
       "kind": "decide",
       "title": "Geometry scope",
-      "desc": "Does the request leave geometry alone?",
+      "desc": "Geometry is skipped when the intent is to leave it alone.",
       "lines": [32, 32],
       "anchor": "Invoke **live-tokens-set-geometry** with the anchor and the ",
       "chips": [
@@ -146,19 +146,19 @@ export const createTheme: SkillTree = {
       "row": 9,
       "kind": "step",
       "title": "Invoke live-tokens-set-geometry",
+      "desc": "The set skill turns the geometry intent into each component's shape and spacing.",
       "lines": [32, 32],
-      "anchor": "Invoke **live-tokens-set-geometry** with the anchor and the ",
-      "n": "6"
+      "anchor": "Invoke **live-tokens-set-geometry** with the anchor and the "
     },
     {
       "id": "ct-save",
       "row": 10,
       "kind": "cli",
       "title": "Save the theme",
+      "desc": "The buffers become a saved theme, and the editor loads it.",
       "lines": [33, 33],
       "anchor": "Take the theme name from the design direction and run `npx l",
       "command": "npx live-tokens save-theme \"<name>\"",
-      "n": "7",
       "chips": [
         {
           "label": "Multiple themes",
@@ -173,15 +173,16 @@ export const createTheme: SkillTree = {
       "row": 11,
       "kind": "step",
       "title": "Assemble the reports",
+      "desc": "One report names the design direction and what each set skill changed.",
       "lines": [34, 34],
-      "anchor": "Assemble the three set skill responses into the assembled re",
-      "n": "8"
+      "anchor": "Assemble the three set skill responses into the assembled re"
     },
     {
       "id": "ct-ver",
       "row": 12,
       "kind": "step",
       "title": "Verify the theme",
+      "desc": "Each set skill passed, the theme is saved, and the app shows it.",
       "lines": [74, 80],
       "anchor": "## Verify",
       "anchorEnd": "To return to the previous theme, load it from the Theme pane",
@@ -218,7 +219,7 @@ export const createTheme: SkillTree = {
       "row": 13,
       "kind": "decide",
       "title": "Refinement scope",
-      "desc": "Does the refinement name one dimension or span dimensions?",
+      "desc": "One adjective usually names one dimension and goes to that set skill. A refinement across dimensions starts again from the design direction.",
       "lines": [57, 72],
       "anchor": "## Refining a theme",
       "anchorEnd": "and route all three again.",
@@ -256,6 +257,7 @@ export const createTheme: SkillTree = {
       "row": 17,
       "kind": "hand",
       "title": "live-tokens-set-colors",
+      "desc": "Warmer, cooler, calmer, louder, lighter, darker, moodier, more contrast.",
       "lines": [64, 64],
       "anchor": "| warmer, cooler, calmer, louder, lighter, darker, moodier, "
     },
@@ -264,6 +266,7 @@ export const createTheme: SkillTree = {
       "row": 17,
       "kind": "hand",
       "title": "live-tokens-set-type",
+      "desc": "More editorial, friendlier, more technical, a serif for headings.",
       "lines": [65, 65],
       "anchor": "| more editorial, friendlier, more technical, a serif for he"
     },
@@ -272,6 +275,7 @@ export const createTheme: SkillTree = {
       "row": 17,
       "kind": "hand",
       "title": "live-tokens-set-geometry",
+      "desc": "Rounder, sharper, pill buttons, tighter, airier, thicker borders.",
       "lines": [66, 66],
       "anchor": "| rounder, sharper, pill buttons, tighter, airier, thicker b"
     },
@@ -280,6 +284,7 @@ export const createTheme: SkillTree = {
       "row": 17,
       "kind": "done",
       "title": "Theme complete",
+      "desc": "The theme is saved, open in the editor, and shown in the app.",
       "lines": [74, 80],
       "anchor": "## Verify",
       "anchorEnd": "To return to the previous theme, load it from the Theme pane"

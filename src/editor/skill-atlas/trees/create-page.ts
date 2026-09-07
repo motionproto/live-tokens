@@ -11,6 +11,7 @@ export const createPage: SkillTree = {
       "row": 0,
       "kind": "trigger",
       "title": "Create a page or route",
+      "desc": "Edits page files and the route table.",
       "lines": [3, 3],
       "anchor": "description: Create a page in a @motion-proto/live-tokens pr"
     },
@@ -19,6 +20,7 @@ export const createPage: SkillTree = {
       "row": 1,
       "kind": "chipset",
       "title": "Use the component contracts",
+      "desc": "Use shipped components with their declared props. Size the wrapper around them.",
       "lines": [10, 17],
       "anchor": "## Components",
       "anchorEnd": "Text inside a `Card` or a `CollapsibleSection` takes the con",
@@ -60,6 +62,7 @@ export const createPage: SkillTree = {
       "row": 2,
       "kind": "chipset",
       "title": "Use design tokens",
+      "desc": "Page CSS takes a token wherever one exists. Widths are column spans and heights follow content.",
       "lines": [19, 24],
       "anchor": "## Tokens",
       "anchorEnd": "A value that comes from data, such as a sheet's padding in p",
@@ -91,6 +94,7 @@ export const createPage: SkillTree = {
       "row": 3,
       "kind": "chipset",
       "title": "Assign text styles",
+      "desc": "Each element takes one text style, with all five axes from that style.",
       "lines": [28, 43],
       "anchor": "### Type",
       "anchorEnd": "Use the semantic element for each place: one `h1`, an `h2` f",
@@ -142,6 +146,7 @@ export const createPage: SkillTree = {
       "row": 4,
       "kind": "step",
       "title": "Use the default size",
+      "desc": "Every control and container keeps its shipped default size.",
       "lines": [45, 47],
       "anchor": "### Size",
       "anchorEnd": "Omit `size` on every control and container. The shipped defa"
@@ -151,6 +156,7 @@ export const createPage: SkillTree = {
       "row": 5,
       "kind": "step",
       "title": "Assign action emphasis",
+      "desc": "One primary Button per page. Every other action is secondary, outline, or danger by its role.",
       "lines": [49, 53],
       "anchor": "### Emphasis",
       "anchorEnd": "In a row of actions the primary sits last, on the right. Up "
@@ -160,6 +166,7 @@ export const createPage: SkillTree = {
       "row": 6,
       "kind": "chipset",
       "title": "Apply spacing by position",
+      "desc": "Each position takes one step of the space scale. Space inside a group is smaller than space between groups.",
       "lines": [55, 69],
       "anchor": "### Spacing",
       "anchorEnd": "Every section after the first opens with a hairline: `paddin",
@@ -206,7 +213,7 @@ export const createPage: SkillTree = {
       "row": 7,
       "kind": "decide",
       "title": "Page layout",
-      "desc": "Which layout matches the reader's task?",
+      "desc": "Name each section by its purpose. The layout then gives each section its column spans.",
       "lines": [73, 85],
       "anchor": "### Page layouts",
       "anchorEnd": "The stage is the canvas, player, or strip the work is about.",
@@ -243,9 +250,9 @@ export const createPage: SkillTree = {
       "row": 8,
       "kind": "step",
       "title": "Read the page column count",
+      "desc": "The page is a grid of the theme's column count, and each section spans it.",
       "lines": [87, 93],
       "anchor": "### Grid",
-      "n": "1",
       "anchorEnd": "Read `--columns-count` in the project's `tokens.css`."
     },
     {
@@ -253,34 +260,35 @@ export const createPage: SkillTree = {
       "row": 9,
       "kind": "step",
       "title": "Span the page grid",
+      "desc": "The section spans the full page grid first.",
       "lines": [94, 94],
-      "anchor": "Span the parent grid with `grid-column: 1 / -1`.",
-      "n": "2"
+      "anchor": "Span the parent grid with `grid-column: 1 / -1`."
     },
     {
       "id": "cp-grid-columns",
       "row": 10,
       "kind": "step",
       "title": "Redeclare the page columns",
+      "desc": "The section repeats the page's columns and gutter, so its children line up with the page.",
       "lines": [95, 95],
-      "anchor": "Redeclare `repeat(var(--columns-count), 1fr)` with `column-g",
-      "n": "3"
+      "anchor": "Redeclare `repeat(var(--columns-count), 1fr)` with `column-g"
     },
     {
       "id": "cp-grid-children",
       "row": 11,
       "kind": "step",
       "title": "Assign child columns",
+      "desc": "Each child takes a page-column position.",
       "lines": [96, 98],
       "anchor": "Place each child by page-column numbers.",
-      "anchorEnd": "A grid that follows the page columns takes `var(--columns-co",
-      "n": "4"
+      "anchorEnd": "A grid that follows the page columns takes `var(--columns-co"
     },
     {
       "id": "cp-separation",
       "row": 12,
       "kind": "chipset",
       "title": "Separate content by purpose",
+      "desc": "Separate elements with the smallest difference that works: space, then a hairline, then a surface.",
       "lines": [100, 117],
       "anchor": "### Separation",
       "anchorEnd": "`references/layout-sources.md` names the sources for these l",
@@ -312,6 +320,7 @@ export const createPage: SkillTree = {
       "row": 13,
       "kind": "chipset",
       "title": "Choose containers by purpose",
+      "desc": "Each purpose has its container. Panel is a stage, Card is titled content.",
       "lines": [119, 129],
       "anchor": "## Containers by purpose",
       "anchorEnd": "`MenuSelect` renders its list open. For a picker, toggle it ",
@@ -368,7 +377,7 @@ export const createPage: SkillTree = {
       "row": 14,
       "kind": "decide",
       "title": "Route integration",
-      "desc": "How does App.svelte wire routes?",
+      "desc": "The new route follows the way App.svelte already wires routes.",
       "lines": [133, 133],
       "anchor": "Add the route the way `App.svelte` already wires routes.",
       "chips": [
@@ -389,6 +398,7 @@ export const createPage: SkillTree = {
       "row": 15,
       "kind": "step",
       "title": "Add a router entry",
+      "desc": "Add a pages entry with the lazy import and the source file.",
       "lines": [135, 135],
       "anchor": "`<LiveTokensRouter pages={...}>`: add a `pages` entry with `"
     },
@@ -397,6 +407,7 @@ export const createPage: SkillTree = {
       "row": 15,
       "kind": "step",
       "title": "Register the manual route",
+      "desc": "Dispatch the page with a derived import and register its source.",
       "lines": [136, 136],
       "anchor": "Manual `<LiveEditorOverlay>`: dispatch with `$derived.by(() "
     },
@@ -405,6 +416,7 @@ export const createPage: SkillTree = {
       "row": 17,
       "kind": "step",
       "title": "Isolate page imports",
+      "desc": "A lazy import keeps page CSS off the editor routes.",
       "lines": [138, 138],
       "anchor": "Import the page with `lazy`, so page CSS stays off the edito"
     },
@@ -413,6 +425,7 @@ export const createPage: SkillTree = {
       "row": 18,
       "kind": "step",
       "title": "Run live-tokens-check-compliance",
+      "desc": "The compliance report lists both checkers' findings by rule.",
       "lines": [153, 153],
       "anchor": "Run **live-tokens-check-compliance**. Its report carries bot"
     },
@@ -421,7 +434,7 @@ export const createPage: SkillTree = {
       "row": 19,
       "kind": "decide",
       "title": "Compliance findings",
-      "desc": "Does the report contain findings, or is the page clean?",
+      "desc": "Findings go to the repair skill. A clean report goes on to the visual checks.",
       "lines": [153, 153],
       "anchor": "Run **live-tokens-check-compliance**. Its report carries bot",
       "chips": [
@@ -442,6 +455,7 @@ export const createPage: SkillTree = {
       "row": 20,
       "kind": "gate",
       "title": "Run live-tokens-fix-findings",
+      "desc": "The repair skill fixes the findings, then the check runs again.",
       "lines": [153, 153],
       "anchor": "Run **live-tokens-check-compliance**. Its report carries bot"
     },
@@ -450,6 +464,7 @@ export const createPage: SkillTree = {
       "row": 21,
       "kind": "chipset",
       "title": "Verify the rendered page",
+      "desc": "The checkers cannot see a layout. Open the page and confirm each line.",
       "lines": [155, 170],
       "anchor": "The checkers cannot see a layout. Open the page at the width",
       "anchorEnd": "Every `img` has `alt` text. Focus order follows the reading ",
@@ -531,6 +546,7 @@ export const createPage: SkillTree = {
       "row": 22,
       "kind": "done",
       "title": "Verify the reading order",
+      "desc": "From a distance only the sections show. Up close, every border and bar earns its place or goes.",
       "lines": [174, 174],
       "anchor": "Then read the page from a distance: the sections and their e"
     }

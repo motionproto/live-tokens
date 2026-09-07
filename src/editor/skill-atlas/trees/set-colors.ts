@@ -20,19 +20,19 @@ export const setColors: SkillTree = {
       "row": 1,
       "kind": "ref",
       "title": "Read the color anchor",
+      "desc": "An anchor's entry overrides the generic ranges.",
       "lines": [19, 19],
       "anchor": "Read the color intent and any anchor live-tokens-create-them",
-      "reference": "references/color-anchors.md",
-      "n": "1"
+      "reference": "references/color-anchors.md"
     },
     {
       "id": "sc-input",
       "row": 2,
       "kind": "step",
       "title": "Write the input file",
+      "desc": "Ten base colors and a scheme go in one file. Keep it for refinements.",
       "lines": [20, 20],
       "anchor": "Translate the intent into ten base colors with the framework",
-      "n": "2",
       "chips": [
         {
           "label": "Input format",
@@ -47,6 +47,7 @@ export const setColors: SkillTree = {
       "row": 3,
       "kind": "chipset",
       "title": "Chroma budget",
+      "desc": "The more area a palette covers, the less chroma it gets.",
       "lines": [56, 68],
       "anchor": "## Chroma budget",
       "anchorEnd": "A good theme reads as 3 or 4 hue families on screen, never 1",
@@ -83,6 +84,7 @@ export const setColors: SkillTree = {
       "row": 4,
       "kind": "chipset",
       "title": "Role ranges",
+      "desc": "Each base color has its own lightness, chroma, and hue range.",
       "lines": [70, 96],
       "anchor": "## Per-role ranges",
       "anchorEnd": "Blue tints cap very low at high L (H 264 at L 0.95 barely re",
@@ -139,6 +141,7 @@ export const setColors: SkillTree = {
       "row": 5,
       "kind": "step",
       "title": "Mood dials",
+      "desc": "Lightness and saturation set the mood. Warm and cool are hue ranges.",
       "lines": [98, 104],
       "anchor": "## Mood dials",
       "anchorEnd": "Avoid mid-lightness yellow-green (H 100 to 120 at L 0.5 to 0"
@@ -148,6 +151,7 @@ export const setColors: SkillTree = {
       "row": 6,
       "kind": "step",
       "title": "Gamut constraints",
+      "desc": "Some colors do not exist at some lightness. These rules keep the intent achievable.",
       "lines": [106, 113],
       "anchor": "## Gamut guardrails",
       "anchorEnd": "Peak chroma anchors: red H20 C 0.25 at L 0.63; orange H60 C "
@@ -157,6 +161,7 @@ export const setColors: SkillTree = {
       "row": 7,
       "kind": "step",
       "title": "Harmony",
+      "desc": "Each hue is an offset from Brand, set by the harmony mode.",
       "lines": [115, 121],
       "anchor": "## Harmony",
       "anchorEnd": "Drama or maximum contrast: complementary, triadic, or tetrad"
@@ -166,6 +171,7 @@ export const setColors: SkillTree = {
       "row": 8,
       "kind": "step",
       "title": "Canvas gradient and shadows",
+      "desc": "A canvas gradient is for atmospheric intents only. Shadows derive from Canvas lightness.",
       "lines": [123, 127],
       "anchor": "## Canvas sky and shadows",
       "anchorEnd": "Shadow opacity derives from Canvas lightness and re-derives "
@@ -175,6 +181,7 @@ export const setColors: SkillTree = {
       "row": 9,
       "kind": "step",
       "title": "Refine existing colors",
+      "desc": "A refinement edits the base color file and runs again.",
       "lines": [129, 135],
       "anchor": "## Refining a theme's color",
       "anchorEnd": "One adjective moves one dial. Warmer and cooler rotate hue; "
@@ -184,16 +191,17 @@ export const setColors: SkillTree = {
       "row": 10,
       "kind": "cli",
       "title": "Run set-colors",
+      "desc": "The engine derives the theme's color from the ten base colors and checks contrast.",
       "lines": [21, 21],
       "anchor": "Run `npx live-tokens set-colors scratch/<slug>-base-colors.j",
-      "command": "npx live-tokens set-colors scratch/<slug>-base-colors.json",
-      "n": "3"
+      "command": "npx live-tokens set-colors scratch/<slug>-base-colors.json"
     },
     {
       "id": "sc-fail",
       "row": 11,
       "kind": "gate",
       "title": "Correct the input file",
+      "desc": "Exit 1 names the base color to change and how.",
       "lines": [22, 22],
       "anchor": "Read the report. Exit 0 passes, and auto-corrected values co"
     },
@@ -202,6 +210,7 @@ export const setColors: SkillTree = {
       "row": 11,
       "kind": "ok",
       "title": "Command passes",
+      "desc": "Every check passes. Auto-corrected values count.",
       "lines": [22, 22],
       "anchor": "Read the report. Exit 0 passes, and auto-corrected values co"
     },
@@ -210,24 +219,25 @@ export const setColors: SkillTree = {
       "row": 13,
       "kind": "step",
       "title": "Read the report",
+      "desc": "The report names the scheme, the hue families, and what was auto-corrected.",
       "lines": [22, 22],
-      "anchor": "Read the report. Exit 0 passes, and auto-corrected values co",
-      "n": "4"
+      "anchor": "Read the report. Exit 0 passes, and auto-corrected values co"
     },
     {
       "id": "sc-reply",
       "row": 14,
       "kind": "step",
       "title": "Reply with the result",
+      "desc": "Report the anchor, the scheme, the hue families, the Canvas base color, and any auto-correction.",
       "lines": [23, 23],
-      "anchor": "Reply with the anchor if any, the scheme, the hue families, ",
-      "n": "5"
+      "anchor": "Reply with the anchor if any, the scheme, the hue families, "
     },
     {
       "id": "sc-scope",
       "row": 15,
       "kind": "step",
       "title": "Preserve the other dimensions",
+      "desc": "Only color changes. Fonts, geometry, and saved themes carry forward.",
       "lines": [137, 141],
       "anchor": "## Scope",
       "anchorEnd": "every other value in it forward. `save-theme` keeps the resu"
@@ -237,6 +247,7 @@ export const setColors: SkillTree = {
       "row": 16,
       "kind": "done",
       "title": "Verify the color",
+      "desc": "The CLI passes, the app shows the new palette, and the theme reads as edited.",
       "lines": [143, 149],
       "anchor": "## Verify",
       "anchorEnd": "To revert, re-run with the previous base color file, or load",
