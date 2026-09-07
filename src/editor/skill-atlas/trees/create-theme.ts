@@ -2,7 +2,7 @@ import type { SkillTree } from '../types';
 
 export const createTheme: SkillTree = {
   "id": "live-tokens-create-theme",
-  "digest": "sha256:9de2cd5d34861cd6",
+  "digest": "sha256:22cf3d36fe42890c",
   "title": "create-theme",
   "tagline": "Create a Live Tokens Theme",
   "nodes": [
@@ -86,7 +86,7 @@ export const createTheme: SkillTree = {
       "kind": "step",
       "title": "Verify the theme",
       "desc": "Each set skill passed, the theme is saved, and the app shows it.",
-      "lines": [78, 84],
+      "lines": [73, 79],
       "anchor": "## Verify",
       "anchorEnd": "To return to the previous theme, load it from the Theme pane"
     },
@@ -96,9 +96,9 @@ export const createTheme: SkillTree = {
       "kind": "decide",
       "title": "User feedback",
       "desc": "The user sees the theme and may ask for a change. One adjective usually names one dimension and goes to that set skill. A change across dimensions starts again from the design direction.",
-      "lines": [53, 76],
+      "lines": [53, 71],
       "anchor": "## Refining a theme",
-      "anchorEnd": "loading it from the editor's Theme panel; loading clears the",
+      "anchorEnd": "and route all three again.",
       "chips": [
         {
           "label": "color",
@@ -132,7 +132,7 @@ export const createTheme: SkillTree = {
       "id": "ct-refine-colors",
       "row": 8,
       "kind": "hand",
-      "title": "live-tokens-set-colors",
+      "title": "Set colors (adjust)",
       "desc": "Any request that names color, such as warmer, calmer, darker, or more contrast.",
       "lines": [60, 60],
       "anchor": "| warmer, cooler, calmer, louder, lighter, darker, moodier, "
@@ -141,7 +141,7 @@ export const createTheme: SkillTree = {
       "id": "ct-refine-type",
       "row": 8,
       "kind": "hand",
-      "title": "live-tokens-set-type",
+      "title": "Set type (adjust)",
       "desc": "Any request that names type, such as more editorial, friendlier, or a serif for headings.",
       "lines": [61, 61],
       "anchor": "| more editorial, friendlier, more technical, a serif for he"
@@ -150,7 +150,7 @@ export const createTheme: SkillTree = {
       "id": "ct-refine-geometry",
       "row": 8,
       "kind": "hand",
-      "title": "live-tokens-set-geometry",
+      "title": "Set geometry (adjust)",
       "desc": "Any request that names geometry, such as rounder, pill buttons, tighter, or thicker borders.",
       "lines": [62, 62],
       "anchor": "| rounder, sharper, pill buttons, tighter, airier, thicker b"
@@ -161,7 +161,7 @@ export const createTheme: SkillTree = {
       "kind": "done",
       "title": "Theme complete",
       "desc": "The theme is saved, open in the editor, and shown in the app.",
-      "lines": [78, 84],
+      "lines": [73, 79],
       "anchor": "## Verify",
       "anchorEnd": "To return to the previous theme, load it from the Theme pane"
     }
