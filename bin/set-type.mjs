@@ -24,9 +24,9 @@ const BROWSER_UA =
   'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0 Safari/537.36';
 
 const SOURCE_LABELS = {
-  working: 'your unsaved edits',
+  working: 'the buffer',
   theme: 'the open theme',
-  default: 'the package default',
+  default: 'the shipped default',
 };
 
 async function loadEngine() {
@@ -196,7 +196,7 @@ export function formatSetTypeResult(result) {
 
   const width = Math.max(0, ...result.changes.map((c) => c.variable.length));
   for (const change of result.changes) {
-    lines.push(`    ${change.variable.padEnd(width)}  ${change.from ?? '(none)'} → ${change.to}`);
+    lines.push(`    ${change.variable.padEnd(width)}  ${change.from ?? '(none)'} to ${change.to}`);
   }
 
   for (const face of result.faces) {
@@ -231,12 +231,11 @@ export function formatSetTypeResult(result) {
 
   if (result.wrote === 'buffer') {
     lines.push(
-      `\nThis is an unsaved edit: save the open theme in the editor's Theme panel to keep it, ` +
-        `or load a theme to discard it.`,
+      `\nThe buffer holds this edit. Run save-theme to keep it as a theme.`,
     );
   } else if (result.wrote === 'cleared') {
     lines.push(
-      `\nThat is what the open theme already holds, so the unsaved buffer was discarded.`,
+      `\nThat is what the open theme already holds, so the buffer was discarded.`,
     );
   } else if (result.dryRun) {
     lines.push(`\nDry run: nothing written under ${relative(root, result.colorsAndTypeDir)}.`);

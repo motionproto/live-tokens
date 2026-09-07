@@ -117,7 +117,7 @@ function hasBuffer(root: string): boolean {
 }
 
 describe('runSetType', () => {
-  it('writes the pairing into the unsaved buffer', async () => {
+  it('writes the pairing into the buffer', async () => {
     const root = project();
     const result = await run(root, { display: 'Cinzel', body: 'Lato' });
 
