@@ -142,35 +142,34 @@ export function formatSaveThemeResult(result) {
   const root = process.cwd();
   const lines = [];
   const wrote = result.dryRun ? 'Would write' : result.existed ? 'Updated' : 'Created';
-  lines.push(`${wrote} theme "${result.name}" → ${relative(root, result.themePath)}`);
+  lines.push(`${wrote} theme "${result.name}" at ${relative(root, result.themePath)}`);
   lines.push(`It carries the colors and type and ${result.components} component config(s) by value.`);
 
   const edited = [
     ...(result.buffered.colorsAndType ? ['colors and type'] : []),
     ...result.buffered.components,
   ];
-  const open = result.openTheme ? `the open theme "${result.openTheme}"` : 'the package defaults';
+  const open = result.openTheme ? `the open theme "${result.openTheme}"` : 'the shipped defaults';
   const kept = result.dryRun ? 'Would save' : 'Saved';
   if (edited.length > 0) {
-    lines.push(`${kept} your unsaved edits: ${edited.join(', ')}.`);
+    lines.push(`${kept} the buffer: ${edited.join(', ')}.`);
     lines.push(`Everything else came from ${open}, or the shipped defaults where it carries no entry.`);
   } else {
-    lines.push(`No unsaved edits; ${kept.toLowerCase()} a copy of ${open}.`);
+    lines.push(`No buffer. ${kept} a copy of ${open}.`);
   }
   if (result.sketchSettings) lines.push(`Sketch settings rode through from the open theme.`);
 
   if (result.activated) {
     lines.push(
-      `\nOpened "${result.slug}" (previously open: "${result.previousActive}"). ` +
-        `Switch back any time from Load in the editor's Theme panel. ` +
-        `Adopt it there to publish it to tokens.generated.css.`,
+      `\nLoaded "${result.slug}" (previously open: "${result.previousActive}"). ` +
+        `Adopt in the editor ships it to tokens.generated.css.`,
     );
   } else if (result.dryRun) {
     lines.push(`\nDry run: nothing written under ${relative(root, dirname(result.themePath))}.`);
   } else {
     lines.push(
-      `\nNot opened (--no-activate). Your unsaved edits are still open, so the next ` +
-        `save-theme starts from the same look. Load "${result.slug}" from the editor's Theme panel to see it.`,
+      `\nNot loaded (--no-activate). The buffer is still open, so the next ` +
+        `save-theme starts from the same theme.`,
     );
   }
   return lines.join('\n');

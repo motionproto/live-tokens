@@ -193,7 +193,7 @@ describe('runSaveTheme', () => {
     expect(readJson(join(root, 'colors-and-type', '_working.json')).cssVariables['--radius-lg']).toBe('from-buffer');
   });
 
-  it('saves a copy of the open theme when nothing is unsaved', async () => {
+  it('saves a copy of the open theme when there is no buffer', async () => {
     const root = project();
     openTheme(root, 'sunset', {
       colorsAndType: { name: 'Sunset', cssVariables: { '--radius-lg': 'from-theme' } },
@@ -220,7 +220,7 @@ describe('runSaveTheme', () => {
 });
 
 describe('formatSaveThemeResult', () => {
-  it('names the file, the unsaved layers it kept, and the theme it opened', async () => {
+  it('names the file, the buffer layers it kept, and the theme it loaded', async () => {
     const root = project();
     openTheme(root, 'sunset', { colorsAndType: { name: 'Sunset', cssVariables: {} } });
     colorsBuffer(root, { name: 'Sunset', cssVariables: {} });
@@ -230,10 +230,10 @@ describe('formatSaveThemeResult', () => {
 
     expect(out).toContain('Created theme "Audit Check"');
     expect(out).toContain('themes/audit-check.json');
-    expect(out).toContain('Saved your unsaved edits: colors and type, button.');
+    expect(out).toContain('Saved the buffer: colors and type, button.');
     expect(out).toContain('Everything else came from the open theme "sunset"');
-    expect(out).toContain('Opened "audit-check" (previously open: "sunset")');
-    expect(out).toContain('Adopt it there to publish it');
+    expect(out).toContain('Loaded "audit-check" (previously open: "sunset")');
+    expect(out).toContain('Adopt in the editor ships it');
   });
 
   it('says a run with no buffers copied the open theme', async () => {
@@ -242,12 +242,12 @@ describe('formatSaveThemeResult', () => {
 
     const out = formatSaveThemeResult(await run(root));
 
-    expect(out).toContain('No unsaved edits; saved a copy of the open theme "sunset".');
+    expect(out).toContain('No buffer. Saved a copy of the open theme "sunset".');
   });
 
   it('says what --no-activate and --dry-run did instead', async () => {
     const root = project();
-    expect(formatSaveThemeResult(await run(root, { activate: false }))).toContain('Not opened (--no-activate)');
+    expect(formatSaveThemeResult(await run(root, { activate: false }))).toContain('Not loaded (--no-activate)');
     expect(formatSaveThemeResult(await run(root, { dryRun: true }))).toContain('Dry run: nothing written under');
   });
 });
