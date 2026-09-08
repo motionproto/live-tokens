@@ -2,7 +2,6 @@
   import Badge from '../../system/components/Badge.svelte';
   import Button from '../../system/components/Button.svelte';
   import Card from '../../system/components/Card.svelte';
-  import CodeSnippet from '../../system/components/CodeSnippet.svelte';
   import Tooltip from '../../system/components/Tooltip.svelte';
   import type { LineRange, NodeKind, TreeNode } from './types';
 
@@ -30,7 +29,7 @@
 
   /** The structural rule that puts a node in each kind, as the audit enforces it. */
   const KIND_MEANING: Record<NodeKind, string> = {
-    trigger: 'The request that starts the skill. Each chart has one, and it quotes the scope of the skill description.',
+    trigger: 'The request that starts the skill. Each chart has one, and it summarises what the skill is for.',
     step: 'One action the skill takes. It has a single continuation.',
     decide: 'A branch on a fact the skill reads from the request, the report, or a file. Each wire carries the answer that selects it, and there are at least two.',
     cli: 'A CLI command the skill runs. The wires carry its exit outcomes, or a single continuation when it cannot fail.',
@@ -94,10 +93,6 @@
       <button type="button" class="doclink" onclick={() => onopen(node.reference!)}>
         {node.reference.replace('references/', '')}
       </button>
-    {/if}
-
-    {#if node.command}
-      <div class="command"><CodeSnippet code={node.command} /></div>
     {/if}
 
     {#if node.chips}
@@ -174,19 +169,17 @@
     outline-offset: var(--space-2);
   }
 
-  /* Chips, the copy button and the reference link sit above the overlay so they
-     stay clickable. */
+  /* Chips and the reference link sit above the overlay so they stay clickable. */
   .chips,
-  .command,
   .doclink,
   .meta :global(.tooltip-wrapper) {
     position: relative;
     z-index: 2;
   }
 
-  /* A shown tooltip hangs over the command block and the row below, which
-     also sit at z-index 2 and come later in the DOM. Hover reveals it
-     without the open class. */
+  /* A shown tooltip hangs over the row below, whose chips also sit at
+     z-index 2 and come later in the DOM. Hover reveals it without the open
+     class. */
   .meta :global(.tooltip-wrapper:hover),
   .meta :global(.tooltip-wrapper.open) {
     z-index: var(--z-tooltip);
@@ -269,18 +262,6 @@
     letter-spacing: var(--body-sm-letter-spacing);
     color: var(--text-secondary);
     white-space: pre-line;
-  }
-
-  .command {
-    --codesnippet-padding: var(--space-8);
-    --codesnippet-code-font-size: var(--font-size-sm);
-
-    margin-top: var(--space-8);
-  }
-
-  .desc + .command,
-  .doclink + .command {
-    margin-top: var(--space-12);
   }
 
   .chips {

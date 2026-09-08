@@ -32,7 +32,6 @@ export interface TreeNode extends Anchored {
   reference?: string;
   lines?: LineRange;
   chips?: Chip[];
-  command?: string;
 }
 
 export interface Edge {

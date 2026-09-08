@@ -2,36 +2,25 @@ import type { SkillTree } from '../types';
 
 export const pickComponent: SkillTree = {
   "id": "live-tokens-pick-component",
-  "digest": "sha256:d6ecf99e668c42f8",
+  "digest": "sha256:5e4ca458665c95fd",
   "title": "pick-component",
-  "tagline": "Select a Component from the Registry",
+  "tagline": "Select a component from the catalogue",
   "nodes": [
     {
       "id": "pk-trig",
       "row": 0,
       "kind": "trigger",
-      "title": "Choose a component for a UX need",
-      "desc": "Edits no file. For size, emphasis, or placement, read live-tokens-create-page.",
+      "title": "Check the catalogue",
+      "desc": "Recommends the shipped component that fits a UX need. The catalogue lists every registered component, shipped and custom, with its usage.",
       "lines": [3, 3],
       "anchor": "description: Recommend which shipped @motion-proto/live-toke"
     },
     {
-      "id": "pk-cat",
-      "row": 1,
-      "kind": "step",
-      "title": "Run the catalogue",
-      "desc": "See every component the project has, shipped and custom.",
-      "lines": [10, 12],
-      "anchor": "## Catalogue",
-      "anchorEnd": "Before choosing, run `npx live-tokens components`. The list ",
-      "command": "npx live-tokens components"
-    },
-    {
       "id": "pk-fam",
-      "row": 2,
+      "row": 1,
       "kind": "decide",
       "title": "Component purpose",
-      "desc": "Each family names its candidates and one test for choosing between them.",
+      "desc": "Each family names its candidates and helps select one.",
       "lines": [8, 8],
       "anchor": "When more than one shipped component could fit, find the fam",
       "chips": [
@@ -52,103 +41,103 @@ export const pickComponent: SkillTree = {
         },
         {
           "label": "On and off",
-          "lines": [40, 40],
+          "lines": [43, 43],
           "anchor": "## On and off"
         },
         {
           "label": "Container family",
-          "lines": [52, 52],
+          "lines": [55, 55],
           "anchor": "## Container family"
         },
         {
           "label": "Messaging family",
-          "lines": [65, 65],
+          "lines": [68, 68],
           "anchor": "## Messaging family"
         },
         {
           "label": "Display family",
-          "lines": [79, 79],
+          "lines": [82, 82],
           "anchor": "## Display family"
         }
       ]
     },
     {
       "id": "pk-act",
-      "row": 3,
+      "row": 2,
       "kind": "chipset",
       "title": "Action family",
-      "desc": "The test is whether the action needs a word, a glyph, or a confirm and cancel pair.",
+      "desc": "Does the action need a word, a glyph, or a confirm and cancel pair.",
       "lines": [14, 18],
       "anchor": "## Action family",
       "anchorEnd": "The pair that confirms or cancels an inline edit: `InlineEdi"
     },
     {
       "id": "pk-sel",
-      "row": 3,
+      "row": 2,
       "kind": "chipset",
       "title": "Single-selection family",
-      "desc": "The test is how many options there are and what the selection changes.",
+      "desc": "How many options there are and what does the selection change.",
       "lines": [20, 32],
       "anchor": "## Single-selection family",
       "anchorEnd": "The URL changes: `SideNavigation`. Sections inside one page:"
     },
     {
       "id": "pk-text",
-      "row": 3,
+      "row": 2,
       "kind": "chipset",
       "title": "Text entry",
-      "desc": "The test is whether the page can list the answers.",
-      "lines": [34, 38],
+      "desc": "If the options are known, use a list or select. Anything else is an input field.",
+      "lines": [34, 41],
       "anchor": "## Text entry",
       "anchorEnd": "A number where the position on a track carries the meaning ("
     },
     {
       "id": "pk-bin",
-      "row": 3,
+      "row": 2,
       "kind": "chipset",
       "title": "On and off",
-      "desc": "The test is whether the two states have names of their own.",
-      "lines": [40, 50],
+      "desc": "If two states have names of their own use segmented control or radio buttons.",
+      "lines": [43, 53],
       "anchor": "## On and off",
       "anchorEnd": "When the two states share the feature's one name, use `Toggl"
     },
     {
       "id": "pk-con",
-      "row": 3,
+      "row": 2,
       "kind": "chipset",
       "title": "Container family",
-      "desc": "The test is what the block is to the reader: an item, a section, content on demand, or a decision.",
-      "lines": [52, 63],
+      "desc": "Is the block: an item, a section, collapsed content, or a decision.",
+      "lines": [55, 66],
       "anchor": "## Container family",
       "anchorEnd": "A set of items is one `Card` per item. A routine form goes i"
     },
     {
       "id": "pk-msg",
-      "row": 3,
+      "row": 2,
       "kind": "chipset",
       "title": "Messaging family",
-      "desc": "The test is what the message is about, what brings it on, and whether the reader dismisses it.",
-      "lines": [65, 77],
+      "desc": "What is the message about? What triggers it? Is it dismissable?",
+      "lines": [68, 80],
       "anchor": "## Messaging family",
       "anchorEnd": "`Badge` and `CornerBadge` differ in position only."
     },
     {
       "id": "pk-disp",
-      "row": 3,
+      "row": 2,
       "kind": "chipset",
       "title": "Display family",
-      "desc": "The test is what the reader does with it: scan, open, set, run, or move between pages.",
-      "lines": [79, 85],
+      "desc": "Does the user view it, or interact with it?",
+      "lines": [82, 90],
       "anchor": "## Display family",
       "anchorEnd": "A titled break between the sections of one page: `SectionDiv"
     },
     {
       "id": "pk-fits",
-      "row": 4,
+      "row": 3,
       "kind": "decide",
-      "title": "Catalogue fit",
-      "desc": "A component from the catalogue is inspected next. A native element needs none. Anything else with chrome is authored.",
-      "lines": [87, 91],
+      "title": "Is there a match in the catalogue",
+      "desc": "Use a component from the catalogue if one fits, otherwise build a new one.",
+      "lines": [92, 96],
       "anchor": "## Nothing fits",
       "anchorEnd": "`npx live-tokens components <id>` prints one component's usa",
       "chips": [
@@ -164,62 +153,57 @@ export const pickComponent: SkillTree = {
         },
         {
           "label": "native element",
-          "lines": [89, 89],
+          "lines": [94, 94],
           "anchor": "A native element with no chrome of its own needs no componen"
         },
         {
           "label": "nothing in the catalogue fits",
-          "lines": [89, 89],
+          "lines": [94, 94],
           "anchor": "A native element with no chrome of its own needs no componen"
         }
       ]
     },
     {
       "id": "pk-inspect",
-      "row": 5,
+      "row": 4,
       "kind": "cli",
-      "title": "Inspect the component contract",
+      "title": "Check the component",
       "desc": "See the component's props and usage before placing it.",
-      "lines": [91, 91],
-      "anchor": "`npx live-tokens components <id>` prints one component's usa",
-      "command": "npx live-tokens components <id> --json"
+      "lines": [96, 96],
+      "anchor": "`npx live-tokens components <id>` prints one component's usa"
     },
     {
       "id": "pk-native",
-      "row": 5,
+      "row": 4,
       "kind": "step",
-      "title": "Use the native element",
+      "title": "Use a native element",
       "desc": "An element with no chrome of its own needs no component.",
-      "lines": [89, 89],
+      "lines": [94, 94],
       "anchor": "A native element with no chrome of its own needs no componen"
     },
     {
       "id": "pk-make",
-      "row": 5,
+      "row": 4,
       "kind": "hand",
-      "title": "live-tokens-create-component",
+      "title": "Create a component",
       "desc": "A piece with chrome that nothing fits becomes a new component.",
-      "lines": [89, 89],
+      "lines": [94, 94],
       "anchor": "A native element with no chrome of its own needs no componen"
     },
     {
       "id": "pk-page",
-      "row": 6,
+      "row": 5,
       "kind": "hand",
-      "title": "live-tokens-create-page",
-      "desc": "Continue with size, emphasis, and page layout.",
-      "lines": [89, 89],
+      "title": "Return the selected component",
+      "desc": "Continue page layout using the result.",
+      "lines": [94, 94],
       "anchor": "A native element with no chrome of its own needs no componen"
     }
   ],
   "edges": [
     {
-      "to": "pk-cat",
-      "from": "pk-trig"
-    },
-    {
       "to": "pk-fam",
-      "from": "pk-cat"
+      "from": "pk-trig"
     },
     {
       "to": "pk-act",

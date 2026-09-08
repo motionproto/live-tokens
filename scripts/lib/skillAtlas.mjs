@@ -6,7 +6,6 @@
 
 import { createHash } from 'node:crypto';
 
-import { dispatchedVerbs } from './cliSurface.mjs';
 
 // Long enough to be unique for all but three lines that are genuinely
 // identical to another line in the same file; those resolve by proximity.
@@ -154,22 +153,6 @@ export function syncNode(node, { lines, id, label, write }) {
   return { moved: true };
 }
 
-// A node's `command` is the one string on a card that no anchor holds, so the
-// `adjust` to `set-geometry` rename left the set-geometry card printing a verb
-// the CLI had stopped dispatching, with every check green.
-export function auditCommands(trees, cli) {
-  const verbs = dispatchedVerbs(cli);
-  const problems = [];
-  for (const { node, label } of atlasNodes(trees)) {
-    if (typeof node.command !== 'string') continue;
-    for (const [, verb] of node.command.matchAll(/npx (?:@motion-proto\/)?live-tokens ([a-z][a-z-]*)/g)) {
-      if (!verbs.has(verb)) {
-        problems.push(`${label}: command runs \`live-tokens ${verb}\`, which bin/cli.mjs does not dispatch`);
-      }
-    }
-  }
-  return problems;
-}
 
 // The sync only ever iterates the tree files that exist, so a skill whose tree
 // was never written, or was lost in a merge, passed with nothing to check.
@@ -182,7 +165,8 @@ export function uncoveredSkills(trees, skillDirs) {
 export function auditStructure(trees, skillIds = Object.values(trees).map((tree) => tree.id)) {
   const problems = [];
   const knownSkills = new Set(skillIds);
-  const banned = /\b(?:look|band|box|ladder|rung|you|your|unsaved)\b|report card|[→—]/i;
+  // "look" is banned as a noun for a theme; "look up" is an ordinary verb.
+  const banned = /\blook\b(?! up\b)|\b(?:band|box|ladder|rung|you|your|unsaved)\b|report card|[→—]/i;
   for (const tree of Object.values(trees)) {
     const nodes = new Map(tree.nodes.map((node) => [node.id, node]));
     const fail = (id, message) => problems.push(`${tree.id} ${id}: ${message}`);
@@ -205,7 +189,7 @@ export function auditStructure(trees, skillIds = Object.values(trees).map((tree)
           fail(node.id, 'missing or invalid source range');
         }
         for (const field of ['title', 'desc', 'label']) {
-          // A trigger quotes the description, which may include user vocabulary.
+          // A trigger's summary may echo the description, which uses the user's vocabulary.
           if (node.kind === 'trigger' && field === 'desc') continue;
           if (banned.test(item[field] ?? '')) fail(node.id, `restricted vocabulary in ${field}`);
         }
@@ -249,14 +233,7 @@ export function auditSource(tree, lines) {
   const plain = (text) => text.replace(/[`*_]/g, '').replace(/\s+/g, ' ').toLowerCase();
   const source = plain(lines.join('\n'));
   const description = lines.find((line) => line.startsWith('description: '))?.slice(13) ?? '';
-  const sentences = (text) => text.split(/(?<=\.)\s+/).filter(Boolean);
-  const scope = new Set(sentences(description).filter((sentence) => !sentence.startsWith('Use when')));
   for (const node of tree.nodes) {
-    if (node.kind === 'trigger' && node.desc) {
-      for (const sentence of sentences(node.desc)) {
-        if (!scope.has(sentence)) problems.push(`${tree.id} ${node.id}: trigger quotes a sentence outside the description's scope sentences: ${JSON.stringify(sentence)}`);
-      }
-    }
     for (const item of [node, ...(node.chips ?? [])]) {
       if (!item.lines) continue;
       const [start, end] = item.lines;

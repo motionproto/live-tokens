@@ -11,7 +11,7 @@ export const fixFindings: SkillTree = {
       "row": 0,
       "kind": "trigger",
       "title": "Fix design-system findings",
-      "desc": "Edits the files the checkers name. Updates tokens.css only through the migration command.",
+      "desc": "Repairs every finding the two checkers report, mapping each literal to the token for its role or scale, until both exit 0.",
       "lines": [3, 3],
       "anchor": "description: Fix every finding of check-page and check-compo"
     },
@@ -22,8 +22,7 @@ export const fixFindings: SkillTree = {
       "title": "Run the token migration",
       "desc": "Bring tokens.css up to the installed package first. A stale file shows as unknown tokens.",
       "lines": [14, 14],
-      "anchor": "Run `npx live-tokens migrate --check` to see the plan, then ",
-      "command": "npx live-tokens migrate --check\nnpx live-tokens migrate --write"
+      "anchor": "Run `npx live-tokens migrate --check` to see the plan, then "
     },
     {
       "id": "ff-run",
@@ -33,8 +32,7 @@ export const fixFindings: SkillTree = {
       "desc": "Each finding names a rule, a file, and a line.",
       "lines": [15, 19],
       "anchor": "Run both checkers with `--json`. Each finding carries a `rul",
-      "anchorEnd": "```",
-      "command": "npx live-tokens check-page --json\nnpx live-tokens check-component --json"
+      "anchorEnd": "```"
     },
     {
       "id": "ff-clean",
@@ -260,8 +258,7 @@ export const fixFindings: SkillTree = {
       "title": "Rerun both checkers",
       "desc": "Run both checkers again to see what remains.",
       "lines": [23, 23],
-      "anchor": "Run both checkers again. When repairable findings remain in ",
-      "command": "npx live-tokens check-page --json\nnpx live-tokens check-component --json"
+      "anchor": "Run both checkers again. When repairable findings remain in "
     },
     {
       "id": "ff-repeat",
@@ -288,8 +285,7 @@ export const fixFindings: SkillTree = {
       "title": "Run strict checks",
       "desc": "Strict mode counts every warning as an error.",
       "lines": [24, 24],
-      "anchor": "When the errors are clear, run both checkers with `--strict`",
-      "command": "npx live-tokens check-page --strict --json\nnpx live-tokens check-component --strict --json"
+      "anchor": "When the errors are clear, run both checkers with `--strict`"
     },
     {
       "id": "ff-warnings",

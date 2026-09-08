@@ -20,7 +20,6 @@ import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
   atlasNodes,
-  auditCommands,
   auditStructure,
   auditSource,
   parseTree,
@@ -33,7 +32,6 @@ import {
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const TREES = join(ROOT, 'src/editor/skill-atlas/trees');
 const SKILLS = join(ROOT, '.claude/skills');
-const CLI = join(ROOT, 'bin/cli.mjs');
 
 const write = process.argv.slice(2).includes('--write');
 
@@ -66,7 +64,6 @@ const take = ({ error, moved: didMove, anchored: didAnchor, digested: didDigest 
 for (const tree of Object.values(activeTrees)) take(syncDigest(tree, linesOf(tree.id), write));
 for (const { node, id, label } of atlasNodes(activeTrees)) take(syncNode(node, { lines: linesOf(id), id, label, write }));
 for (const tree of Object.values(activeTrees)) errors.push(...auditSource(tree, linesOf(tree.id)));
-errors.push(...auditCommands(activeTrees, readFileSync(CLI, 'utf8')));
 errors.push(...auditStructure(activeTrees, Object.values(trees).map((tree) => tree.id)));
 
 // `check:skills` enumerates the same directory for the same reason.
@@ -95,6 +92,6 @@ if (write) {
   console.log(`sync:skill-atlas — ${parts.length > 0 ? parts.join(', ') : 'already in sync'}.`);
 } else {
   console.log(
-    'check:skill-atlas OK — every skill is byte-identical to the tree that maps it, every range still opens on the text it was written for, and every command names a verb the CLI dispatches.',
+    'check:skill-atlas OK — every skill is byte-identical to the tree that maps it, every range still opens on the text it was written for.',
   );
 }

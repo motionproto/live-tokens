@@ -3,7 +3,6 @@ import { describe, it, expect } from 'vitest';
 import {
   anchorOf,
   atlasNodes,
-  auditCommands,
   auditSource,
   auditStructure,
   digestOf,
@@ -18,16 +17,10 @@ import {
   // @ts-expect-error — plain .mjs module, no types
 } from './skillAtlas.mjs';
 
-type Node = { id: string; title: string; lines?: number[]; anchor?: string; anchorEnd?: string; command?: string };
+type Node = { id: string; title: string; lines?: number[]; anchor?: string; anchorEnd?: string };
 type Tree = { id: string; digest?: string; title: string; nodes: Node[] };
 
-const CLI = `
-if (command === 'components') {
-if (command === 'set-geometry') {
-if (command === 'set-type') {
-`;
-
-const atlas = (command: string) => `import type { SkillTree } from '../types';
+const atlas = () => `import type { SkillTree } from '../types';
 
 export const setGeometry: SkillTree = {
   "id": "live-tokens-set-geometry",
@@ -35,15 +28,13 @@ export const setGeometry: SkillTree = {
   "nodes": [
     {
       "id": "sg-run",
-      "title": "Run the verb",
-      "command": ${JSON.stringify(command)}
+      "title": "Run the verb"
     }
   ]
 };
 `;
 
-const trees = (command: string) => ({ 'set-geometry': parseTree(atlas(command)).tree });
-const audit = (command: string) => auditCommands(trees(command), CLI);
+const trees = () => ({ 'set-geometry': parseTree(atlas()).tree });
 
 const BODY = [
   '---',
@@ -221,27 +212,9 @@ describe('rebuilding a node', () => {
   });
 });
 
-describe('a command a card prints', () => {
-  it('accepts a verb bin/cli.mjs dispatches', () => {
-    expect(audit('npx live-tokens set-geometry scratch/geometry-ops.json')).toEqual([]);
-  });
-
-  it('rejects the verb a rename retired', () => {
-    expect(audit('npx live-tokens adjust scratch/geometry-ops.json')).toEqual([
-      'live-tokens-set-geometry sg-run: command runs `live-tokens adjust`, which bin/cli.mjs does not dispatch',
-    ]);
-  });
-
-  it('rejects a retired verb on the second line of a two-line command', () => {
-    expect(audit('npx live-tokens components <id> --json\nnpx @motion-proto/live-tokens generate-theme')).toEqual([
-      'live-tokens-set-geometry sg-run: command runs `live-tokens generate-theme`, which bin/cli.mjs does not dispatch',
-    ]);
-  });
-});
-
 describe('the skills the trees map', () => {
   it('names a bundled skill no tree maps', () => {
-    expect(uncoveredSkills(trees('npx live-tokens set-geometry ops.json'), ['live-tokens-set-colors', 'live-tokens-set-geometry'])).toEqual([
+    expect(uncoveredSkills(trees(), ['live-tokens-set-colors', 'live-tokens-set-geometry'])).toEqual([
       'live-tokens-set-colors: no tree under src/editor/skill-atlas/trees maps this skill',
     ]);
   });
@@ -281,15 +254,9 @@ describe('the sentence a trigger card quotes', () => {
   ];
   const tree = (desc?: string) => ({ id: 'live-tokens-example', nodes: [{ id: 'start', row: 0, kind: 'trigger', title: 'Start', desc }], edges: [] });
 
-  it('accepts a bare card', () => {
+  it('accepts a bare card and a free summary', () => {
     expect(auditSource(tree(), lines)).toEqual([]);
-  });
-  it('accepts the scope sentences', () => {
-    expect(auditSource(tree('Changes color only. For a request that also names type, read live-tokens-create-theme.'), lines)).toEqual([]);
-  });
-  it('rejects a trigger sentence, and one the description never says', () => {
-    expect(auditSource(tree('Use when the user asks for a palette.'), lines).join('\n')).toContain('scope sentences');
-    expect(auditSource(tree('Changes color only. Sets ten colors.'), lines).join('\n')).toContain('"Sets ten colors."');
+    expect(auditSource(tree('Selects colors for a theme. Sets ten colors.'), lines)).toEqual([]);
   });
 });
 

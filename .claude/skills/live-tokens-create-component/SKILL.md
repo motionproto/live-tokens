@@ -210,7 +210,7 @@ A fixed overlay portals to `<body>`: read `references/fixed-overlays.md`. A cont
 
 1. Run **live-tokens-check-compliance** and address its findings with **live-tokens-fix-findings**. Then run `npx live-tokens check-component <id> --strict --json`. Inside the live-tokens repository, run `node bin/cli.mjs check-component <id> --strict --json`. Each finding carries a rule id and a line; `--off=<rule>` silences a rule for one run. Fix every finding and rerun until exit 0.
 2. Run the project's Svelte check and its build.
-3. Verify the registry entry with `checkRegistryEntry`: read `references/contract-tests.md`. The contract holds registration, unique schema variables, runtime declarations, seeded defaults, and alias round trips. For intrinsics, also compare each spec default with the runtime declaration and permitted values. The package covers first-party intrinsics in `src/editor/component-editor/intrinsicsContract.test.ts`.
+3. Verify the registration with `checkRegistryEntry`: read `references/contract-tests.md`. The contract holds registration, unique schema variables, runtime declarations, seeded defaults, and alias round trips. For intrinsics, also compare each spec default with the runtime declaration and permitted values. The package covers first-party intrinsics in `src/editor/component-editor/intrinsicsContract.test.ts`.
 4. Open `/live-tokens/components` and check each line below.
 5. Reply with the files, the component id, the props, and the results of steps 1 to 4, naming any check the environment prevented.
 

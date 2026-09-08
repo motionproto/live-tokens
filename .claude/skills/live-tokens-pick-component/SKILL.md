@@ -33,8 +33,11 @@ Four components pick one option from a set. The test is the option count, whethe
 
 ## Text entry
 
-- The page cannot list the answers (a name, an amount, a search string): `Input`.
-- The page can list the answers: the single-selection family.
+The test is whether the answer comes from a predefined list of options.
+
+- A predefined list (a status, a currency, a size, a country): the single-selection family, by its own test. Up to four options sit in a row; more go in a `MenuSelect`, which scrolls.
+- No list (a name, a search string, an amount, a message, a street address): `Input`. Validation keeps a typed answer well-formed.
+- A long list the reader would rather filter by typing (a city): no shipped component filters a list. Use `Input` with validation, or author a filtering select with **live-tokens-create-component**.
 - A number where the position on a track carries the meaning (a volume, a price band, a percentage): `Slider`. A number the reader knows and would rather type: `Input` with `type="number"`.
 
 ## On and off
@@ -51,13 +54,13 @@ When the two states share the feature's one name, use `Toggle`. "Email notificat
 
 ## Container family
 
-Four components hold a block of content. The test is what the block is to the reader: one item, a section of the page, content opened on demand, or a decision.
+Four components hold a block of content. The test is what the block is to the reader: one item, a section of the page, secondary content that stays collapsed until opened, or a decision.
 
 | Component | Modality | Test |
 |---|---|---|
 | `Card` | Inline, always open | One item, or each item in a set: a product, a record, a plan. It has a title and can react to hover. |
 | `Panel` | Inline, always open | One section of the page's content in a frame: a stage, a list, a form, a block of copy. `minHeight` holds its height while the content changes. |
-| `CollapsibleSection` | Inline, opened on demand | Secondary content most readers skip. |
+| `CollapsibleSection` | Inline, collapsed until the reader opens it | Secondary content most readers skip. |
 | `Dialog` | Modal, blocks the page | A decision the page cannot continue without: a destructive confirmation, payment, sign-in. |
 
 A set of items is one `Card` per item. A routine form goes inline in a `Panel`.
@@ -77,6 +80,8 @@ Five components carry a message. The test is what the message is about, what bri
 `Badge` and `CornerBadge` differ in position only.
 
 ## Display family
+
+Each pair holds a block the reader views and one the reader interacts with. The test is which of the two the page needs.
 
 - A picture the page shows: `Image`. A picture whose detail the reader must open, or a gallery: `ImageLightbox`.
 - Records the reader scans and compares: `Table`. A set of items the reader acts on: one `Card` per item.

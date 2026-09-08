@@ -22,8 +22,7 @@ export const checkCompliance: SkillTree = {
       "title": "Generate the compliance report",
       "desc": "Provides a report of fixes for the fix-findings skill",
       "lines": [8, 8],
-      "anchor": "Run `npx live-tokens report`. The CLI prints a report with t",
-      "command": "npx live-tokens report --json"
+      "anchor": "Run `npx live-tokens report`. The CLI prints a report with t"
     },
     {
       "id": "cc2-sections",
@@ -109,8 +108,7 @@ export const checkCompliance: SkillTree = {
       "title": "Inspect the component",
       "desc": "Shows one component's props and usage.",
       "lines": [22, 22],
-      "anchor": "For one component, run `npx live-tokens components <id>`. Fo",
-      "command": "npx live-tokens components <id> --json"
+      "anchor": "For one component, run `npx live-tokens components <id>`. Fo"
     },
     {
       "id": "cc2-scale",
@@ -119,8 +117,7 @@ export const checkCompliance: SkillTree = {
       "title": "Inspect the token scale",
       "desc": "Shows every token in one scale, such as space or color, with its value.",
       "lines": [22, 22],
-      "anchor": "For one component, run `npx live-tokens components <id>`. Fo",
-      "command": "npx live-tokens tokens --scale <name> --json"
+      "anchor": "For one component, run `npx live-tokens components <id>`. Fo"
     },
     {
       "id": "cc2-classify",

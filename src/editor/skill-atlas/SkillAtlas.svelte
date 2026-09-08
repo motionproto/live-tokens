@@ -97,7 +97,7 @@
   let sourcePane: HTMLElement | undefined = $state();
 </script>
 
-<div class="atlas">
+<div class="skill-atlas">
   <header class="masthead">
     <div class="masthead-top">
       <h1>Skill Atlas</h1>
@@ -105,10 +105,6 @@
         Back to Demo
       </Button>
     </div>
-    <p class="standfirst">
-      The {Object.keys(skillTrees).length} live-tokens authoring skills as decision trees. Select a step and its lines light up in
-      the skill on the right; select a line number and the step that owns it lights up on the left.
-    </p>
   </header>
 
   <div class="tabs">
@@ -151,15 +147,17 @@
 
 <style>
   /* A two-pane tool rather than a reading column. Nothing here sits at a page
-     column position, so the grid would only be capping the working surface;
-     the standfirst keeps its own measure instead. */
-  .atlas {
+     column position, so the grid would only be capping the working surface. */
+  .skill-atlas {
     display: flex;
     flex-direction: column;
     padding: var(--space-48) var(--space-32) var(--space-32);
   }
 
   .masthead {
+    /* Replaces the 0.67em the user agent put on the h1, which the row's own
+       spacing now carries so the heading can sit at margin zero. */
+    margin-top: var(--space-24);
     margin-bottom: var(--space-32);
   }
 
@@ -170,9 +168,9 @@
        and would cover a button parked there. */
     gap: var(--space-24);
     flex-wrap: wrap;
-    /* The row carries the heading's own bottom margin; a margin left on the h1
-       would centre the button against the margin box, not the title. */
-    margin-bottom: var(--space-12);
+    /* The row carries the heading's own margins; align-items centres the margin
+       box, so a margin left on the h1 offsets the title against the button by
+       half of it. */
   }
 
   .masthead-top h1 {
@@ -182,24 +180,13 @@
     line-height: var(--heading-xl-line-height);
     letter-spacing: var(--heading-xl-letter-spacing);
     color: var(--text-primary);
-    margin-bottom: 0;
-  }
-
-  .standfirst {
-    max-width: 68ch;
     margin: 0;
-    font-family: var(--body-md-font-family);
-    font-size: var(--body-md-font-size);
-    font-weight: var(--body-md-font-weight);
-    line-height: var(--body-md-line-height);
-    letter-spacing: var(--body-md-letter-spacing);
-    color: var(--text-secondary);
   }
 
   /* Below the desktop lock the page scrolls, and the strip pins at the top;
-     it sits outside the masthead so the standfirst can scroll away without
-     it. The gap below is padding: a margin would leave a slit the panes show
-     through once the strip is pinned. */
+     it sits outside the masthead so the title can scroll away without it. The
+     gap below is padding: a margin would leave a slit the panes show through
+     once the strip is pinned. */
   .tabs {
     position: sticky;
     top: 0;
@@ -221,42 +208,6 @@
     display: grid;
     grid-template-columns: 1fr;
     gap: var(--space-32);
-  }
-
-  /* Desktop: the surface locks to the viewport and each pane scrolls on its
-     own, so nothing ever slides under the tab strip. The router wrapper
-     assumes window-scroll pages (min-height + a 12rem bottom pad); the doubled
-     .lt-app outranks its scoped rule on a specificity tie. */
-  @media (min-width: 64rem) {
-    :global(.lt-app.lt-app:has(.atlas)) {
-      height: 100vh;
-      min-height: 0;
-      padding-bottom: 0;
-      overflow: hidden;
-    }
-
-    .atlas {
-      height: 100%;
-      overflow: hidden;
-    }
-
-    .masthead,
-    .tabs {
-      flex: 0 0 auto;
-    }
-
-    /* minmax(0, 1fr) pins the row to the remaining height; an auto row would
-       grow to the panes' content and break their scroll. */
-    .split {
-      flex: 1 1 auto;
-      min-height: 0;
-      grid-template-columns: 3fr 2fr;
-      grid-template-rows: minmax(0, 1fr);
-    }
-
-    .pane {
-      height: 100%;
-    }
   }
 
   /* The reference tabs only exist on the source pane, so a body of its own
@@ -335,6 +286,48 @@
     line-height: var(--heading-xl-line-height);
     letter-spacing: var(--heading-xl-letter-spacing);
     color: var(--text-primary);
+  }
+
+  /* Desktop: the surface locks to the viewport and each pane scrolls on its
+     own, so nothing ever slides under the tab strip. Placed after the base
+     .pane rule: its 82vh would otherwise win on source order. The router wrapper
+     assumes window-scroll pages (min-height + a 12rem bottom pad); the doubled
+     .lt-app outranks its scoped rule on a specificity tie. The child
+     combinator keeps the demo home out: it has an .atlas of its own. */
+  @media (min-width: 64rem) {
+    :global(.lt-app.lt-app:has(> .skill-atlas)) {
+      height: 100vh;
+      min-height: 0;
+      padding-bottom: 0;
+      overflow: hidden;
+    }
+
+    /* border-box: with no global reset the frame is content-box, so its own
+       padding would push the panes' bottom edge past the wrapper's clip. */
+    .skill-atlas {
+      box-sizing: border-box;
+      height: 100%;
+      overflow: hidden;
+    }
+
+    .masthead,
+    .tabs {
+      flex: 0 0 auto;
+    }
+
+    /* minmax(0, 1fr) pins the row to the remaining height; an auto row would
+       grow to the panes' content and break their scroll. */
+    .split {
+      flex: 1 1 auto;
+      min-height: 0;
+      grid-template-columns: 3fr 2fr;
+      grid-template-rows: minmax(0, 1fr);
+    }
+
+    .pane {
+      box-sizing: border-box;
+      height: 100%;
+    }
   }
 
   @media (prefers-reduced-motion: reduce) {

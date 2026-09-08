@@ -68,8 +68,7 @@ export const createTheme: SkillTree = {
       "title": "Save the theme",
       "desc": "The buffers become a saved theme, and the editor loads it.",
       "lines": [33, 33],
-      "anchor": "Take the theme name from the design direction and run `npx l",
-      "command": "npx live-tokens save-theme \"<name>\""
+      "anchor": "Take the theme name from the design direction and run `npx l"
     },
     {
       "id": "ct-assemble",

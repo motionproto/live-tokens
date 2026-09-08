@@ -11,7 +11,7 @@ export const createPage: SkillTree = {
       "row": 0,
       "kind": "trigger",
       "title": "Create a page or route",
-      "desc": "Edits page files and the route table.",
+      "desc": "Builds a page from the shipped components at their defaults and the theme's text styles, and wires its route.",
       "lines": [3, 3],
       "anchor": "description: Create a page in a @motion-proto/live-tokens pr"
     },

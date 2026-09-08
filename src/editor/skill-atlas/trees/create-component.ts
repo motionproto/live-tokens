@@ -2,7 +2,7 @@ import type { SkillTree } from '../types';
 
 export const createComponent: SkillTree = {
   "id": "live-tokens-create-component",
-  "digest": "sha256:a86ea205c59c907b",
+  "digest": "sha256:f2fecf1cae1d8464",
   "title": "create-component",
   "tagline": "Create a New Component Using Semantic Properties and Design Tokens",
   "nodes": [
@@ -11,7 +11,7 @@ export const createComponent: SkillTree = {
       "row": 0,
       "kind": "trigger",
       "title": "Create an editable component",
-      "desc": "A component is a runtime Svelte file, an editor Svelte file, and one registration.",
+      "desc": "Makes a component editable in the live-tokens editor: a runtime file, an editor file, and a registration, with every editable value on a design token.",
       "lines": [3, 3],
       "anchor": "description: Create an editable component for a @motion-prot"
     },
@@ -318,8 +318,7 @@ export const createComponent: SkillTree = {
       "title": "Run the strict component check",
       "desc": "The strict check reads the runtime, the editor, and the registration.",
       "lines": [211, 211],
-      "anchor": "Run **live-tokens-check-compliance** and address its finding",
-      "command": "npx live-tokens check-component <id> --strict --json"
+      "anchor": "Run **live-tokens-check-compliance** and address its finding"
     },
     {
       "id": "cc-fail",
@@ -352,10 +351,10 @@ export const createComponent: SkillTree = {
       "id": "cc-contract",
       "row": 28,
       "kind": "ref",
-      "title": "Verify the registry and intrinsics",
+      "title": "Verify the registration and intrinsics",
       "desc": "checkRegistryEntry confirms the registration and that the defaults match the runtime.",
       "lines": [213, 213],
-      "anchor": "Verify the registry entry with `checkRegistryEntry`: read `r",
+      "anchor": "Verify the registration with `checkRegistryEntry`: read `ref",
       "reference": "references/contract-tests.md"
     },
     {
