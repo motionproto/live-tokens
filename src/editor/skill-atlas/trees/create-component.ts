@@ -4,14 +4,14 @@ export const createComponent: SkillTree = {
   "id": "live-tokens-create-component",
   "digest": "sha256:9912da00df506816",
   "title": "create-component",
-  "tagline": "Create a New Component Using Semantic Properties and Design Tokens",
+  "tagline": "Create a LiveTokens Component",
   "nodes": [
     {
       "id": "cc-trig",
       "row": 0,
       "kind": "trigger",
-      "title": "Create a component",
-      "desc": "Makes a component editable: a runtime file, an editor file, and a registration. Every editable value is a semantic property assigned a design token.",
+      "title": "Create component",
+      "desc": "Makes a component. Every editable value is a semantic property assigned a design token.",
       "lines": [3, 3],
       "anchor": "description: Create an editable component for a @motion-prot"
     },
@@ -20,7 +20,7 @@ export const createComponent: SkillTree = {
       "row": 1,
       "kind": "chipset",
       "title": "Read the project",
-      "desc": "The config, the catalogue, the token scales the component will use, a shipped runtime and editor pair, and the property suffixes.",
+      "desc": "Determine the existing context.",
       "lines": [12, 12],
       "anchor": "Read the project: `package.json`, `live-tokens.config.json`,",
       "chips": [
@@ -55,8 +55,8 @@ export const createComponent: SkillTree = {
       "id": "cc-design",
       "row": 2,
       "kind": "chipset",
-      "title": "Design the properties",
-      "desc": "Separate the parts, variants, and states. Then write one row per editable role: its property, its token, and the CSS it controls. Name each role the way the shipped components name it.",
+      "title": "Design the Component",
+      "desc": "Separate the parts, variants, and states.",
       "lines": [13, 13],
       "anchor": "Design the properties: separate the component's parts, varia",
       "chips": [
@@ -95,8 +95,8 @@ export const createComponent: SkillTree = {
       "id": "cc-runtime",
       "row": 3,
       "kind": "chipset",
-      "title": "Write the runtime file",
-      "desc": "Open with the usage comment. Declare every property in the root block with its token, and read it in the CSS. A structural choice is an intrinsic. Every component joins the sketch layer, and a fixed overlay portals to body.",
+      "title": "Write the component runtime ",
+      "desc": "Start with the usage comment. Declare every property with its token, and read it in the CSS.",
       "lines": [14, 14],
       "anchor": "Write the runtime file: the usage comment and the `:global(:",
       "chips": [
@@ -133,8 +133,8 @@ export const createComponent: SkillTree = {
       "id": "cc-editor",
       "row": 4,
       "kind": "chipset",
-      "title": "Write the editor file",
-      "desc": "Export the id and one row per property, map the edited state to preview props, and mount one VariantGroup per variant. Variants that share a value are linked.",
+      "title": "Write the component editor",
+      "desc": "Show semantic properties and token assignment. Link properties that are shared across states or variants.",
       "lines": [15, 15],
       "anchor": "Write the editor file: the schema, the preview props, and th",
       "chips": [
@@ -165,7 +165,7 @@ export const createComponent: SkillTree = {
       "row": 5,
       "kind": "chipset",
       "title": "Register the component",
-      "desc": "Add it to bootLiveTokens in main.ts. A manual mount calls registerComponent first. A first-party component takes a registry entry instead.",
+      "desc": "Add custom components to bootLiveTokens in main.ts so they are included in the component catalogue.",
       "lines": [16, 16],
       "anchor": "Register the component in `bootLiveTokens`.",
       "chips": [
@@ -192,7 +192,7 @@ export const createComponent: SkillTree = {
       "row": 6,
       "kind": "chipset",
       "title": "Run the checks",
-      "desc": "The compliance report, then the strict component check until exit 0, then the Svelte check, the build, and the contract test. Each rule names the section that fixes it.",
+      "desc": "Get a report from check-compliance, and run the tests until they pass.",
       "lines": [17, 17],
       "anchor": "Run the checks: **live-tokens-check-compliance**, the strict",
       "chips": [
