@@ -7,66 +7,18 @@ description: Create a page in a @motion-proto/live-tokens project from the shipp
 
 Assemble the page from the shipped components at their defaults and the theme's text styles. A change to a component is made in the components editor at `/live-tokens/components` and reaches every page. A change to the theme is made with **live-tokens-create-theme**.
 
-## Components
+## Workflow
 
-- Use a shipped component when one fits. Import it from `@motion-proto/live-tokens/components/<Name>.svelte`.
-- `npx live-tokens components <id>` prints the declared props, the values each union accepts, and the usage comment. `--json` prints the same as data. The list includes the project's own components.
-- Pass only the props a component declares.
-- A shipped component fills its parent. To size one, size the element the page wraps it in.
-- A native element with no chrome of its own needs no component: an `<input type="file">` behind a Button, a `<canvas>`, an `<img>` inside a stage.
-- Text inside a `Card` or a `CollapsibleSection` takes the container's type on nested `p`, `ul`, `ol`, and `li`. When the page owns that type, as full-bleed media does, pass `prose={false}`.
-
-## Tokens
-
-- When a design token exists for a value, page CSS takes the token as `var(--token)`. That holds in the `<style>` block, an inline `style=` attribute, and a `style:` directive.
-- A width is a span of page columns. The Layout section gives the grid.
-- A height follows the content. A stage's `minHeight` is the one fixed height, set from what the stage must show.
-- A value that comes from data, such as a sheet's padding in pixels or a chart's scale, is set through a `{}` expression.
-
-## Hierarchy
-
-### Type
-
-One text style per element. A text style has five axes: `-font-family`, `-font-size`, `-font-weight`, `-line-height`, and `-letter-spacing`. Set all five from the one style.
-
-| Element | Style |
-|---|---|
-| Page title | `h1` in `--heading-xl-*` |
-| Section title | `h2` in `--heading-lg-*`, or `SectionDivider variant="sm"` |
-| Card title | the Card `title` prop |
-| Label above a group | `--body-sm-*` in `--text-secondary` |
-| Body | `p` in `--body-md-*` |
-| Secondary line | `--body-sm-*` in `--text-secondary` |
-| Count, status, read-out | `--body-sm-*` in `--text-primary` |
-| Command or value | `code` in `--code-*` |
-
-Use the semantic element for each place: one `h1`, an `h2` for each section, `h3` inside a section, `p` for copy. Heading levels run in order with no skipped level. `site.css` types bare `h1` to `h4`, `p`, `code`, `pre`, and list items from these styles, so the tag carries the style. Type an element only when the table gives its tag a different style. A weight alone, on `strong` or a list marker, is the one axis a page sets by itself. A page shows at most two weights.
-
-### Size
-
-Omit `size` on every control and container. The shipped default is the page's size.
-
-### Emphasis
-
-One `primary` Button per page: the action that completes the page's main task. An action that supports that task is `secondary`. An action unrelated to the task, or informational, is `outline`. An action that destroys saved work is `danger`.
-
-In a row of actions the primary sits last, on the right. Up to four actions are individual Buttons. Five or more collapse into a `MenuSelect` behind one Button.
-
-### Spacing
-
-Each position takes one step of the `--space-*` scale. Space inside a group is smaller than space between groups. A shipped component carries its own inner spacing; the table names the space the page draws.
-
-| Position | Step |
-|---|---|
-| Between controls in a row | `--space-8` |
-| Inside a wrapper the page draws | `--space-16` |
-| Between fields in a form | `--space-20` |
-| Between containers in a section | `--columns-gutter` across, `--space-24` down |
-| Between sections | `--space-16` above a hairline |
-| Page title to first section | `--space-24`, no hairline |
-| Page margin | `--space-32` |
-
-Every section after the first opens with a hairline: `padding-top: var(--space-16)` and `border-top: var(--border-width-1) solid var(--border-neutral)`. The hairline separates, so the gap between sections is smaller than the gap between the containers inside them. A section's edge is the hairline alone.
+1. Read the project first: the existing pages and where they live, how `App.svelte` wires routes, `--columns-count` in `tokens.css`, and the catalogue from `npx live-tokens components`.
+2. Read the page top to bottom and name each section by its purpose. Take each section's column spans from the Page layouts table.
+3. Build the page grid and place each section on it. Separate the sections with the smallest difference that separates them.
+4. Give each section its container from the Containers by purpose list.
+5. Match a shipped component to each need. When two could fit, read **live-tokens-pick-component**. When nothing in the catalogue fits, read **live-tokens-create-component**.
+6. Write the page CSS in design tokens.
+7. Set the hierarchy: one text style per element, the shipped size on every control, one primary action, and one space step per position.
+8. Add the route, with a lazy import and the source path.
+9. Run **live-tokens-check-compliance**, then check the rendered page.
+10. Reply with the sections and the layout each took, the components placed, the route, and the compliance result.
 
 ## Layout
 
@@ -127,6 +79,67 @@ Show related items side by side when the width permits. A line of copy runs 45 t
 - A toolbar is a flex row of Buttons on the section's bottom edge, with no container around it. Group the Buttons left and right with `justify-content: space-between`, the primary last. A `danger` Button sits apart from the group it could be mistaken for.
 - A vertical stack of Buttons sets `fullWidth` on each Button. A row omits it.
 - `MenuSelect` renders its list open. For a picker, toggle it from a Button with a trailing chevron (`icon="fa-solid fa-chevron-down" iconPosition="right"`) and position the list under the Button at `top: 100%` with a `--space-*` margin.
+
+## Components
+
+- Use a shipped component when one fits. Import it from `@motion-proto/live-tokens/components/<Name>.svelte`.
+- `npx live-tokens components <id>` prints the declared props, the values each union accepts, and the usage comment. `--json` prints the same as data. The list includes the project's own components.
+- Pass only the props a component declares.
+- A shipped component fills its parent. To size one, size the element the page wraps it in.
+- A native element with no chrome of its own needs no component: an `<input type="file">` behind a Button, a `<canvas>`, an `<img>` inside a stage.
+- Text inside a `Card` or a `CollapsibleSection` takes the container's type on nested `p`, `ul`, `ol`, and `li`. When the page owns that type, as full-bleed media does, pass `prose={false}`.
+
+## Tokens
+
+- When a design token exists for a value, page CSS takes the token as `var(--token)`. That holds in the `<style>` block, an inline `style=` attribute, and a `style:` directive.
+- A width is a span of page columns. The Layout section gives the grid.
+- A height follows the content. A stage's `minHeight` is the one fixed height, set from what the stage must show.
+- A value that comes from data, such as a sheet's padding in pixels or a chart's scale, is set through a `{}` expression.
+
+## Hierarchy
+
+### Type
+
+One text style per element. A text style has five axes: `-font-family`, `-font-size`, `-font-weight`, `-line-height`, and `-letter-spacing`. Set all five from the one style.
+
+| Element | Style |
+|---|---|
+| Page title | `h1` in `--heading-xl-*` |
+| Section title | `h2` in `--heading-lg-*`, or `SectionDivider variant="sm"` |
+| Card title | the Card `title` prop |
+| Label above a group | `--body-sm-*` in `--text-secondary` |
+| Body | `p` in `--body-md-*` |
+| Secondary line | `--body-sm-*` in `--text-secondary` |
+| Count, status, read-out | `--body-sm-*` in `--text-primary` |
+| Command or value | `code` in `--code-*` |
+
+Use the semantic element for each place: one `h1`, an `h2` for each section, `h3` inside a section, `p` for copy. Heading levels run in order with no skipped level. `site.css` types bare `h1` to `h4`, `p`, `code`, `pre`, and list items from these styles, so the tag carries the style. Type an element only when the table gives its tag a different style. A weight alone, on `strong` or a list marker, is the one axis a page sets by itself. A page shows at most two weights.
+
+### Size
+
+Omit `size` on every control and container. The shipped default is the page's size.
+
+### Emphasis
+
+One `primary` Button per page: the action that completes the page's main task. An action that supports that task is `secondary`. An action unrelated to the task, or informational, is `outline`. An action that destroys saved work is `danger`.
+
+In a row of actions the primary sits last, on the right. Up to four actions are individual Buttons. Five or more collapse into a `MenuSelect` behind one Button.
+
+### Spacing
+
+Each position takes one step of the `--space-*` scale. Space inside a group is smaller than space between groups. A shipped component carries its own inner spacing; the table names the space the page draws.
+
+| Position | Step |
+|---|---|
+| Between controls in a row | `--space-8` |
+| Inside a wrapper the page draws | `--space-16` |
+| Between fields in a form | `--space-20` |
+| Between containers in a section | `--columns-gutter` across, `--space-24` down |
+| Between sections | `--space-16` above a hairline |
+| Page title to first section | `--space-24`, no hairline |
+| Page margin | `--space-32` |
+
+Every section after the first opens with a hairline: `padding-top: var(--space-16)` and `border-top: var(--border-width-1) solid var(--border-neutral)`. The hairline separates, so the gap between sections is smaller than the gap between the containers inside them. A section's edge is the hairline alone.
 
 ## Routing
 

@@ -2,7 +2,7 @@ import type { SkillTree } from '../types';
 
 export const createPage: SkillTree = {
   "id": "live-tokens-create-page",
-  "digest": "sha256:334a7506f185d60f",
+  "digest": "sha256:00cc1191fecc9707",
   "title": "create-page",
   "tagline": "Create a Page Using Live Tokens",
   "nodes": [
@@ -11,508 +11,310 @@ export const createPage: SkillTree = {
       "row": 0,
       "kind": "trigger",
       "title": "Create a page",
-      "desc": "Builds a page with LiveTokens.",
+      "desc": "Builds a page from the shipped components at their defaults and the theme's text styles.",
       "lines": [3, 3],
       "anchor": "description: Create a page in a @motion-proto/live-tokens pr"
     },
     {
-      "id": "cp-components",
+      "id": "cp-project",
       "row": 1,
-      "kind": "chipset",
-      "title": "Use the component contracts",
-      "desc": "Use shipped components with their declared props. Size the wrapper around them.",
-      "lines": [10, 17],
-      "anchor": "## Components",
-      "anchorEnd": "Text inside a `Card` or a `CollapsibleSection` takes the con"
+      "kind": "step",
+      "title": "Read the project",
+      "desc": "The existing pages and where they live, how App.svelte wires routes, the column count in tokens.css, and the catalogue.",
+      "lines": [12, 12],
+      "anchor": "Read the project first: the existing pages and where they li"
     },
     {
-      "id": "cp-tokens",
+      "id": "cp-layout",
       "row": 2,
       "kind": "chipset",
-      "title": "Use design tokens",
-      "desc": "Page CSS takes a token wherever one exists. Widths are column spans and heights follow content.",
-      "lines": [19, 24],
-      "anchor": "## Tokens",
-      "anchorEnd": "A value that comes from data, such as a sheet's padding in p"
-    },
-    {
-      "id": "cp-type",
-      "row": 3,
-      "kind": "chipset",
-      "title": "Assign text styles",
-      "desc": "Each element takes one text style, with all five axes from that style.",
-      "lines": [28, 43],
-      "anchor": "### Type",
-      "anchorEnd": "Use the semantic element for each place: one `h1`, an `h2` f",
+      "title": "Lay out the sections",
+      "desc": "Name each section by its purpose, then take its column spans from the layout that matches how the reader moves through the page.",
+      "lines": [13, 13],
+      "anchor": "Read the page top to bottom and name each section by its pur",
       "chips": [
         {
-          "label": "Page title",
+          "label": "Stacked sections",
+          "lines": [31, 31],
+          "anchor": "| Stacked sections | The reader moves top to bottom: an open"
+        },
+        {
+          "label": "Main with a supporting pane",
+          "lines": [32, 32],
+          "anchor": "| Main with a supporting pane | One region is the work and t"
+        },
+        {
+          "label": "List with detail",
+          "lines": [33, 33],
+          "anchor": "| List with detail | The reader picks an item from a list an"
+        },
+        {
+          "label": "Grid of equals",
           "lines": [34, 34],
-          "anchor": "| Page title | `h1` in `--heading-xl-*` |"
+          "anchor": "| Grid of equals | The reader compares or scans items of one"
         },
         {
-          "label": "Section title",
+          "label": "Single column",
           "lines": [35, 35],
-          "anchor": "| Section title | `h2` in `--heading-lg-*`, or `SectionDivid"
-        },
-        {
-          "label": "Card title",
-          "lines": [36, 36],
-          "anchor": "| Card title | the Card `title` prop |"
-        },
-        {
-          "label": "Label above a group",
-          "lines": [37, 37],
-          "anchor": "| Label above a group | `--body-sm-*` in `--text-secondary` "
-        },
-        {
-          "label": "Body",
-          "lines": [38, 38],
-          "anchor": "| Body | `p` in `--body-md-*` |"
-        },
-        {
-          "label": "Secondary line",
-          "lines": [39, 39],
-          "anchor": "| Secondary line | `--body-sm-*` in `--text-secondary` |"
-        },
-        {
-          "label": "Count, status, read-out",
-          "lines": [40, 40],
-          "anchor": "| Count, status, read-out | `--body-sm-*` in `--text-primary"
-        },
-        {
-          "label": "Command or value",
-          "lines": [41, 41],
-          "anchor": "| Command or value | `code` in `--code-*` |"
+          "anchor": "| Single column | The reader fills a form or reads at length"
         }
       ]
     },
     {
-      "id": "cp-size",
-      "row": 4,
-      "kind": "step",
-      "title": "Use the default size",
-      "desc": "Every control and container keeps its shipped default size.",
-      "lines": [45, 47],
-      "anchor": "### Size",
-      "anchorEnd": "Omit `size` on every control and container. The shipped defa"
-    },
-    {
-      "id": "cp-emphasis",
-      "row": 5,
-      "kind": "step",
-      "title": "Assign action emphasis",
-      "desc": "One primary Button per page. Every other action is secondary, outline, or danger by its role.",
-      "lines": [49, 53],
-      "anchor": "### Emphasis",
-      "anchorEnd": "In a row of actions the primary sits last, on the right. Up "
-    },
-    {
-      "id": "cp-spacing",
-      "row": 6,
-      "kind": "chipset",
-      "title": "Apply spacing by position",
-      "desc": "Each position takes one step of the space scale. Space inside a group is smaller than space between groups.",
-      "lines": [55, 69],
-      "anchor": "### Spacing",
-      "anchorEnd": "Every section after the first opens with a hairline: `paddin"
-    },
-    {
-      "id": "cp-layout",
-      "row": 7,
-      "kind": "chipset",
-      "title": "Page layout",
-      "desc": "Name each section by its purpose. The layout then gives each section its column spans.",
-      "lines": [73, 85],
-      "anchor": "### Page layouts",
-      "anchorEnd": "The stage is the canvas, player, or strip the work is about."
-    },
-    {
       "id": "cp-grid",
-      "row": 8,
-      "kind": "step",
-      "title": "Read the page column count",
-      "desc": "The page is a grid of the theme's column count, and each section spans it.",
-      "lines": [87, 93],
-      "anchor": "### Grid",
-      "anchorEnd": "Read `--columns-count` in the project's `tokens.css`."
-    },
-    {
-      "id": "cp-grid-span",
-      "row": 9,
-      "kind": "step",
-      "title": "Span the page grid",
-      "desc": "The section spans the full page grid first.",
-      "lines": [94, 94],
-      "anchor": "Span the parent grid with `grid-column: 1 / -1`."
-    },
-    {
-      "id": "cp-grid-columns",
-      "row": 10,
-      "kind": "step",
-      "title": "Redeclare the page columns",
-      "desc": "The section repeats the page's columns and gutter, so its children line up with the page.",
-      "lines": [95, 95],
-      "anchor": "Redeclare `repeat(var(--columns-count), 1fr)` with `column-g"
-    },
-    {
-      "id": "cp-grid-children",
-      "row": 11,
-      "kind": "step",
-      "title": "Assign child columns",
-      "desc": "Each child takes a page-column position.",
-      "lines": [96, 98],
-      "anchor": "Place each child by page-column numbers.",
-      "anchorEnd": "A grid that follows the page columns takes `var(--columns-co"
-    },
-    {
-      "id": "cp-separation",
-      "row": 12,
+      "row": 3,
       "kind": "chipset",
-      "title": "Separate content by purpose",
-      "desc": "Separate elements with the smallest difference that works: space, then a hairline, then a surface.",
-      "lines": [100, 117],
-      "anchor": "### Separation",
-      "anchorEnd": "`references/layout-sources.md` names the sources for these l"
+      "title": "Place the sections on the grid",
+      "desc": "The page is a grid of the theme's column count. Each section spans it, then repeats its columns so children line up with the page. Separate with space first, then a hairline, then a surface.",
+      "lines": [14, 14],
+      "anchor": "Build the page grid and place each section on it. Separate t",
+      "chips": [
+        {
+          "label": "Grid",
+          "lines": [39, 50],
+          "anchor": "### Grid",
+          "anchorEnd": "A grid that follows the page columns takes `var(--columns-co"
+        },
+        {
+          "label": "Separation",
+          "lines": [52, 69],
+          "anchor": "### Separation",
+          "anchorEnd": "`references/layout-sources.md` names the sources for these l"
+        }
+      ]
     },
     {
       "id": "cp-containers",
-      "row": 13,
+      "row": 4,
       "kind": "chipset",
       "title": "Choose containers by purpose",
       "desc": "Each purpose has its container. Panel is a stage, Card is titled content.",
-      "lines": [119, 129],
-      "anchor": "## Containers by purpose",
-      "anchorEnd": "`MenuSelect` renders its list open. For a picker, toggle it ",
+      "lines": [15, 15],
+      "anchor": "Give each section its container from the Containers by purpo",
       "chips": [
         {
           "label": "Stage",
-          "lines": [121, 121],
-          "anchor": "`Panel` is a stage: a canvas, a player, a preview. `minHeigh"
+          "lines": [73, 74],
+          "anchor": "`Panel` is a stage: a canvas, a player, a preview. `minHeigh",
+          "anchorEnd": "An empty stage shows a heading that names the condition and "
         },
         {
-          "label": "Empty and error states",
-          "lines": [122, 122],
-          "anchor": "An empty stage shows a heading that names the condition and "
+          "label": "Card",
+          "lines": [75, 76],
+          "anchor": "`Card` is a titled block of content. Its `title` prop is the",
+          "anchorEnd": "A container in a tool UI labels itself: `Card variant=\"bare\""
         },
         {
-          "label": "Titled content",
-          "lines": [123, 123],
-          "anchor": "`Card` is a titled block of content. Its `title` prop is the"
+          "label": "Form",
+          "lines": [77, 78],
+          "anchor": "A form puts the essential fields first and the secondary fie",
+          "anchorEnd": "A row of fields is a flex row with `gap: var(--space-20)`. E"
         },
         {
-          "label": "Tool labels",
-          "lines": [124, 124],
-          "anchor": "A container in a tool UI labels itself: `Card variant=\"bare\""
+          "label": "Buttons",
+          "lines": [79, 80],
+          "anchor": "A toolbar is a flex row of Buttons on the section's bottom e",
+          "anchorEnd": "A vertical stack of Buttons sets `fullWidth` on each Button."
         },
         {
-          "label": "Form fields",
-          "lines": [125, 125],
-          "anchor": "A form puts the essential fields first and the secondary fie"
-        },
-        {
-          "label": "Field rows",
-          "lines": [126, 126],
-          "anchor": "A row of fields is a flex row with `gap: var(--space-20)`. E"
-        },
-        {
-          "label": "Toolbar actions",
-          "lines": [127, 127],
-          "anchor": "A toolbar is a flex row of Buttons on the section's bottom e"
-        },
-        {
-          "label": "Button stacks",
-          "lines": [128, 128],
-          "anchor": "A vertical stack of Buttons sets `fullWidth` on each Button."
-        },
-        {
-          "label": "Menu picker",
-          "lines": [129, 129],
+          "label": "Picker",
+          "lines": [81, 81],
           "anchor": "`MenuSelect` renders its list open. For a picker, toggle it "
         }
       ]
     },
     {
+      "id": "cp-component",
+      "row": 5,
+      "kind": "chipset",
+      "title": "Match a component to each need",
+      "desc": "Use a shipped component when one fits, and pass only the props it declares. When two could fit, pick-component chooses. When nothing in the catalogue fits, create-component builds it. A native element with no chrome needs no component.",
+      "lines": [16, 16],
+      "anchor": "Match a shipped component to each need. When two could fit, ",
+      "chips": [
+        {
+          "label": "Components",
+          "lines": [83, 90],
+          "anchor": "## Components",
+          "anchorEnd": "Text inside a `Card` or a `CollapsibleSection` takes the con"
+        },
+        {
+          "label": "pick-component",
+          "lines": [16, 16],
+          "anchor": "Match a shipped component to each need. When two could fit, "
+        },
+        {
+          "label": "create-component",
+          "lines": [16, 16],
+          "anchor": "Match a shipped component to each need. When two could fit, "
+        }
+      ]
+    },
+    {
+      "id": "cp-hierarchy",
+      "row": 6,
+      "kind": "chipset",
+      "title": "Set the tokens and the hierarchy",
+      "desc": "Page CSS takes a token wherever one exists. One text style per element, the shipped size on every control, one primary Button per page, and one space step per position.",
+      "lines": [17, 18],
+      "anchor": "Write the page CSS in design tokens.",
+      "anchorEnd": "Set the hierarchy: one text style per element, the shipped s",
+      "chips": [
+        {
+          "label": "Tokens",
+          "lines": [92, 97],
+          "anchor": "## Tokens",
+          "anchorEnd": "A value that comes from data, such as a sheet's padding in p"
+        },
+        {
+          "label": "Type",
+          "lines": [101, 116],
+          "anchor": "### Type",
+          "anchorEnd": "Use the semantic element for each place: one `h1`, an `h2` f"
+        },
+        {
+          "label": "Size and emphasis",
+          "lines": [118, 126],
+          "anchor": "### Size",
+          "anchorEnd": "In a row of actions the primary sits last, on the right. Up "
+        },
+        {
+          "label": "Spacing",
+          "lines": [128, 142],
+          "anchor": "### Spacing",
+          "anchorEnd": "Every section after the first opens with a hairline: `paddin"
+        }
+      ]
+    },
+    {
       "id": "cp-route",
-      "row": 14,
-      "kind": "decide",
-      "title": "Route integration",
-      "desc": "The new route follows the way App.svelte already wires routes.",
-      "lines": [133, 133],
-      "anchor": "Add the route the way `App.svelte` already wires routes.",
+      "row": 7,
+      "kind": "chipset",
+      "title": "Assign page routes",
+      "desc": "Add the route the way App.svelte already wires routes, with a lazy import and the source path. The lazy import keeps page CSS off the editor routes.",
+      "lines": [19, 19],
+      "anchor": "Add the route, with a lazy import and the source path.",
       "chips": [
         {
           "label": "LiveTokensRouter",
-          "lines": [135, 135],
+          "lines": [148, 148],
           "anchor": "`<LiveTokensRouter pages={...}>`: add a `pages` entry with `"
         },
         {
           "label": "LiveEditorOverlay",
-          "lines": [136, 136],
+          "lines": [149, 149],
           "anchor": "Manual `<LiveEditorOverlay>`: dispatch with `$derived.by(() "
         }
       ]
     },
     {
-      "id": "cp-router",
-      "row": 15,
-      "kind": "step",
-      "title": "Add a router entry",
-      "desc": "Add a pages entry with the lazy import and the source file.",
-      "lines": [135, 135],
-      "anchor": "`<LiveTokensRouter pages={...}>`: add a `pages` entry with `"
-    },
-    {
-      "id": "cp-overlay",
-      "row": 15,
-      "kind": "step",
-      "title": "Register the manual route",
-      "desc": "Dispatch the page with a derived import and register its source.",
-      "lines": [136, 136],
-      "anchor": "Manual `<LiveEditorOverlay>`: dispatch with `$derived.by(() "
-    },
-    {
-      "id": "cp-lazy",
-      "row": 17,
-      "kind": "step",
-      "title": "Isolate page imports",
-      "desc": "A lazy import keeps page CSS off the editor routes.",
-      "lines": [138, 138],
-      "anchor": "Import the page with `lazy`, so page CSS stays off the edito"
-    },
-    {
       "id": "cp-check",
-      "row": 18,
+      "row": 8,
       "kind": "step",
       "title": "Run live-tokens-check-compliance",
-      "desc": "The compliance report lists both checkers' findings by rule.",
-      "lines": [153, 153],
-      "anchor": "Run **live-tokens-check-compliance**. Its report carries bot"
-    },
-    {
-      "id": "cp-findings",
-      "row": 19,
-      "kind": "decide",
-      "title": "Compliance findings",
-      "desc": "Findings go to the repair skill. A clean report goes on to the visual checks.",
-      "lines": [153, 153],
-      "anchor": "Run **live-tokens-check-compliance**. Its report carries bot",
-      "chips": [
-        {
-          "label": "findings",
-          "lines": [153, 153],
-          "anchor": "Run **live-tokens-check-compliance**. Its report carries bot"
-        },
-        {
-          "label": "clean",
-          "lines": [153, 153],
-          "anchor": "Run **live-tokens-check-compliance**. Its report carries bot"
-        }
-      ]
-    },
-    {
-      "id": "cp-fix",
-      "row": 20,
-      "kind": "gate",
-      "title": "Run live-tokens-fix-findings",
-      "desc": "The repair skill fixes the findings, then the check runs again.",
-      "lines": [153, 153],
-      "anchor": "Run **live-tokens-check-compliance**. Its report carries bot"
+      "desc": "Its report goes to live-tokens-fix-findings until the page is clean.",
+      "lines": [20, 20],
+      "anchor": "Run **live-tokens-check-compliance**, then check the rendere"
     },
     {
       "id": "cp-verify",
-      "row": 21,
+      "row": 9,
       "kind": "chipset",
-      "title": "Verify the rendered page",
-      "desc": "The checkers cannot see a layout. Open the page and confirm each line.",
-      "lines": [155, 170],
+      "title": "Check the page in the browser",
+      "desc": "The checkers cannot see a layout. Open the page at its width and check each line.",
+      "lines": [168, 185],
       "anchor": "The checkers cannot see a layout. Open the page at the width",
-      "anchorEnd": "Every `img` has `alt` text. Focus order follows the reading ",
+      "anchorEnd": "`references/interaction-sources.md` names the sources for th",
       "chips": [
         {
-          "label": "Main content first",
-          "lines": [157, 157],
-          "anchor": "The first section holds what the user came for."
+          "label": "Structure",
+          "lines": [170, 175],
+          "anchor": "The first section holds what the user came for.",
+          "anchorEnd": "Every control stays inside its wrapper. A `width: 100%` fiel"
         },
         {
-          "label": "Heading hierarchy",
-          "lines": [158, 158],
-          "anchor": "One `h1`. Heading levels run in order with no skipped level."
+          "label": "Actions",
+          "lines": [176, 179],
+          "anchor": "The actions sit where the eye goes last, with the one primar",
+          "anchorEnd": "An action that runs longer than a moment shows progress in a"
         },
         {
-          "label": "Label size",
-          "lines": [159, 159],
-          "anchor": "No label is larger than the page's body copy."
+          "label": "Fields",
+          "lines": [180, 181],
+          "anchor": "Every field has a default, and Reset restores it.",
+          "anchorEnd": "Secondary settings sit in a `CollapsibleSection`. Every cont"
         },
         {
-          "label": "Copy length",
-          "lines": [160, 160],
-          "anchor": "A line of copy runs 45 to 90 characters."
-        },
-        {
-          "label": "Container alignment",
-          "lines": [161, 161],
-          "anchor": "The containers in a section align at the bottom."
-        },
-        {
-          "label": "Control boundaries",
-          "lines": [162, 162],
-          "anchor": "Every control stays inside its wrapper. A `width: 100%` fiel"
-        },
-        {
-          "label": "Primary action position",
-          "lines": [163, 163],
-          "anchor": "The actions sit where the eye goes last, with the one primar"
-        },
-        {
-          "label": "Exit action",
-          "lines": [164, 164],
-          "anchor": "Every row of actions holds an action that leaves without com"
-        },
-        {
-          "label": "Destructive confirmation",
-          "lines": [165, 165],
-          "anchor": "An action that destroys saved work confirms in a `Dialog`."
-        },
-        {
-          "label": "Progress feedback",
-          "lines": [166, 166],
-          "anchor": "An action that runs longer than a moment shows progress in a"
-        },
-        {
-          "label": "Field defaults",
-          "lines": [167, 167],
-          "anchor": "Every field has a default, and Reset restores it."
-        },
-        {
-          "label": "Secondary settings",
-          "lines": [168, 168],
-          "anchor": "Secondary settings sit in a `CollapsibleSection`. Every cont"
-        },
-        {
-          "label": "User vocabulary",
-          "lines": [169, 169],
-          "anchor": "Labels use the user's words, such as \"Export slices\"."
-        },
-        {
-          "label": "Images and focus order",
-          "lines": [170, 170],
-          "anchor": "Every `img` has `alt` text. Focus order follows the reading "
+          "label": "Words and access",
+          "lines": [182, 183],
+          "anchor": "Labels use the user's words, such as \"Export slices\".",
+          "anchorEnd": "Every `img` has `alt` text. Focus order follows the reading "
         }
       ]
     },
     {
       "id": "cp-read",
-      "row": 22,
-      "kind": "done",
-      "title": "Verify the reading order",
+      "row": 10,
+      "kind": "step",
+      "title": "Read the page twice",
       "desc": "From a distance only the sections show. Up close, every border and bar earns its place or goes.",
-      "lines": [174, 174],
+      "lines": [187, 187],
       "anchor": "Then read the page from a distance: the sections and their e"
+    },
+    {
+      "id": "cp-reply",
+      "row": 11,
+      "kind": "done",
+      "title": "Reply with the result",
+      "desc": "The sections and the layout each took, the components placed, the route, and the compliance result.",
+      "lines": [21, 21],
+      "anchor": "Reply with the sections and the layout each took, the compon"
     }
   ],
   "edges": [
     {
-      "to": "cp-components",
-      "from": "cp-trig"
+      "from": "cp-trig",
+      "to": "cp-project"
     },
     {
-      "to": "cp-tokens",
-      "from": "cp-components"
+      "from": "cp-project",
+      "to": "cp-layout"
     },
     {
-      "to": "cp-type",
-      "from": "cp-tokens"
+      "from": "cp-layout",
+      "to": "cp-grid"
     },
     {
-      "to": "cp-size",
-      "from": "cp-type"
+      "from": "cp-grid",
+      "to": "cp-containers"
     },
     {
-      "to": "cp-emphasis",
-      "from": "cp-size"
+      "from": "cp-containers",
+      "to": "cp-component"
     },
     {
-      "to": "cp-spacing",
-      "from": "cp-emphasis"
+      "from": "cp-component",
+      "to": "cp-hierarchy"
     },
     {
-      "to": "cp-layout",
-      "from": "cp-spacing"
+      "from": "cp-hierarchy",
+      "to": "cp-route"
     },
     {
-      "to": "cp-grid-span",
-      "from": "cp-grid"
-    },
-    {
-      "to": "cp-grid-columns",
-      "from": "cp-grid-span"
-    },
-    {
-      "to": "cp-grid-children",
-      "from": "cp-grid-columns"
-    },
-    {
-      "to": "cp-separation",
-      "from": "cp-grid-children"
-    },
-    {
-      "to": "cp-containers",
-      "from": "cp-separation"
-    },
-    {
-      "to": "cp-route",
-      "from": "cp-containers"
-    },
-    {
-      "to": "cp-router",
       "from": "cp-route",
-      "label": "LiveTokensRouter"
+      "to": "cp-check"
     },
     {
-      "to": "cp-overlay",
-      "from": "cp-route",
-      "label": "LiveEditorOverlay"
+      "from": "cp-check",
+      "to": "cp-verify"
     },
     {
-      "to": "cp-lazy",
-      "from": "cp-router"
+      "from": "cp-verify",
+      "to": "cp-read"
     },
     {
-      "to": "cp-lazy",
-      "from": "cp-overlay"
-    },
-    {
-      "to": "cp-check",
-      "from": "cp-lazy"
-    },
-    {
-      "to": "cp-findings",
-      "from": "cp-check"
-    },
-    {
-      "to": "cp-fix",
-      "from": "cp-findings",
-      "label": "findings"
-    },
-    {
-      "to": "cp-verify",
-      "from": "cp-findings",
-      "label": "clean"
-    },
-    {
-      "to": "cp-check",
-      "from": "cp-fix",
-      "label": "repeat until clean",
-      "back": true
-    },
-    {
-      "to": "cp-read",
-      "from": "cp-verify"
-    },
-    {
-      "to": "cp-grid",
-      "from": "cp-layout"
+      "from": "cp-read",
+      "to": "cp-reply"
     }
   ]
 };

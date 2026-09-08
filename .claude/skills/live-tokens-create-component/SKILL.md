@@ -7,6 +7,17 @@ description: Create an editable component for a @motion-proto/live-tokens projec
 
 Create a component whose structure and behavior serve the user's purpose. Give each editable visual property a semantic name. Assign its default from the existing design tokens. Deliver the runtime file, the editor file, and the registration together.
 
+## Workflow
+
+1. Read the project: `package.json`, `live-tokens.config.json`, `src/main.ts`, the catalogue, the token scales the component will use, a shipped runtime and editor pair, and the property suffixes.
+2. Design the properties: separate the component's parts, variants, and states, then write one row per editable role with its token and the CSS it controls, named the way the shipped components name the same role.
+3. Write the runtime file: the usage comment and the `:global(:root)` block. A structural choice is an intrinsic. Every component joins the sketch layer, and a fixed overlay portals to `<body>`.
+4. Write the editor file: the schema, the preview props, and the markup. Variants that share a value are linked.
+5. Register the component in `bootLiveTokens`.
+6. Run the checks: **live-tokens-check-compliance**, the strict component check until exit 0, the Svelte check and build, and the contract test.
+7. Check the component in the editor.
+8. Reply with the files, the id, the props, and each check's result. Then place the component on a page with **live-tokens-create-page**.
+
 ## Design model
 
 A live-tokens project has two layers.
@@ -35,6 +46,24 @@ Before writing a file:
 5. Read `references/token-naming.md` for the suffixes that select editor controls.
 
 The shipped sources are in `node_modules/@motion-proto/live-tokens/src/`: the runtime at `system/components/<Name>.svelte`, the editor at `editor/component-editor/<Name>Editor.svelte`. Inside the live-tokens repository, read them from the repository root. The source is the contract.
+
+## Variants and states
+
+A component has three kinds of division. Keep them apart in the props, the names, and the editor.
+
+| Kind | Meaning | Example |
+|---|---|---|
+| Part | Regions present at once | Dialog's overlay, header, body, footer |
+| Variant | Alternative presentations the page chooses | Badge's primary, danger |
+| State | A runtime condition | Toggle's on, hover, disabled |
+
+States have two axes. A component state is one of a set that excludes the others: default, selected (or on), disabled. An interaction state layers on a component state: default, hover, and later focus or active. `disabled` is terminal: no other state layers on it, in the names or in the editor.
+
+The default state carries the shared geometry and typography. A state adds properties only for the values that change: `--toggle-on-track-surface`, `--toggle-on-hover-track-surface`.
+
+The preview renders the state being edited. Pair each `:hover` selector with a `.force-hover` selector and expose a `class` prop, so the editor shows hover without a pointer. Keep native disabled behavior, keyboard operation, and visible focus on an interactive control.
+
+A component supplies its variants. The page chooses the one primary action.
 
 ## Property design
 
@@ -112,24 +141,6 @@ Declare every editable property in a literal `:global(:root)` block, each assign
 ```
 
 The excerpt shows the chain for part of the property map. Every editable value reads a property. Structural CSS (`display: grid`, `width: 100%`, `align-items: center`) stays in the layout rules. A value beyond a scale is a token expression: `calc(var(--space-64) * 4)`. A property that carries a structural choice, an alignment or a visibility, is an intrinsic: read `references/intrinsics.md`.
-
-## Variants and states
-
-A component has three kinds of division. Keep them apart in the props, the names, and the editor.
-
-| Kind | Meaning | Example |
-|---|---|---|
-| Part | Regions present at once | Dialog's overlay, header, body, footer |
-| Variant | Alternative presentations the page chooses | Badge's primary, danger |
-| State | A runtime condition | Toggle's on, hover, disabled |
-
-States have two axes. A component state is one of a set that excludes the others: default, selected (or on), disabled. An interaction state layers on a component state: default, hover, and later focus or active. `disabled` is terminal: no other state layers on it, in the names or in the editor.
-
-The default state carries the shared geometry and typography. A state adds properties only for the values that change: `--toggle-on-track-surface`, `--toggle-on-hover-track-surface`.
-
-The preview renders the state being edited. Pair each `:hover` selector with a `.force-hover` selector and expose a `class` prop, so the editor shows hover without a pointer. Keep native disabled behavior, keyboard operation, and visible focus on an interactive control.
-
-A component supplies its variants. The page chooses the one primary action.
 
 ## Component editor
 
