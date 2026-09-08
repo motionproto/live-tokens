@@ -10,8 +10,8 @@ export const createPage: SkillTree = {
       "id": "cp-trig",
       "row": 0,
       "kind": "trigger",
-      "title": "Create a page or route",
-      "desc": "Builds a page from the shipped components at their defaults and the theme's text styles, and wires its route.",
+      "title": "Create a page",
+      "desc": "Builds a page with LiveTokens.",
       "lines": [3, 3],
       "anchor": "description: Create a page in a @motion-proto/live-tokens pr"
     },
