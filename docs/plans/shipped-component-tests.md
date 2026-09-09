@@ -63,7 +63,7 @@ showed the static gate passes and the runtime contracts catch the defects.
 | 2a | Contract types, shared assertions, two exemplar components, one defect fixture per rule | Opus | Fable | Done | 2a840d1 |
 | 2b | Contract mappings and defect fixtures for the remaining shipped components | Sonnet | Opus | Done | 6990eeb |
 | 3 | A Playwright config factory and a vitest contract runner ship | Opus | Fable | Done | ac83676 |
-| 3b | `src/testing` ships compiled to JavaScript | Sonnet | Opus | Not started | |
+| 3b | `src/testing` ships compiled to JavaScript | Sonnet | Opus | Done | 50a268a |
 | 4 | `check-component --tests` runs the suites and reports by rule | Sonnet | Opus | Not started | |
 | 5a | The consumer acceptance gate | Sonnet | Opus | Not started | |
 | 5b | Template, skills, atlas, and changelog | Sonnet | Fable | Not started | |
@@ -565,7 +565,22 @@ and a new `bin/contractRunner.mjs`.
    `src/testing/*.contract.ts` frame belongs in the diagnostic context and
    never in `file` or `line`, because that path is absent from the tarball and
    a reader cannot open it. Never invent assertion precision.
-5. **Consumer contracts are unreachable, and Wave 5a's gate depends on them.**
+5. **The generated Vitest config imports `@motion-proto/live-tokens/testing/vitest`,
+   never the barrel.** The barrel pulls `@playwright/test` at module top, so a
+   consumer missing only that package gets a raw `ERR_MODULE_NOT_FOUND` out of
+   a child process instead of decision 2's `tests-not-installed` finding.
+6. **The generated config leaves `include` unset and lets the factory choose
+   it.** Hand-writing a path into the package re-creates the double collection
+   Wave 3b closed, and this unit's expected-versus-actual reconciliation is
+   what would break.
+7. **The Vitest-only path is still half blocked, at the settings file.**
+   `contract-tests.md:20` has the consumer import `defineTestingConfig` from
+   the barrel, which fails for a consumer holding only `vitest` and
+   `happy-dom`. Either add a `./testing/config` subpath, re-export
+   `defineTestingConfig` from the vitest entry, or have the recipe skip
+   `defineTestingConfig` on the Vitest-only path. Whichever this unit picks,
+   Wave 5b documents it at `contract-tests.md` lines 20 and 55.
+8. **Consumer contracts are unreachable, and Wave 5a's gate depends on them.**
    `component-editor.contract.ts:6` and `component-render.contract.ts:681`
    call `selectedContracts()` with no argument, so only `shippedContracts`
    runs. `LiveTokensTestingConfig.contracts` is a declared setting with no
@@ -612,6 +627,15 @@ the skill edits in 5b cite a gate that exists.
 **Files.** A new `scripts/smoke-component-tests.sh`, its fixture project
 sources under `scripts/`, the `check:smoke-component-tests` script, and the
 CI workflow step.
+
+**Gate `./testing/vitest` too.** `scripts/smoke-install.sh` resolves
+`./component-editor/contract`, `./testing`, and `./skill-atlas`, so a broken
+`vitest.js` or `vitest.d.ts` entry ships silently. Add the second resolve here
+or in `smoke-install.sh`. `src/testing/packaging.test.ts` pins its named
+scenario rather than the invariant: `files` entries like `src/testing/`,
+`src`, or `src/testing/*.contract.ts` all pack the TypeScript sources while
+satisfying both assertions. Assert against the packlist
+(`npm pack --dry-run --json`, no packed path starting `src/testing/`).
 
 **The gate installs a real tarball, always.** A symlinked or `file:<dir>`
 install cannot run the shipped suites: two copies of `@playwright/test` give
