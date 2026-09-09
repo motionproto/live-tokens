@@ -60,7 +60,7 @@ showed the static gate passes and the runtime contracts catch the defects.
 | Unit | Summary | Executor | Reviewer | Status | Commit |
 |---|---|---|---|---|---|
 | 1 | The contract suites move into the shipped tree and open the owned route | Sonnet | Opus | Done | 347eecc |
-| 2a | Contract types, shared assertions, two exemplar components, one defect fixture per rule | Opus | Fable | Not started | |
+| 2a | Contract types, shared assertions, two exemplar components, one defect fixture per rule | Opus | Fable | Done | 2a840d1 |
 | 2b | Contract mappings and defect fixtures for the remaining shipped components | Sonnet | Opus | Not started | |
 | 3 | A Playwright config factory and a vitest contract runner ship | Opus | Fable | Not started | |
 | 4 | `check-component --tests` runs the suites and reports by rule | Sonnet | Opus | Not started | |
@@ -424,6 +424,10 @@ write under the consumer's real `dataDir`.
   import it here. `playwright.config.ts` sets `LIVE_TOKENS_DATA_DIR` from a
   local constant rather than from `LIVE_TOKENS_E2E_DATA_DIR`; the factory
   must not treat the two names as interchangeable.
+- Wave 2a's harness reads each component's `default.json` off
+  `LIVE_TOKENS_DATA_DIR` in the runner process, the same coupling
+  `component-render.contract.ts` carries. The config factory points both at
+  the isolated copy.
 
 **Do.** Implement the configuration and automatic isolation decisions above,
 including the plugin override and cleanup. The repo's own
