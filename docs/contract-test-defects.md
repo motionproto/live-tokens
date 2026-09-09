@@ -29,24 +29,17 @@ default. The suite passing at 1280x720 is the proof.
 
 **Found by:** Wave 1, and re-measured when the cap landed.
 
-### Sketch rows cannot be tested for a portalled part
+### A portalled part cannot be tested for Sketch paint
 
-`inlineeditactions` and `imagelightbox` now have `PART_SPECS` rows and their
-contracts assert real Sketch paint. `radiobutton` is still undrawn: its dot
-lives on `::after`, the same pseudo-element the layer strokes, and the host rule
-forces `border-color: transparent` on every drawn part, so the fill has to move
-onto a real element in `RadioButton.svelte` first.
-
-Separately, `.image-lightbox-modal` carries `use:portal`, which moves it to
+`.image-lightbox-modal` carries `use:portal`, which moves it to
 `document.body`. The component editor's preview sets `data-sketch` on its own
 local `.sketch-scope` wrapper rather than the document root, so
 `[data-sketch] .image-lightbox-overlay` never matches inside that sandbox. The
 rows are correct and draw on a real host page, where Sketch mode scopes an
-ancestor of `document.body`. Only the overlay and chrome parts are untestable
-through the contract suite, so `imagelightbox`'s contract asserts the thumb
-alone.
+ancestor of `document.body`. So `imagelightbox`'s contract asserts the thumb
+alone, and its overlay and chrome parts stay unasserted.
 
-**Fix:** scope `data-sketch` so a portalled node is inside it, in
+**Fix:** scope `data-sketch` so a portalled node falls inside it, in
 `VariantGroup.svelte` or `portal.ts`, then add the overlay and chrome parts to
 the contract.
 

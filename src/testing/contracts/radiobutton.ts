@@ -35,7 +35,7 @@ export const radioButtonContract: ComponentContract = {
   parts: {
     root: '.radio-button',
     dot: '.radio-dot',
-    dotFill: { selector: '.radio-dot', pseudo: '::after' },
+    dotFill: { selector: '.radio-dot-fill' },
     label: '.radio-label',
   },
   properties: [
@@ -91,7 +91,7 @@ export const radioButtonContract: ComponentContract = {
     ],
   },
   sketch: {
-    applicable: false,
-    reason: 'the sketch layer has no drawable-part entry for radiobutton',
+    style: 'pencil',
+    parts: [{ part: 'dot', fill: '--radiobutton-default-dot-fill', stroke: '--radiobutton-default-dot-border-color' }],
   },
 };

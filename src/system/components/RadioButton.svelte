@@ -40,7 +40,7 @@
   style={color ? `--radiobutton-color: ${color};` : ''}
   onclick={fireClick}
 >
-  <span class="radio-dot"></span>
+  <span class="radio-dot"><span class="radio-dot-fill"></span></span>
   <span class="radio-label">{label}</span>
 </button>
 
@@ -110,7 +110,7 @@
       .radio-dot {
         border: var(--radiobutton-hover-dot-border-width) solid var(--radiobutton-color, var(--radiobutton-hover-dot-border-color));
 
-        &::after {
+        .radio-dot-fill {
           width: var(--radiobutton-hover-dot-size);
           height: var(--radiobutton-hover-dot-size);
           background: var(--radiobutton-color, var(--radiobutton-hover-dot-fill));
@@ -137,7 +137,7 @@
       .radio-dot {
         border: var(--radiobutton-active-dot-border-width) solid var(--radiobutton-color, var(--radiobutton-active-dot-border-color));
 
-        &::after {
+        .radio-dot-fill {
           width: var(--radiobutton-active-dot-size);
           height: var(--radiobutton-active-dot-size);
           background: var(--radiobutton-color, var(--radiobutton-active-dot-fill));
@@ -156,8 +156,7 @@
     flex-shrink: 0;
     transition: all var(--duration-200);
 
-    &::after {
-      content: '';
+    .radio-dot-fill {
       position: absolute;
       top: 50%;
       left: 50%;

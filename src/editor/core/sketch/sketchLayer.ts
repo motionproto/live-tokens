@@ -119,6 +119,13 @@ const PART_SPECS: readonly PartSpec[] = [
     sel: '.icon-button.outline', fill: 'transparent', stroke: 'var(--iconbutton-outline-border)',
     radius: 'var(--iconbutton-outline-radius, 0px)',
   },
+  // The dot names its colours `-fill` and `-border-color`, so it supplies
+  // both explicitly rather than through a `-surface`/`-border` stem.
+  {
+    sel: '.radio-dot',
+    fill: 'var(--radiobutton-default-dot-fill)',
+    stroke: 'var(--radiobutton-default-dot-border-color)',
+  },
   { sel: '.save-btn', stem: 'inlineeditactions-save-default' },
   { sel: '.cancel-btn', stem: 'inlineeditactions-cancel-default' },
 
