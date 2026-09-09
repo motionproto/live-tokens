@@ -1,26 +1,53 @@
-# Component tests ship with the package and `check-component` runs them
+# Shipped component validation
 
-Branch off `main` as `shipped-component-tests`. Five waves, each a single
-commit unit executable by a sub-agent with only this doc and this repo. Waves
+Branch off `main` as `shipped-component-tests`. Seven commit units in five
+waves, each executable by a sub-agent with only this doc and this repo. Units
 are strictly sequential; each ends green. Wave 5 also touches the `create`
-template and the two skills.
+template and the authoring skills.
 
-**Execution model.** A fresh session orchestrates from this doc and writes no
-wave code itself. Each wave runs in a `wave-executor` sub-agent. The review
-gate after each wave (`wave-reviewer`) runs at the orchestrator's tier. The
-executor runs only the automated commands; a Playwright run is an automated
-command here.
+**Execution model.** A fresh Opus session orchestrates from this doc and
+writes no wave code itself. Each unit runs in a `wave-executor` sub-agent at
+the model its section names, passed as the Agent tool's `model` override.
+The review gate after each unit (`wave-reviewer`) runs at the model its
+section names. Fable reviews the two design units and the skill copy; Opus
+reviews the mechanical units. The executor runs only the automated commands;
+a Playwright run is an automated command here.
 
-**Precondition.** At the time of writing, the atlas reorders of `create-page`
-and `create-component` are committed (`fb3c7d5`). The tree carries one
-uncommitted file, `src/editor/skill-atlas/trees/create-component.ts`, with
-the user's own copy edits to titles and descriptions. Commit that as its own
-commit before Wave 1; note that its "Read the project" description trips the
-atlas vocabulary rule on the word "look", and the title "Write the component
-runtime" carries a trailing space. The full `check:skill-atlas` also fails on
-two `pick-component` handoff cards that name no skill; that failure predates
-this plan and Wave 5 repairs it in passing because it edits the same file. If
-the tree is dirty in any other way, stop and report.
+**Model allocation.** Sonnet takes the units whose shape this doc fixes and
+whose definition of done is a green command: the file moves, the mappings
+that follow an exemplar, the CLI wiring, the consumer gate script, and the
+skill edits. Opus takes the two units that decide something: the contract
+shape and the isolation mechanism. Splitting Wave 2 is the largest saving.
+Opus proves the contract on two exemplar components; Sonnet then maps the
+other 24 from a working pattern instead of designing while mapping.
+
+**Playwright cost.** An executor develops under
+`LIVE_TOKENS_COMPONENT=<one id>` and runs the full 26-component suite once,
+before committing. Wave 2a develops against its two exemplars only.
+
+**Precondition.** Inspect the current branch, worktree, and baseline checks.
+Preserve existing edits. Record pre-existing failures separately; repair any
+failure that blocks a required gate before the first wave that requires it.
+Do not rely on historical commit IDs, line counts, or dirty-tree assumptions.
+
+## Scope and acceptance
+
+This plan ships component validation. It covers registration, token wiring,
+editor controls, rendered parts and states, interactions, persistence, themes,
+and Sketch mode. Page composition and runtime page checks belong to
+[shipped page validation](shipped-page-validation.md).
+
+The release gate installs the actual package tarball into a fresh consumer
+project outside this repository. The documented command must validate a new
+custom component there. A valid fixture passes every required check;
+deliberate defects fail with the expected rule and component context. The
+consumer's source data remains unchanged on success, failure, and interruption.
+This gate runs before release. A later run against a user's project supplements
+it.
+
+Shared infrastructure includes server startup, isolated data, test-tool
+resolution, findings, coverage reporting, and tarball acceptance fixtures.
+The page plan reuses those pieces and retains its own suites and command.
 
 This supersedes the deferral recorded in `docs/plans/custom-component-path.md`
 section 1, "the render contract as a Playwright spec in the `create`
@@ -30,22 +57,26 @@ showed the static gate passes and the runtime contracts catch the defects.
 
 ## Status
 
-| Wave | Summary | Executor | Status | Commit |
-|---|---|---|---|---|
-| 1 | The contract suites move into the shipped tree and open the owned route | wave-executor | Not started | |
-| 2 | The five manual checks become assertions | wave-executor | Not started | |
-| 3 | A Playwright config factory and a vitest contract runner ship | wave-executor | Not started | |
-| 4 | `check-component --tests` runs the suites and reports by rule | wave-executor | Not started | |
-| 5 | The template, the skills, the atlas, and the changelog | wave-executor | Not started | |
+| Unit | Summary | Executor | Reviewer | Status | Commit |
+|---|---|---|---|---|---|
+| 1 | The contract suites move into the shipped tree and open the owned route | Sonnet | Opus | Not started | |
+| 2a | Contract types, shared assertions, two exemplar components, one defect fixture per rule | Opus | Fable | Not started | |
+| 2b | Contract mappings and defect fixtures for the remaining shipped components | Sonnet | Opus | Not started | |
+| 3 | A Playwright config factory and a vitest contract runner ship | Opus | Fable | Not started | |
+| 4 | `check-component --tests` runs the suites and reports by rule | Sonnet | Opus | Not started | |
+| 5a | The consumer acceptance gate | Sonnet | Opus | Not started | |
+| 5b | Template, skills, atlas, and changelog | Sonnet | Fable | Not started | |
 
 The orchestrator updates this table after each review gate: `Not started` to
 `In progress` to `Done` (or `Blocked`, with a one-line reason appended under
 the table). Record the short commit SHA.
 
-Waves 1 through 3 change nothing a consumer sees. Wave 4 adds the flag and
-Wave 5 makes the skills use it. If the run is cut short after Wave 3, the repo
-is coherent: the suites run here from their new location, and consumers are
-unaffected.
+Waves 1 through 3 add shipped testing infrastructure while preserving the
+CLI default. Wave 4 adds the flag and Wave 5 makes the skills use it. If the
+run is cut short after Wave 3, the repo is coherent: the suites run here from
+their new location, and consumers are unaffected. If it is cut short after
+Wave 2a, the two exemplar components carry the full contract and the other
+24 keep the migrated render and alias coverage.
 
 ## The problem
 
@@ -87,25 +118,27 @@ The tests exist and do not ship.
 ## The feature
 
 `npx live-tokens check-component <id> --tests` runs the lint, then the
-registry contract test under vitest, then the two contract suites under
+registry contract test under vitest, then the component contract suites under
 Playwright for that one component, and reports every failure as a finding
-with a rule id and a line. The skill's Verification is one command. The
-manual list is gone because each of its lines is an assertion.
+with a rule id and a line. The skill's Verification is one command. Remove
+each manual check only after its acceptance cases prove equivalent
+automated coverage. Report any remaining review obligation explicitly.
 
 The suites live in the shipped tree, run here against the library's own demo
 app and in a consumer against the consumer's app, and are one copy of each
-file. A consumer gets them by installing Playwright and vitest; the CLI finds
-both from the consumer's project and says what to install when one is
+file. A consumer installs Playwright, vitest, and happy-dom; the CLI finds
+all three from the consumer's project and says what to install when one is
 missing.
 
-## Reserved judgment calls (already decided, do not re-litigate)
+## Design decisions
 
 1. **Opt in by flag, always on in the skill.** `check-component` without
    `--tests` is the lint it is today, so the template's `check:design` script
    and CI runs that lack a browser stay fast and green. The skills pass
    `--tests`. `report` gains no test rows in this plan.
 2. **Optional peer dependencies.** `@playwright/test`, `vitest`, and
-   `happy-dom` go under `peerDependenciesMeta` as optional. The package
+   `happy-dom` receive supported version ranges in `peerDependencies` and
+   optional entries in `peerDependenciesMeta`. The package
    bundles no browser. A missing dependency is a finding, rule
    `tests-not-installed`, whose message is the install command and the
    `npx playwright install chromium` step. It is an error under `--tests`,
@@ -125,33 +158,76 @@ missing.
 5. **The store import goes through the package.** The alias spec's
    `import('/src/editor/core/store/editorStore.ts')` becomes a `window`
    handle the components editor page exposes in dev only, named
-   `__liveTokensEditor`, carrying `editorState` and `mutate`. Same behavior
+   `__liveTokensEditor`, carrying `editorState`, `mutate`, `getComponentRegistryEntries`, and
+   a component-selection operation. Replace the render suite's import of
+   `/src/editor/core/store/editorViewStore.ts` as well. Define the handle's
+   frame ownership and readiness contract; remove it on page teardown. Same behavior
    in both repos, no path arithmetic against `node_modules`.
-6. **The data tree is the consumer's own.** The suites read
-   `component-configs` from the plugin's `dataDir` (default
-   `src/live-tokens/data`). The repo keeps `prepare:e2e` and
-   `LIVE_TOKENS_E2E_DATA_DIR` for its own runs because its data tree is the
-   shipped defaults and must not be written by a test. A consumer's run uses
-   the consumer's tree; the config factory takes a `dataDir` for a consumer
-   who wants the same isolation.
-7. **One config factory, one runner.** `createPlaywrightConfig({ dev, port,
-   componentsPath?, dataDir? })` returns a Playwright config with the shipped
-   `testDir` and `testMatch`, and `runContractTests(id)` runs the vitest file
-   over the registry filtered to that id. `check-component --tests` calls
-   both through `child_process`, so it needs no import of either tool at
-   module top. `bin/engineLoadsLazily.test.ts` already enforces lazy loading
-   for the compiled engine; the same rule applies here.
+6. **Automatic data isolation.** Resolve the consumer's effective plugin
+   `dataDir`, then copy it into a unique temporary directory. Both the test
+   processes and the Vite plugin must use that copy. Add a shared test-mode
+   override to the plugin if needed; passing an environment variable to the
+   tests alone does not redirect server writes. Tests restore a baseline
+   between cases. Use one worker for cases sharing a server and theme state.
+   Never reuse an existing server that may write the working data tree.
+   Cleanup terminates child processes and removes temporary data on success,
+   failure, or interruption. Compare source-tree hashes in acceptance tests.
+7. **One configuration path, two tool configurations.** Add a documented
+   `live-tokens.testing.ts` entry point for shared test settings: Vite config
+   path (default `vite.config.ts`), dev command (default `npm run dev`),
+   optional port, components route, data-directory override, registry setup
+   module, and component contracts. Defaults support the create template.
+   Relocated routes and custom server commands use explicit settings.
+   The runner resolves settings against the consumer root, selects an
+   available local port, creates temporary Playwright and Vitest configs,
+   and passes those configs explicitly to the child processes. Consumers
+   need no pre-existing Playwright project named `contract`.
+   `createPlaywrightConfig` and `createVitestConfig` use this same path.
+   Keep tool imports out of the CLI's module initialization.
 8. **Findings, not console output.** A failing assertion becomes
    `{ rule, file, line, message }` like every lint finding. The rule ids are
    fixed here so `fix-findings` can map them: `contract-registry`,
    `contract-render`, `contract-alias`, `contract-persist`,
    `contract-theme`, `contract-preview`, `contract-listed`,
-   `contract-sketch`, `tests-not-installed`. `file` is the spec file and
-   `line` the assertion's line, which the Playwright JSON reporter and the
-   vitest JSON reporter both give.
+   `contract-sketch`, `tests-not-installed`, `tests-setup`, and
+   `tests-incomplete`. Preserve reporter assertion locations when available;
+   setup failures use the relevant configuration location or a documented
+   line-1 fallback. Never invent assertion precision. Include component ID,
+   property or part, expected and actual values, and artifact paths in the
+   diagnostic context. Keep the existing finding fields compatible.
 9. **Version.** A new flag, a new export, and new optional peers are a minor
    bump. Wave 5 records it under `Unreleased`. The release goes through CI
    and is the user's call.
+
+## Coverage and component contracts
+
+Add a typed component contract in the consumer's testing setup. It declares
+stable locators for painted parts, editable-property-to-part expectations,
+preview states, supported keyboard and pointer actions, expected outcomes,
+and Sketch paint expectations. Supply contracts for all shipped components
+and scaffold a contract for each new custom component. Derive standard
+expectations from registry schemas where possible; require explicit contracts
+for component-specific behavior. Contract declarations describe expectations;
+the runner performs the actions and observations through shared helpers.
+
+Validate contracts against the registry and preview: every required token,
+state, and declared part has coverage, every locator resolves, and interactive
+roles have applicable actions. Missing contracts or empty discovery fail.
+A noninteractive component can mark interaction checks inapplicable with a
+reason. Undeclared or unsupported coverage fails instead of silently skipping.
+The initial inventory records the limits of automatic part discovery; mutation
+fixtures must prove that omitted required markers and mappings are detected.
+
+JSON under `--tests` includes a coverage section by component and rule, with
+passed, failed, inapplicable, disabled, and incomplete statuses. Inapplicable
+requires a contract reason. Explicit `--off` settings remain supported and
+visible as disabled coverage; they cannot establish a complete pass.
+Ordinary exit status respects existing severity overrides. The authoring skill
+and release acceptance gate also require complete applicable coverage with no
+disabled checks. Setup errors, zero selected targets, unexpected skips,
+missing reports, timeouts, and child-process failures produce a nonzero exit.
+The runner reconciles expected cases with actual reporter results, including
+retries, before claiming completion.
 
 ## Global invariants (reviewer checklist)
 
@@ -166,44 +242,52 @@ missing.
    components and the `check-component.test.ts` fixtures.
 4. **Nothing loads a test tool at module top.** `bin/cli.mjs` and
    `bin/check-component.mjs` import neither `@playwright/test` nor `vitest`.
-   `npm test` passes with both absent from `node_modules` (the CI condition).
+   A tarball consumer can run the static CLI with all optional test tools
+   absent. The repository unit suite still requires its Vitest runner.
 5. **The data tree is untouched.** No wave writes under `src/live-tokens/data/`
-   except through `prepare:e2e`'s copy to `.playwright-data/`. Run
+   during verification. Tests write only to isolated copies. Run
    `node scripts/check-production-is-default.mjs` at every wave boundary.
 6. `npm run check` clean, `npm run test` green, `npm run test:e2e:contract`
    green, and `check:skills`, `check:skill-atlas`, `check:skill-sources`,
    `check:smoke-install` OK at every wave boundary. Wave 5 also runs
-   `check:smoke-create`.
+   `check:smoke-create` and the new consumer contract acceptance gate.
 7. Nothing pushed, tagged, or published by an executor.
 
 ## Commit-unit protocol
 
-One wave, one commit. Run the wave's verification green before committing;
-never commit red. Commit message `Shipped tests W<n>: <summary>` plus the
-standard co-author trailer. Do not push, tag, or release. Stop after each wave
-for review. If reality contradicts this plan (a cited file is missing, a check
+One unit, one commit. Run the unit's verification green before committing;
+never commit red. Commit message `Shipped tests W<n>: <summary>` with the
+unit's label as `<n>` (`W2a`, `W5b`) plus the standard co-author trailer. Do
+not push, tag, or release. Stop after each unit for review. If reality contradicts this plan (a cited file is missing, a check
 pins conflicting behavior), stop and report rather than improvise.
 
 Never stash, reset, or checkout over uncommitted changes.
 
 ## Wave 1 — the contract suites move into the shipped tree
 
+**Executor:** Sonnet. **Reviewer:** Opus. The one discovery item is the owned
+route's actual frame structure; find it in the running page, then write the
+handle's frame ownership and readiness contract from what you found.
+
 **Files.**
+
 - `src/testing/component-render.contract.ts` (from
   `tests/e2e/component-render-contract.spec.ts`)
 - `src/testing/component-alias.contract.ts` (from
   `tests/e2e/component-alias-contract.spec.ts`)
 - `src/testing/support/editor.ts` (from `tests/e2e/support/editor.ts`)
 - `src/editor/pages/ComponentEditorPage.svelte`: expose
-  `window.__liveTokensEditor = { editorState, mutate, getComponentRegistryEntries }`
+  `window.__liveTokensEditor = { editorState, mutate, getComponentRegistryEntries, selectComponent }`
   in dev only, guarded by `import.meta.env.DEV`.
 - `playwright.config.ts`: `testDir` stays `./tests/e2e` for the stateful
   suites; add a second project, `contract`, with `testDir: './src/testing'`
-  and `testMatch: '**/*.contract.ts'`.
+  and `testMatch: '**/component-*.contract.ts'`. Keep the registry contract
+  exclusive to Vitest and exclude these files from other projects.
 - `package.json`: `files` gains `src/testing`; `test:e2e:contract` and
   `test:e2e:components` point at the new paths.
 
 **Do.**
+
 1. Move the three files with `git mv`.
 2. `openOverlayEditor(page, 'components')` becomes `openComponentsEditor(page,
    path = DEFAULT_COMPONENTS_PATH)`: `page.goto(path)`, wait for
@@ -212,7 +296,9 @@ Never stash, reset, or checkout over uncommitted changes.
    otherwise delete it.
 3. The alias contract reads `editorState` and `mutate` from
    `window.__liveTokensEditor` inside `frame.evaluate`, and fails with a
-   named error when the handle is absent.
+   named error when the handle is absent. The render contract uses its
+   selection operation, with no repo-relative browser imports. Verify the
+   owned route's actual frame structure rather than assuming an overlay frame.
 4. `discoverDefaultAliases` takes its root from `process.env.LIVE_TOKENS_DATA_DIR`
    with the default `src/live-tokens/data`. The repo's `playwright.config.ts`
    sets it from `LIVE_TOKENS_E2E_DATA_DIR`.
@@ -221,69 +307,118 @@ Never stash, reset, or checkout over uncommitted changes.
 `check:smoke-install` shows `src/testing/` in the tarball and no `.spec.ts`
 in it. Invariants 1, 2, 5, 6.
 
-## Wave 2 — the five manual checks become assertions
+## Wave 2 — component contracts and assertions
 
-**Files.** `src/testing/component-render.contract.ts`, and a new
-`src/testing/component-editor.contract.ts` for the checks that are not
-per-property.
+Two commit units. Unit 2a decides the contract shape and proves it; unit 2b
+applies it across the catalogue.
 
-**Do.** One test per manual line, each honoring `LIVE_TOKENS_COMPONENT`.
-1. **Listed.** The component's entry is present in the editor's component
-   list. A custom component (registry `origin === 'custom'`) sits under the
-   CUSTOM group; a first-party one sits among the system entries. The
-   registry origin comes from `getComponentRegistryEntries()` through the
-   window handle.
-2. **Persist and reset.** Change one property through its control, reload,
-   read the same variable on both roots and expect the changed value. Click
-   Reset, expect the `:global(:root)` default. The default is read from
-   `default.json` in the data dir.
-3. **Theme reaches every property.** Load a second shipped theme through the
-   editor's Theme panel (the stateful `theme-workflow` suite shows the click
-   path), then for every alias in `default.json` expect the resolved value on
-   the host root to differ from its value under the first theme, or to
-   resolve through a token that changed. Restore the first theme at the end.
-   This test writes `_active.json`, so it runs only against a data dir the
-   config factory has isolated; the repo's run already is.
-4. **Preview matches the state, and the control operates.** For each state
-   tab in a `VariantGroup`, select it and expect the preview's root to carry
-   the state's class (`force-hover`, `on`, `disabled`, as the shipped editors
-   name them). For an interactive component, Tab to the preview and press
-   Space or Enter, and expect the state to change; a disabled preview does
-   not change.
-5. **Sketch mode.** Toggle Sketch mode on, expect every element that carries
-   the reserved class from `references/sketch-mode.md` to resolve a non-empty
-   `--sketch-stroke` (or the first of the five values the reference names).
-   Toggle it off, expect the component's computed styles to match the values
-   captured before the toggle.
+### Wave 2a — contract types, assertions, and two exemplars
 
-Each assertion's failure message names the property or the part, so the
-finding's `message` in Wave 4 is that string.
+**Executor:** Opus. **Reviewer:** Fable.
 
-**Verify.** All five pass for all 26 shipped components. Any shipped
-component that fails a new assertion is a real defect: record it in the wave
-report and stop for review rather than weakening the assertion. Invariants
-1, 5, 6.
+**Files.** `src/testing/component-render.contract.ts`, new
+`src/testing/component-editor.contract.ts`, typed contract definitions and
+shared assertion helpers under `src/testing/`, contracts for two exemplar
+components, and one defect fixture per rule outside the shipped tree.
+
+**Do.** Establish the typed component contracts and coverage inventory above.
+Use separate assertions for each obligation, honoring `LIVE_TOKENS_COMPONENT`.
+Choose one interactive exemplar with several painted parts and states
+(Slider or Toggle) and one noninteractive exemplar (SectionDivider or
+Card). Write their contracts in full. The six obligations below hold for
+both exemplars at the end of this unit. Every rule id from design decision 8
+that a contract can trip must fail once against a defect fixture in this
+unit, so 2b has a pattern for each.
+
+1. **Listed.** Assert the entry and correct CUSTOM or system group against the
+   actual registry origin. Missing registration fails before preview tests.
+2. **Persist and reset.** Exercise every supported persistence value shape
+   through controls, including structured values where applicable. Wait for
+   disk persistence, reload, and check both roots and the expected rendered
+   part. Reset and assert the documented reset baseline. Distinguish runtime
+   root defaults, default aliases, and active-theme overrides explicitly;
+   use a fixture where those values differ to prove the intended semantics.
+3. **Theme projection.** Apply deterministic test themes to the isolated data.
+   Resolve expected aliases under each theme and compare both roots and
+   mapped rendered properties with those values. Include a changed token,
+   an intentionally unchanged token, and a component override. A property
+   need not change merely because the theme changes.
+4. **Preview and interaction.** Assert the selected state's visual properties
+   and semantic state as well as any force-state class. Use the component
+   contract's actions: activation for buttons, arrow keys and pointer movement
+   for sliders, and the relevant actions for other roles. Verify disabled
+   behavior. Test the real runtime instance in the preview, including portals.
+5. **Sketch paint.** Assert every expected painted part exists, carries the
+   required marker, and uses its expected stroke/fill values in Sketch mode.
+   Distinctly colored parts must retain their individual paint. Include SVG,
+   pseudo-elements, and portals when the component uses them. On exit, compare
+   the relevant computed styles with the pre-toggle baseline.
+6. **Property projection.** Strengthen the migrated render suite to check the
+   mapped part and property. A change elsewhere in the preview cannot satisfy
+   an assertion about the edited property's intended target.
+
+**Verify.** Every applicable obligation passes for both exemplars, and the
+migrated render and alias suites stay green for all 26. Add deliberate
+defects for each rule: wrong target repaint, broken alias, failed
+persistence or Reset, stale theme projection, incorrect preview, broken
+keyboard or pointer behavior, missing list entry, missing Sketch part, and
+wrong part color. Each defect must fail its expected rule. Keep positive
+cases for unchanged theme values and the noninteractive exemplar.
+Investigate failures against the documented contract before classifying
+them as component or assertion defects; preserve the contract's intended
+strength. Invariants 1, 5, 6. Run stateful assertions serially against reset
+copies from this unit.
+
+### Wave 2b — contracts for the remaining shipped components
+
+**Executor:** Sonnet. **Reviewer:** Opus.
+
+**Files.** Contract mappings for the 24 shipped components 2a did not cover,
+and the remaining defect fixtures outside the shipped tree.
+
+**Do.** Follow the two 2a exemplars. Derive each mapping from the registry
+schema where 2a's helpers allow it and declare component-specific behavior
+explicitly. Mark interaction checks inapplicable, with a reason, only on
+components with no interactive role. Add a defect fixture wherever a
+component exercises a part kind 2a's fixtures did not: SVG, pseudo-element,
+or portal. Change no helper or contract type; if a component cannot be
+expressed with the 2a types, stop and report which one and why.
+
+**Verify.** Every applicable obligation passes for all 26 shipped components.
+Each new defect fixture fails its expected rule. Zero undeclared or disabled
+coverage in the JSON coverage section. Invariants 1, 5, 6.
 
 ## Wave 3 — the config factory and the contract runner ship
 
+**Executor:** Opus. **Reviewer:** Fable. Design decision 6 touches the
+plugin's write path; the reviewer confirms that no path from the runner can
+write under the consumer's real `dataDir`.
+
 **Files.**
+
 - `src/testing/playwright.ts`: `createPlaywrightConfig(options)`.
-- `src/testing/registry.contract.ts`: the vitest file from
-  `references/contract-tests.md`, generalized: registers nothing itself,
-  reads the registry after importing the consumer's editor files by the
-  `sourceFile` paths `discoverComponents()` finds, filters to
-  `origin === 'custom'` or to `LIVE_TOKENS_COMPONENT`.
+- `src/testing/registry.contract.ts`: import an explicit registry setup module
+  before selecting entries. The setup module exports the same registration
+  definitions the consumer app uses and registers them without mounting the
+  app. Update the template and component authoring recipe to share those
+  definitions. Importing an editor alone does not register it.
+  `discoverComponents()` currently returns IDs, not source paths; retain it
+  for target discovery and reconcile its IDs with actual registry entries.
+  Resolve custom runtime paths against the consumer and shipped runtime paths
+  against the installed package. Pass the effective isolated configs directory
+  to `checkRegistryEntry`. Fail on missing requested IDs or empty target sets.
 - `src/testing/vitest.ts`: `createVitestConfig(viteConfig)` applying the
   `happy-dom` environment and the inline rules the reference documents.
 - `package.json`: exports `./testing` (types and default at `src/testing/index.ts`
-  re-exporting the two factories), `peerDependenciesMeta` for
-  `@playwright/test`, `vitest`, `happy-dom` with `optional: true`.
+  re-exporting the factories and contract types), supported peer ranges and
+  optional metadata for `@playwright/test`, `vitest`, and `happy-dom`.
 - `references/contract-tests.md`: the consumer recipe becomes "use the
   shipped file through `check-component --tests`; here is the config if you
   run vitest yourself."
 
-**Do.** The repo's own `playwright.config.ts` and `vitest.config.ts` call the
-factories, so the factories are exercised by every repo run. The repo's
+**Do.** Implement the configuration and automatic isolation decisions above,
+including the plugin override and cleanup. The repo's own
+`playwright.config.ts` and `vitest.config.ts` call the factories, so the factories are exercised by every repo run. The repo's
 existing `registryContract.test.ts` over `builtInRegistry` stays as it is.
 
 **Verify.** `npm run test:e2e:contract` and `npm test` green through the
@@ -292,79 +427,123 @@ Invariants 2, 4, 6.
 
 ## Wave 4 — `check-component --tests`
 
+**Executor:** Sonnet. **Reviewer:** Opus. Isolation, cleanup, and the config
+factories come from Wave 3; this unit wires the CLI to them and maps results.
+
 **Files.** `bin/check-component.mjs`, `bin/cli.mjs`, `bin/check-component.test.ts`,
 and a new `bin/contractRunner.mjs`.
 
 **Do.**
+
 1. `parseCheckFlags` accepts `--tests`. `check-component` without it is
    unchanged (invariant 3).
-2. `contractRunner.mjs` exports `runContractTests(id, { root })`. It resolves
-   `@playwright/test` and `vitest` from `root` with `createRequire`; a missing
-   one yields the `tests-not-installed` finding and skips that tool. It runs
-   vitest with `--reporter=json` over `registry.contract.ts` and Playwright
-   with `--reporter=json` over the `contract` project, both with
-   `LIVE_TOKENS_COMPONENT=<id>`, and maps each failed test to a finding with
-   the rule id from judgment call 8 by the test's title prefix, the spec
-   file, the failing line, and the assertion message.
-3. Findings from the lint and the runner concatenate and go through
-   `reportChecks`, so `--json`, `--strict`, `--off`, and the project's checks
-   config apply to test findings as to lint findings.
-4. `COMPONENT_RULES` gains the nine rule ids, all `error`.
-5. Tests: the runner's mapping from a reporter JSON fixture to findings, and
-   the not-installed path, with no browser. The existing fixture project
-   under `check-component.test.ts` gains one `--tests` case that asserts the
-   `tests-not-installed` finding, because the fixture has no Playwright.
+2. `contractRunner.mjs` exports `runContractTests(id, { root })`. Resolve all
+   three optional dependencies from the consumer root. Generate explicit
+   configs, run the registry and browser suites, and map structured results
+   to stable rule IDs. Missing dependencies or Chromium produce installation
+   guidance. Server/configuration failures use `tests-setup`.
+3. Concatenate lint and runtime findings through `reportChecks`. Add the
+   coverage section only with `--tests`; preserve ordinary lint output.
+4. Register all rule IDs from the design decisions as errors. Honor explicit
+   severity settings while preserving coverage status and hard failures for
+   incomplete execution.
+5. Test reporter mapping, retry reconciliation, missing tools/browser, bad
+   config, failed server startup, malformed or absent reports, zero targets,
+   missing registration, unexpected skips, timeout, interruption, and cleanup.
+   Mapping tests use fixtures; process and browser acceptance cases exercise
+   actual failures. Cover both one ID and omitted-ID batch discovery.
 
 **Verify.** `npx live-tokens check-component toggle --tests --json` here
 exits 0 and lists no findings. Break one alias in a scratch copy of a
-component config and see a `contract-alias` finding with a line. `npm test`
-green with Playwright moved aside. Invariants 3, 4, 6.
+component config and see a `contract-alias` finding with a line. The static
+CLI runs in a consumer without optional test tools; the unit suite runs with Vitest installed. Invariants 3, 4, 6.
 
-## Wave 5 — the template, the skills, the atlas, and the changelog
+## Wave 5 — consumer acceptance and authoring workflow
+
+Two commit units. Unit 5a proves the shipped path from a tarball; unit 5b
+moves the template, skills, atlas, and changelog onto it. 5a runs first so
+the skill edits in 5b cite a gate that exists.
+
+### Wave 5a — the consumer acceptance gate
+
+**Executor:** Sonnet. **Reviewer:** Opus. Extend the pattern of
+`scripts/smoke-install.sh` and `scripts/smoke-create.sh`.
+
+**Files.** A new `scripts/smoke-component-tests.sh`, its fixture project
+sources under `scripts/`, the `check:smoke-component-tests` script, and the
+CI workflow step.
+
+**Consumer gate.** Add `check:smoke-component-tests` to CI before release.
+Pack the built package and install it into a fresh temporary project outside
+this repo. Use only tarball exports and the documented setup. Exercise:
+
+- A custom interactive component with several painted parts and states.
+- One shipped component through the same consumer command.
+- Default configuration and relocated route/data-directory configuration.
+- Single-ID and batch commands, with explicit coverage counts.
+- The Wave 2 defect fixtures, with exact expected rule IDs.
+- Missing setup, zero targets, and representative process failures.
+- Source-data hashes before and after passing, failing, and interrupted runs.
+
+The fixture must not resolve imports or tools from the library checkout.
+Run the fresh create-template case as well as the explicit custom setup case.
+The create-template case uses the template as it stands before 5b; 5b reruns
+the gate after its template edits.
+
+**Verify.** `check:smoke-component-tests` green, `check:smoke-install` and
+`npm test` green. Invariants 5, 6, 7.
+
+### Wave 5b — template, skills, atlas, and changelog
+
+**Executor:** Sonnet. **Reviewer:** Fable. The reviewer reads every edited
+skill line against the writing rules and checks each atlas card's title
+against its chip labels.
 
 **Files.**
+
 - `template/package.json`: `check:design` unchanged; a new script
   `test:design` runs `live-tokens check-component --tests`; the README names
-  the two installs a consumer makes to enable it.
+  the dependency install and Chromium install needed to enable it. Generate
+  the shared registry setup and testing configuration from Wave 3.
 - `.claude/skills/live-tokens-create-component/SKILL.md`: Workflow step 6
   becomes "Run **live-tokens-check-compliance**, then
   `npx live-tokens check-component <id> --tests --strict --json` until exit
-  0, then the Svelte check and the build." Step 7 and Verification step 4
-  with its seven-line list are deleted. Verification step 3 (the contract
-  test) is deleted, since the runner covers it. The rule table gains the
-  nine `contract-*` and `tests-not-installed` rows, each mapped to the
+  0 with complete applicable coverage, then the Svelte check and the build."
+  Replace Step 7 and Verification step 4 only after the acceptance matrix
+  proves equivalent coverage. Retain any outstanding review obligation.
+  Remove Verification step 3 once the runner covers its registry contract. The rule table gains the
+  contract and runner rule rows, each mapped to the
   section that fixes it. The file must stay under 250 lines
-  (`check:skills`); it is at 248 now, and the deletions make room.
+  (`check:skills`).
 - `.claude/skills/live-tokens-fix-findings/SKILL.md`: the rule table it
   keeps gains the same rows, each mapped to the section of create-component
-  that fixes it.
+  that fixes it. Add setup and coverage repair guidance for runner failures.
 - `.claude/skills/live-tokens-check-compliance/SKILL.md`: one sentence that
   `report` does not run the tests and that `check-component --tests` does.
 - `src/editor/skill-atlas/trees/create-component.ts`: the "Check the
-  component in the editor" card is deleted; "Run the checks" keeps its
+  component in the editor" card follows the resulting review scope;
+  "Run the checks" keeps its
   badges with "Contract test" replaced by "Component tests" pointing at the
   new Workflow line. `fix-findings.ts` re-anchors after its table grows.
-- `src/editor/skill-atlas/trees/pick-component.ts`: the two handoff cards
-  name their skills in the description (`live-tokens-create-component`,
-  `live-tokens-create-page`), which clears the pre-existing
-  `check:skill-atlas` failure.
+- `src/editor/skill-atlas/trees/pick-component.ts`: repair handoff references
+  if the baseline still reports missing skills.
 - `CHANGELOG.md` under `Unreleased`: the flag, the export, the optional
-  peers, the deleted manual step.
+  peers, coverage reporting, and the revised verification workflow.
 
 **Do.** After every skill edit run `npm run sync:skill-atlas` and
 `npm run sync:skill-sources`. Rebuild the create-component tree from the new
-line numbers the way this session did: every card cites its Workflow line and
+line numbers: every card cites its Workflow line and
 its badges cite the sections.
 
 **Verify.** `check:skills`, `check:skill-atlas` (the full run, now clean),
-`check:skill-sources`, `check:smoke-create`, and `npm test` green.
+`check:skill-sources`, `check:smoke-create`, `check:smoke-component-tests`, and `npm test` green.
 Invariants 6 and 7.
 
-### Open for the user after Wave 5
+### Follow-up decisions
 
 - Whether `report` should carry a test row per component, so
   check-compliance sees test results without a browser run of its own.
 - Whether the `create` template installs Playwright by default. This plan
   leaves it opt-in and documented.
-- The first consumer run: `../live-tokens-online` after a release carrying
-  Wave 4, against its own custom components.
+- An additional run against `../live-tokens-online` after release. The
+  tarball consumer gate already proves the shipped path before release.
