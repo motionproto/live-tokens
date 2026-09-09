@@ -3,14 +3,15 @@
 Building the shipped component validation suite
 ([plan](plans/shipped-component-tests.md)) surfaced faults nothing else was
 watching for. Each entry below was measured against running code during a wave
-review, not inferred from reading. None is fixed. The plan deliberately kept
-its waves to their stated scope and recorded these instead.
+review, not inferred from reading.
 
-Severity is about consequence to a user of the package, so a test-side defect
-that hides a real failure ranks above a product defect a user can see and work
-around.
+Fourteen of the sixteen recorded here are fixed, including the theme
+re-migration that rewrote a theme's own values on every load, six test-side
+defects that could hide a failure, and every product defect a user could see.
+The two below stayed open because each needs a change the fixing wave could not
+reach.
 
-## P2. Test infrastructure that can hide a failure
+## Open
 
 ### The sticky preview band can still cover a control at 1280x720
 
@@ -45,38 +46,7 @@ the contract.
 
 **Found by:** adding the Sketch rows.
 
-### CollapsibleSection's header carries no interactive role
-
-`src/system/components/CollapsibleSection.svelte:71-72` is a `<div onclick>`
-behind three `svelte-ignore a11y_*` directives. The component is functionally
-interactive, so its contract marks interaction inapplicable for a reason that
-is itself the defect.
-
-## Design follow-up
-
-### The rule-to-fix mapping is duplicated in two skills
-
-`live-tokens-create-component/SKILL.md` and `live-tokens-fix-findings/SKILL.md`
-each carry a table mapping every rule id to the section that fixes it, and both
-now list the same six `contract-*` rules. Adding or renaming a rule means
-hand-editing two documents, nothing enforces that the tables agree with each
-other, and nothing checks either against the rule ids `bin/contractRunner.mjs`
-actually emits.
-
-A finding already carries `rule`, `file`, `line`, and a message. Emitting a
-stable fix-key alongside it, from one registry in the runner, would let each
-skill map that key once instead of enumerating every rule. One source, no
-drift, and no skill edit when a rule changes.
-
-The counter-argument is that the mapping's target is a section heading inside a
-particular skill document, so part of it is navigation rather than test
-metadata. That argues for a stable key each skill resolves once, rather than
-for two hand-maintained tables.
-
-**Raised by:** the user, reviewing Wave 5b's skill edits. A skill should know
-what to call and nothing about how the testing works.
-
-## P4. Cosmetic
+## Cosmetic, unfixed
 
 - `runContractTests` mutates `process.env` instead of building a child env.
   Nothing reads the stale value today.
