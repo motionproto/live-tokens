@@ -37,26 +37,49 @@ default. The suite passing at 1280x720 is the proof.
 
 **Found by:** Wave 1, and re-measured when the cap landed.
 
-### Sketch mode cannot draw any component outside `PART_SPECS`
+### Three shipped components have no Sketch rows
 
-`src/editor/core/sketch/sketchLayer.ts:110` `PART_SPECS` is a fixed list of
-hardcoded selectors, resolved at module scope into `PART_SELECTORS`,
-`FLOW_PARTS`, and `STROKE_PARTS`. A runtime-registered component can never
-appear in it.
+`src/editor/core/sketch/sketchLayer.ts` `PART_SPECS` has no row for
+`imagelightbox`, `radiobutton`, or `inlineeditactions`, so those three are
+undrawn in Sketch mode and their contracts mark `contract-sketch` inapplicable.
 
-So **no consumer-authored component is ever drawn in Sketch mode**, and every
-consumer component's `contract-sketch` is permanently `inapplicable`. Three
-shipped components sit in the same gap: `imagelightbox`, `radiobutton`, and
-`inlineeditactions`.
+**This entry previously claimed no consumer-authored component is ever drawn.
+That was wrong.** `PART_SPECS` reserves four opt-in classes at `:263-266`
+(`.sketch-surface`, `.sketch-container`, `.sketch-chip`, `.sketch-rule`), which
+join `PARTS`, `FLOW_PARTS`, `STROKE_PARTS` and the damping bands, and `colours`
+emits nothing for them so the element's own `--sketch-fill` survives.
+`sketchPartTokens.test.ts:204-226` pins that, and
+`references/sketch-mode.md:38-47` documents it with a worked example. The Wave
+5a fixture was undrawn because it carried no reserved class, so that gate
+measured a fixture gap and recorded it as a layer gap.
 
-Coverage still completes, because inapplicable is not disabled and does not
-block exit 0, and the contracts' stated reasons are accurate. The product gap
-is what matters: this is the first thing a consumer hits after shipping a
-component of their own, and `live-tokens-create-component`'s manual
-verification line about Sketch mode is unsatisfiable for them.
+Deriving rows from the registration is not the fix. `RegistryEntry` carries no
+selector, paint source, or structural flag, and selectors are not derivable
+from an id (`radiobutton` renders `.radio-button`, `inlineeditactions` renders
+`.save-btn`). The shipped list is 39 `sel:` literals covering about 65
+selectors, with per-variant fan-out, deliberate `transparent` rows, structural
+flags, size-band membership (`:1011-1044`) and `STATE_COLOURS` (`:298`) as
+separate layers. `SKILL.md:215` already prescribes the shipped answer: a
+first-party component adds a `PartSpec` row.
 
-**Found by:** the Wave 5a consumer gate, on a custom component authored in a
-fixture project.
+**Fix, per component:**
+- `inlineeditactions` is clean. `.save-btn` and `.cancel-btn` are ordinary
+  filled boxes with full hover sets, so two `PART_SPECS` rows plus two
+  `STATE_COLOURS` rows cover it.
+- `imagelightbox` needs flags: `.image-lightbox-thumb` is `position: absolute`
+  with `overflow: hidden`, so `positioned` and `clips`; the overlay and chrome
+  float over page content, so `unmasked`.
+- `radiobutton` needs a runtime change first. `.radio-dot` owns `::after` for
+  its inner dot, which is the pseudo-element the layer draws the stroke on, and
+  the host rule forces `border-color: transparent` on every drawn part, so
+  marking it `strokeless` leaves the ring undrawn. The fill has to move off
+  `::after` onto a real element in `RadioButton.svelte`.
+
+`sketchPartTokens.test.ts` is the gate holding new rows to colours the
+component itself assigns to that element.
+
+**Found by:** Wave 2b, and re-scoped when the registration-derivation approach
+was investigated.
 
 ### CollapsibleSection's header carries no interactive role
 

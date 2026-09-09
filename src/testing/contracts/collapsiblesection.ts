@@ -38,6 +38,7 @@ export const collapsibleSectionContract: ComponentContract = {
     label: '.section-label',
     icon: '.toggle-icon',
     body: '.section-content',
+    toggleButton: '.section-toggle-button',
   },
   properties: [
     {
@@ -89,8 +90,19 @@ export const collapsibleSectionContract: ComponentContract = {
     observe: { part: 'root', css: 'borderTopWidth', variable: '--collapsiblesection-container-frame-border-width' },
   },
   interaction: {
-    applicable: false,
-    reason: 'without an href, the header toggles via a plain clickable div carrying no interactive role (see the a11y-ignore comment in CollapsibleSection.svelte)',
+    part: 'toggleButton',
+    role: 'button',
+    // No activation case: CollapsibleSectionEditor's preview drives `expanded`
+    // off the active state tab and never wires `ontoggle` back to it, so
+    // clicking the real button here can't move `aria-expanded` (same
+    // constraint documented on ToggleEditor in toggle.ts).
+    cases: [
+      {
+        name: 'clicking the toggle button focuses it',
+        action: { kind: 'click', part: 'toggleButton' },
+        expect: { kind: 'focused', part: 'toggleButton', value: true },
+      },
+    ],
   },
   sketch: {
     style: 'pencil',

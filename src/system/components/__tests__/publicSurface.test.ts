@@ -281,7 +281,7 @@ describe('public components — event dispatch contract', () => {
         });
     let toggled = false;
     c.$on!('toggle', () => { toggled = true; });
-    target.querySelector<HTMLDivElement>('.section-header')!.click();
+    target.querySelector<HTMLButtonElement>('.section-toggle-button')!.click();
     expect(toggled).toBe(true);
     unmount(c);
   });

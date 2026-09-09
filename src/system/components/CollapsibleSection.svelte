@@ -68,10 +68,17 @@
          {@render summary?.()}
       </div>
    {:else}
-      <!-- svelte-ignore a11y_click_events_have_key_events, a11y_no_noninteractive_element_interactions, a11y_no_static_element_interactions -->
-      <div class="section-header" class:expanded onclick={fireToggle}>
+      <div class="section-header" class:expanded>
          <div class="section-toggle">
-            <i class="fas fa-chevron-right toggle-icon"></i>
+            <button
+               type="button"
+               class="section-toggle-button"
+               onclick={fireToggle}
+               aria-label={expanded ? 'Collapse section' : 'Expand section'}
+               aria-expanded={expanded}
+            >
+               <i class="fas fa-chevron-right toggle-icon"></i>
+            </button>
             <span class="section-label">{label}</span>
          </div>
          {@render summary?.()}
