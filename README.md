@@ -322,7 +322,7 @@ npx @motion-proto/live-tokens <command>
 | Command | What it does |
 |---|---|
 | `create <dir> [--force]` | Scaffold a new Svelte + Vite app wired up with live-tokens. |
-| `setup-claude [--force]` | Install the bundled Claude Code skills into `./.claude/skills/`. |
+| `setup-claude [--force]` | Install the bundled Claude Code skills into `./.claude/skills/`; `--force` makes the directory match this release. |
 | `components [id] [--json]` | List every component the project has, shipped and its own, with the props each takes; with an id, its props, variants, tokens, and defaults. |
 | `tokens [--scale <name>] [--json]` | List every design token the project's `tokens.css` declares, by scale, with its value. |
 | `report [--json]` | The project as facts: pending migrations, tokens each component reads, which page renders which component, and both checkers' findings by rule. Always exits 0. |
@@ -346,10 +346,20 @@ The package bundles nine Claude Code skills. They encode the conventions this RE
 npx @motion-proto/live-tokens setup-claude
 ```
 
-This copies every bundled skill into `./.claude/skills/` in the current directory. Re-run it after upgrading the package to pick up new and changed skills, adding `--force` to overwrite. macOS and Linux only. The equivalent by hand:
+This copies every bundled skill into `./.claude/skills/` in the current directory, leaving any that already exist. macOS and Linux only.
 
-```bash
-mkdir -p .claude/skills && cp -R node_modules/@motion-proto/live-tokens/.claude/skills/. .claude/skills/
+Re-run it with `--force` after upgrading. That makes the directory match the release: each bundled skill is replaced outright, so a reference file the release dropped goes with it, and a `live-tokens-` skill the release no longer ships is removed. A skill under any other name is the project's own and is never touched. Without `--force` nothing is deleted and an existing skill is left alone, so a renamed skill keeps shadowing its replacement until a forced run clears it.
+
+A project created with `create` runs the forced form from `postinstall` and gitignores the copy, so the skills track the installed version with nothing to commit. To do the same in an existing project:
+
+```jsonc
+// package.json
+"postinstall": "live-tokens setup-claude --force || exit 0"
+```
+
+```
+# .gitignore
+.claude/skills/live-tokens-*/
 ```
 
 ### `live-tokens-pick-component`

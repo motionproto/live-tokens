@@ -78,7 +78,7 @@ const SUFFIX_SOURCES = [
 // `skills` maps a skill's directory name to its files keyed by the path within
 // it, `SKILL.md` and `references/*.md`; the other three are the sources those
 // files are checked against.
-export function checkSkills({ skills, cli, aliasKinds = '' }) {
+export function checkSkills({ skills, cli, setupClaude = '', aliasKinds = '' }) {
   const errors = [];
   const skillDirs = Object.keys(skills).sort();
   const fileAt = (path) => {
@@ -89,7 +89,7 @@ export function checkSkills({ skills, cli, aliasKinds = '' }) {
   const cliVerbs = dispatchedVerbs(cli);
   const cliFlags = usageFlags(cli);
   const verbsInSkills = new Set();
-  const samplePrompts = new Set([...cli.matchAll(/^\s+'(live-tokens-[a-z-]+)':\s+['"]/gm)].map((m) => m[1]));
+  const samplePrompts = new Set([...setupClaude.matchAll(/^\s+'(live-tokens-[a-z-]+)':\s+['"]/gm)].map((m) => m[1]));
 
   for (const skill of skillDirs) {
     const files = skills[skill];
@@ -186,7 +186,7 @@ export function checkSkills({ skills, cli, aliasKinds = '' }) {
       if (!skillDirs.includes(sibling)) errors.push(`${skill}: refers to skill "${sibling}", which is not bundled`);
     }
 
-    if (!samplePrompts.has(skill)) errors.push(`${skill}: no SAMPLE_PROMPTS entry in bin/cli.mjs, so setup-claude cannot show how to trigger it`);
+    if (!samplePrompts.has(skill)) errors.push(`${skill}: no SAMPLE_PROMPTS entry in bin/setup-claude.mjs, so setup-claude cannot show how to trigger it`);
 
     for (const [, count] of text.matchAll(/^#+ .*\b(\w+)-step\b/gim)) {
       errors.push(`${skill}: a heading promises "${count}-step"; counts drift, so name the recipe instead`);
@@ -207,7 +207,7 @@ export function checkSkills({ skills, cli, aliasKinds = '' }) {
   }
 
   for (const skill of samplePrompts) {
-    if (!skillDirs.includes(skill)) errors.push(`bin/cli.mjs: SAMPLE_PROMPTS names "${skill}", which is not bundled`);
+    if (!skillDirs.includes(skill)) errors.push(`bin/setup-claude.mjs: SAMPLE_PROMPTS names "${skill}", which is not bundled`);
   }
 
   const directions = fileAt(DIRECTIONS);

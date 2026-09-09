@@ -6,6 +6,7 @@ import { checkSkills } from './skillChecks.mjs';
 type Repo = {
   skills: Record<string, Record<string, string>>;
   cli: string;
+  setupClaude: string;
   aliasKinds: string;
 };
 
@@ -39,7 +40,9 @@ check-page also accepts:
   save-theme <name> [--no-activate] [--dry-run]
                               Compose the live state into themes/<slug>.json.
 \`;
+`;
 
+const SETUP_CLAUDE = `
 const SAMPLE_PROMPTS = {
   'live-tokens-create-theme': 'make me a bright and cheerful theme',
   'live-tokens-set-colors': 'give me a cooler palette, same fonts',
@@ -69,6 +72,7 @@ const anchorTable = (title: string, column: string) => `# ${title}
 function repo(edit: (r: Repo) => void = () => {}): Repo {
   const r: Repo = {
     cli: CLI,
+    setupClaude: SETUP_CLAUDE,
     aliasKinds: ALIAS_KINDS,
     skills: {
       'live-tokens-create-page': {
@@ -396,19 +400,19 @@ describe('skills a skill names', () => {
   it('rejects a skill with no SAMPLE_PROMPTS entry', () => {
     const problems = checkSkills(
       repo((r) => {
-        r.cli = r.cli.replace("  'live-tokens-set-type': 'pair some fonts for this theme',\n", '');
+        r.setupClaude = r.setupClaude.replace("  'live-tokens-set-type': 'pair some fonts for this theme',\n", '');
       }),
     );
 
     expect(problems).toEqual([
-      'live-tokens-set-type: no SAMPLE_PROMPTS entry in bin/cli.mjs, so setup-claude cannot show how to trigger it',
+      'live-tokens-set-type: no SAMPLE_PROMPTS entry in bin/setup-claude.mjs, so setup-claude cannot show how to trigger it',
     ]);
   });
 
   it('rejects a SAMPLE_PROMPTS entry for a skill that is not bundled', () => {
     const problems = checkSkills(
       repo((r) => {
-        r.cli = r.cli.replace(
+        r.setupClaude = r.setupClaude.replace(
           "  'live-tokens-create-page':",
           "  'live-tokens-adopt-theme': 'ship the open theme',\n  'live-tokens-create-page':",
         );
@@ -416,7 +420,7 @@ describe('skills a skill names', () => {
     );
 
     expect(problems).toEqual([
-      'bin/cli.mjs: SAMPLE_PROMPTS names "live-tokens-adopt-theme", which is not bundled',
+      'bin/setup-claude.mjs: SAMPLE_PROMPTS names "live-tokens-adopt-theme", which is not bundled',
     ]);
   });
 });

@@ -7,6 +7,10 @@ dist-ssr
 playwright-report/
 test-results/
 
+# The live-tokens skills are a copy of what the package ships; postinstall
+# refreshes them, so they are the package's to version, not this project's.
+.claude/skills/live-tokens-*/
+
 .DS_Store
 .vscode/*
 !.vscode/extensions.json

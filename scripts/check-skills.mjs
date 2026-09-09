@@ -34,6 +34,7 @@ for (const skill of dirNames(SKILLS)) {
 const errors = checkSkills({
   skills,
   cli: read(join(ROOT, 'bin/cli.mjs')),
+  setupClaude: read(join(ROOT, 'bin/setup-claude.mjs')),
   aliasKinds: read(join(ROOT, 'src/editor/core/components/aliasKinds.ts')),
 });
 

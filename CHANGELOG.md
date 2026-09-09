@@ -1,5 +1,40 @@
 # Changelog
 
+## 0.76.0 — The skills directory matches the release
+
+### Changed (breaking)
+
+- **`setup-claude --force` now makes `.claude/skills/` match the release.** It
+  replaced each bundled skill by merging over it, which left two kinds of stale
+  text behind: a skill a release renamed kept its old directory, where it
+  shadowed the replacement, and a reference file a release dropped survived
+  inside a skill that was otherwise current. Both are invisible until a model
+  reads them. A forced run now replaces each bundled directory outright and
+  removes any `live-tokens-` skill the release no longer ships, naming each one
+  it removed. A skill under any other name is the project's own and is never
+  touched, and an unforced run still deletes nothing. 0.75.0's rename of
+  `live-tokens-build-page` to `live-tokens-create-page` is the case that
+  prompted this; the changelog then told a reader to delete the directory by
+  hand.
+
+  Before a forced run, copy any bundled skill you edited in place to a name of
+  your own. A `live-tokens-` directory this release does not ship is deleted
+  without a prompt, and one it does ship is replaced rather than merged.
+
+  `setup-claude` moves out of `bin/cli.mjs` into `bin/setup-claude.mjs` as
+  `runSetupClaude` and `formatSetupResult`, matching `create.mjs`, and gains
+  `bin/setup-claude.test.ts`.
+
+### Changed
+
+- **The `create` template installs the skills from `postinstall` and gitignores
+  them.** A scaffolded project no longer commits nine skill directories the
+  package owns, so a version bump stops showing twenty changed files that
+  nobody wrote. The skills instead refresh on every `npm install`. The
+  postinstall ends in `|| exit 0`: `setup-claude` refuses to run on Windows,
+  and a skills copy must never fail an install. A project created before this
+  release adds the two lines itself; the README carries them.
+
 ## 0.75.0 — A component passes when the tests pass
 
 ### Added

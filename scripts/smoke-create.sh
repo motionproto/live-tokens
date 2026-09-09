@@ -48,6 +48,25 @@ node -e "
 
 echo "→ Installing + building generated app…"
 (cd "$APP_DIR" && npm install --silent --no-audit --no-fund --loglevel=error)
+
+echo "→ Verifying postinstall placed the skills…"
+# The scaffold's postinstall ends in `|| exit 0` so a skills copy can never fail
+# someone's install. That also swallows a broken setup-claude, so assert the
+# result here rather than trusting the install's exit code.
+node -e "
+  const fs = require('node:fs');
+  const path = require('node:path');
+  const dir = path.join('$APP_DIR', '.claude', 'skills');
+  const shipped = fs.readdirSync(path.join('$PKG_DIR', '.claude', 'skills'))
+    .filter((n) => fs.statSync(path.join('$PKG_DIR', '.claude', 'skills', n)).isDirectory());
+  const got = fs.existsSync(dir) ? fs.readdirSync(dir) : [];
+  const missing = shipped.filter((s) => !got.includes(s));
+  if (missing.length) throw new Error('postinstall installed no skills: ' + missing.join(', '));
+  if (!fs.readFileSync(path.join('$APP_DIR', '.gitignore'), 'utf8').includes('.claude/skills/live-tokens-*/')) {
+    throw new Error('scaffold tracks the skills copy: .gitignore has no live-tokens skills entry');
+  }
+"
+
 (cd "$APP_DIR" && npm run build)
 
 echo "✓ Smoke create OK"

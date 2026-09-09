@@ -14,7 +14,7 @@
 //   save-theme <name>        Compose the live state into themes/<slug>.json and open it.
 //   migrate [...]            Reconcile tokens.css, the data tree, and route references.
 
-import { cpSync, existsSync, mkdirSync, readdirSync, statSync, writeSync } from 'node:fs';
+import { writeSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import process from 'node:process';
@@ -40,6 +40,7 @@ import {
 } from './migrate.mjs';
 import { runMigrateRoutes, formatRouteResult } from './migrate-routes.mjs';
 import { runCreate, formatCreateResult } from './create.mjs';
+import { runSetupClaude, formatSetupResult } from './setup-claude.mjs';
 import { runSetColors, formatSetColorsResult } from './set-colors.mjs';
 import { runSetGeometry, formatSetGeometryResult } from './set-geometry.mjs';
 import { runSetType, formatSetTypeResult } from './set-type.mjs';
@@ -407,61 +408,14 @@ if (process.platform === 'win32') {
   fail('setup-claude is macOS/Linux only.');
 }
 
-const force = rest.includes('--force');
-
-const srcSkills = join(pkgRoot, '.claude', 'skills');
-
-if (!existsSync(srcSkills)) {
-  fail(`No bundled skills found at ${srcSkills}. Is the package installed correctly?`);
-}
-
-const skills = readdirSync(srcSkills).filter((name) =>
-  statSync(join(srcSkills, name)).isDirectory(),
-);
-
-if (skills.length === 0) {
-  fail('No bundled skills to install.');
-}
-
-const destSkills = join(process.cwd(), '.claude', 'skills');
-mkdirSync(destSkills, { recursive: true });
-
-let installed = 0;
-let skipped = 0;
-for (const skill of skills) {
-  const src = join(srcSkills, skill);
-  const dest = join(destSkills, skill);
-  if (existsSync(dest) && !force) {
-    console.log(`  skip  ${skill}  (already exists; pass --force to overwrite)`);
-    skipped++;
-    continue;
-  }
-  cpSync(src, dest, { recursive: true });
-  console.log(`  ok    ${skill}`);
-  installed++;
-}
-
-console.log(`\n${installed} installed, ${skipped} skipped, in ${destSkills}`);
-
-const SAMPLE_PROMPTS = {
-  'live-tokens-create-page': 'build a pricing page using live-tokens components',
-  'live-tokens-pick-component': "what's the difference between TabBar and SegmentedControl?",
-  'live-tokens-create-component': 'author a new Toggle component for my live-tokens project',
-  'live-tokens-create-theme': 'make me a bright and cheerful theme',
-  'live-tokens-set-colors': 'give me a cooler palette, same fonts',
-  'live-tokens-set-type': 'pair some fonts for this theme',
-  'live-tokens-set-geometry': 'make the buttons pill shaped',
-  'live-tokens-fix-findings': 'make check:design pass',
-  'live-tokens-check-compliance': 'check this project against the design system',
-};
-
-const installedSamples = skills
-  .map((s) => SAMPLE_PROMPTS[s] && [s, SAMPLE_PROMPTS[s]])
-  .filter(Boolean);
-
-if (installedSamples.length > 0) {
-  console.log(`\nIn Claude Code, prompts like these auto-trigger the matching skill:`);
-  for (const [skill, prompt] of installedSamples) {
-    console.log(`  "${prompt}"\n    ${skill}`);
-  }
+try {
+  const result = runSetupClaude({
+    pkgRoot,
+    cwd: process.cwd(),
+    force: rest.includes('--force'),
+  });
+  console.log(formatSetupResult(result));
+  process.exit(0);
+} catch (err) {
+  fail(err instanceof Error ? err.message : String(err));
 }
