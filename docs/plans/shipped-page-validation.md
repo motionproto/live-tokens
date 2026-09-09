@@ -2,271 +2,320 @@
 
 ## Goal and scope
 
-Ship a page validator that a consumer can run against a new page in its own
-application. The validator combines the existing source checks with browser
-assertions over actual routes, viewports, themes, and declared interactions.
-A fresh project must run the documented command using the package tarball
-before release.
+Prove that a page uses the shipped components and the design tokens, as
+rendered. `check-page` proves it in source today. This plan adds the part only
+a rendered page can prove: that the cascade left every component painting from
+its semantic properties, that every run of text sits in one shipped text style,
+that every text and surface pair the page composes meets AA, that sections sit
+on the page grid, and that nothing overflows its container. It also closes two
+source-level gaps the static checker can catch on its own.
+
+`npx live-tokens check-page <file> --tests` runs the source rules, then a
+Playwright suite against the page's own route in the consumer's own app, and
+reports every failure as a finding with a rule id and a line in the page file.
 
 [Shipped component validation](shipped-component-tests.md) owns registration,
-editor controls, component token wiring, component states and interactions,
-persistence, and Sketch paint. This plan owns composition: correct component
-usage, rendered typography and spacing, containment, semantic structure, and
-page behavior. Page tests verify that composition preserves component
-behavior. They do not rerun every component editor contract.
+editor controls, token wiring, states, interactions, persistence, and Sketch.
+This plan reuses its runner, data isolation, tool resolution, findings,
+coverage, and consumer gate. Page tests never rerun a component contract.
 
-The plans share test configuration, tool resolution, server lifecycle, data
-isolation, findings, coverage reporting, and consumer acceptance infrastructure.
-Implement this plan after the component runner's public configuration and
-coverage interfaces stabilize. Each plan retains its own acceptance gate.
+Out of scope, and kept in the create-page skill's editorial review: routes and
+parameters, forms and Reset, dialog confirmation, progress indication, focus
+order, heading levels, alt text, labels, content priority, and reading order.
+Those are usability and accessibility. This plan is design-system compliance.
+
+## Status
+
+| Wave | Deliverable | Status | Commit |
+|---|---|---|---|
+| 1 | Two static rules: `native-control` and `property-override` | Not started | |
+| 2 | Page targets, the page suite, `page-component-paint` and `page-text-style` | Not started | |
+| 3 | `page-contrast`, `page-grid`, `page-overflow`, and the defect fixtures | Not started | |
+| 4 | `check-page --tests`: runner, reporter mapping, coverage | Not started | |
+| 5 | Consumer gate, template, skills, atlas, changelog | Not started | |
 
 ## Current behavior
 
-`bin/check-page.mjs` checks source files for component and prop usage, token
-references, literal values, typography axes, grid conventions, primary-action
-counts, destructive-action dialog imports, and route metadata. Its discovery
-returns source files; it does not supply executable route scenarios.
+`bin/check-page.mjs` proves, per page: every imported component is in the
+catalogue, every prop is declared and every prop value is in its union, every
+`var()` names a design token or a semantic property, and no color literal, no
+themed-geometry literal, and no raw font axis survives. `report` lists the
+pages that render no catalogue component. `discoverPages` returns source files
+and knows nothing about routes.
 
-The `live-tokens-create-page` skill then asks the author to inspect the page.
-Some obligations have objective browser assertions: heading structure,
-containment, default values, Reset, image alternatives, and behavior. Others
-require editorial judgment: content priority, useful labels, visual reading
-order, and whether decoration conveys information.
+What a page can still do wrong, and what each rule below catches:
 
-Source checks and component tests leave a composition gap. A page can use a
-valid component but override its typography, clip its focus indicator, or wire
-its destructive action directly to a mutation. This plan tests those outcomes.
+| Defect | Passes today because | Rule |
+|---|---|---|
+| A raw `<button>` or `<input>` where Button or Input belongs | Markup carries no token | `native-control` |
+| `--card-default-body-padding: var(--space-8)` on one instance | The value is a token | `property-override` |
+| `button { border-radius: var(--radius-full) }` in site.css | The value is a token; only the cascade knows it reached every Button | `page-component-paint` |
+| Paragraphs inside a container set in a heading style | Inheritance is invisible to source | `page-text-style` |
+| `--text-secondary` on `--surface-brand` | The theme gates its own pairs; the page made a new one | `page-contrast` |
+| A section whose edges sit off the column lines | A `grid-column` number is not a value the checker can place | `page-grid` |
+| A Button clipped by a narrow column, or a horizontal scrollbar at 390px | Geometry is not in source | `page-overflow` |
 
-## Public workflow
+## Reserved judgment calls (already decided, do not re-litigate)
 
-Keep `live-tokens check-page [paths...]` unchanged without `--tests`.
+1. **Opt in by flag, always on in the skill.** `check-page` without `--tests`
+   is the lint it is today, byte-identical. The create-page skill passes
+   `--tests --strict`. `report` stays static and says so.
+2. **No scenario file.** A page target is a source file plus the route whose
+   entry names it in `source`. The suite derives everything else from the
+   rendered page and the shipped component contracts. There is no page
+   contract type, no declared regions, no text roles, no app-state setup, no
+   mock services, no declared expectations of any kind.
+3. **Routes come from the route table.** The file that renders
+   `LiveTokensRouter` is found by import; its `pages` object is read the way
+   `missing-source` already reads `lazy:` entries, and `source` maps each
+   route to a page file. A route the table cannot express, one served by
+   `resolve()`, is mapped in `live-tokens.testing.ts` under a new
+   `pageRoutes` setting, page path to concrete URL. A target with neither is
+   a `tests-setup` finding naming the file. Parameter values are never
+   guessed, and the app entry point is never imported into Node.
+4. **Two fixed viewports.** 1280x900, the contract project's own, and
+   390x844. The settings file may replace the list under `pageViewports`.
+   Nothing is derived from a page's breakpoints.
+5. **One theme.** The isolated data copy strips the session pointers, so the
+   run boots the project's default theme. The static rules prove the page is
+   written in tokens; `page-component-paint` proves the cascade kept them.
+   A theme change then follows by construction and is not retested.
+6. **Instances are found by contract root selectors.** Each shipped contract
+   declares `root` and `parts`. The suite resolves the root selector inside
+   the mounted page container, never the overlay, and reads the instance's
+   variant from its root class list against the contract's variant labels
+   lowercased. Button renders `class="button primary"`; every variant-keyed
+   contract follows that convention or the wave records the exception.
+7. **Rules read the theme from `:root` at the same viewport.** Text styles
+   carry media overrides at 768px and 480px, so the expected axes are the
+   computed custom properties at that viewport, never values read from a
+   file.
+8. **Findings anchor on the page file.** `file` is the route's `source`.
+   `line` comes from Svelte's dev-build element metadata, which names the
+   file and line of every element the page renders. For an element inside a
+   component, the nearest ancestor whose metadata names the page file gives
+   the line of the instance. When metadata is absent, line 1, as the
+   component plan documents.
+9. **Rule ids.** Static: `native-control`, `property-override`, both `warn`
+   by default, on the same reasoning as `control-size`. Runtime:
+   `page-component-paint`, `page-text-style`, `page-contrast`, `page-grid`,
+   `page-overflow`. Shared: `tests-not-installed`, `tests-setup`,
+   `tests-incomplete`. Runtime rules accept `--off`, which shows as
+   `disabled` coverage and cannot establish a complete pass.
+10. **Inapplicable is a status with a reason**, never a silent pass:
+    `page-grid` below 768px, `page-contrast` over an image, gradient,
+    translucent ancestor, or blend mode, `page-component-paint` on a page
+    with no shipped instance, `page-text-style` on a page with no text.
+11. **Playwright only.** The page suite spawns no Vitest run. The runner's
+    required tools stay the three the component run lists, so one install
+    serves both commands.
+12. **Version.** A new flag, two new settings, two new static rules, and
+    five new runtime rules are a minor bump under `Unreleased`.
 
-```sh
-npx live-tokens check-page src/pages/Pricing.svelte --tests --strict --json
-```
+## Global invariants (reviewer checklist)
 
-With `--tests`, resolve each target to explicit page scenarios, run source
-checks, then execute the shipped browser contracts. With no paths, use the
-existing source discovery and reconcile the results against page scenarios.
-Supporting CSS receives static checks and coverage through the pages that
-consume it. Explicit file-role metadata identifies supporting Svelte files;
-a source file cannot disappear from coverage merely because it lacks a route.
-Missing files, zero page targets, and missing route mappings fail explicitly.
+1. **The lint is unchanged without the flag.** `check-page` with no `--tests`
+   produces byte-identical output to `main` for `check-page.test.ts` and the
+   template, except for the two static rules Wave 1 adds, whose fixtures are
+   the only diff.
+2. **Shipped code imports shipped code.** Nothing under `src/testing/`
+   imports from `src/app/` or `tests/`. The contrast helper comes from
+   `src/editor/core/palettes/contrast.ts`.
+3. **Nothing loads a test tool at module top.** `bin/cli.mjs`,
+   `bin/check-page.mjs`, and `bin/contractRunner.mjs` import neither
+   `@playwright/test` nor `vitest`. `bin/engineLoadsLazily.test.ts` stays
+   green with `dist-plugin/` moved aside.
+4. **No scenario type reaches `./testing`.** The two new settings,
+   `pageRoutes` and `pageViewports`, are the whole public surface.
+5. **The data tree is untouched.** Tests write only to the isolated copy.
+   `node scripts/check-production-is-default.mjs` at every wave boundary.
+6. **Defect fixtures never ship and are never discovered.** They live under
+   `tests/e2e/page-defects/`, mount only on the demo app's dev-only defect
+   routes, and appear in no consumer run.
+7. `npm run check`, `npm test`, `npm run test:e2e:contract`, `check:skills`,
+   `check:skill-atlas`, `check:skill-sources`, `check:smoke-install`,
+   `check:smoke-create`, and `check:smoke-component-tests` green at every
+   wave boundary. Wave 5 adds `check:smoke-page-tests`.
+8. Nothing pushed, tagged, or published by an executor.
 
-Add `test:pages` to the create template. Keep its existing fast `check:design`
-script. Keep the component test script separate. `report` remains a static
-audit in this plan and states that scope in the compliance skill.
+## Commit-unit protocol
 
-The command returns findings and machine-readable coverage. A complete pass
-means every applicable automated obligation ran for the declared scenarios.
-It establishes the page's automated design-system contract. The report also
-lists the editorial review obligations that remain.
+One wave, one commit. Run the wave's verification green before committing;
+never commit red. Commit message `Page tests W<n>: <summary>` plus the standard
+co-author trailer. Do not push, tag, or release. Stop after each wave for
+review. If reality contradicts this plan (a cited file is missing, a check pins
+conflicting behavior), stop and report rather than improvise.
 
-## Page scenarios
+Never stash, reset, or checkout over uncommitted changes.
 
-Extend `live-tokens.testing.ts` from the component plan with typed page
-scenarios. Export the type and definition helper through `./testing`. Document
-one minimal template example and one page with interactions.
+## The rules
 
-Each page scenario declares:
+### Static, in `bin/check-page.mjs`
 
-- A stable ID, source file, concrete route, and page-root locator.
-- Viewports derived from the page's supported layout range, including narrow
-  and wide widths and relevant breakpoint boundaries. The template supplies
-  explicit defaults; projects can replace them with their supported range.
-- Deterministic content and app-state setup, including representative long,
-  empty, loading, and error states when the page supports them.
-- Named text roles and layout regions where generic semantics are insufficient.
-- Component instances whose page integration requires behavioral checks.
-- Form defaults, Reset outcomes, action groups, destructive actions, and
-  long-running actions when present.
-- Expected theme projections for representative text, surfaces, and geometry.
-- Explicit exceptions or inapplicable checks, each with a reason and scope.
+| Rule | Finding | Message names |
+|---|---|---|
+| `native-control` | A `<button>`, `<input>`, `<select>`, or `<textarea>` tag in a page's markup. | The shipped component for the element: Button or IconButton, Input, MenuSelect, Input. |
+| `property-override` | A page declares or sets a name in the vocabulary's `componentTokens`, in a style block, an inline `style`, a `style:` directive, or `setProperty`. | The component, and that the whole project retunes it at `/live-tokens/components`. |
 
-Static route tables may supply initial mappings. Dynamic, parameterized, and
-gated routes require concrete URLs and local test setup. Do not guess parameter
-values or import the application entry point into a Node test process. The
-browser boots the real application through its ordinary entry point.
+`declaredHere` already collects the names a page declares in every one of
+those places, so `property-override` is the intersection of that set with
+`vocab.componentTokens`, and `unknown-token` is unchanged.
 
-Use deterministic local fixtures and intercepted or local mock services for
-application data. Destructive-action tests must verify a mock mutation and
-must never call a production service. The scenario explicitly supplies that
-setup. Reset browser storage, app state, and isolated token data between cases.
-Missing required setup is a setup failure.
-
-Contract metadata supplies expected outcomes. Shared helpers make the
-observations and assertions. Require scenarios to cover discovered forms,
-actions, and declared layout regions; report gaps instead of treating empty
-locator sets as passing tests. Document the limits of inference for arbitrary
-custom markup and JavaScript behavior.
-
-## Automated contracts
+### Runtime, in `src/testing/page-*.contract.ts`
 
 | Rule | Obligation | Evidence |
 |---|---|---|
-| `page-route` | The intended page mounts at its declared URL. | Expected page root and identity appear; route errors and uncaught application errors fail. |
-| `page-semantics` | Page structure follows the page skill. | One visible page `h1`, ordered heading levels, image alternative attributes with decorative exceptions, and accessible field/control names. |
-| `page-typography` | Text roles render with their assigned type styles. | Compare computed font axes with the expected semantic token bundle; check label/body size relationships where the contract identifies them. |
-| `page-layout` | Controls and declared regions fit their intended containers. | Bounding-box and overflow assertions at each viewport; explicit handling for intentional scroll regions, portals, and overlays. |
-| `page-theme` | Page surfaces project the active design tokens. | Deterministic theme changes produce expected computed colors, type, and geometry for mapped surfaces; unchanged values remain valid. |
-| `page-focus` | Keyboard use preserves access to page controls. | Declared tab sequence, focus reachability, focus return from dialogs, and visibility of the active control and its focus treatment. |
-| `page-actions` | Action groups and destructive or long-running actions satisfy their contracts. | Primary/secondary roles, cancel behavior, confirmation before mock mutation, cancellation with no mutation, and observable progress during controlled pending state. |
-| `page-form` | Defaults and Reset work in the composed page. | Compare declared defaults with rendered values, edit fields, invoke Reset, and assert values and dependent state. |
-| `page-component-integration` | Page composition preserves required component behavior. | Execute the declared instance actions and check observable results, disabled behavior, and relevant style expectations in the page. |
+| `page-component-paint` | Every shipped component instance on the page paints each contracted part from its semantic property. | For each instance found by a contract root selector, and for each `paints` entry that applies to its variant with no `state` or `setup`, the part's computed value equals the resolved value of the named property on that instance, normalized the way `assertPaintsFromToken` normalizes. |
+| `page-text-style` | Every block-level element with its own text renders in one shipped text style. | Family, size, weight, line-height, and letter-spacing equal one bundle among `heading-*`, `body-*`, `editorial-*`, and `code`, read from `:root` at the viewport. Elements inside a shipped component root are the paint rule's; inline phrasing elements are skipped. The message names the nearest bundle and the axis that missed. |
+| `page-contrast` | Every text and surface pair the page composes meets AA. | Effective background is the first opaque ancestor background. Ratio at or above 4.5, or 3.0 at 24px, or 18.66px at weight 700 and above. The message names both computed colors and the tokens on the element and the surface ancestor when their resolved values match one. |
+| `page-grid` | Sections sit on the page grid. | The page grid is any element whose computed track count equals `--columns-count`. Each direct child's left and right edges land on a track edge within 1px. A page with no such element is a finding: the skill says the page is the column grid. Inapplicable below 768px. |
+| `page-overflow` | Nothing overflows its container. | `documentElement.scrollWidth` is at most the viewport width. No element in the page has `scrollWidth` beyond `clientWidth` plus 1px unless its `overflow-x` is `auto` or `scroll`. Every shipped instance root's box lies inside its nearest clipping ancestor. |
 
-Retain existing static rule IDs and severity settings. Static token checks
-remain necessary: matching a computed value alone cannot establish that source
-code uses the correct design token. Runtime checks catch cascade and state
-problems that source inspection misses.
+Each rule runs at both viewports except as marked. Coverage is reported by
+page, rule, and viewport. A rule that observed nothing on a page reports
+`inapplicable` with the reason, never `passed`.
 
-The first implementation uses Chromium and explicit viewport/theme scenarios.
-It makes no cross-browser or exhaustive accessibility claim. Snapshot images
-serve as failure evidence; screenshots alone do not determine compliance.
+## Wave 1 — the two static rules
 
-## Review boundaries
+**Files.** `bin/check-page.mjs`, `bin/check-page.test.ts`,
+`.claude/skills/live-tokens-fix-findings/SKILL.md` gains two rows in The
+remaining rules, and the atlas syncs.
 
-Create a coverage matrix from every current create-page verification item.
-For each item, record the static rule, browser rule, explicit scenario
-requirement, or editorial review obligation that owns it. No item disappears
-when the skill changes.
+**Do.** Add `native-control` and `property-override` to `PAGE_RULES` at
+`warn`. `native-control` reads the markup region with the same tag scan
+`checkComponentUsage` uses, skipping tags inside `{@html}` and skipping
+`<input type="hidden">`. `property-override` intersects `declaredHere` with
+`vocab.componentTokens`, one finding per name at its first site.
 
-Keep these obligations in the authoring review:
+**Verify.** A fixture per rule fails, a clean page passes, and every existing
+fixture's output is unchanged. `npx live-tokens check-page` on the template
+and on this repo adds no finding. `check:skills`, `check:skill-atlas`,
+`check:skill-sources` OK.
 
-- Content priority and the intended first, second, and third points of attention.
-- Labels that use the audience's language and meaningful image descriptions.
-- Whether borders, headers, and containers convey useful information.
-- Reading comfort and visual balance, including the skill's line-length advice.
-- Placement of secondary settings and actions when purpose determines placement.
+## Wave 2 — page targets and the first two runtime rules
 
-A declared contract can turn a specific design decision into an assertion,
-such as the alignment of two regions or an action's position. Generic geometry
-cannot decide the correct design intent for every page. The report identifies
-those limits and the skill retains the corresponding review instructions.
+**Files.** New `bin/lib/pageRoutes.mjs`, `src/testing/config.ts`,
+`src/testing/playwright.ts`, new `src/testing/page-compliance.contract.ts`,
+new `src/testing/support/pageHarness.ts`, and `src/editor/overlay/
+LiveTokensRouter.svelte` if the page container needs a stable attribute.
 
-## Runner and findings
+**Do.**
 
-Add page suites under `src/testing/page-*.contract.ts`. Keep them in a separate
-Playwright project with an explicit match pattern. The registry Vitest suite
-and component browser suites remain separate. Page tests require the shared
-browser dependencies; resolve only tools this command actually invokes.
+- `resolvePageTargets(paths, root)` returns `[{ source, route }]`. It finds
+  the router file by its `LiveTokensRouter` import, reads the `pages`
+  object's `source` fields, merges `pageRoutes` from the settings file with
+  the same static scrape `scrapeSettingsField` uses, and fails a target with
+  no route. With no paths, every mapped page is a target.
+- `pageRoutes` and `pageViewports` join `LiveTokensTestingConfig` and
+  `resolveTestingConfig`, exported through `./testing`.
+- `createPlaywrightConfig` gains a `page` project matching
+  `**/page-*.contract.{ts,js}`, workers 1, targets passed through a
+  `LIVE_TOKENS_PAGES` environment variable as JSON.
+- The harness opens a route, waits for the page container, `fonts.ready`,
+  and network idle, and exposes `instances()`, `textElements()`, and
+  `lineOf(element)` from Svelte's element metadata. Verify the metadata is
+  present under the consumer's default Vite dev build; record the fact.
+- The suite implements `page-component-paint` and `page-text-style` and
+  throws `PageViolation`, a sibling of `ContractViolation` carrying rule,
+  source, and line.
 
-Extend the shared runner with page target selection, scenario setup, and
-per-viewport/theme results. Reuse automatic isolated data and controlled server
-startup. The server must write only to its isolated data copy. Default to one
-worker for scenarios that share a server or mutable state. Parallel execution
-requires separate state and data directories.
+**Verify.** The suite runs green against the template's Home page and
+against this repo's `src/app/Home.svelte` and `src/demo/Demo.svelte`, or
+each finding it raises on them is either fixed in the page or recorded here
+as a calibration note with the rule change it caused. Concrete instances
+before architecture: the two demo pages are the first ground truth, and a
+rule that fails on a correct page is the rule's defect.
 
-Keep `{ rule, file, line, message }` findings. Attach page/scenario ID, route,
-viewport, theme, locator, expected value, actual value, and artifact paths as
-structured context. Prefer a reliable consumer source location; otherwise use
-the scenario definition or suite location and label that origin. Preserve the
-actual reporter location and use the shared fallback policy for setup failures.
+## Wave 3 — the last three rules and the defect fixtures
 
-Reuse `tests-not-installed`, `tests-setup`, and `tests-incomplete`. Unknown
-routes, authentication setup failures, missing roots, browser failures,
-malformed reports, zero scenarios, and unexpected skips cannot produce a
-complete pass. Reconcile the expected scenario matrix with actual results.
-Explicit rule suppression remains visible as disabled coverage. The authoring
-workflow requires complete applicable coverage under strict settings.
+**Files.** `src/testing/page-compliance.contract.ts`,
+`src/testing/support/pageHarness.ts`, new `tests/e2e/page-defects/` with one
+page per rule and one clean page, `src/app/App.svelte` for the dev-only defect
+routes, and `playwright.config.ts` for a `page-defects` project.
 
-## Execution waves
+**Do.** Implement `page-contrast`, `page-grid`, and `page-overflow`. Write
+one deliberate defect per runtime rule: a site.css radius on every button, a
+heading-styled container with paragraphs inside, secondary text on a brand
+surface, a section spanning columns 2 to 12 with an edge off the line, and a
+fixed-width control in a 390px column. Write the positive exceptions: a
+gradient hero marked inapplicable, a horizontally scrolling code block, a
+local three-column grid inside a section, and a page with no shipped
+instance.
 
-Inspect the current worktree and record baseline checks before implementation.
-Preserve existing edits. Each wave ends with its required checks green and a
-review of its acceptance evidence. No wave publishes a release.
+**Verify.** Each defect fails with its rule id and the page file's line.
+Each exception passes or reports `inapplicable` with its reason. The clean
+page passes at both viewports. `test:e2e:contract` unchanged.
 
-| Wave | Deliverable | Status |
-|---|---|---|
-| 1 | Page contract inventory, typed scenarios, and route selection | Not started |
-| 2 | Browser assertions and deliberate-defect fixtures | Not started |
-| 3 | CLI runner, coverage, diagnostics, and failure handling | Not started |
-| 4 | Tarball consumer acceptance and authoring workflow | Not started |
+## Wave 4 — `check-page --tests`
 
-### Wave 1 — contract inventory and scenarios
+**Files.** `bin/cli.mjs`, `bin/check-page.mjs`, `bin/contractRunner.mjs`,
+`bin/check-page.test.ts`, `bin/contractRunner.test.ts`.
 
-**Files.** `bin/check-page.mjs`, new `src/testing/pages.ts`, the shared testing
-configuration types and `./testing` exports, and page fixture definitions.
+**Do.** Extract from `runContractTests` the parts both runs share: tool
+findings, isolation, generated configs, spawn, report reading, infrastructure
+classification, and cleanup. Add `runPageTests(targets)`, which writes the
+Playwright config with only the `page` project, sets `LIVE_TOKENS_PAGES`, and
+maps the report: `PageViolation` to a finding at the page file and line,
+timeouts and interruptions to `tests-incomplete`, and expected page, rule,
+and viewport triples reconciled against results. `check-page --tests` runs
+the static rules first and appends the runtime findings and a coverage
+section to `--json`. Static output and severity behavior are untouched.
 
-**Work.** Record the coverage matrix for the current skill, define scenario
-validation, and connect source targets to concrete URLs. Keep static discovery
-and no-flag behavior compatible. Add positive fixtures for a simple content
-page and a form page with dialog, Reset, and pending state. Add route cases for
-static, parameterized, and locally gated pages. Specify CSS/supporting-file
-coverage and scoped exceptions.
+**Verify.** Single file, directory, and omitted targets. Unknown route,
+missing Chromium, dev-server failure, malformed report, timeout,
+interruption, `--off` on a runtime rule, and zero targets each exit nonzero
+with the expected rule. `node scripts/check-production-is-default.mjs` after
+a run that failed and a run that was interrupted. The static command runs
+with `@playwright/test` absent.
 
-**Gate.** Unit cases prove target selection, route mapping, schema validation,
-missing coverage, and zero-target failures. Existing static checker fixtures
-retain identical output without the flag. Review the matrix before expanding
-browser assertions.
+## Wave 5 — the consumer gate, the template, the skills, and the changelog
 
-### Wave 2 — page browser contracts
+**Files.** New `scripts/smoke-page-tests.sh` and `scripts/lib/pageGate.mjs`,
+`package.json`, `.github/workflows/publish.yml`, `template/package.json`,
+`template/README.md`, `.claude/skills/live-tokens-create-page/SKILL.md`,
+`.claude/skills/live-tokens-check-compliance/SKILL.md`,
+`.claude/skills/live-tokens-fix-findings/SKILL.md`, the atlas trees, and
+`CHANGELOG.md`.
 
-**Files.** New `src/testing/page-*.contract.ts`, shared browser helpers, and
-consumer-shaped fixture pages and mock data.
+**Do.**
 
-**Work.** Implement each rule from the automated-contract table. Drive real
-routes and user interactions. Wait for fonts, hydration, and deterministic
-app readiness before observing layout. Use expected token projections and
-explicit geometry tolerances. Restore baseline state between cases.
+- The gate packs the built package into a fresh project outside the
+  repository, alongside a fresh `create` case, and runs the documented
+  command on a clean page and on one page carrying a site.css override. The
+  clean page passes; the override fails `page-component-paint` at the page
+  file. Source-tree hashes prove the data tree is unchanged. Keep the run to
+  those two pages; the component gate measured what a batch costs.
+- The template's `test:design` becomes
+  `live-tokens check-component --tests && live-tokens check-page --tests`.
+- create-page's Verify runs `npx live-tokens check-page <file> --tests
+  --strict` after live-tokens-check-compliance. The manual line "every
+  control stays inside its wrapper" moves to the automated run. Every other
+  editorial line stays.
+- check-compliance gains one paragraph: `report` stays static; `check-page
+  --tests` is what create-page runs for the rendered page, and its five rule
+  ids are read the same way.
+- fix-findings gains five rows in The remaining rules, each naming the page
+  file line the finding carries and the repair: remove the global rule and
+  retune in the editor, set the container's text style on the text element,
+  pick the text token the surface pairs with, move the edge to the column
+  line, give the control its shipped width.
+- After every skill edit run `npm run sync:skill-atlas` and
+  `npm run sync:skill-sources`.
 
-**Gate.** Valid fixtures pass at the declared widths and themes. One deliberate
-defect per rule fails with the expected rule ID: wrong route, heading or label
-defect, type override, narrow-width overflow, stale theme paint, lost focus,
-unconfirmed mock mutation, broken Reset, and broken component integration.
-Add positive exception cases for intentional scrolling, decorative images,
-portaled dialogs, and unchanged theme values. Verify a missing required
-locator or interaction scenario produces incomplete coverage.
-
-### Wave 3 — command and diagnostics
-
-**Files.** `bin/cli.mjs`, `bin/check-page.mjs`, shared contract runner, reporter
-mapping, and command tests.
-
-**Work.** Add `--tests` to page checking and generate explicit runner configs
-through the shared infrastructure. Aggregate source and browser findings;
-report coverage by page, scenario, rule, viewport, and theme. Keep ordinary
-static output and severity behavior intact. Attach failure traces/screenshots
-without making visual snapshots the pass criterion.
-
-**Gate.** Test single-file, directory, and omitted-target commands. Exercise
-unknown routes, missing scenario setup, missing Chromium, server failure,
-malformed reports, timeout, interruption, unexpected skips, and disabled
-rules. Confirm nonzero exits for incomplete runs and verify cleanup and
-source-data hashes. The static command runs without browser dependencies.
-
-### Wave 4 — consumer gate and workflow
-
-**Files.** New `scripts/smoke-page-tests` implementation and package script,
-CI release checks, create-template configuration and README,
-`.claude/skills/live-tokens-create-page/SKILL.md`, fix-findings and compliance
-skills, related atlas trees, and `CHANGELOG.md`.
-
-**Work.** Add `check:smoke-page-tests`. Pack the built package and install it
-into a fresh project outside the repository, alongside a freshly generated
-create-template case. Create the fixture pages and run the documented commands.
-Use only package exports and local fixture services. Include a custom component
-whose component contract passes, then prove that a page-only override or event
-wiring defect fails the page contract.
-
-Update the page skill to run strict page tests with complete applicable
-coverage after the static compliance report. Replace only the manual items
-whose automated cases establish equivalent coverage. Retain the editorial
-review list. Map page and shared runner findings to concrete repair guidance.
-Sync skill sources and atlas references after each skill change.
-
-**Gate.** Both fresh consumers pass their valid fixtures and reject the defect
-matrix with expected findings. Exercise custom Vite settings and a parameterized
-route. Verify source data stays unchanged on success, failure, and interruption.
-Run the repository checks, unit tests, component acceptance gate, page browser
-suite, skill checks, smoke install, and smoke create. Add the page consumer gate
-to pre-release CI. Record the command, coverage totals, and expected defect
-findings as acceptance evidence.
+**Verify.** `check:smoke-page-tests` OK and wired into `publish.yml` beside
+the component gate. `check:skills`, `check:skill-atlas`, `check:skill-sources`,
+`check:smoke-install`, `check:smoke-create`, `check:smoke-component-tests`,
+`npm run check`, `npm test`, `test:e2e:contract`, and the page defects
+project all green. Record the command, the coverage totals, and the expected
+defect findings here as acceptance evidence.
 
 ## Completion criteria
 
-The installed package validates a new page through its documented command in
-a fresh consumer. It reports objective violations with actionable context,
-accounts for every required scenario, and preserves the consumer's data.
-Its skill distinguishes the automated pass from the remaining editorial
-review. Both this gate and the component gate must pass before the system
-claims shipped validation for new components and pages.
+In a fresh consumer, the installed package proves through its documented
+command that a page's rendered components paint from their semantic
+properties, that its text sits in the theme's text styles, that its text and
+surface pairs meet AA, that its sections sit on the page grid, and that
+nothing overflows, and it names the page file line of each failure. The
+static checker catches raw controls and per-instance property overrides
+before a browser opens. The create-page skill runs the command and keeps its
+editorial review for what no rule decides.
