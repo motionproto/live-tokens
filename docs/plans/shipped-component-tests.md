@@ -699,6 +699,48 @@ the gate after its template edits.
 **Verify.** `check:smoke-component-tests` green, `check:smoke-install` and
 `npm test` green. Invariants 5, 6, 7.
 
+**Batch scope.** The gate batches over the consumer's authored components plus
+one shipped component, never the whole catalogue. A full 27-component batch
+cost 729 of the gate's 800 seconds and re-proved components that
+`npm run test:e2e:contract` already covers here in 2.5 minutes. The batch
+exists to prove omitted-id discovery, `expectedIds` reconciliation, and
+`workers: 1` serialization across the tarball boundary, and a small batch
+proves all three. Test on a change.
+
+**Consumer-side defect coverage stops at `contract-alias`.** The Wave 5a review
+asked for `contract-registry`, `contract-render`, and `contract-listed` as
+well, and the reasoning is sound: `bin/contractRunner.mjs:496-509` branches
+three ways on artifact resolution and the gate exercises one, the Vitest half
+of the pipeline (`mapVitestResults`, `extractViolationArray`,
+`mapRegistryViolation`) has no failing-path coverage across the tarball
+boundary at all, and `structuralRule` resolves the render suite by compiled
+spec filename, which nothing verifies. Repo-side fixtures do not substitute,
+because they patch a contract in-process and never cross the reporter or the
+child process. The gap is accepted deliberately to bound this plan's authoring
+cost. Close it by adding three scenarios to `componentGate.mjs`: mutate the
+copied `register.ts` for registry, ship a `contracts.ts` variant mapping one
+property to the wrong part for render, and set `origin: 'system'` for listed.
+
+**No dedicated `verify.yml` step.** The gate runs through `prepublishOnly`,
+which gates the release. Keeping a multi-minute job out of the per-commit
+workflow is deliberate.
+
+**Follow-ups the Wave 5a review measured.**
+
+1. `componentGate.mjs:434` overstates the decoy proof: hash equality shows the
+   tree was not written, and the real proof is the clean pass exiting 0.
+2. `expectSketchInapplicable` is never passed `false` and its message
+   hardcodes `beacon:` regardless of the id.
+3. `--off` is never exercised in a consumer, so "a disabled check cannot
+   establish a complete pass" stays unproven across the tarball boundary.
+4. `tsconfig.json` includes only `src/**`, so the fixture sources sit outside
+   `npm run check`. A change to `Token`, `ComponentContract`, or
+   `registerComponent`'s signature surfaces only when the gate runs, as a
+   collection failure.
+5. `componentGate.mjs:96` and `:405` rewrite the template by literal string
+   match. Both anchors exist today and a no-op fails loudly, but Wave 5b edits
+   the template. Assert that each replacement changed the file.
+
 ### Wave 5b — template, skills, atlas, and changelog
 
 **Executor:** Sonnet. **Reviewer:** Fable. The reviewer reads every edited
