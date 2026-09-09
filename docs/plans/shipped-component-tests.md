@@ -510,9 +510,19 @@ reviewer measured:
    everything else.
 3. `CONTRACT_TEST_DIR` (`playwright.ts:23`) is `dirname(import.meta.url)` and
    survives splitting only if the chunks share one flat output directory.
-4. Reporter locations become compiled-JS lines. Decision 8 wants assertion
-   locations preserved, so ship sourcemaps and have Wave 4 map them, or record
-   that findings carry `.js` lines.
+4. **Playwright reports no assertion location under `node_modules`.** The
+   Wave 3b review measured this twice: outside `node_modules` a failure
+   carries `error.location` even with the `.ts` deleted, and the identical
+   compiled file inside `node_modules` returns `undefined` for both an
+   `expect()` failure and a bare `throw`, because Playwright filters
+   `node_modules` frames out of the stack it derives locations from.
+   Sourcemaps do not change it. The only machine-readable location is
+   `spec.file` plus `spec.line`, which names the `test()` declaration rather
+   than the assertion and maps to a `src/testing/*.ts` path the tarball does
+   not contain. Making that path resolve would mean shipping the `.ts`
+   sources, which the `{ts,js}` glob turns straight into double collection in
+   every consumer. Ship sourcemaps anyway, since they cost nothing and enrich
+   the diagnostic context, and anchor findings as Wave 4 states.
 5. `build:lib` gains this build. CI runs `npm test` before the build, so
    nothing in the unit suite may import the compiled output.
 
@@ -546,6 +556,22 @@ and a new `bin/contractRunner.mjs`.
 3. **Read `settings.viteConfig` or delete it.** It is a declared public
    setting with no reader, kept only because this unit generates a Vitest
    config that imports the consumer's Vite config by path.
+4. **A finding's `file` and `line` name the consumer's own artifact.** Wave
+   3b established that no assertion location survives from a suite running
+   under `node_modules`. So `file` is the artifact under test, meaning the
+   component's editor or runtime file, or
+   `component-configs/<id>/default.json`, with decision 8's documented line-1
+   fallback where no consumer artifact exists. The sourcemapped
+   `src/testing/*.contract.ts` frame belongs in the diagnostic context and
+   never in `file` or `line`, because that path is absent from the tarball and
+   a reader cannot open it. Never invent assertion precision.
+5. **Consumer contracts are unreachable, and Wave 5a's gate depends on them.**
+   `component-editor.contract.ts:6` and `component-render.contract.ts:681`
+   call `selectedContracts()` with no argument, so only `shippedContracts`
+   runs. `LiveTokensTestingConfig.contracts` is a declared setting with no
+   reader, the same shape as `viteConfig`. Static bundling makes an
+   environment variable plus a dynamic import the only route. Wave 5a must
+   "validate a new custom component there", so this unit opens the path.
 
 **Do.**
 
@@ -586,6 +612,17 @@ the skill edits in 5b cite a gate that exists.
 **Files.** A new `scripts/smoke-component-tests.sh`, its fixture project
 sources under `scripts/`, the `check:smoke-component-tests` script, and the
 CI workflow step.
+
+**The gate installs a real tarball, always.** A symlinked or `file:<dir>`
+install cannot run the shipped suites: two copies of `@playwright/test` give
+"Requiring @playwright/test second time" and `0 tests in 0 files`. The source
+layout fails the same way, so this is a property of the tool rather than a
+regression to fix.
+
+`.github/workflows/publish.yml:73` runs `npm pack --dry-run` before anything
+builds, so it covers neither `src/testing-js` nor `dist-plugin`.
+`prepublishOnly` covers the real publish, so no release can ship a missing
+`./testing`. Only that step's advertised coverage is overstated.
 
 **Consumer gate.** Add `check:smoke-component-tests` to CI before release.
 Pack the built package and install it into a fresh temporary project outside
@@ -632,6 +669,10 @@ against its chip labels.
 - `.claude/skills/live-tokens-fix-findings/SKILL.md`: the rule table it
   keeps gains the same rows, each mapped to the section of create-component
   that fixes it. Add setup and coverage repair guidance for runner failures.
+- `.claude/skills/live-tokens-create-component/references/contract-tests.md`:
+  line 10 still calls `src/testing/registry.contract.ts` "the shipped file".
+  The shipped file is `src/testing-js/registry.contract.js`; the `.ts` path is
+  absent from the tarball.
 - `.claude/skills/live-tokens-check-compliance/SKILL.md`: one sentence that
   `report` does not run the tests and that `check-component --tests` does.
 - `src/editor/skill-atlas/trees/create-component.ts`: the "Check the
