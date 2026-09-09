@@ -157,11 +157,55 @@ off.
 Related: those two gate tokens had no test coverage anywhere until Wave 2b
 pinned them through a real pointer hover.
 
-### Three shipped components are undrawn in Sketch mode
+### Sketch mode cannot draw any component outside `PART_SPECS`
 
-`src/editor/core/sketch/sketchLayer.ts` `PART_SPECS` has no entry for
-`imagelightbox`, `radiobutton`, or `inlineeditactions`. Their contracts mark
-Sketch inapplicable, which is accurate. The gap is in the product.
+`src/editor/core/sketch/sketchLayer.ts:110` `PART_SPECS` is a fixed list of
+hardcoded selectors, resolved at module scope into `PART_SELECTORS`,
+`FLOW_PARTS`, and `STROKE_PARTS`. A runtime-registered component can never
+appear in it.
+
+So **no consumer-authored component is ever drawn in Sketch mode**, and every
+consumer component's `contract-sketch` is permanently `inapplicable`. Three
+shipped components sit in the same gap: `imagelightbox`, `radiobutton`, and
+`inlineeditactions`.
+
+Coverage still completes, because inapplicable is not disabled and does not
+block exit 0, and the contracts' stated reasons are accurate. The product gap
+is what matters: this is the first thing a consumer hits after shipping a
+component of their own, and `live-tokens-create-component`'s manual
+verification line about Sketch mode is unsatisfiable for them.
+
+**Found by:** the Wave 5a consumer gate, on a custom component authored in a
+fixture project.
+
+### `check-component <shipped-id>` reports two spurious findings in a consumer
+
+`resolveComponentPaths` (`bin/check-component.mjs:121-132`) looks only under
+`<root>/src/system/components` and `EDITOR_DIRS`, with no package fallback.
+`checkComponent` (`:363-372`) then records two `missing-file` findings and
+returns before any other rule runs.
+
+In a consumer, `npx live-tokens check-component toggle --tests` exits 1 with
+two spurious findings while all eight contract rules pass. Reproduced in the
+Wave 5a gate and again by its reviewer.
+
+Second consequence: `artifactForContractRule` uses the same resolver, so any
+`contract-render`, `contract-preview`, `contract-sketch`, or `contract-listed`
+failure on a shipped id in a consumer names a file that does not exist there.
+
+Not a release blocker, because no shipped skill or template script tells a
+consumer to name a shipped id: `template/package.json:11` and
+`live-tokens-fix-findings/SKILL.md:18` both use the batch form, which discovers
+only the consumer's own components.
+
+**Fix:** fall back to `PKG_ROOT` when the id is in `builtInIds` and the
+consumer path is absent. `check-component.mjs:26` already imports both.
+Invariant 3 does not block this: it pins output for the 26 shipped components
+and the `check-component.test.ts` fixtures, those files exist in this repo so
+the fallback never fires here, and no fixture asserts `missing-file` (they use
+`'widget'`).
+
+**Found by:** the Wave 5a consumer gate.
 
 ### CollapsibleSection's header carries no interactive role
 
