@@ -572,7 +572,7 @@
     display: flex;
     flex-direction: column;
     gap: var(--ui-space-20);
-    max-height: 70vh;
+    max-height: 50vh;
     background: var(--ui-surface-low);
     /* Bleed the background up through the card's top padding so content
        scrolling behind doesn't peek between the viewport edge and the

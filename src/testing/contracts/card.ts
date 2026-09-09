@@ -85,6 +85,14 @@ export const cardContract: ComponentContract = {
   ],
   uncovered: {
     '--card-default-blur': 'consumed via backdrop-filter: blur(), which no probe covers',
+    // `--card-hover-border-enabled` is an alias the editor repoints, so the
+    // chain is not live and driving these two moves nothing. The runtime reads
+    // them only through the per-instance `hover` prop (Card.svelte:47), which
+    // the standardized preview never sets. Before force-hover honoured the
+    // gate it read `--card-hover-border` directly and the hover state pinned
+    // it; that path was the bug.
+    '--card-hover-border': 'reachable only through the per-instance hover prop, which the preview does not set',
+    '--card-hover-shadow': 'reachable only through the per-instance hover prop, which the preview does not set',
   },
   persistence: {
     cases: [

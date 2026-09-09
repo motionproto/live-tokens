@@ -10,51 +10,6 @@ Severity is about consequence to a user of the package, so a test-side defect
 that hides a real failure ranks above a product defect a user can see and work
 around.
 
-## P1. Data corruption
-
-### Theme-embedded component configs re-migrate from version 0
-
-Every theme preview and every theme apply re-runs all 27 component migrations
-over already-current data.
-
-`src/editor/core/preview/themePreview.ts:52` and `:56` pass
-`config.schemaVersion`, a per-config field that no longer exists by then:
-`vite-plugin/themes/normalizeTheme.ts:179` destructures it away
-(`const { schemaVersion: _entryStamp, … } = config`) on every read.
-`ComponentConfig.schemaVersion` is optional, so the read typechecks, yields
-`undefined`, and `toComponentSlice`'s `schemaVersion: number = 0` parameter
-default (`src/editor/core/store/editorStore.ts:270`) turns it into a full
-replay. `editorStore.ts:338` repeats the same defaulting as `?? 0`.
-
-The design intent is explicit and the code contradicts it.
-`src/editor/core/themes/themeTypes.ts:281-285` documents
-`componentSchemaVersion` as the theme-level stamp, "one field for all of them",
-and states that an embedded config's own `schemaVersion` "is ignored and
-stripped". So the correct stamp is on the theme and the readers reach for the
-one that was deliberately removed.
-
-Measured:
-
-```
-migrateComponentConfig('tabbar', halloween…aliases, undefined, 27)
-  → '--tabbar-default-indicator-width': '--border-width-4'   // the theme's own value
-migrateComponentConfig('tabbar', …, 0)
-  → '--tabbar-default-indicator-width': '--border-width-2'   // clobbered
-```
-
-Today the visible cost is four tabbar tokens in every theme, because the pair
-`2026-05-29-tabbar-indicator-thickness-to-per-state-width` and
-`2026-09-07-stroke-role-renames` is not idempotent: the first re-adds the token
-at its `--border-width-2` fallback and the second renames it over the theme's
-value. The exposure is the defect class. Any future non-idempotent migration
-silently rewrites every theme on load.
-
-**Fix:** pass `theme.componentSchemaVersion` and
-`defaults.componentSchemaVersion` at both call sites.
-
-**Found by:** the Wave 2b theme-projection obligation, chasing why halloween's
-declared indicator width never reached the root.
-
 ## P2. Test infrastructure that can hide a failure
 
 ### `contract-preview` conflates two obligations
@@ -65,33 +20,22 @@ reason is dropped by `COVERAGE_PRIORITY` in `bin/contractRunner.mjs`.
 
 ## P3. Product defects a user can see
 
-### The sticky preview band covers the property controls
+### The sticky preview band can still cover a control at 1280x720
 
-`src/editor/component-editor/scaffolding/VariantGroup.svelte` gives
-`.tabs-preview` `position: sticky` with no `max-height`. Measured band heights
-at a 1280x720 viewport: SideNavigation 697px, Image 631px, Card 621px,
-ImageLightbox 580px, CornerBadge 559px, Notification 542px, Table 515px, Input
-497px, Button 360px. At 720px the controls below are unreachable at every
-scroll position for the tallest of these.
+`.tabs-preview` now caps its sticky band at `max-height: 50vh` with a
+`.preview-stage` scroll wrapper, which fixed the worst of it: image, panel,
+card and sidenavigation each pass the contract suite alone at 1280x720, where
+before the controls were unreachable at every scroll position.
 
-This is a usability defect for any 13-inch laptop. Wave 1 raised the contract
-project's viewport to 1280x900 to clear it, a number tuned to today's tallest
-preview.
+A full parallel run at that viewport still fails panel's gradient `Solid`
+radio with "Clicking the checkbox did not change its state", so the band can
+sit over a control at some scroll positions. The `contract` Playwright project
+therefore still runs at 1280x900.
 
-**Fix:** a `max-height` with `overflow: auto` on `.tabs-preview`, or a scroll
-container for the property panel. Repair the CSS rather than raising the
-viewport again.
+**Fix:** find the remaining overlap, then revert the project viewport to the
+default. The suite passing at 1280x720 is the proof.
 
-### Card's hover gate is invisible in the editor
-
-`src/system/components/Card.svelte:154-155` is the only rule reading
-`--card-hover-border-enabled` and `--card-hover-shadow-enabled`. `:159-161`
-paints `.card.force-hover` from the unconditional tokens by design. So the
-editor's hover preview shows the on state while the global "Use hover" gate is
-off.
-
-Related: those two gate tokens had no test coverage anywhere until Wave 2b
-pinned them through a real pointer hover.
+**Found by:** Wave 1, and re-measured when the cap landed.
 
 ### Sketch mode cannot draw any component outside `PART_SPECS`
 
