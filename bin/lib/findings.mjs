@@ -83,9 +83,13 @@ export function resolveRuleSeverity(ruleId, rules, opts = {}, config = {}) {
  * Resolve each finding's severity and drop the ones turned off.
  * `rules` maps rule id to its default severity.
  */
-export function applySeverity(findings, rules, opts = {}, config = {}) {
+export function applySeverity(findings, rules, opts = {}, config = {}, fixes = {}) {
   return findings
-    .map((f) => ({ ...f, severity: resolveRuleSeverity(f.rule, rules, opts, config) }))
+    .map((f) => ({
+      ...f,
+      severity: resolveRuleSeverity(f.rule, rules, opts, config),
+      ...(fixes[f.rule] ? { fix: fixes[f.rule] } : {}),
+    }))
     .filter((f) => f.severity !== 'off');
 }
 

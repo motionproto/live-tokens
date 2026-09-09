@@ -59,6 +59,44 @@ export const COMPONENT_RULES = {
   'tests-incomplete': 'error',
 };
 
+/**
+ * Where a rule is fixed, as a stable slug carried on the finding. The skills
+ * resolve the slug to one of their own headings, so adding a rule here costs
+ * no skill edit as long as it reuses a slug. Two skills used to enumerate every
+ * rule id in their own tables, with nothing holding the two in agreement or
+ * checking either against this list.
+ */
+export const COMPONENT_RULE_FIX = {
+  'unknown-suffix': 'property-name',
+  'state-after-property': 'property-name',
+  'disabled-is-terminal': 'property-name',
+  'default-not-token': 'property-token',
+  'color-literal': 'property-token',
+  'dimension-literal': 'property-token',
+  'unknown-token-ref': 'property-token',
+  'contract-theme': 'property-token',
+  'invalid-id': 'runtime',
+  'missing-file': 'runtime',
+  'missing-root-block': 'runtime',
+  'no-tokens': 'runtime',
+  'contract-persist': 'runtime-defaults',
+  'missing-component-const': 'editor',
+  'missing-all-tokens': 'editor',
+  'phantom-editor-token': 'editor',
+  'phantom-link': 'editor',
+  'deep-import': 'editor',
+  'contract-render': 'editor',
+  'contract-alias': 'editor',
+  'contract-preview': 'editor',
+  'missing-registration': 'registration',
+  'contract-registry': 'registration',
+  'contract-listed': 'registration',
+  'contract-sketch': 'sketch',
+  'tests-not-installed': 'tooling',
+  'tests-setup': 'tooling',
+  'tests-incomplete': 'coverage',
+};
+
 // Shipped components keep their editor beside the other editors; a
 // consumer-authored one sits next to its runtime. Probe both.
 const EDITOR_DIRS = ['src/system/components', 'src/editor/component-editor'];

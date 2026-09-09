@@ -2,7 +2,7 @@ import type { SkillTree } from '../types';
 
 export const fixFindings: SkillTree = {
   "id": "live-tokens-fix-findings",
-  "digest": "sha256:f7281e07c9f33d5d",
+  "digest": "sha256:2c39f9f00b03b5ad",
   "title": "fix-findings",
   "tagline": "Repair Deviations from the Design System",
   "nodes": [
@@ -160,9 +160,9 @@ export const fixFindings: SkillTree = {
       "kind": "chipset",
       "title": "The remaining rules",
       "desc": "Every other rule has its fix in the table.",
-      "lines": [71, 91],
+      "lines": [71, 90],
       "anchor": "## The remaining rules",
-      "anchorEnd": "| `invalid-id`, `missing-file`, `missing-root-block`, `no-to",
+      "anchorEnd": "| `fix: runtime` | Wire the component as the recipe in **liv",
       "chips": [
         {
           "label": "unknown-token",
@@ -232,22 +232,22 @@ export const fixFindings: SkillTree = {
         {
           "label": "Component name rules",
           "lines": [88, 88],
-          "anchor": "| `unknown-suffix`, `state-after-property`, `disabled-is-ter"
+          "anchor": "| `fix: property-name` | Rename the token to the name a ship"
         },
         {
           "label": "Component token rules",
           "lines": [89, 89],
-          "anchor": "| `color-literal`, `unknown-token-ref`, `default-not-token` "
+          "anchor": "| `fix: property-token` | Make the `:global(:root)` default "
         },
         {
           "label": "Component editor rules",
-          "lines": [90, 90],
-          "anchor": "| `phantom-editor-token`, `phantom-link` | The editor names "
+          "lines": [92, 92],
+          "anchor": "| `fix: editor` | The editor names a token the runtime never"
         },
         {
           "label": "Component wiring rules",
-          "lines": [91, 91],
-          "anchor": "| `invalid-id`, `missing-file`, `missing-root-block`, `no-to"
+          "lines": [90, 90],
+          "anchor": "| `fix: runtime` | Wire the component as the recipe in **liv"
         }
       ]
     },

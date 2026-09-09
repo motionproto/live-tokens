@@ -2,7 +2,7 @@ import type { SkillTree } from '../types';
 
 export const createComponent: SkillTree = {
   "id": "live-tokens-create-component",
-  "digest": "sha256:57eb62258d190eec",
+  "digest": "sha256:b923ee9c68cc13fc",
   "title": "create-component",
   "tagline": "Create a LiveTokens Component",
   "nodes": [
@@ -213,9 +213,9 @@ export const createComponent: SkillTree = {
         },
         {
           "label": "Rule table",
-          "lines": [227, 239],
-          "anchor": "| Rule | Section |",
-          "anchorEnd": "| `tests-incomplete` | Add the missing contract, or complete"
+          "lines": [227, 237],
+          "anchor": "| `fix` | Section |",
+          "anchorEnd": "| `coverage` | Add the missing contract, or complete the run"
         }
       ]
     },
@@ -234,7 +234,7 @@ export const createComponent: SkillTree = {
       "kind": "hand",
       "title": "live-tokens-create-page",
       "desc": "The component is done. Placing it on a page is the next skill.",
-      "lines": [243, 243],
+      "lines": [241, 241],
       "anchor": "Then place the component on a page with **live-tokens-create"
     }
   ],

@@ -222,21 +222,19 @@ A fixed overlay portals to `<body>`: read `references/fixed-overlays.md`. A cont
 2. Run the project's Svelte check and its build.
 3. Reply with the files, the component id, the props, and the results of steps 1 and 2, naming any check the environment prevented.
 
-A finding maps to the section that fixes it.
+Every finding carries a `fix` slug naming the section that fixes it.
 
-| Rule | Section |
+| `fix` | Section |
 |---|---|
-| `unknown-suffix`, `state-after-property`, `disabled-is-terminal` | Property design, the name |
-| `default-not-token`, `color-literal`, `dimension-literal`, `unknown-token-ref` | Property design, the assigned token |
-| `invalid-id`, `missing-file`, `missing-root-block`, `no-tokens` | Runtime component |
-| `missing-component-const`, `missing-all-tokens`, `phantom-editor-token`, `phantom-link`, `deep-import` | Component editor |
-| `missing-registration`, `contract-registry`, `contract-listed` | Registration |
-| `contract-render`, `contract-alias`, `contract-preview` | Component editor |
-| `contract-persist` | Runtime component, the `:global(:root)` defaults |
-| `contract-theme` | Property design, the assigned token |
-| `contract-sketch` | Sketch mode and overlays |
-| `tests-not-installed`, `tests-setup` | The message names the missing tool or the broken path; fix it and rerun |
-| `tests-incomplete` | Add the missing contract, or complete the run the message names |
+| `property-name` | Property design, the name |
+| `property-token` | Property design, the assigned token |
+| `runtime` | Runtime component |
+| `runtime-defaults` | Runtime component, the `:global(:root)` defaults |
+| `editor` | Component editor |
+| `registration` | Registration |
+| `sketch` | Sketch mode and overlays |
+| `tooling` | The message names the missing tool or the broken path; fix it and rerun |
+| `coverage` | Add the missing contract, or complete the run the message names |
 
 `--tests` covers every line a reviewer once checked by eye: the component's listing, its controls and preview, persistence and reset, theme projection, linked properties, and Sketch mode.
 

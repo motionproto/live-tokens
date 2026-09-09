@@ -18,7 +18,7 @@ import { cpSync, existsSync, mkdirSync, readdirSync, statSync, writeSync } from 
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import process from 'node:process';
-import { COMPONENT_RULES, checkComponent, discoverComponents, formatReport } from './check-component.mjs';
+import { COMPONENT_RULES, COMPONENT_RULE_FIX, checkComponent, discoverComponents, formatReport } from './check-component.mjs';
 import { PAGE_RULES, checkPages, discoverPages } from './check-page.mjs';
 import { describeComponents, describeTokens, formatComponents, formatTokens } from './lib/catalogue.mjs';
 import { buildReport, formatReport as formatProjectReport } from './lib/report.mjs';
@@ -182,9 +182,9 @@ if (command === 'create') {
   }
 }
 
-function reportChecks(label, findings, checked, rules, opts, { coverage, hardFailure } = {}) {
+function reportChecks(label, findings, checked, rules, opts, { coverage, hardFailure, fixes } = {}) {
   const checksConfig = readChecksConfig(process.cwd());
-  const resolved = applySeverity(findings, rules, opts, checksConfig);
+  const resolved = applySeverity(findings, rules, opts, checksConfig, fixes ?? {});
   const resolvedCoverage = coverage ? applyCoverageSeverity(coverage, rules, opts, checksConfig) : coverage;
   console.log(
     opts.json
@@ -253,12 +253,13 @@ if (command === 'check-component') {
   }
   const label = ids.length === 1 ? `check-component ${ids[0]}${opts.tests ? ' --tests' : ''}` : `check-component${opts.tests ? ' --tests' : ''}`;
   if (!opts.tests) {
-    reportChecks(label, results.flatMap(([, r]) => r.findings), ids.length, COMPONENT_RULES, opts);
+    reportChecks(label, results.flatMap(([, r]) => r.findings), ids.length, COMPONENT_RULES, opts, { fixes: COMPONENT_RULE_FIX });
   }
   const { hasHardFailure, runContractTests } = await import('./contractRunner.mjs');
   const testOutcome = await runContractTests(opts.rest[0], { root: process.cwd() });
   const findings = [...results.flatMap(([, r]) => r.findings), ...testOutcome.findings];
   reportChecks(label, findings, Math.max(ids.length, 1), COMPONENT_RULES, opts, {
+    fixes: COMPONENT_RULE_FIX,
     coverage: testOutcome.coverage,
     hardFailure: hasHardFailure(testOutcome.findings),
   });

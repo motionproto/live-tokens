@@ -85,17 +85,14 @@ When `package.json` has no `check:design` script, add `"check:design": "live-tok
 | `missing-source` | Add `source: 'src/...'` to the route entry. |
 | `reserved-route` | Move the route out of `/live-tokens/*`. |
 | `deep-import` | Import from `@motion-proto/live-tokens`, `/component-editor`, or `/components/<Name>.svelte`. |
-| `unknown-suffix`, `state-after-property`, `disabled-is-terminal` | Rename the token to the name a shipped component uses for the same role. The vocabulary and the state model are in **live-tokens-create-component**. |
-| `color-literal`, `unknown-token-ref`, `default-not-token` (component) | Make the `:global(:root)` default read a design token, composed when needed. Declare a structural keyword, such as `start`, in the editor's `intrinsics`. |
-| `phantom-editor-token`, `phantom-link` | The editor names a token the runtime never declares, or one font helper spans several slots. Fix the editor file by the recipe in **live-tokens-create-component**. |
-| `invalid-id`, `missing-file`, `missing-root-block`, `no-tokens`, `missing-component-const`, `missing-all-tokens`, `missing-registration` | Wire the component as the recipe in **live-tokens-create-component** wires it. |
-| `contract-registry`, `contract-listed` | Register the component in the shared module the Registration section of **live-tokens-create-component** wires up, importable by the app and by `check-component --tests`. |
-| `contract-render`, `contract-alias`, `contract-preview` | Fix the editor's schema, states, or preview props so the named property targets the right part, per the Component editor section of **live-tokens-create-component**. |
-| `contract-persist` | Make the `:global(:root)` default the value Reset should restore, per the Runtime component section of **live-tokens-create-component**. |
-| `contract-theme` | Make the property's default a token reference, per the Property design section of **live-tokens-create-component**. |
-| `contract-sketch` | Add the missing Sketch part or marker, per the Sketch mode and overlays section of **live-tokens-create-component**. |
-| `tests-not-installed` | Install the named package (`@playwright/test`, `vitest`, or `happy-dom`) as a devDependency, then `npx playwright install chromium` for a missing browser. |
-| `tests-setup` | The message names a bad path or config, such as a missing `dataDir` or `registrySetup`; fix it and rerun `check-component <id> --tests`. |
-| `tests-incomplete` | A contract obligation never ran to a result. Add the missing contract, or find why the suite skipped it, then rerun. |
+| `fix: property-name` | Rename the token to the name a shipped component uses for the same role. The vocabulary and the state model are in **live-tokens-create-component**. |
+| `fix: property-token` | Make the `:global(:root)` default read a design token, composed when needed. Declare a structural keyword, such as `start`, in the editor's `intrinsics`. |
+| `fix: runtime` | Wire the component as the recipe in **live-tokens-create-component** wires it. |
+| `fix: runtime-defaults` | Make the `:global(:root)` default the value Reset should restore, per the Runtime component section of **live-tokens-create-component**. |
+| `fix: editor` | The editor names a token the runtime never declares, or a property targets the wrong part. Fix the editor's schema, states, or preview props by the Component editor section of **live-tokens-create-component**. |
+| `fix: registration` | Register the component in the shared module the Registration section of **live-tokens-create-component** wires up, importable by the app and by `check-component --tests`. |
+| `fix: sketch` | Add the missing Sketch part or marker, per the Sketch mode and overlays section of **live-tokens-create-component**. |
+| `fix: tooling` | Install the named package (`@playwright/test`, `vitest`, or `happy-dom`) as a devDependency, then `npx playwright install chromium` for a missing browser. A bad path or config is named in the message; fix it and rerun `check-component <id> --tests`. |
+| `fix: coverage` | A contract obligation never ran to a result. Add the missing contract, or find why the suite skipped it, then rerun. |
 
 A `tests-*` finding names a problem with the run itself: the tool, the path, or a missing contract. Fix what the message names and rerun `check-component <id> --tests --json` until every applicable rule passes with no rule left `--off`.

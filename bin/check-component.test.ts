@@ -87,7 +87,7 @@ describe('check-component phantom-link guard', () => {
 });
 
 // @ts-expect-error — plain .mjs module, no types
-import { COMPONENT_RULES, checkComponentDefaults, discoverComponents } from './check-component.mjs';
+import { COMPONENT_RULE_FIX, COMPONENT_RULES, checkComponentDefaults, discoverComponents } from './check-component.mjs';
 // @ts-expect-error — plain .mjs module, no types
 import { applySeverity, countBySeverity } from './lib/findings.mjs';
 
@@ -1281,4 +1281,19 @@ describe('contractRunner: runContractTests, end to end', () => {
     // Invariant 5: the tracked tree was never opened for writing.
     expect(execFileSync('git', ['status', '--porcelain', 'src/live-tokens/data'], { cwd: root }).toString()).toBe(beforeHash);
   }, 60_000);
+});
+
+describe('the rule-to-fix registry', () => {
+  it('names a fix slug for every rule, and no rule that does not exist', () => {
+    expect(Object.keys(COMPONENT_RULE_FIX).sort()).toEqual(Object.keys(COMPONENT_RULES).sort());
+  });
+
+  it('resolves every slug the skills document', () => {
+    const documented = new Set([
+      'property-name', 'property-token', 'runtime', 'runtime-defaults',
+      'editor', 'registration', 'sketch', 'tooling', 'coverage',
+    ]);
+    const used = new Set(Object.values(COMPONENT_RULE_FIX));
+    expect([...used].filter((s) => !documented.has(s))).toEqual([]);
+  });
 });
