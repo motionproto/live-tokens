@@ -2,8 +2,8 @@
 
 **Complete.** All eight units landed on branch `shipped-component-tests` on
 2026-09-09, from W1 at 02:40 to W5b at 15:58, followed by the defect fixes and
-Sketch work recorded below. The branch is not merged to `main` and not
-released. The per-wave briefings this document carried during execution are
+Sketch work recorded below. Merged to `main` and released as 0.75.0 on
+2026-09-09. The per-wave briefings this document carried during execution are
 gone; the commits and the defect register hold that history.
 
 ## Status
@@ -226,7 +226,6 @@ Sketch paint, so `imagelightbox` asserts its thumb alone.
   opt-in and documented.
 - A run against `../live-tokens-online` after release.
 
-**Next.** Merge to `main` and release through CI as a minor bump, the user's
-call. Then [sketch-consolidation](sketch-consolidation.md), which moves the
+**Next.** [sketch-consolidation](sketch-consolidation.md), which moves the
 shipped components onto the reserved Sketch classes the contract suite now
 guards.
