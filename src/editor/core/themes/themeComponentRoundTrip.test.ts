@@ -16,13 +16,14 @@ function readJson<T>(path: string): T {
   return JSON.parse(readFileSync(path, 'utf8')) as T;
 }
 
-function normalizeComponent(component: string, config: ComponentConfig): ComponentConfig {
-  const slice = toComponentSlice(
-    component,
-    config.aliases,
-    config.config,
-    config.schemaVersion ?? 0,
-  );
+// A theme stamps every embedded config at once and the read door strips the
+// per-entry field, so `theme.componentSchemaVersion` is the only stamp there is.
+function normalizeComponent(
+  component: string,
+  config: ComponentConfig,
+  schemaVersion: number,
+): ComponentConfig {
+  const slice = toComponentSlice(component, config.aliases, config.config, schemaVersion);
   return {
     name: config.name,
     component,
@@ -49,8 +50,8 @@ describe('bundled theme component snapshots', () => {
         const componentDefault = readJson<ComponentConfig>(
           join(componentConfigsDir, component, 'default.json'),
         );
-        const first = normalizeComponent(component, config);
-        const second = normalizeComponent(component, first);
+        const first = normalizeComponent(component, config, theme.componentSchemaVersion);
+        const second = normalizeComponent(component, first, CURRENT_COMPONENT_SCHEMA_VERSION);
         const declaredNames = new Set([
           ...Object.keys(componentDefault.aliases),
           ...Object.keys(componentDefault.config ?? {}),

@@ -155,10 +155,11 @@
     box-shadow: var(--card-hover-shadow-enabled);
   }
 
-  /* Editor preview hook: paint hover tokens directly, ignoring the on/off gate. */
+  /* Editor preview hook. Reads the same gated tokens as the real :hover rule,
+     so turning "Use hover" off shows the resting card the page will draw. */
   .card.force-hover {
-    border-color: var(--card-hover-border);
-    box-shadow: var(--card-hover-shadow);
+    border-color: var(--card-hover-border-enabled);
+    box-shadow: var(--card-hover-shadow-enabled);
   }
 
   .card-header {

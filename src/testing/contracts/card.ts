@@ -51,8 +51,9 @@ export const cardContract: ComponentContract = {
       },
     },
     // `click({force:true})` leaves the pointer resting on `root`, so the
-    // browser's real `.card:hover` rule applies afterward — no InteractionCase
-    // is needed to reach the gate tokens `.force-hover` bypasses by design.
+    // browser's real `.card:hover` rule applies afterward, no InteractionCase
+    // needed. The editor's `.force-hover` reads these same gated tokens, so
+    // the state entry below and this one have to agree.
     {
       setup: [{ kind: 'click', part: 'root' }],
       paints: {
@@ -71,11 +72,14 @@ export const cardContract: ComponentContract = {
   ],
   states: [
     { state: 'default' },
+    // The gate is off by default, so the hover tab has to show the resting
+    // card. Naming the gated tokens is what pins that: `--card-hover-border`
+    // resolves to `--border-neutral-strong` and would not match.
     {
       state: 'hover',
       forceClass: 'force-hover',
       paints: {
-        root: { borderTopColor: '--card-hover-border', boxShadow: '--card-hover-shadow' },
+        root: { borderTopColor: '--card-hover-border-enabled', boxShadow: '--card-hover-shadow-enabled' },
       },
     },
   ],

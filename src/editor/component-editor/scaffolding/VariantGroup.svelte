@@ -407,24 +407,26 @@
           </div>
         {/if}
       </div>
-      {#if unboxedPreview}
-        <div class="sketch-scope" bind:this={sketchStage}>
-          {@render children?.({ activeState: activeTab })}
-        </div>
-      {:else}
-        <ShadowBackdrop mode={bgMode} colorVariable={bgVar} padding={backdropPadding}>
-          {#snippet controls()}
-            <div class="canvas-toolbar">
-              <span class="canvas-toolbar-eyebrow">Background</span>
-              <ShadowBackdropControls bind:mode={bgMode} colorVariable={bgVar} modes={backdropModes ?? ['default', 'image', 'color']} />
-              {@render canvasToolbarExtras?.()}
-            </div>
-          {/snippet}
+      <div class="preview-stage">
+        {#if unboxedPreview}
           <div class="sketch-scope" bind:this={sketchStage}>
-          {@render children?.({ activeState: activeTab })}
-        </div>
-        </ShadowBackdrop>
-      {/if}
+            {@render children?.({ activeState: activeTab })}
+          </div>
+        {:else}
+          <ShadowBackdrop mode={bgMode} colorVariable={bgVar} padding={backdropPadding}>
+            {#snippet controls()}
+              <div class="canvas-toolbar">
+                <span class="canvas-toolbar-eyebrow">Background</span>
+                <ShadowBackdropControls bind:mode={bgMode} colorVariable={bgVar} modes={backdropModes ?? ['default', 'image', 'color']} />
+                {@render canvasToolbarExtras?.()}
+              </div>
+            {/snippet}
+            <div class="sketch-scope" bind:this={sketchStage}>
+              {@render children?.({ activeState: activeTab })}
+            </div>
+          </ShadowBackdrop>
+        {/if}
+      </div>
 
       {#if tabsStripVisible}
         <div class="tabs-states-block">
@@ -556,9 +558,13 @@
   /* Pin the preview + state-tab strip to the top of the page scroll so
      property edits stay visually connected to the preview without scrolling.
      The card background extends through the sticky band so the property grid
-     scrolls cleanly behind it. The element-grouped property layout (see
-     StateBlock) fans out horizontally, which keeps the property section
-     short enough that the sticky preview rarely steals usable space. */
+     scrolls cleanly behind it.
+
+     The cap is load-bearing: a sticky band taller than the viewport covers the
+     property controls at every scroll position, which the tallest previews
+     (SideNavigation, Image, Card) reach on a 13-inch laptop. Capping the band
+     and scrolling the stage inside it keeps the header and the state strip
+     pinned and always leaves the controls a viewport to live in. */
   .tabs-preview {
     position: sticky;
     top: 0;
@@ -566,6 +572,7 @@
     display: flex;
     flex-direction: column;
     gap: var(--ui-space-20);
+    max-height: 70vh;
     background: var(--ui-surface-low);
     /* Bleed the background up through the card's top padding so content
        scrolling behind doesn't peek between the viewport edge and the
@@ -575,6 +582,20 @@
     margin: calc(-1 * var(--ui-space-20)) calc(-1 * var(--ui-space-20)) 0;
     padding: var(--ui-space-20) var(--ui-space-20) 0;
     border-radius: var(--ui-radius-md) var(--ui-radius-md) 0 0;
+  }
+
+  .preview-stage {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ui-space-20);
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: auto;
+  }
+
+  .preview-header,
+  .tabs-states-block {
+    flex: none;
   }
 
   /* Soft fade at the bottom of the sticky band so property rows scrolling

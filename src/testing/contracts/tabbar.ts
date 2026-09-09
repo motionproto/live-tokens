@@ -93,26 +93,20 @@ export const tabBarContract: ComponentContract = {
   },
   theme: {
     theme: 'halloween',
-    // PRODUCT BUG, confirmed empirically, not a contract limitation:
-    // halloween.json (componentSchemaVersion 27, no migration pending) sets
-    // --tabbar-{default,hover,active,disabled}-indicator-width to
-    // --border-width-4, but applying the theme in the live editor never
-    // writes any of the four — the inline :root value for each stays the
-    // shipped var(--border-width-2), verified via the raw (unresolved) root
-    // value, not just the resolved pixel readout. Root cause: theme-embedded
-    // component configs are re-migrated from schemaVersion 0 (themePreview.ts
-    // passes a field normalizeTheme.ts strips from theme-embedded configs, so
-    // it defaults to 0), and the tabbar migration pair
-    // (2026-05-29-tabbar-indicator-thickness-to-per-state-width,
-    // 2026-09-07-stroke-role-renames) is non-idempotent over already-current
-    // data: replaying both re-adds the token at the --border-width-2 fallback
-    // and then renames it over halloween's own --border-width-4. Recorded as
-    // a product defect in docs/plans/shipped-component-tests.md, not fixed
-    // here. Left out of `changed` until that's fixed.
-    changed: ['--tabbar-default-tab-border-width', '--tabbar-default-padding'],
+    // The indicator width is the canary for re-migration replay: the tabbar
+    // pair (2026-05-29-tabbar-indicator-thickness-to-per-state-width,
+    // 2026-09-07-stroke-role-renames) rewrites it to --border-width-2 if a
+    // reader migrates a theme-embedded config off a stamp of 0 instead of the
+    // theme's componentSchemaVersion.
+    changed: [
+      '--tabbar-default-tab-border-width',
+      '--tabbar-default-padding',
+      '--tabbar-default-indicator-width',
+    ],
     unchanged: ['--tabbar-default-icon-size'],
     aliasedTo: {
       '--tabbar-default-tab-border-width': '--border-width-2',
+      '--tabbar-default-indicator-width': '--border-width-4',
     },
     observe: { part: 'tab', css: 'borderTopWidth', variable: '--tabbar-default-tab-border-width' },
   },

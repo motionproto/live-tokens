@@ -104,14 +104,10 @@ export async function createPlaywrightConfig(
         // `.ts` in this repo, `.js` once tsup compiles the shipped build into
         // `src/testing-js`; matching both here needs no build-time swap.
         testMatch: '**/component-*.contract.{ts,js}',
-        use: {
-          ...devices['Desktop Chrome'],
-          // `.tabs-preview` in VariantGroup.svelte has no max-height, so a tall
-          // preview's sticky band covers the property controls below it at the
-          // 720px default. The fix is that max-height; until then the taller
-          // viewport clears every shipped component's tallest view.
-          viewport: { width: 1280, height: 900 },
-        },
+        // The default 1280x720 viewport is the point: `.tabs-preview` caps its
+        // sticky band, so a pass here proves every shipped component's property
+        // controls stay reachable on a 13-inch laptop.
+        use: { ...devices['Desktop Chrome'] },
       },
     ],
     webServer: {

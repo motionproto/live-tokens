@@ -48,12 +48,19 @@ export function renderTheme(theme: Theme, defaults: Theme): RenderedTheme {
   migrateColorsAndTypeFonts(colorsAndType);
   const state = colorsAndTypeToState(colorsAndType);
   state.components = {};
+  // The stamp is the theme's, never the entry's: `normalizeTheme` strips a
+  // per-entry `schemaVersion` on every read, so reading one back yields
+  // undefined and replays every migration over already-current data.
   for (const [comp, config] of Object.entries(defaults.componentConfigs)) {
-    state.components[comp] = toComponentSlice(comp, config.aliases, config.config, config.schemaVersion);
+    state.components[comp] = toComponentSlice(
+      comp, config.aliases, config.config, defaults.componentSchemaVersion,
+    );
   }
   for (const [comp, config] of Object.entries(theme.componentConfigs)) {
     if (!(comp in state.components)) continue;
-    state.components[comp] = toComponentSlice(comp, config.aliases, config.config, config.schemaVersion);
+    state.components[comp] = toComponentSlice(
+      comp, config.aliases, config.config, theme.componentSchemaVersion,
+    );
   }
   const vars = deriveCssVars(state);
   return { vars, fontSources: colorsAndType.fontSources ?? [] };

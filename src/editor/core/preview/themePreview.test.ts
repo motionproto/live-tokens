@@ -145,11 +145,24 @@ describe('renderTheme', () => {
   });
 
   it('migrates a config the theme embedded at an older stamp', () => {
-    const stale = theme('stale', colorsAndType({}), {
-      card: config('card', { '--card-default-title-line-height': '--line-height-md' }),
-    });
+    const stale = {
+      ...theme('stale', colorsAndType({}), {
+        card: config('card', { '--card-default-title-line-height': '--line-height-md' }),
+      }),
+      componentSchemaVersion: 3,
+    };
     const { vars } = renderTheme(stale, defaults);
     expect(vars['--card-default-title-line-height']).toBe('var(--line-height-normal)');
+  });
+
+  // `config()` stamps every entry at 3. The read door strips that field, so a
+  // reader that trusts it replays every migration over current data.
+  it('takes the stamp off the theme, not off the entry', () => {
+    const current = theme('current', colorsAndType({}), {
+      card: config('card', { '--card-default-title-line-height': '--line-height-md' }),
+    });
+    const { vars } = renderTheme(current, defaults);
+    expect(vars['--card-default-title-line-height']).toBe('var(--line-height-md)');
   });
 
   it('resolves the embedded font stacks into --font-* values', () => {

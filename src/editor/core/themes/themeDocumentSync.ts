@@ -48,7 +48,11 @@ function hasUnsavedLayer(state: LiveState): boolean {
 export function hydrateAppliedTheme(fileName: string, result: LiveState): void {
   const colorsAndType = structuredClone(result.colorsAndType);
   migrateColorsAndTypeFonts(colorsAndType);
-  loadThemeFromApi(colorsAndType, structuredClone(result.componentConfigs));
+  loadThemeFromApi(
+    colorsAndType,
+    structuredClone(result.componentConfigs),
+    result.theme.componentSchemaVersion,
+  );
   openThemeSlug.set(fileName);
   openThemeSketchSettings(result.theme.sketchSettings);
   liveMovedSinceBake.set(hasUnsavedLayer(result));

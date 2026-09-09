@@ -327,15 +327,24 @@ export function seedComponentsFromApi(
  * separately, causing two complete renderer passes and briefly exposing a
  * mixed old-components/new-tokens state. Build the final state first and emit
  * it once instead.
+ *
+ * A payload mixes sources: a working buffer and a shipped default each carry
+ * their own stamp, while a config resolved from the open theme has had its
+ * stamp stripped by `normalizeTheme` and is covered by the theme-level
+ * `componentSchemaVersion`. Defaulting a stripped entry to 0 replays every
+ * migration over already-current data.
  */
 export function loadThemeFromApi(
   colorsAndType: ColorsAndType,
   configs: Record<string, ComponentSeed>,
+  themeComponentSchemaVersion: number,
 ): void {
   const next = colorsAndTypeToState(colorsAndType);
   next.components = {};
   for (const [comp, cfg] of Object.entries(configs)) {
-    const split = toComponentSlice(comp, cfg.aliases, cfg.config, cfg.schemaVersion ?? 0);
+    const split = toComponentSlice(
+      comp, cfg.aliases, cfg.config, cfg.schemaVersion ?? themeComponentSchemaVersion,
+    );
     next.components[comp] = { aliases: { ...split.aliases }, config: { ...split.config } };
     setSavedComponentBaseline(comp, componentBaseline(split));
   }
