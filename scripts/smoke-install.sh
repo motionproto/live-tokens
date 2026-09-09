@@ -122,6 +122,13 @@ echo "→ Resolving the testing subpath…"
 # Resolve rather than import: the optional test tools are absent by design.
 (cd "$SMOKE_DIR" && node -p "require.resolve('$PKG_NAME/testing')" > /dev/null)
 
+echo "→ Resolving the testing/vitest subpath…"
+# A separate exports-map entry from ./testing itself (contractRunner.mjs's
+# generated Vitest config imports this one, never the barrel, so a missing
+# @playwright/test can't turn into a raw ERR_MODULE_NOT_FOUND) — a broken
+# vitest.js or vitest.d.ts here ships silently unless this resolves it too.
+(cd "$SMOKE_DIR" && node -p "require.resolve('$PKG_NAME/testing/vitest')" > /dev/null)
+
 echo "→ Resolving the skill-atlas subpath…"
 # require.resolve() doesn't request the "svelte" condition, but the "default"
 # condition points at the same file, so this still proves the exports-map

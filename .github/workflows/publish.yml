@@ -73,4 +73,10 @@ jobs:
       - name: Dry-run packaging (catches missing files, bad exports, etc.)
         run: npm pack --dry-run
 
+      # `npm publish` runs `prepublishOnly`, which builds dist-plugin/src/testing-js
+      # and then runs every smoke test, including check:smoke-component-tests: a
+      # real tarball install of check-component --tests into two throwaway
+      # consumer projects, minutes long. It needs Chromium, already installed
+      # above; it installs its own copy too, so a runner with no cache still
+      # works, just slower. Keep this after that step if this workflow is reordered.
       - run: npm publish --provenance --access public
