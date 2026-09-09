@@ -2,7 +2,7 @@ import type { SkillTree } from '../types';
 
 export const fixFindings: SkillTree = {
   "id": "live-tokens-fix-findings",
-  "digest": "sha256:2c39f9f00b03b5ad",
+  "digest": "sha256:51003fc37d8386ba",
   "title": "fix-findings",
   "tagline": "Repair Deviations from the Design System",
   "nodes": [
@@ -160,7 +160,7 @@ export const fixFindings: SkillTree = {
       "kind": "chipset",
       "title": "The remaining rules",
       "desc": "Every other rule has its fix in the table.",
-      "lines": [71, 90],
+      "lines": [71, 92],
       "anchor": "## The remaining rules",
       "anchorEnd": "| `fix: runtime` | Wire the component as the recipe in **liv",
       "chips": [
@@ -206,47 +206,47 @@ export const fixFindings: SkillTree = {
         },
         {
           "label": "hardcoded-columns",
-          "lines": [83, 83],
+          "lines": [85, 85],
           "anchor": "| `hardcoded-columns` | `repeat(var(--columns-count), 1fr)` "
         },
         {
           "label": "site-css-in-main",
-          "lines": [84, 84],
+          "lines": [86, 86],
           "anchor": "| `site-css-in-main` | Delete the import from `main.ts`. Add"
         },
         {
           "label": "missing-source",
-          "lines": [85, 85],
+          "lines": [87, 87],
           "anchor": "| `missing-source` | Add `source: 'src/...'` to the route en"
         },
         {
           "label": "reserved-route",
-          "lines": [86, 86],
+          "lines": [88, 88],
           "anchor": "| `reserved-route` | Move the route out of `/live-tokens/*`."
         },
         {
           "label": "deep-import",
-          "lines": [87, 87],
+          "lines": [89, 89],
           "anchor": "| `deep-import` | Import from `@motion-proto/live-tokens`, `"
         },
         {
           "label": "Component name rules",
-          "lines": [88, 88],
+          "lines": [90, 90],
           "anchor": "| `fix: property-name` | Rename the token to the name a ship"
         },
         {
           "label": "Component token rules",
-          "lines": [89, 89],
+          "lines": [91, 91],
           "anchor": "| `fix: property-token` | Make the `:global(:root)` default "
         },
         {
           "label": "Component editor rules",
-          "lines": [92, 92],
+          "lines": [94, 94],
           "anchor": "| `fix: editor` | The editor names a token the runtime never"
         },
         {
           "label": "Component wiring rules",
-          "lines": [90, 90],
+          "lines": [92, 92],
           "anchor": "| `fix: runtime` | Wire the component as the recipe in **liv"
         }
       ]

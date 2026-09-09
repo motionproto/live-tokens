@@ -80,6 +80,8 @@ When `package.json` has no `check:design` script, add `"check:design": "live-tok
 | `control-size` | Delete the `size` prop. The shipped default is the page's size. When that default is wrong for the project, retune the component in `/live-tokens/components`. |
 | `multiple-primary` | Keep the action that completes the main task `primary`. A Button with no `variant` counts as `primary`. Use `secondary` for supporting or related actions and `outline` for unrelated or informational actions. |
 | `danger-without-dialog` | Open a `Dialog` from the danger Button or IconButton and run the action from the Dialog's confirm. The rule fires once per page, when the page imports no Dialog. For other actions, assign emphasis by the action's relationship to the main task. |
+| `native-control` | Replace the native element with the shipped component the message names: Button or IconButton, Input, MenuSelect. |
+| `property-override` | Delete the declaration from the page. Retune the component's token for the whole project at `/live-tokens/components`. |
 | `hardcoded-columns` | `repeat(var(--columns-count), 1fr)` for the page grid. `calc(var(--columns-count) - 2)` for a sub-grid spanning fewer columns. |
 | `site-css-in-main` | Delete the import from `main.ts`. Add it to each page's `<script>`. Page CSS then stays off the editor routes. |
 | `missing-source` | Add `source: 'src/...'` to the route entry. |

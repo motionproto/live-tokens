@@ -304,6 +304,44 @@ describe('check-page token rules', () => {
   });
 });
 
+describe('check-page native-control and property-override rules', () => {
+  it('flags a native control per tag, skips a hidden input, and skips a string rendered via @html', () => {
+    const root = fixtureRoot();
+    const rel = page(root, 'Native.svelte', `<button>Go</button>
+    <input type="text" />
+    <input type="hidden" name="csrf" />
+    <select><option>1</option></select>
+    <textarea></textarea>
+    {@html '<button>from html</button>'}`);
+    const { findings } = checkPages([rel], { root });
+    const native = findings.filter((f: { rule: string }) => f.rule === 'native-control');
+    expect(native).toHaveLength(4);
+    expect(native.find((f: { message: string }) => f.message.startsWith('<button>'))?.message).toContain('Button or IconButton');
+    expect(native.find((f: { message: string }) => f.message.startsWith('<select>'))?.message).toContain('MenuSelect');
+  });
+
+  it('flags a component token a page sets on one instance, naming the owner and the components editor', () => {
+    const root = fixtureRoot();
+    const rel = page(root, 'Override.svelte', `<div style="--card-default-body-padding: var(--space-8)"><p>Body</p></div>`);
+    const { findings } = checkPages([rel], { root });
+    const overrides = findings.filter((f: { rule: string }) => f.rule === 'property-override');
+    expect(overrides).toHaveLength(1);
+    expect(overrides[0].message).toContain('--card-default-body-padding');
+    expect(overrides[0].message).toContain('Card');
+    expect(overrides[0].message).toContain('/live-tokens/components');
+  });
+
+  it('reports one finding per name, at its first site', () => {
+    const root = fixtureRoot();
+    const rel = page(root, 'Twice.svelte', `<div style="--card-default-body-padding: var(--space-8)"></div>
+    <style>
+      .a { --card-default-body-padding: var(--space-16); }
+    </style>`);
+    const { findings } = checkPages([rel], { root });
+    expect(findings.filter((f: { rule: string }) => f.rule === 'property-override')).toHaveLength(1);
+  });
+});
+
 describe('check-page severity', () => {
   it('fails on an error and passes on a warning', () => {
     const root = fixtureRoot();
@@ -410,6 +448,12 @@ const PAGE_MUTATIONS: [string, (body: string) => string, string][] = [
   ['a component outside the catalogue', edit('components/Badge.svelte', 'components/Sparkle.svelte'), 'unknown-component'],
   ['a hardcoded column count', edit('repeat(var(--columns-count), 1fr)', 'repeat(12, 1fr)'), 'hardcoded-columns'],
   ['a font shorthand with an absolute size', edit('color: var(--text-primary);', 'font: 500 12px/1 system-ui;'), 'raw-text-axis'],
+  ['a native control', edit('<p style:color="var(--text-secondary)">Body</p>', '<p style:color="var(--text-secondary)">Body</p><input />'), 'native-control'],
+  [
+    'a component token overridden on one instance',
+    edit('color: var(--text-primary);', 'color: var(--text-primary);\n    --card-default-body-padding: var(--space-8);'),
+    'property-override',
+  ],
 ];
 
 describe('the clean page and its mutations', () => {

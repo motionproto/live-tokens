@@ -33,6 +33,8 @@ export const PAGE_RULES = {
   'control-size': 'warn',
   'multiple-primary': 'warn',
   'danger-without-dialog': 'warn',
+  'native-control': 'warn',
+  'property-override': 'warn',
 };
 
 // Directories that hold the system, not pages built on it.
@@ -194,6 +196,58 @@ function tagAttributes(code, start) {
   return { attrs, end: tagEnd };
 }
 
+// The shipped component that owns each native control's paint.
+const NATIVE_CONTROLS = {
+  button: 'Button or IconButton',
+  input: 'Input',
+  select: 'MenuSelect',
+  textarea: 'Input',
+};
+
+/**
+ * `{@html ...}` blanked, brace-balanced, so a tag textually present inside a
+ * raw HTML string is not mistaken for markup the page authored.
+ */
+function blankHtmlExpressions(code) {
+  let out = code;
+  const re = /\{@html\b/g;
+  let m;
+  while ((m = re.exec(out)) !== null) {
+    const start = m.index;
+    let depth = 0;
+    let i = start;
+    for (; i < out.length; i++) {
+      if (out[i] === '{') depth++;
+      else if (out[i] === '}' && --depth === 0) {
+        i++;
+        break;
+      }
+    }
+    out = out.slice(0, start) + ' '.repeat(i - start) + out.slice(i);
+    re.lastIndex = start;
+  }
+  return out;
+}
+
+/** A raw `<button>`, `<input>`, `<select>`, or `<textarea>` where a shipped
+    component belongs. `<input type="hidden">` paints nothing and is exempt. */
+function checkNativeControls(code, add) {
+  const scan = blankHtmlExpressions(code);
+  for (const tag of Object.keys(NATIVE_CONTROLS)) {
+    for (const m of scan.matchAll(new RegExp(`<${tag}(?=[\\s/>])`, 'g'))) {
+      const parsed = tagAttributes(scan, m.index);
+      if (tag === 'input' && parsed?.attrs.some((a) => a.name.toLowerCase() === 'type' && a.value?.toLowerCase() === 'hidden')) {
+        continue;
+      }
+      add(
+        'native-control',
+        m.index,
+        `<${tag}> is a native control; use ${NATIVE_CONTROLS[tag]} so it paints from the theme.`,
+      );
+    }
+  }
+}
+
 /**
  * Props a page passes that the component does not declare, values outside a
  * prop's union, and a shipped component the page sizes itself.
@@ -274,6 +328,22 @@ function checkDestructiveActions(code, imports, add) {
   }
 }
 
+// Which component's :global(:root) block declared each component token,
+// cached per vocabulary since checkFile runs once per page.
+const tokenOwnersCache = new WeakMap();
+function componentTokenOwners(vocab) {
+  let owners = tokenOwnersCache.get(vocab);
+  if (owners) return owners;
+  owners = new Map();
+  for (const comp of vocab.components.values()) {
+    for (const name of comp.tokens.keys()) {
+      if (!owners.has(name)) owners.set(name, comp.name);
+    }
+  }
+  tokenOwnersCache.set(vocab, owners);
+  return owners;
+}
+
 /** The object literal enclosing `index`, found by balancing braces outward. */
 function enclosingObject(text, index) {
   let depth = 0;
@@ -335,6 +405,7 @@ function checkFile(file, text, vocab, root) {
     checkComponentUsage(code, imports, add);
     checkPrimaryActions(code, imports, add);
     checkDestructiveActions(code, imports, add);
+    checkNativeControls(code, add);
 
     for (const m of code.matchAll(/['"](\/live-tokens[^'"]*)['"]\s*:/g)) {
       add('reserved-route', m.index, `route '${m[1]}' is inside the reserved /live-tokens/* namespace`);
@@ -360,16 +431,33 @@ function checkFile(file, text, vocab, root) {
 
   // A page may also mint a custom property outside its <style> block — a
   // `style:--x={...}` directive or an el.style.setProperty call — and those are
-  // just as declared as one written in CSS.
-  const declaredHere = new Set();
+  // just as declared as one written in CSS. Each name keeps the earliest site
+  // it was declared at, so property-override reports one finding per name.
+  const declaredSites = new Map();
+  const declareAt = (name, index) => {
+    if (!declaredSites.has(name) || index < declaredSites.get(name)) declaredSites.set(name, index);
+  };
   const regions = styleRegions(text, file);
   for (const region of regions) {
     for (const m of neutralise(region.text).matchAll(/(?:^|[;{])\s*(--[a-z0-9-]+)\s*:/gim)) {
-      declaredHere.add(m[1]);
+      declareAt(m[1], region.offset + m.index);
     }
   }
   for (const m of text.matchAll(/(?:style:|setProperty\(\s*['"`]|['"`])(--[a-z0-9-]+)/g)) {
-    declaredHere.add(m[1]);
+    declareAt(m[1], m.index);
+  }
+
+  // A name the vocabulary already ties to a component is that component's
+  // token, so declaring it here is one instance overriding the whole
+  // project's retuning surface at /live-tokens/components.
+  for (const [name, index] of declaredSites) {
+    if (!vocab.componentTokens.has(name)) continue;
+    const owner = componentTokenOwners(vocab).get(name) ?? 'a shipped component';
+    add(
+      'property-override',
+      index,
+      `${name} overrides ${owner}'s token here instead of the whole project; retune it at /live-tokens/components.`,
+    );
   }
 
   for (const region of [...regions, ...(code === null ? [] : inlineStyleRegions(code))]) {
@@ -378,7 +466,7 @@ function checkFile(file, text, vocab, root) {
 
     for (const m of css.matchAll(/var\(\s*(--[a-z0-9-]+)/g)) {
       const name = m[1];
-      if (declaredHere.has(name) || vocab.knows(name)) continue;
+      if (declaredSites.has(name) || vocab.knows(name)) continue;
       add(
         'unknown-token',
         at(m.index),
