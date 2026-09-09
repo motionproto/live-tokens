@@ -9,6 +9,7 @@ export interface LiveTokensEditorHandle {
   mutate: (label: string, fn: (draft: EditorState) => void) => void;
   getComponentRegistryEntries: () => ReadonlyArray<RegistryEntry>;
   selectComponent: (id: string) => void;
+  setSketch: (id: string | null) => void;
 }
 
 declare global {

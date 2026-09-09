@@ -39,7 +39,16 @@ export default defineConfig({
   projects: [
     {
       name: 'chromium',
+      testIgnore: '**/contract-defects/**',
       use: { ...devices['Desktop Chrome'] },
+    },
+    {
+      // Repo-only: proves each obligation fails with the rule it names. Kept
+      // out of the shipped project so a consumer never runs the defects.
+      name: 'contract-defects',
+      testDir: './tests/e2e/contract-defects',
+      testMatch: '**/*.spec.ts',
+      use: { ...devices['Desktop Chrome'], viewport: { width: 1280, height: 900 } },
     },
     {
       name: 'contract',

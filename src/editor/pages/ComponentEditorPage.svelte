@@ -9,6 +9,7 @@
   import { listComponents } from '../core/components/componentConfigService';
   import { selectedComponent } from '../core/store/editorViewStore';
   import { componentDirty, editorState, mutate } from '../core/store/editorStore';
+  import { setSketch } from '../core/sketch';
   // Editor chrome + form controls + icon font must be JS imports (not @import
   // inside the style block) so Vite resolves them via the module graph
   // regardless of how the consumer compiles Svelte CSS (external ?lang.css vs
@@ -86,6 +87,7 @@
         mutate,
         getComponentRegistryEntries,
         selectComponent: (id) => selectedComponent.set(id),
+        setSketch,
       };
     }
     try {

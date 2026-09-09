@@ -1,0 +1,52 @@
+import { test } from '@playwright/test';
+import { isInapplicable } from './componentContract';
+import { selectedContracts } from './contracts';
+import { ContractHarness } from './support/contractHarness';
+
+for (const contract of selectedContracts()) {
+  // Serial, so a component that is not registered reports that and stops rather
+  // than reporting six preview failures caused by the missing entry.
+  test.describe.serial(contract.id, () => {
+    test(`${contract.id} is listed in its registry group`, async ({ page }) => {
+      const harness = await ContractHarness.attach(page, contract);
+      await harness.assertListed();
+    });
+
+    test(`${contract.id} resolves every alias it paints with`, async ({ page }) => {
+      const harness = await ContractHarness.open(page, contract);
+      await harness.assertAliasesResolve();
+    });
+
+    test(`${contract.id} previews the state being edited`, async ({ page }) => {
+      const harness = await ContractHarness.open(page, contract);
+      await harness.assertStates();
+    });
+
+    test(`${contract.id} answers the pointer and the keyboard`, async ({ page }) => {
+      const harness = await ContractHarness.open(page, contract);
+      await harness.assertInteraction();
+    });
+
+    test(`${contract.id} persists an edit and resets to the saved config`, async ({ page }) => {
+      test.setTimeout(180_000);
+      const harness = await ContractHarness.open(page, contract);
+      await harness.assertPersistence();
+    });
+
+    test(`${contract.id} takes the theme's values and gives them back`, async ({ page }) => {
+      const harness = await ContractHarness.open(page, contract);
+      await harness.assertThemeProjection(contract.theme);
+    });
+
+    test(`${contract.id} draws every painted part in Sketch mode`, async ({ page }) => {
+      const harness = await ContractHarness.open(page, contract);
+      const sketch = contract.sketch;
+      if (isInapplicable(sketch)) {
+        test.info().annotations.push({ type: 'inapplicable', description: sketch.reason });
+        await harness.assertNoSketchPaint('pencil');
+        return;
+      }
+      await harness.assertSketchPaint(sketch);
+    });
+  });
+}

@@ -2,6 +2,8 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { expect, test, type Locator, type Page } from '@playwright/test';
 import { openComponentsEditor } from './support/editor';
+import { selectedContracts } from './contracts';
+import { ContractHarness } from './support/contractHarness';
 
 // Each test boots its own editor and asserts only over its own component's
 // aliases, so the 25 component tests carry no shared state between them.
@@ -672,3 +674,14 @@ test('component discovery covers every alias exactly once', () => {
   expect(aliasCases.length).toBeGreaterThan(0);
   expect(perComponent).toBe(aliasCases.length);
 });
+
+// Obligation 6. The traversal above proves every property repaints something in
+// the preview; these pin the mapping, so a repaint elsewhere cannot stand in for
+// the part and CSS property the property is meant to drive.
+for (const contract of selectedContracts()) {
+  test(`${contract.id} paints each declared property on its declared part`, async ({ page }) => {
+    test.setTimeout(180_000);
+    const harness = await ContractHarness.open(page, contract);
+    expect(await harness.assertProperties()).toBeGreaterThan(0);
+  });
+}
