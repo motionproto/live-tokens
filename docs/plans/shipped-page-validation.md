@@ -1,5 +1,13 @@
 # Shipped page validation
 
+**Execution model.** The plan runs unattended as a Workflow with a heartbeat
+monitor, never as a session that spawns an agent and waits. See Execution
+below. Each wave is one `wave-executor` on the model the Status table names,
+reviewed by one `wave-reviewer` on Opus. Sonnet takes the waves whose
+definition of done is a listed fixture or an existing pattern. Opus takes the
+two waves that calibrate a rule against a real page, where deciding whether a
+failure is the page's or the rule's is the work.
+
 ## Goal and scope
 
 Prove that a page uses the shipped components and the design tokens, as
@@ -26,13 +34,63 @@ Those are usability and accessibility. This plan is design-system compliance.
 
 ## Status
 
-| Wave | Deliverable | Status | Commit |
-|---|---|---|---|
-| 1 | Two static rules: `native-control` and `property-override` | Not started | |
-| 2 | Page targets, the page suite, `page-component-paint` and `page-text-style` | Not started | |
-| 3 | `page-contrast`, `page-grid`, `page-overflow`, and the defect fixtures | Not started | |
-| 4 | `check-page --tests`: runner, reporter mapping, coverage | Not started | |
-| 5 | Consumer gate, template, skills, atlas, changelog | Not started | |
+| Wave | Deliverable | Model | Budget | Status | Commit |
+|---|---|---|---|---|---|
+| 1 | Two static rules: `native-control` and `property-override` | Sonnet | 45 min | Not started | |
+| 2 | Page targets, the page suite, `page-component-paint` and `page-text-style` | Opus | 120 min | Not started | |
+| 3 | `page-contrast`, `page-grid`, `page-overflow`, and the defect fixtures | Opus | 120 min | Not started | |
+| 4 | `check-page --tests`: runner, reporter mapping, coverage | Sonnet | 90 min | Not started | |
+| 5 | Consumer gate, template, skills, atlas, changelog | Sonnet | 120 min | Not started | |
+
+## Execution
+
+Three parts keep an overnight run from hanging: a workflow that owns the
+waiting, a monitor that owns the deadline, and budgets that own the stopping.
+The `workflow-execution` skill, user-level, does all three from this document.
+
+**The workflow.** The `workflow-execution` skill runs the waves in order
+from this table. Each wave is one executor agent followed by one reviewer
+agent. A BLOCK gets one repair pass and one re-review. A second BLOCK, an
+incomplete wave, or an agent that dies stops the run, and the result carries
+the resume point. Progress shows in `/workflows`, every agent's return value
+is journaled, and a rerun replays approved waves from cache. Start it from a
+fresh session with:
+
+```
+/workflow-execution docs/plans/shipped-page-validation.md
+```
+
+The skill derives its arguments from this document: the waves, models, and
+budgets from the Status table, the commit prefix `Page tests W` from the
+Commit-unit protocol, and the heartbeat slug `shipped-page-validation` from
+the file name. The script is `~/.claude/skills/workflow-execution/
+workflow-execution.js`.
+
+**The monitor.** The skill arms `monitor.sh` from the same directory as a
+persistent Monitor on `scratch/waves/shipped-page-validation/` before the
+workflow starts. Every executor and reviewer appends a timestamped line there
+before and after each step; that rule is in their agent definitions. The
+monitor emits one line per wave commit, `DONE` when Wave 5's commit lands,
+and `STALE` once when no heartbeat has been written for twenty minutes, then
+exits so the event is never repeated. On `STALE` the session checks
+ListAgents and the process table. Nothing live means the run is stuck: the
+session stops the workflow, reads its journal, and resumes it from the stuck
+wave, then re-arms the monitor. The longest single background command in the
+plan, the component gate, takes thirteen minutes, so twenty is silence.
+
+**The budgets.** The Status table gives each wave a wall-clock budget. The
+executor's prompt carries it, and the executor stops at it with an exact
+resume point instead of overrunning. The reviewer gets a third of the wave's
+budget and blocks on anything it could not verify in time. An incomplete
+wave with a resume point is a normal outcome the next run picks up; a silent
+agent is the only failure, and the monitor turns it into an event.
+
+**What cannot hang.** A command that may exceed ten minutes runs in the
+background and the harness re-invokes the agent on exit. No agent polls,
+sleeps in a loop, or greps the process table for its own pattern. Every
+child the runner and the gate scripts spawn carries a deadline in code, which
+Wave 4 adds to the shared spawn helper and Wave 5 to the gate. Nothing an
+agent runs can prompt: `CI=1`, `npx --yes`, `GIT_TERMINAL_PROMPT=0`.
 
 ## Current behavior
 
@@ -261,6 +319,13 @@ and viewport triples reconciled against results. `check-page --tests` runs
 the static rules first and appends the runtime findings and a coverage
 section to `--json`. Static output and severity behavior are untouched.
 
+The shared spawn helper gains a deadline, fifteen minutes by default and
+`LIVE_TOKENS_TESTS_TIMEOUT` to change it: at the deadline it sends SIGINT,
+then SIGKILL after five seconds, and the run reports `tests-incomplete`
+naming the tool and the bound. `createPlaywrightConfig` sets `globalTimeout`
+to the same bound. Both runs, component and page, get this; a hung child can
+no longer hold a caller open.
+
 **Verify.** Single file, directory, and omitted targets. Unknown route,
 missing Chromium, dev-server failure, malformed report, timeout,
 interruption, `--off` on a runtime rule, and zero targets each exit nonzero
@@ -284,7 +349,10 @@ with `@playwright/test` absent.
   command on a clean page and on one page carrying a site.css override. The
   clean page passes; the override fails `page-component-paint` at the page
   file. Source-tree hashes prove the data tree is unchanged. Keep the run to
-  those two pages; the component gate measured what a batch costs.
+  those two pages; the component gate measured what a batch costs. The gate's
+  Node half carries a deadline of its own, twenty minutes, and exits nonzero
+  naming the step that did not finish. `componentGate.mjs` gets the same
+  deadline in the same commit.
 - The template's `test:design` becomes
   `live-tokens check-component --tests && live-tokens check-page --tests`.
 - create-page's Verify runs `npx live-tokens check-page <file> --tests
