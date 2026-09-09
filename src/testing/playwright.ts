@@ -78,7 +78,11 @@ export async function createPlaywrightConfig(
     // A shared-server suite times out under CI load in ways it never does
     // locally, and without a retry budget one wobble aborts a tagged release.
     retries: process.env.CI ? 2 : 0,
-    outputDir: 'test-results/playwright',
+    // Absolute and rooted at the consumer project, not the config file's own
+    // directory: `check-component --tests`'s generated config lives in a
+    // temporary directory that gets removed on completion, and a relative
+    // `outputDir` would put every trace and screenshot in there too.
+    outputDir: path.join(settings.root, 'test-results/playwright'),
     reporter: process.env.CI ? [['line'], ['html', { open: 'never' }]] : 'list',
     use: {
       baseURL,

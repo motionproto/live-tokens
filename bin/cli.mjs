@@ -24,6 +24,7 @@ import { describeComponents, describeTokens, formatComponents, formatTokens } fr
 import { buildReport, formatReport as formatProjectReport } from './lib/report.mjs';
 import { loadVocabulary } from './lib/tokenVocabulary.mjs';
 import {
+  applyCoverageSeverity,
   applySeverity,
   countBySeverity,
   formatFindings,
@@ -175,10 +176,12 @@ if (command === 'create') {
 }
 
 function reportChecks(label, findings, checked, rules, opts, { coverage, hardFailure } = {}) {
-  const resolved = applySeverity(findings, rules, opts, readChecksConfig(process.cwd()));
+  const checksConfig = readChecksConfig(process.cwd());
+  const resolved = applySeverity(findings, rules, opts, checksConfig);
+  const resolvedCoverage = coverage ? applyCoverageSeverity(coverage, rules, opts, checksConfig) : coverage;
   console.log(
     opts.json
-      ? toJson(resolved, { label, checked, coverage })
+      ? toJson(resolved, { label, checked, coverage: resolvedCoverage })
       : formatFindings(resolved, { label, checked }),
   );
   // Decision 2: a missing tool or a setup failure under --tests is an error

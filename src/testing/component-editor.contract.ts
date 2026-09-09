@@ -24,11 +24,17 @@ for (const contract of await selectedContracts()) {
 
     test(`${contract.id} previews the state being edited`, async ({ page }) => {
       const harness = await ContractHarness.open(page, contract);
+      if (isInapplicable(contract.states)) {
+        test.info().annotations.push({ type: 'inapplicable', description: contract.states.reason });
+      }
       await harness.assertStates();
     });
 
     test(`${contract.id} answers the pointer and the keyboard`, async ({ page }) => {
       const harness = await ContractHarness.open(page, contract);
+      if (isInapplicable(contract.interaction)) {
+        test.info().annotations.push({ type: 'inapplicable', description: contract.interaction.reason });
+      }
       await harness.assertInteraction();
     });
 

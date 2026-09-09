@@ -1,9 +1,20 @@
 import { describe, it, expect, afterEach } from 'vitest';
-import { mkdtempSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdtempSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 // @ts-expect-error — plain .mjs module, no types
 import { checkComponent } from './check-component.mjs';
+
+// `npm test` runs before CI installs Chromium, so the real-browser round trip
+// near the end of this file is guarded on it already being present (as it is
+// in this dev environment) rather than failing a clean runner.
+let hasChromium = false;
+try {
+  const { chromium } = await import('@playwright/test');
+  hasChromium = existsSync(chromium.executablePath());
+} catch {
+  hasChromium = false;
+}
 
 const roots: string[] = [];
 function fixtureRoot(): string {
@@ -355,6 +366,7 @@ describe('discoverComponents', () => {
 // @ts-expect-error — plain .mjs module, no types
 import {
   artifactForContractRule,
+  classifyInfrastructureError,
   extractToken,
   extractViolationArray,
   findTokenLine,
@@ -364,9 +376,16 @@ import {
   mapRegistryViolation,
   mapVitestResults,
   missingToolFindings,
-  ruleForSpecTitle,
+  readPlaywrightTests,
+  readReportOrSetupFinding,
+  reconcileCoverage,
   runContractTests,
+  runPlaywrightSuite,
+  runRegistrySuite,
+  writeGeneratedConfigs,
 } from './contractRunner.mjs';
+// @ts-expect-error — plain .mjs module, no types
+import { applyCoverageSeverity, resolveRuleSeverity } from './lib/findings.mjs';
 
 function widgetFixtureRoot(): string {
   const root = fixtureRoot();
@@ -374,8 +393,28 @@ function widgetFixtureRoot(): string {
   return root;
 }
 
-function playwrightResult(overrides: Record<string, unknown> = {}) {
-  return { status: 'passed', annotations: [], errors: [], ...overrides };
+/** A Playwright JSON report shaped like the real one: a file suite, a
+ *  `describe.serial(id)` group nested inside it (one entry per spec's
+ *  `test.status`/`test.annotations`/`test.results`), matching what a real
+ *  `component-editor.contract.ts` run produces (verified against live runs
+ *  while building this). */
+function editorSuiteReport(componentId: string, specs: Array<Record<string, unknown>>) {
+  return {
+    suites: [
+      {
+        title: 'component-editor.contract.ts',
+        suites: [{ title: componentId, specs }],
+      },
+    ],
+  };
+}
+
+function flatSuiteReport(file: string, specs: Array<Record<string, unknown>>) {
+  return { suites: [{ title: file, specs }] };
+}
+
+function spec(title: string, file: string, line: number, test: Record<string, unknown>) {
+  return { title, file, line, tests: [{ status: 'expected', annotations: [], results: [{ status: 'passed', errors: [] }], ...test }] };
 }
 
 describe('contractRunner: tool detection', () => {
@@ -391,20 +430,40 @@ describe('contractRunner: tool detection', () => {
   });
 });
 
-describe('contractRunner: rule and component identification', () => {
-  it('maps every stable obligation title to its rule', () => {
-    expect(ruleForSpecTitle('toggle is listed in its registry group')).toBe('contract-listed');
-    expect(ruleForSpecTitle('toggle resolves every alias it paints with')).toBe('contract-alias');
-    expect(ruleForSpecTitle("toggle takes the theme's values and gives them back")).toBe('contract-theme');
-    expect(ruleForSpecTitle('an unrelated title')).toBeNull();
+describe('contractRunner: infrastructure vs. contract failures', () => {
+  it('recognises a missing browser and a crashed worker; nothing else', () => {
+    expect(classifyInfrastructureError("browserType.launch: Executable doesn't exist at /nope")).toEqual({
+      rule: 'tests-not-installed',
+      message: 'Chromium is not installed for Playwright. Run `npx playwright install chromium`.',
+    });
+    expect(classifyInfrastructureError('Worker process exited unexpectedly')?.rule).toBe('tests-setup');
+    expect(classifyInfrastructureError('ContractViolation: [contract-alias] toggle: nope')).toBeNull();
   });
+});
 
+describe('contractRunner: rule and component identification', () => {
   it('trusts the immediate describe title, then the leading word of the spec title, only against known ids', () => {
     const known = new Set(['toggle', 'card']);
     expect(identifyComponent(['toggle'], 'toggle is listed in its registry group', known)).toBe('toggle');
     expect(identifyComponent([], 'card repaints every property in its standardized runtime preview', known)).toBe('card');
     expect(identifyComponent([], 'component discovery covers every alias exactly once', known)).toBeNull();
     expect(identifyComponent(['some file suite'], 'every shipped component alias fans out...', known)).toBeNull();
+  });
+});
+
+describe('contractRunner: reading a Playwright report into tests', () => {
+  it('reads test.status and test.annotations, not the per-result ones, and only the final result', () => {
+    const report = editorSuiteReport('widget', [
+      spec('widget draws every painted part in Sketch mode', 'component-editor.contract.ts', 46, {
+        status: 'flaky',
+        annotations: [{ type: 'inapplicable', description: 'no painted parts' }],
+        results: [{ status: 'failed', errors: [{ message: 'boom' }] }, { status: 'passed', errors: [] }],
+      }),
+    ]);
+    const [t] = readPlaywrightTests(report);
+    expect(t.status).toBe('flaky');
+    expect(t.annotations).toEqual([{ type: 'inapplicable', description: 'no painted parts' }]);
+    expect(t.lastResult.status).toBe('passed');
   });
 });
 
@@ -428,6 +487,13 @@ describe('contractRunner: token and line attribution', () => {
     const file = join(root, 'sample.json');
     writeFileSync(file, '{}');
     expect(findTokenLine(file, '--widget-surface')).toBe(1);
+  });
+
+  it('requires a trailing boundary, so a shorter token cannot match inside a longer one', () => {
+    const root = fixtureRoot();
+    const file = join(root, 'sample.json');
+    writeFileSync(file, '{\n  "--card-default-body-padding": "1",\n  "--card-default-body": "2"\n}\n');
+    expect(findTokenLine(file, '--card-default-body')).toBe(3);
   });
 });
 
@@ -489,19 +555,20 @@ describe('contractRunner: registry violation parsing', () => {
 describe('contractRunner: mapping a Playwright report', () => {
   it('reads the rule and component straight out of a ContractViolation prefix', () => {
     const root = widgetFixtureRoot();
-    const entries = [
-      {
-        describeTitles: ['widget'],
-        specTitle: 'widget resolves every alias it paints with',
-        specFile: 'component-editor.contract.ts',
-        specLine: 20,
-        result: playwrightResult({
-          status: 'failed',
-          errors: [{ message: 'ContractViolation: [contract-alias] widget: aliases resolve to nothing at the root: --widget-header-text' }],
-        }),
-      },
-    ];
-    const { findings, coverage } = mapPlaywrightResults(entries, { root, sourceDataDir: join(root, 'data'), knownIds: new Set(['widget']) });
+    const report = editorSuiteReport('widget', [
+      spec('widget is listed in its registry group', 'component-editor.contract.ts', 10, {}),
+      spec('widget declares every part and every shipped alias', 'component-editor.contract.ts', 15, {}),
+      spec('widget resolves every alias it paints with', 'component-editor.contract.ts', 20, {
+        status: 'unexpected',
+        results: [
+          {
+            status: 'failed',
+            errors: [{ message: 'ContractViolation: [contract-alias] widget: aliases resolve to nothing at the root: --widget-header-text' }],
+          },
+        ],
+      }),
+    ]);
+    const { findings, coverage } = mapPlaywrightResults(report, { root, sourceDataDir: join(root, 'data'), knownIds: new Set(['widget']) });
     expect(findings).toHaveLength(1);
     expect(findings[0].rule).toBe('contract-alias');
     expect(findings[0].message).toContain('widget:');
@@ -509,42 +576,198 @@ describe('contractRunner: mapping a Playwright report', () => {
     expect(coverage.widget['contract-alias']).toEqual({ status: 'failed' });
   });
 
-  it('falls back to the title table for a plain expect() failure with no ContractViolation prefix', () => {
+  it('derives the rule from the suite file and position, never from title wording, for a plain expect() failure', () => {
     const root = widgetFixtureRoot();
-    const entries = [
-      {
-        describeTitles: [],
-        specTitle: 'widget paints each declared property on its declared part',
-        specFile: 'component-render.contract.ts',
-        specLine: 682,
-        result: playwrightResult({ status: 'failed', errors: [{ message: 'Error: expect(received).toBeGreaterThan(expected)' }] }),
-      },
-    ];
-    const { findings } = mapPlaywrightResults(entries, { root, sourceDataDir: join(root, 'data'), knownIds: new Set(['widget']) });
+    const report = flatSuiteReport('component-render.contract.ts', [
+      spec('a completely reworded title with no fixed wording at all', 'component-render.contract.ts', 682, {
+        status: 'unexpected',
+        results: [{ status: 'failed', errors: [{ message: 'Error: expect(received).toBeGreaterThan(expected)' }] }],
+      }),
+    ]);
+    // No component id recoverable (the reworded title has no known leading
+    // word), so this exercises the file-based fallback specifically.
+    const { findings } = mapPlaywrightResults(report, { root, sourceDataDir: join(root, 'data'), knownIds: new Set(['widget']) });
     expect(findings[0].rule).toBe('contract-render');
+  });
+
+  it('positions rather than titles identify the obligation: two positions share contract-alias, two share contract-preview', () => {
+    const root = widgetFixtureRoot();
+    const failing = (title: string) =>
+      spec(title, 'component-editor.contract.ts', 1, {
+        status: 'unexpected',
+        results: [{ status: 'failed', errors: [{ message: 'Error: some assertion' }] }],
+      });
+    const report = editorSuiteReport('widget', [
+      failing('renamed: listed check'),
+      failing('renamed: inventory check'),
+      failing('renamed: alias resolution check'),
+      failing('renamed: states check'),
+      failing('renamed: interaction check'),
+      failing('renamed: persistence check'),
+      failing('renamed: theme check'),
+      failing('renamed: sketch check'),
+    ]);
+    const { findings } = mapPlaywrightResults(report, { root, sourceDataDir: join(root, 'data'), knownIds: new Set(['widget']) });
+    expect(findings.map((f: { rule: string }) => f.rule)).toEqual([
+      'contract-listed',
+      'contract-alias',
+      'contract-alias',
+      'contract-preview',
+      'contract-preview',
+      'contract-persist',
+      'contract-theme',
+      'contract-sketch',
+    ]);
   });
 
   it('records coverage for a pass, including an inapplicable annotation, and stays silent on a cascaded skip', () => {
     const root = widgetFixtureRoot();
-    const entries = [
-      {
-        describeTitles: ['widget'],
-        specTitle: 'widget draws every painted part in Sketch mode',
-        specFile: 'component-editor.contract.ts',
-        specLine: 46,
-        result: playwrightResult({ status: 'passed', annotations: [{ type: 'inapplicable', description: 'no painted parts' }] }),
-      },
-      {
-        describeTitles: ['widget'],
-        specTitle: 'widget answers the pointer and the keyboard',
-        specFile: 'component-editor.contract.ts',
-        specLine: 30,
-        result: playwrightResult({ status: 'skipped' }),
-      },
-    ];
-    const { findings, coverage } = mapPlaywrightResults(entries, { root, sourceDataDir: join(root, 'data'), knownIds: new Set(['widget']) });
-    expect(findings).toEqual([]);
+    const passing = (title: string) => spec(title, 'component-editor.contract.ts', 1, {});
+    const report = editorSuiteReport('widget', [
+      spec('widget is listed in its registry group', 'component-editor.contract.ts', 10, {
+        status: 'unexpected',
+        results: [{ status: 'failed', errors: [{ message: 'ContractViolation: [contract-listed] widget: no registry entry' }] }],
+      }),
+      spec('widget declares every part and every shipped alias', 'component-editor.contract.ts', 15, { status: 'skipped', results: [{ status: 'skipped', errors: [] }] }),
+      passing('position 2: alias-resolve'),
+      passing('position 3: states'),
+      passing('position 4: interaction'),
+      passing('position 5: persist'),
+      passing('position 6: theme'),
+      spec('widget draws every painted part in Sketch mode', 'component-editor.contract.ts', 46, {
+        annotations: [{ type: 'inapplicable', description: 'no painted parts' }],
+      }),
+    ]);
+    const { findings, coverage } = mapPlaywrightResults(report, { root, sourceDataDir: join(root, 'data'), knownIds: new Set(['widget']) });
+    expect(findings).toHaveLength(1);
+    expect(findings[0].rule).toBe('contract-listed');
     expect(coverage.widget['contract-sketch']).toEqual({ status: 'inapplicable', reason: 'no painted parts' });
+    // Position 1 (inventory) was skipped, but position 2 (alias-resolve) — the
+    // other obligation sharing contract-alias — passed, so the rule reads
+    // passed. reconcileCoverage, not this function, is what turns a rule with
+    // no entry at all into `incomplete`.
+    expect(coverage.widget['contract-alias']).toEqual({ status: 'passed' });
+  });
+
+  it('failed beats passed beats inapplicable when two obligations share one rule', () => {
+    const root = widgetFixtureRoot();
+    const report = editorSuiteReport('widget', [
+      spec('widget previews the state being edited', 'component-editor.contract.ts', 25, {}), // passed, applicable
+      spec('widget answers the pointer and the keyboard', 'component-editor.contract.ts', 30, {
+        annotations: [{ type: 'inapplicable', description: 'no interactive role' }],
+      }),
+    ]);
+    // Two entries at positions 3 and 4 both map to contract-preview; the real
+    // pass must win over the inapplicable one.
+    const withPositions = editorSuiteReport('widget', [
+      spec('p0', 'component-editor.contract.ts', 1, {}),
+      spec('p1', 'component-editor.contract.ts', 1, {}),
+      spec('p2', 'component-editor.contract.ts', 1, {}),
+      ...report.suites[0].suites[0].specs,
+    ]);
+    const { coverage } = mapPlaywrightResults(withPositions, { root, sourceDataDir: join(root, 'data'), knownIds: new Set(['widget']) });
+    expect(coverage.widget['contract-preview']).toEqual({ status: 'passed' });
+  });
+
+  it('a timeout or an interruption is tests-incomplete, not a contract finding', () => {
+    const root = widgetFixtureRoot();
+    const report = editorSuiteReport('widget', [
+      spec('widget persists an edit and resets to the saved config', 'component-editor.contract.ts', 35, {
+        status: 'unexpected',
+        results: [{ status: 'timedOut', errors: [] }],
+      }),
+    ]);
+    const { findings } = mapPlaywrightResults(report, { root, sourceDataDir: join(root, 'data'), knownIds: new Set(['widget']) });
+    expect(findings).toEqual([
+      {
+        rule: 'tests-incomplete',
+        file: 'package.json',
+        line: 1,
+        message: 'widget: "widget persists an edit and resets to the saved config" did not finish (timedOut)',
+        context: expect.objectContaining({ suite: 'playwright' }),
+      },
+    ]);
+  });
+
+  it('a missing browser short-circuits the whole run: one finding, no per-obligation noise, empty coverage', () => {
+    const root = widgetFixtureRoot();
+    const report = editorSuiteReport('widget', [
+      spec('widget is listed in its registry group', 'component-editor.contract.ts', 10, {
+        status: 'unexpected',
+        results: [{ status: 'failed', errors: [{ message: "browserType.launch: Executable doesn't exist at /nope" }] }],
+      }),
+    ]);
+    const { findings, coverage } = mapPlaywrightResults(report, { root, sourceDataDir: join(root, 'data'), knownIds: new Set(['widget']) });
+    expect(findings).toEqual([
+      { rule: 'tests-not-installed', file: 'package.json', line: 1, message: 'Chromium is not installed for Playwright. Run `npx playwright install chromium`.' },
+    ]);
+    expect(coverage).toEqual({});
+  });
+
+  it('zero collected tests, or a report-level error, is tests-incomplete rather than a clean pass, and marks itself as already explaining every gap', () => {
+    const root = widgetFixtureRoot();
+    const zero = mapPlaywrightResults({ suites: [] }, { root, sourceDataDir: join(root, 'data'), knownIds: new Set() });
+    expect(zero.findings[0].rule).toBe('tests-incomplete');
+    expect(zero.coverage).toEqual({});
+    // Without this, one collection failure would multiply into a separate
+    // reconciliation finding for every expected (component, rule) pair.
+    expect(zero.explained).toBe(true);
+
+    const withError = mapPlaywrightResults(
+      { suites: [{ title: 'x', specs: [] }], errors: [{ message: 'Error: Process from config.webServer was not able to start. Exit code: 1' }] },
+      { root, sourceDataDir: join(root, 'data'), knownIds: new Set() },
+    );
+    expect(withError.findings[0].rule).toBe('tests-incomplete');
+    expect(withError.findings[0].message).toContain('webServer');
+  });
+
+  it('multi-line ContractViolation messages keep every line, not just the first', () => {
+    const root = widgetFixtureRoot();
+    const report = editorSuiteReport('widget', [
+      spec('widget declares every part and every shipped alias', 'component-editor.contract.ts', 15, {
+        status: 'unexpected',
+        results: [
+          {
+            status: 'failed',
+            errors: [
+              {
+                message:
+                  'ContractViolation: [contract-render] widget: 2 shipped aliases reach no paint map and carry no reason:\n--widget-a\n--widget-b\n\n    at ContractHarness.fail (…)',
+              },
+            ],
+          },
+        ],
+      }),
+    ]);
+    const { findings } = mapPlaywrightResults(report, { root, sourceDataDir: join(root, 'data'), knownIds: new Set(['widget']) });
+    expect(findings[0].message).toContain('--widget-a\n--widget-b');
+  });
+});
+
+describe('contractRunner: reconciling expected coverage against what actually ran', () => {
+  it('marks an unexplained gap incomplete and reports it', () => {
+    const { coverage, findings } = reconcileCoverage({ widget: { 'contract-listed': { status: 'passed' } } }, ['widget'], {
+      expectedRules: ['contract-listed', 'contract-alias'],
+    });
+    expect(coverage.widget['contract-alias']).toEqual({ status: 'incomplete' });
+    expect(findings).toEqual([
+      { rule: 'tests-incomplete', file: 'package.json', line: 1, message: 'widget: contract-alias did not run, and nothing else for widget failed to explain why' },
+    ]);
+  });
+
+  it('stays silent when a sibling rule already failed (describe.serial cascade)', () => {
+    const { findings } = reconcileCoverage({ widget: { 'contract-listed': { status: 'failed' } } }, ['widget'], {
+      expectedRules: ['contract-listed', 'contract-alias'],
+    });
+    expect(findings).toEqual([]);
+  });
+
+  it('stays silent everywhere when a global setup finding already explains the whole run', () => {
+    const { findings } = reconcileCoverage({}, ['widget', 'other'], {
+      expectedRules: ['contract-listed'],
+      explainedGlobally: true,
+    });
+    expect(findings).toEqual([]);
   });
 });
 
@@ -616,6 +839,104 @@ describe('contractRunner: hard failures never get silenced', () => {
   });
 });
 
+describe('coverage honors --off: disabled, not a silent pass', () => {
+  it('resolveRuleSeverity answers the same question applySeverity does, for a rule with no finding to attach it to', () => {
+    const rules = { 'contract-alias': 'error' };
+    expect(resolveRuleSeverity('contract-alias', rules, { off: ['contract-alias'] })).toBe('off');
+    expect(resolveRuleSeverity('contract-alias', rules, {})).toBe('error');
+  });
+
+  it('turns an off rule into disabled coverage regardless of its actual status', () => {
+    const coverage = { toggle: { 'contract-alias': { status: 'failed' }, 'contract-render': { status: 'passed' } } };
+    const out = applyCoverageSeverity(coverage, { 'contract-alias': 'error', 'contract-render': 'error' }, { off: ['contract-alias'] });
+    expect(out.toggle['contract-alias']).toEqual({ status: 'disabled' });
+    expect(out.toggle['contract-render']).toEqual({ status: 'passed' });
+  });
+});
+
+describe('contractRunner: generated configs', () => {
+  it('passes the settings module through directly — it is already the default export, not a namespace object with one', () => {
+    const root = fixtureRoot();
+    writeFileSync(join(root, 'live-tokens.testing.ts'), "export default { registrySetup: 'src/register.ts' };\n");
+    const configDir = mkdtempSync(join(tmpdir(), 'lt-gencfg-'));
+    try {
+      const { playwrightConfigPath, vitestConfigPath } = writeGeneratedConfigs({ configDir, root });
+      const pw = readFileSync(playwrightConfigPath, 'utf8');
+      const vi = readFileSync(vitestConfigPath, 'utf8');
+      expect(pw).toContain('...settingsModule,');
+      expect(pw).not.toContain('.default');
+      expect(vi).toContain('resolveTestingConfig(settingsModule,');
+    } finally {
+      rmSync(configDir, { recursive: true, force: true });
+    }
+  });
+
+  it('omits the settings import entirely when there is no settings file', () => {
+    const root = fixtureRoot();
+    const configDir = mkdtempSync(join(tmpdir(), 'lt-gencfg-'));
+    try {
+      const { playwrightConfigPath } = writeGeneratedConfigs({ configDir, root });
+      expect(readFileSync(playwrightConfigPath, 'utf8')).not.toContain('settingsModule');
+    } finally {
+      rmSync(configDir, { recursive: true, force: true });
+    }
+  });
+});
+
+describe('contractRunner: report reading and setup failures', () => {
+  it('explains a missing report as tests-setup, with the process output', () => {
+    const root = fixtureRoot();
+    const result = readReportOrSetupFinding('Playwright', join(root, 'nope.json'), 1, 'stdout text', 'stderr text');
+    expect(result.setupFinding.rule).toBe('tests-setup');
+    expect(result.setupFinding.message).toContain('stdout text');
+  });
+
+  it('explains a malformed report as tests-setup rather than throwing', () => {
+    const root = fixtureRoot();
+    const reportPath = join(root, 'bad.json');
+    writeFileSync(reportPath, '{ not json');
+    const result = readReportOrSetupFinding('Vitest', reportPath, 0, '', '');
+    expect(result.setupFinding.rule).toBe('tests-setup');
+    expect(result.setupFinding.message).toContain('did not parse');
+  });
+
+  // `root` here is this repo's own root, not the fixture directory: `peerBin`
+  // needs a real, installed `@playwright/test` to find, and this repo has one.
+  // The fixture only supplies the (absolute) config and test file paths.
+  it('a config that throws on load is tests-setup, no browser required', async () => {
+    const fixture = fixtureRoot();
+    const configPath = join(fixture, 'broken.config.ts');
+    writeFileSync(configPath, "throw new Error('deliberately broken config');\n");
+    const configDir = mkdtempSync(join(tmpdir(), 'lt-badcfg-'));
+    try {
+      const result = await runPlaywrightSuite({ root: process.cwd(), configDir, playwrightConfigPath: configPath });
+      expect(result.setupFinding.rule).toBe('tests-setup');
+      expect(result.setupFinding.message).toContain('deliberately broken config');
+    } finally {
+      rmSync(configDir, { recursive: true, force: true });
+    }
+  }, 30_000);
+
+  it('a webServer that fails to start collects zero tests, mapped as tests-incomplete', async () => {
+    const fixture = fixtureRoot();
+    mkdirSync(join(fixture, 'tests'), { recursive: true });
+    writeFileSync(join(fixture, 'tests/dummy.spec.ts'), "import { test, expect } from '@playwright/test';\ntest('noop', () => expect(1).toBe(1));\n");
+    writeFileSync(
+      join(fixture, 'server.config.ts'),
+      "export default { testDir: './tests', webServer: { command: 'node -e \"process.exit(1)\"', url: 'http://127.0.0.1:59321', reuseExistingServer: false, timeout: 5000 } };\n",
+    );
+    const configDir = mkdtempSync(join(tmpdir(), 'lt-badsrv-'));
+    try {
+      const result = await runPlaywrightSuite({ root: process.cwd(), configDir, playwrightConfigPath: join(fixture, 'server.config.ts') });
+      expect(result.report.errors[0].message).toContain('webServer');
+      const mapped = mapPlaywrightResults(result.report, { root: process.cwd(), sourceDataDir: join(fixture, 'data'), knownIds: new Set() });
+      expect(mapped.findings[0].rule).toBe('tests-incomplete');
+    } finally {
+      rmSync(configDir, { recursive: true, force: true });
+    }
+  }, 30_000);
+});
+
 describe('contractRunner: runContractTests, end to end', () => {
   it('is an error, not a silent skip, when a required tool is missing', async () => {
     const root = fixtureRoot();
@@ -644,15 +965,64 @@ describe('contractRunner: runContractTests, end to end', () => {
     ]);
   });
 
-  // This repo is its own consumer, with real Playwright/Vitest installs and a
-  // real dev server, so this is the one genuine round trip: real subprocess,
-  // real browser, real isolated copy. The defect fixtures (a broken alias
-  // producing a `contract-alias` finding with a real line) are exercised by
-  // hand per the plan's Verify step; a from-scratch fixture project able to
-  // boot the dev server belongs to Wave 5a's consumer acceptance gate.
-  it('passes clean for a real shipped component, here, with the real tools', async () => {
+  it('a bad root (no data directory to isolate) is tests-setup, not a raw crash', async () => {
+    const root = fixtureRoot();
+    for (const pkg of ['@playwright/test', 'vitest', 'happy-dom']) {
+      mkdirSync(join(root, 'node_modules', pkg), { recursive: true });
+    }
+    write(root, 'widget', BARE_FONT('widget'));
+    const result = await runContractTests('widget', { root });
+    expect(result.findings).toEqual([
+      expect.objectContaining({ rule: 'tests-setup' }),
+    ]);
+  });
+
+  // The two tests below are the genuine round trip: real subprocess, real
+  // browser, real dev server, against this repo's own real data — this repo
+  // is its own consumer. Guarded on Chromium actually being installed, since
+  // `npm test` runs before CI installs it (`.github/workflows/*.yml` run
+  // `npx playwright install` after the unit suite); skipping rather than
+  // failing keeps a clean-runner `npm test` green while still exercising the
+  // real path wherever a browser is already present, such as here. A
+  // from-scratch fixture project able to boot its own dev server belongs to
+  // Wave 5a's consumer acceptance gate.
+  it.skipIf(!hasChromium)('passes clean for a real shipped component, here, with the real tools', async () => {
     const result = await runContractTests('toggle', { root: process.cwd() });
     expect(result.findings).toEqual([]);
-    expect(result.coverage.toggle['contract-registry']).toEqual({ status: 'passed' });
+    expect(result.coverage.toggle).toEqual({
+      'contract-registry': { status: 'passed' },
+      'contract-listed': { status: 'passed' },
+      'contract-alias': { status: 'passed' },
+      'contract-preview': { status: 'passed' },
+      'contract-persist': { status: 'passed' },
+      'contract-theme': { status: 'passed' },
+      'contract-sketch': { status: 'passed' },
+      'contract-render': { status: 'passed' },
+    });
+  }, 60_000);
+
+  it.skipIf(!hasChromium)('a broken shipped alias produces one contract-alias finding with a real line, and cascade skips read as incomplete, not silently missing', async () => {
+    const configPath = join(process.cwd(), 'src/live-tokens/data/component-configs/toggle/default.json');
+    const original = readFileSync(configPath, 'utf8');
+    const data = JSON.parse(original);
+    data.aliases['--toggle-track-surface'] = '--nonexistent-token-xyz';
+    writeFileSync(configPath, JSON.stringify(data, null, 2));
+    try {
+      const result = await runContractTests('toggle', { root: process.cwd() });
+      expect(result.findings).toHaveLength(1);
+      expect(result.findings[0]).toEqual(
+        expect.objectContaining({
+          rule: 'contract-alias',
+          file: 'src/live-tokens/data/component-configs/toggle/default.json',
+          line: 7,
+        }),
+      );
+      for (const rule of ['contract-preview', 'contract-persist', 'contract-theme', 'contract-sketch']) {
+        expect(result.coverage.toggle[rule]).toEqual({ status: 'incomplete' });
+      }
+    } finally {
+      writeFileSync(configPath, original);
+      rmSync(join(process.cwd(), 'test-results'), { recursive: true, force: true });
+    }
   }, 60_000);
 });

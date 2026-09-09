@@ -65,24 +65,46 @@ export function parseCheckFlags(argv) {
   return opts;
 }
 
+/** The same last-wins resolution `applySeverity` applies per finding, exposed
+ *  standalone so coverage (which has no findings to attach a severity to, but
+ *  still has to honor `--off`) can ask the same question. */
+export function resolveRuleSeverity(ruleId, rules, opts = {}, config = {}) {
+  const configured = config.rules ?? {};
+  let severity = rules[ruleId] ?? 'error';
+  if (SEVERITIES.includes(configured[ruleId])) severity = configured[ruleId];
+  if (opts.off?.includes(ruleId)) severity = 'off';
+  if (opts.warn?.includes(ruleId)) severity = 'warn';
+  if (opts.error?.includes(ruleId)) severity = 'error';
+  if (opts.strict && severity === 'warn') severity = 'error';
+  return severity;
+}
+
 /**
  * Resolve each finding's severity and drop the ones turned off.
  * `rules` maps rule id to its default severity.
  */
 export function applySeverity(findings, rules, opts = {}, config = {}) {
-  const configured = config.rules ?? {};
-  const resolve = (id) => {
-    let severity = rules[id] ?? 'error';
-    if (SEVERITIES.includes(configured[id])) severity = configured[id];
-    if (opts.off?.includes(id)) severity = 'off';
-    if (opts.warn?.includes(id)) severity = 'warn';
-    if (opts.error?.includes(id)) severity = 'error';
-    if (opts.strict && severity === 'warn') severity = 'error';
-    return severity;
-  };
   return findings
-    .map((f) => ({ ...f, severity: resolve(f.rule) }))
+    .map((f) => ({ ...f, severity: resolveRuleSeverity(f.rule, rules, opts, config) }))
     .filter((f) => f.severity !== 'off');
+}
+
+/**
+ * A coverage entry for a rule resolved to severity 'off' becomes 'disabled',
+ * regardless of what actually happened: the plan requires `--off` to stay
+ * visible as disabled coverage rather than silently reading as a pass (an
+ * obligation that failed but was silenced is not the same as one that ran
+ * clean), and disabled coverage can never establish a complete pass.
+ */
+export function applyCoverageSeverity(coverage, rules, opts = {}, config = {}) {
+  const out = {};
+  for (const [id, ruleMap] of Object.entries(coverage)) {
+    out[id] = {};
+    for (const [rule, entry] of Object.entries(ruleMap)) {
+      out[id][rule] = resolveRuleSeverity(rule, rules, opts, config) === 'off' ? { status: 'disabled' } : entry;
+    }
+  }
+  return out;
 }
 
 export function countBySeverity(findings) {
