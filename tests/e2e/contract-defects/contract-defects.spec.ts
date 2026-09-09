@@ -4,7 +4,7 @@ import {
   type ComponentContract,
   type ContractRule,
 } from '../../../src/testing/componentContract';
-import { sectionDividerContract, sliderContract } from '../../../src/testing/contracts';
+import { imageLightboxContract, sectionDividerContract, sliderContract, tooltipContract } from '../../../src/testing/contracts';
 import { ContractHarness } from '../../../src/testing/support/contractHarness';
 
 // Every rule a contract can trip, tripped once. A defect is either a wrong
@@ -289,6 +289,25 @@ test('a portaled part with no setup step fails contract-render', async ({ page }
   const harness = await open(page, defect);
   const violation = await expectViolation('contract-render', () => harness.assertProperties());
   expect(violation.message).toContain('overlay');
+});
+
+test('a pseudo-element paint mapped to the wrong token fails contract-render', async ({ page }) => {
+  const defect = withDefect(tooltipContract, (draft) => {
+    draft.properties = [{ paints: { arrow: { borderRightColor: '--tooltip-text' } } }];
+  });
+  const harness = await open(page, defect);
+  const violation = await expectViolation('contract-render', () => harness.assertProperties());
+  expect(violation.message).toContain('arrow.borderRightColor');
+});
+
+test('an SVG paint mapped to the wrong token fails contract-render', async ({ page }) => {
+  const defect = withDefect(imageLightboxContract, (draft) => {
+    draft.view = { setup: [{ kind: 'click', part: 'thumb' }] };
+    draft.properties = [{ paints: { closeIcon: { stroke: '--imagelightbox-tile-surface' } } }];
+  });
+  const harness = await open(page, defect);
+  const violation = await expectViolation('contract-render', () => harness.assertProperties());
+  expect(violation.message).toContain('closeIcon.stroke');
 });
 
 test('an alias in no paint map fails the inventory until it carries a reason', async ({ page }) => {
