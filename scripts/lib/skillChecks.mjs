@@ -177,7 +177,12 @@ export function checkSkills({ skills, cli, aliasKinds = '' }) {
       }
     }
 
-    for (const [, sibling] of text.matchAll(/\b(live-tokens-[a-z-]+)\b/g)) {
+    // A filename may legitimately carry the package's own prefix, as
+    // `src/live-tokens-components.ts` does. Matching it as a sibling skill
+    // reference once forced a documented example file to be renamed instead.
+    for (const m of text.matchAll(/(^|[^/\w-])(live-tokens-[a-z-]+)(\.[a-z]+)?/gm)) {
+      const [, , sibling, extension] = m;
+      if (extension) continue;
       if (!skillDirs.includes(sibling)) errors.push(`${skill}: refers to skill "${sibling}", which is not bundled`);
     }
 

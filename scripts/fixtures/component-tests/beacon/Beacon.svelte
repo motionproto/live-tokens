@@ -27,7 +27,7 @@
   role="switch"
   aria-checked={on}
   aria-label={label}
-  class="beacon {className}"
+  class="beacon sketch-surface {className}"
   class:on
   {disabled}
   onclick={flip}

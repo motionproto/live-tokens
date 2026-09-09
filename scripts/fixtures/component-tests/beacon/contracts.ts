@@ -112,12 +112,10 @@ export const beaconContract: ComponentContract = {
       },
     ],
   },
-  // Sketch mode's PART_SPECS (src/editor/core/sketch/sketchLayer.ts) is a
-  // fixed, shipped list of selectors; a runtime-registered custom component
-  // has no entry in it and so is never drawn. Same reason the shipped
-  // imagelightbox/radiobutton/inlineeditactions contracts mark this
-  // inapplicable.
-  sketch: { applicable: false, reason: 'Beacon carries no entry in sketchLayer.ts\'s PART_SPECS; custom components are not Sketch-paintable today.' },
+  // The documented consumer opt-in (references/sketch-mode.md): a reserved
+  // class puts a runtime-registered component into PART_SPECS without a
+  // first-party row. This asserts that path works from a real consumer.
+  sketch: { style: 'pencil', parts: [{ part: 'root', fill: '--beacon-surface', stroke: '--beacon-border' }] },
 };
 
 export default [beaconContract];

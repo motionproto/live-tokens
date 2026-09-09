@@ -89,7 +89,7 @@ function addComponent(dir) {
   mkdirSync(componentsDir, { recursive: true });
   cpSync(join(FIXTURE_SRC, 'beacon/Beacon.svelte'), join(componentsDir, 'Beacon.svelte'));
   cpSync(join(FIXTURE_SRC, 'beacon/BeaconEditor.svelte'), join(componentsDir, 'BeaconEditor.svelte'));
-  cpSync(join(FIXTURE_SRC, 'beacon/register.ts'), join(dir, 'src/live-tokens-components.ts'));
+  cpSync(join(FIXTURE_SRC, 'beacon/register.ts'), join(dir, 'src/registerComponents.ts'));
   cpSync(join(FIXTURE_SRC, 'beacon/contracts.ts'), join(dir, 'src/live-tokens-contracts.ts'));
   const mainPath = join(dir, 'src/main.ts');
   const main = readFileSync(mainPath, 'utf8');
@@ -97,7 +97,7 @@ function addComponent(dir) {
     mainPath,
     main.replace(
       "import App from './App.svelte';",
-      "import App from './App.svelte';\nimport './live-tokens-components';",
+      "import App from './App.svelte';\nimport './registerComponents';",
     ),
   );
 }
@@ -108,7 +108,7 @@ function writeTestingConfig(dir, { dataDir, componentsPath } = {}) {
     '',
     'export default defineTestingConfig({',
     ...(dataDir ? [`  dataDir: '${dataDir}',`] : []),
-    "  registrySetup: 'src/live-tokens-components.ts',",
+    "  registrySetup: 'src/registerComponents.ts',",
     "  contractsModule: 'src/live-tokens-contracts.ts',",
     ...(componentsPath ? [`  componentsPath: '${componentsPath}',`] : []),
     '});',
@@ -197,8 +197,8 @@ function scenarioCleanPass(dir, id, { expectSketchInapplicable = true, dataDir =
   check(badStatus.length === 0, `${id}: every rule is passed or inapplicable (${JSON.stringify(badStatus)})`);
   if (expectSketchInapplicable) {
     check(
-      rules['contract-sketch']?.status === 'inapplicable' && !!rules['contract-sketch']?.reason,
-      'beacon: contract-sketch is inapplicable with a reason (Sketch mode has no PART_SPECS entry for a custom component)',
+      rules['contract-sketch']?.status === 'passed',
+      `beacon: Sketch draws a consumer component through the documented reserved class (got ${rules['contract-sketch']?.status})`,
     );
   }
   return result;
@@ -404,7 +404,7 @@ async function runFixtureAScenarios(dir) {
 
   section('Fixture A: a broken registration fails the registry contract');
   {
-    const registerPath = join(dir, 'src/live-tokens-components.ts');
+    const registerPath = join(dir, 'src/registerComponents.ts');
     const before = hashDir(join(dir, 'src/live-tokens/data'));
     const result = withMutatedFile(
       registerPath,
