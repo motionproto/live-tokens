@@ -677,6 +677,15 @@ export class ContractHarness {
       if (saved === shipped) {
         this.fail('contract-persist', `${this.contract.persistence.resetVariable} still holds its shipped value ${shipped}; Reset cannot tell the two baselines apart`);
       }
+      // `first.setup` is about to replay a third time. A `ControlStep` is
+      // idempotent (`setChecked` doesn't care what came before), but an
+      // `InteractionAction` click that toggles something (a modal open/closed,
+      // for instance) is not: replaying it against whatever state the loop
+      // above happened to leave the page in can land on the wrong side of the
+      // toggle. A fresh load puts every component back in the one state
+      // `setup` was written against before it replays. `saved`, read above
+      // from the server-backed root value, isn't invalidated by the reload.
+      await this.reopen();
       await this.driveControl({
         variant: first.variant,
         state: first.state,
@@ -716,8 +725,9 @@ export class ContractHarness {
   }
 
   async cancelThemePreview(settleOn?: { variable: string; from: string }): Promise<void> {
-    await this.page.getByRole('button', { name: 'Cancel', exact: true }).click();
-    await this.page.locator('[role="dialog"][aria-label="Theme Picker"]').waitFor({ state: 'detached' });
+    const dialog = this.page.locator('[role="dialog"][aria-label="Theme Picker"]');
+    await dialog.getByRole('button', { name: 'Cancel', exact: true }).click();
+    await dialog.waitFor({ state: 'detached' });
     await settle(this.page);
     if (settleOn) await this.awaitRootChange(settleOn.variable, settleOn.from);
   }

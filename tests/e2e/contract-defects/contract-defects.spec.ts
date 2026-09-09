@@ -205,10 +205,13 @@ test('a save the server does not keep fails contract-persist', async ({ page }) 
 });
 
 test('a Reset the server answers with a third config fails contract-persist', async ({ page }) => {
-  // Boot reads `/active` once per component per page load, and the run makes
-  // one load plus one per persistence case. Everything after those is the
-  // Reset button's own read.
-  const bootReads = 1 + sliderContract.persistence.cases.length;
+  // Boot reads `/active` once per component per page load. The run makes one
+  // load to open, one reopen per persistence case inside the loop, and one
+  // more reopen right before the Reset re-drive (so that re-drive replays its
+  // `setup` against a known page state instead of whatever the loop left
+  // behind — see `assertPersistence`). Everything after those is the Reset
+  // button's own read.
+  const bootReads = 2 + sliderContract.persistence.cases.length;
   let seen = 0;
   await page.route('**/component-configs/slider/active', async (route) => {
     seen += 1;

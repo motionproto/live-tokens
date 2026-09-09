@@ -46,18 +46,18 @@ export const imageLightboxContract: ComponentContract = {
   persistence: {
     cases: [
       {
-        // UNRESOLVED (see the wave report): `assertPersistence` replays this
-        // exact `setup` a third time, at the end, to drive `resetVariable` —
-        // with the modal state left however the loop above happened to leave
-        // it. "click closeButton" only exists while the modal is open, and
-        // the lightbox's own overlay intercepts a "click thumb" anywhere on
-        // the page while it IS open (closing it instead of opening), so no
-        // fixed, reused `setup` can guarantee "closed" across a call count
-        // this contract does not control. The two loop passes above (edit,
-        // save, reload, verify) still exercise correctly; only the trailing
-        // Reset re-drive is affected.
+        // No `state` here: "tile" is the panel's own default tab, and every
+        // `selectView` re-clicks whatever `state` names even when it is
+        // already active. While the modal is open, that click's target sits
+        // under the overlay's full-viewport hit area, so skipping it avoids
+        // an avoidable trip through the same close-on-click behavior `setup`
+        // is about to use on purpose. `setup` closes the modal the
+        // contract-level view opened so the "tile" token control (behind the
+        // still-open overlay otherwise) is reachable. `contractHarness.ts`'s
+        // `assertPersistence` reopens the page before replaying this `setup`
+        // a third time for the Reset re-drive, so it always starts from the
+        // same freshly-opened state this was written against.
         shape: 'token',
-        state: 'tile',
         setup: [{ kind: 'click', part: 'closeButton' }],
         variable: '--imagelightbox-tile-border-width',
         observe: { part: 'thumb', css: 'borderTopWidth' },
@@ -69,7 +69,7 @@ export const imageLightboxContract: ComponentContract = {
     // Closes the modal the contract-level setup opened: the Theme Picker
     // trigger lives in the chrome behind it, and the still-open overlay
     // blocks clicks the same way it does for the persistence case above.
-    setup: [{ kind: 'click', part: 'thumb' }, { kind: 'click', part: 'closeButton' }],
+    setup: [{ kind: 'click', part: 'closeButton' }],
     theme: 'halloween',
     changed: ['--imagelightbox-tile-border-width', '--imagelightbox-tile-radius', '--imagelightbox-chrome-border-width', '--imagelightbox-chrome-radius'],
     unchanged: ['--imagelightbox-tile-shadow'],

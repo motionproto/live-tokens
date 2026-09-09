@@ -121,7 +121,20 @@ export interface ThemeExpectation extends View {
   theme: string;
   /** Variables whose root value the theme must move. */
   changed: string[];
-  /** Variables the theme must leave exactly as they were. */
+  /**
+   * Variables the theme must leave exactly as they were. Two theme JSON files
+   * can name the identical design token (e.g. both `--border-neutral`) and
+   * still resolve to different rendered colors, because many color primitives
+   * are computed per theme from a palette/seed even when the alias string is
+   * unchanged — comparing the two files' alias *names* does not establish
+   * invariance. Pick `unchanged` candidates from token families a theme never
+   * recolors: `--shadow-*`, `--icon-size-*`, `--font-size-*`,
+   * `--line-height-*`, `--font-family`/`--font-mono`, and the spacing/radius/
+   * border-width scale steps (`--space-*`, `--radius-*`, `--border-width-*`)
+   * are all fixed constants, not palette-derived — verify a candidate's
+   * *resolved* value is identical between the two theme files before trusting
+   * it, not just that the alias name matches.
+   */
   unchanged: string[];
   /** Variables the theme's own component config aliases, and the design token
    *  each must resolve to under it. */

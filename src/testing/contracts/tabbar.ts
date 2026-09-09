@@ -93,10 +93,18 @@ export const tabBarContract: ComponentContract = {
   },
   theme: {
     theme: 'halloween',
-    // `--tabbar-default-indicator-width` is deliberately left out: halloween's
-    // theme file sets it to --border-width-4, but the live preview leaves the
-    // root variable at the shipped 2px regardless — a product behavior this
-    // contract only observes, not one it can correct.
+    // PRODUCT BUG, confirmed empirically, not a contract limitation:
+    // halloween.json (componentSchemaVersion 27, no migration pending) sets
+    // --tabbar-{default,hover,active,disabled}-indicator-width to
+    // --border-width-4, but applying the theme in the live editor never
+    // writes any of the four — the inline :root value for each stays the
+    // shipped var(--border-width-2), verified via the raw (unresolved) root
+    // value, not just the resolved pixel readout. The sibling token this
+    // contract does assert, --tabbar-default-tab-border-width, updates
+    // correctly under the same theme load, so the theme-application path
+    // itself works; something specific to this alias (or to the
+    // "accent-width" alias kind `-indicator-width` shares with `-accent-width`
+    // in aliasKinds.ts) drops it. Left out of `changed` until that's fixed.
     changed: ['--tabbar-default-tab-border-width', '--tabbar-default-padding'],
     unchanged: ['--tabbar-default-icon-size'],
     aliasedTo: {

@@ -6,8 +6,12 @@ type BtnState = 'default' | 'hover';
 function statePaints(btn: Btn, s: BtnState): PaintMap {
   const p = `--inlineeditactions-${btn}-${s}`;
   const button = btn === 'save' ? 'saveBtn' : 'cancelBtn';
-  const icon = btn === 'save' ? 'saveIcon' : 'cancelIcon';
   return {
+    // `-icon-size` lands as `font-size` on the button itself (the icon glyph
+    // inherits it), not on a separate icon element — and a declared "icon"
+    // part here would be the button's own `<i class="fas ...">`, whose native
+    // ::before glyph content is never 'none', which reads as "drawn" to
+    // `assertNoSketchPaint` regardless of sketch mode.
     [button]: {
       backgroundColor: `${p}-surface`,
       borderTopColor: `${p}-border`,
@@ -15,8 +19,8 @@ function statePaints(btn: Btn, s: BtnState): PaintMap {
       borderRadius: `${p}-radius`,
       paddingTop: `${p}-padding`,
       color: `${p}-text`,
+      fontSize: `${p}-icon-size`,
     },
-    [icon]: { fontSize: `${p}-icon-size` },
   };
 }
 
@@ -27,9 +31,7 @@ export const inlineEditActionsContract: ComponentContract = {
   root: 'saveBtn',
   parts: {
     saveBtn: '.save-btn',
-    saveIcon: '.save-btn i',
     cancelBtn: '.cancel-btn',
-    cancelIcon: '.cancel-btn i',
   },
   // Every entry names its own `state` explicitly. VariantGroup mirrors the
   // last-clicked state tab across sibling variants (for the linked-block
