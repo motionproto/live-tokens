@@ -50,6 +50,15 @@ export const cardContract: ComponentContract = {
         },
       },
     },
+    // `click({force:true})` leaves the pointer resting on `root`, so the
+    // browser's real `.card:hover` rule applies afterward — no InteractionCase
+    // is needed to reach the gate tokens `.force-hover` bypasses by design.
+    {
+      setup: [{ kind: 'click', part: 'root' }],
+      paints: {
+        root: { borderTopColor: '--card-hover-border-enabled', boxShadow: '--card-hover-shadow-enabled' },
+      },
+    },
   ],
   states: [
     { state: 'default' },
@@ -62,20 +71,9 @@ export const cardContract: ComponentContract = {
     },
   ],
   uncovered: {
-    '--card-default-header-padding': 'shipped pre-aliased to its four per-side overrides (paddingTop/Right/Bottom/Left), which carry direct coverage',
-    '--card-default-body-padding': 'shipped pre-aliased to its four per-side overrides (paddingTop/Right/Bottom/Left), which carry direct coverage',
+    '--card-default-header-padding': 'covered transitively through its four per-side aliases (paddingTop/Right/Bottom/Left)',
+    '--card-default-body-padding': 'covered transitively through its four per-side aliases (paddingTop/Right/Bottom/Left)',
     '--card-default-blur': 'consumed via backdrop-filter: blur(), which no probe covers',
-    // Confirmed, not assumed: Card.svelte's own comment says the force-hover
-    // rule paints `--card-hover-border`/`-shadow` "ignoring the on/off gate" —
-    // it is a *different* rule from `.card:hover`, which is the only one that
-    // reads the `-enabled` gate tokens below. Card's own interaction is
-    // inapplicable (a static container, no role), so the InteractionCase
-    // mechanism that could drive a real pointer is unavailable here regardless,
-    // and no other 2a action (press/click/type/dragTo) produces a bare
-    // `:hover` without also clicking or dragging. These two tokens have no
-    // test coverage anywhere in this suite, not merely in this contract.
-    '--card-hover-border-enabled': 'gates the real .card:hover pseudo-class; force-hover bypasses the gate by design and no 2a action can produce a real hover on a component whose interaction is inapplicable, so this token is untested anywhere in the suite',
-    '--card-hover-shadow-enabled': 'gates the real .card:hover pseudo-class; force-hover bypasses the gate by design and no 2a action can produce a real hover on a component whose interaction is inapplicable, so this token is untested anywhere in the suite',
   },
   persistence: {
     cases: [

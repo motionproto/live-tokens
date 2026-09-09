@@ -38,11 +38,15 @@ export const imageLightboxContract: ComponentContract = {
         closeIcon: { stroke: '--imagelightbox-chrome-icon' },
       },
     },
+    // `click({force:true})` leaves the pointer resting on `nextButton`, so the
+    // browser's real `.image-lightbox-nav:hover` rule applies afterward.
+    // Unlike `closeButton`, clicking it does not close the modal.
+    {
+      setup: [{ kind: 'click', part: 'nextButton' }],
+      paints: { nextButton: { backgroundColor: '--imagelightbox-chrome-hover-surface' } },
+    },
   ],
   states: [{ state: 'tile' }, { state: 'overlay' }, { state: 'chrome' }],
-  uncovered: {
-    '--imagelightbox-chrome-hover-surface': 'gates the real :hover pseudo-class on the close/nav buttons; no scripted harness action triggers it',
-  },
   persistence: {
     cases: [
       {

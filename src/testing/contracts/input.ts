@@ -27,6 +27,7 @@ export const inputContract: ComponentContract = {
     toggleButton: '.input-icon-button',
     hint: '.input-hint',
     errorMsg: '.input-error',
+    placeholder: { selector: '.input-control', pseudo: '::placeholder' },
   },
   properties: [
     {
@@ -62,6 +63,7 @@ export const inputContract: ComponentContract = {
           fontWeight: '--input-hint-font-weight',
           lineHeight: '--input-hint-line-height',
         },
+        placeholder: { color: '--input-default-placeholder' },
       },
     },
     // `assertPaintsFromToken` (here) drives a controlled pixel probe, so a
@@ -134,9 +136,6 @@ export const inputContract: ComponentContract = {
       },
     },
   ],
-  uncovered: {
-    '--input-default-placeholder': 'painted on the ::placeholder pseudo-element, which getComputedStyle does not reliably expose for probing',
-  },
   persistence: {
     cases: [
       {

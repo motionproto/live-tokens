@@ -35,7 +35,7 @@ export const radioButtonContract: ComponentContract = {
   parts: {
     root: '.radio-button',
     dot: '.radio-dot',
-    dotFill: { selector: '.radio-dot', pseudo: 'after' },
+    dotFill: { selector: '.radio-dot', pseudo: '::after' },
     label: '.radio-label',
   },
   properties: [

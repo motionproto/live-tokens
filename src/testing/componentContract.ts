@@ -35,7 +35,11 @@ export function isInapplicable(value: unknown): value is Inapplicable {
 export interface PartLocator {
   /** Resolved inside the preview stage unless `portal` is set. */
   selector: string;
-  /** Read computed style from this pseudo-element of the part. */
+  /** Read computed style from this pseudo-element of the part, e.g.
+   *  `'::after'`. Chromium's `getComputedStyle` only tolerates the bare form
+   *  (`'after'`) for `::before`/`::after`; use the full `::` syntax so a
+   *  future pseudo-element (`::placeholder`, `::marker`, ...) works the same
+   *  way without a silent fallback to the host element's own style. */
   pseudo?: string;
   /** Rendered outside the preview stage. Resolved against the document. */
   portal?: boolean;

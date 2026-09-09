@@ -96,6 +96,12 @@ export const toggleContract: ComponentContract = {
   interaction: {
     part: 'root',
     role: 'switch',
+    // No activation case: Toggle.svelte is controlled (`onclick` only calls
+    // `onchange?.(!checked)`, it never flips `checked` itself), and
+    // ToggleEditor.svelte's preview drives `checked` off the state tab
+    // without wiring `onchange` back to it. Clicking the real control in this
+    // demo has no observable effect on `aria-checked`, so an activation case
+    // would assert a no-op rather than the switch's behavior.
     cases: [
       {
         name: 'clicking a toggle focuses it',

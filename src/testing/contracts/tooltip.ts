@@ -6,7 +6,7 @@ export const tooltipContract: ComponentContract = {
   root: 'root',
   parts: {
     root: '.tooltip',
-    arrow: { selector: '.tooltip', pseudo: 'after' },
+    arrow: { selector: '.tooltip', pseudo: '::after' },
   },
   properties: [
     {

@@ -99,12 +99,16 @@ export const tabBarContract: ComponentContract = {
     // --border-width-4, but applying the theme in the live editor never
     // writes any of the four — the inline :root value for each stays the
     // shipped var(--border-width-2), verified via the raw (unresolved) root
-    // value, not just the resolved pixel readout. The sibling token this
-    // contract does assert, --tabbar-default-tab-border-width, updates
-    // correctly under the same theme load, so the theme-application path
-    // itself works; something specific to this alias (or to the
-    // "accent-width" alias kind `-indicator-width` shares with `-accent-width`
-    // in aliasKinds.ts) drops it. Left out of `changed` until that's fixed.
+    // value, not just the resolved pixel readout. Root cause: theme-embedded
+    // component configs are re-migrated from schemaVersion 0 (themePreview.ts
+    // passes a field normalizeTheme.ts strips from theme-embedded configs, so
+    // it defaults to 0), and the tabbar migration pair
+    // (2026-05-29-tabbar-indicator-thickness-to-per-state-width,
+    // 2026-09-07-stroke-role-renames) is non-idempotent over already-current
+    // data: replaying both re-adds the token at the --border-width-2 fallback
+    // and then renames it over halloween's own --border-width-4. Recorded as
+    // a product defect in docs/plans/shipped-component-tests.md, not fixed
+    // here. Left out of `changed` until that's fixed.
     changed: ['--tabbar-default-tab-border-width', '--tabbar-default-padding'],
     unchanged: ['--tabbar-default-icon-size'],
     aliasedTo: {
