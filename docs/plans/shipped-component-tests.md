@@ -62,7 +62,8 @@ showed the static gate passes and the runtime contracts catch the defects.
 | 1 | The contract suites move into the shipped tree and open the owned route | Sonnet | Opus | Done | 347eecc |
 | 2a | Contract types, shared assertions, two exemplar components, one defect fixture per rule | Opus | Fable | Done | 2a840d1 |
 | 2b | Contract mappings and defect fixtures for the remaining shipped components | Sonnet | Opus | Done | 6990eeb |
-| 3 | A Playwright config factory and a vitest contract runner ship | Opus | Fable | Not started | |
+| 3 | A Playwright config factory and a vitest contract runner ship | Opus | Fable | Done | ac83676 |
+| 3b | `src/testing` ships compiled to JavaScript | Sonnet | Opus | Not started | |
 | 4 | `check-component --tests` runs the suites and reports by rule | Sonnet | Opus | Not started | |
 | 5a | The consumer acceptance gate | Sonnet | Opus | Not started | |
 | 5b | Template, skills, atlas, and changelog | Sonnet | Fable | Not started | |
@@ -469,6 +470,56 @@ existing `registryContract.test.ts` over `builtInRegistry` stays as it is.
 factories. `check:smoke-install` resolves `./testing` off the real tarball.
 Invariants 2, 4, 6.
 
+## Wave 3b — `src/testing` ships compiled to JavaScript
+
+**Executor:** Sonnet. **Reviewer:** Opus. Added after the Wave 3 review proved
+the shipped consumer path cannot work from TypeScript source.
+
+**The problem.** Node refuses to strip types from a `.ts` file under
+`node_modules`, so a consumer's `playwright.config.ts` or `vitest.config.ts`
+that imports `@motion-proto/live-tokens/testing` dies with
+`ERR_UNSUPPORTED_NODE_MODULES_TYPE_STRIPPING`. Playwright declines to
+transform anything under `node_modules`, so a `testDir` pointing at the
+shipped `*.contract.ts` suites collects `0 tests in 0 files`.
+
+**The proof.** The Wave 3 reviewer compiled `src/testing` with tsup, installed
+it in a fixture consumer, and measured: a consumer `playwright.config.ts`
+importing the compiled factory collects **262 tests in 3 files** from
+`node_modules`; a consumer `vitest.config.ts` runs `registry.contract.js`
+there, 28 passed; and `LIVE_TOKENS_COMPONENT=toggle` against the consumer's own
+dev server passed all 12, leaving the consumer's tree byte-identical and no
+temp directories behind. `belongsToNodeModules` gates transformation alone.
+Collection walks a `testDir` that is itself under `node_modules`, and Node has
+nothing to strip from `.js`. The temp-directory copy alternative is
+unnecessary.
+
+**Do.** Build `src/testing` to JavaScript with sibling declarations, the way
+`dist-plugin` already builds. Externals are `@playwright/test`, `vite`, and
+`vitest`, plus the relative imports `registry.contract.ts` makes into
+`../editor/component-editor/*` and `../../bin/*`. Five constraints the
+reviewer measured:
+
+1. `src/testing/playwright.ts:138` `testMatch: '**/component-*.contract.ts'`
+   and `src/testing/vitest.ts:18` `CONTRACT_INCLUDE` must name `.js` in the
+   shipped build and `.ts` in this repo, whose own `playwright.config.ts`
+   imports the source. Substitute at build time, or use a `{ts,js}` glob with
+   the `.ts` sources excluded from `files`.
+2. `registry.contract.js` keeps its relative `../editor/...` and
+   `../../bin/check-component.mjs` imports, which Vitest transforms under
+   `deps.inline`. The `component-*.contract.js` files and the factory inline
+   everything else.
+3. `CONTRACT_TEST_DIR` (`playwright.ts:23`) is `dirname(import.meta.url)` and
+   survives splitting only if the chunks share one flat output directory.
+4. Reporter locations become compiled-JS lines. Decision 8 wants assertion
+   locations preserved, so ship sourcemaps and have Wave 4 map them, or record
+   that findings carry `.js` lines.
+5. `build:lib` gains this build. CI runs `npm test` before the build, so
+   nothing in the unit suite may import the compiled output.
+
+**Verify.** A fixture consumer outside this repo, built from the real tarball,
+collects and runs a shipped contract suite and imports both factories from its
+own tool configs. `check:smoke-install` resolves `./testing`. Invariants 4, 6.
+
 ## Wave 4 — `check-component --tests`
 
 **Executor:** Sonnet. **Reviewer:** Opus. Isolation, cleanup, and the config
@@ -476,6 +527,25 @@ factories come from Wave 3; this unit wires the CLI to them and maps results.
 
 **Files.** `bin/check-component.mjs`, `bin/cli.mjs`, `bin/check-component.test.ts`,
 and a new `bin/contractRunner.mjs`.
+
+**The Wave 3 review carried three items into this unit.**
+
+1. **The Vitest half is not isolated.** `createVitestConfig` loads the
+   consumer's `vite.config.ts`, so Vitest boots `themeFileApi`'s
+   `configureServer` against the real tree. In the reviewer's fixture that
+   seeded 26 `default.json` files, `themes/default.json`, both pointers, and
+   rewrote `tokens.generated.css`: 30 files. Decision 6 requires the plugin to
+   use the copy in both test processes, so the runner sets
+   `LIVE_TOKENS_TEST_DATA_DIR` and `LIVE_TOKENS_DATA_DIR` for the Vitest child
+   as well. `references/contract-tests.md` should say the standalone recipe
+   boots the plugin.
+2. **The runner must not call `isolateDataDir` in its own process**, or it
+   must own its exit path. `isolation.ts:52-53` registers
+   `process.once('SIGINT'|'SIGTERM')`, and in a process with no other SIGINT
+   listener a `once` handler swallows the first Ctrl+C.
+3. **Read `settings.viteConfig` or delete it.** It is a declared public
+   setting with no reader, kept only because this unit generates a Vitest
+   config that imports the consumer's Vite config by path.
 
 **Do.**
 
