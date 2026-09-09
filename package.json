@@ -1,6 +1,6 @@
 {
   "name": "@motion-proto/live-tokens",
-  "version": "0.74.0",
+  "version": "0.75.0",
   "type": "module",
   "description": "Design token editor with live CSS variable editing. Svelte 5 + Vite 8.",
   "keywords": [
@@ -195,9 +195,15 @@
     "vitest": "^4.0"
   },
   "peerDependenciesMeta": {
-    "@playwright/test": { "optional": true },
-    "happy-dom": { "optional": true },
-    "vitest": { "optional": true }
+    "@playwright/test": {
+      "optional": true
+    },
+    "happy-dom": {
+      "optional": true
+    },
+    "vitest": {
+      "optional": true
+    }
   },
   "devDependencies": {
     "@playwright/test": "^1.62.1",

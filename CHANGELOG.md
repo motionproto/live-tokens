@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.75.0 — A component passes when the tests pass
 
 ### Added
 
@@ -61,10 +61,6 @@
   axes from one text style on `p`, list items, `code`, and `pre`, and `ol li`
   reads `--body-md-line-height` in place of `1.6`. A project created before
   this release keeps its copied `site.css`.
-
-## 0.75.0 — The app follows the CLI
-
-### Changed
 
 - **A page's type comes from a text style, and the checker fails a page that
   names a raw axis.** `raw-text-axis` is an error, and it now reads a `var()`
