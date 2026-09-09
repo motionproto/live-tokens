@@ -465,8 +465,8 @@ const ASSERTION_TO_RULE: Record<string, string> = {
   assertListed: 'contract-listed',
   assertInventory: 'contract-alias',
   assertAliasesResolve: 'contract-alias',
-  assertStates: 'contract-preview',
-  assertInteraction: 'contract-preview',
+  assertStates: 'contract-states',
+  assertInteraction: 'contract-interaction',
   assertPersistence: 'contract-persist',
   assertThemeProjection: 'contract-theme',
   assertSketchPaint: 'contract-sketch',
@@ -631,7 +631,7 @@ describe('contractRunner: mapping a Playwright report', () => {
     expect(findings[0].rule).toBe('contract-render');
   });
 
-  it('positions rather than titles identify the obligation: two positions share contract-alias, two share contract-preview', () => {
+  it('positions rather than titles identify the obligation: two positions share contract-alias', () => {
     const root = widgetFixtureRoot();
     const failing = (title: string) =>
       spec(title, 'component-editor.contract.ts', 1, {
@@ -653,8 +653,8 @@ describe('contractRunner: mapping a Playwright report', () => {
       'contract-listed',
       'contract-alias',
       'contract-alias',
-      'contract-preview',
-      'contract-preview',
+      'contract-states',
+      'contract-interaction',
       'contract-persist',
       'contract-theme',
       'contract-sketch',
@@ -714,7 +714,7 @@ describe('contractRunner: mapping a Playwright report', () => {
         annotations: [{ type: 'inapplicable', description: 'no interactive role' }],
       }),
     ]);
-    // Two entries at positions 3 and 4 both map to contract-preview; the real
+    // Positions 3 and 4 are distinct rules now; the real
     // pass must win over the inapplicable one.
     const withPositions = editorSuiteReport('widget', [
       spec('p0', 'component-editor.contract.ts', 1, {}),
@@ -723,7 +723,7 @@ describe('contractRunner: mapping a Playwright report', () => {
       ...report.suites[0].suites[0].specs,
     ]);
     const { coverage } = mapPlaywrightResults(withPositions, { root, sourceDataDir: join(root, 'data'), knownIds: new Set(['widget']) });
-    expect(coverage.widget['contract-preview']).toEqual({ status: 'passed' });
+    expect(coverage.widget['contract-states']).toEqual({ status: 'passed' });
   });
 
   it('a timeout or an interruption is tests-incomplete, not a contract finding', () => {
@@ -1226,7 +1226,8 @@ describe('contractRunner: runContractTests, end to end', () => {
       'contract-registry': { status: 'passed' },
       'contract-listed': { status: 'passed' },
       'contract-alias': { status: 'passed' },
-      'contract-preview': { status: 'passed' },
+      'contract-states': { status: 'passed' },
+      'contract-interaction': { status: 'passed' },
       'contract-persist': { status: 'passed' },
       'contract-theme': { status: 'passed' },
       'contract-sketch': { status: 'passed' },
@@ -1262,7 +1263,7 @@ describe('contractRunner: runContractTests, end to end', () => {
           line: 7,
         }),
       );
-      for (const rule of ['contract-preview', 'contract-persist', 'contract-theme', 'contract-sketch']) {
+      for (const rule of ['contract-states', 'contract-interaction', 'contract-persist', 'contract-theme', 'contract-sketch']) {
         expect(result.coverage.toggle[rule]).toEqual({ status: 'incomplete' });
       }
     } finally {

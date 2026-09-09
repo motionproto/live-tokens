@@ -12,14 +12,6 @@ around.
 
 ## P2. Test infrastructure that can hide a failure
 
-### `contract-preview` conflates two obligations
-
-States and interaction share one rule id, so a component with no interactive
-role reads `passed` whenever its states obligation passes, and the inapplicable
-reason is dropped by `COVERAGE_PRIORITY` in `bin/contractRunner.mjs`.
-
-## P3. Product defects a user can see
-
 ### The sticky preview band can still cover a control at 1280x720
 
 `.tabs-preview` now caps its sticky band at `max-height: 50vh` with a

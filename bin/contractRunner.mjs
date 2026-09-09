@@ -53,7 +53,8 @@ const ALL_CONTRACT_RULES = [
   'contract-registry',
   'contract-listed',
   'contract-alias',
-  'contract-preview',
+  'contract-states',
+  'contract-interaction',
   'contract-persist',
   'contract-theme',
   'contract-sketch',
@@ -73,8 +74,8 @@ export const EDITOR_SUITE_POSITIONAL_RULES = [
   'contract-listed',
   'contract-alias', // declares every part and every shipped alias (assertInventory)
   'contract-alias', // resolves every alias it paints with
-  'contract-preview', // previews the state being edited
-  'contract-preview', // answers the pointer and the keyboard
+  'contract-states', // previews the state being edited
+  'contract-interaction', // answers the pointer and the keyboard
   'contract-persist',
   'contract-theme',
   'contract-sketch',
@@ -588,7 +589,7 @@ function structuralRule(entry, componentId, positionCounters) {
 
 /** failed beats flaky beats passed beats inapplicable, so a component whose
  *  interaction is genuinely inapplicable but whose states obligation is a
- *  real pass (both currently map to `contract-preview`) reads as passed, and
+ *  real pass reads as passed, and
  *  either reading as failed always wins. `flaky` outranks `passed` so a
  *  retried obligation stays visible rather than being overwritten by a
  *  sibling that passed clean the first time. */

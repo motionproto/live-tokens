@@ -191,7 +191,7 @@ function scenarioCleanPass(dir, id, { expectSketchInapplicable = true, dataDir =
   check((result.json?.findings ?? []).length === 0, `${id} --tests reports no findings`);
   const rules = result.json?.coverage?.[id] ?? {};
   const ruleIds = Object.keys(rules);
-  check(ruleIds.length === 8, `${id}: coverage names all 8 contract rules (has ${ruleIds.length})`);
+  check(ruleIds.length === 9, `${id}: coverage names all 9 contract rules (has ${ruleIds.length})`);
   const statuses = Object.entries(rules).map(([rule, e]) => [rule, e.status]);
   const badStatus = statuses.filter(([, s]) => s !== 'passed' && s !== 'inapplicable');
   check(badStatus.length === 0, `${id}: every rule is passed or inapplicable (${JSON.stringify(badStatus)})`);
@@ -306,7 +306,7 @@ async function runFixtureAScenarios(dir) {
     const toggleCoverage = result.json?.coverage?.toggle ?? {};
     const statuses = Object.values(toggleCoverage).map((e) => e.status);
     check(
-      statuses.length === 8 && statuses.every((s) => s === 'passed'),
+      statuses.length === 9 && statuses.every((s) => s === 'passed'),
       'the contract run is fully green for the shipped id',
     );
   }
@@ -358,7 +358,7 @@ async function runFixtureAScenarios(dir) {
     const rules = result.json?.coverage?.beacon ?? {};
     check(rules['contract-alias']?.status === 'failed', 'coverage marks contract-alias failed');
     check(rules['contract-render']?.status === 'passed', 'the separate always-run render suite still passes cleanly');
-    for (const rule of ['contract-preview', 'contract-persist', 'contract-theme', 'contract-sketch']) {
+    for (const rule of ['contract-states', 'contract-interaction', 'contract-persist', 'contract-theme', 'contract-sketch']) {
       check(rules[rule]?.status === 'incomplete', `describe.serial's cascade marks ${rule} incomplete, not silently missing`);
     }
   }
@@ -385,7 +385,7 @@ async function runFixtureAScenarios(dir) {
     const rules = result.json?.coverage?.beacon ?? {};
     const statuses = Object.values(rules).map((e) => e.status);
     check(
-      statuses.length === 8 && statuses.every((s) => s === 'passed' || s === 'inapplicable'),
+      statuses.length === 9 && statuses.every((s) => s === 'passed' || s === 'inapplicable'),
       'the requested component\'s own coverage stays complete: this finding carries no coverage entry',
     );
   }
@@ -428,7 +428,7 @@ async function runFixtureAScenarios(dir) {
     check(rules['contract-registry']?.status === 'failed', 'coverage marks contract-registry failed');
     const others = Object.entries(rules).filter(([rule]) => rule !== 'contract-registry');
     check(
-      others.length === 7 && others.every(([, e]) => e.status === 'passed' || e.status === 'inapplicable'),
+      others.length === 8 && others.every(([, e]) => e.status === 'passed' || e.status === 'inapplicable'),
       'every other rule still runs and passes: the defect is isolated to the Vitest child',
     );
   }
@@ -459,7 +459,7 @@ async function runFixtureAScenarios(dir) {
     check(rules['contract-render']?.status === 'failed', 'coverage marks contract-render failed');
     const others = Object.entries(rules).filter(([rule]) => rule !== 'contract-render');
     check(
-      others.length === 7 && others.every(([, e]) => e.status === 'passed' || e.status === 'inapplicable'),
+      others.length === 8 && others.every(([, e]) => e.status === 'passed' || e.status === 'inapplicable'),
       'the editor-suite describe.serial block is untouched: this obligation runs outside it',
     );
   }
@@ -487,11 +487,11 @@ async function runFixtureAScenarios(dir) {
       'the finding names the editor file at the line-1 fallback: positional index 0 carries no reporter location',
     );
     const rules = result.json?.coverage?.beacon ?? {};
-    check(Object.keys(rules).length === 8, 'coverage still names all 8 rules');
+    check(Object.keys(rules).length === 9, 'coverage still names all 9 rules');
     check(rules['contract-listed']?.status === 'failed', 'coverage marks contract-listed failed');
     check(rules['contract-registry']?.status === 'passed', 'the registry check does not read the contract fixture\'s origin');
     check(rules['contract-render']?.status === 'passed', 'the separate always-run render suite is unaffected by origin');
-    for (const rule of ['contract-alias', 'contract-preview', 'contract-persist', 'contract-theme', 'contract-sketch']) {
+    for (const rule of ['contract-alias', 'contract-states', 'contract-interaction', 'contract-persist', 'contract-theme', 'contract-sketch']) {
       check(rules[rule]?.status === 'incomplete', `listed is the first obligation in the serial block, so its failure cascades ${rule} to incomplete too`);
     }
   }
