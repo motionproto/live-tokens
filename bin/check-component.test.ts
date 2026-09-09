@@ -1,7 +1,8 @@
 import { describe, it, expect, afterEach } from 'vitest';
-import { existsSync, mkdtempSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
+import { execFileSync } from 'node:child_process';
+import { cpSync, existsSync, mkdtempSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import { join, relative } from 'node:path';
 // @ts-expect-error — plain .mjs module, no types
 import { checkComponent } from './check-component.mjs';
 
@@ -367,6 +368,7 @@ describe('discoverComponents', () => {
 import {
   artifactForContractRule,
   classifyInfrastructureError,
+  EDITOR_SUITE_POSITIONAL_RULES,
   extractToken,
   extractViolationArray,
   findTokenLine,
@@ -379,6 +381,7 @@ import {
   readPlaywrightTests,
   readReportOrSetupFinding,
   reconcileCoverage,
+  resolveSourceDataDir,
   runContractTests,
   runPlaywrightSuite,
   runRegistrySuite,
@@ -448,6 +451,44 @@ describe('contractRunner: rule and component identification', () => {
     expect(identifyComponent([], 'card repaints every property in its standardized runtime preview', known)).toBe('card');
     expect(identifyComponent([], 'component discovery covers every alias exactly once', known)).toBeNull();
     expect(identifyComponent(['some file suite'], 'every shipped component alias fans out...', known)).toBeNull();
+  });
+});
+
+// The rule for each of `component-editor.contract.ts`'s eight `test()` calls
+// is positional now, not title-text-based, which means a reworded title can
+// no longer break it — but a structural edit (inserting, deleting, or
+// reordering a `test()` call) shifts every later position by one, silently.
+// Reconciliation cannot catch this: the count stays eight either way. This
+// parses the suite's actual `harness.assertX()` call inside each `test()`, in
+// source order, and pins EDITOR_SUITE_POSITIONAL_RULES to it directly.
+const ASSERTION_TO_RULE: Record<string, string> = {
+  assertListed: 'contract-listed',
+  assertInventory: 'contract-alias',
+  assertAliasesResolve: 'contract-alias',
+  assertStates: 'contract-preview',
+  assertInteraction: 'contract-preview',
+  assertPersistence: 'contract-persist',
+  assertThemeProjection: 'contract-theme',
+  assertSketchPaint: 'contract-sketch',
+  assertNoSketchPaint: 'contract-sketch',
+};
+
+function ruleSequenceFromEditorSuite(source: string): string[] {
+  const blocks = source.split(/test\(`\$\{contract\.id\}/).slice(1);
+  return blocks.map((block, index) => {
+    const calls = [...block.matchAll(/harness\.(assert\w+)\(/g)].map((m) => m[1]);
+    const rules = new Set(calls.map((call) => ASSERTION_TO_RULE[call]).filter(Boolean));
+    if (rules.size !== 1) {
+      throw new Error(`test() at position ${index} calls an assertion this table does not resolve to exactly one rule: ${calls.join(', ')}`);
+    }
+    return [...rules][0];
+  });
+}
+
+describe('EDITOR_SUITE_POSITIONAL_RULES stays pinned to the suite it describes', () => {
+  it('matches the actual harness.assertX() call inside each test(), in source order', () => {
+    const source = readFileSync(join(process.cwd(), 'src/testing/component-editor.contract.ts'), 'utf8');
+    expect(ruleSequenceFromEditorSuite(source)).toEqual(EDITOR_SUITE_POSITIONAL_RULES);
   });
 });
 
@@ -828,6 +869,29 @@ describe('contractRunner: mapping a Vitest registry report', () => {
     expect(findings[0].rule).toBe('tests-setup');
     expect(findings[0].file).toBe('package.json');
   });
+
+  it('a file that failed before running a single assertion is tests-incomplete, naming what failed to load, and explains the whole run', () => {
+    const report = {
+      testResults: [
+        {
+          assertionResults: [],
+          status: 'failed',
+          message: "Cannot find module '/project/src/does-not-exist.ts' imported from registry.contract.ts",
+        },
+      ],
+    };
+    const { findings, coverage, explained } = mapVitestResults(report, { root: process.cwd(), sourceDataDir: 'data' });
+    expect(findings).toEqual([
+      { rule: 'tests-incomplete', file: 'package.json', line: 1, message: expect.stringContaining('does-not-exist.ts') },
+    ]);
+    expect(coverage).toEqual({});
+    expect(explained).toBe(true);
+  });
+
+  it('falls back to the child stderr when the report names nothing more specific', () => {
+    const { findings } = mapVitestResults({ testResults: [] }, { root: process.cwd(), sourceDataDir: 'data', stderr: 'fatal: out of memory' });
+    expect(findings[0].message).toContain('out of memory');
+  });
 });
 
 describe('contractRunner: hard failures never get silenced', () => {
@@ -880,6 +944,25 @@ describe('contractRunner: generated configs', () => {
     } finally {
       rmSync(configDir, { recursive: true, force: true });
     }
+  });
+});
+
+describe('contractRunner: dataDir resolution honors the settings-level override', () => {
+  it('prefers a dataDir named in live-tokens.testing.ts over live-tokens.config.json', () => {
+    const root = fixtureRoot();
+    writeFileSync(join(root, 'live-tokens.config.json'), JSON.stringify({ dataDir: 'from-plugin-config' }));
+    const settingsPath = join(root, 'live-tokens.testing.ts');
+    writeFileSync(settingsPath, "export default { dataDir: 'from-testing-settings' };\n");
+    expect(resolveSourceDataDir(root, settingsPath)).toBe(join(root, 'from-testing-settings'));
+  });
+
+  it('falls back to live-tokens.config.json, then the default, with no settings file', () => {
+    const withConfig = fixtureRoot();
+    writeFileSync(join(withConfig, 'live-tokens.config.json'), JSON.stringify({ dataDir: 'from-plugin-config' }));
+    expect(resolveSourceDataDir(withConfig, null)).toBe(join(withConfig, 'from-plugin-config'));
+
+    const bare = fixtureRoot();
+    expect(resolveSourceDataDir(bare, null)).toBe(join(bare, 'src/live-tokens/data'));
   });
 });
 
@@ -1001,19 +1084,31 @@ describe('contractRunner: runContractTests, end to end', () => {
     });
   }, 60_000);
 
+  // `dataDir` (the N1 fix-forward's seam) points the run at a scratch copy of
+  // the real data tree instead: the tracked `src/live-tokens/data` is never
+  // opened for writing, verified below by hashing it before and after. The
+  // repo root still supplies the real tools, dev server, and registrations.
   it.skipIf(!hasChromium)('a broken shipped alias produces one contract-alias finding with a real line, and cascade skips read as incomplete, not silently missing', async () => {
-    const configPath = join(process.cwd(), 'src/live-tokens/data/component-configs/toggle/default.json');
-    const original = readFileSync(configPath, 'utf8');
-    const data = JSON.parse(original);
+    const root = process.cwd();
+    const trackedDataDir = join(root, 'src/live-tokens/data');
+    const beforeHash = execFileSync('git', ['status', '--porcelain', 'src/live-tokens/data'], { cwd: root }).toString();
+
+    const scratchDataDir = mkdtempSync(join(tmpdir(), 'lt-defect-data-'));
+    cpSync(trackedDataDir, scratchDataDir, { recursive: true });
+    const configPath = join(scratchDataDir, 'component-configs/toggle/default.json');
+    const data = JSON.parse(readFileSync(configPath, 'utf8'));
     data.aliases['--toggle-track-surface'] = '--nonexistent-token-xyz';
     writeFileSync(configPath, JSON.stringify(data, null, 2));
+
+    const testResultsDir = join(root, 'test-results');
+    const beforeArtifacts = existsSync(testResultsDir) ? new Set(readdirSync(testResultsDir)) : null;
     try {
-      const result = await runContractTests('toggle', { root: process.cwd() });
+      const result = await runContractTests('toggle', { root, dataDir: scratchDataDir });
       expect(result.findings).toHaveLength(1);
       expect(result.findings[0]).toEqual(
         expect.objectContaining({
           rule: 'contract-alias',
-          file: 'src/live-tokens/data/component-configs/toggle/default.json',
+          file: relative(root, configPath),
           line: 7,
         }),
       );
@@ -1021,8 +1116,19 @@ describe('contractRunner: runContractTests, end to end', () => {
         expect(result.coverage.toggle[rule]).toEqual({ status: 'incomplete' });
       }
     } finally {
-      writeFileSync(configPath, original);
-      rmSync(join(process.cwd(), 'test-results'), { recursive: true, force: true });
+      rmSync(scratchDataDir, { recursive: true, force: true });
+      // Playwright's `outputDir` resolves against `root` (this repo), not the
+      // isolated data copy, so a failing run writes artifacts under the
+      // repo's own `test-results/`. Remove only what this run added — never a
+      // developer's own pre-existing content there.
+      if (existsSync(testResultsDir)) {
+        for (const entry of readdirSync(testResultsDir)) {
+          if (!beforeArtifacts?.has(entry)) rmSync(join(testResultsDir, entry), { recursive: true, force: true });
+        }
+      }
     }
+
+    // Invariant 5: the tracked tree was never opened for writing.
+    expect(execFileSync('git', ['status', '--porcelain', 'src/live-tokens/data'], { cwd: root }).toString()).toBe(beforeHash);
   }, 60_000);
 });

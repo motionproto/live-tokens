@@ -19,7 +19,7 @@ import {
 } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { basename, dirname, join, relative, resolve } from 'node:path';
-import { fileURLToPath, pathToFileURL } from 'node:url';
+import { fileURLToPath } from 'node:url';
 import { discoverComponents, resolveComponentPaths } from './check-component.mjs';
 import { lineOf } from './lib/findings.mjs';
 
@@ -68,7 +68,7 @@ const ALL_CONTRACT_RULES = [
  * recognising it — only reordering or adding/removing a `test()` call would,
  * and that is a deliberate change to the suite itself.
  */
-const EDITOR_SUITE_POSITIONAL_RULES = [
+export const EDITOR_SUITE_POSITIONAL_RULES = [
   'contract-listed',
   'contract-alias', // declares every part and every shipped alias (assertInventory)
   'contract-alias', // resolves every alias it paints with
@@ -140,25 +140,57 @@ function settingsFilePath(root) {
  * config finishes loading, runs through plain Node resolution instead and
  * fails on the same files: verified against `vitest.contract.config.ts` with
  * both a `file://` URL and a plain absolute path as the dynamic specifier,
- * identical `ERR_MODULE_NOT_FOUND` both times. So `settings.viteConfig` (the
- * resolved value `resolveTestingConfig` computes) has no reader here on
- * purpose — reading it would mean importing the settings file dynamically
- * first, which reintroduces exactly this failure. Regexing the *source text*
- * for a `viteConfig:` field, imprecise as that is, is what stays inside the
- * static-import constraint; a wrong guess still fails loudly as `tests-setup`
- * rather than silently, because the generated Vitest config's own static
- * import of the guessed path throws if it does not exist.
+ * identical `ERR_MODULE_NOT_FOUND` both times. So neither `settings.viteConfig`
+ * nor `settings.dataDir` (the resolved values `resolveTestingConfig` computes)
+ * has a reader here on purpose — reading either would mean importing the
+ * settings file dynamically first, which reintroduces exactly this failure.
+ * Regexing the settings file's *source text* for a field, imprecise as that
+ * is, is what stays inside the static-import constraint: a wrong guess still
+ * fails loudly (a bad `viteConfig` throws on its own static import in the
+ * generated file; a bad `dataDir` throws "no data directory at ..." below),
+ * never as a silent pass. A settings-level `dataDir` this cannot see at all
+ * is worse than one resolved this imprecisely, since a project that names its
+ * data directory only in `live-tokens.testing.ts` would otherwise have its
+ * contracts checked against whatever happens to sit at the default path.
  */
-function guessViteConfigPath(root, settingsPath) {
-  if (settingsPath) {
-    try {
-      const m = /viteConfig\s*:\s*['"]([^'"]+)['"]/.exec(readFileSync(settingsPath, 'utf8'));
-      if (m) return resolve(root, m[1]);
-    } catch {
-      // Falls through to the default below.
-    }
+function scrapeSettingsField(settingsPath, fieldName) {
+  if (!settingsPath) return null;
+  try {
+    const m = new RegExp(`${fieldName}\\s*:\\s*['"]([^'"]+)['"]`).exec(readFileSync(settingsPath, 'utf8'));
+    return m ? m[1] : null;
+  } catch {
+    return null;
   }
-  return resolve(root, 'vite.config.ts');
+}
+
+function guessViteConfigPath(root, settingsPath) {
+  return resolve(root, scrapeSettingsField(settingsPath, 'viteConfig') ?? 'vite.config.ts');
+}
+
+/**
+ * `dataDir` as the plugin resolves it: a `dataDir` field scraped from the
+ * settings file (see above), else `live-tokens.config.json`'s own key, else
+ * the default. Mirrors `resolveTestingConfig`'s own `configuredDataDir`
+ * fallback (`src/testing/config.ts`) rather than importing it: that module
+ * compiles into `src/testing-js`, which does not exist until `build:testing`
+ * runs, and importing the *source* `.ts` module to reach it hits the same
+ * extensionless-import failure documented above — measured with
+ * `src/testing-js` moved aside, `resolveTestingEntry`'s `.ts` fallback threw
+ * exactly that trying to load `vitest.ts`. Duplicating this small a resolver
+ * has precedent in this file already, at `SESSION_FILES`.
+ */
+export function resolveSourceDataDir(root, settingsPath) {
+  const scraped = scrapeSettingsField(settingsPath, 'dataDir');
+  if (scraped) return resolve(root, scraped);
+  try {
+    const parsed = JSON.parse(readFileSync(join(root, 'live-tokens.config.json'), 'utf8'));
+    if (parsed && typeof parsed === 'object' && typeof parsed.dataDir === 'string') {
+      return resolve(root, parsed.dataDir);
+    }
+  } catch {
+    // Missing or unparseable reads as absent, matching the plugin's own resolver.
+  }
+  return resolve(root, 'src/live-tokens/data');
 }
 
 // ─── data isolation ─────────────────────────────────────────────────────────
@@ -348,7 +380,11 @@ export async function runRegistrySuite({ root, configDir, vitestConfigPath }) {
     [bin, 'run', '--config', vitestConfigPath, '--reporter=json', '--outputFile', reportPath],
     { cwd: root, env: process.env },
   );
-  return readReportOrSetupFinding('Vitest', reportPath, code, stdout, stderr);
+  const outcome = readReportOrSetupFinding('Vitest', reportPath, code, stdout, stderr);
+  // Kept alongside a successfully-parsed report too: a file that failed to
+  // collect a single test still carries a report, and `mapVitestResults`
+  // falls back to this when that file names no message of its own.
+  return outcome.setupFinding ? outcome : { ...outcome, stderr };
 }
 
 // ─── result mapping: shared ─────────────────────────────────────────────────
@@ -628,10 +664,29 @@ export function mapRegistryViolation(root, sourceDataDir, componentId, text) {
   return { file: relative(root, target), line: findTokenLine(target, token) };
 }
 
-export function mapVitestResults(report, { root, sourceDataDir }) {
+/** Mirrors the Playwright side's zero-collection check: a file that failed
+ *  before it ran a single assertion (`assertionResults` empty, `status`
+ *  'failed') carries its own `message` — measured against a bad
+ *  `registrySetup` path, "Cannot find module '.../does-not-exist.ts'". Left
+ *  unhandled, this fell through with empty coverage and no finding of its
+ *  own, relying entirely on reconciliation's generic "did not run" message,
+ *  which never names what actually failed to load. */
+export function mapVitestResults(report, { root, sourceDataDir, stderr } = {}) {
+  const files = report.testResults ?? [];
+  const collectionFailures = files.filter((f) => f.status === 'failed' && (f.assertionResults ?? []).length === 0);
+  if (files.length === 0 || collectionFailures.length === files.length) {
+    const detail =
+      collectionFailures.map((f) => f.message).filter(Boolean).join('\n') || stderr?.trim() || 'the run collected no tests';
+    return {
+      findings: [{ rule: 'tests-incomplete', file: 'package.json', line: 1, message: `Vitest collected nothing to check: ${detail}` }],
+      coverage: {},
+      explained: true,
+    };
+  }
+
   const findings = [];
   const coverage = {};
-  for (const file of report.testResults ?? []) {
+  for (const file of files) {
     for (const assertion of file.assertionResults ?? []) {
       const componentId = assertion.ancestorTitles.length >= 2 ? assertion.ancestorTitles[1] : null;
       if (assertion.status !== 'failed') {
@@ -716,7 +771,7 @@ export function reconcileCoverage(coverage, expectedIds, { expectedRules = ALL_C
 
 // ─── entry point ────────────────────────────────────────────────────────────
 
-export async function runContractTests(id, { root = process.cwd() } = {}) {
+export async function runContractTests(id, { root = process.cwd(), dataDir: explicitDataDir } = {}) {
   const toolFindings = missingToolFindings(root);
   if (toolFindings.length > 0) return { findings: toolFindings, coverage: {} };
 
@@ -739,13 +794,10 @@ export async function runContractTests(id, { root = process.cwd() } = {}) {
   let dataDir;
   let configDir;
   try {
-    // Settings-level `dataDir` cannot reach this process (see
-    // `guessViteConfigPath`'s note on static vs. dynamic resolution), so this
-    // calls `resolveTestingConfig` with an empty settings object: exactly
-    // "the consumer's effective plugin dataDir" from `live-tokens.config.json`,
-    // with no re-implementation of that fallback here.
-    const { resolveTestingConfig } = await import(pathToFileURL(resolveTestingEntry('vitest')).href);
-    sourceDataDir = resolveTestingConfig({}, root).dataDir;
+    // `dataDir` bypasses resolution entirely: the seam a caller (a test, or a
+    // future batch/CI runner) uses to point an isolated copy at a source tree
+    // other than the project's own, without ever touching the real one.
+    sourceDataDir = explicitDataDir ?? resolveSourceDataDir(root, settingsFilePath(root));
     dataDir = copyIsolatedDataDir(sourceDataDir);
     configDir = mkdtempSync(join(tmpdir(), 'live-tokens-check-cfg-'));
   } catch (error) {
@@ -777,7 +829,7 @@ export async function runContractTests(id, { root = process.cwd() } = {}) {
 
     const registryMapped = registryOutcome.setupFinding
       ? { findings: [registryOutcome.setupFinding], coverage: {}, explained: true }
-      : mapVitestResults(registryOutcome.report, { root, sourceDataDir });
+      : mapVitestResults(registryOutcome.report, { root, sourceDataDir, stderr: registryOutcome.stderr });
     const playwrightMapped = playwrightOutcome.setupFinding
       ? { findings: [playwrightOutcome.setupFinding], coverage: {}, explained: true }
       : mapPlaywrightResults(playwrightOutcome.report, { root, sourceDataDir, knownIds });
