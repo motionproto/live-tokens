@@ -214,6 +214,30 @@ behind three `svelte-ignore a11y_*` directives. The component is functionally
 interactive, so its contract marks interaction inapplicable for a reason that
 is itself the defect.
 
+## Design follow-up
+
+### The rule-to-fix mapping is duplicated in two skills
+
+`live-tokens-create-component/SKILL.md` and `live-tokens-fix-findings/SKILL.md`
+each carry a table mapping every rule id to the section that fixes it, and both
+now list the same six `contract-*` rules. Adding or renaming a rule means
+hand-editing two documents, nothing enforces that the tables agree with each
+other, and nothing checks either against the rule ids `bin/contractRunner.mjs`
+actually emits.
+
+A finding already carries `rule`, `file`, `line`, and a message. Emitting a
+stable fix-key alongside it, from one registry in the runner, would let each
+skill map that key once instead of enumerating every rule. One source, no
+drift, and no skill edit when a rule changes.
+
+The counter-argument is that the mapping's target is a section heading inside a
+particular skill document, so part of it is navigation rather than test
+metadata. That argues for a stable key each skill resolves once, rather than
+for two hand-maintained tables.
+
+**Raised by:** the user, reviewing Wave 5b's skill edits. A skill should know
+what to call and nothing about how the testing works.
+
 ## P4. Cosmetic
 
 - `runContractTests` mutates `process.env` instead of building a child env.
