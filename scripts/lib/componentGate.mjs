@@ -41,8 +41,11 @@ function check(condition, msg) {
   else bad(msg);
 }
 
+/** Throws on a missing directory rather than returning a sentinel: a
+ *  before/after pair hashed as two equal sentinels would report "unchanged"
+ *  for a directory that never existed either time. */
 function hashDir(dir) {
-  if (!existsSync(dir)) return `MISSING:${dir}`;
+  if (!existsSync(dir)) throw new Error(`hashDir: ${dir} does not exist`);
   const files = [];
   const walk = (d) => {
     for (const entry of readdirSync(d, { withFileTypes: true })) {
@@ -99,12 +102,12 @@ function addComponent(dir) {
   );
 }
 
-function writeTestingConfig(dir, { dataDir, componentsPath }) {
+function writeTestingConfig(dir, { dataDir, componentsPath } = {}) {
   const lines = [
     "import { defineTestingConfig } from '@motion-proto/live-tokens/testing';",
     '',
     'export default defineTestingConfig({',
-    `  dataDir: '${dataDir}',`,
+    ...(dataDir ? [`  dataDir: '${dataDir}',`] : []),
     "  registrySetup: 'src/live-tokens-components.ts',",
     "  contractsModule: 'src/live-tokens-contracts.ts',",
     ...(componentsPath ? [`  componentsPath: '${componentsPath}',`] : []),
@@ -118,8 +121,8 @@ function writeTestingConfig(dir, { dataDir, componentsPath }) {
  *  enough for themeFileApi's `configureServer` to run its at-startup
  *  `generateDefaultConfig` pass over every discovered component. That is the
  *  same file a normal `npm run dev` would produce; reading it back gives the
- *  defect fixtures below a real component-configs/<id>/default.json — schema
- *  version included — without this script guessing or duplicating that
+ *  defect fixtures below a real component-configs/<id>/default.json, schema
+ *  version included, with this script never guessing or duplicating that
  *  number. */
 async function seedRealDataDir(dir, port) {
   const child = spawn('npx', ['vite', '--port', String(port)], { cwd: dir, stdio: 'ignore' });
@@ -160,14 +163,30 @@ function clearTestResults(dir) {
   rmSync(join(dir, 'test-results'), { recursive: true, force: true });
 }
 
+/** Runs `fn` with `path` replaced by `transform(original)`, restoring the
+ *  original content in `finally` regardless of how `fn` returns. Throws if
+ *  `transform` had no effect, so a stale string this file no longer contains
+ *  fails loudly instead of quietly testing the unmutated original. */
+function withMutatedFile(path, transform, fn) {
+  const original = readFileSync(path, 'utf8');
+  const mutated = transform(original);
+  if (mutated === original) throw new Error(`withMutatedFile: transform had no effect on ${path}`);
+  writeFileSync(path, mutated);
+  try {
+    return fn();
+  } finally {
+    writeFileSync(path, original);
+  }
+}
+
 // ─── scenarios shared by both fixtures ──────────────────────────────────────
 
-function scenarioCleanPass(dir, id, { expectSketchInapplicable = true } = {}) {
-  const before = hashDir(join(dir, 'src/live-tokens/data'));
+function scenarioCleanPass(dir, id, { expectSketchInapplicable = true, dataDir = 'src/live-tokens/data' } = {}) {
+  const before = hashDir(join(dir, dataDir));
   const result = runCli(dir, ['check-component', id, '--tests', '--json']);
-  const after = hashDir(join(dir, 'src/live-tokens/data'));
+  const after = hashDir(join(dir, dataDir));
   clearTestResults(dir);
-  check(before === after, `${id}: source data unchanged across a passing run`);
+  check(before === after, `${id}: source data (${dataDir}) unchanged across a passing run`);
   check(result.status === 0, `${id} --tests exits 0 (was ${result.status})`);
   check((result.json?.findings ?? []).length === 0, `${id} --tests reports no findings`);
   const rules = result.json?.coverage?.[id] ?? {};
@@ -193,10 +212,10 @@ async function buildFixtureA(workDir, tarballPath) {
   execFileSync(process.execPath, [join(workDir, 'package/bin/cli.mjs'), 'create', dir], { stdio: 'inherit' });
   addPeerDevDeps(dir, tarballPath);
   npmInstall(dir);
-  // The workflow's own Chromium install step runs before `npm test`, not
-  // before this gate, and a CI runner's Playwright browser cache is keyed by
-  // browser build, not by which project asked — installing here is a no-op
-  // when the workflow step (or a prior local run) already has it.
+  // The workflow's Chromium install step runs before `npm test`, well before
+  // this gate. A CI runner's Playwright browser cache is keyed by browser
+  // build, not by which project asked, so installing here is a no-op when
+  // the workflow step (or a prior local run) already has it.
   execFileSync('npx', ['playwright', 'install', 'chromium'], { cwd: dir, stdio: 'inherit' });
   ok('scaffolded via the shipped create template and installed the tarball + test tools');
   return dir;
@@ -216,12 +235,13 @@ async function runFixtureAScenarios(dir) {
 
   section('Fixture A: author Beacon, wire registration + testing config');
   addComponent(dir);
-  writeTestingConfig(dir, { dataDir: 'src/live-tokens/data' });
-  const testingSrc = readFileSync(join(dir, 'live-tokens.testing.ts'), 'utf8');
-  check(
-    /dataDir:\s*'[^']+'/.test(testingSrc) && !/dataDir:\s*[`]/.test(testingSrc),
-    'live-tokens.testing.ts states dataDir as a plain quoted string, not a template literal',
-  );
+  // No dataDir here, unlike fixture B: this is what exercises
+  // resolveSourceDataDir's own default branch (settings absent, then
+  // live-tokens.config.json absent, then `src/live-tokens/data`). Fixture B
+  // covers the plain-string settings assertion for a stated value.
+  writeTestingConfig(dir, {});
+  const goodTestingConfig = readFileSync(join(dir, 'live-tokens.testing.ts'), 'utf8');
+  check(!/dataDir/.test(goodTestingConfig), 'live-tokens.testing.ts names no dataDir, so the default-resolution branch runs');
   {
     const result = spawnSync(process.execPath, [cliBin(dir), 'check-component', 'beacon'], { cwd: dir, encoding: 'utf8' });
     check(result.status === 0 && /passes the live-tokens-create-component contract/.test(result.stdout), 'the static lint (no --tests) passes for beacon');
@@ -251,13 +271,12 @@ async function runFixtureAScenarios(dir) {
   section('Fixture A: a dataDir that resolves to nothing is a setup finding');
   {
     const testingPath = join(dir, 'live-tokens.testing.ts');
-    const original = readFileSync(testingPath, 'utf8');
-    writeFileSync(testingPath, original.replace("dataDir: 'src/live-tokens/data'", "dataDir: 'this-directory-does-not-exist'"));
+    writeTestingConfig(dir, { dataDir: 'this-directory-does-not-exist' });
     let result;
     try {
       result = runCli(dir, ['check-component', 'beacon', '--tests', '--json']);
     } finally {
-      writeFileSync(testingPath, original);
+      writeFileSync(testingPath, goodTestingConfig);
     }
     check(result.status === 1, 'exits 1');
     check(findingRules(result.json).length === 1 && findingRules(result.json)[0] === 'tests-setup', 'reports tests-setup');
@@ -276,11 +295,15 @@ async function runFixtureAScenarios(dir) {
     check(before === after, 'toggle: source data unchanged');
     // Pre-existing, outside this wave's scope: checkComponent()/resolveComponentPaths()
     // (bin/check-component.mjs) resolve the lint's runtime+editor files only under
-    // the consumer's own src/system/components, with no fallback to the installed
-    // package for a shipped id named explicitly. The lint fails; the contract run
-    // beside it, which does resolve shipped runtimes against the package, does not.
-    // Invariant 3 pins the lint byte-for-byte, so this wave documents the gap
-    // rather than closing it.
+    // the consumer's own src/system/components, with no fallback to the package
+    // for a shipped id named explicitly, even though check-component.mjs already
+    // imports both PKG_ROOT and builtInIds for exactly that purpose elsewhere. The
+    // lint fails; the contract run beside it, which does resolve shipped runtimes
+    // against the package, does not. Invariant 3 pins the lint's output for the 26
+    // shipped components and the check-component.test.ts fixtures, none of which
+    // exercises a shipped id passed explicitly, so adding the fallback stays
+    // available; this wave defers it by choice, not by the invariant. Recorded
+    // in docs/contract-test-defects.md.
     const rules = findingRules(result.json);
     check(
       rules.length === 2 && rules.every((r) => r === 'missing-file'),
@@ -294,25 +317,23 @@ async function runFixtureAScenarios(dir) {
     );
   }
 
-  section('Fixture A: batch discovers the consumer\'s component plus the whole shipped catalogue');
-  {
-    const before = hashDir(join(dir, 'src/live-tokens/data'));
-    const started = Date.now();
-    const result = runCli(dir, ['check-component', '--tests', '--json']);
-    const seconds = Math.round((Date.now() - started) / 1000);
-    const after = hashDir(join(dir, 'src/live-tokens/data'));
-    clearTestResults(dir);
-    check(before === after, 'batch: source data unchanged');
-    check(result.status === 0, `batch exits 0 (was ${result.status})`);
-    check((result.json?.findings ?? []).length === 0, 'batch reports no findings');
-    const coverage = result.json?.coverage ?? {};
-    const ids = Object.keys(coverage);
-    check(ids.length === 27, `batch coverage names 27 components, beacon + the 26 shipped (has ${ids.length})`);
-    const statuses = coverageStatuses(coverage);
-    check(statuses.length === 216, `batch coverage carries 216 rule entries, 27 x 8 (has ${statuses.length})`);
-    check(statuses.every((s) => s === 'passed' || s === 'inapplicable'), 'every batch rule entry is passed or inapplicable, none disabled or incomplete');
-    console.log(`  (batch run took ${seconds}s)`);
-  }
+  // No omitted-id `--tests` batch here. Measured on the 27-component run this
+  // wave carried until now: 729 of 800 seconds, re-proving components
+  // `npm run test:e2e:contract` already covers here in 2.5 minutes. There is
+  // no cheaper substitute: omitted-id reconciliation (bin/contractRunner.mjs's
+  // `expectedIds`) merges the consumer's own discovery with
+  // `discoverComponents(PKG_ROOT)`, but the browser suites iterate
+  // `selectedContracts()`, whose only narrowing input is `LIVE_TOKENS_COMPONENT`
+  // (single-id). With that env var unset, `shippedContracts`, the compiled
+  // 26-entry array the tarball ships, runs in full; nothing shrinks it for an
+  // omitted-id run. (The plain lint's own `check-component --json` batch is
+  // not a substitute either: measured at `checked: 1` for this fixture, since
+  // `discoverComponents()` reads only the consumer's own src/system/components
+  // and never crosses into the package at all.) `expectedIds` reconciliation
+  // and `workers: 1` serialization are unit-tested with small, fast fixtures
+  // in bin/check-component.test.ts; this gate's single-id beacon and toggle
+  // scenarios above already cross the tarball boundary for a custom and a
+  // shipped id respectively.
 
   section('Fixture A: a broken alias on the consumer\'s own component');
   {
@@ -366,7 +387,7 @@ async function runFixtureAScenarios(dir) {
     const findings = result.json?.findings ?? [];
     check(findings.length === 1, `exactly one finding (got ${findings.length})`);
     check(findings[0]?.rule === 'contract-alias', 'the rule id is contract-alias');
-    check(findings[0]?.file === 'package.json', 'no consumer artifact names this failure — expect the rule id, never a file');
+    check(findings[0]?.file === 'package.json', 'no consumer artifact names this failure; the rule id alone identifies it');
     const rules = result.json?.coverage?.beacon ?? {};
     const statuses = Object.values(rules).map((e) => e.status);
     check(
@@ -375,12 +396,123 @@ async function runFixtureAScenarios(dir) {
     );
   }
 
+  // The three scenarios above all trip contract-alias. bin/contractRunner.mjs
+  // resolves a finding's file three different ways depending on the rule
+  // (alias|persist|theme to the config JSON, listed to editorPath,
+  // render|preview|sketch to runtimePath, per artifactForContractRule at
+  // :496-509), and the render/alias suites are told apart in the compiled
+  // build only by their own output filename (structuralRule, :519-527). None
+  // of that is proven by an alias-only gate. Registry crosses a second child
+  // process, report format, and result mapper the alias/render scenarios
+  // never touch. Persist and theme are implied by alias's already-proven
+  // config-JSON branch. Sketch cannot be tripped on a component Sketch mode
+  // does not draw (contract-sketch reads inapplicable for Beacon, above).
+
+  section('Fixture A: a broken registration fails the registry contract');
+  {
+    const registerPath = join(dir, 'src/live-tokens-components.ts');
+    const before = hashDir(join(dir, 'src/live-tokens/data'));
+    const result = withMutatedFile(
+      registerPath,
+      (src) => src.replace(
+        "sourceFile: 'src/system/components/Beacon.svelte',",
+        "sourceFile: 'src/system/components/DoesNotExist.svelte',",
+      ),
+      () => runCli(dir, ['check-component', 'beacon', '--tests', '--json']),
+    );
+    const after = hashDir(join(dir, 'src/live-tokens/data'));
+    clearTestResults(dir);
+    check(before === after, 'source data unchanged across a failing registry run');
+    check(result.status === 1, 'exits 1');
+    const findings = result.json?.findings ?? [];
+    check(
+      findings.length === 1 && findings[0].rule === 'contract-registry',
+      `exactly one contract-registry finding (got ${JSON.stringify(findings.map((f) => f.rule))})`,
+    );
+    check(/does not resolve to a file/.test(findings[0]?.message ?? ''), 'names the unresolved sourceFile');
+    const rules = result.json?.coverage?.beacon ?? {};
+    check(rules['contract-registry']?.status === 'failed', 'coverage marks contract-registry failed');
+    const others = Object.entries(rules).filter(([rule]) => rule !== 'contract-registry');
+    check(
+      others.length === 7 && others.every(([, e]) => e.status === 'passed' || e.status === 'inapplicable'),
+      'every other rule still runs and passes: the defect is isolated to the Vitest child',
+    );
+  }
+
+  section('Fixture A: a property mapped to the wrong part fails contract-render');
+  {
+    const contractsPath = join(dir, 'src/live-tokens-contracts.ts');
+    const before = hashDir(join(dir, 'src/live-tokens/data'));
+    const result = withMutatedFile(
+      contractsPath,
+      (src) => src.replace(
+        "root: { columnGap: '--beacon-gap' },",
+        "root: { columnGap: '--beacon-gap', backgroundColor: '--beacon-track-surface' },",
+      ),
+      () => runCli(dir, ['check-component', 'beacon', '--tests', '--json']),
+    );
+    const after = hashDir(join(dir, 'src/live-tokens/data'));
+    clearTestResults(dir);
+    check(before === after, 'source data unchanged across a failing render run');
+    check(result.status === 1, 'exits 1');
+    const findings = result.json?.findings ?? [];
+    check(
+      findings.length === 1 && findings[0].rule === 'contract-render',
+      `exactly one contract-render finding (got ${JSON.stringify(findings.map((f) => f.rule))})`,
+    );
+    check(findings[0]?.file === 'src/system/components/Beacon.svelte', 'the finding names the runtime file: the branch this rule takes');
+    const rules = result.json?.coverage?.beacon ?? {};
+    check(rules['contract-render']?.status === 'failed', 'coverage marks contract-render failed');
+    const others = Object.entries(rules).filter(([rule]) => rule !== 'contract-render');
+    check(
+      others.length === 7 && others.every(([, e]) => e.status === 'passed' || e.status === 'inapplicable'),
+      'the editor-suite describe.serial block is untouched: this obligation runs outside it',
+    );
+  }
+
+  section('Fixture A: the wrong registry group fails contract-listed');
+  {
+    const contractsPath = join(dir, 'src/live-tokens-contracts.ts');
+    const before = hashDir(join(dir, 'src/live-tokens/data'));
+    const result = withMutatedFile(
+      contractsPath,
+      (src) => src.replace("origin: 'custom',", "origin: 'system',"),
+      () => runCli(dir, ['check-component', 'beacon', '--tests', '--json']),
+    );
+    const after = hashDir(join(dir, 'src/live-tokens/data'));
+    clearTestResults(dir);
+    check(before === after, 'source data unchanged across a failing listed run');
+    check(result.status === 1, 'exits 1');
+    const findings = result.json?.findings ?? [];
+    check(
+      findings.length === 1 && findings[0].rule === 'contract-listed',
+      `exactly one contract-listed finding (got ${JSON.stringify(findings.map((f) => f.rule))})`,
+    );
+    check(
+      findings[0]?.file === 'src/system/components/BeaconEditor.svelte' && findings[0]?.line === 1,
+      'the finding names the editor file at the line-1 fallback: positional index 0 carries no reporter location',
+    );
+    const rules = result.json?.coverage?.beacon ?? {};
+    check(Object.keys(rules).length === 8, 'coverage still names all 8 rules');
+    check(rules['contract-listed']?.status === 'failed', 'coverage marks contract-listed failed');
+    check(rules['contract-registry']?.status === 'passed', 'the registry check does not read the contract fixture\'s origin');
+    check(rules['contract-render']?.status === 'passed', 'the separate always-run render suite is unaffected by origin');
+    for (const rule of ['contract-alias', 'contract-preview', 'contract-persist', 'contract-theme', 'contract-sketch']) {
+      check(rules[rule]?.status === 'incomplete', `listed is the first obligation in the serial block, so its failure cascades ${rule} to incomplete too`);
+    }
+  }
+
   section('Fixture A: interrupting a run cleans up and leaves the source tree untouched');
   {
     const before = hashDir(join(dir, 'src/live-tokens/data'));
     const child = spawn(process.execPath, [cliBin(dir), 'check-component', 'beacon', '--tests', '--json'], { cwd: dir });
     const exited = new Promise((res) => child.once('exit', (code, signal) => res({ code, signal })));
     await sleep(6000);
+    // Without this, a run that never got as far as isolating the data
+    // directory would still pass the leftover check below: an empty set is
+    // vacuously free of live-tokens-check-* entries.
+    const midRunTemp = readdirSync(tmpdir()).filter((n) => n.startsWith('live-tokens-check-'));
+    check(midRunTemp.length > 0, `the run had created its isolated copy before the signal (found ${midRunTemp.length})`);
     child.kill('SIGINT');
     const outcome = await exited;
     const after = hashDir(join(dir, 'src/live-tokens/data'));
@@ -426,13 +558,15 @@ function runFixtureBScenarios(dir) {
   section('Fixture B: the relocated settings resolve correctly and the decoy is never touched');
   const testingSrc = readFileSync(join(dir, 'live-tokens.testing.ts'), 'utf8');
   check(/dataDir:\s*'lt-data-relocated'/.test(testingSrc), 'live-tokens.testing.ts states the relocated dataDir as a plain string');
+  // The decoy, at the default (unrelocated) path, is hashed separately here:
+  // scenarioCleanPass below already proves the tree under test (the
+  // relocated one) is unchanged, so hashing the decoy there too would just
+  // repeat that assertion under a different name. This one is the distinct
+  // claim: the decoy was never read in the first place.
   const beforeDecoy = hashDir(join(dir, 'src/live-tokens/data'));
-  const beforeRelocated = hashDir(join(dir, 'lt-data-relocated'));
-  scenarioCleanPass(dir, 'beacon');
+  scenarioCleanPass(dir, 'beacon', { dataDir: 'lt-data-relocated' });
   const afterDecoy = hashDir(join(dir, 'src/live-tokens/data'));
-  const afterRelocated = hashDir(join(dir, 'lt-data-relocated'));
-  check(beforeDecoy === afterDecoy, 'the decoy at the default path is untouched (proves it was never read)');
-  check(beforeRelocated === afterRelocated, 'the relocated source tree is untouched (the isolated copy absorbed every write)');
+  check(beforeDecoy === afterDecoy, 'the decoy at the default path is untouched: it was never read');
 }
 
 // ─── entry point ─────────────────────────────────────────────────────────────

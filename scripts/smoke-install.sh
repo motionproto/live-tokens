@@ -129,6 +129,21 @@ echo "→ Resolving the testing/vitest subpath…"
 # vitest.js or vitest.d.ts here ships silently unless this resolves it too.
 (cd "$SMOKE_DIR" && node -p "require.resolve('$PKG_NAME/testing/vitest')" > /dev/null)
 
+echo "→ Verifying src/testing-js/ actually packed…"
+# The negative half of this assertion (no src/testing/ path) lives in
+# src/testing/packaging.test.ts, where it holds with no build present. This
+# script runs inside prepublishOnly, after build:lib, so it is the one place
+# that can assert the positive half without failing on every plain `npm test`.
+node -e "
+  const { execFileSync } = require('node:child_process');
+  const raw = execFileSync('npm', ['pack', '--dry-run', '--json'], { cwd: '$REPO_ROOT', encoding: 'utf8' });
+  const [{ files }] = JSON.parse(raw);
+  const paths = files.map((f) => f.path);
+  if (!paths.includes('src/testing-js/index.js')) {
+    throw new Error('src/testing-js/index.js is missing from the packlist. Did build:lib run?');
+  }
+"
+
 echo "→ Resolving the skill-atlas subpath…"
 # require.resolve() doesn't request the "svelte" condition, but the "default"
 # condition points at the same file, so this still proves the exports-map

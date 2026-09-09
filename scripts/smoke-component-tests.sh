@@ -14,9 +14,8 @@
 #      asserts every result
 #
 # Extends the scripts/smoke-install.sh / scripts/smoke-create.sh pattern.
-# Costs minutes, not seconds — one full-catalogue batch run is part of what
-# it proves. Wired into prepublishOnly so a broken consumer testing path
-# can't ship.
+# Costs minutes: one full-catalogue batch run is part of what it proves.
+# Wired into prepublishOnly so a broken consumer testing path can't ship.
 
 set -euo pipefail
 
