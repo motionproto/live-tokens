@@ -777,79 +777,19 @@ Invariants 6 and 7.
   leaves it opt-in and documented.
 - An additional run against `../live-tokens-online` after release. The
   tarball consumer gate already proves the shipped path before release.
-- **Theme-embedded component configs are re-migrated from version 0.**
-  `src/editor/core/preview/themePreview.ts:52` and `:56` pass
-  `config.schemaVersion`, a field `normalizeTheme.ts:179` strips from
-  theme-embedded configs. `ComponentConfig.schemaVersion` is optional, so it
-  typechecks, reads `undefined`, and `toComponentSlice` defaults it to `0`.
-  `editorStore.ts:338` repeats the `?? 0`. Every theme preview and every theme
-  apply re-runs all 27 component migrations over current data. The tabbar pair
-  is non-idempotent, so
-  `2026-05-29-tabbar-indicator-thickness-to-per-state-width` re-adds the token
-  at the `--border-width-2` fallback and `2026-09-07-stroke-role-renames`
-  renames it over halloween's `--border-width-4`. The fix passes
-  `theme.componentSchemaVersion` and `defaults.componentSchemaVersion`. Today
-  this costs four tabbar tokens in every theme. The defect class is any future
-  non-idempotent migration.
-- **Card's hover gate is invisible in the editor.** `Card.svelte:154-155` is
-  the only rule reading `--card-hover-{border,shadow}-enabled`, and `:159-161`
-  paints `.card.force-hover` from the unconditional tokens by design. The
-  editor's hover preview shows the on state while the global "Use hover" gate
-  is off.
-- **Three shipped components are undrawn in Sketch mode.** `sketchLayer.ts`
-  `PART_SPECS` has no entry for `imagelightbox`, `radiobutton`, or
-  `inlineeditactions`. The three `sketch: { applicable: false }` contract
-  reasons are accurate; the gap is in the product.
-- **CollapsibleSection's header carries no interactive role.**
-  `CollapsibleSection.svelte:71-72` is a `<div onclick>` behind three
-  `svelte-ignore a11y_*` directives. The component is functionally interactive.
-- **`assertNoSketchPaint` misreads icon fonts and ignores `pseudo`.**
-  `contractHarness.ts:795-810` treats any `::before` `content` other than
-  `'none'` as drawn, so a Font Awesome `<i>` always reads as drawn, and it
-  evaluates `::before` on the host even for a part declared with
-  `pseudo: 'after'`. Fix it before more sketch-inapplicable contracts land.
-- **A test stages a fixture theme inside the tracked data tree.**
-  `vite-plugin/themeFileApi.fallback.test.ts:279` writes
-  `src/live-tokens/data/themes/package-fixture-theme.json`, and
-  `src/editor/core/themes/themeComponentRoundTrip.test.ts:41-47` filters it
-  out with a comment naming the concurrency. That patches the reader for a
-  writer-side defect, so the exposure stays open for the next reader added,
-  and a run killed mid-suite leaves an untracked JSON inside the shipped
-  themes directory where `check:preset-themes` and the packaging checks look.
-  Point the fallback suite's package data directory at a temp copy. This is
-  the same defect class Wave 4 fixed in its own test under N1.
-- **The runner's settings scrape reads comments.** `bin/contractRunner.mjs:152-160`
-  scrapes `dataDir:` and `viteConfig:` from the settings source text. Measured:
-  a commented `dataDir:` line wins over a real value below it, and a comment
-  alone invents a setting. Strip `//` and `/* */` before scraping, and emit
-  `tests-setup` when the key appears with no string literal.
-- **The Vitest side handles only an all-failed collection.**
-  `bin/contractRunner.mjs:675` guards on
-  `collectionFailures.length === files.length`, so with two files, one passing
-  and one failing at module load, the failure is dropped and reconciliation
-  stays quiet. Unreachable through `check-component --tests` today, because
-  the generated config leaves `include` unset and matches exactly one file.
-  Emit one `tests-incomplete` per failed file and set `explained` only when
-  every file failed.
-- **`contract-preview` conflates two obligations**, states and interaction, so
-  a component with no interactive role reads `passed` whenever its states
-  obligation passes, and the inapplicable reason is dropped by
-  `COVERAGE_PRIORITY`.
-- **A `flaky` test reads as a clean pass** with no signal in findings or
-  coverage, while CI sets `retries: 2`.
-- **The repo's `--tests` prefers the compiled `src/testing-js/` copy**, so an
-  edit to `src/testing/*` without `npm run build:testing` silently tests the
-  old code.
-- `runContractTests` mutates `process.env` instead of building a child env,
-  and `context.suiteFile` comes back as a dangling relative path. The latter
-  is context only, never `file` or `line`, so decision 8 holds.
-- The sticky preview band in
-  `src/editor/component-editor/scaffolding/VariantGroup.svelte` has no
-  `max-height`. It reaches 697px and covers the property controls at a 720px
-  viewport for at least Image, SideNavigation, Card, ImageLightbox,
-  CornerBadge, Notification, Table, Input, and Button. Wave 1 raised the
-  `contract` project's viewport to 1280x900 to clear it, a number tuned to
-  today's tallest preview. The fix is a `max-height` with `overflow: auto` on
-  `.tabs-preview`, or a scroll container for the property panel. A later wave
-  that hits this must repair the CSS instead of raising the viewport again,
-  and `playwright.config.ts`'s viewport comment should name the defect.
+
+### Defects this work exposed
+
+The waves surfaced faults outside their own scope in the product, in the
+editor, and in the test infrastructure. They live in
+[docs/contract-test-defects.md](../contract-test-defects.md), ranked by
+consequence, each with the measurement that found it and the fix. None is
+fixed here. The largest is a data-corruption path: every theme preview and
+apply re-migrates embedded component configs from schema version 0, which
+today clobbers four tabbar tokens and in general rewrites a theme through any
+non-idempotent migration.
+
+A wave that touches one of those files repairs the defect rather than working
+around it. Wave 1 raised a viewport to clear the sticky preview band, and Wave
+2b chose a Sketch target immune to the icon-font misread. Both are recorded as
+workarounds in the register.
