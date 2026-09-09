@@ -3,6 +3,13 @@ import { defineConfig, devices } from '@playwright/test';
 const host = '127.0.0.1';
 const port = 4173;
 const baseURL = `http://${host}:${port}`;
+const e2eDataDir = '.playwright-data/live-tokens';
+
+// `discoverDefaultAliases()` in the contract suites reads component configs
+// from disk in the test runner's own process (not the browser), so it needs
+// this set here too — the `webServer.env` below only reaches the spawned dev
+// server.
+process.env.LIVE_TOKENS_DATA_DIR = e2eDataDir;
 
 export default defineConfig({
   testDir: './tests/e2e',
@@ -34,6 +41,16 @@ export default defineConfig({
       name: 'chromium',
       use: { ...devices['Desktop Chrome'] },
     },
+    {
+      name: 'contract',
+      testDir: './src/testing',
+      testMatch: '**/component-*.contract.ts',
+      // The owned route renders full-page (no overlay chrome shrinking it), so
+      // a tall preview's sticky header can cover the property panel below it
+      // at the 720px default — verified empirically against every shipped
+      // component's tallest view.
+      use: { ...devices['Desktop Chrome'], viewport: { width: 1280, height: 900 } },
+    },
   ],
   webServer: {
     command: `npm run prepare:e2e && npm run dev -- --host ${host} --port ${port}`,
@@ -42,7 +59,7 @@ export default defineConfig({
     timeout: 120_000,
     env: {
       ...process.env,
-      LIVE_TOKENS_E2E_DATA_DIR: '.playwright-data/live-tokens',
+      LIVE_TOKENS_E2E_DATA_DIR: e2eDataDir,
     },
   },
 });

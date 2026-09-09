@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import { expect, test, type Frame, type Locator } from '@playwright/test';
-import { openOverlayEditor } from './support/editor';
+import { expect, test, type Locator, type Page } from '@playwright/test';
+import { openComponentsEditor } from './support/editor';
 
 // Each test boots its own editor and asserts only over its own component's
 // aliases, so the 25 component tests carry no shared state between them.
@@ -13,7 +13,7 @@ interface AliasCase {
 }
 
 function discoverDefaultAliases(): AliasCase[] {
-  const root = path.resolve('src/live-tokens/data/component-configs');
+  const root = path.resolve(process.env.LIVE_TOKENS_DATA_DIR ?? 'src/live-tokens/data', 'component-configs');
   const cases: AliasCase[] = [];
   for (const directory of fs.readdirSync(root).sort()) {
     const file = path.join(root, directory, 'default.json');
@@ -49,15 +49,15 @@ interface ProbeResult {
  * Exercise each standard token selector through the same click path a designer
  * uses. The rendered-property probe below deliberately writes root variables
  * directly so it can try arbitrary CSS values; this companion gate proves the
- * editor control itself reaches the store, editor root, and host root.
+ * editor control itself reaches the store and the document root.
  */
 async function exerciseVisibleTokenControls(
-  frame: Frame,
+  page: Page,
   componentAliases: string[],
   exercised: Set<string>,
 ): Promise<void> {
-  const group = frame.locator('.variant-group:visible');
-  const settle = () => frame.evaluate(() => new Promise<void>((resolve) =>
+  const group = page.locator('.variant-group:visible');
+  const settle = () => page.evaluate(() => new Promise<void>((resolve) =>
     requestAnimationFrame(() => requestAnimationFrame(() => resolve()))));
   await settle();
   // A disabled or locked selector (a hover surface stood down while the tint
@@ -71,10 +71,8 @@ async function exerciseVisibleTokenControls(
     if (!componentAliases.includes(variable) || exercised.has(variable)) continue;
     const selector = group.locator(`.ui-token-selector:visible[data-token-variable="${variable}"]:not(.disabled):not(.locked)`).first();
     if (await selector.count() === 0) continue;
-    const before = await frame.evaluate((name) => ({
-      editor: document.documentElement.style.getPropertyValue(name).trim(),
-      host: window.parent.document.documentElement.style.getPropertyValue(name).trim(),
-    }), variable);
+    const before = await page.evaluate((name) =>
+      document.documentElement.style.getPropertyValue(name).trim(), variable);
 
     const optionSelector = [
       '.ui-ts-dropdown .static-chip:not(.active):not(:disabled)',
@@ -85,7 +83,7 @@ async function exerciseVisibleTokenControls(
     let foundOption = false;
     // Some semantic options can resolve to the same CSS as the current alias.
     // Try several distinct visible choices before treating the control as dead.
-    for (let attempt = 0; attempt < 4 && after.editor === before.editor; attempt++) {
+    for (let attempt = 0; attempt < 4 && after === before; attempt++) {
       await settle();
       await selector.locator('.ui-ts-trigger').click();
       const options = selector.locator(optionSelector);
@@ -99,23 +97,11 @@ async function exerciseVisibleTokenControls(
       foundOption = true;
       await options.nth(attempt % count).click();
       await settle();
-      after = await frame.evaluate((name) => ({
-        editor: document.documentElement.style.getPropertyValue(name).trim(),
-        host: window.parent.document.documentElement.style.getPropertyValue(name).trim(),
-      }), variable);
+      after = await page.evaluate((name) =>
+        document.documentElement.style.getPropertyValue(name).trim(), variable);
     }
     if (!foundOption) continue;
-    expect(after.editor, `${variable} did not write through its editor control`)
-      .not.toBe(before.editor);
-    expect(after.host, `${variable} did not reach the host root`)
-      .not.toBe(before.host);
-    expect(after.editor, `${variable} diverged between editor and host`).toBe(after.host);
-
-    after = await frame.evaluate((name) => ({
-      editor: document.documentElement.style.getPropertyValue(name).trim(),
-      host: window.parent.document.documentElement.style.getPropertyValue(name).trim(),
-    }), variable);
-    expect(after.editor, `${variable} diverged between editor and host`).toBe(after.host);
+    expect(after, `${variable} did not write through its editor control`).not.toBe(before);
     exercised.add(variable);
   }
 }
@@ -124,11 +110,11 @@ async function exerciseVisibleTokenControls(
  * selector for the fallback parent value. Merge each visible composite, then
  * exercise the newly rendered parent selector through the standard path. */
 async function exerciseVisibleSplitPaddingControls(
-  frame: Frame,
+  page: Page,
   componentAliases: string[],
   exercised: Set<string>,
 ): Promise<void> {
-  const group = frame.locator('.variant-group:visible');
+  const group = page.locator('.variant-group:visible');
   const variables = await group.locator('.merge-btn:visible[data-padding-parent-variable]')
     .evaluateAll((elements) => [...new Set(elements
       .map((element) => (element as HTMLElement).dataset.paddingParentVariable)
@@ -140,26 +126,26 @@ async function exerciseVisibleSplitPaddingControls(
     if (await merge.count()) await merge.click();
   }
   if (variables.length > 0) {
-    await frame.evaluate(() => new Promise<void>((resolve) =>
+    await page.evaluate(() => new Promise<void>((resolve) =>
       requestAnimationFrame(() => requestAnimationFrame(() => resolve()))));
-    await exerciseVisibleTokenControls(frame, componentAliases, exercised);
+    await exerciseVisibleTokenControls(page, componentAliases, exercised);
   }
 }
 
 /** A single semantic control may intentionally own several CSS variables.
- * Every listed variable must change and reach both roots before the component
- * traversal can advance. */
+ * Every listed variable must change before the component traversal can
+ * advance. */
 /** Returns the gate inputs it toggled, so the caller can put each one back
  *  after probing: a gate left on locks rows behind it (a hover surface stood
  *  down behind a tint), and those rows still have to be exercised in the
  *  views that follow. */
 async function exerciseVisibleCompositeControls(
-  frame: Frame,
+  page: Page,
   componentAliases: string[],
   exercised: Set<string>,
 ): Promise<Locator[]> {
   const toggled: Locator[] = [];
-  const group = frame.locator('.variant-group:visible');
+  const group = page.locator('.variant-group:visible');
   const controls = group.locator('[data-token-variables]:visible');
   for (let index = 0; index < await controls.count(); index++) {
     const control = controls.nth(index);
@@ -167,28 +153,22 @@ async function exerciseVisibleCompositeControls(
       .split(/\s+/)
       .filter((variable) => componentAliases.includes(variable) && !exercised.has(variable));
     if (variables.length === 0) continue;
-    const before = await frame.evaluate((names) => Object.fromEntries(names.map((name) => [name, {
-      editor: document.documentElement.style.getPropertyValue(name).trim(),
-      host: window.parent.document.documentElement.style.getPropertyValue(name).trim(),
-    }])), variables);
+    const before = await page.evaluate((names) => Object.fromEntries(names.map((name) => [name,
+      document.documentElement.style.getPropertyValue(name).trim(),
+    ])), variables);
     // A gate is a checkbox, a radio, or a Toggle, which is a `role="switch"`.
     const input = control.locator('input[type="checkbox"], input[type="radio"], [role="switch"]').first();
     if (await input.count() === 0) continue;
     await input.click();
     toggled.push(input);
-    await frame.evaluate(() => new Promise<void>((resolve) =>
+    await page.evaluate(() => new Promise<void>((resolve) =>
       requestAnimationFrame(() => requestAnimationFrame(() => resolve()))));
-    const after = await frame.evaluate((names) => Object.fromEntries(names.map((name) => [name, {
-      editor: document.documentElement.style.getPropertyValue(name).trim(),
-      host: window.parent.document.documentElement.style.getPropertyValue(name).trim(),
-    }])), variables);
+    const after = await page.evaluate((names) => Object.fromEntries(names.map((name) => [name,
+      document.documentElement.style.getPropertyValue(name).trim(),
+    ])), variables);
     for (const variable of variables) {
-      expect(after[variable].editor, `${variable} did not write through its composite control`)
-        .not.toBe(before[variable].editor);
-      expect(after[variable].host, `${variable} did not reach the host root`)
-        .not.toBe(before[variable].host);
-      expect(after[variable].editor, `${variable} diverged between editor and host`)
-        .toBe(after[variable].host);
+      expect(after[variable], `${variable} did not write through its composite control`)
+        .not.toBe(before[variable]);
       exercised.add(variable);
     }
   }
@@ -199,17 +179,17 @@ async function exerciseVisibleCompositeControls(
  * selector. Pick a real stop colour through its nested palette control and
  * assert the owning component variable—not the scratch stop variable—writes. */
 async function exerciseVisibleGradientControls(
-  frame: Frame,
+  page: Page,
   componentAliases: string[],
   exercised: Set<string>,
 ): Promise<void> {
-  const group = frame.locator('.variant-group:visible');
+  const group = page.locator('.variant-group:visible');
   const editors = group.locator('.gradient-editor:visible[data-token-variable]');
   for (let index = 0; index < await editors.count(); index++) {
     const editor = editors.nth(index);
     const variable = await editor.getAttribute('data-token-variable');
     if (!variable || !componentAliases.includes(variable) || exercised.has(variable)) continue;
-    const before = await frame.evaluate((name) =>
+    const before = await page.evaluate((name) =>
       document.documentElement.style.getPropertyValue(name).trim(), variable);
 
     // Promote an empty/flat background to Solid so its stop picker is present,
@@ -222,16 +202,10 @@ async function exerciseVisibleGradientControls(
     if (await swatch.count() === 0) continue;
     await swatch.click({ force: true });
 
-    await expect.poll(() => frame.evaluate((name) => ({
-      editor: document.documentElement.style.getPropertyValue(name).trim(),
-      host: window.parent.document.documentElement.style.getPropertyValue(name).trim(),
-    }), variable), { message: `${variable} did not write through its gradient editor` })
-      .toEqual({ editor: expect.not.stringMatching(new RegExp(`^${escapeRegExp(before)}$`)), host: expect.any(String) });
-    const after = await frame.evaluate((name) => ({
-      editor: document.documentElement.style.getPropertyValue(name).trim(),
-      host: window.parent.document.documentElement.style.getPropertyValue(name).trim(),
-    }), variable);
-    expect(after.editor, `${variable} diverged between editor and host`).toBe(after.host);
+    await expect.poll(() => page.evaluate((name) =>
+      document.documentElement.style.getPropertyValue(name).trim(), variable),
+      { message: `${variable} did not write through its gradient editor` })
+      .not.toMatch(new RegExp(`^${escapeRegExp(before)}$`));
     exercised.add(variable);
   }
 }
@@ -247,12 +221,12 @@ function escapeRegExp(value: string): string {
  * the runtime-component contract.
  */
 async function probeCurrentView(
-  frame: Frame,
+  page: Page,
   componentAliases: string[],
   forcedVariables: string[] = [],
   provenVariables: string[] = [],
 ): Promise<ProbeResult> {
-  return frame.evaluate(async ({ allAliases, forced, proven }) => {
+  return page.evaluate(async ({ allAliases, forced, proven }) => {
     const group = Array.from(document.querySelectorAll<HTMLElement>('.variant-group'))
       .find((element) => element.offsetParent !== null);
     const preview = group?.querySelector<HTMLElement>('.tabs-preview');
@@ -490,21 +464,21 @@ async function probeCurrentView(
   }, { allAliases: componentAliases, forced: forcedVariables, proven: provenVariables });
 }
 
-async function selectComponent(frame: Frame, component: string): Promise<void> {
-  await frame.evaluate(async (id) => {
-    const modulePath = '/src/editor/core/store/editorViewStore.ts';
-    const view = await import(/* @vite-ignore */ modulePath);
-    view.selectedComponent.set(id);
+async function selectComponent(page: Page, component: string): Promise<void> {
+  await page.evaluate(async (id) => {
+    const editor = window.__liveTokensEditor;
+    if (!editor) throw new Error('window.__liveTokensEditor is not present on the components route');
+    editor.selectComponent(id);
     await new Promise<void>((resolve) => requestAnimationFrame(() =>
       requestAnimationFrame(() => resolve())));
   }, component);
-  await frame.locator('.variant-group').filter({ visible: true }).waitFor();
+  await page.locator('.variant-group').filter({ visible: true }).waitFor();
 }
 
 for (const [component, aliases] of aliasesByComponent) {
   test(`${component} repaints every property in its standardized runtime preview`, async ({ page }) => {
     test.setTimeout(600_000);
-    const frame = await openOverlayEditor(page, 'components');
+    await openComponentsEditor(page);
     const covered = new Set<string>();
     const seen = new Set<string>();
     const unchanged = new Set<string>();
@@ -519,7 +493,7 @@ for (const [component, aliases] of aliasesByComponent) {
       // Exercise standardized preview toggles (zoom, hover enablement, optional
       // content) when retrying a property that is dormant in the default mode.
       if (forced.length > 0) {
-        const unchecked = frame.locator(
+        const unchecked = page.locator(
           '.variant-group:visible .tabs-preview input[type="checkbox"]:not(:checked):not(:disabled), '
           + '.variant-group:visible .properties-header input[type="checkbox"]:not(:checked):not(:disabled)',
         );
@@ -531,16 +505,16 @@ for (const [component, aliases] of aliasesByComponent) {
       // Portaled dialogs sit outside `.tabs-preview`; hover their first action
       // so hover-only chrome aliases are painted too. Role-based discovery keeps
       // this independent of any component name or DOM implementation class.
-      const dialogAction = frame.locator('[role="dialog"] button:not(:disabled)').first();
+      const dialogAction = page.locator('[role="dialog"] button:not(:disabled)').first();
       if (await dialogAction.count()) await dialogAction.hover({ force: true });
 
-      await exerciseVisibleTokenControls(frame, componentAliases, controlExercised);
-      const gates = await exerciseVisibleCompositeControls(frame, componentAliases, controlExercised);
+      await exerciseVisibleTokenControls(page, componentAliases, controlExercised);
+      const gates = await exerciseVisibleCompositeControls(page, componentAliases, controlExercised);
       // A gate that just opened may have revealed a row (the tint colour).
-      await exerciseVisibleTokenControls(frame, componentAliases, controlExercised);
-      await exerciseVisibleSplitPaddingControls(frame, componentAliases, controlExercised);
-      await exerciseVisibleGradientControls(frame, componentAliases, controlExercised);
-      const result = await probeCurrentView(frame, componentAliases, remaining, [...covered]);
+      await exerciseVisibleTokenControls(page, componentAliases, controlExercised);
+      await exerciseVisibleSplitPaddingControls(page, componentAliases, controlExercised);
+      await exerciseVisibleGradientControls(page, componentAliases, controlExercised);
+      const result = await probeCurrentView(page, componentAliases, remaining, [...covered]);
       for (const gate of gates) {
         if (await gate.count()) await gate.click();
       }
@@ -557,49 +531,49 @@ for (const [component, aliases] of aliasesByComponent) {
       componentAliases: string[],
       forced: string[] = [],
     ) => {
-      await selectComponent(frame, componentId);
+      await selectComponent(page, componentId);
 
       const visitViews = async () => {
         if (forced.length > 0 && forced.every((variable) => covered.has(variable))) return;
-        const sizeSelect = frame.locator('.variant-group:visible .preview-actions select').first();
+        const sizeSelect = page.locator('.variant-group:visible .preview-actions select').first();
         const sizeValues = await sizeSelect.count()
           ? await sizeSelect.locator('option').evaluateAll((options) =>
               options.map((option) => (option as HTMLOptionElement).value))
           : [''];
 
         for (const sizeValue of sizeValues) {
-          const currentSizeSelect = frame.locator('.variant-group:visible .preview-actions select').first();
+          const currentSizeSelect = page.locator('.variant-group:visible .preview-actions select').first();
           if (sizeValue && await currentSizeSelect.count()) await currentSizeSelect.selectOption(sizeValue);
 
-          const variantTabs = frame.locator('.variant-group:visible .variant-tabs .variant-tab-btn');
+          const variantTabs = page.locator('.variant-group:visible .variant-tabs .variant-tab-btn');
           const variantLabels = await variantTabs.count()
             ? await variantTabs.allTextContents()
             : [''];
 
           for (let variantIndex = 0; variantIndex < variantLabels.length; variantIndex++) {
             if (variantLabels[variantIndex]) {
-              await frame.locator('.variant-group:visible .variant-tabs .variant-tab-btn')
+              await page.locator('.variant-group:visible .variant-tabs .variant-tab-btn')
                 .nth(variantIndex)
                 .click({ force: true });
             }
 
             await probe(componentAliases, forced);
-            const primaryTabs = frame.locator(
+            const primaryTabs = page.locator(
               '.variant-group:visible .tabs-states-block > .tabs-selectors:first-of-type .state-tab-btn',
             );
             const primaryLabels = await primaryTabs.allTextContents();
             for (let primaryIndex = 0; primaryIndex < primaryLabels.length; primaryIndex++) {
-              await frame.locator(
+              await page.locator(
                 '.variant-group:visible .tabs-states-block > .tabs-selectors:first-of-type .state-tab-btn',
               ).nth(primaryIndex).click({ force: true });
               await probe(componentAliases, forced);
 
-              const secondaryTabs = frame.locator(
+              const secondaryTabs = page.locator(
                 '.variant-group:visible .tabs-states-block > .tabs-selectors.substrip .state-tab-btn',
               );
               const secondaryLabels = await secondaryTabs.allTextContents();
               for (let secondaryIndex = 0; secondaryIndex < secondaryLabels.length; secondaryIndex++) {
-                await frame.locator(
+                await page.locator(
                   '.variant-group:visible .tabs-states-block > .tabs-selectors.substrip .state-tab-btn',
                 ).nth(secondaryIndex).click({ force: true });
                 await probe(componentAliases, forced);
@@ -613,19 +587,19 @@ for (const [component, aliases] of aliasesByComponent) {
       if (forced.length === 0 || forced.every((variable) => covered.has(variable))) return;
 
       // Open any dialog-capable preview and repeat the same registry traversal.
-      const dialogTrigger = frame.locator(
+      const dialogTrigger = page.locator(
         '.variant-group:visible .tabs-preview [aria-haspopup="dialog"][aria-expanded="false"]',
       ).first();
       if (await dialogTrigger.count()) {
         await dialogTrigger.click({ force: true });
-        await frame.locator('[role="dialog"]').waitFor();
+        await page.locator('[role="dialog"]').waitFor();
         await visitViews();
       }
 
       // Exercise every option of standardized canvas selects. This covers modes
       // such as Input type and optional Notification actions without any
       // per-component fixture or test case.
-      const canvasSelects = frame.locator('.variant-group:visible .tabs-preview .canvas-toolbar select');
+      const canvasSelects = page.locator('.variant-group:visible .tabs-preview .canvas-toolbar select');
       for (let selectIndex = 0; selectIndex < await canvasSelects.count(); selectIndex++) {
         const values = await canvasSelects.nth(selectIndex).locator('option').evaluateAll((options) =>
           options.map((option) => (option as HTMLOptionElement).value));
@@ -638,7 +612,7 @@ for (const [component, aliases] of aliasesByComponent) {
 
       // Expanded/collapsed previews expose motion aliases whose computed style
       // is different in each direction.
-      const expanders = frame.locator(
+      const expanders = page.locator(
         '.variant-group:visible .tabs-preview [aria-expanded]:not([aria-haspopup="dialog"])',
       );
       for (let index = 0; index < await expanders.count(); index++) {
@@ -653,11 +627,11 @@ for (const [component, aliases] of aliasesByComponent) {
       // This stays component-agnostic and runs only for the small unresolved set.
       // The traversal above leaves a forced state selected, and its preview
       // class outranks the gated `:hover` rule, so return to the first state.
-      const firstStateTab = frame.locator(
+      const firstStateTab = page.locator(
         '.variant-group:visible .tabs-states-block > .tabs-selectors:first-of-type .state-tab-btn',
       ).first();
       if (await firstStateTab.count()) await firstStateTab.click({ force: true });
-      const hoverTargets = frame.locator('.variant-group:visible .tabs-preview *:visible');
+      const hoverTargets = page.locator('.variant-group:visible .tabs-preview *:visible');
       for (let index = 0; index < await hoverTargets.count(); index++) {
         if (forced.every((variable) => covered.has(variable))) return;
         // The node list was read once; a probe above may have re-rendered it.

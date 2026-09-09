@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { expect, test } from '@playwright/test';
-import { openOverlayEditor } from './support/editor';
+import { openComponentsEditor } from './support/editor';
 
 interface AliasCase {
   component: string;
@@ -9,7 +9,7 @@ interface AliasCase {
 }
 
 function discoverDefaultAliases(): AliasCase[] {
-  const root = path.resolve('src/live-tokens/data/component-configs');
+  const root = path.resolve(process.env.LIVE_TOKENS_DATA_DIR ?? 'src/live-tokens/data', 'component-configs');
   const cases: AliasCase[] = [];
   for (const directory of fs.readdirSync(root).sort()) {
     const file = path.join(root, directory, 'default.json');
@@ -28,30 +28,29 @@ function discoverDefaultAliases(): AliasCase[] {
 
 const aliasCases = discoverDefaultAliases();
 
-test('every shipped component alias fans out set, update, and remove to the host root', async ({ page }) => {
+test('every shipped component alias fans out set, update, and remove to the document root', async ({ page }) => {
   test.setTimeout(60_000);
-  const frame = await openOverlayEditor(page, 'components');
+  await openComponentsEditor(page);
 
-  const result = await frame.evaluate(async (cases: AliasCase[]) => {
-    const modulePath = '/src/editor/core/store/editorStore.ts';
-    const editor = await import(/* @vite-ignore */ modulePath);
+  const result = await page.evaluate(async (cases: AliasCase[]) => {
+    const editor = window.__liveTokensEditor;
+    if (!editor) throw new Error('window.__liveTokensEditor is not present on the components route');
+
     let originalComponents: unknown;
-    const unsubscribe = editor.editorState.subscribe((state: { components: unknown }) => {
+    const unsubscribe = editor.editorState.subscribe((state) => {
       if (originalComponents === undefined) {
         originalComponents = structuredClone(state.components);
       }
     });
     unsubscribe();
 
-    const selfStyle = document.documentElement.style;
-    const hostStyle = window.parent.document.documentElement.style;
+    const rootStyle = document.documentElement.style;
     const failures: string[] = [];
     const check = (expected: string, phase: string) => {
       for (const { variable } of cases) {
-        const self = selfStyle.getPropertyValue(variable).trim();
-        const host = hostStyle.getPropertyValue(variable).trim();
-        if (self !== expected || host !== expected) {
-          failures.push(`${phase} ${variable}: editor=${self}, host=${host}`);
+        const actual = rootStyle.getPropertyValue(variable).trim();
+        if (actual !== expected) {
+          failures.push(`${phase} ${variable}: ${actual}`);
           if (failures.length >= 20) return;
         }
       }

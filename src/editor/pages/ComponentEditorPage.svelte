@@ -8,7 +8,7 @@
   import { getComponentRegistryEntries, validateRegistryAgainstServerScan } from '../component-editor/registry';
   import { listComponents } from '../core/components/componentConfigService';
   import { selectedComponent } from '../core/store/editorViewStore';
-  import { componentDirty } from '../core/store/editorStore';
+  import { componentDirty, editorState, mutate } from '../core/store/editorStore';
   // Editor chrome + form controls + icon font must be JS imports (not @import
   // inside the style block) so Vite resolves them via the module graph
   // regardless of how the consumer compiles Svelte CSS (external ?lang.css vs
@@ -77,6 +77,17 @@
   onMount(async () => {
     document.addEventListener('click', handleDocClick, true);
     window.addEventListener('keydown', handleKeydown);
+    // This route renders top-level (no overlay iframe), so the handle lives
+    // directly on the page's own window — a contract suite reads it without
+    // crossing a frame boundary.
+    if (import.meta.env.DEV) {
+      window.__liveTokensEditor = {
+        editorState,
+        mutate,
+        getComponentRegistryEntries,
+        selectComponent: (id) => selectedComponent.set(id),
+      };
+    }
     try {
       const summaries = await listComponents();
       validateRegistryAgainstServerScan(summaries.map((s) => s.name));
@@ -89,6 +100,7 @@
   onDestroy(() => {
     document.removeEventListener('click', handleDocClick, true);
     window.removeEventListener('keydown', handleKeydown);
+    if (import.meta.env.DEV) delete window.__liveTokensEditor;
   });
 
   const allComponentNavItems = getComponentRegistryEntries().map(({ id, label, icon, origin }) => ({ id, label, icon, origin }));
