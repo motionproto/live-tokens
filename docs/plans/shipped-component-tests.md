@@ -61,7 +61,7 @@ showed the static gate passes and the runtime contracts catch the defects.
 |---|---|---|---|---|---|
 | 1 | The contract suites move into the shipped tree and open the owned route | Sonnet | Opus | Done | 347eecc |
 | 2a | Contract types, shared assertions, two exemplar components, one defect fixture per rule | Opus | Fable | Done | 2a840d1 |
-| 2b | Contract mappings and defect fixtures for the remaining shipped components | Sonnet | Opus | Not started | |
+| 2b | Contract mappings and defect fixtures for the remaining shipped components | Sonnet | Opus | Done | 6990eeb |
 | 3 | A Playwright config factory and a vitest contract runner ship | Opus | Fable | Not started | |
 | 4 | `check-component --tests` runs the suites and reports by rule | Sonnet | Opus | Not started | |
 | 5a | The consumer acceptance gate | Sonnet | Opus | Not started | |
@@ -428,6 +428,37 @@ write under the consumer's real `dataDir`.
   `LIVE_TOKENS_DATA_DIR` in the runner process, the same coupling
   `component-render.contract.ts` carries. The config factory points both at
   the isolated copy.
+
+**Wave 2b review carried these into this unit.**
+
+1. **Timeout budgets.** `playwright.config.ts` sets no `use.actionTimeout`, so
+   it defaults to unbounded and a stuck locator waits out the whole test
+   timeout while reporting nothing. Set an explicit `actionTimeout` (about
+   10s) and `navigationTimeout` in the factory. Pass explicit timeouts to the
+   two `page.waitForResponse` calls in `save()` and `reset()`
+   (`contractHarness.ts:597,614`). Per-test overrides are scattered across the
+   suites today (180s, 60s, 600s); the factory owns the defaults so a consumer
+   does not inherit a 600s ceiling with no action timeout under it.
+2. **`settle()` returns too early.** `contractHarness.ts:29-35` calls
+   `.finish()` on animations and returns before the queued `finish` event and
+   the state it flips have run. Reorder it to finish animations, then await a
+   frame. This is the root of the ImageLightbox hang that Wave 2b worked
+   around by choosing a target immune to the gap.
+3. **`fullyParallel: false` is load-bearing.** `--workers=4` parallelizes
+   across files, and there are three. `component-editor.contract.ts` carries
+   all 208 stateful tests with `describe.serial` per component, which is what
+   keeps 26 components' save and reset cycles from interleaving against one
+   data tree. `component-render.contract.ts:10` opts into `parallel`
+   explicitly. The factory must not turn `fullyParallel` on.
+4. **The runner process reads the data tree.** `shippedAliases()`
+   (`contractHarness.ts:241-253`) reads `component-configs/<id>/default.json`
+   off `LIVE_TOKENS_DATA_DIR` in the runner process for all 26 contracts, and
+   `assertInventory` fails with `contract-alias` when it points elsewhere.
+   `discoverDefaultAliases` reads the same root. Point the runner process and
+   the plugin at the same isolated copy.
+5. **`reuseExistingServer: false` plus `prepare:e2e` is the current
+   isolation.** Whatever design decision 6 replaces it with must still
+   guarantee the dev server never writes the real `dataDir`.
 
 **Do.** Implement the configuration and automatic isolation decisions above,
 including the plugin override and cleanup. The repo's own
