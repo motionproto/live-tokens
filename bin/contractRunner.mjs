@@ -15,6 +15,7 @@ import {
   readdirSync,
   realpathSync,
   rmSync,
+  statSync,
   writeFileSync,
 } from 'node:fs';
 import { tmpdir } from 'node:os';
@@ -109,15 +110,49 @@ function peerBin(root, name, relBin) {
   return join(peerRoot, relBin);
 }
 
+/** The newest mtime among the source tree's own `.ts` files. `tsup`'s
+ *  `splitting: true` spreads one entry across several output chunks, so an
+ *  edit that matters can land in a file `name` never names directly (e.g.
+ *  `support/contractHarness.ts` feeding `component-editor.contract.js`), so
+ *  the whole source tree is the unit of staleness. */
+function newestSourceMtime(dir) {
+  let newest = 0;
+  for (const entry of readdirSync(dir, { recursive: true })) {
+    if (!entry.endsWith('.ts')) continue;
+    const mtime = statSync(join(dir, entry)).mtimeMs;
+    if (mtime > newest) newest = mtime;
+  }
+  return newest;
+}
+
 /** The shipped testing module: compiled once `build:testing` has run,
  *  source in this repo's own dev loop otherwise. Resolved to an absolute path
  *  so the generated configs below need no bare-specifier or extensionless
- *  resolution of their own. */
+ *  resolution of their own.
+ *
+ *  A tarball install ships only the compiled copy (`src/testing` is not in
+ *  `package.json`'s `files`), so `sourceDir` never exists there and this
+ *  always returns `compiled` unconditionally, same as before. In this repo's
+ *  own dev loop both exist, and an edit under `src/testing` used to leave the
+ *  compiled copy silently stale: measured by editing `contractHarness.ts` and
+ *  confirming the compiled `component-editor.contract.js` in `src/testing-js`
+ *  still ran the old assertion. Preferring the newer one makes the dev loop
+ *  self-healing. */
 function resolveTestingEntry(name) {
   const compiled = join(PKG_ROOT, 'src/testing-js', `${name}.js`);
-  if (existsSync(compiled)) return compiled;
-  const source = join(PKG_ROOT, 'src/testing', `${name}.ts`);
-  if (existsSync(source)) return source;
+  const sourceDir = join(PKG_ROOT, 'src/testing');
+  const source = join(sourceDir, `${name}.ts`);
+  const compiledExists = existsSync(compiled);
+  const sourceExists = existsSync(source);
+  if (compiledExists && sourceExists && newestSourceMtime(sourceDir) > statSync(compiled).mtimeMs) {
+    console.warn(
+      `[live-tokens] src/testing/ has changes newer than src/testing-js/${name}.js. ` +
+        `Using the source directly. Run \`npm run build:testing\` to refresh the compiled copy.`,
+    );
+    return source;
+  }
+  if (compiledExists) return compiled;
+  if (sourceExists) return source;
   throw new Error(
     `Cannot find the shipped testing module "${name}" under ${PKG_ROOT}. ` +
       'Run `npm run build:testing` (development) or reinstall the package.',
@@ -153,14 +188,39 @@ function settingsFilePath(root) {
  * data directory only in `live-tokens.testing.ts` would otherwise have its
  * contracts checked against whatever happens to sit at the default path.
  */
+function stripComments(text) {
+  // Block comments first: a `//` inside one (`/* // note */`) must not seed a
+  // second, overlapping strip.
+  return text.replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\/.*$/gm, '');
+}
+
+/** Measured across eleven settings-file shapes: a commented-out `dataDir:`
+ *  above the real one won the regex, because the regex only sees text
+ *  position, never comment syntax, and a comment naming the field with
+ *  nothing else present invented a setting out of prose. Comments are
+ *  stripped before the field ever gets a chance to match. A field present in
+ *  live code as a template literal, a computed value, or an import throws
+ *  instead of falling through to a default silently: the two guesses this
+ *  feeds, `viteConfig` and `dataDir`, can each resolve to a real path that
+ *  simply names the wrong tree, which then reads as a clean run. */
 function scrapeSettingsField(settingsPath, fieldName) {
   if (!settingsPath) return null;
+  let text;
   try {
-    const m = new RegExp(`${fieldName}\\s*:\\s*['"]([^'"]+)['"]`).exec(readFileSync(settingsPath, 'utf8'));
-    return m ? m[1] : null;
+    text = readFileSync(settingsPath, 'utf8');
   } catch {
     return null;
   }
+  const live = stripComments(text);
+  const literal = new RegExp(`\\b${fieldName}\\s*:\\s*['"]([^'"]+)['"]`).exec(live);
+  if (literal) return literal[1];
+  if (new RegExp(`\\b${fieldName}\\s*:`).test(live)) {
+    throw new Error(
+      `"${fieldName}" in ${settingsPath} is set to something other than a plain string literal, ` +
+        `so --tests cannot read it statically. Use a literal string, or remove the key to fall back to the default.`,
+    );
+  }
+  return null;
 }
 
 function guessViteConfigPath(root, settingsPath) {
@@ -526,11 +586,13 @@ function structuralRule(entry, componentId, positionCounters) {
   return null;
 }
 
-/** failed beats passed beats inapplicable, so a component whose interaction
- *  is genuinely inapplicable but whose states obligation is a real pass
- *  (both currently map to `contract-preview`) reads as passed, and either
- *  reading as failed always wins. */
-const COVERAGE_PRIORITY = { failed: 3, passed: 2, inapplicable: 1 };
+/** failed beats flaky beats passed beats inapplicable, so a component whose
+ *  interaction is genuinely inapplicable but whose states obligation is a
+ *  real pass (both currently map to `contract-preview`) reads as passed, and
+ *  either reading as failed always wins. `flaky` outranks `passed` so a
+ *  retried obligation stays visible rather than being overwritten by a
+ *  sibling that passed clean the first time. */
+const COVERAGE_PRIORITY = { failed: 4, flaky: 3, passed: 2, inapplicable: 1 };
 
 export function mapPlaywrightResults(report, { root, sourceDataDir, knownIds }) {
   const zeroCollected = (report.suites ?? []).length === 0;
@@ -576,7 +638,14 @@ export function mapPlaywrightResults(report, { root, sourceDataDir, knownIds }) 
     const inapplicable = t.annotations.find((a) => a.type === 'inapplicable')?.description;
 
     if (t.status === 'expected' || t.status === 'flaky') {
-      markCoverage(componentId, rule, inapplicable ? 'inapplicable' : 'passed', inapplicable);
+      // Flaky reaches a passing final attempt, same as expected, but a retry
+      // was needed to get there: worth a distinct coverage status so it stays
+      // visible rather than reading identically to a clean pass. It carries no
+      // finding and never flips exit status. CI's retry budget exists to
+      // absorb a shared dev server wobbling under CI load; failing the run on
+      // the very condition retries exist to tolerate would defeat the point.
+      const status = t.status === 'flaky' ? 'flaky' : inapplicable ? 'inapplicable' : 'passed';
+      markCoverage(componentId, rule, status, inapplicable);
       continue;
     }
     // `describe.serial` skips the rest of a component's obligations after its
@@ -673,20 +742,31 @@ export function mapRegistryViolation(root, sourceDataDir, componentId, text) {
  *  which never names what actually failed to load. */
 export function mapVitestResults(report, { root, sourceDataDir, stderr } = {}) {
   const files = report.testResults ?? [];
-  const collectionFailures = files.filter((f) => f.status === 'failed' && (f.assertionResults ?? []).length === 0);
-  if (files.length === 0 || collectionFailures.length === files.length) {
-    const detail =
-      collectionFailures.map((f) => f.message).filter(Boolean).join('\n') || stderr?.trim() || 'the run collected no tests';
+  if (files.length === 0) {
     return {
-      findings: [{ rule: 'tests-incomplete', file: 'package.json', line: 1, message: `Vitest collected nothing to check: ${detail}` }],
+      findings: [{ rule: 'tests-incomplete', file: 'package.json', line: 1, message: `Vitest collected nothing to check: ${stderr?.trim() || 'the run collected no tests'}` }],
       coverage: {},
       explained: true,
     };
   }
 
-  const findings = [];
+  const collectionFailures = files.filter((f) => f.status === 'failed' && (f.assertionResults ?? []).length === 0);
+  const findings = collectionFailures.map((f) => ({
+    rule: 'tests-incomplete',
+    file: 'package.json',
+    line: 1,
+    message: `Vitest collected nothing from ${f.name ?? 'a test file'}: ${f.message || stderr?.trim() || 'no message reported'}`,
+  }));
+  // Only when every file failed to load does this already account for every
+  // missing (component, rule) pair; one crashed file beside others that ran
+  // fine still leaves real gaps reconciliation has to name on its own.
+  if (collectionFailures.length === files.length) {
+    return { findings, coverage: {}, explained: true };
+  }
+
   const coverage = {};
   for (const file of files) {
+    if (collectionFailures.includes(file)) continue;
     for (const assertion of file.assertionResults ?? []) {
       const componentId = assertion.ancestorTitles.length >= 2 ? assertion.ancestorTitles[1] : null;
       if (assertion.status !== 'failed') {

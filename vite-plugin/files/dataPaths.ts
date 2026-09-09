@@ -61,6 +61,23 @@ export function testDataDir(): string | undefined {
   return raw && raw.trim() !== '' ? path.resolve(raw.trim()) : undefined;
 }
 
+/**
+ * Redirects the package-shipped fallback data (the read-only source a
+ * consumer's `default` colors-and-type and example themes resolve to) at a
+ * temp copy. `themeFileApi.ts` otherwise derives that directory unconditionally
+ * from its own file location, with no plugin option for it, because a real
+ * consumer must always resolve it to the actual installed package. This
+ * exists only so a test staging a fixture "shipped" theme writes into a
+ * disposable copy instead of this repo's own `src/live-tokens/data`, which
+ * the library-dev case treats as identical to the package directory.
+ */
+export const TEST_PACKAGE_DATA_DIR_ENV = 'LIVE_TOKENS_TEST_PACKAGE_DATA_DIR';
+
+export function testPackageDataDir(): string | undefined {
+  const raw = process.env[TEST_PACKAGE_DATA_DIR_ENV];
+  return raw && raw.trim() !== '' ? path.resolve(raw.trim()) : undefined;
+}
+
 const KNOWN_CONFIG_KEYS = new Set<keyof LiveTokensFileConfig>([
   'dataDir',
   'colorsAndTypeDir',

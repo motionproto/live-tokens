@@ -57,75 +57,11 @@ declared indicator width never reached the root.
 
 ## P2. Test infrastructure that can hide a failure
 
-### `assertNoSketchPaint` misreads icon fonts and ignores `pseudo`
-
-`src/testing/support/contractHarness.ts:795-810` treats any `::before`
-`content` other than `'none'` as drawn, so a Font Awesome `<i>` always reads as
-drawn whatever Sketch mode is doing. It also evaluates `::before` on the host
-element even for a part declared with `pseudo: 'after'`.
-
-This is a false-pass condition inside a shipped assertion. It surfaced only
-because InlineEditActions happens to use icon glyphs. Fix it before more
-sketch-inapplicable contracts land.
-
 ### `contract-preview` conflates two obligations
 
 States and interaction share one rule id, so a component with no interactive
 role reads `passed` whenever its states obligation passes, and the inapplicable
 reason is dropped by `COVERAGE_PRIORITY` in `bin/contractRunner.mjs`.
-
-### A `flaky` test reads as a clean pass
-
-No signal reaches findings or coverage, while CI sets `retries: 2`
-(`src/testing/playwright.ts`). A test that fails then passes is indistinguishable
-from one that always passed.
-
-### The Vitest side handles only an all-failed collection
-
-`bin/contractRunner.mjs:675` guards on
-`collectionFailures.length === files.length`. With two files, one passing and
-one failing at module load, the failure is dropped and reconciliation stays
-quiet. Unreachable through `check-component --tests` today, because the
-generated config leaves `include` unset and matches exactly one file.
-
-**Fix:** emit one `tests-incomplete` per failed file, and set `explained` only
-when every file failed.
-
-### The runner's settings scrape reads comments
-
-`bin/contractRunner.mjs:152-160` scrapes `dataDir:` and `viteConfig:` out of
-the settings file's source text. Measured across eleven shapes: a commented
-`dataDir:` line wins over a real value below it, and a comment alone invents a
-setting. A template literal, a computed value, or an imported value is silently
-ignored.
-
-A wrong `viteConfig` guess fails loudly, because the generated config statically
-imports it. A wrong `dataDir` guess is loud only when the guessed tree is
-absent. When the fallback tree exists, the run validates a tree the project
-never named.
-
-**Fix:** strip `//` and `/* */` before scraping, and emit `tests-setup` when
-the key appears with no string literal.
-
-### A test stages a fixture theme inside the tracked data tree
-
-`vite-plugin/themeFileApi.fallback.test.ts:279` writes
-`src/live-tokens/data/themes/package-fixture-theme.json`.
-`src/editor/core/themes/themeComponentRoundTrip.test.ts:41-47` filters it out
-with a comment naming the concurrency.
-
-That patches the reader for a writer-side defect, so the exposure stays open
-for the next reader anyone adds, and a run killed mid-suite leaves an untracked
-JSON inside the shipped themes directory where `check:preset-themes` and the
-packaging checks look. Predates this work.
-
-**Fix:** point the fallback suite's package data directory at a temp copy.
-
-### The repo's `--tests` prefers the compiled copy
-
-`check-component --tests` resolves `src/testing-js/` whenever it exists, so an
-edit to `src/testing/*` without `npm run build:testing` silently tests the old
-code.
 
 ## P3. Product defects a user can see
 

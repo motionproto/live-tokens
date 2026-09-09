@@ -13,6 +13,7 @@ import os from 'os';
 import path from 'path';
 import { themeFileApi } from './themeFileApi';
 import { THEME_SCHEMA_VERSION } from './themes/normalizeTheme';
+import { TEST_PACKAGE_DATA_DIR_ENV } from './files/dataPaths';
 
 const API = '/api/live-tokens';
 const REPO_ROOT = process.cwd();
@@ -272,16 +273,16 @@ describe('shipped preset colors and type on a fresh consumer', () => {
 });
 
 /**
- * The package data dir is the repo's own `src/live-tokens/data`, so a shipped
- * example theme is staged by writing one there for the length of the suite.
+ * The package data dir is otherwise the repo's own `src/live-tokens/data`
+ * (both the library-dev case and a real consumer's node_modules resolve it
+ * the same way), so staging a shipped example theme here writes into a
+ * disposable copy of that tree instead of the tracked one, via
+ * `LIVE_TOKENS_TEST_PACKAGE_DATA_DIR`.
  */
 describe('a package-shipped theme on a fresh consumer', () => {
   const FIXTURE = 'package-fixture-theme';
-  const packageThemePath = path.join(
-    REPO_ROOT,
-    'src/live-tokens/data/themes',
-    `${FIXTURE}.json`,
-  );
+  let packageDataDirCopy: string;
+  let packageThemePath: string;
   const localThemePath = () => path.join(themesDir, `${FIXTURE}.json`);
   const shipped = {
     name: 'Package Fixture',
@@ -305,12 +306,17 @@ describe('a package-shipped theme on a fresh consumer', () => {
   };
 
   beforeEach(() => {
+    packageDataDirCopy = fs.mkdtempSync(path.join(os.tmpdir(), 'ltpkg-'));
+    fs.cpSync(path.join(REPO_ROOT, 'src/live-tokens/data'), packageDataDirCopy, { recursive: true });
+    process.env[TEST_PACKAGE_DATA_DIR_ENV] = packageDataDirCopy;
+    packageThemePath = path.join(packageDataDirCopy, 'themes', `${FIXTURE}.json`);
     fs.writeFileSync(packageThemePath, JSON.stringify(shipped, null, 2));
     boot();
   });
 
   afterEach(() => {
-    fs.rmSync(packageThemePath, { force: true });
+    delete process.env[TEST_PACKAGE_DATA_DIR_ENV];
+    fs.rmSync(packageDataDirCopy, { recursive: true, force: true });
   });
 
   it('boot materialises the local default and leaves the shipped file untouched', () => {

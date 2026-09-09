@@ -806,17 +806,28 @@ export class ContractHarness {
     await settle(this.page);
   }
 
-  /** The claim that a component is not drawn: the effect is on and none of its
-   *  parts carries a layer. */
+  /** The claim that a component is not drawn: toggling the effect changes
+   *  nothing about a part's own paint. A raw `'none'` check misreads a part
+   *  whose native content is never `'none'` (an icon font's glyph) as drawn,
+   *  so this compares against the part's real pre-toggle content instead, on
+   *  the pseudo-element the part actually declares (defaulting to `::before`,
+   *  where the sketch layer paints). */
   async assertNoSketchPaint(style: string): Promise<void> {
+    const contentOf = async (part: string) => {
+      const element = this.locator(part);
+      if (await element.count() === 0) return null;
+      const pseudo = partLocator(this.contract, part).pseudo ?? '::before';
+      return element.evaluate((node, on) => getComputedStyle(node, on).content, pseudo);
+    };
+    const parts = Object.keys(this.contract.parts);
+    const before: Record<string, string | null> = {};
+    for (const part of parts) before[part] = await contentOf(part);
+
     await this.setSketch(style);
     try {
-      for (const part of Object.keys(this.contract.parts)) {
-        const element = this.locator(part);
-        const drawn = await element.count() === 0
-          ? 'none'
-          : await element.evaluate((node) => getComputedStyle(node, '::before').content);
-        if (drawn !== 'none') {
+      for (const part of parts) {
+        const drawn = await contentOf(part);
+        if (drawn !== before[part]) {
           this.fail('contract-sketch', `part "${part}" is drawn under "${style}" but the contract marks Sketch inapplicable`);
         }
       }

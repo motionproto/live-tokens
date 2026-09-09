@@ -1,6 +1,6 @@
 import { describe, it, expect, afterEach } from 'vitest';
 import { execFileSync } from 'node:child_process';
-import { cpSync, existsSync, mkdtempSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
+import { cpSync, existsSync, mkdtempSync, mkdirSync, readFileSync, readdirSync, rmSync, statSync, utimesSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, relative } from 'node:path';
 // @ts-expect-error — plain .mjs module, no types
@@ -690,6 +690,22 @@ describe('contractRunner: mapping a Playwright report', () => {
     expect(coverage.widget['contract-alias']).toEqual({ status: 'passed' });
   });
 
+  it('a flaky test (failed, then passed on retry) reads distinctly from a clean pass, with no finding', () => {
+    const root = widgetFixtureRoot();
+    const report = editorSuiteReport('widget', [
+      spec('widget is listed in its registry group', 'component-editor.contract.ts', 10, {
+        status: 'flaky',
+        results: [
+          { status: 'failed', errors: [{ message: 'Error: timed out waiting for the write' }] },
+          { status: 'passed', errors: [] },
+        ],
+      }),
+    ]);
+    const { findings, coverage } = mapPlaywrightResults(report, { root, sourceDataDir: join(root, 'data'), knownIds: new Set(['widget']) });
+    expect(findings).toEqual([]);
+    expect(coverage.widget['contract-listed']).toEqual({ status: 'flaky' });
+  });
+
   it('failed beats passed beats inapplicable when two obligations share one rule', () => {
     const root = widgetFixtureRoot();
     const report = editorSuiteReport('widget', [
@@ -892,6 +908,41 @@ describe('contractRunner: mapping a Vitest registry report', () => {
     const { findings } = mapVitestResults({ testResults: [] }, { root: process.cwd(), sourceDataDir: 'data', stderr: 'fatal: out of memory' });
     expect(findings[0].message).toContain('out of memory');
   });
+
+  it('one file failing to load beside one that ran fine still names the failed file, and does not explain the run', () => {
+    const root = widgetFixtureRoot();
+    const dataDir = join(root, 'data');
+    mkdirSync(join(dataDir, 'component-configs/widget'), { recursive: true });
+    writeFileSync(join(dataDir, 'component-configs/widget/default.json'), '{}');
+    const report = {
+      testResults: [
+        {
+          name: 'a-second-registry.contract.ts',
+          assertionResults: [],
+          status: 'failed',
+          message: "Cannot find module '/project/src/does-not-exist.ts'",
+        },
+        {
+          name: 'registry.contract.ts',
+          assertionResults: [
+            {
+              ancestorTitles: ['component registry contract', 'widget'],
+              title: 'meets the registry contract',
+              fullName: 'component registry contract widget meets the registry contract',
+              status: 'passed',
+              failureMessages: [],
+            },
+          ],
+        },
+      ],
+    };
+    const { findings, coverage, explained } = mapVitestResults(report, { root, sourceDataDir: dataDir });
+    expect(findings).toEqual([
+      { rule: 'tests-incomplete', file: 'package.json', line: 1, message: expect.stringContaining('does-not-exist.ts') },
+    ]);
+    expect(coverage.widget['contract-registry']).toEqual({ status: 'passed' });
+    expect(explained).toBeUndefined();
+  });
 });
 
 describe('contractRunner: hard failures never get silenced', () => {
@@ -945,6 +996,65 @@ describe('contractRunner: generated configs', () => {
       rmSync(configDir, { recursive: true, force: true });
     }
   });
+
+  // src/testing-js is this repo's own build output (gitignored), already
+  // present from an earlier `build:testing`, so it stands in for what a
+  // tarball install ships. Bumping one real source file's mtime past it, then
+  // restoring it, is the only way to exercise staleness: resolveTestingEntry
+  // resolves against PKG_ROOT unconditionally, ignoring
+  // the `root` a test passes in.
+  it('prefers a newer src/testing/ source over a stale compiled copy, and warns', () => {
+    const compiledEntry = join(process.cwd(), 'src/testing-js/component-editor.contract.js');
+    const sourceFile = join(process.cwd(), 'src/testing/support/contractHarness.ts');
+    if (!existsSync(compiledEntry)) return; // no build yet in this checkout; nothing to prove staleness against
+    const original = statSync(sourceFile).mtime;
+    const root = fixtureRoot();
+    const configDir = mkdtempSync(join(tmpdir(), 'lt-gencfg-'));
+    const warnings: string[] = [];
+    const spy = (msg?: unknown) => warnings.push(String(msg));
+    const realWarn = console.warn;
+    console.warn = spy;
+    try {
+      const future = new Date(statSync(compiledEntry).mtime.getTime() + 10_000);
+      utimesSync(sourceFile, future, future);
+      const { playwrightConfigPath } = writeGeneratedConfigs({ configDir, root });
+      const pw = readFileSync(playwrightConfigPath, 'utf8');
+      expect(pw).toContain('src/testing/index.ts');
+      expect(pw).not.toContain('src/testing-js/index.js');
+      expect(warnings.some((w) => w.includes('build:testing'))).toBe(true);
+    } finally {
+      console.warn = realWarn;
+      utimesSync(sourceFile, original, original);
+      rmSync(configDir, { recursive: true, force: true });
+    }
+  });
+
+  it('a compiled copy at least as new as every source file is used as-is, with no warning', () => {
+    const indexJs = join(process.cwd(), 'src/testing-js/index.js');
+    const vitestJs = join(process.cwd(), 'src/testing-js/vitest.js');
+    if (!existsSync(indexJs) || !existsSync(vitestJs)) return;
+    const originals = [indexJs, vitestJs].map((f) => statSync(f).mtime);
+    const root = fixtureRoot();
+    const configDir = mkdtempSync(join(tmpdir(), 'lt-gencfg-'));
+    const warnings: string[] = [];
+    const realWarn = console.warn;
+    console.warn = (msg?: unknown) => warnings.push(String(msg));
+    try {
+      // Later than any source edit this test suite itself makes above, not
+      // just later than the tree's current state.
+      const future = new Date(Date.now() + 60_000);
+      utimesSync(indexJs, future, future);
+      utimesSync(vitestJs, future, future);
+      const { playwrightConfigPath } = writeGeneratedConfigs({ configDir, root });
+      expect(readFileSync(playwrightConfigPath, 'utf8')).toContain('src/testing-js/index.js');
+      expect(warnings).toEqual([]);
+    } finally {
+      console.warn = realWarn;
+      utimesSync(indexJs, originals[0], originals[0]);
+      utimesSync(vitestJs, originals[1], originals[1]);
+      rmSync(configDir, { recursive: true, force: true });
+    }
+  });
 });
 
 describe('contractRunner: dataDir resolution honors the settings-level override', () => {
@@ -963,6 +1073,46 @@ describe('contractRunner: dataDir resolution honors the settings-level override'
 
     const bare = fixtureRoot();
     expect(resolveSourceDataDir(bare, null)).toBe(join(bare, 'src/live-tokens/data'));
+  });
+
+  it('a commented-out dataDir does not win over the real value below it', () => {
+    const root = fixtureRoot();
+    const settingsPath = join(root, 'live-tokens.testing.ts');
+    writeFileSync(
+      settingsPath,
+      "export default {\n  // dataDir: 'from-a-line-comment',\n  /* dataDir: 'from-a-block-comment', */\n  dataDir: 'the-real-one',\n};\n",
+    );
+    expect(resolveSourceDataDir(root, settingsPath)).toBe(join(root, 'the-real-one'));
+  });
+
+  it('a dataDir named only inside a comment invents nothing, falling through to the default', () => {
+    const root = fixtureRoot();
+    const settingsPath = join(root, 'live-tokens.testing.ts');
+    writeFileSync(settingsPath, "export default {\n  // dataDir: 'from-a-comment',\n};\n");
+    expect(resolveSourceDataDir(root, settingsPath)).toBe(join(root, 'src/live-tokens/data'));
+  });
+
+  it('a dataDir set to anything other than a string literal produces a tests-setup finding', () => {
+    const root = fixtureRoot();
+    const settingsPath = join(root, 'live-tokens.testing.ts');
+    writeFileSync(settingsPath, 'export default { dataDir: process.env.DATA_DIR };\n');
+    expect(() => resolveSourceDataDir(root, settingsPath)).toThrow(/dataDir.*string literal/);
+  });
+
+  it('the same comment- and literal-awareness applies to viteConfig', () => {
+    const root = fixtureRoot();
+    const settingsPath = join(root, 'live-tokens.testing.ts');
+    writeFileSync(settingsPath, "export default {\n  // viteConfig: 'from-a-comment.ts',\n};\n");
+    const configDir = mkdtempSync(join(tmpdir(), 'lt-gencfg-'));
+    try {
+      const { vitestConfigPath } = writeGeneratedConfigs({ configDir, root });
+      expect(readFileSync(vitestConfigPath, 'utf8')).toContain(JSON.stringify(join(root, 'vite.config.ts')));
+    } finally {
+      rmSync(configDir, { recursive: true, force: true });
+    }
+
+    writeFileSync(settingsPath, 'export default { viteConfig: computeIt() };\n');
+    expect(() => writeGeneratedConfigs({ configDir: root, root })).toThrow(/viteConfig.*string literal/);
   });
 });
 

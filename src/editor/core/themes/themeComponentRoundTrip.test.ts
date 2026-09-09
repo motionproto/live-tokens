@@ -38,14 +38,7 @@ function normalizeComponent(component: string, config: ComponentConfig): Compone
 
 describe('bundled theme component snapshots', () => {
   const themeFiles = readdirSync(themesDir)
-    // The fallback integration suite briefly stages this ignored fixture in
-    // the package directory. It is consumer-test data, not a bundled theme,
-    // and Vitest may run that suite concurrently with this contract scan.
-    .filter((name) =>
-      name.endsWith('.json')
-      && !name.startsWith('_')
-      && name !== 'package-fixture-theme.json'
-    )
+    .filter((name) => name.endsWith('.json') && !name.startsWith('_'))
     .sort();
 
   for (const themeFile of themeFiles) {

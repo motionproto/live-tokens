@@ -30,7 +30,7 @@ import {
   type ThemeResolvers,
 } from './themes/normalizeTheme';
 import { nextAvailableName as allocNextAvailableName } from './files/nameAllocator';
-import { resolveDataDirs, testDataDir } from './files/dataPaths';
+import { resolveDataDirs, testDataDir, testPackageDataDir } from './files/dataPaths';
 import { detectLegacyLayout, type LegacyLayout } from './files/legacyLayout';
 import { validateTokensCss, runAdditiveTokensCssMigrations } from './tokensCssMigrations';
 import { fileURLToPath } from 'node:url';
@@ -190,7 +190,7 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
   // themes the same way. The Default theme never ships:
   // `ensureDefaultTheme` derives the full local set at boot, before the
   // first request.
-  const packageDataDir = path.resolve(
+  const packageDataDir = testPackageDataDir() ?? path.resolve(
     path.dirname(fileURLToPath(import.meta.url)),
     '..',
     'src',
