@@ -560,6 +560,37 @@ Invariants 6 and 7.
   leaves it opt-in and documented.
 - An additional run against `../live-tokens-online` after release. The
   tarball consumer gate already proves the shipped path before release.
+- **Theme-embedded component configs are re-migrated from version 0.**
+  `src/editor/core/preview/themePreview.ts:52` and `:56` pass
+  `config.schemaVersion`, a field `normalizeTheme.ts:179` strips from
+  theme-embedded configs. `ComponentConfig.schemaVersion` is optional, so it
+  typechecks, reads `undefined`, and `toComponentSlice` defaults it to `0`.
+  `editorStore.ts:338` repeats the `?? 0`. Every theme preview and every theme
+  apply re-runs all 27 component migrations over current data. The tabbar pair
+  is non-idempotent, so
+  `2026-05-29-tabbar-indicator-thickness-to-per-state-width` re-adds the token
+  at the `--border-width-2` fallback and `2026-09-07-stroke-role-renames`
+  renames it over halloween's `--border-width-4`. The fix passes
+  `theme.componentSchemaVersion` and `defaults.componentSchemaVersion`. Today
+  this costs four tabbar tokens in every theme. The defect class is any future
+  non-idempotent migration.
+- **Card's hover gate is invisible in the editor.** `Card.svelte:154-155` is
+  the only rule reading `--card-hover-{border,shadow}-enabled`, and `:159-161`
+  paints `.card.force-hover` from the unconditional tokens by design. The
+  editor's hover preview shows the on state while the global "Use hover" gate
+  is off.
+- **Three shipped components are undrawn in Sketch mode.** `sketchLayer.ts`
+  `PART_SPECS` has no entry for `imagelightbox`, `radiobutton`, or
+  `inlineeditactions`. The three `sketch: { applicable: false }` contract
+  reasons are accurate; the gap is in the product.
+- **CollapsibleSection's header carries no interactive role.**
+  `CollapsibleSection.svelte:71-72` is a `<div onclick>` behind three
+  `svelte-ignore a11y_*` directives. The component is functionally interactive.
+- **`assertNoSketchPaint` misreads icon fonts and ignores `pseudo`.**
+  `contractHarness.ts:795-810` treats any `::before` `content` other than
+  `'none'` as drawn, so a Font Awesome `<i>` always reads as drawn, and it
+  evaluates `::before` on the host even for a part declared with
+  `pseudo: 'after'`. Fix it before more sketch-inapplicable contracts land.
 - The sticky preview band in
   `src/editor/component-editor/scaffolding/VariantGroup.svelte` has no
   `max-height`. It reaches 697px and covers the property controls at a 720px
