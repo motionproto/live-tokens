@@ -186,7 +186,7 @@ export const pickComponent: SkillTree = {
       "row": 4,
       "kind": "hand",
       "title": "Create a component",
-      "desc": "A piece with chrome that nothing fits becomes a new component.",
+      "desc": "A piece with chrome that nothing in the catalogue fits goes to live-tokens-create-component.",
       "lines": [94, 94],
       "anchor": "A native element with no chrome of its own needs no componen"
     },
@@ -195,7 +195,7 @@ export const pickComponent: SkillTree = {
       "row": 5,
       "kind": "hand",
       "title": "Return the selected component",
-      "desc": "Continue page layout using the result.",
+      "desc": "The named component returns to live-tokens-create-page, which owns size, emphasis, and placement.",
       "lines": [94, 94],
       "anchor": "A native element with no chrome of its own needs no componen"
     }
