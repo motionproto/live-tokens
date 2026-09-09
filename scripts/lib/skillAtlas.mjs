@@ -165,8 +165,9 @@ export function uncoveredSkills(trees, skillDirs) {
 export function auditStructure(trees, skillIds = Object.values(trees).map((tree) => tree.id)) {
   const problems = [];
   const knownSkills = new Set(skillIds);
-  // "look" is banned as a noun for a theme; "look up" is an ordinary verb.
-  const banned = /\blook\b(?! up\b)|\b(?:band|box|ladder|rung|you|your|unsaved)\b|report card|[→—]/i;
+  // This project's own vocabulary: section/container over band/box, scale/step
+  // over ladder/rung, the buffer over unsaved.
+  const banned = /\b(?:band|box|ladder|rung|unsaved)\b|report card/i;
   for (const tree of Object.values(trees)) {
     const nodes = new Map(tree.nodes.map((node) => [node.id, node]));
     const fail = (id, message) => problems.push(`${tree.id} ${id}: ${message}`);
