@@ -64,7 +64,7 @@ showed the static gate passes and the runtime contracts catch the defects.
 | 2b | Contract mappings and defect fixtures for the remaining shipped components | Sonnet | Opus | Done | 6990eeb |
 | 3 | A Playwright config factory and a vitest contract runner ship | Opus | Fable | Done | ac83676 |
 | 3b | `src/testing` ships compiled to JavaScript | Sonnet | Opus | Done | 50a268a |
-| 4 | `check-component --tests` runs the suites and reports by rule | Sonnet | Opus | Not started | |
+| 4 | `check-component --tests` runs the suites and reports by rule | Sonnet | Opus | Done | 7cd201d |
 | 5a | The consumer acceptance gate | Sonnet | Opus | Not started | |
 | 5b | Template, skills, atlas, and changelog | Sonnet | Fable | Not started | |
 
@@ -628,6 +628,37 @@ the skill edits in 5b cite a gate that exists.
 sources under `scripts/`, the `check:smoke-component-tests` script, and the
 CI workflow step.
 
+**The Wave 4 review left this unit seven briefing items.**
+
+1. A settings-level `dataDir` now works: `live-tokens.testing.ts` beats
+   `live-tokens.config.json` beats the default. Exercise it from the settings
+   file, and state the path as a plain quoted string. The resolver scrapes the
+   settings source text, so a template literal, a computed or imported value,
+   or a commented `dataDir:` example silently copies the wrong tree whenever
+   the fallback path exists. Assert the fixture's settings file uses a string
+   literal, and treat that as part of what the gate proves.
+2. Read `coverage`, not the exit code alone. `--off` yields exit 0 with
+   `disabled`, and a cascade under `--off` yields exit 0 with `incomplete`
+   entries. "Complete applicable coverage with no disabled checks" is a
+   coverage assertion.
+3. In a consumer, `expectedIds` is the consumer's authored components plus the
+   package's 26, and a batch run executes the whole shipped catalogue at
+   `workers: 1`, taking minutes. Prefer single-id commands. An authored
+   component with no contract correctly yields eight `tests-incomplete`
+   findings.
+4. `contract-alias` from the catalogue-wide fan-out test attributes to
+   `package.json:1` with no coverage entry, because that test ignores
+   `LIVE_TOKENS_COMPONENT`. Expect the rule id, never a file. One broken
+   shipped alias fails every component's check.
+5. Failure artifacts land in `<consumer>/test-results/playwright/` and are not
+   cleaned up. Scope the before-and-after hash comparison to the data
+   directory.
+6. The two real-browser round trips in the unit suite skip on CI, which has no
+   Chromium when `npm test` runs, so `check:smoke-component-tests` is the only
+   CI-run proof of the whole path.
+7. `check-component --tests` needs `src/testing-js/`, which the tarball always
+   ships.
+
 **Gate `./testing/vitest` too.** `scripts/smoke-install.sh` resolves
 `./component-editor/contract`, `./testing`, and `./skill-atlas`, so a broken
 `vitest.js` or `vitest.d.ts` entry ships silently. Add the second resolve here
@@ -709,6 +740,26 @@ against its chip labels.
 - `CHANGELOG.md` under `Unreleased`: the flag, the export, the optional
   peers, coverage reporting, and the revised verification workflow.
 
+**The Wave 4 review left this unit four briefing items.**
+
+1. `--tests` is absent from `bin/cli.mjs`'s USAGE, and adding it forces every
+   skill documenting `check-component` to name the flag
+   (`scripts/lib/skillChecks.mjs:153-158`). `OMITTED_FLAGS` at `:26` is the
+   sanctioned escape hatch. The flag currently ships undiscoverable, so USAGE
+   is an explicit deliverable here.
+2. Reordering, inserting or deleting a `test()` in
+   `src/testing/component-editor.contract.ts` fails loudly now: the guard at
+   `bin/check-component.test.ts:487-492` pins the rule sequence to the suite's
+   own `harness.assertX()` calls. Update `EDITOR_SUITE_POSITIONAL_RULES` in
+   the same commit as any structural edit. Rewording titles stays free.
+3. `references/contract-tests.md` lines 20 and 55 document the Vitest-only
+   path through `@motion-proto/live-tokens/testing/vitest`, where
+   `defineTestingConfig` now lives.
+4. The template README needs the Chromium install step and a note that failing
+   runs leave `test-results/`. The generated `live-tokens.testing.ts` must not
+   carry a commented `dataDir:` example, which the resolver would scrape as a
+   real setting.
+
 **Do.** After every skill edit run `npm run sync:skill-atlas` and
 `npm run sync:skill-sources`. Rebuild the create-component tree from the new
 line numbers: every card cites its Workflow line and
@@ -757,6 +808,41 @@ Invariants 6 and 7.
   `'none'` as drawn, so a Font Awesome `<i>` always reads as drawn, and it
   evaluates `::before` on the host even for a part declared with
   `pseudo: 'after'`. Fix it before more sketch-inapplicable contracts land.
+- **A test stages a fixture theme inside the tracked data tree.**
+  `vite-plugin/themeFileApi.fallback.test.ts:279` writes
+  `src/live-tokens/data/themes/package-fixture-theme.json`, and
+  `src/editor/core/themes/themeComponentRoundTrip.test.ts:41-47` filters it
+  out with a comment naming the concurrency. That patches the reader for a
+  writer-side defect, so the exposure stays open for the next reader added,
+  and a run killed mid-suite leaves an untracked JSON inside the shipped
+  themes directory where `check:preset-themes` and the packaging checks look.
+  Point the fallback suite's package data directory at a temp copy. This is
+  the same defect class Wave 4 fixed in its own test under N1.
+- **The runner's settings scrape reads comments.** `bin/contractRunner.mjs:152-160`
+  scrapes `dataDir:` and `viteConfig:` from the settings source text. Measured:
+  a commented `dataDir:` line wins over a real value below it, and a comment
+  alone invents a setting. Strip `//` and `/* */` before scraping, and emit
+  `tests-setup` when the key appears with no string literal.
+- **The Vitest side handles only an all-failed collection.**
+  `bin/contractRunner.mjs:675` guards on
+  `collectionFailures.length === files.length`, so with two files, one passing
+  and one failing at module load, the failure is dropped and reconciliation
+  stays quiet. Unreachable through `check-component --tests` today, because
+  the generated config leaves `include` unset and matches exactly one file.
+  Emit one `tests-incomplete` per failed file and set `explained` only when
+  every file failed.
+- **`contract-preview` conflates two obligations**, states and interaction, so
+  a component with no interactive role reads `passed` whenever its states
+  obligation passes, and the inapplicable reason is dropped by
+  `COVERAGE_PRIORITY`.
+- **A `flaky` test reads as a clean pass** with no signal in findings or
+  coverage, while CI sets `retries: 2`.
+- **The repo's `--tests` prefers the compiled `src/testing-js/` copy**, so an
+  edit to `src/testing/*` without `npm run build:testing` silently tests the
+  old code.
+- `runContractTests` mutates `process.env` instead of building a child env,
+  and `context.suiteFile` comes back as a dangling relative path. The latter
+  is context only, never `file` or `line`, so decision 8 holds.
 - The sticky preview band in
   `src/editor/component-editor/scaffolding/VariantGroup.svelte` has no
   `max-height`. It reaches 697px and covers the property controls at a 720px
