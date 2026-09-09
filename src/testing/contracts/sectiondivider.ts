@@ -1,73 +1,75 @@
-import type { ComponentContract } from '../componentContract';
+import type { ComponentContract, PaintMap, SetupStep } from '../componentContract';
 
-/**
- * The large variant, which is the only one that ships its eyebrow and
- * description visible, so every painted part is in the preview at once.
- */
+type Variant = 'lg' | 'md' | 'sm';
+
+/** Only the large variant ships its eyebrow and description visible; the other
+ *  two hide them behind the element switches. */
+const showOptionalContent: SetupStep[] = [
+  { kind: 'control', selector: 'label.element-show-toggle:has-text("Show description") input', check: true },
+  { kind: 'control', selector: 'label.element-show-toggle:has-text("Show eyebrow") input', check: true },
+];
+
+function variantPaints(v: Variant): PaintMap {
+  return {
+    root: {
+      paddingTop: `--sectiondivider-${v}-padding`,
+      borderRadius: `--sectiondivider-${v}-radius`,
+      borderTopWidth: `--sectiondivider-${v}-border-width`,
+      borderTopColor: `--sectiondivider-${v}-border`,
+      boxShadow: `--sectiondivider-${v}-shadow`,
+      backgroundImage: `--sectiondivider-${v}-background`,
+    },
+    titleRow: { paddingTop: `--sectiondivider-${v}-title-padding` },
+    title: {
+      color: `--sectiondivider-${v}-title`,
+      fontFamily: `--sectiondivider-${v}-title-font-family`,
+      fontSize: `--sectiondivider-${v}-title-font-size`,
+      fontWeight: `--sectiondivider-${v}-title-font-weight`,
+      lineHeight: `--sectiondivider-${v}-title-line-height`,
+      letterSpacing: `--sectiondivider-${v}-title-letter-spacing`,
+    },
+    descriptionRow: { paddingTop: `--sectiondivider-${v}-description-padding` },
+    description: {
+      color: `--sectiondivider-${v}-description`,
+      fontFamily: `--sectiondivider-${v}-description-font-family`,
+      fontSize: `--sectiondivider-${v}-description-font-size`,
+      fontWeight: `--sectiondivider-${v}-description-font-weight`,
+      lineHeight: `--sectiondivider-${v}-description-line-height`,
+    },
+    eyebrow: {
+      paddingTop: `--sectiondivider-${v}-eyebrow-padding`,
+      color: `--sectiondivider-${v}-eyebrow`,
+      fontFamily: `--sectiondivider-${v}-eyebrow-font-family`,
+      fontSize: `--sectiondivider-${v}-eyebrow-font-size`,
+      fontWeight: `--sectiondivider-${v}-eyebrow-font-weight`,
+      letterSpacing: `--sectiondivider-${v}-eyebrow-letter-spacing`,
+    },
+    hairline: {
+      backgroundColor: `--sectiondivider-${v}-hairline-color`,
+      height: `--sectiondivider-${v}-hairline-thickness`,
+    },
+  };
+}
+
 export const sectionDividerContract: ComponentContract = {
   id: 'sectiondivider',
   origin: 'system',
-  view: { variant: 'Large' },
+  view: { variant: 'Large', setup: showOptionalContent },
   root: 'root',
   parts: {
     root: '.section-divider',
+    titleRow: '.title-row',
     title: '.divider-label',
+    descriptionRow: '.description-row',
     description: '.divider-description',
     eyebrow: '.divider-eyebrow',
     hairline: '.sd-hairline',
   },
   properties: [
-    {
-      paints: {
-        root: {
-          paddingTop: '--sectiondivider-lg-padding',
-          borderRadius: '--sectiondivider-lg-radius',
-          borderTopWidth: '--sectiondivider-lg-border-width',
-          borderTopColor: '--sectiondivider-lg-border',
-          boxShadow: '--sectiondivider-lg-shadow',
-          backgroundImage: '--sectiondivider-lg-background',
-        },
-        title: {
-          color: '--sectiondivider-lg-title',
-          fontFamily: '--sectiondivider-lg-title-font-family',
-          fontSize: '--sectiondivider-lg-title-font-size',
-          fontWeight: '--sectiondivider-lg-title-font-weight',
-          lineHeight: '--sectiondivider-lg-title-line-height',
-          letterSpacing: '--sectiondivider-lg-title-letter-spacing',
-        },
-        description: {
-          color: '--sectiondivider-lg-description',
-          fontSize: '--sectiondivider-lg-description-font-size',
-          fontWeight: '--sectiondivider-lg-description-font-weight',
-        },
-        eyebrow: {
-          color: '--sectiondivider-lg-eyebrow',
-          fontSize: '--sectiondivider-lg-eyebrow-font-size',
-          letterSpacing: '--sectiondivider-lg-eyebrow-letter-spacing',
-        },
-        hairline: {
-          backgroundColor: '--sectiondivider-lg-hairline-color',
-          height: '--sectiondivider-lg-hairline-thickness',
-        },
-      },
-    },
+    { variant: 'Large', setup: showOptionalContent, paints: variantPaints('lg') },
+    { variant: 'Medium', setup: showOptionalContent, paints: variantPaints('md') },
+    { variant: 'Small', setup: showOptionalContent, paints: variantPaints('sm') },
   ],
-  alias: {
-    variables: [
-      '--sectiondivider-lg-padding',
-      '--sectiondivider-lg-radius',
-      '--sectiondivider-lg-border',
-      '--sectiondivider-lg-border-width',
-      '--sectiondivider-lg-shadow',
-      '--sectiondivider-lg-background',
-      '--sectiondivider-lg-hairline-color',
-      '--sectiondivider-lg-hairline-thickness',
-      '--sectiondivider-lg-title',
-      '--sectiondivider-lg-title-font-size',
-      '--sectiondivider-lg-description',
-      '--sectiondivider-lg-eyebrow',
-    ],
-  },
   states: {
     applicable: false,
     reason: 'each variant is one full preset with one state, so the editor renders no state strip',
@@ -85,9 +87,9 @@ export const sectionDividerContract: ComponentContract = {
         observe: { part: 'root', css: 'backgroundColor' },
       },
       {
-        shape: 'config',
+        shape: 'literal',
         control: '.sd-intrinsic-row:has(.property-label:text-is("alignment")) select',
-        configKey: '--sectiondivider-lg-align',
+        variable: '--sectiondivider-lg-align',
         observe: { part: 'root', css: 'textAlign' },
       },
     ],

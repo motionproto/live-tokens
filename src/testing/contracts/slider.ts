@@ -1,9 +1,67 @@
-import type { ComponentContract } from '../componentContract';
+import type { ComponentContract, PaintMap, StateExpectation } from '../componentContract';
+
+type Variant = 'single' | 'range';
+
+function variantPaints(v: Variant): PaintMap {
+  return {
+    track: {
+      backgroundColor: `--slider-${v}-track-surface`,
+      borderTopColor: `--slider-${v}-track-border`,
+      borderTopWidth: `--slider-${v}-track-border-width`,
+      borderRadius: `--slider-${v}-track-radius`,
+      height: `--slider-${v}-track-height`,
+    },
+    fill: { backgroundColor: `--slider-${v}-fill` },
+    thumb: {
+      backgroundColor: `--slider-${v}-thumb-surface`,
+      borderTopColor: `--slider-${v}-thumb-border`,
+      borderTopWidth: `--slider-${v}-thumb-border-width`,
+      borderRadius: `--slider-${v}-thumb-radius`,
+      width: `--slider-${v}-thumb-size`,
+      boxShadow: `--slider-${v}-thumb-shadow`,
+    },
+  };
+}
+
+function variantStates(v: Variant, variant: string): StateExpectation[] {
+  return [
+    {
+      variant,
+      state: 'default',
+      attributes: { input: { disabled: null } },
+      paints: { thumb: { backgroundColor: `--slider-${v}-thumb-surface` } },
+    },
+    {
+      variant,
+      state: 'hover',
+      forceClass: 'force-hover',
+      paints: {
+        thumb: {
+          backgroundColor: `--slider-${v}-hover-thumb-surface`,
+          borderTopColor: `--slider-${v}-hover-thumb-border`,
+        },
+      },
+    },
+    {
+      variant,
+      state: 'disabled',
+      attributes: { input: { disabled: '' } },
+      paints: {
+        track: { backgroundColor: `--slider-${v}-disabled-track-surface` },
+        fill: { backgroundColor: `--slider-${v}-disabled-fill` },
+        thumb: {
+          backgroundColor: `--slider-${v}-disabled-thumb-surface`,
+          borderTopColor: `--slider-${v}-disabled-thumb-border`,
+        },
+      },
+    },
+  ];
+}
 
 /**
- * The single-thumb variant. Its rows are linked to the range variant's, so an
- * edit here moves both; the range variant's own locators differ only in the
- * thumb count.
+ * Both variants. Their rows are linked by default, so an edit to one moves the
+ * other until a user unlinks them; the locators are the same and only the
+ * token prefix differs.
  */
 export const sliderContract: ComponentContract = {
   id: 'slider',
@@ -21,24 +79,10 @@ export const sliderContract: ComponentContract = {
   },
   properties: [
     {
+      variant: 'Single',
       paints: {
+        ...variantPaints('single'),
         root: { rowGap: '--slider-label-gap' },
-        track: {
-          backgroundColor: '--slider-single-track-surface',
-          borderTopColor: '--slider-single-track-border',
-          borderTopWidth: '--slider-single-track-border-width',
-          borderRadius: '--slider-single-track-radius',
-          height: '--slider-single-track-height',
-        },
-        fill: { backgroundColor: '--slider-single-fill' },
-        thumb: {
-          backgroundColor: '--slider-single-thumb-surface',
-          borderTopColor: '--slider-single-thumb-border',
-          borderTopWidth: '--slider-single-thumb-border-width',
-          borderRadius: '--slider-single-thumb-radius',
-          width: '--slider-single-thumb-size',
-          boxShadow: '--slider-single-thumb-shadow',
-        },
         label: {
           color: '--slider-label',
           fontFamily: '--slider-label-font-family',
@@ -55,54 +99,11 @@ export const sliderContract: ComponentContract = {
         },
       },
     },
+    { variant: 'Range', paints: variantPaints('range') },
   ],
-  alias: {
-    variables: [
-      '--slider-label-gap',
-      '--slider-label',
-      '--slider-value',
-      '--slider-single-track-surface',
-      '--slider-single-track-border',
-      '--slider-single-track-border-width',
-      '--slider-single-track-height',
-      '--slider-single-track-radius',
-      '--slider-single-fill',
-      '--slider-single-thumb-surface',
-      '--slider-single-thumb-border',
-      '--slider-single-thumb-size',
-      '--slider-single-thumb-shadow',
-      '--slider-single-hover-thumb-surface',
-      '--slider-single-hover-thumb-border',
-      '--slider-single-disabled-track-surface',
-      '--slider-single-disabled-fill',
-      '--slider-single-disabled-thumb-surface',
-    ],
-  },
   states: [
-    {
-      state: 'default',
-      attributes: { input: { disabled: null } },
-      paints: { thumb: { backgroundColor: '--slider-single-thumb-surface' } },
-    },
-    {
-      state: 'hover',
-      forceClass: 'force-hover',
-      paints: {
-        thumb: {
-          backgroundColor: '--slider-single-hover-thumb-surface',
-          borderTopColor: '--slider-single-hover-thumb-border',
-        },
-      },
-    },
-    {
-      state: 'disabled',
-      attributes: { input: { disabled: '' } },
-      paints: {
-        track: { backgroundColor: '--slider-single-disabled-track-surface' },
-        fill: { backgroundColor: '--slider-single-disabled-fill' },
-        thumb: { backgroundColor: '--slider-single-disabled-thumb-surface' },
-      },
-    },
+    ...variantStates('single', 'Single'),
+    ...variantStates('range', 'Range'),
   ],
   persistence: {
     cases: [
@@ -153,15 +154,31 @@ export const sliderContract: ComponentContract = {
         expect: { kind: 'valueMoves', part: 'input', direction: 'down' },
       },
       {
+        name: 'Home takes the value to the floor',
+        action: { kind: 'press', part: 'input', key: 'Home' },
+        expect: { kind: 'valueBecomes', part: 'input', value: '0' },
+      },
+      {
         name: 'dragging the thumb along the track raises the value',
         action: { kind: 'dragTo', part: 'thumb', along: 'track', fraction: 0.85 },
         expect: { kind: 'valueMoves', part: 'input', direction: 'up' },
+      },
+      {
+        name: 'taking hold of the thumb focuses the slider',
+        action: { kind: 'dragTo', part: 'thumb', along: 'track', fraction: 0.5 },
+        expect: { kind: 'focused', part: 'input', value: true },
       },
       {
         name: 'a disabled slider ignores the arrow keys',
         state: 'disabled',
         action: { kind: 'press', part: 'input', key: 'ArrowRight' },
         expect: { kind: 'valueHolds', part: 'input' },
+      },
+      {
+        name: 'a disabled slider refuses focus',
+        state: 'disabled',
+        action: { kind: 'dragTo', part: 'thumb', along: 'track', fraction: 0.5 },
+        expect: { kind: 'focused', part: 'input', value: false },
       },
     ],
   },

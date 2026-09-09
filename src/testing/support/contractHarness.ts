@@ -1,3 +1,5 @@
+import fs from 'node:fs';
+import path from 'node:path';
 import type { Locator, Page } from '@playwright/test';
 import {
   ContractViolation,
@@ -6,6 +8,8 @@ import {
   requiresInteraction,
   type ComponentContract,
   type ContractRule,
+  type ControlStep,
+  type InteractionAction,
   type InteractionCase,
   type PaintMap,
   type PersistenceCase,
@@ -30,10 +34,8 @@ const settle = (page: Page) => page.evaluate(async () => {
   }
 });
 
-/**
- * Contracts declare; this acts and observes. Mapping a new component is a
- * declaration, never a new browser recipe.
- */
+/** Contracts declare; this acts and observes, so mapping a new component stays
+ *  a declaration. */
 export class ContractHarness {
   private constructor(
     readonly page: Page,
@@ -41,8 +43,7 @@ export class ContractHarness {
   ) {}
 
   /** The editor page, with no component selected. The listing obligation runs
-   *  from here, so an unregistered component reports that rather than timing
-   *  out waiting for a preview it can never have. */
+   *  from here: an unregistered component has no preview to wait for. */
   static async attach(page: Page, contract: ComponentContract): Promise<ContractHarness> {
     await openComponentsEditor(page);
     return new ContractHarness(page, contract);
@@ -69,7 +70,8 @@ export class ContractHarness {
     await this.selectView(this.contract.view ?? {});
   }
 
-  /** Open the variant group and state tab an obligation is declared against. */
+  /** Open the variant group and state tab an obligation is declared against,
+   *  then run whatever has to happen before its parts exist. */
   async selectView(view: View): Promise<void> {
     const merged = { ...this.contract.view, ...view };
     if (merged.variant) {
@@ -90,6 +92,21 @@ export class ContractHarness {
       await tab.click({ force: true });
       await settle(this.page);
     }
+    for (const step of merged.setup ?? []) {
+      if (step.kind === 'control') await this.driveSetupControl(step);
+      else await this.performAction(step);
+      await settle(this.page);
+    }
+  }
+
+  private async driveSetupControl(step: ControlStep): Promise<void> {
+    const control = this.page.locator('.variant-group:visible').locator(step.selector).first();
+    if (await control.count() === 0) {
+      this.fail('contract-render', `no control matches "${step.selector}"`);
+    }
+    if (step.check !== undefined) await control.setChecked(step.check);
+    else if (step.value !== undefined) await control.selectOption(step.value);
+    else await control.click({ force: true });
   }
 
   locator(key: string): Locator {
@@ -178,6 +195,7 @@ export class ContractHarness {
    * cannot satisfy this.
    */
   async assertPaintsFromToken(key: string, css: string, variable: string, rule: ContractRule): Promise<void> {
+    await this.requirePart(key, rule);
     const probe = probeValueFor(css)
       ?? this.fail(rule, `no probe value for CSS property "${css}"; declare one in probeValueFor`);
     const expected = await this.normalize(key, css, probe);
@@ -217,13 +235,70 @@ export class ContractHarness {
 
   // ── 3. Alias resolution ──────────────────────────────────────────────────
 
+  /** Every alias the component ships. The alias contract proves each one fans
+   *  out to the root; this proves each one resolves to a value once it is
+   *  there, which a fan-out cannot see. */
+  shippedAliases(): string[] {
+    const file = path.resolve(
+      process.env.LIVE_TOKENS_DATA_DIR ?? 'src/live-tokens/data',
+      'component-configs',
+      this.contract.id,
+      'default.json',
+    );
+    if (!fs.existsSync(file)) {
+      this.fail('contract-alias', `no shipped config at ${file}`);
+    }
+    const data = JSON.parse(fs.readFileSync(file, 'utf8')) as { aliases?: Record<string, unknown> };
+    return Object.keys(data.aliases ?? {}).sort();
+  }
+
   async assertAliasesResolve(): Promise<void> {
+    const aliases = this.shippedAliases();
+    if (aliases.length === 0) this.fail('contract-alias', 'the shipped config declares no aliases');
     const unresolved = await this.page.evaluate((names) => {
       const style = getComputedStyle(document.documentElement);
       return names.filter((name) => style.getPropertyValue(name).trim() === '');
-    }, this.contract.alias.variables);
+    }, aliases);
     if (unresolved.length > 0) {
       this.fail('contract-alias', `aliases resolve to nothing at the root: ${unresolved.join(', ')}`);
+    }
+  }
+
+  /**
+   * What the contract leaves out. Every shipped alias has to reach a paint map
+   * or carry a reason it cannot, every declared part has to resolve, and every
+   * state tab the editor renders has to be declared. Without this a contract
+   * naming three tokens passes as completely as one naming all eighty.
+   */
+  async assertInventory(): Promise<void> {
+    await this.selectView({});
+    for (const key of Object.keys(this.contract.parts)) {
+      await this.requirePart(key, 'contract-render');
+    }
+
+    const declared = new Set<string>(Object.keys(this.contract.uncovered ?? {}));
+    const collect = (map: PaintMap) => {
+      for (const properties of Object.values(map)) {
+        for (const variable of Object.values(properties)) declared.add(variable);
+      }
+    };
+    for (const expectation of this.contract.properties) collect(expectation.paints);
+    if (!isInapplicable(this.contract.states)) {
+      for (const state of this.contract.states) if (state.paints) collect(state.paints);
+    }
+    const missing = this.shippedAliases().filter((alias) => !declared.has(alias));
+    if (missing.length > 0) {
+      this.fail('contract-render', `${missing.length} shipped aliases reach no paint map and carry no reason:\n${missing.join('\n')}`);
+    }
+
+    const tabs = await this.page
+      .locator('.variant-group:visible .tabs-states-block .tabs-selectors:first-of-type .state-tab-btn')
+      .allTextContents();
+    if (isInapplicable(this.contract.states)) return;
+    const named = new Set(this.contract.states.map((state) => state.state));
+    const unnamed = tabs.map((tab) => tab.trim()).filter((tab) => tab && !named.has(tab));
+    if (unnamed.length > 0) {
+      this.fail('contract-preview', `the editor renders state tabs the contract does not name: ${unnamed.join(', ')}`);
     }
   }
 
@@ -314,33 +389,48 @@ export class ContractHarness {
       (node as HTMLInputElement).value ?? node.getAttribute('aria-valuenow') ?? '');
   }
 
-  private async runInteraction(testCase: InteractionCase): Promise<void> {
-    await this.selectView(testCase);
-    const watched = testCase.expect.part;
-    const before = testCase.expect.kind === 'attribute'
-      ? ''
-      : await this.valueOf(watched);
-
-    const action = testCase.action;
+  private async performAction(action: InteractionAction): Promise<void> {
     if (action.kind === 'press') {
       // A disabled control refuses focus, which is part of what the disabled
-      // case asserts. The outcome check below decides whether that is right.
+      // case asserts. The outcome check decides whether that is right.
       await this.locator(action.part).focus().catch(() => undefined);
       await this.page.keyboard.press(action.key);
-    } else if (action.kind === 'click') {
-      await this.locator(action.part).click({ force: true });
-    } else {
-      const from = await this.locator(action.part).boundingBox();
-      const along = await this.locator(action.along).boundingBox();
-      if (!from || !along) this.fail('contract-preview', `"${action.part}" or "${action.along}" has no box to drag along`);
-      await this.page.mouse.move(from.x + from.width / 2, from.y + from.height / 2);
-      await this.page.mouse.down();
-      await this.page.mouse.move(along.x + along.width * action.fraction, along.y + along.height / 2, { steps: 8 });
-      await this.page.mouse.up();
+      return;
     }
+    if (action.kind === 'click') {
+      await this.locator(action.part).click({ force: true });
+      return;
+    }
+    if (action.kind === 'type') {
+      await this.locator(action.part).click({ force: true }).catch(() => undefined);
+      await this.page.keyboard.type(action.text);
+      return;
+    }
+    const from = await this.locator(action.part).boundingBox();
+    const along = await this.locator(action.along).boundingBox();
+    if (!from || !along) this.fail('contract-preview', `"${action.part}" or "${action.along}" has no box to drag along`);
+    await this.page.mouse.move(from.x + from.width / 2, from.y + from.height / 2);
+    await this.page.mouse.down();
+    await this.page.mouse.move(along.x + along.width * action.fraction, along.y + along.height / 2, { steps: 8 });
+    await this.page.mouse.up();
+  }
+
+  private async isFocused(key: string): Promise<boolean> {
+    return this.locator(key).evaluate((node) => document.activeElement === node);
+  }
+
+  private async runInteraction(testCase: InteractionCase): Promise<void> {
+    await this.selectView(testCase);
+    const outcome = testCase.expect;
+    const tracksValue = outcome.kind === 'valueMoves'
+      || outcome.kind === 'valueBecomes'
+      || outcome.kind === 'valueChanges'
+      || outcome.kind === 'valueHolds';
+    const before = tracksValue ? await this.valueOf(outcome.part) : '';
+
+    await this.performAction(testCase.action);
     await settle(this.page);
 
-    const outcome = testCase.expect;
     if (outcome.kind === 'attribute') {
       const actual = await this.locator(outcome.part)
         .evaluate((node, name) => node.getAttribute(name), outcome.name);
@@ -349,10 +439,30 @@ export class ContractHarness {
       }
       return;
     }
-    const after = await this.valueOf(watched);
+    if (outcome.kind === 'focused') {
+      const focused = await this.isFocused(outcome.part);
+      if (focused !== outcome.value) {
+        this.fail('contract-preview', `${testCase.name}: ${outcome.part} is ${focused ? '' : 'not '}focused, expected ${outcome.value ? '' : 'not '}focused`);
+      }
+      return;
+    }
+
+    const after = await this.valueOf(outcome.part);
     if (outcome.kind === 'valueHolds') {
       if (after !== before) {
         this.fail('contract-preview', `${testCase.name}: value moved from ${before} to ${after}`);
+      }
+      return;
+    }
+    if (outcome.kind === 'valueChanges') {
+      if (after === before) {
+        this.fail('contract-preview', `${testCase.name}: value held at ${before}`);
+      }
+      return;
+    }
+    if (outcome.kind === 'valueBecomes') {
+      if (after !== outcome.value) {
+        this.fail('contract-preview', `${testCase.name}: value is ${after}, expected ${outcome.value}`);
       }
       return;
     }
@@ -395,7 +505,7 @@ export class ContractHarness {
   async driveControl(testCase: PersistenceCase): Promise<string> {
     await this.selectView(testCase);
     const group = this.page.locator('.variant-group:visible');
-    if (testCase.shape === 'config') {
+    if (testCase.shape === 'config' || testCase.shape === 'literal') {
       const control = group.locator(testCase.control!).first();
       if (await control.count() === 0) {
         this.fail('contract-persist', `no control matches "${testCase.control}"`);
@@ -406,13 +516,15 @@ export class ContractHarness {
           elements.map((element) => (element as HTMLOptionElement).value));
         const current = await control.inputValue();
         const next = options.find((option) => option !== current);
-        if (!next) this.fail('contract-persist', `"${testCase.configKey}" offers no second option`);
+        if (!next) this.fail('contract-persist', `"${testCase.control}" offers no second option`);
         await control.selectOption(next);
       } else {
         await control.click({ force: true });
       }
       await settle(this.page);
-      return this.configValue(testCase.configKey!);
+      return testCase.shape === 'config'
+        ? this.configValue(testCase.configKey!)
+        : this.rootValue(testCase.variable!);
     }
 
     const variable = testCase.variable!;
@@ -466,14 +578,18 @@ export class ContractHarness {
   }
 
   async configValue(key: string): Promise<string> {
-    return this.page.evaluate(({ id, configKey }) => {
-      let value: unknown;
+    const value = await this.page.evaluate(({ id, configKey }) => {
+      let held: unknown;
       const stop = window.__liveTokensEditor!.editorState.subscribe((state) => {
-        value = (state.components[id]?.config ?? {})[configKey];
+        held = (state.components[id]?.config ?? {})[configKey];
       });
       stop();
-      return JSON.stringify(value ?? null);
+      return held === undefined ? null : JSON.stringify(held);
     }, { id: this.contract.id, configKey: key });
+    // An absent key would otherwise read the same before and after the edit,
+    // and the readback below would compare one sentinel against another.
+    if (value === null) this.fail('contract-persist', `nothing holds config key "${key}"`);
+    return value;
   }
 
   /** File > Save, waiting for the working buffer to reach disk. */
@@ -510,8 +626,7 @@ export class ContractHarness {
     await settle(this.page);
   }
 
-  /** Re-open the route so the assertion reads what the server holds, not the
-   *  store it just wrote. */
+  /** Re-open the route so the assertion reads the config off the server. */
   async reopen(): Promise<void> {
     await openComponentsEditor(this.page);
     await this.selectComponent();
@@ -521,10 +636,11 @@ export class ContractHarness {
    * Every declared value shape, driven through its control, saved, and read
    * back after a reload; then Reset against the value the server holds.
    *
-   * Reset restores the config the server holds for the component, which is the
-   * working buffer when there is one and the open theme's copy otherwise. The
-   * shipped `default.json` alias is a third value, and the sequence below
-   * leaves all three distinct so a Reset that returned the wrong one fails.
+   * Reset restores the config the server holds, which is the working buffer
+   * once one exists and the open theme's copy until then. The sequence saves
+   * first, so the value the component booted with and the value the server
+   * holds are different by the time Reset runs and a Reset landing on the
+   * wrong one is visible.
    */
   async assertPersistence(): Promise<void> {
     const original = await this.captureSlice();
@@ -561,7 +677,14 @@ export class ContractHarness {
       if (saved === shipped) {
         this.fail('contract-persist', `${this.contract.persistence.resetVariable} still holds its shipped value ${shipped}; Reset cannot tell the two baselines apart`);
       }
-      await this.driveControl({ ...first, variable: this.contract.persistence.resetVariable, shape: 'token' });
+      await this.driveControl({
+        variant: first.variant,
+        state: first.state,
+        setup: first.setup,
+        shape: 'token',
+        variable: this.contract.persistence.resetVariable,
+        observe: first.observe,
+      });
       const dirty = await this.rootValue(this.contract.persistence.resetVariable);
       if (dirty === saved) this.fail('contract-persist', 'the unsaved edit wrote nothing to reset');
       await this.reset();
@@ -578,7 +701,7 @@ export class ContractHarness {
   // ── 6. Theme projection ──────────────────────────────────────────────────
 
   /** `settleOn` is a variable the theme is expected to move, so the read that
-   *  follows sees the repaint rather than the frame before it. */
+   *  follows lands after the repaint. */
   async previewTheme(slug: string, settleOn?: { variable: string; from: string }): Promise<void> {
     await this.page.locator('.theme-name-trigger').click();
     await this.page.locator('[role="dialog"][aria-label="Theme Picker"]').waitFor();
@@ -729,8 +852,8 @@ const LENGTH = /(width|height|radius|padding|margin|gap|spacing|size|offset|inse
 
 /**
  * A value the CSS property adopts verbatim, so the assertion pins the mapping
- * rather than merely observing that something moved. Returns null for a
- * property no probe covers, which fails the obligation instead of skipping it.
+ * to one part and one property. Returns null for a property no probe covers,
+ * which fails the obligation.
  */
 export function probeValueFor(css: string): string | null {
   if (css === 'fontWeight') return '850';

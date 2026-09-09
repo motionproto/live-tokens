@@ -34,7 +34,10 @@ async function expectViolation(
 
 const open = (page: Page, contract: ComponentContract) => ContractHarness.open(page, contract);
 
-test.describe.configure({ mode: 'parallel' });
+// Serial: the persistence fixtures save and restore the same component's
+// working buffer, and the project runs one worker so no other spec is writing
+// it at the same time.
+test.describe.configure({ mode: 'serial' });
 
 test('an unregistered component fails contract-listed', async ({ page }) => {
   const defect = withDefect(sliderContract, (draft) => { draft.id = 'no-such-component'; });
@@ -120,7 +123,6 @@ test('a pointer outcome the drag does not produce fails contract-preview', async
 
 test('an interactive role marked inapplicable fails contract-preview', async ({ page }) => {
   const defect = withDefect(sliderContract, (draft) => {
-    draft.root = 'input';
     draft.interaction = { applicable: false, reason: 'claiming a slider does nothing' };
   });
   const harness = await open(page, defect);
@@ -192,4 +194,114 @@ test('a Sketch part drawn in another part\'s colour fails contract-sketch', asyn
   const violation = await expectViolation('contract-sketch', () =>
     harness.assertSketchPaint(defect.sketch as never));
   expect(violation.message).toContain('draws its fill from');
+});
+
+test('a save the server does not keep fails contract-persist', async ({ page }) => {
+  await page.route('**/component-configs/slider/working', (route) =>
+    route.fulfill({ status: 200, contentType: 'application/json', body: '{}' }));
+  const harness = await open(page, sliderContract);
+  const violation = await expectViolation('contract-persist', () => harness.assertPersistence());
+  expect(violation.message).toContain('after a reload');
+});
+
+test('a Reset the server answers with a third config fails contract-persist', async ({ page }) => {
+  // Boot reads `/active` once per component per page load, and the run makes
+  // one load plus one per persistence case. Everything after those is the
+  // Reset button's own read.
+  const bootReads = 1 + sliderContract.persistence.cases.length;
+  let seen = 0;
+  await page.route('**/component-configs/slider/active', async (route) => {
+    seen += 1;
+    const response = await route.fetch();
+    if (seen <= bootReads) return route.fulfill({ response });
+    const config = await response.json();
+    config.aliases[sliderContract.persistence.resetVariable] = '--surface-brand';
+    return route.fulfill({ response, body: JSON.stringify(config) });
+  });
+  const harness = await open(page, sliderContract);
+  const violation = await expectViolation('contract-persist', () => harness.assertPersistence());
+  expect(violation.message).toContain('Reset left');
+});
+
+/** Minimal contract: only the obligation each fixture calls is populated. */
+function bareContract(id: string, parts: ComponentContract['parts'], root: string): ComponentContract {
+  return {
+    id,
+    origin: 'system',
+    root,
+    parts,
+    properties: [],
+    states: { applicable: false, reason: 'not under test' },
+    persistence: { cases: [], resetVariable: '' },
+    theme: { theme: 'ocean', changed: [], unchanged: [], aliasedTo: {}, observe: { part: root, css: 'color', variable: '' } },
+    interaction: { applicable: false, reason: 'not under test' },
+    sketch: { applicable: false, reason: 'not under test' },
+  };
+}
+
+const inputContract = bareContract('input', { root: '.input-field', field: 'input.input-control' }, 'root');
+
+test('a typed value the field does not hold fails contract-preview', async ({ page }) => {
+  const defect = withDefect(inputContract, (draft) => {
+    draft.interaction = {
+      part: 'field',
+      role: 'textbox',
+      cases: [
+        {
+          name: 'typing writes into the field',
+          action: { kind: 'type', part: 'field', text: 'probe' },
+          expect: { kind: 'valueChanges', part: 'field' },
+        },
+        {
+          name: 'typing writes some other text',
+          action: { kind: 'type', part: 'field', text: 'more' },
+          expect: { kind: 'valueBecomes', part: 'field', value: 'something else' },
+        },
+      ],
+    };
+  });
+  const harness = await open(page, defect);
+  const violation = await expectViolation('contract-preview', () => harness.assertInteraction());
+  expect(violation.message).toContain('expected something else');
+});
+
+const lightboxParts = {
+  root: '.image-lightbox-wrapper',
+  thumb: '.image-lightbox-thumb',
+  overlay: { selector: '.image-lightbox-overlay', portal: true },
+};
+
+test('a portaled part behind its setup step resolves', async ({ page }) => {
+  const contract = withDefect(bareContract('imagelightbox', lightboxParts, 'root'), (draft) => {
+    draft.properties = [{
+      setup: [{ kind: 'click', part: 'thumb' }],
+      paints: { overlay: { backgroundColor: '--imagelightbox-overlay-surface' } },
+    }];
+  });
+  const harness = await open(page, contract);
+  expect(await harness.assertProperties()).toBe(1);
+});
+
+test('a portaled part with no setup step fails contract-render', async ({ page }) => {
+  const defect = withDefect(bareContract('imagelightbox', lightboxParts, 'root'), (draft) => {
+    draft.properties = [{ paints: { overlay: { backgroundColor: '--imagelightbox-overlay-surface' } } }];
+  });
+  const harness = await open(page, defect);
+  const violation = await expectViolation('contract-render', () => harness.assertProperties());
+  expect(violation.message).toContain('overlay');
+});
+
+test('an alias in no paint map fails the inventory until it carries a reason', async ({ page }) => {
+  const defect = withDefect(sliderContract, (draft) => {
+    delete (draft.properties[0].paints as Record<string, unknown>).fill;
+  });
+  const harness = await open(page, defect);
+  const violation = await expectViolation('contract-render', () => harness.assertInventory());
+  expect(violation.message).toContain('--slider-single-fill');
+
+  const excused = withDefect(defect, (draft) => {
+    draft.uncovered = { '--slider-single-fill': 'covered by the range variant in this fixture' };
+  });
+  const second = await open(page, excused);
+  await second.assertInventory();
 });

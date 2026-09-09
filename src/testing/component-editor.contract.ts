@@ -12,6 +12,11 @@ for (const contract of selectedContracts()) {
       await harness.assertListed();
     });
 
+    test(`${contract.id} declares every part and every shipped alias`, async ({ page }) => {
+      const harness = await ContractHarness.open(page, contract);
+      await harness.assertInventory();
+    });
+
     test(`${contract.id} resolves every alias it paints with`, async ({ page }) => {
       const harness = await ContractHarness.open(page, contract);
       await harness.assertAliasesResolve();

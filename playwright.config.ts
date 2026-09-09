@@ -48,6 +48,9 @@ export default defineConfig({
       name: 'contract-defects',
       testDir: './tests/e2e/contract-defects',
       testMatch: '**/*.spec.ts',
+      // The persistence fixtures save and reset one component's working
+      // buffer; two of them at once would read each other's writes.
+      workers: 1,
       use: { ...devices['Desktop Chrome'], viewport: { width: 1280, height: 900 } },
     },
     {
