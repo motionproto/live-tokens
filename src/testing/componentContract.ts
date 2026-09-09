@@ -200,9 +200,18 @@ export interface ComponentContract {
   view?: View;
   states: StateExpectation[] | Inapplicable;
   properties: PropertyExpectation[];
-  /** Aliases no paint map can pin, each with the reason. A token consumed
-   *  inside `calc()` or handed to a gradient function never appears verbatim in
-   *  a computed style, so the probe cannot read it back. */
+  /**
+   * Aliases no paint map can pin, each with the reason. A token consumed
+   * inside `calc()` or handed to a gradient function never appears verbatim in
+   * a computed style, so the probe cannot read it back — that is the only
+   * class this belongs to. A token a sibling alias merely happens to carry
+   * the same rendered value through (a base padding token behind four
+   * per-side overrides, say) is not in this class: the per-side entries pin
+   * their own aliases, not the base one, and a paint map that drives the base
+   * token directly and observes the per-side CSS property can pin it too. Put
+   * that here and Wave 4's coverage JSON records the base token as covered
+   * when nothing asserts the link between it and what actually painted.
+   */
   uncovered?: Record<string, string>;
   persistence: PersistenceExpectation;
   theme: ThemeExpectation;

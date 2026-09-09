@@ -59,6 +59,15 @@ export const cardContract: ComponentContract = {
         root: { borderTopColor: '--card-hover-border-enabled', boxShadow: '--card-hover-shadow-enabled' },
       },
     },
+    // The per-side entry above drives `-padding-top` directly, which passes
+    // regardless of what it's aliased to. This drives the base token instead,
+    // proving the `-padding-top: var(--card-default-*-padding)` link itself.
+    {
+      paints: {
+        header: { paddingTop: '--card-default-header-padding' },
+        body: { paddingTop: '--card-default-body-padding' },
+      },
+    },
   ],
   states: [
     { state: 'default' },
@@ -71,8 +80,6 @@ export const cardContract: ComponentContract = {
     },
   ],
   uncovered: {
-    '--card-default-header-padding': 'covered transitively through its four per-side aliases (paddingTop/Right/Bottom/Left)',
-    '--card-default-body-padding': 'covered transitively through its four per-side aliases (paddingTop/Right/Bottom/Left)',
     '--card-default-blur': 'consumed via backdrop-filter: blur(), which no probe covers',
   },
   persistence: {
