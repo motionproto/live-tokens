@@ -238,6 +238,26 @@ for two hand-maintained tables.
 **Raised by:** the user, reviewing Wave 5b's skill edits. A skill should know
 what to call and nothing about how the testing works.
 
+### `check:skills` cannot tell a filename from a skill name
+
+`scripts/lib/skillChecks.mjs`'s sibling-skill-reference rule matches
+`\b(live-tokens-[a-z-]+)\b`, so the legitimate filename
+`src/live-tokens-components.ts` reads as a reference to a skill named
+`live-tokens-components`. Wave 5b worked around it by renaming the documented
+example file to `src/registerComponents.ts`.
+
+Two consequences. The package's own name prefix is unusable in any documented
+filename, and the acceptance gate now writes `src/live-tokens-components.ts`
+in its fixture (`scripts/lib/componentGate.mjs:92,100,111,413`) while the docs
+say `src/registerComponents.ts`. Both are internally consistent, so nothing
+fails, but the gate proves an equivalent setup rather than the documented one.
+
+**Fix:** exclude matches carrying a path separator or a file extension, then
+realign the gate fixture with the documented filename.
+
+**Found by:** Wave 5b, hitting the collision while adding `--tests` to the
+skills.
+
 ## P4. Cosmetic
 
 - `runContractTests` mutates `process.env` instead of building a child env.

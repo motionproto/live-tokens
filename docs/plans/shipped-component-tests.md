@@ -66,7 +66,7 @@ showed the static gate passes and the runtime contracts catch the defects.
 | 3b | `src/testing` ships compiled to JavaScript | Sonnet | Opus | Done | 50a268a |
 | 4 | `check-component --tests` runs the suites and reports by rule | Sonnet | Opus | Done | 7cd201d |
 | 5a | The consumer acceptance gate | Sonnet | Opus | Done | 58873de |
-| 5b | Template, skills, atlas, and changelog | Sonnet | Fable | Not started | |
+| 5b | Template, skills, atlas, and changelog | Sonnet | Fable | Done | 90f20bc |
 
 The orchestrator updates this table after each review gate: `Not started` to
 `In progress` to `Done` (or `Blocked`, with a one-line reason appended under
