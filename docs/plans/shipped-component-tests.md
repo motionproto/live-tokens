@@ -59,7 +59,7 @@ showed the static gate passes and the runtime contracts catch the defects.
 
 | Unit | Summary | Executor | Reviewer | Status | Commit |
 |---|---|---|---|---|---|
-| 1 | The contract suites move into the shipped tree and open the owned route | Sonnet | Opus | Not started | |
+| 1 | The contract suites move into the shipped tree and open the owned route | Sonnet | Opus | Done | 347eecc |
 | 2a | Contract types, shared assertions, two exemplar components, one defect fixture per rule | Opus | Fable | Not started | |
 | 2b | Contract mappings and defect fixtures for the remaining shipped components | Sonnet | Opus | Not started | |
 | 3 | A Playwright config factory and a vitest contract runner ship | Opus | Fable | Not started | |
@@ -415,6 +415,15 @@ write under the consumer's real `dataDir`.
 - `references/contract-tests.md`: the consumer recipe becomes "use the
   shipped file through `check-component --tests`; here is the config if you
   run vitest yourself."
+- `src/testing/support/editor.ts`: the Wave 1 review left three items here.
+  `openOverlayEditor` navigates to `/demo` and clicks a button that exists
+  only in this repo, so keep it out of `src/testing/index.ts` or move it back
+  under `tests/e2e/support/`. Its `declare global` augmentation of
+  `Window.__liveTokensEditor` is what typechecks
+  `ComponentEditorPage.svelte`, so move that declaration next to the page and
+  import it here. `playwright.config.ts` sets `LIVE_TOKENS_DATA_DIR` from a
+  local constant rather than from `LIVE_TOKENS_E2E_DATA_DIR`; the factory
+  must not treat the two names as interchangeable.
 
 **Do.** Implement the configuration and automatic isolation decisions above,
 including the plugin override and cleanup. The repo's own
@@ -547,3 +556,13 @@ Invariants 6 and 7.
   leaves it opt-in and documented.
 - An additional run against `../live-tokens-online` after release. The
   tarball consumer gate already proves the shipped path before release.
+- The sticky preview band in
+  `src/editor/component-editor/scaffolding/VariantGroup.svelte` has no
+  `max-height`. It reaches 697px and covers the property controls at a 720px
+  viewport for at least Image, SideNavigation, Card, ImageLightbox,
+  CornerBadge, Notification, Table, Input, and Button. Wave 1 raised the
+  `contract` project's viewport to 1280x900 to clear it, a number tuned to
+  today's tallest preview. The fix is a `max-height` with `overflow: auto` on
+  `.tabs-preview`, or a scroll container for the property panel. A later wave
+  that hits this must repair the CSS instead of raising the viewport again,
+  and `playwright.config.ts`'s viewport comment should name the defect.
