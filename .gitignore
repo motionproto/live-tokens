@@ -10,6 +10,7 @@ lerna-debug.log*
 node_modules
 dist
 dist-plugin
+src/testing-js
 dist-ssr
 *.local
 playwright-report/

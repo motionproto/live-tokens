@@ -15,7 +15,13 @@ export interface VitestConfigOptions {
   registrySetup?: string;
 }
 
-const CONTRACT_INCLUDE = ['**/src/testing/registry.contract.ts'];
+// The first pattern is this repo's own source; the second is the compiled
+// build an installed copy ships. CI never builds before `npm test` runs, so
+// only one of the two exists on disk during any test:registry-contract run.
+const CONTRACT_INCLUDE = [
+  '**/src/testing/registry.contract.ts',
+  '**/src/testing-js/registry.contract.js',
+];
 
 /** Vitest's own default drops everything under `node_modules`, which is where
  *  an installed package's contract file lives. */

@@ -93,7 +93,9 @@ export function createPlaywrightConfig(options: PlaywrightConfigOptions = {}): P
       {
         name: 'contract',
         testDir: CONTRACT_TEST_DIR,
-        testMatch: '**/component-*.contract.ts',
+        // `.ts` in this repo, `.js` once tsup compiles the shipped build into
+        // `src/testing-js`; matching both here needs no build-time swap.
+        testMatch: '**/component-*.contract.{ts,js}',
         use: {
           ...devices['Desktop Chrome'],
           // `.tabs-preview` in VariantGroup.svelte has no max-height, so a tall

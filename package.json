@@ -49,7 +49,7 @@
     "src/live-tokens/data/sketch-styles/napkin.json",
     "src/live-tokens/data/sketch-styles/dry.json",
     "dist-plugin",
-    "src/testing",
+    "src/testing-js",
     ".claude/skills",
     "!.claude/skills/**/skill-alt.md",
     "bin",
@@ -119,8 +119,8 @@
       "default": "./src/editor/core/sketch/index.ts"
     },
     "./testing": {
-      "types": "./src/testing/index.ts",
-      "default": "./src/testing/index.ts"
+      "types": "./src/testing-js/index.d.ts",
+      "default": "./src/testing-js/index.js"
     },
     "./components/*": {
       "svelte": "./src/system/components/*",
@@ -152,7 +152,8 @@
     "test:e2e:ui": "playwright test --ui",
     "test:registry-contract": "vitest run --config vitest.contract.config.ts",
     "build:plugin": "tsup",
-    "build:lib": "npm run build:plugin",
+    "build:testing": "tsup --config tsup.testing.config.ts",
+    "build:lib": "npm run build:plugin && npm run build:testing",
     "deploy:local": "bash scripts/deploy-local.sh",
     "check:no-style-imports": "node scripts/check-no-style-imports.mjs",
     "check:no-tooling-imports": "node scripts/check-no-tooling-imports.mjs",
