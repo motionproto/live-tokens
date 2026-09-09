@@ -9,6 +9,10 @@ import { defineConfig } from 'tsup';
 export default defineConfig({
   entry: [
     'src/testing/index.ts',
+    // Its own entry so `./testing/vitest` never pulls in the barrel's
+    // `@playwright/test` import: decision 2 makes Playwright optional, and a
+    // Vitest-only consumer installs none of it.
+    'src/testing/vitest.ts',
     'src/testing/component-render.contract.ts',
     'src/testing/component-alias.contract.ts',
     'src/testing/component-editor.contract.ts',
@@ -30,7 +34,7 @@ export default defineConfig({
     /^\.\.\/editor\/component-editor\//,
     /^\.\.\/\.\.\/bin\//,
   ],
-  // Only `index.ts` is a module a consumer imports; the four contract files
-  // are Playwright/Vitest entry points discovered by path, never imported.
-  dts: { entry: { index: 'src/testing/index.ts' } },
+  // Only `index.ts` and `vitest.ts` are modules a consumer imports; the four
+  // contract files are Playwright/Vitest entry points discovered by path.
+  dts: { entry: { index: 'src/testing/index.ts', vitest: 'src/testing/vitest.ts' } },
 });

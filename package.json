@@ -122,6 +122,10 @@
       "types": "./src/testing-js/index.d.ts",
       "default": "./src/testing-js/index.js"
     },
+    "./testing/vitest": {
+      "types": "./src/testing-js/vitest.d.ts",
+      "default": "./src/testing-js/vitest.js"
+    },
     "./components/*": {
       "svelte": "./src/system/components/*",
       "default": "./src/system/components/*"
