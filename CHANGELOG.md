@@ -1,5 +1,42 @@
 # Changelog
 
+## 0.77.0 — A consumer component runs the same suites
+
+### Added
+
+- **A consumer component's contract reaches the Playwright suites.**
+  `live-tokens.testing.ts` has carried a `contractsModule` setting since
+  0.75.0, naming a module that exports the `ComponentContract[]` a project
+  adds to the shipped list, and nothing documented it. A consumer following
+  live-tokens-create-component reached the Verification step with the eight
+  component suites reported as incomplete and the skill giving no way to
+  complete them. The skill now names the contract as a deliverable beside the
+  registration, and `references/contract-tests.md` shows the setting, a
+  complete contract for the skill's own example, and what each obligation
+  needs from the project. `src/testing/contracts/contracts.test.ts` covers the
+  loader.
+- **`contract-missing` is its own finding.** A run narrowed to a component
+  with no contract used to throw from the Playwright config, so the runner
+  saw no report and surfaced a `tests-setup` finding holding a tail of
+  stderr. The editor suite now emits one failing test tagged
+  `contract-missing`, the JSON report carries it, and the runner maps it like
+  any other violation: one finding at `live-tokens.testing.ts` that names the
+  setting and lists the declared ids, with the `coverage` fix slug. The render
+  and alias suites still run for that component, and the failed rule explains
+  its seven unrun obligations, so reconciliation adds nothing on top.
+
+### Changed
+
+- **The `create` template installs the test tooling.** `@playwright/test`,
+  `vitest`, and `happy-dom` are devDependencies of a scaffolded project, and
+  the scaffold ships `live-tokens.testing.ts` naming `src/registerComponents.ts`
+  and `tests/contracts.ts`, both present and empty, with `main.ts` importing
+  the registration module before boot. `npm run test:design` therefore works
+  once `npx playwright install chromium` has run, and the create-component
+  skill lands its Registration and contract in files that already exist. The
+  three stay optional peers of the package. The create smoke test asserts the
+  tooling resolves in a scaffold from the packed tarball.
+
 ## 0.76.0 — The skills directory matches the release
 
 ### Changed (breaking)
