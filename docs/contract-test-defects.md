@@ -58,35 +58,6 @@ verification line about Sketch mode is unsatisfiable for them.
 **Found by:** the Wave 5a consumer gate, on a custom component authored in a
 fixture project.
 
-### `check-component <shipped-id>` reports two spurious findings in a consumer
-
-`resolveComponentPaths` (`bin/check-component.mjs:121-132`) looks only under
-`<root>/src/system/components` and `EDITOR_DIRS`, with no package fallback.
-`checkComponent` (`:363-372`) then records two `missing-file` findings and
-returns before any other rule runs.
-
-In a consumer, `npx live-tokens check-component toggle --tests` exits 1 with
-two spurious findings while all eight contract rules pass. Reproduced in the
-Wave 5a gate and again by its reviewer.
-
-Second consequence: `artifactForContractRule` uses the same resolver, so any
-`contract-render`, `contract-preview`, `contract-sketch`, or `contract-listed`
-failure on a shipped id in a consumer names a file that does not exist there.
-
-Not a release blocker, because no shipped skill or template script tells a
-consumer to name a shipped id: `template/package.json:11` and
-`live-tokens-fix-findings/SKILL.md:18` both use the batch form, which discovers
-only the consumer's own components.
-
-**Fix:** fall back to `PKG_ROOT` when the id is in `builtInIds` and the
-consumer path is absent. `check-component.mjs:26` already imports both.
-Invariant 3 does not block this: it pins output for the 26 shipped components
-and the `check-component.test.ts` fixtures, those files exist in this repo so
-the fallback never fires here, and no fixture asserts `missing-file` (they use
-`'widget'`).
-
-**Found by:** the Wave 5a consumer gate.
-
 ### CollapsibleSection's header carries no interactive role
 
 `src/system/components/CollapsibleSection.svelte:71-72` is a `<div onclick>`

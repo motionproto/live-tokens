@@ -293,27 +293,21 @@ async function runFixtureAScenarios(dir) {
     const after = hashDir(join(dir, 'src/live-tokens/data'));
     clearTestResults(dir);
     check(before === after, 'toggle: source data unchanged');
-    // Pre-existing, outside this wave's scope: checkComponent()/resolveComponentPaths()
-    // (bin/check-component.mjs) resolve the lint's runtime+editor files only under
-    // the consumer's own src/system/components, with no fallback to the package
-    // for a shipped id named explicitly, even though check-component.mjs already
-    // imports both PKG_ROOT and builtInIds for exactly that purpose elsewhere. The
-    // lint fails; the contract run beside it, which does resolve shipped runtimes
-    // against the package, does not. Invariant 3 pins the lint's output for the 26
-    // shipped components and the check-component.test.ts fixtures, none of which
-    // exercises a shipped id passed explicitly, so adding the fallback stays
-    // available; this wave defers it by choice, not by the invariant. Recorded
-    // in docs/contract-test-defects.md.
+    // A shipped id names no file in a consumer's own tree, so the lint falls
+    // back to the package. This is the scenario that caught the missing
+    // fallback: it used to report two missing-file findings here while the
+    // contract run beside it was green.
     const rules = findingRules(result.json);
     check(
-      rules.length === 2 && rules.every((r) => r === 'missing-file'),
-      `documents the known gap: only missing-file findings from the static lint (got ${JSON.stringify(rules)})`,
+      rules.length === 0,
+      `the lint resolves a shipped id against the package (got ${JSON.stringify(rules)})`,
     );
+    check(result.status === 0, `toggle --tests exits 0 (was ${result.status})`);
     const toggleCoverage = result.json?.coverage?.toggle ?? {};
     const statuses = Object.values(toggleCoverage).map((e) => e.status);
     check(
       statuses.length === 8 && statuses.every((s) => s === 'passed'),
-      'the contract run itself is fully green for the shipped id despite the lint noise',
+      'the contract run is fully green for the shipped id',
     );
   }
 

@@ -119,16 +119,25 @@ function capitalize(id) {
  * finding to a consumer artifact) doesn't re-derive it differently.
  */
 export function resolveComponentPaths(id, root = process.cwd()) {
-  const dir = join(root, 'src/system/components');
-  const Id =
-    (existsSync(dir) ? readdirSync(dir) : [])
-      .find((f) => f.toLowerCase() === `${id}.svelte`)
-      ?.replace('.svelte', '') ?? capitalize(id);
-  const runtimePath = join(dir, `${Id}.svelte`);
-  const editorPath =
-    EDITOR_DIRS.map((d) => join(root, d, `${Id}Editor.svelte`)).find(existsSync) ??
-    join(root, EDITOR_DIRS[0], `${Id}Editor.svelte`);
-  return { Id, runtimePath, editorPath };
+  // A consumer names a shipped id and owns no copy of its files. Falling back
+  // to the package keeps the lint reading the same source the contract run
+  // resolves, instead of reporting the component's own files missing. In this
+  // repo the consumer paths always exist, so the fallback never fires here.
+  const roots = builtInIds(root).has(id) ? [root, PKG_ROOT] : [root];
+  for (const base of roots) {
+    const dir = join(base, 'src/system/components');
+    const Id =
+      (existsSync(dir) ? readdirSync(dir) : [])
+        .find((f) => f.toLowerCase() === `${id}.svelte`)
+        ?.replace('.svelte', '') ?? capitalize(id);
+    const runtimePath = join(dir, `${Id}.svelte`);
+    const editorPath =
+      EDITOR_DIRS.map((d) => join(base, d, `${Id}Editor.svelte`)).find(existsSync) ??
+      join(base, EDITOR_DIRS[0], `${Id}Editor.svelte`);
+    if (base === roots.at(-1) || (existsSync(runtimePath) && existsSync(editorPath))) {
+      return { Id, runtimePath, editorPath };
+    }
+  }
 }
 
 function extractImports(source) {
