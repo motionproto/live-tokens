@@ -65,7 +65,7 @@ showed the static gate passes and the runtime contracts catch the defects.
 | 3 | A Playwright config factory and a vitest contract runner ship | Opus | Fable | Done | ac83676 |
 | 3b | `src/testing` ships compiled to JavaScript | Sonnet | Opus | Done | 50a268a |
 | 4 | `check-component --tests` runs the suites and reports by rule | Sonnet | Opus | Done | 7cd201d |
-| 5a | The consumer acceptance gate | Sonnet | Opus | Not started | |
+| 5a | The consumer acceptance gate | Sonnet | Opus | Done | 58873de |
 | 5b | Template, skills, atlas, and changelog | Sonnet | Fable | Not started | |
 
 The orchestrator updates this table after each review gate: `Not started` to
@@ -699,15 +699,25 @@ the gate after its template edits.
 **Verify.** `check:smoke-component-tests` green, `check:smoke-install` and
 `npm test` green. Invariants 5, 6, 7.
 
-**Batch scope.** The gate batches over the consumer's authored components plus
-one shipped component, never the whole catalogue. A full 27-component batch
-cost 729 of the gate's 800 seconds and re-proved components that
-`npm run test:e2e:contract` already covers here in 2.5 minutes. The batch
-exists to prove omitted-id discovery, `expectedIds` reconciliation, and
-`workers: 1` serialization across the tarball boundary, and a small batch
-proves all three. Test on a change.
+**No omitted-id `--tests` batch.** The 27-component run cost 729 of the gate's
+800 seconds and re-proved what `npm run test:e2e:contract` covers here in 2.5
+minutes. There is no cheaper substitute for a true batch: the browser suites
+iterate `selectedContracts()`, whose only narrowing input is
+`LIVE_TOKENS_COMPONENT`, which turns the run single-id. With it unset, the
+compiled 26-entry `shippedContracts` array always runs in full. The plain lint
+batch is not a substitute either, measured at `checked: 1`, because
+`discoverComponents()` never crosses into the installed package. `expectedIds`
+reconciliation and `workers: 1` serialization stay proven by
+`bin/check-component.test.ts`'s fast fixtures, and the single-id `beacon` and
+`toggle` scenarios already cross the tarball boundary for a custom and a
+shipped id. The gate runs in 2m55s. Test on a change.
 
-**Consumer-side defect coverage stops at `contract-alias`.** The Wave 5a review
+**Consumer-side defect coverage carries four rules.** `contract-alias` in two
+forms, plus `contract-registry` (a broken `sourceFile` in the copied
+`register.ts`), `contract-render` (a property mapped to the wrong part), and
+`contract-listed` (`origin: 'system'`). Dropping the batch paid for all three.
+The reasoning that made them necessary, kept because it explains what a
+consumer-side defect proves that a repo-side fixture cannot: the Wave 5a review
 asked for `contract-registry`, `contract-render`, and `contract-listed` as
 well, and the reasoning is sound: `bin/contractRunner.mjs:496-509` branches
 three ways on artifact resolution and the gate exercises one, the Vitest half
