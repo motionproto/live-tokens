@@ -30,7 +30,7 @@ import {
   type ThemeResolvers,
 } from './themes/normalizeTheme';
 import { nextAvailableName as allocNextAvailableName } from './files/nameAllocator';
-import { resolveDataDirs } from './files/dataPaths';
+import { resolveDataDirs, testDataDir } from './files/dataPaths';
 import { detectLegacyLayout, type LegacyLayout } from './files/legacyLayout';
 import { validateTokensCss, runAdditiveTokensCssMigrations } from './tokensCssMigrations';
 import { fileURLToPath } from 'node:url';
@@ -141,12 +141,21 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
   const THEMES_DIR = dataDirs.themesDir;
   const SKETCH_STYLES_DIR = dataDirs.sketchStylesDir;
   const CSS_PATH = path.resolve(opts.tokensCssPath);
-  const GENERATED_CSS_PATH = opts.tokensGeneratedCssPath
-    ? path.resolve(opts.tokensGeneratedCssPath)
-    : path.join(dataDirs.dataDir, 'tokens.generated.css');
-  const FONTS_CSS_PATH = opts.fontsCssPath
-    ? path.resolve(opts.fontsCssPath)
-    : path.join(path.dirname(CSS_PATH), 'fonts.css');
+  // Under `LIVE_TOKENS_TEST_DATA_DIR` the two editor-owned stylesheets follow
+  // the data tree into the copy. Both default to a path outside it — one beside
+  // `tokensCssPath`, one in the consumer's own data dir — so leaving them on the
+  // configured value would let Adopt rewrite the real files mid-run.
+  const ISOLATED_DATA_DIR = testDataDir();
+  const GENERATED_CSS_PATH = ISOLATED_DATA_DIR
+    ? path.join(ISOLATED_DATA_DIR, 'tokens.generated.css')
+    : opts.tokensGeneratedCssPath
+      ? path.resolve(opts.tokensGeneratedCssPath)
+      : path.join(dataDirs.dataDir, 'tokens.generated.css');
+  const FONTS_CSS_PATH = ISOLATED_DATA_DIR
+    ? path.join(ISOLATED_DATA_DIR, 'fonts.css')
+    : opts.fontsCssPath
+      ? path.resolve(opts.fontsCssPath)
+      : path.join(path.dirname(CSS_PATH), 'fonts.css');
   // Default keeps live-tokens' REST routes under a single namespace so they
   // can't collide with the consumer's own `/api/themes` or `/api/components`.
   // The client side reads the same value via the `__LIVE_TOKENS_API_BASE__`
@@ -2230,7 +2239,12 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
 
         // Opt-in: bring tokens.css up to date with additive migrations first, so
         // the drift warning below only fires for genuinely breaking gaps.
-        if (opts.autoMigrate) autoMigrateAdditive((msg) => server.config.logger.info(msg));
+        // `tokensCssPath` is hand-authored and lives outside the data tree, so
+        // an isolated run leaves it alone rather than migrating a file it
+        // cannot roll back.
+        if (opts.autoMigrate && !ISOLATED_DATA_DIR) {
+          autoMigrateAdditive((msg) => server.config.logger.info(msg));
+        }
 
         // Surface Layer-1 token drift (consumer tokens.css behind the package's
         // component vocabulary) before the editor loads, so blank slots have an

@@ -86,10 +86,12 @@ What CI enforces for you:
 6. **`Refuse to republish an existing version`** — guards against an
    accidental local publish racing the CI publish.
 
-The Playwright release gate runs against `.playwright-data/`, a disposable copy
-of the design-system data. It never points the dev-server file API at the real
-theme tree. Run it locally with `npm run test:e2e`; use `npm run test:e2e:ui`
-when diagnosing an interaction.
+The Playwright release gate runs against a disposable copy of the design-system
+data in a temporary directory, which `createPlaywrightConfig` makes and removes.
+`LIVE_TOKENS_TEST_DATA_DIR` names it, and the plugin reads that ahead of its own
+options, so the dev-server file API never reaches the real theme tree. Run it
+locally with `npm run test:e2e`; use `npm run test:e2e:ui` when diagnosing an
+interaction.
 
 ## CHANGELOG curation
 

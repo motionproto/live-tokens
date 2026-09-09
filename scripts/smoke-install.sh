@@ -116,6 +116,12 @@ echo "→ Resolving the contract subpath…"
 # file, so no build here would notice an exports-map typo.
 (cd "$SMOKE_DIR" && node -p "require.resolve('$PKG_NAME/component-editor/contract')" > /dev/null)
 
+echo "→ Resolving the testing subpath…"
+# A consumer reaches the config factories and the contract types only from a
+# test file or a tool config, so no build here would notice an exports-map typo.
+# Resolve rather than import: the optional test tools are absent by design.
+(cd "$SMOKE_DIR" && node -p "require.resolve('$PKG_NAME/testing')" > /dev/null)
+
 echo "→ Resolving the skill-atlas subpath…"
 # require.resolve() doesn't request the "svelte" condition, but the "default"
 # condition points at the same file, so this still proves the exports-map

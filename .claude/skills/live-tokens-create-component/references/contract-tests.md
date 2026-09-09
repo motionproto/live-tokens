@@ -1,17 +1,35 @@
 # The registry contract as a test in a consumer project
 
-`checkRegistryEntry` is the contract the package holds its own 26 components
-to, exported so a project outside the package can run it over its own. It takes
-one registry entry and returns a violation line per failure; an empty array is
-the pass.
+The package ships the contract as a test file. `checkRegistryEntry` is the
+assertion behind it, exported so a project can write its own file instead. The
+contract takes one registry entry and returns a violation line per failure; an
+empty array is the pass.
+
+## The shipped file
+
+`src/testing/registry.contract.ts` runs the contract over every component the
+registry holds, resolving a shipped component's `sourceFile` against the package
+and yours against your project. It also reports a component that exists as files
+and never reached a registration.
+
+Add `vitest` and `happy-dom` as devDependencies. Then name the module that
+registers your components, in `live-tokens.testing.ts` at the project root:
 
 ```ts
-// tests/registryContract.test.ts
-// @vitest-environment happy-dom
-import { describe, it, expect } from 'vitest';
-import { getComponentRegistryEntries, registerComponent } from '@motion-proto/live-tokens';
-import { checkRegistryEntry } from '@motion-proto/live-tokens/component-editor/contract';
-import MyWidgetEditor, { allTokens } from '../src/system/components/MyWidgetEditor.svelte';
+// live-tokens.testing.ts
+import { defineTestingConfig } from '@motion-proto/live-tokens/testing';
+
+export default defineTestingConfig({
+  registrySetup: 'src/live-tokens-components.ts',
+});
+```
+
+The setup module registers and stops there:
+
+```ts
+// src/live-tokens-components.ts
+import { registerComponent } from '@motion-proto/live-tokens';
+import MyWidgetEditor, { allTokens } from './system/components/MyWidgetEditor.svelte';
 
 registerComponent({
   id: 'mywidget',
@@ -21,6 +39,46 @@ registerComponent({
   editorComponent: MyWidgetEditor,
   schema: allTokens,
 });
+```
+
+Import the same module from `src/main.ts`, so one list of registrations serves
+the app and the tests. Importing an editor registers nothing, and importing
+`main.ts` would mount the app, which is why the registrations live in a module
+of their own.
+
+The Vitest config comes from the package. It inlines the package and the
+FontAwesome stylesheet it imports, sets the `happy-dom` environment, and
+collects the shipped contract file:
+
+```ts
+// vitest.contract.config.ts
+import { createVitestConfig } from '@motion-proto/live-tokens/testing';
+import viteConfig from './vite.config';
+import settings from './live-tokens.testing';
+
+export default createVitestConfig(viteConfig, { registrySetup: settings.registrySetup });
+```
+
+```bash
+npx vitest run --config vitest.contract.config.ts
+```
+
+`LIVE_TOKENS_COMPONENT=<id>` narrows the run to one component and fails when no
+component is registered under that id.
+
+## Writing your own file
+
+`checkRegistryEntry` is exported at
+`@motion-proto/live-tokens/component-editor/contract`, so a project that wants
+its own suite writes two lines against its own registrations:
+
+```ts
+// tests/registryContract.test.ts
+// @vitest-environment happy-dom
+import { describe, it, expect } from 'vitest';
+import { getComponentRegistryEntries } from '@motion-proto/live-tokens';
+import { checkRegistryEntry } from '@motion-proto/live-tokens/component-editor/contract';
+import '../src/live-tokens-components';
 
 const mine = getComponentRegistryEntries().filter((e) => e.origin === 'custom');
 
@@ -31,42 +89,12 @@ describe.each(mine.map((e) => [e.id, e] as const))('%s', (_id, entry) => {
 });
 ```
 
-Two lines there are load-bearing.
+Filter on `origin`. The registry always carries the shipped components too, and
+their `sourceFile` paths are relative to the package root. Without the filter
+every built-in fails on a path that does not exist in your project.
 
-- **Register at the top of the test file**, rather than importing `main.ts`.
-  The entries have to exist before `describe.each` reads them, and
-  `bootLiveTokens` would mount the app.
-- **Filter on `origin`.** The registry always carries the shipped components
-  too, and their `sourceFile` paths are relative to the package root, not
-  yours. Without the filter every built-in fails on a path that does not exist
-  in the project.
-
-## Setup
-
-`vitest` and `happy-dom` as devDependencies, and the svelte plugin already in
-`vite.config.ts` so the editor `.svelte` import resolves. The helper reads the
-runtime file and `default.json` off disk, which is why it is node-only and has
-its own subpath.
-
-The package ships Svelte and TypeScript source, and `bootLiveTokens` imports the
-FontAwesome stylesheet. Left external, Node meets that `.css` and stops with
-`Unknown file extension ".css"`, before a single test runs. Inline both so Vite
-transforms them:
-
-```ts
-// vitest.config.ts
-import { defineConfig, mergeConfig } from 'vitest/config';
-import viteConfig from './vite.config';
-
-export default mergeConfig(
-  viteConfig,
-  defineConfig({
-    test: {
-      server: { deps: { inline: [/@motion-proto\/live-tokens/, /@fortawesome/] } },
-    },
-  }),
-);
-```
+The helper reads the runtime file and `default.json` off disk, which is why it
+is node-only and has its own subpath.
 
 ## Paths
 

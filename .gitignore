@@ -12,7 +12,6 @@ dist
 dist-plugin
 dist-ssr
 *.local
-.playwright-data/
 playwright-report/
 test-results/
 

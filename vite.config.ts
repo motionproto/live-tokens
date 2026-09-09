@@ -1,10 +1,7 @@
 import { defineConfig } from 'vite';
 import { svelte, vitePreprocess } from '@sveltejs/vite-plugin-svelte';
-import path from 'node:path';
 import { themeFileApi } from './vite-plugin';
 import { buildPruneReplace, replacePreprocess } from './vite-plugin/pruneMarkers';
-
-const e2eDataDir = process.env.LIVE_TOKENS_E2E_DATA_DIR;
 
 export default defineConfig({
   plugins: [
@@ -19,16 +16,11 @@ export default defineConfig({
     }),
     // Data folders default to `src/live-tokens/data/{colors-and-type,themes,
     // component-configs}`. Override per-folder here or via
-    // `live-tokens.config.json` at the project root.
+    // `live-tokens.config.json` at the project root. A contract-test run
+    // redirects all of them, plus the two generated stylesheets, through
+    // `LIVE_TOKENS_TEST_DATA_DIR`, so this config states the real paths only.
     themeFileApi({
       tokensCssPath: 'src/system/styles/tokens.css',
-      ...(e2eDataDir
-        ? {
-            dataDir: e2eDataDir,
-            tokensGeneratedCssPath: path.join(e2eDataDir, 'tokens.generated.css'),
-            fontsCssPath: path.join(e2eDataDir, 'fonts.css'),
-          }
-        : {}),
     }),
   ],
   // Force Svelte's browser-side exports under vitest (happy-dom). Without this,

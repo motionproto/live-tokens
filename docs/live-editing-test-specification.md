@@ -79,11 +79,12 @@ fan-out; it does not duplicate every pure input permutation.
 
 ## Isolation and execution
 
-`npm run prepare:e2e` copies `src/live-tokens/data` to
-`.playwright-data/live-tokens` and removes copied working buffers. The Vite test
-server receives that directory through `LIVE_TOKENS_E2E_DATA_DIR`, including
-isolated generated-token and font outputs. Tests therefore exercise real file
-API writes without changing client or maintainer theme files.
+`createPlaywrightConfig` copies `src/live-tokens/data` to a temporary directory,
+removes the copied session pointers and working buffers, and removes the copy
+when the run ends. The Vite test server receives that directory through
+`LIVE_TOKENS_TEST_DATA_DIR`, which the plugin reads ahead of its own options and
+which also redirects the generated-token and font outputs. Tests therefore
+exercise real file API writes without changing client or maintainer theme files.
 
 The suite intentionally uses one Playwright worker because browser contexts
 would otherwise share the same file-backed active and production pointers.

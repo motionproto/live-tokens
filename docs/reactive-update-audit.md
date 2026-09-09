@@ -184,7 +184,7 @@ and removal on both roots. Focused browser journeys cover real component control
 clicks, resolved font size/weight, SVG outline synchronization, color opacity,
 gradients, split padding, intrinsic display, font stacks and source nodes,
 undo/redo, theme hydration, one-step preset adoption, and no-reload behavior.
-The file API is pointed at a disposable copy under `.playwright-data/`.
+The file API is pointed at a disposable copy in a temporary directory.
 
 Both `verify.yml` and `publish.yml` install Chromium and run `npm run test:e2e`,
 so a release cannot publish after losing the live editor-to-host contract.

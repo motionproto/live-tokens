@@ -47,6 +47,20 @@ export interface ResolvedDataDirs {
 
 const DEFAULT_DATA_DIR = 'src/live-tokens/data';
 
+/**
+ * Names the disposable copy a contract-test run works against. It outranks
+ * plugin options and `live-tokens.config.json` because the suites boot the
+ * consumer's own dev server, whose options name the real tree: a write that
+ * reached it would edit the user's design system. `src/testing/isolation.ts`
+ * is the one writer.
+ */
+export const TEST_DATA_DIR_ENV = 'LIVE_TOKENS_TEST_DATA_DIR';
+
+export function testDataDir(): string | undefined {
+  const raw = process.env[TEST_DATA_DIR_ENV];
+  return raw && raw.trim() !== '' ? path.resolve(raw.trim()) : undefined;
+}
+
 const KNOWN_CONFIG_KEYS = new Set<keyof LiveTokensFileConfig>([
   'dataDir',
   'colorsAndTypeDir',
@@ -104,6 +118,7 @@ export function _resetLiveTokensConfigCache(): void {
  * Resolve the four data directories for a single plugin/preprocessor.
  *
  * Per-folder resolution order (most specific wins):
+ *   0. `LIVE_TOKENS_TEST_DATA_DIR`, which redirects all four folders at once
  *   1. explicit opts (e.g. `opts.colorsAndTypeDir`)
  *   2. `live-tokens.config.json` field (e.g. `fileConfig.colorsAndTypeDir`)
  *   3. `<dataDir>/<sub>` where dataDir comes from opts > config file > the
@@ -117,6 +132,16 @@ export function _resetLiveTokensConfigCache(): void {
  * All returned paths are absolute (resolved via `path.resolve` against cwd).
  */
 export function resolveDataDirs(opts: ResolveDataDirsInput = {}): ResolvedDataDirs {
+  const isolated = testDataDir();
+  if (isolated) {
+    return {
+      dataDir: isolated,
+      colorsAndTypeDir: path.join(isolated, 'colors-and-type'),
+      componentConfigsDir: path.join(isolated, 'component-configs'),
+      themesDir: path.join(isolated, 'themes'),
+      sketchStylesDir: path.join(isolated, 'sketch-styles'),
+    };
+  }
   const fileConfig = readLiveTokensConfig();
   const dataDirRaw = opts.dataDir ?? fileConfig.dataDir ?? DEFAULT_DATA_DIR;
   const dataDir = path.resolve(dataDirRaw);

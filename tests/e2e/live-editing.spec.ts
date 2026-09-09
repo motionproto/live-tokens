@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { openOverlayEditor } from '../../src/testing/support/editor';
+import { openOverlayEditor } from './support/editor';
 
 test('the floating token sample label follows its live surface luminance', async ({ page }) => {
   await page.goto('/demo');

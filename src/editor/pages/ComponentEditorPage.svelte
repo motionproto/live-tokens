@@ -10,6 +10,7 @@
   import { selectedComponent } from '../core/store/editorViewStore';
   import { componentDirty, editorState, mutate } from '../core/store/editorStore';
   import { setSketch } from '../core/sketch';
+  import type { LiveTokensEditorHandle } from './liveTokensEditorHandle';
   // Editor chrome + form controls + icon font must be JS imports (not @import
   // inside the style block) so Vite resolves them via the module graph
   // regardless of how the consumer compiles Svelte CSS (external ?lang.css vs
@@ -82,13 +83,14 @@
     // directly on the page's own window — a contract suite reads it without
     // crossing a frame boundary.
     if (import.meta.env.DEV) {
-      window.__liveTokensEditor = {
+      const handle: LiveTokensEditorHandle = {
         editorState,
         mutate,
         getComponentRegistryEntries,
         selectComponent: (id) => selectedComponent.set(id),
         setSketch,
       };
+      window.__liveTokensEditor = handle;
     }
     try {
       const summaries = await listComponents();

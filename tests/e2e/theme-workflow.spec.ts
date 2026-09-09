@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { openOverlayEditor } from '../../src/testing/support/editor';
+import { openOverlayEditor } from './support/editor';
 
 test('a host-initiated theme load hydrates an already-open editor', async ({ page }) => {
   const frame = await openOverlayEditor(page, 'tokens');

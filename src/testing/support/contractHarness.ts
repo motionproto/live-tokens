@@ -21,17 +21,31 @@ import { openComponentsEditor } from './editor';
 
 const STAGE = '.variant-group:visible .sketch-scope';
 
+/** A save or a reset is one file write on the dev server. Left implicit these
+ *  waits inherit the run's action timeout, which is sized for a click, and a
+ *  slow first write on a cold server would read as a missing response. */
+const SERVER_WRITE_TIMEOUT_MS = 30_000;
+
 /**
  * Two frames for Svelte to flush and the browser to lay out, then every
  * in-flight transition jumped to its end. A colour read mid-interpolation is
  * neither the value the state left nor the one it is going to.
+ *
+ * The two frames after `finish()` are the other half: the browser dispatches
+ * the `finish` event on a later turn, so a handler that ends a transition and
+ * the Svelte flush it schedules both land after the call returns. Returning at
+ * that point hands the next locator a DOM the animation is still leaving.
  */
 const settle = (page: Page) => page.evaluate(async () => {
-  await new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
+  const frame = () => new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+  await frame();
+  await frame();
   for (const animation of document.getAnimations()) {
     // An editor spinner runs forever and has no end to jump to.
     try { animation.finish(); } catch { /* infinite effect */ }
   }
+  await frame();
+  await frame();
 });
 
 /** Contracts declare; this acts and observes, so mapping a new component stays
@@ -598,7 +612,7 @@ export class ContractHarness {
       this.page.waitForResponse((response) =>
         response.url().includes(`/component-configs/${this.contract.id}/working`)
         && response.request().method() === 'PUT'
-        && response.ok()),
+        && response.ok(), { timeout: SERVER_WRITE_TIMEOUT_MS }),
       (async () => {
         await this.page.locator('.file-menu button').first().click();
         await this.page.locator('.file-menu-item', { hasText: 'Save' }).first().click();
@@ -612,7 +626,8 @@ export class ContractHarness {
     if (await button.isDisabled()) this.fail('contract-persist', 'Reset is disabled while the component is dirty');
     await Promise.all([
       this.page.waitForResponse((response) =>
-        response.url().includes(`/component-configs/${this.contract.id}/active`) && response.ok()),
+        response.url().includes(`/component-configs/${this.contract.id}/active`) && response.ok(),
+        { timeout: SERVER_WRITE_TIMEOUT_MS }),
       button.click(),
     ]);
     await settle(this.page);
@@ -717,7 +732,8 @@ export class ContractHarness {
     const row = this.page.locator(`.load-item[data-file-name="theme:${slug}"] .load-name-btn`);
     if (await row.count() === 0) this.fail('contract-theme', `the Theme Picker has no theme "${slug}"`);
     await Promise.all([
-      this.page.waitForResponse((response) => response.url().includes('/themes/') && response.ok()),
+      this.page.waitForResponse((response) => response.url().includes('/themes/') && response.ok(),
+        { timeout: SERVER_WRITE_TIMEOUT_MS }),
       row.click(),
     ]);
     await settle(this.page);
