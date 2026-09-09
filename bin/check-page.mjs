@@ -230,9 +230,12 @@ function blankHtmlExpressions(code) {
 }
 
 /** A raw `<button>`, `<input>`, `<select>`, or `<textarea>` where a shipped
-    component belongs. `<input type="hidden">` paints nothing and is exempt. */
+    component belongs. `<input type="hidden">` paints nothing and is exempt.
+    A tag inside `<script>` is markup the page assembles into a string, not
+    markup it renders, so the script block is blanked the same way
+    `codeRegion` blanks `<style>`, keeping offsets aligned with `code`. */
 function checkNativeControls(code, add) {
-  const scan = blankHtmlExpressions(code);
+  const scan = blankHtmlExpressions(code).replace(/<script[^>]*>[\s\S]*?<\/script>/g, (m) => ' '.repeat(m.length));
   for (const tag of Object.keys(NATIVE_CONTROLS)) {
     for (const m of scan.matchAll(new RegExp(`<${tag}(?=[\\s/>])`, 'g'))) {
       const parsed = tagAttributes(scan, m.index);
@@ -438,19 +441,38 @@ function checkFile(file, text, vocab, root) {
     if (!declaredSites.has(name) || index < declaredSites.get(name)) declaredSites.set(name, index);
   };
   const regions = styleRegions(text, file);
-  for (const region of regions) {
-    for (const m of neutralise(region.text).matchAll(/(?:^|[;{])\s*(--[a-z0-9-]+)\s*:/gim)) {
-      declareAt(m[1], region.offset + m.index);
+  const styleBlockDeclarations = (regionList, at) => {
+    for (const region of regionList) {
+      for (const m of neutralise(region.text).matchAll(/(?:^|[;{])\s*(--[a-z0-9-]+)\s*:/gim)) {
+        at(m[1], region.offset + m.index);
+      }
     }
-  }
+  };
+  styleBlockDeclarations(regions, declareAt);
   for (const m of text.matchAll(/(?:style:|setProperty\(\s*['"`]|['"`])(--[a-z0-9-]+)/g)) {
     declareAt(m[1], m.index);
+  }
+
+  // property-override needs a narrower set than declaredSites: the bare-quote
+  // alternative above exists only to suppress unknown-token on a name any
+  // quoted string mentions, so it also matches a read like
+  // getPropertyValue("--x"). A real declaration is a style-block rule, an
+  // inline `style="--x: ..."` attribute, a `style:--x=` directive, or a
+  // setProperty('--x', ...) call.
+  const overrideSites = new Map();
+  const overrideAt = (name, index) => {
+    if (!overrideSites.has(name) || index < overrideSites.get(name)) overrideSites.set(name, index);
+  };
+  styleBlockDeclarations(regions, overrideAt);
+  if (code !== null) styleBlockDeclarations(inlineStyleRegions(code), overrideAt);
+  for (const m of text.matchAll(/(?:style:|setProperty\(\s*['"`])(--[a-z0-9-]+)/g)) {
+    overrideAt(m[1], m.index);
   }
 
   // A name the vocabulary already ties to a component is that component's
   // token, so declaring it here is one instance overriding the whole
   // project's retuning surface at /live-tokens/components.
-  for (const [name, index] of declaredSites) {
+  for (const [name, index] of overrideSites) {
     if (!vocab.componentTokens.has(name)) continue;
     const owner = componentTokenOwners(vocab).get(name) ?? 'a shipped component';
     add(

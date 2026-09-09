@@ -340,6 +340,32 @@ describe('check-page native-control and property-override rules', () => {
     const { findings } = checkPages([rel], { root });
     expect(findings.filter((f: { rule: string }) => f.rule === 'property-override')).toHaveLength(1);
   });
+
+  it('does not flag a read of a component token', () => {
+    const root = fixtureRoot();
+    const rel = page(
+      root,
+      'Read.svelte',
+      `<script>
+        const v = getComputedStyle(document.body).getPropertyValue("--card-default-body-padding");
+      </script>`,
+    );
+    const { findings } = checkPages([rel], { root });
+    expect(findings.filter((f: { rule: string }) => f.rule === 'property-override')).toHaveLength(0);
+  });
+
+  it('does not flag markup assembled as a string inside <script>', () => {
+    const root = fixtureRoot();
+    const rel = page(
+      root,
+      'ScriptString.svelte',
+      `<script>
+        const s = \`<button>in a template literal</button>\`;
+      </script>`,
+    );
+    const { findings } = checkPages([rel], { root });
+    expect(findings.filter((f: { rule: string }) => f.rule === 'native-control')).toHaveLength(0);
+  });
 });
 
 describe('check-page severity', () => {
