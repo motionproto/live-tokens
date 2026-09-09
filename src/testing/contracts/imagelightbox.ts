@@ -57,12 +57,30 @@ export const imageLightboxContract: ComponentContract = {
         // an avoidable trip through the same close-on-click behavior `setup`
         // is about to use on purpose. `setup` closes the modal the
         // contract-level view opened so the "tile" token control (behind the
-        // still-open overlay otherwise) is reachable. `contractHarness.ts`'s
-        // `assertPersistence` reopens the page before replaying this `setup`
-        // a third time for the Reset re-drive, so it always starts from the
-        // same freshly-opened state this was written against.
+        // still-open overlay otherwise) is reachable, by pressing Escape on
+        // `root` rather than clicking `closeButton`. `assertPersistence`
+        // replays `setup` twice back to back (once directly, once inside
+        // `driveControl`). Measured against a live page: `closeLightbox`'s
+        // `open = false` write happens inside an animation `onfinish`
+        // callback that a `settle()` cycle doesn't durably wait out, so
+        // `closeButton` — a portaled element that unmounts once that callback
+        // fires — can still be gone, still be there, or about to vanish
+        // mid-click, depending on exactly when it lands relative to the
+        // harness's round trips. A second `closeButton` click inherits that
+        // uncertainty. Leading with a `thumb` click to guarantee a target for
+        // the `closeButton` click that follows inherits it from the other
+        // side instead: `openLightbox`'s own `if (open) return` reads the
+        // same not-yet-written flag, so it can no-op rather than reopen, and
+        // nothing then re-drives it — reproduced empirically, a deterministic
+        // dead end. Escape on `root` avoids both: `root` is never portaled,
+        // so the action always has a target, and replaying it before the
+        // first press has finished closing re-enters `closeLightbox` rather
+        // than skipping it, so every replay drives the component strictly
+        // further toward closed. (Escape also collapses the components
+        // editor's own drawer, but nothing else this obligation reads lives
+        // there, and `reopen()` between obligations restores it.)
         shape: 'token',
-        setup: [{ kind: 'click', part: 'closeButton' }],
+        setup: [{ kind: 'press', part: 'root', key: 'Escape' }],
         variable: '--imagelightbox-tile-border-width',
         observe: { part: 'thumb', css: 'borderTopWidth' },
       },
@@ -73,6 +91,11 @@ export const imageLightboxContract: ComponentContract = {
     // Closes the modal the contract-level setup opened: the Theme Picker
     // trigger lives in the chrome behind it, and the still-open overlay
     // blocks clicks the same way it does for the persistence case above.
+    // Unlike that case, `assertThemeProjection` runs `setup` only once, so
+    // the double-replay hazard doesn't apply and a plain `closeButton` click
+    // is enough — and it has to be a click, not the Escape this contract's
+    // persistence case uses, because Escape also collapses the drawer this
+    // obligation's own `.theme-name-trigger` lives in.
     setup: [{ kind: 'click', part: 'closeButton' }],
     theme: 'halloween',
     changed: ['--imagelightbox-tile-border-width', '--imagelightbox-tile-radius', '--imagelightbox-chrome-border-width', '--imagelightbox-chrome-radius'],
