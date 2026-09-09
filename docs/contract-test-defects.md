@@ -37,49 +37,28 @@ default. The suite passing at 1280x720 is the proof.
 
 **Found by:** Wave 1, and re-measured when the cap landed.
 
-### Three shipped components have no Sketch rows
+### Sketch rows cannot be tested for a portalled part
 
-`src/editor/core/sketch/sketchLayer.ts` `PART_SPECS` has no row for
-`imagelightbox`, `radiobutton`, or `inlineeditactions`, so those three are
-undrawn in Sketch mode and their contracts mark `contract-sketch` inapplicable.
+`inlineeditactions` and `imagelightbox` now have `PART_SPECS` rows and their
+contracts assert real Sketch paint. `radiobutton` is still undrawn: its dot
+lives on `::after`, the same pseudo-element the layer strokes, and the host rule
+forces `border-color: transparent` on every drawn part, so the fill has to move
+onto a real element in `RadioButton.svelte` first.
 
-**This entry previously claimed no consumer-authored component is ever drawn.
-That was wrong.** `PART_SPECS` reserves four opt-in classes at `:263-266`
-(`.sketch-surface`, `.sketch-container`, `.sketch-chip`, `.sketch-rule`), which
-join `PARTS`, `FLOW_PARTS`, `STROKE_PARTS` and the damping bands, and `colours`
-emits nothing for them so the element's own `--sketch-fill` survives.
-`sketchPartTokens.test.ts:204-226` pins that, and
-`references/sketch-mode.md:38-47` documents it with a worked example. The Wave
-5a fixture was undrawn because it carried no reserved class, so that gate
-measured a fixture gap and recorded it as a layer gap.
+Separately, `.image-lightbox-modal` carries `use:portal`, which moves it to
+`document.body`. The component editor's preview sets `data-sketch` on its own
+local `.sketch-scope` wrapper rather than the document root, so
+`[data-sketch] .image-lightbox-overlay` never matches inside that sandbox. The
+rows are correct and draw on a real host page, where Sketch mode scopes an
+ancestor of `document.body`. Only the overlay and chrome parts are untestable
+through the contract suite, so `imagelightbox`'s contract asserts the thumb
+alone.
 
-Deriving rows from the registration is not the fix. `RegistryEntry` carries no
-selector, paint source, or structural flag, and selectors are not derivable
-from an id (`radiobutton` renders `.radio-button`, `inlineeditactions` renders
-`.save-btn`). The shipped list is 39 `sel:` literals covering about 65
-selectors, with per-variant fan-out, deliberate `transparent` rows, structural
-flags, size-band membership (`:1011-1044`) and `STATE_COLOURS` (`:298`) as
-separate layers. `SKILL.md:215` already prescribes the shipped answer: a
-first-party component adds a `PartSpec` row.
+**Fix:** scope `data-sketch` so a portalled node is inside it, in
+`VariantGroup.svelte` or `portal.ts`, then add the overlay and chrome parts to
+the contract.
 
-**Fix, per component:**
-- `inlineeditactions` is clean. `.save-btn` and `.cancel-btn` are ordinary
-  filled boxes with full hover sets, so two `PART_SPECS` rows plus two
-  `STATE_COLOURS` rows cover it.
-- `imagelightbox` needs flags: `.image-lightbox-thumb` is `position: absolute`
-  with `overflow: hidden`, so `positioned` and `clips`; the overlay and chrome
-  float over page content, so `unmasked`.
-- `radiobutton` needs a runtime change first. `.radio-dot` owns `::after` for
-  its inner dot, which is the pseudo-element the layer draws the stroke on, and
-  the host rule forces `border-color: transparent` on every drawn part, so
-  marking it `strokeless` leaves the ring undrawn. The fill has to move off
-  `::after` onto a real element in `RadioButton.svelte`.
-
-`sketchPartTokens.test.ts` is the gate holding new rows to colours the
-component itself assigns to that element.
-
-**Found by:** Wave 2b, and re-scoped when the registration-derivation approach
-was investigated.
+**Found by:** adding the Sketch rows.
 
 ### CollapsibleSection's header carries no interactive role
 

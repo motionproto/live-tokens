@@ -119,6 +119,8 @@ const PART_SPECS: readonly PartSpec[] = [
     sel: '.icon-button.outline', fill: 'transparent', stroke: 'var(--iconbutton-outline-border)',
     radius: 'var(--iconbutton-outline-radius, 0px)',
   },
+  { sel: '.save-btn', stem: 'inlineeditactions-save-default' },
+  { sel: '.cancel-btn', stem: 'inlineeditactions-cancel-default' },
 
   // Chips
   ...BADGE_VARIANTS.map((v) => ({ sel: `.badge-${v}`, stem: `badge-${v}` })),
@@ -172,6 +174,17 @@ const PART_SPECS: readonly PartSpec[] = [
   },
   // The arrow is the tooltip's own ::after, so the box takes the fill only.
   { sel: '.tooltip', stem: 'tooltip', positioned: true, strokeless: true, unmasked: true },
+  // Absolutely positioned inside its own wrapper, and clips the picture to the
+  // frame the same way `.image` does.
+  { sel: '.image-lightbox-thumb', stem: 'imagelightbox-tile', positioned: true, clips: true },
+  // A fixed full-viewport scrim behind the open modal; no border of its own.
+  {
+    sel: '.image-lightbox-overlay', fill: 'var(--imagelightbox-overlay-surface)',
+    stroke: 'transparent', positioned: true, unmasked: true,
+  },
+  // Close and the two nav chevrons all carry this class; each is fixed and
+  // floats over the photo rather than a scrim of its own.
+  { sel: '.image-lightbox-chrome', stem: 'imagelightbox-chrome', positioned: true, unmasked: true },
 
   // Status blocks
   ...STATUS_VARIANTS.map((v) => ({ sel: `.callout-${v}`, stem: `callout-${v}` })),
@@ -300,6 +313,8 @@ const STATE_COLOURS: readonly StateSpec[] = [
   hoverPair('.button.outline', 'button-outline'),
   ...FILLED_BUTTON_VARIANTS.map((v) => hoverPair(`.icon-button.${v}`, `iconbutton-${v}`)),
   hoverPair('.icon-button.outline', 'iconbutton-outline'),
+  hoverPair('.save-btn', 'inlineeditactions-save'),
+  hoverPair('.cancel-btn', 'inlineeditactions-cancel'),
   hoverPair('.tab', 'tabbar'),
   // A menu's hover belongs to the item under the pointer. The item is not a
   // drawn part, so it keeps its own background and lights up on its own.

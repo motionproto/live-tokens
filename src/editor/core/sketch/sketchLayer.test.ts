@@ -114,7 +114,7 @@ describe('sketch layer', () => {
     const rule = buildStylesheet(marker)
       .match(/\[data-sketch\] :is\([^{]*\):is\(([^{]*)\)::before\{mask-image:none;\}/);
     expect(rule).not.toBeNull();
-    expect(rule![1]).toBe('.tooltip, .menuselect');
+    expect(rule![1]).toBe('.tooltip, .image-lightbox-overlay, .image-lightbox-chrome, .menuselect');
   });
 
   it('names one field for the fill and the icons to share', () => {
@@ -531,12 +531,14 @@ describe('the drawn box', () => {
   // earlier opt-in list missed `.button`, which is most of a page.
   it('gives up the clip on every part but the few that need it', () => {
     const css = buildStylesheet(marker);
-    const unclipped = css.match(/:is\(([^)]*)\)\{overflow:visible !important;\}/)![1];
+    // Split into selector tokens: `.image` is also a leading substring of
+    // `.image-lightbox-*`, which a plain string search would wrongly match.
+    const unclipped = css.match(/:is\(([^)]*)\)\{overflow:visible !important;\}/)![1].split(', ');
     for (const sel of ['.button.primary', '.card', '.panel', '.notification.info', '.dialog']) {
       expect(unclipped).toContain(sel);
     }
     // Scrollers, a fill bar held to its track, a picture held to its frame.
-    for (const sel of ['.codesnippet', '.table-wrapper', '.progress-track', '.image']) {
+    for (const sel of ['.codesnippet', '.table-wrapper', '.progress-track', '.image', '.image-lightbox-thumb']) {
       expect(unclipped).not.toContain(sel);
     }
   });

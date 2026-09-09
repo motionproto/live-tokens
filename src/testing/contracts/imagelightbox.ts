@@ -117,8 +117,17 @@ export const imageLightboxContract: ComponentContract = {
       },
     ],
   },
+  // `overlay` and `closeButton` are inside `.image-lightbox-modal`, which
+  // `use:portal` moves to `document.body`. The standardized preview scopes
+  // `data-sketch` to its own `.sketch-scope` wrapper rather than the document
+  // root, so a portaled part sits outside the CSS ancestor match this contract
+  // can observe, even though PART_SPECS draws it on a real host page (where
+  // Sketch mode's scope is the page root). `thumb` never portals, so it is the
+  // part this contract can pin.
   sketch: {
-    applicable: false,
-    reason: 'the sketch layer has no drawable-part entry for imagelightbox',
+    style: 'pencil',
+    parts: [
+      { part: 'thumb', fill: '--imagelightbox-tile-surface', stroke: '--imagelightbox-tile-border' },
+    ],
   },
 };

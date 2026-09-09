@@ -79,7 +79,10 @@ export const inlineEditActionsContract: ComponentContract = {
     ],
   },
   sketch: {
-    applicable: false,
-    reason: 'the sketch layer has no drawable-part entry for inlineeditactions',
+    style: 'pencil',
+    parts: [
+      { part: 'saveBtn', fill: '--inlineeditactions-save-default-surface', stroke: '--inlineeditactions-save-default-border' },
+      { part: 'cancelBtn', fill: '--inlineeditactions-cancel-default-surface', stroke: '--inlineeditactions-cancel-default-border' },
+    ],
   },
 };
