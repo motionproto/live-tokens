@@ -1,3 +1,5 @@
+import path from 'node:path';
+import { pathToFileURL } from 'node:url';
 import type { ComponentContract } from '../componentContract';
 import { badgeContract } from './badge';
 import { buttonContract } from './button';
@@ -55,12 +57,42 @@ export const shippedContracts: ComponentContract[] = [
   tooltipContract,
 ];
 
-/** The contracts a run covers, narrowed by `LIVE_TOKENS_COMPONENT`. */
-export function selectedContracts(
+/** Names the module `selectedContracts` loads a custom component's
+ *  `ComponentContract[]` from. The suite files are static Playwright entry
+ *  points with no argument to receive one through, so an env var plus a
+ *  dynamic import is the only route in. */
+export const CONTRACTS_MODULE_ENV = 'LIVE_TOKENS_CONTRACTS_MODULE';
+
+async function loadCustomContracts(): Promise<ComponentContract[]> {
+  const modulePath = process.env[CONTRACTS_MODULE_ENV];
+  if (!modulePath) return [];
+  const mod = await import(pathToFileURL(path.resolve(modulePath)).href);
+  const value = mod.default ?? mod.contracts;
+  if (!Array.isArray(value)) {
+    throw new Error(
+      `${CONTRACTS_MODULE_ENV}=${modulePath} does not export a contracts array `
+      + '(default export or a named "contracts" export)',
+    );
+  }
+  return value as ComponentContract[];
+}
+
+/** The shipped list plus whatever `LIVE_TOKENS_CONTRACTS_MODULE` names,
+ *  unfiltered — what a "no contract for this id" error lists as declared. */
+export async function allContracts(
   contracts: ComponentContract[] = shippedContracts,
-): ComponentContract[] {
+): Promise<ComponentContract[]> {
+  const custom = await loadCustomContracts();
+  return custom.length > 0 ? [...contracts, ...custom] : contracts;
+}
+
+/** The contracts a run covers, narrowed by `LIVE_TOKENS_COMPONENT`. */
+export async function selectedContracts(
+  contracts: ComponentContract[] = shippedContracts,
+): Promise<ComponentContract[]> {
+  const all = await allContracts(contracts);
   const requested = process.env.LIVE_TOKENS_COMPONENT;
-  return requested ? contracts.filter((contract) => contract.id === requested) : contracts;
+  return requested ? all.filter((contract) => contract.id === requested) : all;
 }
 
 export {

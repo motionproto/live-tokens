@@ -174,14 +174,17 @@ if (command === 'create') {
   }
 }
 
-function reportChecks(label, findings, checked, rules, opts) {
+function reportChecks(label, findings, checked, rules, opts, { coverage, hardFailure } = {}) {
   const resolved = applySeverity(findings, rules, opts, readChecksConfig(process.cwd()));
   console.log(
     opts.json
-      ? toJson(resolved, { label, checked })
+      ? toJson(resolved, { label, checked, coverage })
       : formatFindings(resolved, { label, checked }),
   );
-  process.exit(countBySeverity(resolved).errors === 0 ? 0 : 1);
+  // Decision 2: a missing tool or a setup failure under --tests is an error
+  // even if a project silenced its rule id, since silencing it would read as
+  // "the tests passed" rather than "the tests did not run".
+  process.exit(countBySeverity(resolved).errors === 0 && !hardFailure ? 0 : 1);
 }
 
 if (command === 'components') {
@@ -228,18 +231,27 @@ if (command === 'report') {
 if (command === 'check-component') {
   const opts = parseCheckFlags(rest);
   const ids = opts.rest.length > 0 ? [opts.rest[0]] : discoverComponents();
-  if (ids.length === 0) {
+  if (ids.length === 0 && !opts.tests) {
     console.log('✓ check-component: no component authored under src/system/components yet.');
     process.exit(0);
   }
   const results = ids.map((id) => [id, checkComponent(id)]);
-  if (ids.length === 1 && !opts.json && !opts.strict && opts.off.length + opts.warn.length + opts.error.length === 0) {
+  if (!opts.tests && ids.length === 1 && !opts.json && !opts.strict && opts.off.length + opts.warn.length + opts.error.length === 0) {
     const [id, result] = results[0];
     console.log(formatReport(id, result));
     process.exit(result.errors.length === 0 ? 0 : 1);
   }
-  const label = ids.length === 1 ? `check-component ${ids[0]}` : 'check-component';
-  reportChecks(label, results.flatMap(([, r]) => r.findings), ids.length, COMPONENT_RULES, opts);
+  const label = ids.length === 1 ? `check-component ${ids[0]}${opts.tests ? ' --tests' : ''}` : `check-component${opts.tests ? ' --tests' : ''}`;
+  if (!opts.tests) {
+    reportChecks(label, results.flatMap(([, r]) => r.findings), ids.length, COMPONENT_RULES, opts);
+  }
+  const { hasHardFailure, runContractTests } = await import('./contractRunner.mjs');
+  const testOutcome = await runContractTests(opts.rest[0], { root: process.cwd() });
+  const findings = [...results.flatMap(([, r]) => r.findings), ...testOutcome.findings];
+  reportChecks(label, findings, Math.max(ids.length, 1), COMPONENT_RULES, opts, {
+    coverage: testOutcome.coverage,
+    hardFailure: hasHardFailure(testOutcome.findings),
+  });
 }
 
 if (command === 'check-page') {

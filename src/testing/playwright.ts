@@ -6,7 +6,6 @@ import {
   type PlaywrightTestConfig,
   type PlaywrightTestProject,
 } from '@playwright/test';
-import type { ComponentContract } from './componentContract';
 import {
   COMPONENT_ENV,
   COMPONENTS_PATH_ENV,
@@ -14,6 +13,7 @@ import {
   resolveTestingConfig,
   type LiveTokensTestingConfig,
 } from './config';
+import { allContracts, CONTRACTS_MODULE_ENV, selectedContracts } from './contracts';
 import { DATA_DIR_ENV, TEST_DATA_DIR_ENV, isolateDataDir } from './isolation';
 import { resolvePort } from './port';
 
@@ -31,14 +31,6 @@ export interface PlaywrightConfigOptions extends LiveTokensTestingConfig {
   testDir?: string;
 }
 
-function requireContractFor(component: string, contracts: ComponentContract[]): void {
-  if (contracts.some((contract) => contract.id === component)) return;
-  throw new Error(
-    `${COMPONENT_ENV}=${component} names a component with no contract. `
-    + `Declared: ${contracts.map((contract) => contract.id).sort().join(', ')}`,
-  );
-}
-
 /**
  * The contract project, its dev server, and the data isolation the two share.
  *
@@ -47,16 +39,28 @@ function requireContractFor(component: string, contracts: ComponentContract[]): 
  * behind reaches the workers and the dev server, and nothing in the run can
  * observe the state before it.
  */
-export function createPlaywrightConfig(options: PlaywrightConfigOptions = {}): PlaywrightTestConfig {
+export async function createPlaywrightConfig(
+  options: PlaywrightConfigOptions = {},
+): Promise<PlaywrightTestConfig> {
   const settings = resolveTestingConfig(options, options.root);
   const { dataDir } = isolateDataDir(settings.dataDir);
   const port = resolvePort(settings.port);
   const baseURL = `http://${HOST}:${port}`;
 
   process.env[COMPONENTS_PATH_ENV] = settings.componentsPath;
+  if (settings.contractsModule) process.env[CONTRACTS_MODULE_ENV] = settings.contractsModule;
 
   const requested = process.env[COMPONENT_ENV];
-  if (requested && settings.contracts) requireContractFor(requested, settings.contracts);
+  if (requested) {
+    const matches = await selectedContracts();
+    if (matches.length === 0) {
+      const all = await allContracts();
+      throw new Error(
+        `${COMPONENT_ENV}=${requested} names a component with no contract. `
+        + `Declared: ${all.map((contract) => contract.id).sort().join(', ')}`,
+      );
+    }
+  }
 
   return defineConfig({
     testDir: options.testDir ?? CONTRACT_TEST_DIR,
@@ -108,6 +112,11 @@ export function createPlaywrightConfig(options: PlaywrightConfigOptions = {}): P
     ],
     webServer: {
       command: devServerCommand(settings.devCommand, HOST, port),
+      // Otherwise defaults to the config file's own directory. A generated
+      // config that lives outside the consumer root (`check-component
+      // --tests`'s temporary config) would run `npm run dev` from wherever
+      // that happens to be instead.
+      cwd: settings.root,
       url: baseURL,
       // A server this run did not start carries none of these variables, so it
       // would write the project's own data tree.

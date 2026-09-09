@@ -38,4 +38,4 @@ export type {
   ThemeExpectation,
   View,
 } from './componentContract';
-export { selectedContracts, shippedContracts } from './contracts';
+export { allContracts, CONTRACTS_MODULE_ENV, selectedContracts, shippedContracts } from './contracts';

@@ -678,7 +678,7 @@ test('component discovery covers every alias exactly once', () => {
 // Obligation 6. The traversal above proves every property repaints something in
 // the preview; these pin the mapping, so a repaint elsewhere cannot stand in for
 // the part and CSS property the property is meant to drive.
-for (const contract of selectedContracts()) {
+for (const contract of await selectedContracts()) {
   test(`${contract.id} paints each declared property on its declared part`, async ({ page }) => {
     test.setTimeout(180_000);
     const harness = await ContractHarness.open(page, contract);

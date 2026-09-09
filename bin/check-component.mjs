@@ -43,6 +43,20 @@ export const COMPONENT_RULES = {
   'default-not-token': 'error',
   'phantom-link': 'warn',
   'dimension-literal': 'warn',
+  // `--tests` (bin/contractRunner.mjs). Fixed by design decision 8 so
+  // `fix-findings` can map them; every one is an error, including the setup
+  // rules, which `--tests` treats as never-silenceable (see cli.mjs).
+  'contract-registry': 'error',
+  'contract-render': 'error',
+  'contract-alias': 'error',
+  'contract-persist': 'error',
+  'contract-theme': 'error',
+  'contract-preview': 'error',
+  'contract-listed': 'error',
+  'contract-sketch': 'error',
+  'tests-not-installed': 'error',
+  'tests-setup': 'error',
+  'tests-incomplete': 'error',
 };
 
 // Shipped components keep their editor beside the other editors; a
@@ -95,6 +109,26 @@ const DEEP_IMPORT_PATTERNS = [
 
 function capitalize(id) {
   return id.charAt(0).toUpperCase() + id.slice(1);
+}
+
+/**
+ * Where `id`'s runtime and editor files live, resolved the same way
+ * `checkComponent` does: the real on-disk filename rather than a capitalised
+ * guess, since `cornerbadge` ships as `CornerBadge.svelte`. Exported so a
+ * caller outside the lint (the `--tests` runner, attributing a contract
+ * finding to a consumer artifact) doesn't re-derive it differently.
+ */
+export function resolveComponentPaths(id, root = process.cwd()) {
+  const dir = join(root, 'src/system/components');
+  const Id =
+    (existsSync(dir) ? readdirSync(dir) : [])
+      .find((f) => f.toLowerCase() === `${id}.svelte`)
+      ?.replace('.svelte', '') ?? capitalize(id);
+  const runtimePath = join(dir, `${Id}.svelte`);
+  const editorPath =
+    EDITOR_DIRS.map((d) => join(root, d, `${Id}Editor.svelte`)).find(existsSync) ??
+    join(root, EDITOR_DIRS[0], `${Id}Editor.svelte`);
+  return { Id, runtimePath, editorPath };
 }
 
 function extractImports(source) {
@@ -326,18 +360,7 @@ export function checkComponent(id, root = process.cwd(), { vocabulary } = {}) {
     return done();
   }
 
-  // Resolve the real filename rather than capitalising the id: `cornerbadge`
-  // ships as `CornerBadge.svelte`, and the casing is what gives the kebab form
-  // of its token prefix.
-  const dir = join(root, 'src/system/components');
-  const Id =
-    (existsSync(dir) ? readdirSync(dir) : [])
-      .find((f) => f.toLowerCase() === `${id}.svelte`)
-      ?.replace('.svelte', '') ?? capitalize(id);
-  const runtimePath = join(dir, `${Id}.svelte`);
-  const editorPath =
-    EDITOR_DIRS.map((d) => join(root, d, `${Id}Editor.svelte`)).find(existsSync) ??
-    join(root, EDITOR_DIRS[0], `${Id}Editor.svelte`);
+  const { Id, runtimePath, editorPath } = resolveComponentPaths(id, root);
 
   file = relative(root, runtimePath);
   if (!existsSync(runtimePath)) {

@@ -3,7 +3,7 @@ import { isInapplicable } from './componentContract';
 import { selectedContracts } from './contracts';
 import { ContractHarness } from './support/contractHarness';
 
-for (const contract of selectedContracts()) {
+for (const contract of await selectedContracts()) {
   // Serial, so a component that is not registered reports that and stops rather
   // than reporting six preview failures caused by the missing entry.
   test.describe.serial(contract.id, () => {

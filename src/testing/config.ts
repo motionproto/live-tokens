@@ -1,7 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { DEFAULT_COMPONENTS_PATH } from '../editor/core/routing/ownedRoutes';
-import type { ComponentContract } from './componentContract';
 
 /** The file a project puts its shared test settings in, at the project root. */
 export const TESTING_CONFIG_FILE = 'live-tokens.testing.ts';
@@ -37,8 +36,12 @@ export interface LiveTokensTestingConfig {
   /** Module that registers the project's components without mounting the app.
    *  The registry contract imports it before it selects entries. */
   registrySetup?: string;
-  /** Contracts the component suites run. Default: the shipped contracts. */
-  contracts?: ComponentContract[];
+  /** Module exporting the `ComponentContract[]` a custom component adds to the
+   *  shipped list (default export or a named `contracts` export). The suite
+   *  files are static Playwright entry points, so an env var naming this path
+   *  plus a dynamic import inside `selectedContracts()` is the only way a
+   *  custom contract reaches them. */
+  contractsModule?: string;
 }
 
 export interface ResolvedTestingConfig {
@@ -49,7 +52,7 @@ export interface ResolvedTestingConfig {
   componentsPath: string;
   dataDir: string;
   registrySetup?: string;
-  contracts?: ComponentContract[];
+  contractsModule?: string;
 }
 
 /** Types the settings file without importing the interface by hand. */
@@ -85,7 +88,9 @@ export function resolveTestingConfig(
     registrySetup: config.registrySetup
       ? path.resolve(projectRoot, config.registrySetup)
       : undefined,
-    contracts: config.contracts,
+    contractsModule: config.contractsModule
+      ? path.resolve(projectRoot, config.contractsModule)
+      : undefined,
   };
 }
 

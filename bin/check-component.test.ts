@@ -351,3 +351,308 @@ describe('discoverComponents', () => {
     for (const id of ids) expect(discoverComponents(process.cwd())).toContain(id);
   });
 });
+
+// @ts-expect-error — plain .mjs module, no types
+import {
+  artifactForContractRule,
+  extractToken,
+  extractViolationArray,
+  findTokenLine,
+  hasHardFailure,
+  identifyComponent,
+  mapPlaywrightResults,
+  mapRegistryViolation,
+  mapVitestResults,
+  missingToolFindings,
+  ruleForSpecTitle,
+  runContractTests,
+} from './contractRunner.mjs';
+
+function widgetFixtureRoot(): string {
+  const root = fixtureRoot();
+  write(root, 'widget', BARE_FONT('widget'));
+  return root;
+}
+
+function playwrightResult(overrides: Record<string, unknown> = {}) {
+  return { status: 'passed', annotations: [], errors: [], ...overrides };
+}
+
+describe('contractRunner: tool detection', () => {
+  it('reports every missing peer, and none once node_modules has all three', () => {
+    const root = fixtureRoot();
+    const missing = missingToolFindings(root).map((f: { rule: string }) => f.rule);
+    expect(missing).toEqual(['tests-not-installed', 'tests-not-installed', 'tests-not-installed']);
+
+    for (const pkg of ['@playwright/test', 'vitest', 'happy-dom']) {
+      mkdirSync(join(root, 'node_modules', pkg), { recursive: true });
+    }
+    expect(missingToolFindings(root)).toEqual([]);
+  });
+});
+
+describe('contractRunner: rule and component identification', () => {
+  it('maps every stable obligation title to its rule', () => {
+    expect(ruleForSpecTitle('toggle is listed in its registry group')).toBe('contract-listed');
+    expect(ruleForSpecTitle('toggle resolves every alias it paints with')).toBe('contract-alias');
+    expect(ruleForSpecTitle("toggle takes the theme's values and gives them back")).toBe('contract-theme');
+    expect(ruleForSpecTitle('an unrelated title')).toBeNull();
+  });
+
+  it('trusts the immediate describe title, then the leading word of the spec title, only against known ids', () => {
+    const known = new Set(['toggle', 'card']);
+    expect(identifyComponent(['toggle'], 'toggle is listed in its registry group', known)).toBe('toggle');
+    expect(identifyComponent([], 'card repaints every property in its standardized runtime preview', known)).toBe('card');
+    expect(identifyComponent([], 'component discovery covers every alias exactly once', known)).toBeNull();
+    expect(identifyComponent(['some file suite'], 'every shipped component alias fans out...', known)).toBeNull();
+  });
+});
+
+describe('contractRunner: token and line attribution', () => {
+  it('extracts a design token from a violation message, or nothing', () => {
+    expect(extractToken('aliases resolve to nothing at the root: --toggle-track-surface')).toBe('--toggle-track-surface');
+    expect(extractToken('no probe value for CSS property "color"')).toBeNull();
+  });
+
+  it('finds the real line a token sits on, and falls back to line 1', () => {
+    const root = fixtureRoot();
+    const file = join(root, 'sample.json');
+    writeFileSync(file, '{\n  "a": 1,\n  "--widget-surface": "x"\n}\n');
+    expect(findTokenLine(file, '--widget-surface')).toBe(3);
+    expect(findTokenLine(file, '--not-there')).toBe(1);
+    expect(findTokenLine(join(root, 'missing.json'), '--widget-surface')).toBe(1);
+  });
+
+  it('never invents a line for a token that is not literally in the file', () => {
+    const root = fixtureRoot();
+    const file = join(root, 'sample.json');
+    writeFileSync(file, '{}');
+    expect(findTokenLine(file, '--widget-surface')).toBe(1);
+  });
+});
+
+describe('contractRunner: finding artifacts', () => {
+  it('points contract-alias/persist/theme at the shipped config, with the config directory rooted where the source tree is', () => {
+    const root = widgetFixtureRoot();
+    const dataDir = join(root, 'data');
+    mkdirSync(join(dataDir, 'component-configs/widget'), { recursive: true });
+    writeFileSync(
+      join(dataDir, 'component-configs/widget/default.json'),
+      '{\n  "aliases": {\n    "--widget-header-text": "--text-primary"\n  }\n}\n',
+    );
+    for (const rule of ['contract-alias', 'contract-persist', 'contract-theme']) {
+      const { file, line } = artifactForContractRule(root, dataDir, rule, 'widget', '--widget-header-text');
+      expect(file).toBe('data/component-configs/widget/default.json');
+      expect(line).toBe(3);
+    }
+  });
+
+  it('points contract-listed at the editor file and contract-render/preview/sketch at the runtime, line 1 with no token to find', () => {
+    const root = widgetFixtureRoot();
+    const listed = artifactForContractRule(root, join(root, 'data'), 'contract-listed', 'widget', null);
+    expect(listed.file).toBe('src/system/components/WidgetEditor.svelte');
+    expect(listed.line).toBe(1);
+
+    const rendered = artifactForContractRule(root, join(root, 'data'), 'contract-render', 'widget', null);
+    expect(rendered.file).toBe('src/system/components/Widget.svelte');
+    expect(rendered.line).toBe(1);
+  });
+
+  it('falls back to package.json, line 1, when no component could be identified', () => {
+    const root = widgetFixtureRoot();
+    expect(artifactForContractRule(root, join(root, 'data'), 'contract-render', null, null)).toEqual({
+      file: 'package.json',
+      line: 1,
+    });
+  });
+});
+
+describe('contractRunner: registry violation parsing', () => {
+  it('reads checkRegistryEntry violation strings back out of an untruncated Vitest diff', () => {
+    const text =
+      "AssertionError: expected [ 'default config: --widget-header-text has no seed in widget/default.json' ] to deeply equal []";
+    expect(extractViolationArray(text)).toEqual(['default config: --widget-header-text has no seed in widget/default.json']);
+    expect(extractViolationArray('expected [ Array(1) ] to deeply equal []')).toEqual([]);
+  });
+
+  it('routes a "default config"/"opacity floor" violation at the shipped config, everything else at the runtime', () => {
+    const root = widgetFixtureRoot();
+    const dataDir = join(root, 'data');
+    const config = mapRegistryViolation(root, dataDir, 'widget', 'default config: --widget-header-text has no seed in widget/default.json');
+    expect(config.file).toBe('data/component-configs/widget/default.json');
+
+    const runtime = mapRegistryViolation(root, dataDir, 'widget', 'runtime: --widget-header-text is not declared in src/system/components/Widget.svelte');
+    expect(runtime.file).toBe('src/system/components/Widget.svelte');
+  });
+});
+
+describe('contractRunner: mapping a Playwright report', () => {
+  it('reads the rule and component straight out of a ContractViolation prefix', () => {
+    const root = widgetFixtureRoot();
+    const entries = [
+      {
+        describeTitles: ['widget'],
+        specTitle: 'widget resolves every alias it paints with',
+        specFile: 'component-editor.contract.ts',
+        specLine: 20,
+        result: playwrightResult({
+          status: 'failed',
+          errors: [{ message: 'ContractViolation: [contract-alias] widget: aliases resolve to nothing at the root: --widget-header-text' }],
+        }),
+      },
+    ];
+    const { findings, coverage } = mapPlaywrightResults(entries, { root, sourceDataDir: join(root, 'data'), knownIds: new Set(['widget']) });
+    expect(findings).toHaveLength(1);
+    expect(findings[0].rule).toBe('contract-alias');
+    expect(findings[0].message).toContain('widget:');
+    expect(findings[0].context.suite).toBe('playwright');
+    expect(coverage.widget['contract-alias']).toEqual({ status: 'failed' });
+  });
+
+  it('falls back to the title table for a plain expect() failure with no ContractViolation prefix', () => {
+    const root = widgetFixtureRoot();
+    const entries = [
+      {
+        describeTitles: [],
+        specTitle: 'widget paints each declared property on its declared part',
+        specFile: 'component-render.contract.ts',
+        specLine: 682,
+        result: playwrightResult({ status: 'failed', errors: [{ message: 'Error: expect(received).toBeGreaterThan(expected)' }] }),
+      },
+    ];
+    const { findings } = mapPlaywrightResults(entries, { root, sourceDataDir: join(root, 'data'), knownIds: new Set(['widget']) });
+    expect(findings[0].rule).toBe('contract-render');
+  });
+
+  it('records coverage for a pass, including an inapplicable annotation, and stays silent on a cascaded skip', () => {
+    const root = widgetFixtureRoot();
+    const entries = [
+      {
+        describeTitles: ['widget'],
+        specTitle: 'widget draws every painted part in Sketch mode',
+        specFile: 'component-editor.contract.ts',
+        specLine: 46,
+        result: playwrightResult({ status: 'passed', annotations: [{ type: 'inapplicable', description: 'no painted parts' }] }),
+      },
+      {
+        describeTitles: ['widget'],
+        specTitle: 'widget answers the pointer and the keyboard',
+        specFile: 'component-editor.contract.ts',
+        specLine: 30,
+        result: playwrightResult({ status: 'skipped' }),
+      },
+    ];
+    const { findings, coverage } = mapPlaywrightResults(entries, { root, sourceDataDir: join(root, 'data'), knownIds: new Set(['widget']) });
+    expect(findings).toEqual([]);
+    expect(coverage.widget['contract-sketch']).toEqual({ status: 'inapplicable', reason: 'no painted parts' });
+  });
+});
+
+describe('contractRunner: mapping a Vitest registry report', () => {
+  it('emits one contract-registry finding per violation, attributed by category', () => {
+    const root = widgetFixtureRoot();
+    const dataDir = join(root, 'data');
+    mkdirSync(join(dataDir, 'component-configs/widget'), { recursive: true });
+    writeFileSync(join(dataDir, 'component-configs/widget/default.json'), '{}');
+    const report = {
+      testResults: [
+        {
+          assertionResults: [
+            { ancestorTitles: ['component registry contract'], title: 'selects at least one component', status: 'passed', failureMessages: [] },
+            {
+              ancestorTitles: ['component registry contract', 'widget'],
+              title: 'meets the registry contract',
+              fullName: 'component registry contract widget meets the registry contract',
+              status: 'failed',
+              failureMessages: [
+                "AssertionError: expected [ 'default config: --widget-header-text has no seed in widget/default.json' ] to deeply equal []",
+              ],
+            },
+          ],
+        },
+      ],
+    };
+    const { findings, coverage } = mapVitestResults(report, { root, sourceDataDir: dataDir });
+    expect(findings).toEqual([
+      {
+        rule: 'contract-registry',
+        file: 'data/component-configs/widget/default.json',
+        line: 1,
+        message: 'widget: default config: --widget-header-text has no seed in widget/default.json',
+        context: { suite: 'vitest', title: 'component registry contract widget meets the registry contract' },
+      },
+    ]);
+    expect(coverage.widget['contract-registry']).toEqual({ status: 'failed' });
+  });
+
+  it('routes a catalogue-level failure (no component ancestor) to tests-setup', () => {
+    const report = {
+      testResults: [
+        {
+          assertionResults: [
+            {
+              ancestorTitles: ['component registry contract'],
+              title: 'selects at least one component',
+              fullName: 'component registry contract selects at least one component',
+              status: 'failed',
+              failureMessages: ['AssertionError: no component is registered'],
+            },
+          ],
+        },
+      ],
+    };
+    const { findings } = mapVitestResults(report, { root: process.cwd(), sourceDataDir: 'data' });
+    expect(findings[0].rule).toBe('tests-setup');
+    expect(findings[0].file).toBe('package.json');
+  });
+});
+
+describe('contractRunner: hard failures never get silenced', () => {
+  it('flags the three setup rules and nothing else', () => {
+    expect(hasHardFailure([{ rule: 'tests-not-installed' }])).toBe(true);
+    expect(hasHardFailure([{ rule: 'tests-setup' }])).toBe(true);
+    expect(hasHardFailure([{ rule: 'tests-incomplete' }])).toBe(true);
+    expect(hasHardFailure([{ rule: 'contract-alias' }])).toBe(false);
+  });
+});
+
+describe('contractRunner: runContractTests, end to end', () => {
+  it('is an error, not a silent skip, when a required tool is missing', async () => {
+    const root = fixtureRoot();
+    const result = await runContractTests('toggle', { root });
+    expect(result.findings.map((f: { rule: string }) => f.rule)).toEqual([
+      'tests-not-installed',
+      'tests-not-installed',
+      'tests-not-installed',
+    ]);
+    expect(result.coverage).toEqual({});
+  });
+
+  it('reports nothing to test rather than guessing, for omitted-id batch discovery over an empty project', async () => {
+    const root = fixtureRoot();
+    for (const pkg of ['@playwright/test', 'vitest', 'happy-dom']) {
+      mkdirSync(join(root, 'node_modules', pkg), { recursive: true });
+    }
+    const result = await runContractTests(undefined, { root });
+    expect(result.findings).toEqual([
+      {
+        rule: 'tests-setup',
+        file: 'package.json',
+        line: 1,
+        message: 'no component authored under src/system/components yet; nothing for --tests to run',
+      },
+    ]);
+  });
+
+  // This repo is its own consumer, with real Playwright/Vitest installs and a
+  // real dev server, so this is the one genuine round trip: real subprocess,
+  // real browser, real isolated copy. The defect fixtures (a broken alias
+  // producing a `contract-alias` finding with a real line) are exercised by
+  // hand per the plan's Verify step; a from-scratch fixture project able to
+  // boot the dev server belongs to Wave 5a's consumer acceptance gate.
+  it('passes clean for a real shipped component, here, with the real tools', async () => {
+    const result = await runContractTests('toggle', { root: process.cwd() });
+    expect(result.findings).toEqual([]);
+    expect(result.coverage.toggle['contract-registry']).toEqual({ status: 'passed' });
+  }, 60_000);
+});

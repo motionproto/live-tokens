@@ -1,6 +1,13 @@
 import { mergeConfig, type UserConfig } from 'vite';
 import type { TestUserConfig } from 'vitest/config';
 
+// The barrel (`./index`) re-exports this from `./playwright`, which imports
+// `@playwright/test` at module top. A Vitest-only consumer authoring
+// `live-tokens.testing.ts` needs `defineTestingConfig` without that import
+// ever resolving, so it is reachable from here too.
+export { defineTestingConfig, resolveTestingConfig } from './config';
+export type { LiveTokensTestingConfig, ResolvedTestingConfig } from './config';
+
 export interface VitestConfigOptions {
   /** Files the run collects. Default: the shipped registry contract, matched
    *  both in this package and in an installed copy of it. */
@@ -57,6 +64,12 @@ export function createVitestConfig(
         },
       },
       server: { deps: { inline: [/@motion-proto\/live-tokens/, /@fortawesome/] } },
+      // Vitest's default preview truncates a failed array-equality assertion
+      // to `[ Array(1) ]`, which drops `checkRegistryEntry`'s actual violation
+      // text. `check-component --tests` reads that text out of the JSON
+      // reporter's `failureMessages` to attribute a finding, so nothing here
+      // can afford to be summarized away.
+      chaiConfig: { truncateThreshold: 0 },
       ...(options.registrySetup ? { env: { LIVE_TOKENS_REGISTRY_SETUP: options.registrySetup } } : {}),
     },
   } satisfies UserConfig);
