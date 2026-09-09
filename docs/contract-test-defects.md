@@ -18,11 +18,20 @@ Every theme preview and every theme apply re-runs all 27 component migrations
 over already-current data.
 
 `src/editor/core/preview/themePreview.ts:52` and `:56` pass
-`config.schemaVersion`. `src/editor/core/themes/normalizeTheme.ts:179` strips
-that field from theme-embedded configs. `ComponentConfig.schemaVersion` is
-optional, so the read typechecks, yields `undefined`, and `toComponentSlice`
-defaults it to `0`. `src/editor/core/store/editorStore.ts:338` repeats the
-same `?? 0`.
+`config.schemaVersion`, a per-config field that no longer exists by then:
+`vite-plugin/themes/normalizeTheme.ts:179` destructures it away
+(`const { schemaVersion: _entryStamp, … } = config`) on every read.
+`ComponentConfig.schemaVersion` is optional, so the read typechecks, yields
+`undefined`, and `toComponentSlice`'s `schemaVersion: number = 0` parameter
+default (`src/editor/core/store/editorStore.ts:270`) turns it into a full
+replay. `editorStore.ts:338` repeats the same defaulting as `?? 0`.
+
+The design intent is explicit and the code contradicts it.
+`src/editor/core/themes/themeTypes.ts:281-285` documents
+`componentSchemaVersion` as the theme-level stamp, "one field for all of them",
+and states that an embedded config's own `schemaVersion` "is ignored and
+stripped". So the correct stamp is on the theme and the readers reach for the
+one that was deliberately removed.
 
 Measured:
 
