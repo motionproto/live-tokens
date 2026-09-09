@@ -7,6 +7,8 @@ description: Report an existing project's adherence to @motion-proto/live-tokens
 
 Run `npx live-tokens report`. The CLI prints a report with the sections in the Report sections table. Say what each finding means and what the fix would cost. When live-tokens-create-page or live-tokens-create-component calls this skill, lead with the findings on the file it built. Edit no file. When the user wants the fixes applied, hand the fix list to **live-tokens-fix-findings**.
 
+`report` never runs the component contract suites. The `check-component` test run does, and it is what live-tokens-create-component calls to validate a component's runtime behavior.
+
 ## Workflow
 
 When `report` is an unknown command, route the dependency upgrade to **live-tokens-fix-findings**. Resume the audit after the upgrade.

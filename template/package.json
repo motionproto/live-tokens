@@ -8,7 +8,8 @@
     "build": "npm run check:design && vite build",
     "preview": "vite preview",
     "check": "svelte-check --tsconfig ./tsconfig.json",
-    "check:design": "live-tokens check-page && live-tokens check-component"
+    "check:design": "live-tokens check-page && live-tokens check-component",
+    "test:design": "live-tokens check-component --tests"
   },
   "dependencies": {
     "@motion-proto/live-tokens": "__LT_VERSION__"

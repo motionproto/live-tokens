@@ -5,29 +5,39 @@ assertion behind it, exported so a project can write its own file instead. The
 contract takes one registry entry and returns a violation line per failure; an
 empty array is the pass.
 
-## The shipped file
+## The shipped path
 
-`src/testing/registry.contract.ts` runs the contract over every component the
-registry holds, resolving a shipped component's `sourceFile` against the package
-and yours against your project. It also reports a component that exists as files
-and never reached a registration.
+`npx live-tokens check-component <id> --tests` runs the shipped file for you,
+under vitest, alongside the Playwright component contract suites, and maps
+every failure to a finding with a rule id and a line. The compiled file is
+`src/testing-js/registry.contract.js`; the `.ts` source it compiles from is not
+in the tarball.
 
-Add `vitest` and `happy-dom` as devDependencies. Then name the module that
-registers your components, in `live-tokens.testing.ts` at the project root:
+It resolves a shipped component's `sourceFile` against the package and yours
+against your project, and reports a component that exists as files and never
+reached a registration.
+
+Add `@playwright/test`, `vitest`, and `happy-dom` as devDependencies, then
+`npx playwright install chromium`. A missing one is a `tests-not-installed`
+finding naming the install command.
+
+Name the module that registers your components, in `live-tokens.testing.ts` at
+the project root, as a plain quoted string:
 
 ```ts
 // live-tokens.testing.ts
-import { defineTestingConfig } from '@motion-proto/live-tokens/testing';
+import { defineTestingConfig } from '@motion-proto/live-tokens/testing/vitest';
 
 export default defineTestingConfig({
-  registrySetup: 'src/live-tokens-components.ts',
+  registrySetup: 'src/registerComponents.ts',
 });
 ```
 
-The setup module registers and stops there:
+The setup module registers and stops there, exactly as the Registration
+section of live-tokens-create-component wires it up:
 
 ```ts
-// src/live-tokens-components.ts
+// src/registerComponents.ts
 import { registerComponent } from '@motion-proto/live-tokens';
 import MyWidgetEditor, { allTokens } from './system/components/MyWidgetEditor.svelte';
 
@@ -46,13 +56,21 @@ the app and the tests. Importing an editor registers nothing, and importing
 `main.ts` would mount the app, which is why the registrations live in a module
 of their own.
 
-The Vitest config comes from the package. It inlines the package and the
-FontAwesome stylesheet it imports, sets the `happy-dom` environment, and
-collects the shipped contract file:
+`LIVE_TOKENS_COMPONENT=<id>` is what `check-component <id> --tests` sets for
+you; it narrows the run to one component and fails when no component is
+registered under that id.
+
+## Running vitest yourself
+
+`check-component --tests` covers the shipped path. Run vitest directly only
+when you need to drive it outside the CLI. `createVitestConfig` lives at
+`@motion-proto/live-tokens/testing/vitest`, which never imports
+`@playwright/test`, so a project holding only `vitest` and `happy-dom` can
+still build this config:
 
 ```ts
 // vitest.contract.config.ts
-import { createVitestConfig } from '@motion-proto/live-tokens/testing';
+import { createVitestConfig } from '@motion-proto/live-tokens/testing/vitest';
 import viteConfig from './vite.config';
 import settings from './live-tokens.testing';
 
@@ -62,9 +80,6 @@ export default createVitestConfig(viteConfig, { registrySetup: settings.registry
 ```bash
 npx vitest run --config vitest.contract.config.ts
 ```
-
-`LIVE_TOKENS_COMPONENT=<id>` narrows the run to one component and fails when no
-component is registered under that id.
 
 ## Writing your own file
 
@@ -78,7 +93,7 @@ its own suite writes two lines against its own registrations:
 import { describe, it, expect } from 'vitest';
 import { getComponentRegistryEntries } from '@motion-proto/live-tokens';
 import { checkRegistryEntry } from '@motion-proto/live-tokens/component-editor/contract';
-import '../src/live-tokens-components';
+import '../src/registerComponents';
 
 const mine = getComponentRegistryEntries().filter((e) => e.origin === 'custom');
 

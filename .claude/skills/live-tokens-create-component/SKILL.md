@@ -13,10 +13,9 @@ Create a component whose structure and behavior serve the user's purpose. Give e
 2. Design the properties: separate the component's parts, variants, and states, then write one row per editable role with its token and the CSS it controls, named the way the shipped components name the same role.
 3. Write the runtime file: the usage comment and the `:global(:root)` block. A structural choice is an intrinsic. Every component joins the sketch layer, and a fixed overlay portals to `<body>`.
 4. Write the editor file: the schema, the preview props, and the markup. Variants that share a value are linked.
-5. Register the component in `bootLiveTokens`.
-6. Run the checks: **live-tokens-check-compliance**, the strict component check until exit 0, the Svelte check and build, and the contract test.
-7. Check the component in the editor.
-8. Reply with the files, the id, the props, and each check's result. Then place the component on a page with **live-tokens-create-page**.
+5. Register the component in the module `src/main.ts` and `live-tokens.testing.ts` both name.
+6. Run **live-tokens-check-compliance**, then `npx live-tokens check-component <id> --tests --strict --json` until exit 0 with complete applicable coverage, then the Svelte check and the build.
+7. Reply with the files, the id, the props, and each check's result. Then place the component on a page with **live-tokens-create-page**.
 
 ## Design model
 
@@ -188,24 +187,24 @@ When variants share a value, read `references/linked-siblings.md`. A `groupKey` 
 
 ## Registration
 
-Add the component to the project's `bootLiveTokens` call in `src/main.ts`, beside any registration already there. The id is unique; a registration that repeats a shipped id replaces that component.
+Register the component in `src/registerComponents.ts`, a registration-only module, beside any registration already there. The id is unique; a registration that repeats a shipped id replaces that component.
 
 ```ts
+// src/registerComponents.ts
+import { registerComponent } from '@motion-proto/live-tokens';
 import StatCardEditor, { allTokens as statCardTokens } from './system/components/StatCardEditor.svelte';
 
-bootLiveTokens(App, '#app', {
-  components: [{
-    id: 'statcard',
-    label: 'Stat Card',
-    icon: 'fas fa-chart-simple',
-    sourceFile: 'src/system/components/StatCard.svelte',
-    editorComponent: StatCardEditor,
-    schema: statCardTokens,
-  }],
+registerComponent({
+  id: 'statcard',
+  label: 'Stat Card',
+  icon: 'fas fa-chart-simple',
+  sourceFile: 'src/system/components/StatCard.svelte',
+  editorComponent: StatCardEditor,
+  schema: statCardTokens,
 });
 ```
 
-A component that declares intrinsics adds `intrinsics` to the entry. When the app mounts by hand, call `registerComponent({ id: 'statcard', ... })` before `mount(App, ...)`. `check-component` finds the registration by the id literal inside the call.
+Import the module from `src/main.ts`, before `bootLiveTokens` or `mount`, and name it as `registrySetup` in `live-tokens.testing.ts`. One module then serves the running app and `check-component --tests`, which imports it to see the registration without mounting the app: read `references/contract-tests.md`. A component that declares intrinsics adds `intrinsics` to the entry. `check-component` finds the registration by the id literal inside the call.
 
 At boot the plugin reads the `:global(:root)` block and writes `component-configs/<id>/default.json`, one token per property. An edit in the editor writes `_working.json`; Save As writes a named config. The assignments stay token references through that flow.
 
@@ -219,11 +218,9 @@ A fixed overlay portals to `<body>`: read `references/fixed-overlays.md`. A cont
 
 ## Verification
 
-1. Run **live-tokens-check-compliance** and address its findings with **live-tokens-fix-findings**. Then run `npx live-tokens check-component <id> --strict --json`. Inside the live-tokens repository, run `node bin/cli.mjs check-component <id> --strict --json`. Each finding carries a rule id and a line; `--off=<rule>` silences a rule for one run. Fix every finding and rerun until exit 0.
+1. Run **live-tokens-check-compliance** and address its findings with **live-tokens-fix-findings**. Then run `npx live-tokens check-component <id> --tests --strict --json`. Inside the live-tokens repository, run `node bin/cli.mjs check-component <id> --tests --strict --json`. Each finding carries a rule id and a line; `--off=<rule>` silences a rule for one run. `--tests` runs the registry contract and the component contract suites, and its JSON reports coverage by rule. A `tests-not-installed` finding names the missing package; install `@playwright/test`, `vitest`, and `happy-dom` as devDependencies, then `npx playwright install chromium`. Fix every finding and rerun until exit 0 with complete applicable coverage and no disabled checks.
 2. Run the project's Svelte check and its build.
-3. Verify the registration with `checkRegistryEntry`: read `references/contract-tests.md`. The contract holds registration, unique schema variables, runtime declarations, seeded defaults, and alias round trips. For intrinsics, also compare each spec default with the runtime declaration and permitted values. The package covers first-party intrinsics in `src/editor/component-editor/intrinsicsContract.test.ts`.
-4. Open `/live-tokens/components` and check each line below.
-5. Reply with the files, the component id, the props, and the results of steps 1 to 4, naming any check the environment prevented.
+3. Reply with the files, the component id, the props, and the results of steps 1 and 2, naming any check the environment prevented.
 
 A finding maps to the section that fixes it.
 
@@ -233,16 +230,14 @@ A finding maps to the section that fixes it.
 | `default-not-token`, `color-literal`, `dimension-literal`, `unknown-token-ref` | Property design, the assigned token |
 | `invalid-id`, `missing-file`, `missing-root-block`, `no-tokens` | Runtime component |
 | `missing-component-const`, `missing-all-tokens`, `phantom-editor-token`, `phantom-link`, `deep-import` | Component editor |
-| `missing-registration` | Registration |
+| `missing-registration`, `contract-registry`, `contract-listed` | Registration |
+| `contract-render`, `contract-alias`, `contract-preview` | Component editor |
+| `contract-persist` | Runtime component, the `:global(:root)` defaults |
+| `contract-theme` | Property design, the assigned token |
+| `contract-sketch` | Sketch mode and overlays |
+| `tests-not-installed`, `tests-setup` | The message names the missing tool or the broken path; fix it and rerun |
+| `tests-incomplete` | Add the missing contract, or complete the run the message names |
 
-In the editor:
-
-- A custom component appears under CUSTOM. A first-party component appears among the system entries.
-- Each property has the control its suffix selects, and changes the matching part.
-- The preview matches the state being edited. Keyboard and pointer behavior work.
-- Linked properties change together. Separate roles stay independent.
-- An edit persists across a reload. Reset restores the `:global(:root)` defaults.
-- A theme change reaches every property.
-- With Sketch mode on, every painted part is drawn in its own colors. With it off, the component is unchanged.
+`--tests` covers every line a reviewer once checked by eye: the component's listing, its controls and preview, persistence and reset, theme projection, linked properties, and Sketch mode.
 
 Then place the component on a page with **live-tokens-create-page**.

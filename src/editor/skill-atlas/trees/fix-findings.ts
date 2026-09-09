@@ -2,7 +2,7 @@ import type { SkillTree } from '../types';
 
 export const fixFindings: SkillTree = {
   "id": "live-tokens-fix-findings",
-  "digest": "sha256:c271a51766a3ea96",
+  "digest": "sha256:f7281e07c9f33d5d",
   "title": "fix-findings",
   "tagline": "Repair Deviations from the Design System",
   "nodes": [

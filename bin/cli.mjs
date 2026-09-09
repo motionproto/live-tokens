@@ -64,8 +64,15 @@ Commands:
                               renders which component, and both checkers'
                               findings by rule under the project's severities
                               and under --strict. Always exits 0
-  check-component [id]        Validate <id>'s runtime, editor, and registration
-                              against the live-tokens-create-component contract
+  check-component [id] [--tests]
+                              Validate <id>'s runtime, editor, and registration
+                              against the live-tokens-create-component contract.
+                              --tests also runs the registry contract under
+                              vitest and the component contract suites under
+                              Playwright, reporting coverage by rule. Needs
+                              @playwright/test, vitest, and happy-dom; a
+                              missing one is a tests-not-installed finding
+                              naming the install command
   check-page [paths...]       Validate pages against the live-tokens-create-page
                               contract: catalogue components only, and every CSS
                               value a design token. Checks every page under src/

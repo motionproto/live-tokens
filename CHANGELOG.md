@@ -2,6 +2,28 @@
 
 ## Unreleased
 
+### Added
+
+- **`check-component` gains `--tests`.** Beyond the static lint, it runs the
+  registry contract under vitest and the component contract suites under
+  Playwright, for one component or every authored one, and reports coverage
+  by rule: listed, persisted and reset, themed, previewed, and drawn in
+  Sketch mode. `@playwright/test`, `vitest`, and `happy-dom` are new optional
+  peer dependencies; a missing one is a `tests-not-installed` finding naming
+  the install command. The suites ship at
+  `@motion-proto/live-tokens/testing` and `/testing/vitest`, and run here
+  against the library's own demo app and in a consumer against the
+  consumer's own app.
+
+  **live-tokens-create-component now runs `--tests` as its Verification
+  step**, in place of the manual pass through `/live-tokens/components`.
+  Every line that step asked a reader to confirm by eye is now a contract
+  assertion: the component's listing, its controls and preview, persistence
+  and reset, theme projection, linked properties, and Sketch mode.
+  live-tokens-fix-findings maps the new rule ids to the create-component
+  section that fixes each one, and the `create` template's new
+  `test:design` script runs the checks once the three peers are installed.
+
 ### Changed
 
 - **Breaking: `tokens --scale` replaces `tokens --family`, and there is no

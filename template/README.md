@@ -40,3 +40,16 @@ your own editable component, install the Claude Code skills:
 ```bash
 npx @motion-proto/live-tokens setup-claude
 ```
+
+## Testing a component
+
+`npm run test:design` runs `check-component --tests`: the static checks plus
+the registry contract and the component contract suites, in a browser, against
+this project. It needs three devDependencies the template does not install:
+
+```bash
+npm install -D @playwright/test vitest happy-dom
+npx playwright install chromium
+```
+
+A failing run leaves its report under `test-results/`, gitignored.
