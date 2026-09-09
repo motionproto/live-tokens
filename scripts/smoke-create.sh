@@ -49,6 +49,12 @@ node -e "
 echo "→ Installing + building generated app…"
 (cd "$APP_DIR" && npm install --silent --no-audit --no-fund --loglevel=error)
 
+echo "→ Verifying the test tooling resolved…"
+for pkg in @playwright/test vitest happy-dom; do
+  [ -d "$APP_DIR/node_modules/$pkg" ] || { echo "scaffold did not install $pkg"; exit 1; }
+done
+[ -f "$APP_DIR/live-tokens.testing.ts" ] || { echo "scaffold has no live-tokens.testing.ts"; exit 1; }
+
 echo "→ Verifying postinstall placed the skills…"
 # The scaffold's postinstall ends in `|| exit 0` so a skills copy can never fail
 # someone's install. That also swallows a broken setup-claude, so assert the

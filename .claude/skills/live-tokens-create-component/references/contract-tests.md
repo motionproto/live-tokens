@@ -17,9 +17,11 @@ It resolves a shipped component's `sourceFile` against the package and yours
 against your project, and reports a component that exists as files and never
 reached a registration.
 
-Add `@playwright/test`, `vitest`, and `happy-dom` as devDependencies, then
-`npx playwright install chromium`. A missing one is a `tests-not-installed`
-finding naming the install command.
+A project scaffolded by `create` has `@playwright/test`, `vitest`, and
+`happy-dom` installed, with `live-tokens.testing.ts`, `src/registerComponents.ts`,
+and `tests/contracts.ts` in place. Any other project adds the three as
+devDependencies. Both run `npx playwright install chromium` once. A missing
+one is a `tests-not-installed` finding naming the install command.
 
 Name the module that registers your components, in `live-tokens.testing.ts` at
 the project root, as a plain quoted string:
@@ -59,6 +61,100 @@ of their own.
 `LIVE_TOKENS_COMPONENT=<id>` is what `check-component <id> --tests` sets for
 you; it narrows the run to one component and fails when no component is
 registered under that id.
+
+## The component contract
+
+The eight Playwright suites drive one `ComponentContract` per component. The
+package ships one for each of its own components and none for yours. A run
+with `LIVE_TOKENS_COMPONENT=<id>` and no contract for `<id>` reports one
+`contract-missing` finding, which names the setting that unlocks the suites.
+
+Name the module that exports your contracts as `contractsModule`, next to
+`registrySetup`:
+
+```ts
+// live-tokens.testing.ts
+export default defineTestingConfig({
+  registrySetup: 'src/registerComponents.ts',
+  contractsModule: 'tests/contracts.ts',
+});
+```
+
+The module exports a `ComponentContract[]`, as the default export or a named
+`contracts` export. The type ships from `@motion-proto/live-tokens/testing`,
+and the doc comment on each field is the reference for it. A contract
+declares the component's parts as selectors inside the preview, then one
+expectation per obligation:
+
+```ts
+// tests/contracts.ts
+import type { ComponentContract } from '@motion-proto/live-tokens/testing';
+
+export const contracts: ComponentContract[] = [
+  {
+    id: 'statcard',
+    origin: 'custom',
+    root: 'root',
+    parts: { root: '.statcard', value: '.statcard-value' },
+    properties: [
+      {
+        paints: {
+          root: {
+            backgroundColor: '--statcard-surface',
+            borderTopColor: '--statcard-border',
+            borderTopWidth: '--statcard-border-width',
+            borderRadius: '--statcard-radius',
+            paddingTop: '--statcard-padding',
+          },
+          value: { color: '--statcard-value-text', fontSize: '--statcard-value-font-size' },
+        },
+      },
+    ],
+    states: { applicable: false, reason: 'a stat card renders one state' },
+    persistence: {
+      cases: [
+        { shape: 'token', variable: '--statcard-radius', observe: { part: 'root', css: 'borderRadius' } },
+      ],
+      resetVariable: '--statcard-radius',
+    },
+    theme: {
+      theme: 'brand',
+      changed: ['--statcard-radius'],
+      unchanged: ['--statcard-padding'],
+      aliasedTo: { '--statcard-radius': '--radius-none' },
+      observe: { part: 'root', css: 'borderRadius', variable: '--statcard-radius' },
+    },
+    interaction: { applicable: false, reason: 'a stat card carries no interactive role' },
+    sketch: {
+      style: 'pencil',
+      parts: [{ part: 'root', fill: '--statcard-surface', stroke: '--statcard-border' }],
+    },
+  },
+];
+```
+
+Each obligation and what it needs from the project:
+
+- `properties`: part key, then CSS property, then the semantic property that
+  drives it. One entry per variant tab and state tab the editor renders;
+  omit `variant` and `state` when the editor renders one view. The paint maps
+  and `uncovered` together name every property in `default.json`. A property
+  no computed style shows verbatim, one consumed inside `calc()` or a gradient
+  function, goes in `uncovered` with its reason.
+- `states`: one entry per state tab, with the class or attributes the preview
+  forces. `applicable: false` when the editor renders no state strip.
+- `persistence`: an edit the run makes through the editor, saves, reloads, and
+  reads back. `resetVariable` is a property one of the cases moves.
+- `theme`: a theme in the project's data tree whose block for the component
+  reassigns a property. Save one with the editor before the first run.
+  `changed` names the properties the theme moves, `unchanged` the ones it
+  leaves, and `aliasedTo` the design token each reassigned property resolves
+  to under it.
+- `interaction`: the interactive part's role and its cases. `applicable:
+  false` for a component with no interactive role.
+- `sketch`: a sketch style id and the fill and stroke each reserved-class part
+  resolves to under it. `applicable: false` only for a component
+  `references/sketch-mode.md` exempts.
 
 ## Running vitest yourself
 

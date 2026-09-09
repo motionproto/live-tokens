@@ -5,7 +5,8 @@ export type ContractRule =
   | 'contract-persist'
   | 'contract-theme'
   | 'contract-preview'
-  | 'contract-sketch';
+  | 'contract-sketch'
+  | 'contract-missing';
 
 /**
  * A failed obligation, carrying the rule id the CLI reports it under. A defect

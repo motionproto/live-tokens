@@ -552,10 +552,15 @@ export function readPlaywrightTests(report) {
  * the shipped `.contract.ts` suite (absent from the tarball, and Playwright
  * reports no assertion location for it once compiled — see the plan's Wave
  * 3b/4 notes). `contract-alias`/`persist`/`theme` name the shipped config;
- * `contract-listed` names the editor; render/preview/sketch name the runtime.
+ * `contract-listed` names the editor; render/preview/sketch name the runtime;
+ * `contract-missing` names the settings file the contract module is declared in.
  */
 export function artifactForContractRule(root, sourceDataDir, rule, componentId, token) {
   if (!componentId) return { file: 'package.json', line: 1 };
+  if (rule === 'contract-missing') {
+    const settings = settingsFilePath(root);
+    return { file: settings ? relative(root, settings) : 'package.json', line: 1 };
+  }
   const paths = resolveComponentPaths(componentId, root);
   if (rule === 'contract-alias' || rule === 'contract-persist' || rule === 'contract-theme') {
     const target = componentConfigPath(sourceDataDir, componentId);

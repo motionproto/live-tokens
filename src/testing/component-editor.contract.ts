@@ -1,9 +1,29 @@
 import { test } from '@playwright/test';
-import { isInapplicable } from './componentContract';
-import { selectedContracts } from './contracts';
+import { ContractViolation, isInapplicable } from './componentContract';
+import { allContracts, selectedContracts } from './contracts';
 import { ContractHarness } from './support/contractHarness';
 
-for (const contract of await selectedContracts()) {
+const selected = await selectedContracts();
+const requested = process.env.LIVE_TOKENS_COMPONENT;
+
+// A failing test rather than a throw from the config: the JSON report then
+// carries the rule, and the runner maps it like any other violation instead
+// of reading a stderr tail.
+if (requested && selected.length === 0) {
+  const declared = (await allContracts()).map((contract) => contract.id).sort();
+  test.describe.serial(requested, () => {
+    test(`${requested} has a component contract`, () => {
+      throw new ContractViolation(
+        'contract-missing',
+        requested,
+        'no component contract is declared for it. Export one from the module '
+        + `\`contractsModule\` names in live-tokens.testing.ts. Declared: ${declared.join(', ')}`,
+      );
+    });
+  });
+}
+
+for (const contract of selected) {
   // Serial, so a component that is not registered reports that and stops rather
   // than reporting six preview failures caused by the missing entry.
   test.describe.serial(contract.id, () => {

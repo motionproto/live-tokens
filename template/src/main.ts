@@ -6,6 +6,7 @@ import '@motion-proto/live-tokens/app/fonts.css';
 
 import { bootLiveTokens, configureEditor } from '@motion-proto/live-tokens';
 import App from './App.svelte';
+import './registerComponents';
 
 configureEditor({ storagePrefix: 'app-' });
 

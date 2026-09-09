@@ -13,7 +13,7 @@ import {
   resolveTestingConfig,
   type LiveTokensTestingConfig,
 } from './config';
-import { allContracts, CONTRACTS_MODULE_ENV, selectedContracts } from './contracts';
+import { CONTRACTS_MODULE_ENV } from './contracts';
 import { DATA_DIR_ENV, TEST_DATA_DIR_ENV, isolateDataDir } from './isolation';
 import { resolvePort } from './port';
 
@@ -49,18 +49,6 @@ export async function createPlaywrightConfig(
 
   process.env[COMPONENTS_PATH_ENV] = settings.componentsPath;
   if (settings.contractsModule) process.env[CONTRACTS_MODULE_ENV] = settings.contractsModule;
-
-  const requested = process.env[COMPONENT_ENV];
-  if (requested) {
-    const matches = await selectedContracts();
-    if (matches.length === 0) {
-      const all = await allContracts();
-      throw new Error(
-        `${COMPONENT_ENV}=${requested} names a component with no contract. `
-        + `Declared: ${all.map((contract) => contract.id).sort().join(', ')}`,
-      );
-    }
-  }
 
   return defineConfig({
     testDir: options.testDir ?? CONTRACT_TEST_DIR,

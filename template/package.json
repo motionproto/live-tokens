@@ -16,12 +16,15 @@
     "@motion-proto/live-tokens": "__LT_VERSION__"
   },
   "devDependencies": {
+    "@playwright/test": "^1.62.1",
     "@sveltejs/vite-plugin-svelte": "^7.1.2",
     "@types/node": "^25.9.1",
+    "happy-dom": "^20.9.0",
     "sass": "^1.98.0",
     "svelte": "^5.55.5",
     "svelte-check": "^4.4.8",
     "typescript": "~6.0.3",
-    "vite": "^8.0.14"
+    "vite": "^8.0.14",
+    "vitest": "^4.1.4"
   }
 }

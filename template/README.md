@@ -45,11 +45,16 @@ npx @motion-proto/live-tokens setup-claude
 
 `npm run test:design` runs `check-component --tests`: the static checks plus
 the registry contract and the component contract suites, in a browser, against
-this project. It needs three devDependencies the template does not install:
+this project. Playwright, Vitest, and happy-dom are installed; the browser is
+a one-time download:
 
 ```bash
-npm install -D @playwright/test vitest happy-dom
 npx playwright install chromium
 ```
+
+`live-tokens.testing.ts` names the two files the run reads: `src/registerComponents.ts`
+registers your components, and `tests/contracts.ts` holds one contract per
+component, which is what the browser suites drive. The create-component skill
+writes both.
 
 A failing run leaves its report under `test-results/`, gitignored.

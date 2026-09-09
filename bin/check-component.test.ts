@@ -690,6 +690,28 @@ describe('contractRunner: mapping a Playwright report', () => {
     expect(coverage.widget['contract-alias']).toEqual({ status: 'passed' });
   });
 
+  it('a component with no contract is one contract-missing finding at the settings file, and explains its own gaps', () => {
+    const root = widgetFixtureRoot();
+    writeFileSync(join(root, 'live-tokens.testing.ts'), 'export default {};\n');
+    const report = editorSuiteReport('widget', [
+      spec('widget has a component contract', 'component-editor.contract.ts', 12, {
+        status: 'unexpected',
+        results: [{
+          status: 'failed',
+          errors: [{ message: 'ContractViolation: [contract-missing] widget: no component contract is declared for it. Export one from the module `contractsModule` names in live-tokens.testing.ts. Declared: badge, button' }],
+        }],
+      }),
+    ]);
+    const mapped = mapPlaywrightResults(report, { root, sourceDataDir: join(root, 'data'), knownIds: new Set(['widget']) });
+    expect(mapped.findings).toHaveLength(1);
+    expect(mapped.findings[0]).toMatchObject({ rule: 'contract-missing', file: 'live-tokens.testing.ts', line: 1 });
+    expect(mapped.findings[0].message).toContain('contractsModule');
+    expect(mapped.coverage.widget['contract-missing']).toEqual({ status: 'failed' });
+
+    const { findings } = reconcileCoverage(mapped.coverage, ['widget']);
+    expect(findings).toEqual([]);
+  });
+
   it('a flaky test (failed, then passed on retry) reads distinctly from a clean pass, with no finding', () => {
     const root = widgetFixtureRoot();
     const report = editorSuiteReport('widget', [

@@ -2,7 +2,7 @@ import type { SkillTree } from '../types';
 
 export const createComponent: SkillTree = {
   "id": "live-tokens-create-component",
-  "digest": "sha256:b923ee9c68cc13fc",
+  "digest": "sha256:6f7b5810d03739a0",
   "title": "create-component",
   "tagline": "Create a LiveTokens Component",
   "nodes": [
@@ -165,7 +165,7 @@ export const createComponent: SkillTree = {
       "row": 5,
       "kind": "chipset",
       "title": "Register the component",
-      "desc": "Register it in the shared module main.ts and live-tokens.testing.ts both name, so check-component --tests can see it.",
+      "desc": "Register it in the shared module main.ts and live-tokens.testing.ts both name, and write its contract, so check-component --tests can see and drive it.",
       "lines": [16, 16],
       "anchor": "Register the component in the module `src/main.ts` and `live",
       "chips": [
@@ -181,6 +181,11 @@ export const createComponent: SkillTree = {
           "anchor": "Import the module from `src/main.ts`, before `bootLiveTokens"
         },
         {
+          "label": "Contract",
+          "lines": [207, 207],
+          "anchor": "Import the module from `src/main.ts`, before `bootLiveTokens"
+        },
+        {
           "label": "First-party",
           "lines": [211, 211],
           "anchor": "Inside the live-tokens repository, a first-party component k"
@@ -192,7 +197,7 @@ export const createComponent: SkillTree = {
       "row": 6,
       "kind": "chipset",
       "title": "Run the checks",
-      "desc": "Get a report from check-compliance, then run check-component --tests until it passes.",
+      "desc": "Get a report from check-compliance, then run check-component --tests until it passes with the contract's suites covered.",
       "lines": [17, 17],
       "anchor": "Run **live-tokens-check-compliance**, then `npx live-tokens ",
       "chips": [
