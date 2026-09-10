@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.78.0 — A page proves compliance as rendered
 
 ### Added
 
