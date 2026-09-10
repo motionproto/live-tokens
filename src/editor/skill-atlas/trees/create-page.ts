@@ -2,7 +2,7 @@ import type { SkillTree } from '../types';
 
 export const createPage: SkillTree = {
   "id": "live-tokens-create-page",
-  "digest": "sha256:468ec8e9b553d738",
+  "digest": "sha256:bdd611a43dcf7b79",
   "title": "create-page",
   "tagline": "Create a Page Using Live Tokens",
   "nodes": [
@@ -71,13 +71,13 @@ export const createPage: SkillTree = {
       "chips": [
         {
           "label": "Grid",
-          "lines": [39, 50],
+          "lines": [39, 52],
           "anchor": "### Grid",
-          "anchorEnd": "A grid that follows the page columns takes `var(--columns-co"
+          "anchorEnd": "No scaffold collapses the page grid on a phone: the theme's "
         },
         {
           "label": "Separation",
-          "lines": [52, 69],
+          "lines": [54, 71],
           "anchor": "### Separation",
           "anchorEnd": "`references/layout-sources.md` names the sources for these l"
         }
@@ -94,31 +94,31 @@ export const createPage: SkillTree = {
       "chips": [
         {
           "label": "Stage",
-          "lines": [73, 74],
+          "lines": [75, 76],
           "anchor": "`Panel` is a stage: a canvas, a player, a preview. `minHeigh",
           "anchorEnd": "An empty stage shows a heading that names the condition and "
         },
         {
           "label": "Card",
-          "lines": [75, 76],
+          "lines": [77, 78],
           "anchor": "`Card` is a titled block of content. Its `title` prop is the",
           "anchorEnd": "A container in a tool UI labels itself: `Card variant=\"bare\""
         },
         {
           "label": "Form",
-          "lines": [77, 78],
+          "lines": [79, 80],
           "anchor": "A form puts the essential fields first and the secondary fie",
           "anchorEnd": "A row of fields is a flex row with `gap: var(--space-20)`. E"
         },
         {
           "label": "Buttons",
-          "lines": [79, 80],
+          "lines": [81, 82],
           "anchor": "A toolbar is a flex row of Buttons on the section's bottom e",
           "anchorEnd": "A vertical stack of Buttons sets `fullWidth` on each Button."
         },
         {
           "label": "Picker",
-          "lines": [81, 81],
+          "lines": [83, 83],
           "anchor": "`MenuSelect` renders its list open. For a picker, toggle it "
         }
       ]
@@ -134,7 +134,7 @@ export const createPage: SkillTree = {
       "chips": [
         {
           "label": "Components",
-          "lines": [83, 90],
+          "lines": [85, 92],
           "anchor": "## Components",
           "anchorEnd": "Text inside a `Card` or a `CollapsibleSection` takes the con"
         },
@@ -162,25 +162,25 @@ export const createPage: SkillTree = {
       "chips": [
         {
           "label": "Tokens",
-          "lines": [92, 97],
+          "lines": [94, 99],
           "anchor": "## Tokens",
           "anchorEnd": "A value that comes from data, such as a sheet's padding in p"
         },
         {
           "label": "Type",
-          "lines": [101, 116],
+          "lines": [103, 118],
           "anchor": "### Type",
           "anchorEnd": "Use the semantic element for each place: one `h1`, an `h2` f"
         },
         {
           "label": "Size and emphasis",
-          "lines": [118, 126],
+          "lines": [120, 128],
           "anchor": "### Size",
           "anchorEnd": "In a row of actions the primary sits last, on the right. Up "
         },
         {
           "label": "Spacing",
-          "lines": [128, 142],
+          "lines": [130, 144],
           "anchor": "### Spacing",
           "anchorEnd": "Every section after the first opens with a hairline: `paddin"
         }
@@ -197,12 +197,12 @@ export const createPage: SkillTree = {
       "chips": [
         {
           "label": "LiveTokensRouter",
-          "lines": [148, 148],
+          "lines": [150, 150],
           "anchor": "`<LiveTokensRouter pages={...}>`: add a `pages` entry with `"
         },
         {
           "label": "LiveEditorOverlay",
-          "lines": [149, 149],
+          "lines": [151, 151],
           "anchor": "Manual `<LiveEditorOverlay>`: dispatch with `$derived.by(() "
         }
       ]
@@ -222,31 +222,31 @@ export const createPage: SkillTree = {
       "kind": "chipset",
       "title": "Check the page in the browser",
       "desc": "The checkers cannot see a layout. Open the page at its width and check each line.",
-      "lines": [168, 184],
+      "lines": [170, 186],
       "anchor": "The checkers cannot see a layout. Open the page at the width",
       "anchorEnd": "`references/interaction-sources.md` names the sources for th",
       "chips": [
         {
           "label": "Structure",
-          "lines": [170, 174],
+          "lines": [172, 176],
           "anchor": "The first section holds what the user came for.",
           "anchorEnd": "The containers in a section align at the bottom."
         },
         {
           "label": "Actions",
-          "lines": [175, 178],
+          "lines": [177, 180],
           "anchor": "The actions sit where the eye goes last, with the one primar",
           "anchorEnd": "An action that runs longer than a moment shows progress in a"
         },
         {
           "label": "Fields",
-          "lines": [179, 180],
+          "lines": [181, 182],
           "anchor": "Every field has a default, and Reset restores it.",
           "anchorEnd": "Secondary settings sit in a `CollapsibleSection`. Every cont"
         },
         {
           "label": "Words and access",
-          "lines": [181, 182],
+          "lines": [183, 184],
           "anchor": "Labels use the user's words, such as \"Export slices\".",
           "anchorEnd": "Every `img` has `alt` text. Focus order follows the reading "
         }
@@ -258,7 +258,7 @@ export const createPage: SkillTree = {
       "kind": "step",
       "title": "Read the page twice",
       "desc": "From a distance only the sections show. Up close, every border and bar earns its place or goes.",
-      "lines": [186, 186],
+      "lines": [188, 188],
       "anchor": "Then read the page from a distance: the sections and their e"
     },
     {

@@ -32,7 +32,50 @@ const HAPPY_DOM_VERSION = '^20.9.0';
 // on everything around them (two `npm install`s, two Chromium installs, and
 // every scenario together), so a hang anywhere in the gate still ends the
 // run instead of holding `prepublishOnly` open indefinitely.
+//
+// A `setTimeout` cannot enforce that bound: every step below is a blocking
+// execFileSync/spawnSync, and a timer callback needs the event loop, which a
+// synchronous child holds until it returns. So the deadline is a shrinking
+// `timeout` passed to each child instead — that's what a hung child actually
+// has to answer to. `gateDeadlineAt` is armed once per run; `remainingMs`
+// throws `GateDeadlineError` the moment the budget is gone, before the next
+// child even spawns.
 const GATE_DEADLINE_MS = 20 * 60_000;
+
+let gateDeadlineAt = null;
+
+class GateDeadlineError extends Error {}
+
+function remainingMs() {
+  if (gateDeadlineAt === null) throw new Error('remainingMs: gate deadline not armed');
+  const remaining = gateDeadlineAt - Date.now();
+  if (remaining <= 0) throw new GateDeadlineError('no budget left');
+  return remaining;
+}
+
+/** Wraps execFileSync with the shrinking deadline; a child killed for
+ *  running past it surfaces as GateDeadlineError instead of the raw
+ *  ETIMEDOUT/SIGKILL execFileSync throws. */
+function execFileBounded(cmd, args, options = {}) {
+  try {
+    return execFileSync(cmd, args, { timeout: remainingMs(), killSignal: 'SIGKILL', ...options });
+  } catch (err) {
+    if (err.signal === 'SIGKILL' || err.code === 'ETIMEDOUT') {
+      throw new GateDeadlineError(`${cmd} ${args.join(' ')}`);
+    }
+    throw err;
+  }
+}
+
+/** Same bound for spawnSync, which reports a killed child by return value
+ *  rather than by throwing. */
+function spawnSyncBounded(cmd, args, options = {}) {
+  const result = spawnSync(cmd, args, { timeout: remainingMs(), killSignal: 'SIGKILL', ...options });
+  if (result.signal === 'SIGKILL' && result.status === null) {
+    throw new GateDeadlineError(`${cmd} ${args.join(' ')}`);
+  }
+  return result;
+}
 
 let failures = 0;
 let currentSection = 'startup';
@@ -78,7 +121,7 @@ function hashDir(dir) {
 }
 
 function npmInstall(dir) {
-  execFileSync('npm', ['install', '--no-audit', '--no-fund', '--loglevel=error'], {
+  execFileBounded('npm', ['install', '--no-audit', '--no-fund', '--loglevel=error'], {
     cwd: dir,
     stdio: 'inherit',
   });
@@ -153,7 +196,7 @@ function cliBin(dir) {
 }
 
 function runCli(dir, args, env = {}) {
-  const result = spawnSync(process.execPath, [cliBin(dir), ...args], {
+  const result = spawnSyncBounded(process.execPath, [cliBin(dir), ...args], {
     cwd: dir,
     encoding: 'utf8',
     env: { ...process.env, ...env },
@@ -221,14 +264,14 @@ function scenarioCleanPass(dir, id, { expectSketchInapplicable = true, dataDir =
 async function buildFixtureA(workDir, tarballPath) {
   section('Fixture A: live-tokens create + a custom component, default settings');
   const dir = join(workDir, 'fixture-a');
-  execFileSync(process.execPath, [join(workDir, 'package/bin/cli.mjs'), 'create', dir], { stdio: 'inherit' });
+  execFileBounded(process.execPath, [join(workDir, 'package/bin/cli.mjs'), 'create', dir], { stdio: 'inherit' });
   addPeerDevDeps(dir, tarballPath);
   npmInstall(dir);
   // The workflow's Chromium install step runs before `npm test`, well before
   // this gate. A CI runner's Playwright browser cache is keyed by browser
   // build, not by which project asked, so installing here is a no-op when
   // the workflow step (or a prior local run) already has it.
-  execFileSync('npx', ['playwright', 'install', 'chromium'], { cwd: dir, stdio: 'inherit' });
+  execFileBounded('npx', ['playwright', 'install', 'chromium'], { cwd: dir, stdio: 'inherit' });
   ok('scaffolded via the shipped create template and installed the tarball + test tools');
   return dir;
 }
@@ -255,7 +298,7 @@ async function runFixtureAScenarios(dir) {
   const goodTestingConfig = readFileSync(join(dir, 'live-tokens.testing.ts'), 'utf8');
   check(!/dataDir/.test(goodTestingConfig), 'live-tokens.testing.ts names no dataDir, so the default-resolution branch runs');
   {
-    const result = spawnSync(process.execPath, [cliBin(dir), 'check-component', 'beacon'], { cwd: dir, encoding: 'utf8' });
+    const result = spawnSyncBounded(process.execPath, [cliBin(dir), 'check-component', 'beacon'], { cwd: dir, encoding: 'utf8' });
     check(result.status === 0 && /passes the live-tokens-create-component contract/.test(result.stdout), 'the static lint (no --tests) passes for beacon');
   }
 
@@ -269,12 +312,12 @@ async function runFixtureAScenarios(dir) {
   {
     const playwrightDir = join(dir, 'node_modules/@playwright/test');
     const stash = `${playwrightDir}.stash`;
-    execFileSync('mv', [playwrightDir, stash]);
+    execFileBounded('mv', [playwrightDir, stash]);
     let result;
     try {
       result = runCli(dir, ['check-component', 'beacon', '--tests', '--json']);
     } finally {
-      execFileSync('mv', [stash, playwrightDir]);
+      execFileBounded('mv', [stash, playwrightDir]);
     }
     check(result.status === 1, 'exits 1');
     check(findingRules(result.json).length === 1 && findingRules(result.json)[0] === 'tests-not-installed', 'reports tests-not-installed');
@@ -535,7 +578,7 @@ async function runFixtureAScenarios(dir) {
 async function buildFixtureB(workDir, tarballPath) {
   section('Fixture B: relocated dataDir (plain string) + relocated components route');
   const dir = join(workDir, 'fixture-b');
-  execFileSync(process.execPath, [join(workDir, 'package/bin/cli.mjs'), 'create', dir], { stdio: 'inherit' });
+  execFileBounded(process.execPath, [join(workDir, 'package/bin/cli.mjs'), 'create', dir], { stdio: 'inherit' });
   addPeerDevDeps(dir, tarballPath);
   npmInstall(dir);
   addComponent(dir);
@@ -584,21 +627,23 @@ export async function runComponentGate(tarballPath) {
   process.once('SIGINT', () => { cleanup(); process.exit(130); });
   process.once('SIGTERM', () => { cleanup(); process.exit(143); });
 
-  const deadline = setTimeout(() => {
-    console.error(`\n✗ Component gate exceeded its ${GATE_DEADLINE_MS / 60_000}-minute deadline during: ${currentSection}`);
-    process.exit(1);
-  }, GATE_DEADLINE_MS);
+  gateDeadlineAt = Date.now() + GATE_DEADLINE_MS;
 
   try {
-    execFileSync('tar', ['-xzf', tarballPath, '-C', workDir]);
+    execFileBounded('tar', ['-xzf', tarballPath, '-C', workDir]);
 
     const fixtureA = await buildFixtureA(workDir, tarballPath);
     await runFixtureAScenarios(fixtureA);
 
     const fixtureB = await buildFixtureB(workDir, tarballPath);
     runFixtureBScenarios(fixtureB);
+  } catch (err) {
+    if (err instanceof GateDeadlineError) {
+      console.error(`\n✗ Component gate exceeded its ${GATE_DEADLINE_MS / 60_000}-minute deadline during: ${currentSection} (${err.message})`);
+      process.exit(1);
+    }
+    throw err;
   } finally {
-    clearTimeout(deadline);
     cleanup();
   }
 

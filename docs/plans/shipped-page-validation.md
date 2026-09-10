@@ -40,7 +40,7 @@ Those are usability and accessibility. This plan is design-system compliance.
 | 2 | Page targets, the page suite, `page-component-paint` and `page-text-style` | Opus | 120 min | Done | 0521a42, 868cdcc, 560e7f8, and the variant-match repair |
 | 3 | `page-contrast`, `page-grid`, `page-overflow`, and the defect fixtures | Opus | 120 min | Done | b5e5df7, dcf452c, ccafc5f, 917024d, 2510c43 |
 | 4 | `check-page --tests`: runner, reporter mapping, coverage | Sonnet | 90 min | Done | f61313e, and the BLOCK repair |
-| 5 | Consumer gate, template, skills, atlas, changelog | Sonnet | 120 min | Not started | |
+| 5 | Consumer gate, template, skills, atlas, changelog | Sonnet | 120 min | Done | 64ab9a0, and the BLOCK repair |
 
 ## Execution
 
@@ -723,6 +723,57 @@ defects (`page-component-paint`, `page-text-style`, `page-contrast`,
 scrolling code passes, a local grid inside a section passes, a page with no
 shipped instance reports `page-component-paint` inapplicable), and the clean
 page passing every rule at both viewports.
+
+### Wave 5 BLOCK repair (2026-09-10)
+
+Three findings, no runtime rule, contract, or fixture touched.
+
+*The Grid section's own advice made the wave's just-added Verify step fail on
+the skill's own output.* `live-tokens-create-page/SKILL.md` credited "the
+scaffold" with a 768px collapse that `src/app/site.css:55` never provides
+(it only adjusts heading margins there), so a page written to the Grid
+section's own recipe overflowed at 390x844, the exact defect this wave's
+`template/src/pages/Home.svelte` fix and Wave 3's calibration record both
+named. The Grid section now states the collapse itself (`grid-template-
+columns: 1fr`, `column-gap: 0`, each section's children spanning `1 / -1`)
+and drops the false attribution; `live-tokens-fix-findings/SKILL.md`'s
+`page-overflow` row gets the matching clause. `npm run sync:skill-atlas` and
+`npm run sync:skill-sources` both ran after the edit; the Grid chip's
+`anchorEnd` needed a manual re-point to the new closing sentence so the
+atlas card actually shows the added guidance, not just a wider line range.
+
+*The gate's twenty-minute deadline was a `setTimeout`, which cannot preempt
+the blocking `execFileSync`/`spawnSync` children it was meant to bound.* A
+timer callback needs the event loop, and every step of both gates
+(`pageGate.mjs`, `componentGate.mjs`) is a synchronous child that holds it
+until the child returns; a hung `npm install` would never yield to the
+timer. Both gates now carry a shrinking `timeout`/`killSignal` on every
+child instead, derived from a `gateDeadlineAt` armed once per run: a child
+still running when the budget is gone is killed and reported as
+`GateDeadlineError`, naming the command and the section, the same as the
+`setTimeout` message did.
+
+*The clean-page scenario asserted coverage's shape but never its content.*
+`pageGate.mjs` now asserts, at each viewport key, that coverage names
+exactly the five runtime rule ids (`page-component-paint`, `page-text-
+style`, `page-contrast`, `page-grid`, `page-overflow`), the same precedent
+`componentGate.mjs`'s `coverage names all 9 contract rules` assertion
+already set. Verified live: a full `check:smoke-page-tests` run reports
+`src/pages/Home.svelte@1280x900: coverage names all 5 runtime rules` and the
+same at `@390x844`, both passing.
+
+Also: the Status table's Wave 5 row, still "Not started" after 64ab9a0
+despite that commit's own acceptance evidence, now reads Done; CHANGELOG's
+Changed section gained the template Home layout fix's own entry, the one
+change a consumer scaffolding a new project actually receives.
+
+Re-verified after the repair: `check:smoke-page-tests` OK, including the new
+coverage assertion; `check:smoke-component-tests` OK, all scenarios green,
+including the `mv`-based tests-not-installed scenario and the SIGINT
+interrupt scenario that now route through the bounded wrappers; `check:
+skills`, `check:skill-atlas`, `check:skill-sources` OK; `npm run check`: 0
+errors, 0 warnings, 1280 files; `node scripts/check-production-is-default.mjs`
+OK.
 
 ## Completion criteria
 

@@ -34,7 +34,7 @@ Decide the sections before the columns. Read the page top to bottom and name eac
 | Grid of equals | The reader compares or scans items of one kind. | Equal spans. Up to seven per section. |
 | Single column | The reader fills a form or reads at length. | Half the columns (6), centered. |
 
-The stage is the canvas, player, or strip the work is about. Stretch a section's containers to one height (`align-items: stretch`) so their bottom edges align. Below the scaffold's 768px breakpoint, a section's columns stack in reading order.
+The stage is the canvas, player, or strip the work is about. Stretch a section's containers to one height (`align-items: stretch`) so their bottom edges align.
 
 ### Grid
 
@@ -48,6 +48,8 @@ To place a section's children at page-column positions:
 4. Place each child by page-column numbers.
 
 A grid that follows the page columns takes `var(--columns-count)` or a `calc()` of it as its count, so it stays in step with `ColumnsOverlay`. A local grid of two or three equal columns writes its own count. A column number in `grid-column` is fixed to the count read in step 1.
+
+No scaffold collapses the page grid on a phone: the theme's own column gutter alone exceeds a phone's width at the full column count, so every page writes its own `@media (max-width: 767px)` rule setting `grid-template-columns: 1fr` and `column-gap: 0`, with each section's children spanning `grid-column: 1 / -1`. A section's columns then stack in reading order.
 
 ### Separation
 

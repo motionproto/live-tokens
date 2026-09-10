@@ -27,6 +27,11 @@ const VITEST_VERSION = '^4.1.4';
 const HAPPY_DOM_VERSION = '^20.9.0';
 const PAGE_SOURCE = 'src/pages/Home.svelte';
 
+// bin/contractRunner.mjs's own PAGE_RUNTIME_RULES: the fixed set every
+// viewport's coverage owes a status for, so a rule that silently stops
+// reaching coverage (rather than reporting a status) cannot pass this gate.
+const PAGE_RUNTIME_RULES = ['page-component-paint', 'page-text-style', 'page-contrast', 'page-grid', 'page-overflow'];
+
 // Bounds the whole gate rather than any one child process: a hung `npm
 // install` or a webServer that never becomes ready would otherwise hold a
 // caller (this script has none today, but `prepublishOnly` does) open
@@ -34,7 +39,50 @@ const PAGE_SOURCE = 'src/pages/Home.svelte';
 // bounds the Playwright child inside `check-page --tests` itself; this is
 // the outer bound on everything around it: npm install, chromium install,
 // and the two CLI invocations together.
+//
+// A `setTimeout` cannot enforce that bound: every step below is a blocking
+// execFileSync/spawnSync, and a timer callback needs the event loop, which a
+// synchronous child holds until it returns. So the deadline is a shrinking
+// `timeout` passed to each child instead — that's what a hung child actually
+// has to answer to. `gateDeadlineAt` is armed once per run; `remainingMs`
+// throws `GateDeadlineError` the moment the budget is gone, before the next
+// child even spawns.
 const GATE_DEADLINE_MS = 20 * 60_000;
+
+let gateDeadlineAt = null;
+
+class GateDeadlineError extends Error {}
+
+function remainingMs() {
+  if (gateDeadlineAt === null) throw new Error('remainingMs: gate deadline not armed');
+  const remaining = gateDeadlineAt - Date.now();
+  if (remaining <= 0) throw new GateDeadlineError('no budget left');
+  return remaining;
+}
+
+/** Wraps execFileSync with the shrinking deadline; a child killed for
+ *  running past it surfaces as GateDeadlineError instead of the raw
+ *  ETIMEDOUT/SIGKILL execFileSync throws. */
+function execFileBounded(cmd, args, options = {}) {
+  try {
+    return execFileSync(cmd, args, { timeout: remainingMs(), killSignal: 'SIGKILL', ...options });
+  } catch (err) {
+    if (err.signal === 'SIGKILL' || err.code === 'ETIMEDOUT') {
+      throw new GateDeadlineError(`${cmd} ${args.join(' ')}`);
+    }
+    throw err;
+  }
+}
+
+/** Same bound for spawnSync, which reports a killed child by return value
+ *  rather than by throwing. */
+function spawnSyncBounded(cmd, args, options = {}) {
+  const result = spawnSync(cmd, args, { timeout: remainingMs(), killSignal: 'SIGKILL', ...options });
+  if (result.signal === 'SIGKILL' && result.status === null) {
+    throw new GateDeadlineError(`${cmd} ${args.join(' ')}`);
+  }
+  return result;
+}
 
 let failures = 0;
 let currentSection = 'startup';
@@ -80,7 +128,7 @@ function hashDir(dir) {
 }
 
 function npmInstall(dir) {
-  execFileSync('npm', ['install', '--no-audit', '--no-fund', '--loglevel=error'], {
+  execFileBounded('npm', ['install', '--no-audit', '--no-fund', '--loglevel=error'], {
     cwd: dir,
     stdio: 'inherit',
   });
@@ -103,7 +151,7 @@ function cliBin(dir) {
 }
 
 function runCli(dir, args) {
-  const result = spawnSync(process.execPath, [cliBin(dir), ...args], { cwd: dir, encoding: 'utf8' });
+  const result = spawnSyncBounded(process.execPath, [cliBin(dir), ...args], { cwd: dir, encoding: 'utf8' });
   let json = null;
   try { json = JSON.parse(result.stdout); } catch { /* not every case emits JSON on stdout alone */ }
   return { status: result.status, stdout: result.stdout, stderr: result.stderr, json };
@@ -132,13 +180,13 @@ function withMutatedFile(path, transform, fn) {
 async function buildFixture(workDir, tarballPath) {
   section('Scaffold: live-tokens create, the default settings');
   const dir = join(workDir, 'fixture');
-  execFileSync(process.execPath, [join(workDir, 'package/bin/cli.mjs'), 'create', dir], { stdio: 'inherit' });
+  execFileBounded(process.execPath, [join(workDir, 'package/bin/cli.mjs'), 'create', dir], { stdio: 'inherit' });
   addPeerDevDeps(dir, tarballPath);
   npmInstall(dir);
   // The workflow's Chromium install step runs before this gate; a runner
   // whose cache already has this build treats this as a no-op, the same
   // reasoning scripts/lib/componentGate.mjs records for its own call.
-  execFileSync('npx', ['playwright', 'install', 'chromium'], { cwd: dir, stdio: 'inherit' });
+  execFileBounded('npx', ['playwright', 'install', 'chromium'], { cwd: dir, stdio: 'inherit' });
   ok('scaffolded via the shipped create template and installed the tarball + test tools');
   return dir;
 }
@@ -156,6 +204,13 @@ function runFixtureScenarios(dir) {
     const coverage = result.json?.coverage ?? {};
     const keys = Object.keys(coverage);
     check(keys.length === 2, `coverage names the page at both viewports (has ${JSON.stringify(keys)})`);
+    for (const key of keys) {
+      const ruleIds = Object.keys(coverage[key] ?? {}).sort();
+      check(
+        JSON.stringify(ruleIds) === JSON.stringify([...PAGE_RUNTIME_RULES].sort()),
+        `${key}: coverage names all 5 runtime rules (has ${JSON.stringify(ruleIds)})`,
+      );
+    }
     const statuses = Object.values(coverage).flatMap((rules) => Object.values(rules).map((r) => r.status));
     const badStatus = statuses.filter((s) => s !== 'passed' && s !== 'inapplicable');
     check(badStatus.length === 0, `every runtime rule is passed or inapplicable (${JSON.stringify(badStatus)})`);
@@ -205,18 +260,20 @@ export async function runPageGate(tarballPath) {
   process.once('SIGINT', () => { cleanup(); process.exit(130); });
   process.once('SIGTERM', () => { cleanup(); process.exit(143); });
 
-  const deadline = setTimeout(() => {
-    console.error(`\n✗ Page gate exceeded its ${GATE_DEADLINE_MS / 60_000}-minute deadline during: ${currentSection}`);
-    process.exit(1);
-  }, GATE_DEADLINE_MS);
+  gateDeadlineAt = Date.now() + GATE_DEADLINE_MS;
 
   try {
-    execFileSync('tar', ['-xzf', tarballPath, '-C', workDir]);
+    execFileBounded('tar', ['-xzf', tarballPath, '-C', workDir]);
 
     const dir = await buildFixture(workDir, tarballPath);
     runFixtureScenarios(dir);
+  } catch (err) {
+    if (err instanceof GateDeadlineError) {
+      console.error(`\n✗ Page gate exceeded its ${GATE_DEADLINE_MS / 60_000}-minute deadline during: ${currentSection} (${err.message})`);
+      process.exit(1);
+    }
+    throw err;
   } finally {
-    clearTimeout(deadline);
     cleanup();
   }
 

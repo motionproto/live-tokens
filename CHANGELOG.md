@@ -45,6 +45,13 @@
   on the page it built. The manual line "every control stays inside its
   wrapper" moves to the automated `page-overflow` rule; every other
   editorial line stays.
+- **The `create` template's own Home page collapses to one column below
+  768px.** Its `.stub` held a fixed twelve-column span with no phone
+  breakpoint, so `page-overflow` failed at 390x844, the defect
+  `check:smoke-page-tests` now catches on any page written to that shape.
+  The template ships no exclusion mechanism, so the fix is the page's own
+  `@media (max-width: 767px)` rule, the same shape every page-defects
+  fixture already takes.
 
 ## 0.77.0 — A consumer component runs the same suites
 
