@@ -38,7 +38,7 @@
 </script>
 
 {#if enabled && $columnsVisible}
-  <div class="columns-overlay" aria-hidden="true">
+  <div class="columns-overlay" data-live-tokens-chrome aria-hidden="true">
     <div class="columns-overlay__inner">
       {#each Array(count) as _, i}
         <div class="columns-overlay__col">

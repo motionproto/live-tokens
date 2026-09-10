@@ -38,7 +38,7 @@ export const PAGE_RULES = {
 };
 
 // Directories that hold the system, not pages built on it.
-const NOT_PAGES = ['src/system', 'src/editor', 'src/lib', 'src/live-tokens'];
+export const NOT_PAGES = ['src/system', 'src/editor', 'src/lib', 'src/live-tokens'];
 
 export const COMPONENT_IMPORT =
   /(?:@motion-proto\/live-tokens\/components|[./][^'"]*\/system\/components)\/([A-Za-z0-9]+)\.svelte$/;

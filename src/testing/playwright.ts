@@ -9,6 +9,7 @@ import {
 import {
   COMPONENT_ENV,
   COMPONENTS_PATH_ENV,
+  PAGE_VIEWPORTS_ENV,
   devServerCommand,
   resolveTestingConfig,
   type LiveTokensTestingConfig,
@@ -48,6 +49,7 @@ export async function createPlaywrightConfig(
   const baseURL = `http://${HOST}:${port}`;
 
   process.env[COMPONENTS_PATH_ENV] = settings.componentsPath;
+  process.env[PAGE_VIEWPORTS_ENV] = JSON.stringify(settings.pageViewports);
   if (settings.contractsModule) process.env[CONTRACTS_MODULE_ENV] = settings.contractsModule;
 
   return defineConfig({
@@ -98,6 +100,15 @@ export async function createPlaywrightConfig(
         // band can cover a control at some scroll positions. Until that is
         // fixed the suite runs taller. See docs/contract-test-defects.md.
         use: { ...devices['Desktop Chrome'], viewport: { width: 1280, height: 900 } },
+      },
+      {
+        name: 'page',
+        testDir: CONTRACT_TEST_DIR,
+        testMatch: '**/page-*.contract.{ts,js}',
+        // The suite sizes the window itself, once per viewport in
+        // `pageViewports`, so the sizes stay one list rather than a project
+        // per viewport whose name the reporter would have to decode.
+        use: { ...devices['Desktop Chrome'] },
       },
     ],
     webServer: {

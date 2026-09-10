@@ -5,12 +5,15 @@ export type { VitestConfigOptions } from './vitest';
 export {
   COMPONENT_ENV,
   COMPONENTS_PATH_ENV,
+  DEFAULT_PAGE_VIEWPORTS,
+  PAGES_ENV,
+  PAGE_VIEWPORTS_ENV,
   TESTING_CONFIG_FILE,
   defineTestingConfig,
   devServerCommand,
   resolveTestingConfig,
 } from './config';
-export type { LiveTokensTestingConfig, ResolvedTestingConfig } from './config';
+export type { LiveTokensTestingConfig, PageViewport, ResolvedTestingConfig } from './config';
 export { DATA_DIR_ENV, TEST_DATA_DIR_ENV, isolateDataDir } from './isolation';
 export type { IsolatedData } from './isolation';
 export { PORT_ENV, resolvePort } from './port';
@@ -39,3 +42,5 @@ export type {
   View,
 } from './componentContract';
 export { allContracts, CONTRACTS_MODULE_ENV, selectedContracts, shippedContracts } from './contracts';
+export { PageHarness, PageViolation, pageTargets, pageViewports, restingPaintSpec } from './support/pageHarness';
+export type { ContractPaintSpec, PageRule, PageTarget } from './support/pageHarness';

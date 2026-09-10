@@ -17,6 +17,7 @@ export default defineConfig({
     'src/testing/component-alias.contract.ts',
     'src/testing/component-editor.contract.ts',
     'src/testing/registry.contract.ts',
+    'src/testing/page-compliance.contract.ts',
   ],
   outDir: 'src/testing-js',
   format: ['esm'],
@@ -34,7 +35,7 @@ export default defineConfig({
     /^\.\.\/editor\/component-editor\//,
     /^\.\.\/\.\.\/bin\//,
   ],
-  // Only `index.ts` and `vitest.ts` are modules a consumer imports; the four
+  // Only `index.ts` and `vitest.ts` are modules a consumer imports; the five
   // contract files are Playwright/Vitest entry points discovered by path.
   dts: { entry: { index: 'src/testing/index.ts', vitest: 'src/testing/vitest.ts' } },
 });

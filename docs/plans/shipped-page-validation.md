@@ -37,7 +37,7 @@ Those are usability and accessibility. This plan is design-system compliance.
 | Wave | Deliverable | Model | Budget | Status | Commit |
 |---|---|---|---|---|---|
 | 1 | Two static rules: `native-control` and `property-override` | Sonnet | 45 min | Not started | |
-| 2 | Page targets, the page suite, `page-component-paint` and `page-text-style` | Opus | 120 min | Not started | |
+| 2 | Page targets, the page suite, `page-component-paint` and `page-text-style` | Opus | 120 min | Executed | |
 | 3 | `page-contrast`, `page-grid`, `page-overflow`, and the defect fixtures | Opus | 120 min | Not started | |
 | 4 | `check-page --tests`: runner, reporter mapping, coverage | Sonnet | 90 min | Not started | |
 | 5 | Consumer gate, template, skills, atlas, changelog | Sonnet | 120 min | Not started | |
@@ -283,6 +283,100 @@ each finding it raises on them is either fixed in the page or recorded here
 as a calibration note with the rule change it caused. Concrete instances
 before architecture: the two demo pages are the first ground truth, and a
 rule that fails on a correct page is the rule's defect.
+
+### Wave 2 calibration record
+
+**Rule changes the ground truth forced.**
+
+1. *A resting instance is in the `base` and `default` states.* Read literally,
+   "each `paints` entry with no `state` or `setup`" leaves Button contributing
+   nothing: every one of its entries carries a state label (`base` for layout,
+   `default` for resting colour) and the entries with no label carry `setup`.
+   The rule skips a *transient* label instead — one naming hover, active,
+   disabled, focused, error, selected, open, menu, or option — and takes every
+   other label as painting at rest, including the structural part labels
+   (Header, Body, Footer). Resting entries in `contract.states` join the
+   `properties` entries for the same reason.
+2. *A variant-less entry inherits `contract.view.variant`.* Button's `states`
+   name no variant and paint `--button-primary-*` because the contract's view
+   opens on Primary. Matched against every instance, they reported a Secondary
+   button as painting the primary surface. The entry's variant is now
+   `entry.variant ?? contract.view.variant`.
+3. *The normalization probe carries the part's own font size.*
+   `assertPaintsFromToken` appends its probe to the part's parent, which on a
+   page is the wrong ruler for a unitless line height: a Button at 15px inside
+   a Card body at 16.67px made `--button-primary-text-line-height: 1.5` read as
+   25px against a painted 22.5px. The probe now seeds `font-size` from the part
+   before setting the property under test, so a `font-size` token still
+   overwrites the seed and resolves its own relative units against the parent.
+   The component suite's probe has the same blind spot and the preview stage
+   hides it. Flagged, not changed.
+4. *Eyebrow is a shipped text style.* The rule reads `TEXT_STYLES`
+   (`src/editor/ui/sections/textStyles.ts`) rather than the plan's list of
+   `heading-*`, `body-*`, `editorial-*`, and `code`, so the bundles cannot
+   drift from the editor's twelve.
+5. *A component the page never renders is absent, not an unmatched variant.*
+   Decision 6's exception is reported only when the page renders an instance
+   whose root classes name none of the contract's variants.
+
+**What the pages proved.** `src/app/Home.svelte` at 1280x900: 25 instances,
+276 contracted paints, 0 failures. `src/demo/Demo.svelte` passes
+`page-component-paint` at both viewports.
+
+**The demo pages are not compliance targets.** `live-tokens.config.json`
+already excludes `src/demo` and `src/app/Home.svelte` from `check-page`.
+`page-text-style` reports 40 of 43 runs of text on `/demo` and 13 of 13 on the
+floating-tags playground, and every one composes type from single-axis scale
+tokens (`--font-size-7xl`, `--font-display`, `line-height: .9`) that the static
+`raw-text-axis` rule already calls an error. The rule agrees with the checker
+the project already runs on the pages it does check. The three runs that pass
+are the demo's plain `<p>` elements, which site.css leaves in `body-md`: the
+positive case works. Wave 3's clean fixture is where a whole compliant page
+proves the pass.
+
+**Home has no text of its own.** Every run of text on `src/app/Home.svelte` and
+on the template's Home sits inside a `Card`, so `page-text-style` is
+inapplicable there by construction and the paint rule carries the card's own
+parts, `--card-default-body-*` among them. The two rules partition a page's
+text rather than overlapping, and where the partition leaves a seam is the
+first item under For review.
+
+**Svelte's element metadata is present under the default dev build.**
+`__svelte_meta.loc` carries `{ file, line }` with `file` a project-root-relative
+POSIX path (`src/editor/overlay/LiveEditorOverlay.svelte`), so `lineOf` matches
+by suffix. Neither this repo's Vite config nor the template's sets
+`compilerOptions.dev`, so both take vite-plugin-svelte's serve-mode default.
+A page that delegates to section components anchors every finding on the
+delegating element: all 40 findings on `src/demo/Demo.svelte` land at line 11,
+its `.kit` wrapper, because Svelte stamps metadata on elements and a
+`<SectionHero />` tag is not one. Decision 8, working as written.
+
+**The page container is an attribute, not a wrapper.**
+`LiveTokensRouter` marks `.lt-app` with `data-live-tokens-page`, and the two
+chrome children — the editor overlay and the column guides — with
+`data-live-tokens-chrome`. A wrapper element around the page would have broken
+`SkillAtlas.svelte`'s `:global(.lt-app.lt-app:has(> .skill-atlas))`.
+
+**Deferred to Wave 5.** Running the suite inside a fresh `create` project is
+the consumer gate's own work (`check:smoke-page-tests`). The template's Home
+is this repo's Home in shape: a Card holding an h1, a p, and two Buttons.
+
+**For review.** Two boundary questions the ground truth raised, neither
+resolved here.
+
+*Slot children neither rule sees.* `src/app/Home.svelte` sets its own `h1` to
+`--font-display` and `--font-size-4xl` inside a `Card`. `page-text-style`
+skips it as the paint rule's, and the paint rule checks Card's declared parts
+(`.card-body`, `.card-title`), not an arbitrary slot child, so the raw axes
+pass both. Card pins its own typography onto nested `p`/`ul`/`ol`/`li`, which
+is why the exclusion is right for those; an `h1` is outside that set. Holding
+slot children to a bundle would be the change, and it belongs with Wave 3's
+fixtures, where a clean page can prove which way is correct.
+
+*Chrome a page draws itself.* `page-text-style` holds a
+`<span class="ftt-tag-label">`, a decorative chip label inside a diagram, to
+the same obligation as a paragraph. Whether page-drawn UI chrome owes a text
+style is a judgment for the fix-findings guidance in Wave 5.
 
 ## Wave 3 — the last three rules and the defect fixtures
 

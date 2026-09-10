@@ -12,6 +12,24 @@ export const COMPONENTS_PATH_ENV = 'LIVE_TOKENS_COMPONENTS_PATH';
 /** Narrows a run to one component. */
 export const COMPONENT_ENV = 'LIVE_TOKENS_COMPONENT';
 
+/** The page targets a run opens, as JSON: `[{ source, route }]`. */
+export const PAGES_ENV = 'LIVE_TOKENS_PAGES';
+
+/** The viewports every page rule runs at, as JSON: `[{ width, height }]`. */
+export const PAGE_VIEWPORTS_ENV = 'LIVE_TOKENS_PAGE_VIEWPORTS';
+
+export interface PageViewport {
+  width: number;
+  height: number;
+}
+
+/** The contract project's own desktop size, and the phone the text styles
+ *  carry media overrides for. Nothing here is derived from a page. */
+export const DEFAULT_PAGE_VIEWPORTS: PageViewport[] = [
+  { width: 1280, height: 900 },
+  { width: 390, height: 844 },
+];
+
 /** What `resolveDataDirs` falls back to, restated because that resolver is
  *  plugin-side and the tarball ships the plugin built rather than as source.
  *  `vite-plugin/testingConfig.test.ts` pins the two together. */
@@ -42,6 +60,13 @@ export interface LiveTokensTestingConfig {
    *  plus a dynamic import inside `selectedContracts()` is the only way a
    *  custom contract reaches them. */
   contractsModule?: string;
+  /** Page source path to the concrete URL that renders it, for a route the
+   *  `pages` object cannot express: one served by `resolve()`, or one whose
+   *  parameters only the project knows. Page paths are relative to the
+   *  project root. */
+  pageRoutes?: Record<string, string>;
+  /** Replaces the two sizes every page rule runs at. */
+  pageViewports?: PageViewport[];
 }
 
 export interface ResolvedTestingConfig {
@@ -53,6 +78,8 @@ export interface ResolvedTestingConfig {
   dataDir: string;
   registrySetup?: string;
   contractsModule?: string;
+  pageRoutes: Record<string, string>;
+  pageViewports: PageViewport[];
 }
 
 /** Types the settings file without importing the interface by hand. */
@@ -91,6 +118,8 @@ export function resolveTestingConfig(
     contractsModule: config.contractsModule
       ? path.resolve(projectRoot, config.contractsModule)
       : undefined,
+    pageRoutes: config.pageRoutes ?? {},
+    pageViewports: config.pageViewports?.length ? config.pageViewports : DEFAULT_PAGE_VIEWPORTS,
   };
 }
 
