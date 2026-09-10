@@ -563,7 +563,20 @@ async function runFixtureAScenarios(dir) {
     const midRunTemp = readdirSync(tmpdir()).filter((n) => n.startsWith('live-tokens-check-'));
     check(midRunTemp.length > 0, `the run had created its isolated copy before the signal (found ${midRunTemp.length})`);
     child.kill('SIGINT');
-    const outcome = await exited;
+    // The shrinking execFileSync timeout cannot reach this async child.
+    let sigintTimer;
+    const outcome = await Promise.race([
+      exited,
+      new Promise((_, reject) => {
+        sigintTimer = setTimeout(
+          () => reject(new GateDeadlineError('check-component --tests did not exit after SIGINT')),
+          Math.min(remainingMs(), 60_000),
+        );
+      }),
+    ]).catch((err) => {
+      try { child.kill('SIGKILL'); } catch { /* already gone */ }
+      throw err;
+    }).finally(() => clearTimeout(sigintTimer));
     const after = hashDir(join(dir, 'src/live-tokens/data'));
     clearTestResults(dir);
     check(before === after, 'source data unchanged after SIGINT');

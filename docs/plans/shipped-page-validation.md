@@ -37,10 +37,10 @@ Those are usability and accessibility. This plan is design-system compliance.
 | Wave | Deliverable | Model | Budget | Status | Commit |
 |---|---|---|---|---|---|
 | 1 | Two static rules: `native-control` and `property-override` | Sonnet | 45 min | Done | 40c2210, e17dcad |
-| 2 | Page targets, the page suite, `page-component-paint` and `page-text-style` | Opus | 120 min | Done | 0521a42, 868cdcc, 560e7f8, and the variant-match repair |
+| 2 | Page targets, the page suite, `page-component-paint` and `page-text-style` | Opus | 120 min | Done | 0521a42, 868cdcc, 560e7f8, 62faaab |
 | 3 | `page-contrast`, `page-grid`, `page-overflow`, and the defect fixtures | Opus | 120 min | Done | b5e5df7, dcf452c, ccafc5f, 917024d, 2510c43 |
-| 4 | `check-page --tests`: runner, reporter mapping, coverage | Sonnet | 90 min | Done | f61313e, and the BLOCK repair |
-| 5 | Consumer gate, template, skills, atlas, changelog | Sonnet | 120 min | Done | 64ab9a0, and the BLOCK repair |
+| 4 | `check-page --tests`: runner, reporter mapping, coverage | Sonnet | 90 min | Done | f61313e, 5947f66 |
+| 5 | Consumer gate, template, skills, atlas, changelog | Sonnet | 120 min | In progress | 64ab9a0, c61bdef |
 
 ## Execution
 
@@ -748,10 +748,12 @@ timer callback needs the event loop, and every step of both gates
 (`pageGate.mjs`, `componentGate.mjs`) is a synchronous child that holds it
 until the child returns; a hung `npm install` would never yield to the
 timer. Both gates now carry a shrinking `timeout`/`killSignal` on every
-child instead, derived from a `gateDeadlineAt` armed once per run: a child
-still running when the budget is gone is killed and reported as
-`GateDeadlineError`, naming the command and the section, the same as the
-`setTimeout` message did.
+synchronous child instead, derived from a `gateDeadlineAt` armed once per
+run: a child still running when the budget is gone is killed and reported
+as `GateDeadlineError`, naming the command and the section, the same as the
+`setTimeout` message did. The one async child, the SIGINT scenario's CLI
+run in `componentGate.mjs`, races its exit against the same budget capped
+at one minute and is killed with SIGKILL before the error is rethrown.
 
 *The clean-page scenario asserted coverage's shape but never its content.*
 `pageGate.mjs` now asserts, at each viewport key, that coverage names
