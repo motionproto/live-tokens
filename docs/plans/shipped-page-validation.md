@@ -535,13 +535,17 @@ page passes at both viewports. `test:e2e:contract` unchanged.
    syntax and gamut-clamps the way the screen does. The ratio itself is
    `contrastRatio` from `src/editor/core/palettes/contrast.ts`, per invariant 2.
 
-**What the pages proved.** `page-contrast` raises nothing on `src/app/
-Home.svelte`, `src/demo/Demo.svelte`, or `src/demo/
-FloatingTagsPlayground.svelte` at either viewport, and is inapplicable on Home,
-whose every run of text is inside a Card. `page-grid` passes on Demo at
-1280x900, reports Home's centred card (note 1) and, on the floating-tags
-playground, that the page draws no column grid at all, which is the finding
-the rule reserves for a page that is not laid out on one.
+**What the pages proved.** Rerun over the three pages this repository renders,
+after the calibrations above: 14 passed, 7 inapplicable, 9 findings, and every
+finding is on a page `live-tokens.config.json` already excludes from
+`check-page`. `page-contrast` raises nothing anywhere and is inapplicable on
+Home, whose every run of text is inside a Card. `page-grid` passes on Home and
+on Demo at 1280x900, Home only through note 1, and reports that the
+floating-tags playground draws no column grid at all, which is the finding the
+rule reserves for a page that is not laid out on one. The nine findings are
+`page-overflow` on Home at 390x844 and on Demo and the playground at both
+viewports, and `page-text-style` on Demo and the playground, which Wave 2
+recorded.
 
 **A twelve-column grid does not survive a phone.** `--columns-gutter` is 32px
 in the shipped theme, so eleven gutters are 352px inside a 311px content box at
