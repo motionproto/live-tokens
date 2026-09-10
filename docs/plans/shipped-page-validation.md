@@ -40,7 +40,7 @@ Those are usability and accessibility. This plan is design-system compliance.
 | 2 | Page targets, the page suite, `page-component-paint` and `page-text-style` | Opus | 120 min | Done | 0521a42, 868cdcc, 560e7f8, 62faaab |
 | 3 | `page-contrast`, `page-grid`, `page-overflow`, and the defect fixtures | Opus | 120 min | Done | b5e5df7, dcf452c, ccafc5f, 917024d, 2510c43 |
 | 4 | `check-page --tests`: runner, reporter mapping, coverage | Sonnet | 90 min | Done | f61313e, 5947f66 |
-| 5 | Consumer gate, template, skills, atlas, changelog | Sonnet | 120 min | In progress | 64ab9a0, c61bdef |
+| 5 | Consumer gate, template, skills, atlas, changelog | Sonnet | 120 min | Done | 64ab9a0, c61bdef, b5be955 |
 
 ## Execution
 
@@ -764,10 +764,9 @@ already set. Verified live: a full `check:smoke-page-tests` run reports
 `src/pages/Home.svelte@1280x900: coverage names all 5 runtime rules` and the
 same at `@390x844`, both passing.
 
-Also: the Status table's Wave 5 row, still "Not started" after 64ab9a0
-despite that commit's own acceptance evidence, now reads Done; CHANGELOG's
-Changed section gained the template Home layout fix's own entry, the one
-change a consumer scaffolding a new project actually receives.
+Also: CHANGELOG's Changed section gained the template Home layout fix's
+own entry, the one change a consumer scaffolding a new project actually
+receives. The Status table's Wave 5 row lists every commit of the wave.
 
 Re-verified after the repair: `check:smoke-page-tests` OK, including the new
 coverage assertion; `check:smoke-component-tests` OK, all scenarios green,
