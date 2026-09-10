@@ -205,6 +205,41 @@ export const fixFindings: SkillTree = {
           "anchor": "| `danger-without-dialog` | Open a `Dialog` from the danger "
         },
         {
+          "label": "native-control",
+          "lines": [83, 83],
+          "anchor": "| `native-control` | Replace the native element with the shi"
+        },
+        {
+          "label": "property-override",
+          "lines": [84, 84],
+          "anchor": "| `property-override` | Delete the declaration from the page"
+        },
+        {
+          "label": "page-component-paint",
+          "lines": [85, 85],
+          "anchor": "| `page-component-paint` | The finding names the page file a"
+        },
+        {
+          "label": "page-text-style",
+          "lines": [86, 86],
+          "anchor": "| `page-text-style` | The finding names the page file and th"
+        },
+        {
+          "label": "page-contrast",
+          "lines": [87, 87],
+          "anchor": "| `page-contrast` | The finding names the page file and the "
+        },
+        {
+          "label": "page-grid",
+          "lines": [88, 88],
+          "anchor": "| `page-grid` | The finding names the page file and the line"
+        },
+        {
+          "label": "page-overflow",
+          "lines": [89, 89],
+          "anchor": "| `page-overflow` | The finding names the page file and the "
+        },
+        {
           "label": "hardcoded-columns",
           "lines": [90, 90],
           "anchor": "| `hardcoded-columns` | `repeat(var(--columns-count), 1fr)` "

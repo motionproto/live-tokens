@@ -17,7 +17,7 @@ Assemble the page from the shipped components at their defaults and the theme's 
 6. Write the page CSS in design tokens.
 7. Set the hierarchy: one text style per element, the shipped size on every control, one primary action, and one space step per position.
 8. Add the route, with a lazy import and the source path.
-9. Run **live-tokens-check-compliance**, then check the rendered page.
+9. Run **live-tokens-check-compliance** and `npx live-tokens check-page <file> --tests --strict`, then check the rendered page.
 10. Reply with the sections and the layout each took, the components placed, the route, and the compliance result.
 
 ## Layout

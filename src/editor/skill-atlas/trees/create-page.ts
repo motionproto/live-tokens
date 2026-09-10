@@ -2,7 +2,7 @@ import type { SkillTree } from '../types';
 
 export const createPage: SkillTree = {
   "id": "live-tokens-create-page",
-  "digest": "sha256:bdd611a43dcf7b79",
+  "digest": "sha256:7d816fe66d20567c",
   "title": "create-page",
   "tagline": "Create a Page Using Live Tokens",
   "nodes": [
@@ -211,10 +211,10 @@ export const createPage: SkillTree = {
       "id": "cp-check",
       "row": 8,
       "kind": "step",
-      "title": "Run live-tokens-check-compliance",
-      "desc": "Its report goes to live-tokens-fix-findings until the page is clean.",
+      "title": "Run both checkers",
+      "desc": "live-tokens-check-compliance reads the source. check-page --tests --strict proves the rendered page at its route. Both reports go to live-tokens-fix-findings until the page is clean.",
       "lines": [20, 20],
-      "anchor": "Run **live-tokens-check-compliance**, then check the rendere"
+      "anchor": "Run **live-tokens-check-compliance** and `npx live-tokens ch"
     },
     {
       "id": "cp-verify",
