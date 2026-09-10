@@ -52,12 +52,6 @@ for (const target of targets) {
       const harness = await PageHarness.open(page, target, viewport);
       const observed = await harness.observePaints(specs);
       test.skip(observed.instances === 0, `${target.source} renders no shipped component`);
-      for (const id of observed.unmatchedVariants) {
-        test.info().annotations.push({
-          type: 'variant-unmatched',
-          description: `${id} keys every resting paint map by variant and no instance's root classes name one`,
-        });
-      }
       if (observed.failures.length > 0) {
         harness.fail(
           'page-component-paint',
@@ -68,6 +62,15 @@ for (const target of targets) {
             + `but ${failure.variable} resolves to ${failure.expected}`),
         );
       }
+      // A page holding an instance the rule cannot place in a variant is a page
+      // the rule did not prove.
+      test.skip(
+        observed.uncovered.length > 0,
+        `${target.source}: no entry names the variant of `
+        + observed.uncovered
+          .map((instance) => `${instance.id} at line ${instance.line}, which offers ${instance.variants.join(', ')}`)
+          .join('; '),
+      );
       test.skip(observed.asserted === 0, `no contracted part of a shipped instance is rendered on ${target.source}`);
     });
 

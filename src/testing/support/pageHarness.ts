@@ -58,12 +58,12 @@ export function pageViewports(): PageViewport[] {
 /**
  * A state a resting instance on a page is not in. The component contracts key
  * their paint maps by the editor's own tab labels, which name interaction
- * states (hover, focused), component states (disabled, selected, error), and
- * views that only exist once something is opened (an active tab, a menu and
- * its options). Everything else — a bare label, `base`, `default`, and the
+ * states (hover, focused), component states (disabled, selected, error, on),
+ * and views that only exist once something is opened (an active tab, a menu
+ * and its options). Everything else — a bare label, `base`, `default`, and the
  * structural part labels (Header, Body, Footer, ...) — paints at rest.
  */
-const TRANSIENT_STATE = /\b(?:hover|active|disabled|focused|error|selected|open|menu|option)\b/;
+const TRANSIENT_STATE = /\b(?:hover|active|disabled|focused|error|selected|open|menu|option|on)\b/;
 
 function restingState(label: string | undefined): boolean {
   return label === undefined || !TRANSIENT_STATE.test(label.toLowerCase());
@@ -79,8 +79,28 @@ interface PaintCheck {
 }
 
 interface PaintEntry {
+  /** The contract's own variant label, lowercased, as the finding names it. */
   variant: string | null;
+  /** Source of the RegExp an instance's class tokens are tested against. Null
+   *  for an entry every instance is in. */
+  pattern: string | null;
   checks: PaintCheck[];
+}
+
+/**
+ * A class token names a variant when it is the variant's own word or carries
+ * it as a suffix: the three spellings the shipped components use are bare
+ * (`button primary`), component-prefixed (`badge badge-primary`), and
+ * axis-prefixed (`es-root variant-divider`). A contract's variant label is the
+ * editor's prose (`With Divider`), so each of its words is a key as well as
+ * the whole label, which is what reaches the `divider` the markup spells.
+ */
+function variantPattern(label: string | undefined | null): string | null {
+  if (!label) return null;
+  const words = label.toLowerCase().split(/\s+/);
+  const keys = [...new Set([words.join('-'), ...words])]
+    .map((key) => key.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
+  return `(?:^|-)(?:${keys.join('|')})$`;
 }
 
 export interface ContractPaintSpec {
@@ -114,9 +134,8 @@ function paintChecks(contract: ComponentContract, map: PaintMap): PaintCheck[] {
 /**
  * What a contract obliges of an instance sitting at rest on a page: the paint
  * maps that need no state tab, no editor control, and no interaction. A
- * variant-keyed entry is matched against the instance's own root classes,
- * which is the convention every shipped component follows (`class="button
- * primary"`).
+ * variant-keyed entry carries the pattern its instances' root classes have to
+ * name.
  */
 export function restingPaintSpec(contract: ComponentContract): ContractPaintSpec | null {
   const rootSelector = contract.parts[contract.root];
@@ -131,7 +150,8 @@ export function restingPaintSpec(contract: ComponentContract): ContractPaintSpec
     if (!restingState(expectation.state)) continue;
     const checks = paintChecks(contract, expectation.paints);
     if (checks.length === 0) continue;
-    entries.push({ variant: (expectation.variant ?? inherited.variant)?.toLowerCase() ?? null, checks });
+    const variant = (expectation.variant ?? inherited.variant)?.toLowerCase() ?? null;
+    entries.push({ variant, pattern: variantPattern(variant), checks });
   }
   // A component whose only resting paint map hangs off a state tab still
   // paints its default state on a page.
@@ -141,7 +161,8 @@ export function restingPaintSpec(contract: ComponentContract): ContractPaintSpec
       if ((state.setup ?? []).length > 0) continue;
       const checks = paintChecks(contract, state.paints);
       if (checks.length === 0) continue;
-      entries.push({ variant: (state.variant ?? inherited.variant)?.toLowerCase() ?? null, checks });
+      const variant = (state.variant ?? inherited.variant)?.toLowerCase() ?? null;
+      entries.push({ variant, pattern: variantPattern(variant), checks });
     }
   }
   if (entries.length === 0) return null;
@@ -159,13 +180,21 @@ export interface PaintFailure {
   expected: string;
 }
 
+export interface UncoveredInstance {
+  id: string;
+  line: number;
+  /** The variants the contract offers, none of which this instance's root
+   *  classes name. */
+  variants: string[];
+}
+
 export interface PaintObservation {
   instances: number;
   asserted: number;
   failures: PaintFailure[];
-  /** Contracts whose entries are all variant-keyed and matched no instance:
-   *  decision 6's exception, reported rather than passed over. */
-  unmatchedVariants: string[];
+  /** Instances every variant-keyed entry passed over: decision 6's exception,
+   *  reported per instance rather than silently passed. */
+  uncovered: UncoveredInstance[];
 }
 
 export interface TextObservation {
@@ -230,12 +259,19 @@ export class PageHarness {
       const root = document.querySelector(container);
       if (!root) return found;
       for (const spec of list) {
+        const keyed: { variant: string | null; pattern: RegExp }[] = [];
+        for (const entry of spec.entries) {
+          if (entry.pattern !== null) keyed.push({ variant: entry.variant, pattern: new RegExp(entry.pattern) });
+        }
         for (const element of root.querySelectorAll(spec.root)) {
           if (element.closest(chrome)) continue;
-          const variants = new Set<string>();
-          for (const entry of spec.entries) if (entry.variant) variants.add(entry.variant);
-          const matched = [...element.classList].find((name) => variants.has(name)) ?? null;
-          found.push({ id: spec.id, variant: matched, line: window.__liveTokensPageLine(element, source) });
+          const classes = [...element.classList];
+          const matched = keyed.find(({ pattern }) => classes.some((name) => pattern.test(name)));
+          found.push({
+            id: spec.id,
+            variant: matched?.variant ?? null,
+            line: window.__liveTokensPageLine(element, source),
+          });
         }
       }
       return found;
@@ -288,11 +324,11 @@ export class PageHarness {
   async observePaints(specs: ContractPaintSpec[]): Promise<PaintObservation> {
     return this.page.evaluate(({ specs: list, container, chrome, source }) => {
       const failures: PaintObservation['failures'] = [];
-      const unmatchedVariants: string[] = [];
+      const uncovered: UncoveredInstance[] = [];
       let instances = 0;
       let asserted = 0;
       const root = document.querySelector(container);
-      if (!root) return { instances, asserted, failures, unmatchedVariants };
+      if (!root) return { instances, asserted, failures, uncovered };
 
       // The value a CSS property takes from the raw token, measured beside the
       // part so inherited font size and colour resolve the same way. A token
@@ -320,19 +356,18 @@ export class PageHarness {
       };
 
       for (const spec of list) {
-        let matchedAny = false;
-        let seen = 0;
-        let variantKeyed = false;
-        for (const entry of spec.entries) if (entry.variant) variantKeyed = true;
+        const patterns = spec.entries.map((entry) => (entry.pattern === null ? null : new RegExp(entry.pattern)));
+        const variants = [...new Set(spec.entries.map((entry) => entry.variant).filter((v): v is string => v !== null))];
         for (const element of root.querySelectorAll(spec.root)) {
           if (element.closest(chrome)) continue;
           instances++;
-          seen++;
-          const classes = new Set(element.classList);
+          const classes = [...element.classList];
           const line = window.__liveTokensPageLine(element, source);
-          for (const entry of spec.entries) {
-            if (entry.variant && !classes.has(entry.variant)) continue;
-            if (entry.variant) matchedAny = true;
+          let covered = false;
+          for (const [index, entry] of spec.entries.entries()) {
+            const pattern = patterns[index];
+            if (pattern && !classes.some((name) => pattern.test(name))) continue;
+            covered = true;
             for (const check of entry.checks) {
               const part = check.selector === null ? element : element.querySelector(check.selector);
               if (!part) continue;
@@ -356,12 +391,12 @@ export class PageHarness {
               }
             }
           }
+          // One Badge naming its variant says nothing about the next one, so
+          // decision 6's exception is counted per instance.
+          if (!covered) uncovered.push({ id: spec.id, line, variants });
         }
-        // Only when the page renders one: a component the page never uses is
-        // not an exception to decision 6, it is absent.
-        if (seen > 0 && variantKeyed && !matchedAny) unmatchedVariants.push(spec.id);
       }
-      return { instances, asserted, failures, unmatchedVariants };
+      return { instances, asserted, failures, uncovered };
     }, { specs, container: PAGE_CONTAINER, chrome: CHROME, source: this.target.source });
   }
 

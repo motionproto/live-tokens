@@ -37,7 +37,7 @@ Those are usability and accessibility. This plan is design-system compliance.
 | Wave | Deliverable | Model | Budget | Status | Commit |
 |---|---|---|---|---|---|
 | 1 | Two static rules: `native-control` and `property-override` | Sonnet | 45 min | Done | 40c2210, e17dcad |
-| 2 | Page targets, the page suite, `page-component-paint` and `page-text-style` | Opus | 120 min | In progress | 0521a42, 868cdcc |
+| 2 | Page targets, the page suite, `page-component-paint` and `page-text-style` | Opus | 120 min | Done | 0521a42, 868cdcc, 560e7f8, and the variant-match repair |
 | 3 | `page-contrast`, `page-grid`, `page-overflow`, and the defect fixtures | Opus | 120 min | Not started | |
 | 4 | `check-page --tests`: runner, reporter mapping, coverage | Sonnet | 90 min | Not started | |
 | 5 | Consumer gate, template, skills, atlas, changelog | Sonnet | 120 min | Not started | |
@@ -293,8 +293,8 @@ rule that fails on a correct page is the rule's defect.
    nothing: every one of its entries carries a state label (`base` for layout,
    `default` for resting colour) and the entries with no label carry `setup`.
    The rule skips a *transient* label instead — one naming hover, active,
-   disabled, focused, error, selected, open, menu, or option — and takes every
-   other label as painting at rest, including the structural part labels
+   disabled, focused, error, selected, open, on, menu, or option — and takes
+   every other label as painting at rest, including the structural part labels
    (Header, Body, Footer). Resting entries in `contract.states` join the
    `properties` entries for the same reason.
 2. *A variant-less entry inherits `contract.view.variant`.* Button's `states`
@@ -332,12 +332,51 @@ rule that fails on a correct page is the rule's defect.
    transient tab, label every entry themselves, so the state half changed
    nothing for them.
 
+7. *A class names a variant prefixed as often as bare.* The first cut looked
+   for a class token equal to the lowercased contract label, which is the
+   spelling Button and its family use and no other. The survey decision 6 asks
+   for, run over all nine variant-keyed contracts, found three: bare (Button,
+   Icon Button, Notification, Slider), component-prefixed (Badge `badge
+   badge-primary`, 120 contracted paints; Callout `callout callout-info`, 64;
+   Corner Badge `corner-badge corner-badge-{anchor} corner-badge-{variant}`,
+   40), and axis-prefixed (Collapsible Section `es-root variant-divider`, 36,
+   which the contract labels `With Divider` against the markup's value
+   `divider`). No entry matched any instance of those four, so the rule
+   asserted nothing for them and reported a pass anyway, the defect note 6
+   fixed for Input, Notification and Image Lightbox. The Badge on
+   `/playground/floating-tags` sat inside the recorded ground truth already. A
+   class names a variant now when it is the label or ends in `-<label>`, and
+   each word of a prose label is a key of its own, which is what reaches
+   `variant-divider` from `With Divider`. Inline Edit Actions is the one
+   contract no class convention reaches: its labels `Save button` and `Cancel
+   button` name which of two sibling buttons an entry paints, and its root is
+   `.save-btn`, so its instances report the exception note 8 describes.
+8. *An instance the rule cannot place is inapplicable, per instance.* The
+   exception decision 6 reserves was latched per contract, so one matching
+   instance covered every later one, and the case was filed as a Playwright
+   annotation, which is neither a finding nor coverage. It is counted per
+   instance now, and a page holding one instance the rule cannot place reports
+   `page-component-paint` inapplicable at that viewport with a reason naming
+   the contract, the line, and the variants on offer. Losing the whole page's
+   coverage to one instance is the conservative reading: a partial pass is not
+   a status Wave 4's report has, and it is listed under Deferred to Wave 4.
+9. *`on` is a component state.* The transient list named the states the editor
+   tabs name and not Toggle's `on`, so a Toggle's resting spec carried both
+   `--toggle-track-surface` and `--toggle-on-track-surface` for the same part
+   and every Toggle failed, on or off. `on` joins the list, which changes the
+   classification of exactly one label across all 27 contracts. An on Toggle
+   now sits with the disabled Button and the errored Input under the
+   prop-driven state below.
+
 **What the pages proved.** `src/app/Home.svelte` at 1280x900: 25 instances,
 276 contracted paints, 0 failures. `src/demo/Demo.svelte` passes
-`page-component-paint` at both viewports. Both still pass after note 6's
-repair; neither renders an Input, a Notification, or an Image Lightbox, so
-`pageHarness.test.ts` is what holds the checks the repair restored until Wave
-3's fixtures render one.
+`page-component-paint` at both viewports. Both still pass after notes 6 and 7;
+neither renders an Input, a Notification, or an Image Lightbox, so
+`pageHarness.test.ts` is what holds the checks note 6 restored until Wave 3's
+fixtures render one. `src/demo/FloatingTagsPlayground.svelte` is the page note
+7 moved: its one `<Badge variant="neutral">` was reached by nothing, which made
+the rule inapplicable there, and it now carries 12 asserted paints and passes
+at both viewports.
 
 **The demo pages are not compliance targets.** `live-tokens.config.json`
 already excludes `src/demo` and `src/app/Home.svelte` from `check-page`.
@@ -372,6 +411,21 @@ its `.kit` wrapper, because Svelte stamps metadata on elements and a
 chrome children — the editor overlay and the column guides — with
 `data-live-tokens-chrome`. A wrapper element around the page would have broken
 `SkillAtlas.svelte`'s `:global(.lt-app.lt-app:has(> .skill-atlas))`.
+
+**Deferred to Wave 4.** Four seams the runner and the reporter own, none of
+them a rule. `resolvePageTargets` reads the route table and `pageRoutes` and
+ignores `live-tokens.config.json`'s `checks.exclude`, so an unfiltered
+`check-page --tests` in this repo targets the three pages above while the
+static half skips two of them: the two halves of one command have to agree.
+`createPlaywrightConfig` declares the `page` project and never sets
+`LIVE_TOKENS_PAGES`; the harness reads the variable and returns no target
+without it, so the runner is what supplies it. An instance the paint rule
+cannot place turns a whole page into an inapplicable status, which a report
+that carried partial coverage would state more exactly. And `./testing`
+exports `PageHarness`, `pageTargets`, `pageViewports`, `restingPaintSpec`, and
+their types, which is wider than the `pageRoutes` and `pageViewports` settings
+global invariant 4 names; the suite imports the harness by relative path, so
+trimming the re-export costs nothing.
 
 **Deferred to Wave 5.** Running the suite inside a fresh `create` project is
 the consumer gate's own work (`check:smoke-page-tests`). The template's Home
@@ -418,8 +472,10 @@ correct page paints `--button-primary-disabled-surface`
 (`src/system/components/Button.svelte:308`) and fails the
 `--button-primary-surface` check; an `<Input error="...">` paints
 `--input-error-border` through `.input-field.invalid`
-(`src/system/components/Input.svelte:292`) and fails `--input-default-border`.
-Note 6 widened the exposure by restoring Input's checks. Neither calibration
+(`src/system/components/Input.svelte:292`) and fails `--input-default-border`;
+a `<Toggle checked>` paints `--toggle-on-track-surface` and fails
+`--toggle-track-surface`. Note 6 widened the exposure by restoring Input's
+checks, and note 9 named Toggle's. Neither calibration
 page renders a disabled or errored instance, so the ground truth could not
 raise it. Two resolutions: skip an instance whose root matches one of the
 contract's own non-default state selectors, or read the instance's state from
