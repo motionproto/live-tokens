@@ -38,6 +38,9 @@
     // `.svelte` import resolves to the ambient module in
     // `component-editor/editors.d.ts` rather than to the component, so the
     // block carries one cast.
+    // Every entry spells `source` out. check-page's missing-source rule reads
+    // the object that declares the lazy import, so shorthand or a helper hides
+    // the key from it.
     ...(import.meta.env.DEV
       ? ({
           '/page-defects/clean': {
