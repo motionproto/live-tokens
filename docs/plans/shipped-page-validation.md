@@ -38,7 +38,7 @@ Those are usability and accessibility. This plan is design-system compliance.
 |---|---|---|---|---|---|
 | 1 | Two static rules: `native-control` and `property-override` | Sonnet | 45 min | Done | 40c2210, e17dcad |
 | 2 | Page targets, the page suite, `page-component-paint` and `page-text-style` | Opus | 120 min | Done | 0521a42, 868cdcc, 560e7f8, and the variant-match repair |
-| 3 | `page-contrast`, `page-grid`, `page-overflow`, and the defect fixtures | Opus | 120 min | Done | |
+| 3 | `page-contrast`, `page-grid`, `page-overflow`, and the defect fixtures | Opus | 120 min | Done | b5e5df7, dcf452c, ccafc5f, 917024d, 2510c43 |
 | 4 | `check-page --tests`: runner, reporter mapping, coverage | Sonnet | 90 min | Not started | |
 | 5 | Consumer gate, template, skills, atlas, changelog | Sonnet | 120 min | Not started | |
 
@@ -585,6 +585,17 @@ reaches it through a contract-level `setup`, and the paint lands on
 to what a contract declares, not to the rule, so the fixtures render no
 disabled Button and no errored Input and the exposure Wave 2 recorded stands.
 
+**Owner decision, before Wave 5.** Wave 5's gate runs `page-component-paint`
+against a consumer's own pages, where this gap is a live false positive: a page
+holding a disabled Button, an `<Input error="...">`, or a `<Toggle checked>`
+fails against that component's resting paints. Two ways to close it, and the
+choice is the owner's. (a) Contract metadata: every non-default state declares
+a marker on the instance root, which Input's error and Toggle's on do not carry
+today, and the rule reads the state the way it reads the variant and measures
+that state's paints. (b) A documented exclusion: the rule skips a part whose
+value a non-default state of the same contract also names, and the skill says
+which parts that leaves unproven. Settle it before the gate ships.
+
 *Slot children neither rule sees.* Closing the seam is three lines: an element
 inside a shipped component root is the page's when its own `__svelte_meta`
 names the page file. It would then hold `src/app/Home.svelte`'s `<h1>`, which
@@ -628,6 +639,10 @@ a run that failed and a run that was interrupted. The static command runs
 with `@playwright/test` absent.
 
 ## Wave 5 — the consumer gate, the template, the skills, and the changelog
+
+**Precondition.** The prop-driven state decision recorded under Wave 3's Still
+open belongs to the owner and is open. The gate below measures the rule it
+decides.
 
 **Files.** New `scripts/smoke-page-tests.sh` and `scripts/lib/pageGate.mjs`,
 `package.json`, `.github/workflows/publish.yml`, `template/package.json`,
