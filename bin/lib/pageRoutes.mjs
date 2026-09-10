@@ -10,6 +10,7 @@
 
 import { existsSync, readFileSync, statSync } from 'node:fs';
 import { join, relative, resolve } from 'node:path';
+import { isExcluded } from './findings.mjs';
 import { walk } from './tokenVocabulary.mjs';
 
 /**
@@ -65,27 +66,52 @@ function objectBody(text, open) {
   return null;
 }
 
-/** Top-level `key: value` pairs of an object body, values kept as source text. */
-function objectEntries(body) {
-  const entries = [];
+/** The text between the brackets of the array literal opening at `open`.
+ *  Mirrors `objectBody`, bracket-keyed rather than brace-keyed. */
+function arrayBody(text, open) {
+  let depth = 0;
+  for (let i = open; i < text.length; i++) {
+    const ch = text[i];
+    if (ch === "'" || ch === '"' || ch === '`') { i = skipString(text, i); continue; }
+    if (ch === '[') depth++;
+    else if (ch === ']') {
+      depth--;
+      if (depth === 0) return text.slice(open + 1, i);
+    }
+  }
+  return null;
+}
+
+/** Top-level comma-separated chunks of an object or array body, respecting
+ *  strings and nested brackets. Shared by `objectEntries` (each chunk is
+ *  `key: value`) and `settingsPageViewports` (each chunk is a `{ width,
+ *  height }` literal). */
+function splitTopLevel(body) {
+  const chunks = [];
   let depth = 0;
   let start = 0;
-  const push = (chunk) => {
-    const match = /^\s*(?:'([^']*)'|"([^"]*)"|([A-Za-z_$][\w$]*))\s*:([\s\S]*)$/.exec(chunk);
-    if (!match) return;
-    entries.push({ key: match[1] ?? match[2] ?? match[3], value: match[4].trim() });
-  };
   for (let i = 0; i < body.length; i++) {
     const ch = body[i];
     if (ch === "'" || ch === '"' || ch === '`') { i = skipString(body, i); continue; }
     if (ch === '{' || ch === '[' || ch === '(') depth++;
     else if (ch === '}' || ch === ']' || ch === ')') depth--;
     else if (ch === ',' && depth === 0) {
-      push(body.slice(start, i));
+      chunks.push(body.slice(start, i));
       start = i + 1;
     }
   }
-  push(body.slice(start));
+  chunks.push(body.slice(start));
+  return chunks;
+}
+
+/** Top-level `key: value` pairs of an object body, values kept as source text. */
+function objectEntries(body) {
+  const entries = [];
+  for (const chunk of splitTopLevel(body)) {
+    const match = /^\s*(?:'([^']*)'|"([^"]*)"|([A-Za-z_$][\w$]*))\s*:([\s\S]*)$/.exec(chunk);
+    if (!match) continue;
+    entries.push({ key: match[1] ?? match[2] ?? match[3], value: match[4].trim() });
+  }
   return entries;
 }
 
@@ -158,6 +184,55 @@ export function settingsPageRoutes(root) {
   return routes;
 }
 
+/** The contract project's own desktop size, and the phone the text styles
+ *  carry media overrides for (decision 4). Mirrors `DEFAULT_PAGE_VIEWPORTS`
+ *  in `src/testing/config.ts`; duplicated for the reason `settingsPageRoutes`
+ *  above reads its own settings statically rather than importing that module. */
+export const DEFAULT_PAGE_VIEWPORTS = [
+  { width: 1280, height: 900 },
+  { width: 390, height: 844 },
+];
+
+/**
+ * `pageViewports` from the testing settings, read the same way
+ * `settingsPageRoutes` reads `pageRoutes`. Falls back to
+ * `DEFAULT_PAGE_VIEWPORTS` when the key is absent, so a caller building the
+ * set of viewports a page run is expected to cover sees the same list the
+ * generated Playwright config resolves at runtime (`src/testing/
+ * playwright.ts`'s own `settings.pageViewports`), rather than a shipped
+ * default that a project replaced. A `pageViewports` present in live code
+ * that this cannot read as a plain array of `{ width, height }` literals
+ * throws rather than falling through to a silent default.
+ */
+export function settingsPageViewports(root) {
+  const settings = settingsFilePath(root);
+  if (!settings) return DEFAULT_PAGE_VIEWPORTS;
+  const live = stripComments(readFileSync(settings, 'utf8'));
+  const at = /\bpageViewports\s*:\s*\[/.exec(live);
+  if (!at) {
+    if (/\bpageViewports\s*:/.test(live)) {
+      throw new Error(
+        `"pageViewports" in ${settings} is not a plain array literal, so --tests cannot read it statically. `
+        + 'Write it as literal { width, height } entries, or remove the key.',
+      );
+    }
+    return DEFAULT_PAGE_VIEWPORTS;
+  }
+  const body = arrayBody(live, at.index + at[0].length - 1) ?? '';
+  const items = splitTopLevel(body).map((item) => item.trim()).filter(Boolean);
+  if (items.length === 0) return DEFAULT_PAGE_VIEWPORTS;
+  return items.map((item) => {
+    const width = /\bwidth\s*:\s*(\d+)/.exec(item);
+    const height = /\bheight\s*:\s*(\d+)/.exec(item);
+    if (!width || !height) {
+      throw new Error(
+        `"pageViewports" in ${settings} has an entry that is not a plain { width, height } literal, so --tests cannot read it statically.`,
+      );
+    }
+    return { width: Number(width[1]), height: Number(height[1]) };
+  });
+}
+
 function isSystemPath(rel) {
   return SYSTEM_DIRS.some((dir) => rel === dir || rel.startsWith(`${dir}/`));
 }
@@ -210,4 +285,25 @@ export function resolvePageTargets(paths = [], root = process.cwd()) {
     targets.push(route === undefined ? { source: rel, route: null, reason: NO_ROUTE } : { source: rel, route });
   }
   return targets;
+}
+
+/**
+ * `resolvePageTargets`, filtered by `checks.exclude` the same way
+ * `checkPages` (`bin/check-page.mjs`) filters the static half of the same
+ * command: an explicit *file* argument always checks, `isExcluded`'s own
+ * contract, but a directory `checkPages` walks — an explicit directory
+ * argument, or the no-paths-given discovery — drops excluded files. The two
+ * halves of `check-page --tests` have to agree on which pages a directory or
+ * omitted target reaches, or `--tests` fails a page the static half
+ * deliberately skips.
+ */
+export function resolvePageTestTargets(paths = [], root = process.cwd()) {
+  const allTargets = resolvePageTargets(paths, root);
+  const explicitFiles = new Set(
+    paths
+      .map((p) => resolve(root, p))
+      .filter((full) => existsSync(full) && !statSync(full).isDirectory())
+      .map((full) => toRelative(root, full)),
+  );
+  return allTargets.filter((t) => explicitFiles.has(t.source) || !isExcluded(t.source, root));
 }

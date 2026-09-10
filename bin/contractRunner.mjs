@@ -29,6 +29,7 @@ import { basename, dirname, join, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { discoverComponents, resolveComponentPaths } from './check-component.mjs';
 import { lineOf } from './lib/findings.mjs';
+import { settingsPageViewports } from './lib/pageRoutes.mjs';
 
 const PKG_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 
@@ -381,6 +382,10 @@ function settingsFragments(root) {
  * (every component's editor cycle, against no `LIVE_TOKENS_COMPONENT`), and a
  * page suite that hangs reports `timedOut` tests in a real JSON report before
  * this file's own SIGINT/SIGKILL watchdog (`runCli`) ever has to act.
+ * `globalTimeout` is `createPlaywrightConfig`'s own option (`src/testing/
+ * playwright.ts`), passed through rather than patched onto the resolved
+ * config afterward, so the bound holds for every caller of that factory, not
+ * only the CLI's generated configs.
  */
 export function writePlaywrightConfig({ configDir, root, timeoutMs = DEFAULT_TESTS_TIMEOUT_MS } = {}) {
   const { settingsImport, settingsExpr } = settingsFragments(root);
@@ -393,7 +398,8 @@ export function writePlaywrightConfig({ configDir, root, timeoutMs = DEFAULT_TES
 export default createPlaywrightConfig({
   ...${settingsExpr},
   root: ${JSON.stringify(root)},
-}).then((config) => ({ ...config, globalTimeout: ${JSON.stringify(timeoutMs)} }));
+  globalTimeout: ${JSON.stringify(timeoutMs)},
+});
 `,
   );
   return playwrightConfigPath;
@@ -789,18 +795,6 @@ export function mapPlaywrightResults(report, { root, sourceDataDir, knownIds }) 
  *  `ALL_CONTRACT_RULES` above. */
 const PAGE_RUNTIME_RULES = ['page-component-paint', 'page-text-style', 'page-contrast', 'page-grid', 'page-overflow'];
 
-/** Mirrors `src/testing/config.ts`'s own `DEFAULT_PAGE_VIEWPORTS`, duplicated
- *  for the reason `SESSION_FILES` documents above. A project's own
- *  `pageViewports` override, read from the settings file only once the
- *  generated Playwright config (a separate process) resolves it, is invisible
- *  to this reconciliation: a page checked at a replaced viewport list still
- *  gets a real pass or fail per rule, it is only the "did every expected
- *  triple run" reconciliation below that assumes the shipped default. */
-const PAGE_VIEWPORTS = [
-  { width: 1280, height: 900 },
-  { width: 390, height: 844 },
-];
-
 /** `page-compliance.contract.ts` titles each test `${rule} | ${source} |
  *  ${width}x${height}`, so the rule, the page, and the viewport are read off
  *  the title rather than off describe-block position (there is none — every
@@ -1158,6 +1152,17 @@ export async function runContractTests(id, { root = process.cwd(), dataDir: expl
   }
 }
 
+/** One expected id per (page, viewport) pair — `mapPageResults`'s own outer
+ *  coverage key. Reads the viewport list off the project's own settings
+ *  (`settingsPageViewports`, decision 4's "the settings file may replace the
+ *  list") rather than a shipped default, so a page checked at a replaced
+ *  viewport reconciles against the sizes the generated Playwright config
+ *  actually resolved for that same run, not a stale expectation. */
+export function pageExpectedIds(routed, root) {
+  const viewports = settingsPageViewports(root);
+  return routed.flatMap((t) => viewports.map((v) => `${t.source}@${v.width}x${v.height}`));
+}
+
 /**
  * `check-page --tests`'s own entry point: the Playwright half of
  * `runContractTests` above, minus the registry (Vitest) suite pages have no
@@ -1234,11 +1239,7 @@ export async function runPageTests(targets, { root = process.cwd(), dataDir: exp
 
     const explainedGlobally =
       mapped.explained || mapped.findings.some((f) => f.rule === 'tests-setup' || f.rule === 'tests-not-installed');
-    // One expected id per (page, viewport) pair — mapPageResults's own outer
-    // coverage key — each checked against the same flat PAGE_RUNTIME_RULES,
-    // the shape reconcileCoverage already expects.
-    const expectedIds = routed.flatMap((t) => PAGE_VIEWPORTS.map((v) => `${t.source}@${v.width}x${v.height}`));
-    const reconciled = reconcileCoverage(mapped.coverage, expectedIds, {
+    const reconciled = reconcileCoverage(mapped.coverage, pageExpectedIds(routed, root), {
       expectedRules: PAGE_RUNTIME_RULES,
       explainedGlobally,
     });

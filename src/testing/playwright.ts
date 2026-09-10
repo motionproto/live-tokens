@@ -30,7 +30,18 @@ export interface PlaywrightConfigOptions extends LiveTokensTestingConfig {
   extraProjects?: PlaywrightTestProject[];
   /** Where projects that declare no `testDir` of their own look. */
   testDir?: string;
+  /** Bounds the whole run. Default fifteen minutes, the same bound
+   *  `check-component --tests` and `check-page --tests` hold their spawned
+   *  child to (`LIVE_TOKENS_TESTS_TIMEOUT` in `bin/contractRunner.mjs`), so a
+   *  hung run stops here too, for a caller that invokes this factory
+   *  directly rather than through the CLI. */
+  globalTimeout?: number;
 }
+
+/** Mirrors `bin/contractRunner.mjs`'s own `DEFAULT_TESTS_TIMEOUT_MS`,
+ *  duplicated because that file is plain JS and cannot import this module
+ *  before `build:testing` compiles it (see `bin/engineLoadsLazily.test.ts`). */
+const DEFAULT_GLOBAL_TIMEOUT_MS = 15 * 60_000;
 
 /**
  * The contract project, its dev server, and the data isolation the two share.
@@ -64,6 +75,7 @@ export async function createPlaywrightConfig(
     // command line.
     workers: 1,
     timeout: 30_000,
+    globalTimeout: options.globalTimeout ?? DEFAULT_GLOBAL_TIMEOUT_MS,
     expect: { timeout: 5_000 },
     // A shared-server suite times out under CI load in ways it never does
     // locally, and without a retry budget one wobble aborts a tagged release.

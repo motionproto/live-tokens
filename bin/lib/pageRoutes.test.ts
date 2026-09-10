@@ -7,7 +7,15 @@ import * as pageRoutes from './pageRoutes.mjs';
 // @ts-expect-error — plain .mjs module, no types
 import { NOT_PAGES } from '../check-page.mjs';
 
-const { SYSTEM_DIRS, resolvePageTargets, routeTable, settingsPageRoutes } = pageRoutes;
+const {
+  SYSTEM_DIRS,
+  DEFAULT_PAGE_VIEWPORTS,
+  resolvePageTargets,
+  resolvePageTestTargets,
+  routeTable,
+  settingsPageRoutes,
+  settingsPageViewports,
+} = pageRoutes;
 
 const roots: string[] = [];
 
@@ -111,6 +119,76 @@ describe('resolvePageTargets', () => {
       `<script>const pages = { '/decoy': { source: 'src/pages/Decoy.svelte' } };</script>`,
     );
     expect([...routeTable(root).keys()]).toEqual(['/', '/about']);
+  });
+});
+
+describe('settingsPageViewports', () => {
+  it('falls back to the two fixed viewports with no settings file at all', () => {
+    expect(settingsPageViewports(project(APP))).toEqual(DEFAULT_PAGE_VIEWPORTS);
+  });
+
+  it('falls back to the two fixed viewports when the key is absent', () => {
+    const root = project(APP, { 'live-tokens.testing.ts': 'export default {};' });
+    expect(settingsPageViewports(root)).toEqual(DEFAULT_PAGE_VIEWPORTS);
+  });
+
+  it('reads a replaced list — the regression a stale hardcoded default missed', () => {
+    const root = project(APP, {
+      'live-tokens.testing.ts': 'export default { pageViewports: [{ width: 1440, height: 900 }] };',
+    });
+    expect(settingsPageViewports(root)).toEqual([{ width: 1440, height: 900 }]);
+  });
+
+  it('ignores a commented-out pageViewports', () => {
+    const root = project(APP, {
+      'live-tokens.testing.ts': '// pageViewports: [{ width: 1440, height: 900 }]\nexport default {};',
+    });
+    expect(settingsPageViewports(root)).toEqual(DEFAULT_PAGE_VIEWPORTS);
+  });
+
+  it('refuses a pageViewports it cannot read statically', () => {
+    const root = project(APP, {
+      'live-tokens.testing.ts': 'export default { pageViewports: viewportsFrom(config) };',
+    });
+    expect(() => settingsPageViewports(root)).toThrow(/array literal/);
+  });
+
+  it('refuses an entry that is not a plain { width, height } literal', () => {
+    const root = project(APP, {
+      'live-tokens.testing.ts': 'export default { pageViewports: [{ width: 1440 }] };',
+    });
+    expect(() => settingsPageViewports(root)).toThrow(/width, height/);
+  });
+});
+
+describe('resolvePageTestTargets: the two halves of check-page --tests have to agree', () => {
+  function projectWithExclude(exclude: string[]) {
+    return project(APP, {
+      'live-tokens.config.json': JSON.stringify({ checks: { exclude } }),
+      'src/pages/About.svelte': '<p>about</p>',
+      'src/pages/Home.svelte': '<p>home</p>',
+    });
+  }
+
+  it('drops an excluded page from the no-paths-given discovery, same as checkPages', () => {
+    const root = projectWithExclude(['src/pages/About.svelte']);
+    expect(resolvePageTestTargets([], root).map((t: { source: string }) => t.source)).toEqual([
+      'src/pages/Home.svelte',
+    ]);
+  });
+
+  it('drops an excluded page from a directory target, same as checkPages walking that directory', () => {
+    const root = projectWithExclude(['src/pages/About.svelte']);
+    expect(resolvePageTestTargets(['src/pages'], root).map((t: { source: string }) => t.source)).toEqual([
+      'src/pages/Home.svelte',
+    ]);
+  });
+
+  it('still checks an excluded page named explicitly as a file, same as checkPages', () => {
+    const root = projectWithExclude(['src/pages/About.svelte']);
+    expect(resolvePageTestTargets(['src/pages/About.svelte'], root).map((t: { source: string }) => t.source)).toEqual(
+      ['src/pages/About.svelte'],
+    );
   });
 });
 

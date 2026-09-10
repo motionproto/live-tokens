@@ -20,7 +20,7 @@ import { fileURLToPath } from 'node:url';
 import process from 'node:process';
 import { COMPONENT_RULES, COMPONENT_RULE_FIX, checkComponent, discoverComponents, formatReport } from './check-component.mjs';
 import { PAGE_RULES, checkPages, discoverPages } from './check-page.mjs';
-import { resolvePageTargets } from './lib/pageRoutes.mjs';
+import { resolvePageTestTargets } from './lib/pageRoutes.mjs';
 import { describeComponents, describeTokens, formatComponents, formatTokens } from './lib/catalogue.mjs';
 import { buildReport, formatReport as formatProjectReport } from './lib/report.mjs';
 import { loadVocabulary } from './lib/tokenVocabulary.mjs';
@@ -29,7 +29,6 @@ import {
   applySeverity,
   countBySeverity,
   formatFindings,
-  isExcluded,
   parseCheckFlags,
   readChecksConfig,
   toJson,
@@ -286,14 +285,7 @@ if (command === 'check-page') {
     reportChecks('check-page', findings, checked, PAGE_RULES, opts);
   }
   const { hasHardFailure, runPageTests } = await import('./contractRunner.mjs');
-  const allTargets = resolvePageTargets(opts.rest, process.cwd());
-  // Mirrors `discoverPages`'s own exclusion: an explicit path on the command
-  // line always checks (`isExcluded`'s own contract), and only the
-  // no-paths-given discovery drops `checks.exclude` paths — the seam Wave 2
-  // left for this wave, so `--tests` targets the same pages the static half
-  // just checked above.
-  const pageTargets =
-    opts.rest.length > 0 ? allTargets : allTargets.filter((t) => !isExcluded(t.source, process.cwd()));
+  const pageTargets = resolvePageTestTargets(opts.rest, process.cwd());
   const testOutcome = await runPageTests(pageTargets, { root: process.cwd() });
   const label = 'check-page --tests';
   const allFindings = [...findings, ...testOutcome.findings];

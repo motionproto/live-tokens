@@ -39,7 +39,7 @@ Those are usability and accessibility. This plan is design-system compliance.
 | 1 | Two static rules: `native-control` and `property-override` | Sonnet | 45 min | Done | 40c2210, e17dcad |
 | 2 | Page targets, the page suite, `page-component-paint` and `page-text-style` | Opus | 120 min | Done | 0521a42, 868cdcc, 560e7f8, and the variant-match repair |
 | 3 | `page-contrast`, `page-grid`, `page-overflow`, and the defect fixtures | Opus | 120 min | Done | b5e5df7, dcf452c, ccafc5f, 917024d, 2510c43 |
-| 4 | `check-page --tests`: runner, reporter mapping, coverage | Sonnet | 90 min | Not started | |
+| 4 | `check-page --tests`: runner, reporter mapping, coverage | Sonnet | 90 min | Done | f61313e, and the BLOCK repair |
 | 5 | Consumer gate, template, skills, atlas, changelog | Sonnet | 120 min | Not started | |
 
 ## Execution

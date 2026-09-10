@@ -42,5 +42,3 @@ export type {
   View,
 } from './componentContract';
 export { allContracts, CONTRACTS_MODULE_ENV, selectedContracts, shippedContracts } from './contracts';
-export { PageHarness, PageViolation, pageTargets, pageViewports, restingPaintSpec } from './support/pageHarness';
-export type { ContractPaintSpec, PageRule, PageTarget } from './support/pageHarness';

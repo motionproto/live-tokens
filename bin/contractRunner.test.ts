@@ -6,6 +6,8 @@ import { join } from 'node:path';
 import {
   hasHardFailure,
   mapPageResults,
+  pageExpectedIds,
+  reconcileCoverage,
   runPageTests,
   runPlaywrightSuite,
   timeoutFinding,
@@ -170,6 +172,52 @@ describe('timeoutFinding', () => {
       line: 1,
       message: expect.stringContaining('Playwright did not finish within 15 minute'),
     });
+  });
+});
+
+// The five runtime rule ids, decision 9's fixed list — inlined rather than
+// imported because PAGE_RUNTIME_RULES is this module's own reconciliation
+// detail, not a public export.
+const PAGE_RUNTIME_RULES = ['page-component-paint', 'page-text-style', 'page-contrast', 'page-grid', 'page-overflow'];
+
+describe('pageExpectedIds: the viewport list a run is reconciled against', () => {
+  it('is the two fixed viewports with no settings file', () => {
+    const root = fixtureRoot();
+    expect(pageExpectedIds([{ source: 'src/app/Home.svelte', route: '/' }], root)).toEqual([
+      'src/app/Home.svelte@1280x900',
+      'src/app/Home.svelte@390x844',
+    ]);
+  });
+
+  it("follows a project's own replaced pageViewports, not the shipped default", () => {
+    const root = fixtureRoot();
+    writeFileSync(
+      join(root, 'live-tokens.testing.ts'),
+      'export default { pageViewports: [{ width: 1440, height: 900 }] };',
+    );
+    expect(pageExpectedIds([{ source: 'src/app/Home.svelte', route: '/' }], root)).toEqual([
+      'src/app/Home.svelte@1440x900',
+    ]);
+  });
+
+  it('reconciles a clean pass at a replaced viewport to zero tests-incomplete findings', () => {
+    // Regression: expectedIds used to come from a module-level constant fixed
+    // at the shipped default, so a page checked at a replaced viewport — a
+    // real pass on every rule — reconciled against ids the report could never
+    // produce, and reported tests-incomplete for all five rules.
+    const root = fixtureRoot();
+    writeFileSync(
+      join(root, 'live-tokens.testing.ts'),
+      'export default { pageViewports: [{ width: 1440, height: 900 }] };',
+    );
+    const report = pageReport(
+      PAGE_RUNTIME_RULES.map((rule) => pageSpec(`${rule} | src/app/Home.svelte | 1440x900`, {})),
+    );
+    const mapped = mapPageResults(report);
+    const reconciled = reconcileCoverage(mapped.coverage, pageExpectedIds([{ source: 'src/app/Home.svelte', route: '/' }], root), {
+      expectedRules: PAGE_RUNTIME_RULES,
+    });
+    expect(reconciled.findings.filter((f: { rule: string }) => f.rule === 'tests-incomplete')).toEqual([]);
   });
 });
 
