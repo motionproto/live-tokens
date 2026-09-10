@@ -26,8 +26,20 @@ const PLAYWRIGHT_VERSION = '^1.62.1';
 const VITEST_VERSION = '^4.1.4';
 const HAPPY_DOM_VERSION = '^20.9.0';
 
+// Bounds the whole gate, not any one child process inside it: `LIVE_TOKENS_
+// TESTS_TIMEOUT` (bin/contractRunner.mjs) already bounds the Playwright and
+// Vitest children `check-component --tests` spawns; this is the outer bound
+// on everything around them (two `npm install`s, two Chromium installs, and
+// every scenario together), so a hang anywhere in the gate still ends the
+// run instead of holding `prepublishOnly` open indefinitely.
+const GATE_DEADLINE_MS = 20 * 60_000;
+
 let failures = 0;
-const section = (title) => console.log(`\n→ ${title}`);
+let currentSection = 'startup';
+const section = (title) => {
+  currentSection = title;
+  console.log(`\n→ ${title}`);
+};
 const ok = (msg) => console.log(`  ✓ ${msg}`);
 const bad = (msg) => {
   failures += 1;
@@ -572,6 +584,11 @@ export async function runComponentGate(tarballPath) {
   process.once('SIGINT', () => { cleanup(); process.exit(130); });
   process.once('SIGTERM', () => { cleanup(); process.exit(143); });
 
+  const deadline = setTimeout(() => {
+    console.error(`\n✗ Component gate exceeded its ${GATE_DEADLINE_MS / 60_000}-minute deadline during: ${currentSection}`);
+    process.exit(1);
+  }, GATE_DEADLINE_MS);
+
   try {
     execFileSync('tar', ['-xzf', tarballPath, '-C', workDir]);
 
@@ -581,6 +598,7 @@ export async function runComponentGate(tarballPath) {
     const fixtureB = await buildFixtureB(workDir, tarballPath);
     runFixtureBScenarios(fixtureB);
   } finally {
+    clearTimeout(deadline);
     cleanup();
   }
 

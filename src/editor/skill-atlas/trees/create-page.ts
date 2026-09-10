@@ -2,7 +2,7 @@ import type { SkillTree } from '../types';
 
 export const createPage: SkillTree = {
   "id": "live-tokens-create-page",
-  "digest": "sha256:00cc1191fecc9707",
+  "digest": "sha256:468ec8e9b553d738",
   "title": "create-page",
   "tagline": "Create a Page Using Live Tokens",
   "nodes": [
@@ -222,31 +222,31 @@ export const createPage: SkillTree = {
       "kind": "chipset",
       "title": "Check the page in the browser",
       "desc": "The checkers cannot see a layout. Open the page at its width and check each line.",
-      "lines": [168, 185],
+      "lines": [168, 184],
       "anchor": "The checkers cannot see a layout. Open the page at the width",
       "anchorEnd": "`references/interaction-sources.md` names the sources for th",
       "chips": [
         {
           "label": "Structure",
-          "lines": [170, 175],
+          "lines": [170, 174],
           "anchor": "The first section holds what the user came for.",
-          "anchorEnd": "Every control stays inside its wrapper. A `width: 100%` fiel"
+          "anchorEnd": "The containers in a section align at the bottom."
         },
         {
           "label": "Actions",
-          "lines": [176, 179],
+          "lines": [175, 178],
           "anchor": "The actions sit where the eye goes last, with the one primar",
           "anchorEnd": "An action that runs longer than a moment shows progress in a"
         },
         {
           "label": "Fields",
-          "lines": [180, 181],
+          "lines": [179, 180],
           "anchor": "Every field has a default, and Reset restores it.",
           "anchorEnd": "Secondary settings sit in a `CollapsibleSection`. Every cont"
         },
         {
           "label": "Words and access",
-          "lines": [182, 183],
+          "lines": [181, 182],
           "anchor": "Labels use the user's words, such as \"Export slices\".",
           "anchorEnd": "Every `img` has `alt` text. Focus order follows the reading "
         }
@@ -258,7 +258,7 @@ export const createPage: SkillTree = {
       "kind": "step",
       "title": "Read the page twice",
       "desc": "From a distance only the sections show. Up close, every border and bar earns its place or goes.",
-      "lines": [187, 187],
+      "lines": [186, 186],
       "anchor": "Then read the page from a distance: the sections and their e"
     },
     {

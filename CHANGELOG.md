@@ -1,5 +1,51 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+- **A page proves compliance as rendered, not just in source.** `check-page
+  --tests` opens each page's own route in a Playwright browser, against the
+  consumer's own app, and reports five rule ids no static read of the source
+  could: `page-component-paint` (every shipped component instance paints its
+  contracted parts from its semantic properties, never from a page-wide or
+  `site.css` rule that reaches past them), `page-text-style` (every run of
+  text sits in one shipped text style, never inherited from a container typed
+  for a different role), `page-contrast` (every text and surface pair the
+  page composes meets AA), `page-grid` (every section's edges land on the
+  page's own column lines), and `page-overflow` (nothing overflows its
+  container, at either viewport). Coverage is reported by page, rule, and
+  viewport; a rule that observed nothing on a page reports `inapplicable`
+  with a reason, never a silent pass. `live-tokens.testing.ts` gains two
+  settings: `pageRoutes`, for a route the app's own route table cannot
+  express, and `pageViewports`, to replace the two sizes every rule runs at.
+- **Two static rules close source-level gaps `check-page` left open.**
+  `native-control` flags a raw `<button>`, `<input>`, `<select>`, or
+  `<textarea>` where a shipped component belongs. `property-override` flags a
+  page that declares or sets a component token's name directly, in a style
+  block, an inline `style`, a `style:` directive, or `setProperty`, rather
+  than retuning the component for the whole project at
+  `/live-tokens/components`.
+- **The consumer acceptance gate now covers a page.** `check:smoke-page-tests`
+  packs the built package into a fresh project outside the repository,
+  scaffolds it with `create`, and proves the documented command against the
+  template's own clean page and against the same page under a deliberate
+  `site.css` override: the clean page passes, the override fails
+  `page-component-paint` at the page file, and source-tree hashes prove the
+  isolated run never touched the project's own data. Wired into
+  `prepublishOnly` beside the existing component gate. Both gates now carry a
+  twenty-minute deadline of their own, naming the step that did not finish.
+
+### Changed
+
+- **The `create` template's `test:design` runs both suites:**
+  `live-tokens check-component --tests && live-tokens check-page --tests`.
+- **The live-tokens-create-page skill's Verify step runs the rendered check.**
+  After live-tokens-check-compliance, it runs `check-page --tests --strict`
+  on the page it built. The manual line "every control stays inside its
+  wrapper" moves to the automated `page-overflow` rule; every other
+  editorial line stays.
+
 ## 0.77.0 — A consumer component runs the same suites
 
 ### Added

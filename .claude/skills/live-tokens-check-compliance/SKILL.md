@@ -9,6 +9,8 @@ Run `npx live-tokens report`. The CLI prints a report with the sections in the R
 
 `report` never runs the component contract suites. The `check-component` test run does, and it is what live-tokens-create-component calls to validate a component's runtime behavior.
 
+`report` stays static for pages too. The `check-page` test run is what live-tokens-create-page calls for a rendered page, in a browser against the project's own route, and it reports `page-component-paint`, `page-text-style`, `page-contrast`, `page-grid`, and `page-overflow` findings the same way `report`'s static findings read: by rule, with a fix.
+
 ## Workflow
 
 When `report` is an unknown command, route the dependency upgrade to **live-tokens-fix-findings**. Resume the audit after the upgrade.

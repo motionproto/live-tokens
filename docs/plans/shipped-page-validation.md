@@ -686,6 +686,44 @@ the component gate. `check:skills`, `check:skill-atlas`, `check:skill-sources`,
 project all green. Record the command, the coverage totals, and the expected
 defect findings here as acceptance evidence.
 
+### Wave 5 acceptance evidence (2026-09-10)
+
+`npm run check:smoke-page-tests` (`bash scripts/smoke-page-tests.sh`, which
+packs the tarball and runs `node scripts/lib/pageGate.mjs`): OK. One
+throwaway `create` project, one page, two runs. The template's own Home page
+passes clean at both viewports, `--json` reports zero findings, and coverage
+names all five runtime rules `passed` or `inapplicable` at
+`src/pages/Home.svelte@1280x900` and `@390x844`. A deliberate `site.css`
+override (`button { border-top-width: var(--border-width-8) !important; }`,
+needed because a plain unprivileged override loses the cascade tie to
+Button's own scoped style at equal specificity — an `!important` rule is
+what actually reaches past a component in practice) fails `page-component-paint`
+at `src/pages/Home.svelte` at both viewports, two findings, and
+`src/live-tokens/data` hashes identically before and after each run, passing
+and failing alike. The template's own `Home.svelte` needed a real fix to make
+the clean-page assertion true: its `.stub` held a fixed twelve-column span
+with no phone breakpoint, so `page-overflow` failed at 390x844 before the
+fix, the same defect Wave 3 recorded for this repository's own `Home.svelte`
+and excluded from `check-page` rather than repairing. The template ships no
+exclusion mechanism, so the fix is a media query collapsing `.home` to one
+column below 768px, the same shape every page-defects fixture already takes.
+
+The rest of the wave boundary, each run in isolation (a concurrent run of
+`check:smoke-page-tests` alongside `check:smoke-component-tests` transiently
+failed the latter's SIGINT-cleanup assertion once, both gates racing on the
+shared `os.tmpdir()` `live-tokens-check-*` prefix; alone, it is green):
+`check:skills`, `check:skill-atlas`, `check:skill-sources` OK.
+`check:smoke-install` and `check:smoke-create` OK. `check:smoke-component-tests`
+OK, every scenario green. `npm run check`: 0 errors, 0 warnings, 1280 files.
+`npm test`: 128 files, 4629 tests passed. `npm run test:e2e:contract`: 262
+passed (2.8m). The page-defects project (`playwright test
+--project=page-defects`): 10 of 10 passed, the same set Wave 3 recorded — five
+defects (`page-component-paint`, `page-text-style`, `page-contrast`,
+`page-grid`, `page-overflow`), four exceptions (gradient hero inapplicable,
+scrolling code passes, a local grid inside a section passes, a page with no
+shipped instance reports `page-component-paint` inapplicable), and the clean
+page passing every rule at both viewports.
+
 ## Completion criteria
 
 In a fresh consumer, the installed package proves through its documented

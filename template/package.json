@@ -9,7 +9,7 @@
     "preview": "vite preview",
     "check": "svelte-check --tsconfig ./tsconfig.json",
     "check:design": "live-tokens check-page && live-tokens check-component",
-    "test:design": "live-tokens check-component --tests",
+    "test:design": "live-tokens check-component --tests && live-tokens check-page --tests",
     "postinstall": "live-tokens setup-claude --force || exit 0"
   },
   "dependencies": {

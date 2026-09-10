@@ -163,7 +163,7 @@ const pages = {
 
 ## Verify
 
-Run **live-tokens-check-compliance**. Its report carries both checkers' findings by rule, and **live-tokens-fix-findings** takes the fix list. Repeat until the page is clean.
+Run **live-tokens-check-compliance**, then `npx live-tokens check-page <file> --tests --strict`. The Playwright suite runs against the page's own route and proves what only a rendered page can: the cascade leaves every component painting from its semantic properties, every run of text sits in one shipped text style, every text and surface pair meets AA, sections sit on the page grid, and nothing overflows. Each finding carries a rule id and a line; `--off=<rule>` silences a rule for one run. The two reports carry every finding by rule, and **live-tokens-fix-findings** takes the fix list. Repeat until the page is clean.
 
 The checkers cannot see a layout. Open the page at the width it is built for and check each line below.
 
@@ -172,7 +172,6 @@ The checkers cannot see a layout. Open the page at the width it is built for and
 - No label is larger than the page's body copy.
 - A line of copy runs 45 to 90 characters.
 - The containers in a section align at the bottom.
-- Every control stays inside its wrapper. A `width: 100%` field takes `box-sizing: border-box`.
 - The actions sit where the eye goes last, with the one primary at the end.
 - Every row of actions holds an action that leaves without committing.
 - An action that destroys saved work confirms in a `Dialog`.

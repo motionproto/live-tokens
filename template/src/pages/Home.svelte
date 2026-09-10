@@ -57,4 +57,17 @@
     flex-wrap: wrap;
     margin-top: var(--space-20);
   }
+
+  /* The theme's own column gutter alone exceeds a phone's width at 12
+     columns, so every page has to collapse to one column below 768px. */
+  @media (max-width: 767px) {
+    .home {
+      grid-template-columns: 1fr;
+      column-gap: 0;
+    }
+
+    .stub {
+      grid-column: 1 / -1;
+    }
+  }
 </style>

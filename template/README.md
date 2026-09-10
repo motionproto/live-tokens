@@ -41,20 +41,27 @@ your own editable component, install the Claude Code skills:
 npx @motion-proto/live-tokens setup-claude
 ```
 
-## Testing a component
+## Testing a component or a page
 
-`npm run test:design` runs `check-component --tests`: the static checks plus
-the registry contract and the component contract suites, in a browser, against
-this project. Playwright, Vitest, and happy-dom are installed; the browser is
-a one-time download:
+`npm run test:design` runs `check-component --tests` and `check-page --tests`:
+the static checks plus the registry contract, the component contract suites,
+and a page's own rendered output, in a browser, against this project.
+Playwright, Vitest, and happy-dom are installed; the browser is a one-time
+download:
 
 ```bash
 npx playwright install chromium
 ```
 
-`live-tokens.testing.ts` names the two files the run reads: `src/registerComponents.ts`
-registers your components, and `tests/contracts.ts` holds one contract per
-component, which is what the browser suites drive. The create-component skill
-writes both.
+`live-tokens.testing.ts` names the two files the component run reads:
+`src/registerComponents.ts` registers your components, and `tests/contracts.ts`
+holds one contract per component, which is what the browser suites drive. The
+create-component skill writes both.
+
+`check-page --tests` needs nothing declared: it opens each page named in
+`src/App.svelte`'s `pages` object at its own route, and proves that every
+shipped component instance paints from its semantic properties, every run of
+text sits in one shipped text style, every text and surface pair meets AA,
+sections sit on the page grid, and nothing overflows.
 
 A failing run leaves its report under `test-results/`, gitignored.
