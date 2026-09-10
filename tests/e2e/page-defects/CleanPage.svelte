@@ -14,7 +14,7 @@
     </div>
   </section>
   <aside class="side">
-    <Card>
+    <Card variant="bare">
       <p>A card owns the typography of its slot, so this paragraph is the card's obligation.</p>
     </Card>
   </aside>
