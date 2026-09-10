@@ -122,10 +122,13 @@ export function restingPaintSpec(contract: ComponentContract): ContractPaintSpec
   const rootSelector = contract.parts[contract.root];
   if (typeof rootSelector !== 'string') return null;
   const entries: PaintEntry[] = [];
+  // `contract.view` opens the component editor: its `setup` drives preview
+  // controls no page has and its `state` names a tab. Only `variant` carries
+  // onto a page, so an entry inherits that and nothing else.
   const inherited = contract.view ?? {};
   for (const expectation of contract.properties) {
-    if ((expectation.setup ?? inherited.setup ?? []).length > 0) continue;
-    if (!restingState(expectation.state ?? inherited.state)) continue;
+    if ((expectation.setup ?? []).length > 0) continue;
+    if (!restingState(expectation.state)) continue;
     const checks = paintChecks(contract, expectation.paints);
     if (checks.length === 0) continue;
     entries.push({ variant: (expectation.variant ?? inherited.variant)?.toLowerCase() ?? null, checks });
@@ -135,7 +138,7 @@ export function restingPaintSpec(contract: ComponentContract): ContractPaintSpec
   if (!isInapplicable(contract.states)) {
     for (const state of contract.states) {
       if (!state.paints || !restingState(state.state)) continue;
-      if ((state.setup ?? inherited.setup ?? []).length > 0) continue;
+      if ((state.setup ?? []).length > 0) continue;
       const checks = paintChecks(contract, state.paints);
       if (checks.length === 0) continue;
       entries.push({ variant: (state.variant ?? inherited.variant)?.toLowerCase() ?? null, checks });

@@ -36,8 +36,8 @@ Those are usability and accessibility. This plan is design-system compliance.
 
 | Wave | Deliverable | Model | Budget | Status | Commit |
 |---|---|---|---|---|---|
-| 1 | Two static rules: `native-control` and `property-override` | Sonnet | 45 min | Not started | |
-| 2 | Page targets, the page suite, `page-component-paint` and `page-text-style` | Opus | 120 min | Executed | |
+| 1 | Two static rules: `native-control` and `property-override` | Sonnet | 45 min | Executed | 40c2210, e17dcad |
+| 2 | Page targets, the page suite, `page-component-paint` and `page-text-style` | Opus | 120 min | Executed | 0521a42 |
 | 3 | `page-contrast`, `page-grid`, `page-overflow`, and the defect fixtures | Opus | 120 min | Not started | |
 | 4 | `check-page --tests`: runner, reporter mapping, coverage | Sonnet | 90 min | Not started | |
 | 5 | Consumer gate, template, skills, atlas, changelog | Sonnet | 120 min | Not started | |
@@ -318,10 +318,26 @@ rule that fails on a correct page is the rule's defect.
 5. *A component the page never renders is absent, not an unmatched variant.*
    Decision 6's exception is reported only when the page renders an instance
    whose root classes name none of the contract's variants.
+6. *A contract's `view` lends a page instance its variant and nothing else.*
+   The first cut also inherited `contract.view.setup` and `contract.view.state`
+   into the resting filter. `view` opens the *component editor*: its `setup`
+   drives preview-stage controls no page has, and its `state` names a tab.
+   Inheriting them disqualified every entry that declared no setup of its own,
+   so `restingPaintSpec` returned null for Input, Notification, and Image
+   Lightbox, and the rule asserted nothing for those three on any page while
+   the run still reported a pass. An entry is now filtered on its own `setup`
+   and its own `state`, and inherits only `variant`. That restores 24 checks
+   for Input, 72 across Notification's four variants, and Image Lightbox's five
+   tile paints. Menu Select and Segmented Control, whose views open on a
+   transient tab, label every entry themselves, so the state half changed
+   nothing for them.
 
 **What the pages proved.** `src/app/Home.svelte` at 1280x900: 25 instances,
 276 contracted paints, 0 failures. `src/demo/Demo.svelte` passes
-`page-component-paint` at both viewports.
+`page-component-paint` at both viewports. Both still pass after note 6's
+repair; neither renders an Input, a Notification, or an Image Lightbox, so
+`pageHarness.test.ts` is what holds the checks the repair restored until Wave
+3's fixtures render one.
 
 **The demo pages are not compliance targets.** `live-tokens.config.json`
 already excludes `src/demo` and `src/app/Home.svelte` from `check-page`.
@@ -361,7 +377,7 @@ chrome children — the editor overlay and the column guides — with
 the consumer gate's own work (`check:smoke-page-tests`). The template's Home
 is this repo's Home in shape: a Card holding an h1, a p, and two Buttons.
 
-**For review.** Two boundary questions the ground truth raised, neither
+**For review.** Four boundary questions the ground truth raised, none
 resolved here.
 
 *Slot children neither rule sees.* `src/app/Home.svelte` sets its own `h1` to
@@ -377,6 +393,24 @@ fixtures, where a clean page can prove which way is correct.
 `<span class="ftt-tag-label">`, a decorative chip label inside a diagram, to
 the same obligation as a paragraph. Whether page-drawn UI chrome owes a text
 style is a judgment for the fix-findings guidance in Wave 5.
+
+*A font stack that names the same face.* `page-text-style` compares
+`fontFamily` as an exact computed string, so an element that declares
+`--font-sans` through a shorter stack than the bundle's reports a family miss
+while rendering in Manrope. On the demo those elements sit on raw single-axis
+declarations `raw-text-axis` already errors on, so the findings are true there,
+and the rule's only proof of the positive case is the demo's three plain `<p>`
+elements. Wave 3's clean fixture has to carry a page that composes a bundle
+through a token and passes.
+
+*A setup that only reveals a part.* Section Divider declares
+`showOptionalContent` on all three of its entries, so the rule's own-setup
+filter leaves it with no page obligation at all. That setup makes the
+description and the eyebrow visible in the editor; on a page they are either
+rendered or absent, and an absent part is already skipped. Reading `setup` as
+two kinds, one that reveals a part and one that changes a value, would give
+Section Divider its resting paints back. Wave 3's fixtures are where a Section
+Divider on a clean page can decide it.
 
 ## Wave 3 — the last three rules and the defect fixtures
 

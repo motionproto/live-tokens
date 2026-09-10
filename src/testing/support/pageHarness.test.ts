@@ -1,6 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import { buttonContract } from '../contracts/button';
 import { cardContract } from '../contracts/card';
+import { inputContract } from '../contracts/input';
+import { menuSelectContract } from '../contracts/menuselect';
+import { notificationContract } from '../contracts/notification';
 import { restingPaintSpec } from './pageHarness';
 
 const variantsOf = (id: ReturnType<typeof restingPaintSpec>) =>
@@ -25,6 +28,26 @@ describe('restingPaintSpec', () => {
 
   it('drops an entry an editor control has to reach', () => {
     expect(variablesOf(restingPaintSpec(buttonContract)).has('--button-small-padding')).toBe(false);
+  });
+
+  it('keeps an entry the contract view setup would have dropped', () => {
+    const variables = variablesOf(restingPaintSpec(inputContract));
+    expect(variables.has('--input-default-surface')).toBe(true);
+    expect(variables.has('--input-label-font-size')).toBe(true);
+  });
+
+  it('keeps every variant of a contract whose view opens behind a control', () => {
+    const spec = restingPaintSpec(notificationContract);
+    expect(variantsOf(spec)).toEqual(['danger', 'info', 'success', 'warning']);
+    for (const variant of ['danger', 'info', 'success', 'warning']) {
+      expect(variablesOf(spec).has(`--notification-${variant}-surface`)).toBe(true);
+    }
+  });
+
+  it('keeps the resting entries of a contract whose view opens on a transient tab', () => {
+    const variables = variablesOf(restingPaintSpec(menuSelectContract));
+    expect(variables.has('--menuselect-default-text')).toBe(true);
+    expect(variables.has('--menuselect-selected-surface')).toBe(false);
   });
 
   it('gives a state entry the variant the contract view opens on', () => {
