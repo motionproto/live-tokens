@@ -29,6 +29,52 @@
       lazy: () => import('../demo/FloatingTagsPlayground.svelte'),
       source: 'src/demo/FloatingTagsPlayground.svelte',
     },
+    // One deliberate defect per page rule, one exception per status the rules
+    // report, and one page that keeps every obligation. `import.meta.env.DEV`
+    // is a constant at build time, so a production bundle drops the branch and
+    // every module it names: the fixtures reach no consumer.
+    ...(import.meta.env.DEV ? {
+      '/page-defects/clean': {
+        lazy: () => import('../../tests/e2e/page-defects/CleanPage.svelte'),
+        source: 'tests/e2e/page-defects/CleanPage.svelte',
+      },
+      '/page-defects/paint': {
+        lazy: () => import('../../tests/e2e/page-defects/PaintDefect.svelte'),
+        source: 'tests/e2e/page-defects/PaintDefect.svelte',
+      },
+      '/page-defects/text-style': {
+        lazy: () => import('../../tests/e2e/page-defects/TextStyleDefect.svelte'),
+        source: 'tests/e2e/page-defects/TextStyleDefect.svelte',
+      },
+      '/page-defects/contrast': {
+        lazy: () => import('../../tests/e2e/page-defects/ContrastDefect.svelte'),
+        source: 'tests/e2e/page-defects/ContrastDefect.svelte',
+      },
+      '/page-defects/grid': {
+        lazy: () => import('../../tests/e2e/page-defects/GridDefect.svelte'),
+        source: 'tests/e2e/page-defects/GridDefect.svelte',
+      },
+      '/page-defects/overflow': {
+        lazy: () => import('../../tests/e2e/page-defects/OverflowDefect.svelte'),
+        source: 'tests/e2e/page-defects/OverflowDefect.svelte',
+      },
+      '/page-defects/gradient-hero': {
+        lazy: () => import('../../tests/e2e/page-defects/GradientHero.svelte'),
+        source: 'tests/e2e/page-defects/GradientHero.svelte',
+      },
+      '/page-defects/scrolling-code': {
+        lazy: () => import('../../tests/e2e/page-defects/ScrollingCode.svelte'),
+        source: 'tests/e2e/page-defects/ScrollingCode.svelte',
+      },
+      '/page-defects/local-grid': {
+        lazy: () => import('../../tests/e2e/page-defects/LocalGrid.svelte'),
+        source: 'tests/e2e/page-defects/LocalGrid.svelte',
+      },
+      '/page-defects/no-instance': {
+        lazy: () => import('../../tests/e2e/page-defects/NoInstance.svelte'),
+        source: 'tests/e2e/page-defects/NoInstance.svelte',
+      },
+    } : {}),
   };
 </script>
 

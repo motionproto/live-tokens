@@ -38,7 +38,7 @@ Those are usability and accessibility. This plan is design-system compliance.
 |---|---|---|---|---|---|
 | 1 | Two static rules: `native-control` and `property-override` | Sonnet | 45 min | Done | 40c2210, e17dcad |
 | 2 | Page targets, the page suite, `page-component-paint` and `page-text-style` | Opus | 120 min | Done | 0521a42, 868cdcc, 560e7f8, and the variant-match repair |
-| 3 | `page-contrast`, `page-grid`, `page-overflow`, and the defect fixtures | Opus | 120 min | Not started | |
+| 3 | `page-contrast`, `page-grid`, `page-overflow`, and the defect fixtures | Opus | 120 min | Done | |
 | 4 | `check-page --tests`: runner, reporter mapping, coverage | Sonnet | 90 min | Not started | |
 | 5 | Consumer gate, template, skills, atlas, changelog | Sonnet | 120 min | Not started | |
 
@@ -502,6 +502,97 @@ instance.
 **Verify.** Each defect fails with its rule id and the page file's line.
 Each exception passes or reports `inapplicable` with its reason. The clean
 page passes at both viewports. `test:e2e:contract` unchanged.
+
+### Wave 3 calibration record
+
+**Rule changes the ground truth forced.**
+
+1. *A grid measures its child's border box, and its own alignment insets it.*
+   `src/app/Home.svelte` centres a shrink-to-fit card with `justify-self:
+   center` on a `1 / -1` area, so both its edges sit 12px inside the lines and
+   the literal reading calls a correct page wrong. Self-alignment is the grid's
+   own vocabulary for placing a box in the area it assigned: a centred section
+   is on the grid when its insets are symmetric, a `start` or `end` section
+   when the edge its alignment pins lands on a line, and a stretched section
+   answers for both edges. A margin, a width, or a transform is not the grid's
+   vocabulary and still fails, which is what the `page-grid` defect fixture
+   uses. The child is measured as its border box, the edge a reader sees.
+2. *The page's own root element is a grid like any other.* The first cut
+   iterated `[own, ...querySelectorAll('*')]`, which counted the page root
+   twice and reported "4 of 2 sections on 2 column grids" for Home's one
+   section. The list is the descendants.
+3. *A rule's assertion belongs to the harness, not the suite file.* Wave 2 held
+   the message text and the `test.skip` calls in
+   `page-compliance.contract.ts`, where the defect fixtures cannot reach them.
+   Each rule is now `PageHarness.assert<Rule>`, which throws a `PageViolation`,
+   returns an inapplicable reason, or returns null, and the suite file is the
+   loop over targets and viewports. The defect project measures the same code a
+   consumer runs.
+4. *Colour comes off a canvas, not a string.* The theme states its colours in
+   `oklch()` and Chromium keeps that syntax in the computed value, so no rgb
+   parse reaches the channels. `page-contrast` paints each value into a 1x1
+   canvas in `copy` mode and reads the pixel, which answers for any colour
+   syntax and gamut-clamps the way the screen does. The ratio itself is
+   `contrastRatio` from `src/editor/core/palettes/contrast.ts`, per invariant 2.
+
+**What the pages proved.** `page-contrast` raises nothing on `src/app/
+Home.svelte`, `src/demo/Demo.svelte`, or `src/demo/
+FloatingTagsPlayground.svelte` at either viewport, and is inapplicable on Home,
+whose every run of text is inside a Card. `page-grid` passes on Demo at
+1280x900, reports Home's centred card (note 1) and, on the floating-tags
+playground, that the page draws no column grid at all, which is the finding
+the rule reserves for a page that is not laid out on one.
+
+**A twelve-column grid does not survive a phone.** `--columns-gutter` is 32px
+in the shipped theme, so eleven gutters are 352px inside a 311px content box at
+390x844, and `page-overflow` reports the grid container holding 384px of
+content in 375px. It found the same 9px on Home, on the first cut of the clean
+fixture, and on the scrolling-code fixture: the rule is right and the shape is
+wrong. Every fixture now collapses to one column below 768px, which is the
+shape a page has to take and the reason `page-grid` is inapplicable there.
+Home keeps its twelve columns at 390 and keeps the finding, which is a page
+repair rather than a rule change; this repository excludes Home from
+`check-page` already.
+
+**Demo overflows, as the static checker already says.** `page-overflow` reports
+9 boxes on `/demo` at 1280x900 and 22 at 390x844, including a document that
+scrolls to 601px and a Code Snippet 212px past the box that clips it. The demo
+is excluded from `check-page` for the same reason Wave 2 recorded for
+`page-text-style`: it is a kitchen sink, not a compliance target.
+
+**The fixtures.** `tests/e2e/page-defects/` holds one page per rule that fails
+it, one page per exception, and one clean page, mounted on dev-only routes
+under `/page-defects/*` in `src/app/App.svelte` behind `import.meta.env.DEV`
+and run by the repository-only `page-defects` Playwright project. The clean
+page passes all five rules at 1280x900 and the four applicable rules at
+390x844. Every defect names its rule and the page file line: the paint defect
+anchors on the `<section>` that holds the Button, because Svelte stamps
+metadata on elements and a component tag is not one, which is decision 8
+working as written.
+
+**Still open, and why Wave 3 did not close them.**
+
+*A prop-driven component state.* The two resolutions Wave 2 named both need a
+state marker on the instance's root. Button's disabled state declares
+`attributes: { root: { disabled: '' } }`, which reaches it, but Input's error
+state declares neither `attributes` nor `forceClass`: the component editor
+reaches it through a contract-level `setup`, and the paint lands on
+`.input-field.invalid`, a part rather than the root. Deciding this is a change
+to what a contract declares, not to the rule, so the fixtures render no
+disabled Button and no errored Input and the exposure Wave 2 recorded stands.
+
+*Slot children neither rule sees.* Closing the seam is three lines: an element
+inside a shipped component root is the page's when its own `__svelte_meta`
+names the page file. It would then hold `src/app/Home.svelte`'s `<h1>`, which
+sets `--font-display` and `--font-size-4xl` inside a Card, to a bundle, and
+the template's Home carries the same heading. The rule change is cheap and the
+page repairs it forces are the decision, so this stays for review.
+
+*A setup that only reveals a part.* `pageHarness.test.ts` now pins that
+`restingPaintSpec(sectionDividerContract)` is null: all three of its entries
+declare `showOptionalContent`, so the contract owes a page nothing. Reading
+`setup` as two kinds would give those paints back and needs new metadata on
+the contract.
 
 ## Wave 4 — `check-page --tests`
 

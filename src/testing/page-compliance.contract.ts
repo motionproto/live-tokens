@@ -28,21 +28,6 @@ async function componentRoots(): Promise<string[]> {
     .filter((declared): declared is string => typeof declared === 'string');
 }
 
-/** Findings name CSS properties as a page's own stylesheet spells them. */
-const cssName = (camel: string) => camel.replace(/[A-Z]/g, (c) => `-${c.toLowerCase()}`);
-
-/** The line the finding anchors on, the rest named in the message, and what
- *  the rule looked at to find them: one rerun after each repair walks the
- *  whole list. */
-function report<T extends { line: number }>(
-  failures: T[],
-  scope: string,
-  describe: (failure: T) => string,
-): string {
-  const lines = failures.map(describe);
-  return lines.length === 1 ? lines[0] : `${lines.length} of ${scope}\n${lines.join('\n')}`;
-}
-
 for (const target of targets) {
   for (const viewport of viewports) {
     const at = `${viewport.width}x${viewport.height}`;
@@ -50,45 +35,35 @@ for (const target of targets) {
     test(`page-component-paint | ${target.source} | ${at}`, async ({ page }) => {
       const specs = await paintSpecs();
       const harness = await PageHarness.open(page, target, viewport);
-      const observed = await harness.observePaints(specs);
-      test.skip(observed.instances === 0, `${target.source} renders no shipped component`);
-      if (observed.failures.length > 0) {
-        harness.fail(
-          'page-component-paint',
-          observed.failures[0].line,
-          report(observed.failures, `${observed.asserted} contracted paints`, (failure) =>
-            `line ${failure.line}: ${failure.id}${failure.variant ? ` (${failure.variant})` : ''} `
-            + `paints ${failure.part} ${cssName(failure.css)}: ${failure.actual}, `
-            + `but ${failure.variable} resolves to ${failure.expected}`),
-        );
-      }
-      // A page holding an instance the rule cannot place in a variant is a page
-      // the rule did not prove.
-      test.skip(
-        observed.uncovered.length > 0,
-        `${target.source}: no entry names the variant of `
-        + observed.uncovered
-          .map((instance) => `${instance.id} at line ${instance.line}, which offers ${instance.variants.join(', ')}`)
-          .join('; '),
-      );
-      test.skip(observed.asserted === 0, `no contracted part of a shipped instance is rendered on ${target.source}`);
+      const inapplicable = await harness.assertComponentPaint(specs);
+      test.skip(inapplicable !== null, inapplicable ?? '');
     });
 
     test(`page-text-style | ${target.source} | ${at}`, async ({ page }) => {
       const roots = await componentRoots();
       const harness = await PageHarness.open(page, target, viewport);
-      const observed = await harness.observeTextStyles(bundles, roots);
-      test.skip(observed.elements === 0, `${target.source} renders no text outside a shipped component`);
-      if (observed.failures.length > 0) {
-        harness.fail(
-          'page-text-style',
-          observed.failures[0].line,
-          report(observed.failures, `${observed.elements} runs of text`, (failure) =>
-            `line ${failure.line}: <${failure.tag}> is in no shipped text style. `
-            + `Nearest is ${failure.nearest}: its ${cssName(failure.axis)} is ${failure.expected}, `
-            + `the element's is ${failure.actual}`),
-        );
-      }
+      const inapplicable = await harness.assertTextStyle(bundles, roots);
+      test.skip(inapplicable !== null, inapplicable ?? '');
+    });
+
+    test(`page-contrast | ${target.source} | ${at}`, async ({ page }) => {
+      const roots = await componentRoots();
+      const harness = await PageHarness.open(page, target, viewport);
+      const inapplicable = await harness.assertContrast(roots);
+      test.skip(inapplicable !== null, inapplicable ?? '');
+    });
+
+    test(`page-grid | ${target.source} | ${at}`, async ({ page }) => {
+      const harness = await PageHarness.open(page, target, viewport);
+      const inapplicable = await harness.assertGrid();
+      test.skip(inapplicable !== null, inapplicable ?? '');
+    });
+
+    test(`page-overflow | ${target.source} | ${at}`, async ({ page }) => {
+      const specs = await paintSpecs();
+      const harness = await PageHarness.open(page, target, viewport);
+      const inapplicable = await harness.assertOverflow(specs);
+      test.skip(inapplicable !== null, inapplicable ?? '');
     });
   }
 }

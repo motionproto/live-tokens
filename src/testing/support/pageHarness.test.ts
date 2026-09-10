@@ -6,6 +6,7 @@ import { cardContract } from '../contracts/card';
 import { collapsibleSectionContract } from '../contracts/collapsiblesection';
 import { cornerBadgeContract } from '../contracts/cornerbadge';
 import { inlineEditActionsContract } from '../contracts/inlineeditactions';
+import { sectionDividerContract } from '../contracts/sectiondivider';
 import { inputContract } from '../contracts/input';
 import { menuSelectContract } from '../contracts/menuselect';
 import { notificationContract } from '../contracts/notification';
@@ -105,6 +106,14 @@ describe('restingPaintSpec', () => {
 
   it('leaves an instance whose classes name no variant uncovered', () => {
     expect(variantsReached(restingPaintSpec(inlineEditActionsContract), ['save-btn'])).toEqual([]);
+  });
+
+  it('leaves a contract whose every entry needs a control with no page obligation', () => {
+    // Section Divider's three entries all declare `showOptionalContent`, a
+    // setup that reveals a part rather than changing a value. On a page the
+    // part is either rendered or absent, so reading the two kinds apart would
+    // give this contract its resting paints back. Recorded, not changed.
+    expect(restingPaintSpec(sectionDividerContract)).toBeNull();
   });
 
   it('resolves each part against the instance, and the root against itself', () => {

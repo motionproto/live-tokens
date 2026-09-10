@@ -25,5 +25,14 @@ export default createPlaywrightConfig({
       workers: 1,
       use: { ...devices['Desktop Chrome'], viewport: { width: 1280, height: 900 } },
     },
+    {
+      // One page per rule, each written to fail it, and the exceptions each
+      // rule reserves. Kept out of the shipped project so a consumer never
+      // opens a page carrying a deliberate defect.
+      name: 'page-defects',
+      testDir: './tests/e2e/page-defects',
+      testMatch: '**/*.spec.ts',
+      use: { ...devices['Desktop Chrome'] },
+    },
   ],
 });

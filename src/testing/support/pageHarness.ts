@@ -5,6 +5,7 @@ import {
   PAGE_VIEWPORTS_ENV,
   type PageViewport,
 } from '../config';
+import { AA_BODY, AA_LARGE, contrastRatio } from '../../editor/core/palettes/contrast';
 import { isInapplicable, type ComponentContract, type PaintMap } from '../componentContract';
 
 export type PageRule =
@@ -207,11 +208,98 @@ export interface TextBundle {
   prefix: string;
 }
 
+export interface ContrastPair {
+  line: number;
+  tag: string;
+  /** Computed text colour, composited over the surface when translucent. */
+  color: string;
+  background: string;
+  colorToken: string | null;
+  backgroundToken: string | null;
+  fontSize: number;
+  fontWeight: number;
+}
+
+export interface ContrastObservation {
+  pairs: ContrastPair[];
+  /** Why a run of text carries no pair, counted by reason. */
+  skipped: Record<string, number>;
+}
+
+export interface GridChildFailure {
+  line: number;
+  tag: string;
+  edge: 'left' | 'right';
+  /** Distance from the nearest track edge, in px. */
+  off: number;
+}
+
+export interface GridObservation {
+  grids: number;
+  children: number;
+  failures: GridChildFailure[];
+  /** The page's own outermost element, which a missing grid anchors on. */
+  pageLine: number;
+}
+
+export interface OverflowFailure {
+  line: number;
+  tag: string;
+  kind: 'document' | 'element' | 'instance';
+  detail: string;
+}
+
+export interface OverflowObservation {
+  elements: number;
+  failures: OverflowFailure[];
+}
+
 const TEXT_AXES = ['fontFamily', 'fontSize', 'fontWeight', 'lineHeight', 'letterSpacing'] as const;
 
 /** Displays that make an element a block of its own. Text sitting directly in
  *  anything else is a run inside a line, and the line's own block owns it. */
 const BLOCK_DISPLAYS = ['block', 'flow-root', 'list-item', 'flex', 'grid', 'table-cell', 'table-caption'];
+
+/** Sub-pixel track positions and a browser's own rounding put an edge that is
+ *  on the line up to a pixel off it. */
+const GRID_TOLERANCE = 1;
+
+/** Below this the page is one column, so the grid rule has nothing to hold a
+ *  section to. */
+const GRID_VIEWPORT = 768;
+
+/** WCAG's large-text sizes: the AA floor drops to 3:1 at either. */
+const LARGE_TEXT_PX = 24;
+const LARGE_BOLD_PX = 18.66;
+const BOLD = 700;
+
+/** Findings name CSS properties as a page's own stylesheet spells them. */
+const cssName = (camel: string) => camel.replace(/[A-Z]/g, (c) => `-${c.toLowerCase()}`);
+
+/** The line the finding anchors on, the rest named in the message, and what
+ *  the rule looked at to find them: one rerun after each repair walks the
+ *  whole list. */
+function report<T>(failures: T[], scope: string, describe: (failure: T) => string): string {
+  const lines = failures.map(describe);
+  return lines.length === 1 ? lines[0] : `${lines.length} of ${scope}\n${lines.join('\n')}`;
+}
+
+function hex(rgb: string): string {
+  const [r, g, b] = rgb.match(/\d+/g)!.map(Number);
+  return `#${[r, g, b].map((c) => c.toString(16).padStart(2, '0')).join('')}`;
+}
+
+/** The AA floor the pair has to clear, which its own size and weight set. */
+function aaFloor(pair: ContrastPair): number {
+  const large = pair.fontSize >= LARGE_TEXT_PX
+    || (pair.fontSize >= LARGE_BOLD_PX && pair.fontWeight >= BOLD);
+  return large ? AA_LARGE : AA_BODY;
+}
+
+/** A reason reads as prose: `a gradient (2), a blend mode (1)`. */
+function reasons(skipped: Record<string, number>): string {
+  return Object.entries(skipped).map(([reason, count]) => `${reason} (${count})`).join(', ');
+}
 
 /** The page under test, and what the rules read off it. */
 export class PageHarness {
@@ -456,6 +544,390 @@ export class PageHarness {
       });
     }
     return { elements: elements.length, failures };
+  }
+
+  /**
+   * Every text and surface pair the page composes, with the tokens whose
+   * resolved values match them. The ratio itself is computed by the caller
+   * from the editor's own WCAG helper, so one implementation answers for the
+   * palette editor and for a page.
+   */
+  async observeContrast(componentRoots: string[]): Promise<ContrastObservation> {
+    return this.page.evaluate(({ roots, container, chrome, source, displays }) => {
+      const pairs: ContrastPair[] = [];
+      const skipped: Record<string, number> = {};
+      const skip = (reason: string) => { skipped[reason] = (skipped[reason] ?? 0) + 1; };
+      const root = document.querySelector(container);
+      if (!root) return { pairs, skipped };
+
+      // The theme states its colours in `oklch()`, which Chromium keeps in the
+      // computed value, so no string parse reaches the channels. A 1x1 canvas
+      // in `copy` mode answers with the pixel the screen shows, gamut-clamped
+      // the same way, for any colour syntax including a future one. An invalid
+      // or `transparent` value leaves the cleared pixel, which reads as alpha 0
+      // and is what "paints nothing here" means.
+      const canvas = document.createElement('canvas');
+      canvas.width = 1;
+      canvas.height = 1;
+      const ctx = canvas.getContext('2d', { willReadFrequently: true })!;
+      ctx.globalCompositeOperation = 'copy';
+      const rgba = (value: string): [number, number, number, number] => {
+        ctx.fillStyle = 'rgba(0, 0, 0, 0)';
+        ctx.fillStyle = value;
+        ctx.fillRect(0, 0, 1, 1);
+        const [r, g, b, a] = ctx.getImageData(0, 0, 1, 1).data;
+        return [r, g, b, a / 255];
+      };
+      const key = ([r, g, b]: [number, number, number, number]) => `${r},${g},${b}`;
+      const css = (c: [number, number, number, number]) =>
+        (c[3] === 1 ? `rgb(${c[0]}, ${c[1]}, ${c[2]})` : `rgba(${c[0]}, ${c[1]}, ${c[2]}, ${c[3]})`);
+
+      // A finding names the token when one resolves to the colour it measured.
+      const probe = document.createElement('div');
+      probe.style.display = 'none';
+      document.body.appendChild(probe);
+      const named = new Map<string, string>();
+      const rootStyle = getComputedStyle(document.documentElement);
+      for (const name of rootStyle) {
+        if (!name.startsWith('--')) continue;
+        probe.style.color = '';
+        probe.style.color = `var(${name})`;
+        const resolved = getComputedStyle(probe).color;
+        if (!resolved) continue;
+        const colour = rgba(resolved);
+        if (colour[3] === 0) continue;
+        if (!named.has(key(colour))) named.set(key(colour), name);
+      }
+      probe.remove();
+
+      const over = (
+        front: [number, number, number, number],
+        back: [number, number, number, number],
+      ): [number, number, number, number] => [
+        Math.round(front[0] * front[3] + back[0] * (1 - front[3])),
+        Math.round(front[1] * front[3] + back[1] * (1 - front[3])),
+        Math.round(front[2] * front[3] + back[2] * (1 - front[3])),
+        1,
+      ];
+
+      const inComponent = roots.join(', ');
+      for (const element of root.querySelectorAll<HTMLElement>('*')) {
+        if (element.closest(chrome)) continue;
+        if (inComponent && element.closest(inComponent)) continue;
+        const ownText = [...element.childNodes]
+          .some((node) => node.nodeType === Node.TEXT_NODE && (node.textContent ?? '').trim().length > 0);
+        if (!ownText) continue;
+        const style = getComputedStyle(element);
+        if (!displays.includes(style.display)) continue;
+        if (style.visibility !== 'visible') continue;
+        const colour = rgba(style.color);
+        if (colour[3] === 0) continue;
+
+        let surface: [number, number, number, number] | null = null;
+        let reason: string | null = null;
+        for (let node: Element | null = element; node; node = node.parentElement) {
+          const behind = getComputedStyle(node);
+          if (behind.mixBlendMode !== 'normal') { reason = 'a blend mode'; break; }
+          if (behind.backgroundImage !== 'none') { reason = 'a gradient or an image behind the text'; break; }
+          const paint = rgba(behind.backgroundColor);
+          if (paint[3] === 1) { surface = paint; break; }
+          if (paint[3] > 0) { reason = 'a translucent surface'; break; }
+        }
+        if (!surface) {
+          skip(reason ?? 'no opaque surface behind the text');
+          continue;
+        }
+        pairs.push({
+          line: window.__liveTokensPageLine(element, source),
+          tag: element.tagName.toLowerCase(),
+          color: css(colour[3] === 1 ? colour : over(colour, surface)),
+          background: css(surface),
+          colorToken: named.get(key(colour[3] === 1 ? colour : over(colour, surface))) ?? null,
+          backgroundToken: named.get(key(surface)) ?? null,
+          fontSize: parseFloat(style.fontSize),
+          fontWeight: parseInt(style.fontWeight, 10) || 400,
+        });
+      }
+      return { pairs, skipped };
+    }, {
+      roots: componentRoots,
+      container: PAGE_CONTAINER,
+      chrome: CHROME,
+      source: this.target.source,
+      displays: BLOCK_DISPLAYS,
+    });
+  }
+
+  /** Where each section of the page sits against the column grid it draws. */
+  async observeGrid(): Promise<GridObservation> {
+    return this.page.evaluate(({ container, chrome, source, tolerance }) => {
+      const failures: GridChildFailure[] = [];
+      let grids = 0;
+      let children = 0;
+      const root = document.querySelector(container);
+      if (!root) return { grids, children, failures, pageLine: 1 };
+      const own = [...root.children].find((child) => !child.matches(chrome));
+      const pageLine = own ? window.__liveTokensPageLine(own, source) : 1;
+
+      const columns = parseInt(
+        getComputedStyle(document.documentElement).getPropertyValue('--columns-count').trim(),
+        10,
+      );
+      if (!columns) return { grids, children, failures, pageLine };
+
+      for (const grid of root.querySelectorAll('*')) {
+        if (grid.closest(chrome)) continue;
+        const style = getComputedStyle(grid);
+        const tracks = style.gridTemplateColumns.split(/\s+/).map(parseFloat);
+        if (tracks.length !== columns || tracks.some((track) => !Number.isFinite(track))) continue;
+        grids++;
+        const box = grid.getBoundingClientRect();
+        const gap = parseFloat(style.columnGap) || 0;
+        let offset = box.left + parseFloat(style.borderLeftWidth) + parseFloat(style.paddingLeft);
+        const lines: number[] = [];
+        for (const track of tracks) {
+          lines.push(offset);
+          offset += track;
+          lines.push(offset);
+          offset += gap;
+        }
+        const nearest = (edge: number) =>
+          lines.reduce((best, line) => (Math.abs(line - edge) < Math.abs(best - edge) ? line : best), lines[0]);
+
+        const items = getComputedStyle(grid).justifyItems;
+        for (const child of grid.children) {
+          if (child.matches(chrome)) continue;
+          const kid = getComputedStyle(child);
+          if (kid.display === 'none' || kid.display === 'contents') continue;
+          // Out of flow: the grid places its containing block, not the box.
+          if (kid.position === 'absolute' || kid.position === 'fixed') continue;
+          // The border box, which is the edge the eye reads. A margin that
+          // insets a stretched section moves that edge off the line, and the
+          // finding is the same one a reader would raise.
+          const { left, right } = child.getBoundingClientRect();
+          children++;
+          // Self-alignment is the grid's own way of insetting a box in the
+          // area it placed: a centred section is still on the grid, and only
+          // the edge its alignment pins has to land on a line. A margin, a
+          // width, or a transform is not the grid's vocabulary, so a stretched
+          // item answers for both edges.
+          const align = kid.justifySelf === 'auto' ? items : kid.justifySelf;
+          const centred = align === 'center';
+          const pinned: ('left' | 'right')[] = centred ? []
+            : align === 'start' || align === 'flex-start' || align === 'left' ? ['left']
+            : align === 'end' || align === 'flex-end' || align === 'right' ? ['right']
+            : ['left', 'right'];
+          if (centred) {
+            const before = left - Math.max(...lines.filter((line) => line <= left + tolerance), lines[0]);
+            const after = Math.min(...lines.filter((line) => line >= right - tolerance), lines[lines.length - 1]) - right;
+            if (Math.abs(before - after) > tolerance) {
+              failures.push({
+                line: window.__liveTokensPageLine(child, source),
+                tag: child.tagName.toLowerCase(),
+                edge: before > after ? 'left' : 'right',
+                off: Math.round((before - after) * 10) / 10,
+              });
+            }
+            continue;
+          }
+          for (const edge of pinned) {
+            const at = edge === 'left' ? left : right;
+            const off = at - nearest(at);
+            if (Math.abs(off) <= tolerance) continue;
+            failures.push({
+              line: window.__liveTokensPageLine(child, source),
+              tag: child.tagName.toLowerCase(),
+              edge,
+              off: Math.round(off * 10) / 10,
+            });
+          }
+        }
+      }
+      return { grids, children, failures, pageLine };
+    }, { container: PAGE_CONTAINER, chrome: CHROME, source: this.target.source, tolerance: GRID_TOLERANCE });
+  }
+
+  /** What the page pushes past the viewport, past its own container, or past
+   *  the box that clips it. */
+  async observeOverflow(specs: ContractPaintSpec[]): Promise<OverflowObservation> {
+    return this.page.evaluate(({ specs: list, container, chrome, source, tolerance }) => {
+      const failures: OverflowFailure[] = [];
+      let elements = 0;
+      const root = document.querySelector(container);
+      if (!root) return { elements, failures };
+      const own = [...root.children].find((child) => !child.matches(chrome));
+      const pageLine = own ? window.__liveTokensPageLine(own, source) : 1;
+
+      const page = document.documentElement;
+      if (page.scrollWidth > window.innerWidth + tolerance) {
+        failures.push({
+          line: pageLine,
+          tag: 'html',
+          kind: 'document',
+          detail: `the document scrolls to ${page.scrollWidth}px at a ${window.innerWidth}px viewport`,
+        });
+      }
+
+      for (const element of root.querySelectorAll('*')) {
+        if (element.closest(chrome)) continue;
+        const style = getComputedStyle(element);
+        if (style.display === 'none' || style.display === 'contents') continue;
+        // An inline box reports 0 for both, so every one of them would read as
+        // overflowing its own zero width.
+        if (element.clientWidth === 0) continue;
+        elements++;
+        if (style.overflowX === 'auto' || style.overflowX === 'scroll') continue;
+        if (element.scrollWidth > element.clientWidth + tolerance) {
+          failures.push({
+            line: window.__liveTokensPageLine(element, source),
+            tag: element.tagName.toLowerCase(),
+            kind: 'element',
+            detail: `<${element.tagName.toLowerCase()}> holds ${element.scrollWidth}px of content in `
+              + `${element.clientWidth}px, and its overflow-x is ${style.overflowX}`,
+          });
+        }
+      }
+
+      const clips = (style: CSSStyleDeclaration) =>
+        style.overflowX !== 'visible' || style.overflowY !== 'visible';
+      for (const spec of list) {
+        for (const instance of root.querySelectorAll(spec.root)) {
+          if (instance.closest(chrome)) continue;
+          let clipper: Element | null = null;
+          for (let node = instance.parentElement; node; node = node.parentElement) {
+            if (clips(getComputedStyle(node))) { clipper = node; break; }
+          }
+          if (!clipper) continue;
+          const box = instance.getBoundingClientRect();
+          const bounds = clipper.getBoundingClientRect();
+          const past = [
+            box.left < bounds.left - tolerance ? `${Math.round(bounds.left - box.left)}px past the left edge` : null,
+            box.right > bounds.right + tolerance ? `${Math.round(box.right - bounds.right)}px past the right edge` : null,
+          ].filter((side): side is string => side !== null);
+          if (past.length === 0) continue;
+          failures.push({
+            line: window.__liveTokensPageLine(instance, source),
+            tag: spec.id,
+            kind: 'instance',
+            detail: `${spec.id} sits ${past.join(' and ')} of the `
+              + `<${clipper.tagName.toLowerCase()}> that clips it`,
+          });
+        }
+      }
+      return { elements, failures };
+    }, { specs, container: PAGE_CONTAINER, chrome: CHROME, source: this.target.source, tolerance: 1 });
+  }
+
+  /**
+   * Every rule reports the same three ways: it throws a `PageViolation` the
+   * runner turns into a finding, returns a reason the run records as
+   * `inapplicable`, or returns null, which is the pass. The suite files hold
+   * no rule of their own so the defect fixtures measure what a consumer runs.
+   */
+  async assertComponentPaint(specs: ContractPaintSpec[]): Promise<string | null> {
+    const observed = await this.observePaints(specs);
+    if (observed.instances === 0) return `${this.target.source} renders no shipped component`;
+    if (observed.failures.length > 0) {
+      this.fail(
+        'page-component-paint',
+        observed.failures[0].line,
+        report(observed.failures, `${observed.asserted} contracted paints`, (failure) =>
+          `line ${failure.line}: ${failure.id}${failure.variant ? ` (${failure.variant})` : ''} `
+          + `paints ${failure.part} ${cssName(failure.css)}: ${failure.actual}, `
+          + `but ${failure.variable} resolves to ${failure.expected}`),
+      );
+    }
+    // A page holding an instance the rule cannot place in a variant is a page
+    // the rule did not prove.
+    if (observed.uncovered.length > 0) {
+      return `${this.target.source}: no entry names the variant of `
+        + observed.uncovered
+          .map((instance) => `${instance.id} at line ${instance.line}, which offers ${instance.variants.join(', ')}`)
+          .join('; ');
+    }
+    if (observed.asserted === 0) {
+      return `no contracted part of a shipped instance is rendered on ${this.target.source}`;
+    }
+    return null;
+  }
+
+  async assertTextStyle(bundles: TextBundle[], componentRoots: string[]): Promise<string | null> {
+    const observed = await this.observeTextStyles(bundles, componentRoots);
+    if (observed.elements === 0) return `${this.target.source} renders no text outside a shipped component`;
+    if (observed.failures.length > 0) {
+      this.fail(
+        'page-text-style',
+        observed.failures[0].line,
+        report(observed.failures, `${observed.elements} runs of text`, (failure) =>
+          `line ${failure.line}: <${failure.tag}> is in no shipped text style. `
+          + `Nearest is ${failure.nearest}: its ${cssName(failure.axis)} is ${failure.expected}, `
+          + `the element's is ${failure.actual}`),
+      );
+    }
+    return null;
+  }
+
+  async assertContrast(componentRoots: string[]): Promise<string | null> {
+    const observed = await this.observeContrast(componentRoots);
+    const failures = observed.pairs
+      .map((pair) => ({ pair, ratio: contrastRatio(hex(pair.color), hex(pair.background)), floor: aaFloor(pair) }))
+      .filter(({ ratio, floor }) => ratio < floor);
+    if (failures.length > 0) {
+      const names = (colour: string, token: string | null) => (token ? `${token} (${colour})` : colour);
+      this.fail(
+        'page-contrast',
+        failures[0].pair.line,
+        report(failures, `${observed.pairs.length} text and surface pairs`, ({ pair, ratio, floor }) =>
+          `line ${pair.line}: <${pair.tag}> at ${pair.fontSize}px/${pair.fontWeight} sets `
+          + `${names(pair.color, pair.colorToken)} on ${names(pair.background, pair.backgroundToken)}, `
+          + `a ratio of ${ratio.toFixed(2)} against the ${floor} AA floor`),
+      );
+    }
+    if (observed.pairs.length === 0) {
+      const why = reasons(observed.skipped);
+      return why
+        ? `no text on ${this.target.source} sits on a surface the rule can read: ${why}`
+        : `${this.target.source} renders no text outside a shipped component`;
+    }
+    return null;
+  }
+
+  async assertGrid(): Promise<string | null> {
+    if (this.viewport.width < GRID_VIEWPORT) {
+      return `the page is one column at ${this.viewport.width}px, below the ${GRID_VIEWPORT}px the grid needs`;
+    }
+    const observed = await this.observeGrid();
+    if (observed.grids === 0) {
+      this.fail(
+        'page-grid',
+        observed.pageLine,
+        `${this.target.source} draws no column grid: no element on it has as many tracks as `
+        + '--columns-count. The page is the column grid, so its sections sit on one',
+      );
+    }
+    if (observed.failures.length > 0) {
+      this.fail(
+        'page-grid',
+        observed.failures[0].line,
+        report(observed.failures, `${observed.children} sections on ${observed.grids} column grids`, (failure) =>
+          `line ${failure.line}: <${failure.tag}> sits ${Math.abs(failure.off)}px `
+          + `to the ${failure.off < 0 ? 'left' : 'right'} of the nearest column line on its ${failure.edge}`),
+      );
+    }
+    return null;
+  }
+
+  async assertOverflow(specs: ContractPaintSpec[]): Promise<string | null> {
+    const observed = await this.observeOverflow(specs);
+    if (observed.failures.length > 0) {
+      this.fail(
+        'page-overflow',
+        observed.failures[0].line,
+        report(observed.failures, `${observed.elements} boxes`, (failure) =>
+          `line ${failure.line}: ${failure.detail}`),
+      );
+    }
+    return null;
   }
 }
 
