@@ -20,6 +20,7 @@ import { fileURLToPath } from 'node:url';
 import process from 'node:process';
 import { COMPONENT_RULES, COMPONENT_RULE_FIX, checkComponent, discoverComponents, formatReport } from './check-component.mjs';
 import { PAGE_RULES, checkPages, discoverPages } from './check-page.mjs';
+import { resolvePageTargets } from './lib/pageRoutes.mjs';
 import { describeComponents, describeTokens, formatComponents, formatTokens } from './lib/catalogue.mjs';
 import { buildReport, formatReport as formatProjectReport } from './lib/report.mjs';
 import { loadVocabulary } from './lib/tokenVocabulary.mjs';
@@ -28,6 +29,7 @@ import {
   applySeverity,
   countBySeverity,
   formatFindings,
+  isExcluded,
   parseCheckFlags,
   readChecksConfig,
   toJson,
@@ -74,10 +76,20 @@ Commands:
                               @playwright/test, vitest, and happy-dom; a
                               missing one is a tests-not-installed finding
                               naming the install command
-  check-page [paths...]       Validate pages against the live-tokens-create-page
+  check-page [paths...] [--tests]
+                              Validate pages against the live-tokens-create-page
                               contract: catalogue components only, and every CSS
                               value a design token. Checks every page under src/
-                              when given no paths.
+                              when given no paths. --tests also opens each
+                              page's own route in the consumer's own app and
+                              proves, per shipped rule id, that the cascade
+                              painted every component from its semantic
+                              properties, every run of text sits in one shipped
+                              text style, every text/surface pair meets AA,
+                              sections sit on the page grid, and nothing
+                              overflows. Needs @playwright/test, vitest, and
+                              happy-dom; a missing one is a tests-not-installed
+                              finding naming the install command
 
 check-component and check-page also accept:
   --json                      Machine-readable findings, for a skill to iterate
@@ -270,7 +282,25 @@ if (command === 'check-page') {
   const opts = parseCheckFlags(rest);
   const targets = opts.rest.length > 0 ? opts.rest : discoverPages(process.cwd());
   const { findings, checked } = checkPages(targets, { root: process.cwd() });
-  reportChecks('check-page', findings, checked, PAGE_RULES, opts);
+  if (!opts.tests) {
+    reportChecks('check-page', findings, checked, PAGE_RULES, opts);
+  }
+  const { hasHardFailure, runPageTests } = await import('./contractRunner.mjs');
+  const allTargets = resolvePageTargets(opts.rest, process.cwd());
+  // Mirrors `discoverPages`'s own exclusion: an explicit path on the command
+  // line always checks (`isExcluded`'s own contract), and only the
+  // no-paths-given discovery drops `checks.exclude` paths — the seam Wave 2
+  // left for this wave, so `--tests` targets the same pages the static half
+  // just checked above.
+  const pageTargets =
+    opts.rest.length > 0 ? allTargets : allTargets.filter((t) => !isExcluded(t.source, process.cwd()));
+  const testOutcome = await runPageTests(pageTargets, { root: process.cwd() });
+  const label = 'check-page --tests';
+  const allFindings = [...findings, ...testOutcome.findings];
+  reportChecks(label, allFindings, Math.max(checked, pageTargets.length), PAGE_RULES, opts, {
+    coverage: testOutcome.coverage,
+    hardFailure: hasHardFailure(testOutcome.findings),
+  });
 }
 
 if (command === 'set-colors') {

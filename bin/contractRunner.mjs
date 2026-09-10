@@ -2,6 +2,12 @@
 // component contract suites under Playwright for one component or every
 // authored one, and maps their results onto findings by rule.
 //
+// `check-page --tests` (`runPageTests`, below `runContractTests`) shares this
+// file's tool detection, data isolation, generated Playwright config, spawn
+// deadline, report reading, and infrastructure classification, running the
+// suite's `page` project instead of `contract` and skipping the registry
+// (Vitest) half pages have no equivalent of.
+//
 // Spawns the two tools as child processes rather than importing their APIs, so
 // this module needs neither `@playwright/test` nor `vitest` at its own module
 // top — it is loaded lazily, only when `--tests` is passed (see cli.mjs).
@@ -29,6 +35,22 @@ const PKG_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const TEST_DATA_DIR_ENV = 'LIVE_TOKENS_TEST_DATA_DIR';
 const DATA_DIR_ENV = 'LIVE_TOKENS_DATA_DIR';
 const COMPONENT_ENV = 'LIVE_TOKENS_COMPONENT';
+// Mirrors src/testing/config.ts's own PAGES_ENV: the page targets a run opens,
+// as JSON. Duplicated rather than imported for the same reason as
+// SESSION_FILES below.
+const PAGES_ENV = 'LIVE_TOKENS_PAGES';
+
+/** Milliseconds a spawned tool gets before this file sends it SIGINT, then
+ *  SIGKILL five seconds later. A hung dev server or worker can no longer hold
+ *  a caller open past this. */
+const DEFAULT_TESTS_TIMEOUT_MS = 15 * 60_000;
+const TESTS_TIMEOUT_ENV = 'LIVE_TOKENS_TESTS_TIMEOUT';
+
+function testsTimeoutMs() {
+  const raw = process.env[TESTS_TIMEOUT_ENV];
+  const ms = raw ? Number(raw) : NaN;
+  return Number.isFinite(ms) && ms > 0 ? ms : DEFAULT_TESTS_TIMEOUT_MS;
+}
 
 // Mirrors src/testing/isolation.ts's own list. Duplicated rather than shared:
 // that module compiles into src/testing-js, which does not exist until
@@ -332,27 +354,37 @@ function withCleanup(paths) {
 
 // ─── generated tool configs ─────────────────────────────────────────────────
 
-export function writeGeneratedConfigs({ configDir, root }) {
-  // `configDir` sits under the OS temp directory, which has no ancestor
-  // `package.json`. Without one naming `"type": "module"` here, Node treats
-  // these configs as CommonJS by default, and `createPlaywrightConfig`'s
-  // `import.meta.url` throws "Cannot use 'import.meta' outside a module".
+// `configDir` sits under the OS temp directory, which has no ancestor
+// `package.json`. Without one naming `"type": "module"` here, Node treats
+// these configs as CommonJS by default, and `createPlaywrightConfig`'s
+// `import.meta.url` throws "Cannot use 'import.meta' outside a module".
+export function writeConfigPackageJson(configDir) {
   writeFileSync(join(configDir, 'package.json'), JSON.stringify({ type: 'module' }));
+}
 
+/** A source fragment for the generated files below, not an actual settings
+ *  object: this module never imports the consumer's settings file itself (see
+ *  the static-import note above), so it only ever sees this as text.
+ *  `settingsModule` is already the file's default export (a default import
+ *  unwraps it), not a module namespace object — it has no `.default` of its
+ *  own. */
+function settingsFragments(root) {
   const settingsPath = settingsFilePath(root);
-  const testingIndex = resolveTestingEntry('index');
-  const testingVitest = resolveTestingEntry('vitest');
-  const viteConfigPath = guessViteConfigPath(root, settingsPath);
-
   const settingsImport = settingsPath ? `import settingsModule from ${JSON.stringify(settingsPath)};\n` : '';
-  // A source fragment for the generated files below, not an actual settings
-  // object: this module never imports the consumer's settings file itself
-  // (see the static-import note above), so it only ever sees this as text.
-  // `settingsModule` is already the file's default export (a default import
-  // unwraps it), not a module namespace object — it has no `.default` of its
-  // own.
   const settingsExpr = settingsPath ? 'settingsModule' : '{}';
+  return { settingsPath, settingsImport, settingsExpr };
+}
 
+/**
+ * The `page` project alone, config `globalTimeout` set to `timeoutMs`: a
+ * `check-page --tests` run must never also carry the whole `contract` project
+ * (every component's editor cycle, against no `LIVE_TOKENS_COMPONENT`), and a
+ * page suite that hangs reports `timedOut` tests in a real JSON report before
+ * this file's own SIGINT/SIGKILL watchdog (`runCli`) ever has to act.
+ */
+export function writePlaywrightConfig({ configDir, root, timeoutMs = DEFAULT_TESTS_TIMEOUT_MS } = {}) {
+  const { settingsImport, settingsExpr } = settingsFragments(root);
+  const testingIndex = resolveTestingEntry('index');
   const playwrightConfigPath = join(configDir, 'playwright.config.ts');
   writeFileSync(
     playwrightConfigPath,
@@ -361,9 +393,19 @@ export function writeGeneratedConfigs({ configDir, root }) {
 export default createPlaywrightConfig({
   ...${settingsExpr},
   root: ${JSON.stringify(root)},
-});
+}).then((config) => ({ ...config, globalTimeout: ${JSON.stringify(timeoutMs)} }));
 `,
   );
+  return playwrightConfigPath;
+}
+
+export function writeGeneratedConfigs({ configDir, root, timeoutMs = DEFAULT_TESTS_TIMEOUT_MS } = {}) {
+  writeConfigPackageJson(configDir);
+  const playwrightConfigPath = writePlaywrightConfig({ configDir, root, timeoutMs });
+
+  const { settingsPath, settingsImport, settingsExpr } = settingsFragments(root);
+  const testingVitest = resolveTestingEntry('vitest');
+  const viteConfigPath = guessViteConfigPath(root, settingsPath);
 
   const vitestConfigPath = join(configDir, 'vitest.config.ts');
   writeFileSync(
@@ -384,17 +426,30 @@ export default createVitestConfig(viteConfigModule.default ?? viteConfigModule, 
 
 // ─── subprocess execution ───────────────────────────────────────────────────
 
-function runCli(command, args, { cwd, env }) {
+/** Spawns `command`, and at `timeoutMs` sends the child SIGINT (Playwright's
+ *  own graceful-stop signal, per `withCleanup`'s own note above), then
+ *  SIGKILL five seconds later if it has not exited. `result.timedOut` tells
+ *  the caller the run never finished on its own, whatever the child's own
+ *  exit code or report ends up saying. */
+function runCli(command, args, { cwd, env, timeoutMs = DEFAULT_TESTS_TIMEOUT_MS } = {}) {
   return new Promise((resolveRun) => {
     const child = spawn(command, args, { cwd, env, stdio: ['ignore', 'pipe', 'pipe'] });
     activeChild = child;
     let stdout = '';
     let stderr = '';
+    let timedOut = false;
     child.stdout.on('data', (chunk) => (stdout += chunk));
     child.stderr.on('data', (chunk) => (stderr += chunk));
+    const deadline = setTimeout(() => {
+      timedOut = true;
+      const killer = setTimeout(() => child.kill('SIGKILL'), 5_000);
+      child.once('exit', () => clearTimeout(killer));
+      child.kill('SIGINT');
+    }, timeoutMs);
     const finish = (result) => {
+      clearTimeout(deadline);
       if (activeChild === child) activeChild = null;
-      resolveRun(result);
+      resolveRun({ ...result, timedOut });
     };
     child.on('close', (code) => finish({ code, stdout, stderr }));
     child.on('error', (error) => finish({ code: -1, stdout, stderr: `${stderr}\n${error.message}` }));
@@ -410,6 +465,17 @@ function setupFinding(tool, code, stdout, stderr) {
   };
 }
 
+/** `tests-incomplete`, not `tests-setup`: the tool itself never got the
+ *  chance to explain the failure, this file's own watchdog cut it off. */
+export function timeoutFinding(tool, timeoutMs) {
+  return {
+    rule: 'tests-incomplete',
+    file: 'package.json',
+    line: 1,
+    message: `${tool} did not finish within ${Math.round(timeoutMs / 60_000)} minute(s) and was interrupted. Set LIVE_TOKENS_TESTS_TIMEOUT (milliseconds) to change the bound.`,
+  };
+}
+
 /** Reads a JSON report or explains, as a `tests-setup` finding, why there
  *  isn't one. Split from the process-spawning around it so a malformed or
  *  absent report is testable without a subprocess. */
@@ -422,25 +488,29 @@ export function readReportOrSetupFinding(tool, reportPath, code, stdout, stderr)
   }
 }
 
-export async function runPlaywrightSuite({ root, configDir, playwrightConfigPath }) {
+export async function runPlaywrightSuite({ root, configDir, playwrightConfigPath, project, timeoutMs = DEFAULT_TESTS_TIMEOUT_MS }) {
   const reportPath = join(configDir, 'playwright-report.json');
   const bin = peerBin(root, '@playwright/test', 'cli.js');
-  const { code, stdout, stderr } = await runCli(
-    process.execPath,
-    [bin, 'test', '-c', playwrightConfigPath, '--reporter=json'],
-    { cwd: root, env: { ...process.env, PLAYWRIGHT_JSON_OUTPUT_FILE: reportPath } },
-  );
+  const args = [bin, 'test', '-c', playwrightConfigPath, '--reporter=json'];
+  if (project) args.push('--project', project);
+  const { code, stdout, stderr, timedOut } = await runCli(process.execPath, args, {
+    cwd: root,
+    env: { ...process.env, PLAYWRIGHT_JSON_OUTPUT_FILE: reportPath },
+    timeoutMs,
+  });
+  if (timedOut) return { setupFinding: timeoutFinding('Playwright', timeoutMs) };
   return readReportOrSetupFinding('Playwright', reportPath, code, stdout, stderr);
 }
 
-export async function runRegistrySuite({ root, configDir, vitestConfigPath }) {
+export async function runRegistrySuite({ root, configDir, vitestConfigPath, timeoutMs = DEFAULT_TESTS_TIMEOUT_MS }) {
   const reportPath = join(configDir, 'vitest-report.json');
   const bin = peerBin(root, 'vitest', 'vitest.mjs');
-  const { code, stdout, stderr } = await runCli(
+  const { code, stdout, stderr, timedOut } = await runCli(
     process.execPath,
     [bin, 'run', '--config', vitestConfigPath, '--reporter=json', '--outputFile', reportPath],
-    { cwd: root, env: process.env },
+    { cwd: root, env: process.env, timeoutMs },
   );
+  if (timedOut) return { setupFinding: timeoutFinding('Vitest', timeoutMs) };
   const outcome = readReportOrSetupFinding('Vitest', reportPath, code, stdout, stderr);
   // Kept alongside a successfully-parsed report too: a file that failed to
   // collect a single test still carries a report, and `mapVitestResults`
@@ -712,6 +782,148 @@ export function mapPlaywrightResults(report, { root, sourceDataDir, knownIds }) 
   return { findings, coverage };
 }
 
+// ─── result mapping: page rules ─────────────────────────────────────────────
+
+/** The plan's Runtime rule ids, fixed rather than read off a page's own
+ *  results: `reconcileCoverage`'s expected set, same reasoning as
+ *  `ALL_CONTRACT_RULES` above. */
+const PAGE_RUNTIME_RULES = ['page-component-paint', 'page-text-style', 'page-contrast', 'page-grid', 'page-overflow'];
+
+/** Mirrors `src/testing/config.ts`'s own `DEFAULT_PAGE_VIEWPORTS`, duplicated
+ *  for the reason `SESSION_FILES` documents above. A project's own
+ *  `pageViewports` override, read from the settings file only once the
+ *  generated Playwright config (a separate process) resolves it, is invisible
+ *  to this reconciliation: a page checked at a replaced viewport list still
+ *  gets a real pass or fail per rule, it is only the "did every expected
+ *  triple run" reconciliation below that assumes the shipped default. */
+const PAGE_VIEWPORTS = [
+  { width: 1280, height: 900 },
+  { width: 390, height: 844 },
+];
+
+/** `page-compliance.contract.ts` titles each test `${rule} | ${source} |
+ *  ${width}x${height}`, so the rule, the page, and the viewport are read off
+ *  the title rather than off describe-block position (there is none — every
+ *  page test is a sibling at the suite's top level). */
+const PAGE_TEST_TITLE_RE = /^(page-[a-z-]+) \| (.+) \| (\d+x\d+)$/;
+
+/** A `PageViolation`'s own `[rule] source:line: message`, read back out of
+ *  Playwright's `Error.prototype.toString()` (`${name}: ${message}`), the
+ *  same convention `VIOLATION_RE` above reads `ContractViolation` through. */
+const PAGE_VIOLATION_RE = /^PageViolation:\s*\[([a-z-]+)\]\s+(.+):(\d+):\s*([\s\S]*)$/;
+
+/**
+ * `PageViolation` to a finding at the page file and line; a timeout or an
+ * interruption to `tests-incomplete`; a `test.skip(...)` call — the mechanism
+ * `PageHarness.assert*` uses to report a rule inapplicable — to `inapplicable`
+ * coverage carrying the skip's own description, never a finding. Structurally
+ * the Playwright half of `mapPlaywrightResults` above, with no component,
+ * describe-block, or `ContractViolation` concept to lean on: every triple's
+ * identity comes off the test's own title.
+ */
+export function mapPageResults(report) {
+  const zeroCollected = (report.suites ?? []).length === 0;
+  if (zeroCollected || (report.errors ?? []).length > 0) {
+    const detail = (report.errors ?? []).map((e) => e.message).join('\n') || 'the run collected no tests';
+    return {
+      findings: [{ rule: 'tests-incomplete', file: 'package.json', line: 1, message: `Playwright collected nothing to check: ${detail}` }],
+      coverage: {},
+      explained: true,
+    };
+  }
+
+  const tests = readPlaywrightTests(report);
+
+  for (const t of tests) {
+    if (t.status !== 'unexpected') continue;
+    const infra = classifyInfrastructureError(t.lastResult?.errors?.[0]?.message);
+    if (infra?.rule === 'tests-not-installed') {
+      return { findings: [{ rule: infra.rule, file: 'package.json', line: 1, message: infra.message }], coverage: {}, explained: true };
+    }
+  }
+
+  const findings = [];
+  const coverage = {};
+  // The outer key carries the page and the viewport, the inner key the bare
+  // rule id — never the reverse: `applyCoverageSeverity` and `--off` (`bin/
+  // lib/findings.mjs`) resolve a coverage entry's severity by looking up its
+  // inner key straight in `PAGE_RULES`, so a composite `rule@viewport` inner
+  // key would never match a plain rule id and `--off`/`checks.rules` would
+  // silently stop reaching page coverage.
+  const markCoverage = (pageAtViewport, rule, status, reason) => {
+    if (!pageAtViewport || !rule) return;
+    coverage[pageAtViewport] ??= {};
+    const existing = coverage[pageAtViewport][rule];
+    if (!existing || COVERAGE_PRIORITY[status] >= COVERAGE_PRIORITY[existing.status]) {
+      coverage[pageAtViewport][rule] = reason ? { status, reason } : { status };
+    }
+  };
+
+  for (const t of tests) {
+    const [, titleRule, titleSource, titleViewport] = PAGE_TEST_TITLE_RE.exec(t.specTitle) ?? [];
+    const pageAtViewport = titleSource && titleViewport ? `${titleSource}@${titleViewport}` : null;
+
+    if (t.status === 'expected' || t.status === 'flaky') {
+      markCoverage(pageAtViewport, titleRule, t.status === 'flaky' ? 'flaky' : 'passed');
+      continue;
+    }
+    if (t.status === 'skipped') {
+      // Playwright's own `skip` annotation, from `test.skip(condition,
+      // description)` inside the test body — decision 10's "inapplicable is a
+      // status with a reason", never a silent pass.
+      const reason = t.annotations.find((a) => a.type === 'skip')?.description || 'inapplicable';
+      markCoverage(pageAtViewport, titleRule, 'inapplicable', reason);
+      continue;
+    }
+
+    const last = t.lastResult;
+    if (last?.status === 'timedOut' || last?.status === 'interrupted') {
+      findings.push({
+        rule: 'tests-incomplete',
+        file: 'package.json',
+        line: 1,
+        message: `"${t.specTitle}" did not finish (${last.status})`,
+        context: { suite: 'playwright', title: t.specTitle, suiteFile: t.specFile, suiteLine: t.specLine },
+      });
+      markCoverage(pageAtViewport, titleRule, 'failed');
+      continue;
+    }
+
+    const rawErrors = last?.errors?.length ? last.errors : [{ message: `${t.status}: ${t.specTitle}` }];
+    for (const error of rawErrors) {
+      const infra = classifyInfrastructureError(error.message);
+      if (infra) {
+        findings.push({
+          rule: infra.rule,
+          file: 'package.json',
+          line: 1,
+          message: infra.message,
+          context: { suite: 'playwright', title: t.specTitle },
+        });
+        markCoverage(pageAtViewport, titleRule, 'failed');
+        continue;
+      }
+      const block = messageBlock(error.message);
+      const violation = PAGE_VIOLATION_RE.exec(block);
+      findings.push({
+        rule: violation?.[1] ?? titleRule ?? 'tests-setup',
+        file: violation?.[2] ?? titleSource ?? 'package.json',
+        line: violation ? Number(violation[3]) : 1,
+        message: violation?.[4] ?? block,
+        context: {
+          suite: 'playwright',
+          title: t.specTitle,
+          suiteFile: t.specFile,
+          suiteLine: t.specLine,
+          attachments: (last?.attachments ?? []).map((a) => a.path).filter(Boolean),
+        },
+      });
+      markCoverage(pageAtViewport, titleRule, 'failed');
+    }
+  }
+  return { findings, coverage };
+}
+
 // ─── result mapping: Vitest (registry contract) ─────────────────────────────
 
 /** `checkRegistryEntry`'s violation strings, read back out of Vitest's
@@ -898,7 +1110,8 @@ export async function runContractTests(id, { root = process.cwd(), dataDir: expl
   const cleanup = withCleanup([dataDir, configDir]);
 
   try {
-    const { playwrightConfigPath, vitestConfigPath } = writeGeneratedConfigs({ configDir, root });
+    const timeoutMs = testsTimeoutMs();
+    const { playwrightConfigPath, vitestConfigPath } = writeGeneratedConfigs({ configDir, root, timeoutMs });
     process.env[TEST_DATA_DIR_ENV] = dataDir;
     process.env[DATA_DIR_ENV] = dataDir;
     if (id) process.env[COMPONENT_ENV] = id;
@@ -910,8 +1123,8 @@ export async function runContractTests(id, { root = process.cwd(), dataDir: expl
     // Sequential: both share the one isolated data directory, and the
     // registry run's own Vite instance and the Playwright run's dev server
     // would otherwise regenerate the same derived files concurrently.
-    const registryOutcome = await runRegistrySuite({ root, configDir, vitestConfigPath });
-    const playwrightOutcome = await runPlaywrightSuite({ root, configDir, playwrightConfigPath });
+    const registryOutcome = await runRegistrySuite({ root, configDir, vitestConfigPath, timeoutMs });
+    const playwrightOutcome = await runPlaywrightSuite({ root, configDir, playwrightConfigPath, project: 'contract', timeoutMs });
 
     const registryMapped = registryOutcome.setupFinding
       ? { findings: [registryOutcome.setupFinding], coverage: {}, explained: true }
@@ -942,6 +1155,106 @@ export async function runContractTests(id, { root = process.cwd(), dataDir: expl
     };
   } finally {
     cleanup();
+  }
+}
+
+/**
+ * `check-page --tests`'s own entry point: the Playwright half of
+ * `runContractTests` above, minus the registry (Vitest) suite pages have no
+ * equivalent of (decision 11) and minus the `contract` project (`project:
+ * 'page'` below, so a page run never opens every component's editor cycle).
+ *
+ * `targets` is `resolvePageTargets`'s own return shape (`bin/lib/
+ * pageRoutes.mjs`): a page with no route carries `route: null` and a
+ * `reason`, reported as its own `tests-setup` finding rather than passed to
+ * the suite, which cannot open a page it has no URL for (decision 3).
+ */
+export async function runPageTests(targets, { root = process.cwd(), dataDir: explicitDataDir } = {}) {
+  const toolFindings = missingToolFindings(root);
+  if (toolFindings.length > 0) return { findings: toolFindings, coverage: {} };
+
+  if (targets.length === 0) {
+    return {
+      findings: [
+        {
+          rule: 'tests-setup',
+          file: 'package.json',
+          line: 1,
+          message: 'no page renders through a route yet; nothing for --tests to run',
+        },
+      ],
+      coverage: {},
+    };
+  }
+
+  const unrouted = targets.filter((t) => !t.route);
+  const routed = targets.filter((t) => t.route);
+  const unroutedFindings = unrouted.map((t) => ({
+    rule: 'tests-setup',
+    file: t.source,
+    line: 1,
+    message: t.reason ?? 'no route renders this page',
+  }));
+
+  if (routed.length === 0) {
+    return { findings: unroutedFindings, coverage: {} };
+  }
+
+  let sourceDataDir;
+  let dataDir;
+  let configDir;
+  try {
+    sourceDataDir = explicitDataDir ?? resolveSourceDataDir(root, settingsFilePath(root));
+    dataDir = copyIsolatedDataDir(sourceDataDir);
+    configDir = mkdtempSync(join(tmpdir(), 'live-tokens-check-cfg-'));
+  } catch (error) {
+    if (dataDir) rmSync(dataDir, { recursive: true, force: true });
+    if (configDir) rmSync(configDir, { recursive: true, force: true });
+    return {
+      findings: [...unroutedFindings, { rule: 'tests-setup', file: 'package.json', line: 1, message: `could not prepare an isolated run: ${error.message}` }],
+      coverage: {},
+    };
+  }
+
+  const cleanup = withCleanup([dataDir, configDir]);
+
+  try {
+    const timeoutMs = testsTimeoutMs();
+    writeConfigPackageJson(configDir);
+    const playwrightConfigPath = writePlaywrightConfig({ configDir, root, timeoutMs });
+    process.env[TEST_DATA_DIR_ENV] = dataDir;
+    process.env[DATA_DIR_ENV] = dataDir;
+    process.env[PAGES_ENV] = JSON.stringify(routed);
+    delete process.env[COMPONENT_ENV];
+
+    const playwrightOutcome = await runPlaywrightSuite({ root, configDir, playwrightConfigPath, project: 'page', timeoutMs });
+    const mapped = playwrightOutcome.setupFinding
+      ? { findings: [playwrightOutcome.setupFinding], coverage: {}, explained: true }
+      : mapPageResults(playwrightOutcome.report);
+
+    const explainedGlobally =
+      mapped.explained || mapped.findings.some((f) => f.rule === 'tests-setup' || f.rule === 'tests-not-installed');
+    // One expected id per (page, viewport) pair — mapPageResults's own outer
+    // coverage key — each checked against the same flat PAGE_RUNTIME_RULES,
+    // the shape reconcileCoverage already expects.
+    const expectedIds = routed.flatMap((t) => PAGE_VIEWPORTS.map((v) => `${t.source}@${v.width}x${v.height}`));
+    const reconciled = reconcileCoverage(mapped.coverage, expectedIds, {
+      expectedRules: PAGE_RUNTIME_RULES,
+      explainedGlobally,
+    });
+
+    return {
+      findings: [...unroutedFindings, ...mapped.findings, ...reconciled.findings],
+      coverage: reconciled.coverage,
+    };
+  } catch (error) {
+    return {
+      findings: [...unroutedFindings, { rule: 'tests-setup', file: 'package.json', line: 1, message: `check-page --tests crashed: ${error.message}` }],
+      coverage: {},
+    };
+  } finally {
+    cleanup();
+    delete process.env[PAGES_ENV];
   }
 }
 

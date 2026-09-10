@@ -35,6 +35,18 @@ export const PAGE_RULES = {
   'danger-without-dialog': 'warn',
   'native-control': 'warn',
   'property-override': 'warn',
+  // `--tests` (bin/contractRunner.mjs's `runPageTests`). Fixed by design
+  // decision 9, same reasoning as `check-component`'s own `contract-*` rules:
+  // every one is an error, including the setup rules, which `--tests` treats
+  // as never-silenceable (see cli.mjs).
+  'page-component-paint': 'error',
+  'page-text-style': 'error',
+  'page-contrast': 'error',
+  'page-grid': 'error',
+  'page-overflow': 'error',
+  'tests-not-installed': 'error',
+  'tests-setup': 'error',
+  'tests-incomplete': 'error',
 };
 
 // Directories that hold the system, not pages built on it.

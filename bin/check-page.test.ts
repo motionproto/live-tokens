@@ -368,6 +368,23 @@ describe('check-page native-control and property-override rules', () => {
   });
 });
 
+describe('PAGE_RULES carries the --tests rule surface, decision 9', () => {
+  it('fixes every runtime and shared rule id at error, un-silenceable by design for the shared three', () => {
+    for (const rule of [
+      'page-component-paint',
+      'page-text-style',
+      'page-contrast',
+      'page-grid',
+      'page-overflow',
+      'tests-not-installed',
+      'tests-setup',
+      'tests-incomplete',
+    ]) {
+      expect(PAGE_RULES[rule]).toBe('error');
+    }
+  });
+});
+
 describe('check-page severity', () => {
   it('fails on an error and passes on a warning', () => {
     const root = fixtureRoot();
