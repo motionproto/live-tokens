@@ -36,8 +36,8 @@ Those are usability and accessibility. This plan is design-system compliance.
 
 | Wave | Deliverable | Model | Budget | Status | Commit |
 |---|---|---|---|---|---|
-| 1 | Two static rules: `native-control` and `property-override` | Sonnet | 45 min | Executed | 40c2210, e17dcad |
-| 2 | Page targets, the page suite, `page-component-paint` and `page-text-style` | Opus | 120 min | Executed | 0521a42 |
+| 1 | Two static rules: `native-control` and `property-override` | Sonnet | 45 min | Done | 40c2210, e17dcad |
+| 2 | Page targets, the page suite, `page-component-paint` and `page-text-style` | Opus | 120 min | In progress | 0521a42, 868cdcc |
 | 3 | `page-contrast`, `page-grid`, `page-overflow`, and the defect fixtures | Opus | 120 min | Not started | |
 | 4 | `check-page --tests`: runner, reporter mapping, coverage | Sonnet | 90 min | Not started | |
 | 5 | Consumer gate, template, skills, atlas, changelog | Sonnet | 120 min | Not started | |
@@ -377,7 +377,7 @@ chrome children — the editor overlay and the column guides — with
 the consumer gate's own work (`check:smoke-page-tests`). The template's Home
 is this repo's Home in shape: a Card holding an h1, a p, and two Buttons.
 
-**For review.** Four boundary questions the ground truth raised, none
+**For review.** Five boundary questions the ground truth raised, none
 resolved here.
 
 *Slot children neither rule sees.* `src/app/Home.svelte` sets its own `h1` to
@@ -411,6 +411,21 @@ rendered or absent, and an absent part is already skipped. Reading `setup` as
 two kinds, one that reveals a part and one that changes a value, would give
 Section Divider its resting paints back. Wave 3's fixtures are where a Section
 Divider on a clean page can decide it.
+
+*A prop-driven component state.* The rule measures every instance against its
+resting paints, whatever state the page put it in. A disabled Button on a
+correct page paints `--button-primary-disabled-surface`
+(`src/system/components/Button.svelte:308`) and fails the
+`--button-primary-surface` check; an `<Input error="...">` paints
+`--input-error-border` through `.input-field.invalid`
+(`src/system/components/Input.svelte:292`) and fails `--input-default-border`.
+Note 6 widened the exposure by restoring Input's checks. Neither calibration
+page renders a disabled or errored instance, so the ground truth could not
+raise it. Two resolutions: skip an instance whose root matches one of the
+contract's own non-default state selectors, or read the instance's state from
+its root classes the way the variant is read and select that state's paints.
+Wave 3's fixtures decide it, and they render one disabled Button and one
+errored Input so the chosen rule is proved on a page.
 
 ## Wave 3 — the last three rules and the defect fixtures
 
