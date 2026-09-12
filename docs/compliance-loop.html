@@ -1,0 +1,1129 @@
+<title>Live Tokens Compliance Loop</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+Condensed:wght@500;600;700&family=IBM+Plex+Serif:ital,wght@0,400;0,600;1,400&display=swap">
+<style>
+  :root {
+    --paper: #f4f5f5;
+    --surface: #ffffff;
+    --ink: #17191a;
+    --graphite: #5a6062;
+    --hairline: #d7dad9;
+    --amber: #9a5f07;
+    --amber-soft: #f0e6d4;
+    --lb-scrim: rgba(12, 14, 15, 0.84);
+    --lb-ink: #eceeed;
+    --sans: "IBM Plex Sans Condensed", "Helvetica Neue", Arial, sans-serif;
+    --serif: "IBM Plex Serif", Georgia, "Times New Roman", serif;
+    --mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper: #131516;
+      --surface: #1a1d1e;
+      --ink: #e6e8e7;
+      --graphite: #969e9f;
+      --hairline: #2c3132;
+      --amber: #d99b3c;
+      --amber-soft: #2c2517;
+    }
+  }
+  :root[data-theme="dark"] {
+    --paper: #131516;
+    --surface: #1a1d1e;
+    --ink: #e6e8e7;
+    --graphite: #969e9f;
+    --hairline: #2c3132;
+    --amber: #d99b3c;
+    --amber-soft: #2c2517;
+  }
+
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--serif);
+    font-size: 17px;
+    line-height: 1.62;
+    padding-inline: 22px;
+    padding-block: 0;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  article {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) min(66ch, 100%) minmax(0, 1fr);
+    row-gap: 0;
+    padding-block: 64px 96px;
+  }
+  article > * { grid-column: 2; margin: 0; }
+  article > figure {
+    grid-column: 1 / -1;
+    justify-self: center;
+    width: min(920px, 100%);
+    margin-block: 40px 44px;
+  }
+
+  header { margin-bottom: 40px; }
+  .eyebrow {
+    font-family: var(--mono);
+    font-size: 11.5px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--graphite);
+  }
+  h1 {
+    font-family: var(--sans);
+    font-weight: 700;
+    font-size: clamp(34px, 6vw, 50px);
+    line-height: 1.04;
+    letter-spacing: -0.018em;
+    text-wrap: balance;
+    margin-block: 12px 14px;
+  }
+  .standfirst {
+    font-size: 19px;
+    line-height: 1.55;
+    color: var(--graphite);
+    text-wrap: pretty;
+  }
+  .meta {
+    margin-top: 22px;
+    padding-top: 14px;
+    border-top: 1px solid var(--hairline);
+    font-family: var(--mono);
+    font-size: 11.5px;
+    color: var(--graphite);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 22px;
+  }
+
+  h2 {
+    font-family: var(--sans);
+    font-weight: 600;
+    font-size: 27px;
+    letter-spacing: -0.01em;
+    line-height: 1.15;
+    margin-block: 6px 16px;
+    text-wrap: balance;
+  }
+  h3 {
+    font-family: var(--sans);
+    font-weight: 600;
+    font-size: 18px;
+    letter-spacing: -0.004em;
+    margin-block: 28px 8px;
+  }
+  section { margin-top: 52px; }
+  section > .eyebrow { display: block; }
+  p { margin-block: 0 16px; text-wrap: pretty; }
+  p + h3 { margin-top: 30px; }
+
+  code, .mono { font-family: var(--mono); font-size: 0.855em; }
+  code {
+    background: color-mix(in srgb, var(--graphite) 12%, transparent);
+    padding: 0.1em 0.34em;
+    border-radius: 2px;
+  }
+  strong { font-weight: 600; }
+
+  ul.plain { list-style: none; padding: 0; margin-block: 0 18px; }
+  ul.plain li {
+    padding-left: 20px;
+    position: relative;
+    margin-bottom: 10px;
+  }
+  ul.plain li::before {
+    content: "";
+    position: absolute;
+    left: 2px;
+    top: 0.72em;
+    width: 9px;
+    height: 1px;
+    background: var(--graphite);
+  }
+
+  details.drawer {
+    border-top: 1px solid var(--hairline);
+    border-bottom: 1px solid var(--hairline);
+    margin-block: 4px 22px;
+  }
+  details.drawer + details.drawer { margin-top: -23px; border-top: 0; }
+  .drawer > summary {
+    list-style: none;
+    cursor: pointer;
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    padding: 10px 30px 10px 0;
+    position: relative;
+    font-family: var(--sans);
+    font-weight: 600;
+    font-size: 15.5px;
+  }
+  .drawer > summary::-webkit-details-marker { display: none; }
+  .drawer > summary::after {
+    content: "";
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    width: 7px;
+    height: 7px;
+    border-right: 1.3px solid var(--graphite);
+    border-bottom: 1.3px solid var(--graphite);
+    transform: translateY(-70%) rotate(45deg);
+    transition: transform 0.15s ease;
+  }
+  .drawer[open] > summary::after { transform: translateY(-25%) rotate(225deg); }
+  .drawer > summary:hover::after { border-color: var(--ink); }
+  .drawer > summary:focus-visible { outline: 2px solid var(--amber); outline-offset: 2px; }
+  .drawer .count {
+    font-family: var(--mono);
+    font-weight: 400;
+    font-size: 11.5px;
+    color: var(--graphite);
+  }
+  .drawer .gist {
+    font-family: var(--serif);
+    font-weight: 400;
+    font-size: 14.5px;
+    color: var(--graphite);
+  }
+
+  .ledger { margin-block: 6px 20px; }
+  .ledger-head, .ledger .drawer > summary {
+    display: grid;
+    grid-template-columns: 13.5rem 3rem minmax(0, 1fr);
+    gap: 14px;
+  }
+  .ledger-head {
+    padding: 9px 30px 9px 0;
+    border-bottom: 1px solid var(--ink);
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--graphite);
+  }
+  .ledger .drawer { margin: 0; border-top: 0; }
+  .ledger .drawer + .drawer { margin-top: 0; }
+  .ledger .drawer > summary { font-family: var(--mono); font-weight: 400; font-size: 12.5px; }
+  .ledger .drawer > summary .count { font-size: 12.5px; color: var(--ink); }
+  .ledger .drawer[open] > summary { font-weight: 500; }
+  .ledger .drawer > :not(summary) {
+    background: var(--surface);
+    border: 1px solid var(--hairline);
+    padding-inline: 14px;
+    margin: 0;
+  }
+  .ledger .drawer > .drawer-note { border-bottom: 0; padding-top: 10px; }
+  .ledger .drawer > .drawer-note + .ruleset { border-top: 0; }
+  .ledger .drawer > .ruleset { padding-block: 4px 8px; margin-bottom: 14px; }
+
+  .ruleset {
+    list-style: none;
+    padding: 2px 0 14px;
+    margin: 0;
+    font-size: 14.5px;
+    line-height: 1.5;
+  }
+  .ruleset li {
+    display: grid;
+    grid-template-columns: 13.5rem minmax(0, 1fr);
+    gap: 14px;
+    padding-block: 6px;
+  }
+  .ruleset li + li { border-top: 1px dashed var(--hairline); }
+  .ruleset .id {
+    font-family: var(--mono);
+    font-size: 12.5px;
+    overflow-wrap: anywhere;
+  }
+  .ruleset .label {
+    font-family: var(--sans);
+    font-weight: 500;
+    font-size: 14px;
+  }
+  .ruleset .warn {
+    display: inline-block;
+    margin-left: 6px;
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--amber);
+  }
+  .ruleset .what { color: var(--graphite); }
+  .ruleset .what code { font-size: 0.82em; }
+  .chips {
+    list-style: none;
+    padding: 2px 0 16px;
+    margin: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .chips li {
+    font-family: var(--mono);
+    font-size: 12px;
+    padding: 2px 8px;
+    border: 1px solid var(--hairline);
+    border-radius: 2px;
+    background: var(--surface);
+  }
+  .drawer-note {
+    font-size: 13.5px;
+    color: var(--graphite);
+    margin: 0 0 14px;
+  }
+
+  .steps { counter-reset: step; list-style: none; padding: 0; margin: 0 0 18px; }
+  .steps li {
+    counter-increment: step;
+    position: relative;
+    padding-left: 40px;
+    margin-bottom: 14px;
+  }
+  .steps li::before {
+    content: counter(step, decimal-leading-zero);
+    position: absolute;
+    left: 0;
+    top: 0.16em;
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--amber);
+  }
+
+  .aside {
+    border-left: 2px solid var(--amber);
+    background: var(--amber-soft);
+    padding: 16px 20px;
+    margin-block: 24px;
+    font-size: 15.5px;
+    line-height: 1.55;
+  }
+  .aside p:last-child { margin-bottom: 0; }
+
+  figcaption {
+    font-size: 14px;
+    line-height: 1.5;
+    color: var(--graphite);
+    margin-top: 14px;
+    max-width: 68ch;
+  }
+  figcaption b {
+    font-family: var(--sans);
+    font-weight: 600;
+    color: var(--ink);
+    letter-spacing: 0.005em;
+  }
+
+  .dg {
+    display: block;
+    width: 100%;
+    height: auto;
+    max-width: 100%;
+    color: var(--ink);
+    background: var(--surface);
+    border: 1px solid var(--hairline);
+    border-radius: 3px;
+  }
+  .dg .box { fill: var(--paper); stroke: currentColor; stroke-opacity: 0.3; stroke-width: 1; }
+  .dg .box-lead { fill: var(--surface); stroke: var(--amber); stroke-width: 1.4; }
+  .dg .t { font-family: var(--sans); font-weight: 600; font-size: 13.5px; fill: currentColor; }
+  .dg .s { font-family: var(--serif); font-size: 11.5px; fill: var(--graphite); }
+  .dg .m { font-family: var(--mono); font-size: 10.5px; fill: var(--graphite); }
+  .dg .lbl { font-family: var(--mono); font-size: 10.5px; fill: var(--graphite); }
+  .dg .rule { font-family: var(--mono); font-size: 10.5px; fill: var(--amber); }
+  .dg .flow { fill: none; stroke: currentColor; stroke-opacity: 0.5; stroke-width: 1.3; marker-end: url(#arw); }
+  .dg .back { fill: none; stroke: var(--amber); stroke-width: 1.4; marker-end: url(#arwA); }
+  .dg .rail { stroke: currentColor; stroke-opacity: 0.22; stroke-width: 2; }
+  .dg .lead { stroke: currentColor; stroke-opacity: 0.28; stroke-width: 1; stroke-dasharray: 2 3; }
+  .dg .head { fill: currentColor; }
+  .dg .headA { fill: var(--amber); }
+
+  .fig-open {
+    display: block;
+    position: relative;
+    width: 100%;
+    padding: 0;
+    border: 0;
+    background: none;
+    font: inherit;
+    color: inherit;
+    cursor: zoom-in;
+    border-radius: 3px;
+  }
+  .fig-open:focus-visible { outline: 2px solid var(--amber); outline-offset: 3px; }
+  .fig-badge {
+    position: absolute;
+    right: 10px;
+    bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 9px;
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--graphite);
+    background: var(--surface);
+    border: 1px solid var(--hairline);
+    border-radius: 2px;
+    opacity: 0.7;
+    transition: opacity 0.15s ease, color 0.15s ease;
+  }
+  .fig-open:hover .fig-badge,
+  .fig-open:focus-visible .fig-badge { opacity: 1; color: var(--ink); }
+  .fig-badge svg { display: block; }
+
+  .lb {
+    position: fixed;
+    inset: 0;
+    z-index: 50;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 16px;
+    background: var(--lb-scrim);
+  }
+  .lb[hidden] { display: none; }
+  .lb-panel {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    background: var(--surface);
+    border: 1px solid var(--hairline);
+    border-radius: 3px;
+  }
+  .lb-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 9px 12px;
+    border-bottom: 1px solid var(--hairline);
+  }
+  .lb-title {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--graphite);
+  }
+  .lb-close {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink);
+    background: var(--paper);
+    border: 1px solid var(--hairline);
+    border-radius: 999px;
+    padding: 5px 14px;
+    cursor: pointer;
+  }
+  .lb-close:hover { border-color: var(--graphite); }
+  .lb-close:focus-visible { outline: 2px solid var(--amber); outline-offset: 2px; }
+  .lb-stage {
+    flex: 1;
+    min-height: 0;
+    overflow: auto;
+    display: grid;
+    place-items: center;
+    padding: 14px;
+  }
+  .lb-stage .dg {
+    border: 0;
+    background: none;
+    width: min(100%, calc((100vh - 210px) * var(--ar, 2)));
+    min-width: 620px;
+    height: auto;
+  }
+  .lb-cap {
+    flex: none;
+    max-width: 92ch;
+    margin: 0 auto;
+    color: var(--lb-ink);
+    font-size: 13.5px;
+    line-height: 1.5;
+    text-align: center;
+  }
+
+  @media (max-width: 640px) {
+    body { font-size: 16px; padding-inline: 16px; }
+    article { padding-block: 44px 64px; }
+    h2 { font-size: 23px; }
+    .lb { padding: 10px; }
+    .lb-cap { font-size: 12.5px; text-align: left; }
+    .ledger-head { display: none; }
+    .ledger .drawer > summary { grid-template-columns: minmax(0, 1fr) auto; row-gap: 2px; }
+    .ledger .drawer > summary .gist { grid-column: 1 / -1; }
+    .ruleset li { grid-template-columns: minmax(0, 1fr); gap: 2px; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .fig-badge, .drawer > summary::after { transition: none; }
+  }
+
+  footer {
+    margin-top: 64px;
+    padding-top: 18px;
+    border-top: 1px solid var(--hairline);
+    font-family: var(--mono);
+    font-size: 11.5px;
+    color: var(--graphite);
+  }
+
+</style>
+
+<article>
+  <header>
+    <span class="eyebrow">@motion-proto/live-tokens</span>
+    <h1>The Compliance Loop</h1>
+    <p class="standfirst">The design system is stated three times: as prose a model reads, as a static rule with an id, and as a test against a rendered page. Every skill ends in a checker run, every finding carries the address of the paragraph that fixes it, and the exit code decides when the work is done.</p>
+    <div class="meta">
+      <span>9 skills</span>
+      <span>2 static checkers</span>
+      <span>3 test runs</span>
+      <span>26 component contracts</span>
+      <span>8 obligations each</span>
+    </div>
+  </header>
+
+  <section>
+    <span class="eyebrow">tokens.css · src/system</span>
+    <h2>The two-layer model</h2>
+    <p>Everything downstream depends on one rule: no visual value is ever written as a literal. A value is named twice before it is painted.</p>
+    <p><strong>Design tokens</strong> name the available values. <code>--space-16</code>, <code>--radius-md</code>, <code>--surface-neutral</code>. A theme sets them, and the three set skills move them along their own scales.</p>
+    <p><strong>Semantic properties</strong> name the visual roles inside one component and reference a token. <code>--card-padding: var(--space-16)</code>. The component's CSS reads the property, never the token. The editor rewrites the assignment, and because the assignment stays a token reference, a theme change reaches the component.</p>
+    <p>A page sits outside that chain. It declares no properties of its own and reads design tokens directly, so a page inherits the theme without holding any of it.</p>
+
+    <figure>
+      <button class="fig-open" type="button" aria-label="Enlarge figure 1, the chain a value travels">
+      <svg class="dg" viewBox="0 0 900 350" role="img" aria-label="A design token is assigned to a semantic property, which a component rule reads and the browser paints. Page CSS reads the design token directly. Checker rule ids sit under each link.">
+        <defs>
+          <marker id="arw" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <polygon class="head" points="0,1.5 10,5 0,8.5" />
+          </marker>
+          <marker id="arwA" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <polygon class="headA" points="0,1.5 10,5 0,8.5" />
+          </marker>
+        </defs>
+
+        <text class="lbl" x="140" y="52" text-anchor="middle">a theme sets the value</text>
+        <text class="lbl" x="450" y="52" text-anchor="middle">the editor rewrites the assignment</text>
+        <text class="lbl" x="760" y="52" text-anchor="middle">the browser paints</text>
+
+        <rect class="box" x="24" y="76" width="232" height="76" rx="3" />
+        <text class="t" x="40" y="100">Design token</text>
+        <text class="m" x="40" y="119">--space-16: 16px</text>
+        <text class="s" x="40" y="137">tokens.css</text>
+
+        <rect class="box" x="334" y="76" width="232" height="76" rx="3" />
+        <text class="t" x="350" y="100">Semantic property</text>
+        <text class="m" x="350" y="119">--card-padding: var(--space-16)</text>
+        <text class="s" x="350" y="137">Card.svelte :global(:root)</text>
+
+        <rect class="box" x="644" y="76" width="232" height="76" rx="3" />
+        <text class="t" x="660" y="100">Painted rule</text>
+        <text class="m" x="660" y="119">padding: var(--card-padding)</text>
+        <text class="s" x="660" y="137">.card</text>
+
+        <path class="flow" d="M256,114 H326" />
+        <text class="lbl" x="291" y="106" text-anchor="middle">assigned to</text>
+        <path class="flow" d="M566,114 H636" />
+        <text class="lbl" x="601" y="106" text-anchor="middle">read by</text>
+
+        <text class="rule" x="140" y="174" text-anchor="middle">unknown-token</text>
+        <text class="rule" x="450" y="174" text-anchor="middle">default-not-token · unknown-suffix</text>
+        <text class="rule" x="760" y="174" text-anchor="middle">contract-theme</text>
+
+        <path class="flow" d="M80,152 V278 H326" />
+        <text class="lbl" x="205" y="270" text-anchor="middle">read directly</text>
+
+        <rect class="box" x="334" y="244" width="232" height="68" rx="3" />
+        <text class="t" x="350" y="267">Page CSS</text>
+        <text class="m" x="350" y="286">gap: var(--space-16)</text>
+        <text class="s" x="350" y="303">Pricing.svelte</text>
+
+        <text class="rule" x="450" y="332" text-anchor="middle">color-literal · dimension-literal</text>
+      </svg>
+        <span class="fig-badge" aria-hidden="true"><svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.2"><path d="M4 1H1v3M6 9h3V6"/></svg>Enlarge</span>
+      </button>
+      <figcaption><b>Figure 1.</b> The chain a value travels, and the rule that catches each way it can break. A literal in page CSS trips <span class="mono">color-literal</span> or <span class="mono">dimension-literal</span>; a component default with no token behind it trips <span class="mono">default-not-token</span>; a property the theme cannot reach trips <span class="mono">contract-theme</span> when the rendered component fails to repaint.</figcaption>
+    </figure>
+  </section>
+
+  <section>
+    <span class="eyebrow">.claude/skills</span>
+    <h2>Nine skills, bundled with the package</h2>
+    <p>The skills ship inside the npm tarball and <code>live-tokens setup-claude</code> installs them into a consumer project. They divide into authoring and verification.</p>
+    <ul class="plain">
+      <li><strong>create-theme</strong> reads one request, derives one design direction, and routes a color intent, a type intent, and a geometry intent to <strong>set-colors</strong>, <strong>set-type</strong>, and <strong>set-geometry</strong>. Each of those three changes one dimension and nothing else.</li>
+      <li><strong>create-page</strong> assembles a page from shipped components at their defaults. It calls <strong>pick-component</strong> when two components could fit, and <strong>create-component</strong> when the catalogue lacks one.</li>
+      <li><strong>create-component</strong> delivers a runtime file, an editor file, a registration, and a contract together.</li>
+      <li><strong>check-compliance</strong> reads one <code>npx live-tokens report</code> run, classifies every finding as mechanical, judgement, or deliberate, and hands the fix list to <strong>fix-findings</strong>. It edits no file.</li>
+      <li><strong>fix-findings</strong> edits the files the checkers name, groups the work by rule, and re-runs until both checkers exit 0.</li>
+    </ul>
+    <p>The skills carry what a checker cannot decide: which layout suits a reading task, which component in a confusable family, which separator is the smallest one that separates. The checkers carry what prose cannot enforce: whether the file actually does it.</p>
+  </section>
+
+  <section>
+    <span class="eyebrow">bin/</span>
+    <h2>Two checkers, static and rendered</h2>
+    <p>Both checkers emit findings in one shape: a stable <code>rule</code> id, a file, a line, and a <code>fix</code> slug. That shape is what makes the loop mechanical, because a skill can parse <code>--json</code>, repair, and re-run against the exit code.</p>
+
+    <h3>The static half</h3>
+    <p><code>check-page</code> reads a page source. <code>check-component</code> reads a runtime file, its editor, and its registration. Severity is a project decision: <code>live-tokens.config.json</code> sets it per rule, and <code>--off</code>, <code>--warn</code>, <code>--error</code>, and <code>--strict</code> move it for one run. <code>report</code> aggregates both and adds signals no rule covers, such as a token a component declares and never reads, a component with no registration, and a pending <span class="mono">tokens.css</span> migration.</p>
+
+    <h3>The token vocabulary</h3>
+    <p>Both checkers open by loading the project's vocabulary: every custom property declared in its own <span class="mono">tokens.css</span>, plus every semantic property declared in a component's <code>:global(:root)</code> block. That set is read from the project rather than compiled into the package, so a project running an older <span class="mono">tokens.css</span> is measured against the names it actually has.</p>
+    <p>A name outside the set is a finding, and the message depends on the shape of the name. A name matching one of the 25 scales the token contract governs is reported as a rename to chase in <span class="mono">tokens.css</span>, because a name with that shape and no declaration behind it is a typo. A name opening with a state, such as <span class="mono">--hover-surface</span>, is told that a state is a segment of a property name and never a token of its own. Anything else is reported as neither a design token nor a semantic property.</p>
+    <details class="drawer">
+      <summary>The scales the token contract governs <span class="count">25</span></summary>
+      <p class="drawer-note">Each name is the stem of a <code>--&lt;scale&gt;-*</code> family, listed in <span class="mono">bin/lib/tokenVocabulary.mjs</span> as <code>CONTRACT_SCALES</code>.</p>
+      <ul class="chips">
+        <li>surface</li><li>text</li><li>border</li><li>color</li><li>space</li><li>radius</li><li>font</li><li>line-height</li><li>letter-spacing</li><li>shadow</li><li>blur</li><li>icon-size</li><li>scrim</li><li>tint</li><li>columns</li><li>heading</li><li>body</li><li>editorial</li><li>eyebrow</li><li>code</li><li>easing</li><li>duration</li><li>zoom</li><li>gradient</li><li>stroke</li>
+      </ul>
+    </details>
+    <p>The same vocabulary answers a component and a page, from opposite directions. A component's <code>:global(:root)</code> default is checked for a token behind it. A page's CSS is checked for a literal where a token belongs.</p>
+
+    <h3>The rendered half</h3>
+    <p><code>--tests</code> hands the run to two test runners and maps their results back onto these same rule ids. The next section covers them.</p>
+
+    <div class="ledger">
+      <div class="ledger-head" aria-hidden="true"><span>Rule family</span><span>Count</span><span>Proves</span></div>
+
+      <details class="drawer">
+        <summary><span>check-page, static</span><span class="count">17</span><span class="gist">Catalogue components, declared props, tokens in every value, a route with a source</span></summary>
+        <ul class="ruleset">
+          <li><span class="id">unknown-component</span><span class="what">An import names a component the catalogue does not hold.</span></li>
+          <li><span class="id">unknown-prop</span><span class="what">A component receives a prop it does not declare.</span></li>
+          <li><span class="id">unknown-prop-value</span><span class="what">A prop receives a value outside the set the component accepts.</span></li>
+          <li><span class="id">deep-import</span><span class="what">An import reaches into package internals instead of a public entry point.</span></li>
+          <li><span class="id">unknown-token</span><span class="what">A <code>var()</code> names something that is neither a design token, a semantic property, nor a property the file declares itself.</span></li>
+          <li><span class="id">color-literal</span><span class="what">A CSS value paints a literal colour, such as <code>#fff</code> or <code>rgb()</code>, where a design token belongs.</span></li>
+          <li><span class="id">reserved-route</span><span class="what">A route sits inside the reserved <code>/live-tokens/*</code> namespace.</span></li>
+          <li><span class="id">site-css-in-main</span><span class="what"><code>main.ts</code> imports <span class="mono">site.css</span>, so it leaks into the editor routes. Each page imports it instead.</span></li>
+          <li><span class="id">raw-text-axis</span><span class="what">A font size, family, weight, line height, or letter spacing is set on its own. Every axis comes from one text style bundle.</span></li>
+          <li><span class="id">dimension-literal<span class="warn">warn</span></span><span class="what">Spacing, stroke, or radius is written as a raw dimension.</span></li>
+          <li><span class="id">hardcoded-columns<span class="warn">warn</span></span><span class="what">A grid spells out <code>repeat(N, 1fr)</code> with four or more columns. The page grid reads <code>--columns-count</code>.</span></li>
+          <li><span class="id">missing-source<span class="warn">warn</span></span><span class="what">A route entry has no <code>source</code>, so Page Source cannot open it.</span></li>
+          <li><span class="id">control-size<span class="warn">warn</span></span><span class="what">The page sets <code>size</code> on a shipped component. Its size is retuned once, for the whole project, in the component editor.</span></li>
+          <li><span class="id">multiple-primary<span class="warn">warn</span></span><span class="what">The page holds more than one primary Button.</span></li>
+          <li><span class="id">danger-without-dialog<span class="warn">warn</span></span><span class="what">A danger Button appears on a page that imports no Dialog to confirm it.</span></li>
+          <li><span class="id">native-control<span class="warn">warn</span></span><span class="what">A bare <code>&lt;button&gt;</code>, <code>&lt;input&gt;</code>, <code>&lt;select&gt;</code>, or <code>&lt;textarea&gt;</code> stands in for a shipped control. Hidden inputs pass.</span></li>
+          <li><span class="id">property-override<span class="warn">warn</span></span><span class="what">The page redeclares a component's semantic property for one instance.</span></li>
+        </ul>
+      </details>
+
+      <details class="drawer">
+        <summary><span>page-*</span><span class="count">5</span><span class="gist">Component paint, one shipped text style per run of text, AA contrast, the page grid, no overflow</span></summary>
+        <p class="drawer-note">Each runs at every viewport in the testing settings, by default 1280&#215;900 and 390&#215;844. A rule that cannot apply reports its reason as inapplicable.</p>
+        <ul class="ruleset">
+          <li><span class="id">page-component-paint</span><span class="what">Every contracted part of a shipped component paints the value its semantic property resolves to. Inapplicable when the page renders no shipped component.</span></li>
+          <li><span class="id">page-text-style</span><span class="what">Every run of text outside a component matches one shipped text style on every axis. A failure names the nearest style and the axis that differs.</span></li>
+          <li><span class="id">page-contrast</span><span class="what">Every text and surface pair meets WCAG AA: 4.5:1 for body text, 3:1 at 24px, or at 18.66px bold. Text on a gradient or blend mode is skipped with its reason.</span></li>
+          <li><span class="id">page-grid</span><span class="what">Some element carries as many tracks as <code>--columns-count</code>, and every section edge sits on a column line within 1px. Inapplicable below 768px.</span></li>
+          <li><span class="id">page-overflow</span><span class="what">The document never scrolls sideways, no box holds more content than its width unless it scrolls, and no component extends past the element that clips it.</span></li>
+        </ul>
+      </details>
+
+      <details class="drawer">
+        <summary><span>check-component, static</span><span class="count">17</span><span class="gist">Property names, token-backed defaults, editor schema, registration, public imports only</span></summary>
+        <ul class="ruleset">
+          <li><span class="id">invalid-id</span><span class="what">The id holds anything other than lowercase letters and digits.</span></li>
+          <li><span class="id">missing-file</span><span class="what">The runtime or editor file is absent from its expected path.</span></li>
+          <li><span class="id">missing-root-block</span><span class="what">The runtime has no <code>:global(:root)</code> block.</span></li>
+          <li><span class="id">no-tokens</span><span class="what">The <code>:global(:root)</code> block declares no <code>--&lt;id&gt;-*</code> property.</span></li>
+          <li><span class="id">state-after-property</span><span class="what">A state follows the property in a name. <code>-hover-surface</code> is correct; <code>-surface-hover</code> trips it.</span></li>
+          <li><span class="id">disabled-is-terminal</span><span class="what">A name pairs <code>disabled</code> with hover, focus, selected, active, on, or checked, a state that never paints.</span></li>
+          <li><span class="id">unknown-suffix</span><span class="what">A property name ends in a suffix the editor has no picker for.</span></li>
+          <li><span class="id">phantom-editor-token</span><span class="what">An editor row names a property the runtime never declares.</span></li>
+          <li><span class="id">color-literal</span><span class="what">A default is a literal colour where a design token belongs.</span></li>
+          <li><span class="id">missing-component-const</span><span class="what">The editor lacks <code>const component = '&lt;id&gt;'</code> in its module script.</span></li>
+          <li><span class="id">missing-all-tokens</span><span class="what">The editor does not export <code>allTokens</code>.</span></li>
+          <li><span class="id">deep-import</span><span class="what">The runtime, editor, or registration imports from package internals.</span></li>
+          <li><span class="id">missing-registration</span><span class="what">No <code>registerComponent()</code> or <code>bootLiveTokens()</code> call under <span class="mono">src/</span> registers the id.</span></li>
+          <li><span class="id">unknown-token-ref</span><span class="what">A default reads a name that is neither a design token nor one of the component's own properties.</span></li>
+          <li><span class="id">default-not-token</span><span class="what">A default has no design token behind it and the editor declares no intrinsic for it.</span></li>
+          <li><span class="id">phantom-link<span class="warn">warn</span></span><span class="what">A type-group font helper runs across several slots without a derivation, which links every slot's fonts into one.</span></li>
+          <li><span class="id">dimension-literal<span class="warn">warn</span></span><span class="what">A default pins a raw dimension where a <code>--space-*</code>, <code>--radius-*</code>, or <code>--border-width-*</code> token belongs.</span></li>
+        </ul>
+      </details>
+
+      <details class="drawer">
+        <summary><span>contract-*</span><span class="count">10</span><span class="gist">Listing, render, aliases, persistence, theme projection, states, interaction, sketch mode</span></summary>
+        <ul class="ruleset">
+          <li><span class="id">contract-registry</span><span class="what">Vitest. The registration is sound, declared, and seeded. The next section lists its eight checks.</span></li>
+          <li><span class="id">contract-listed</span><span class="what">Playwright, editor. The component appears in its registry group.</span></li>
+          <li><span class="id">contract-alias</span><span class="what">Playwright, three tests. The component declares every part and shipped alias, every alias it paints with resolves, and each alias fans set, update, and remove out to the document root.</span></li>
+          <li><span class="id">contract-states</span><span class="what">Playwright, editor. The preview renders the state being edited.</span></li>
+          <li><span class="id">contract-interaction</span><span class="what">Playwright, editor. The component answers the pointer and the keyboard.</span></li>
+          <li><span class="id">contract-persist</span><span class="what">Playwright, editor. An edit survives a save and a reload, and Reset returns the saved config.</span></li>
+          <li><span class="id">contract-theme</span><span class="what">Playwright, editor. A theme preview reaches the paint, and cancelling it restores every watched value.</span></li>
+          <li><span class="id">contract-sketch</span><span class="what">Playwright, editor. Every painted part is drawn in Sketch mode.</span></li>
+          <li><span class="id">contract-render</span><span class="what">Playwright, runtime preview. The component repaints every property, and paints each declared property on its declared part.</span></li>
+          <li><span class="id">contract-missing</span><span class="what">The run names a component that no module in <code>contractsModule</code> gives a contract.</span></li>
+        </ul>
+      </details>
+
+      <details class="drawer">
+        <summary><span>tests-*</span><span class="count">3</span><span class="gist">The tools are installed, the run set up, the coverage complete. Never silenceable.</span></summary>
+        <ul class="ruleset">
+          <li><span class="id">tests-not-installed</span><span class="what"><span class="mono">@playwright/test</span>, <span class="mono">vitest</span>, or <span class="mono">happy-dom</span> is missing from the project.</span></li>
+          <li><span class="id">tests-setup</span><span class="what">The isolated run could not be prepared, a tool exited before writing its report, or a Playwright worker crashed.</span></li>
+          <li><span class="id">tests-incomplete</span><span class="what">A run passed its deadline, collected nothing, or left a component and rule pair with no result.</span></li>
+        </ul>
+      </details>
+    </div>
+  </section>
+
+  <section>
+    <span class="eyebrow">src/testing · bin/contractRunner.mjs</span>
+    <h2>Three runs behind one verdict</h2>
+    <p>Without <code>--tests</code>, both checkers stop at the source. With it, a skill's verification step is a machine verdict on a running app. A model asked to review its own component will tell you the theme reaches it. Playwright changes the theme and measures the pixel.</p>
+
+    <figure>
+      <button class="fig-open" type="button" aria-label="Enlarge figure 4, the three test runs">
+      <svg class="dg" viewBox="0 0 900 850" role="img" aria-label="Both checkers read the token vocabulary from the project's tokens.css and check every name against it. They hand their run to one test runner, which builds a throwaway harness and starts three runs: Vitest for the wiring, Playwright for the component in the editor, and Playwright for the page at its own route. Findings are fixed and both checkers run again, until every check passes.">
+        <rect class="box" x="280" y="24" width="340" height="72" rx="3" />
+        <text class="t" x="296" y="46">The token vocabulary</text>
+        <text class="s" x="296" y="64">every name the project&#8217;s tokens.css declares</text>
+        <text class="m" x="296" y="82">--surface-* --text-* --space-* --radius-*</text>
+
+        <path class="flow" style="marker-end:none" d="M450,96 V120" />
+        <path class="flow" style="marker-end:none" d="M230,120 H670" />
+        <path class="flow" d="M230,120 V148" />
+        <path class="flow" d="M670,120 V148" />
+        <text class="lbl" x="460" y="112">every name is checked against it</text>
+
+        <rect class="box-lead" x="40" y="148" width="380" height="110" rx="3" />
+        <text class="t" x="56" y="170">check-component</text>
+        <text class="s" x="56" y="192">one name per editable value</text>
+        <text class="s" x="56" y="210">every name takes a token from the vocabulary</text>
+        <text class="s" x="56" y="228">an editor row for every name</text>
+        <text class="s" x="56" y="246">registered under a unique id</text>
+
+        <rect class="box-lead" x="480" y="148" width="380" height="110" rx="3" />
+        <text class="t" x="496" y="170">check-page</text>
+        <text class="s" x="496" y="192">components from the catalogue</text>
+        <text class="s" x="496" y="210">only the props they declare</text>
+        <text class="s" x="496" y="228">every colour and size from the vocabulary</text>
+        <text class="s" x="496" y="246">a route that names its source</text>
+
+        <path class="flow" style="marker-end:none" d="M230,258 V282 H450" />
+        <path class="flow" style="marker-end:none" d="M670,258 V282 H450" />
+        <path class="flow" d="M450,282 V304" />
+
+        <rect class="box" x="280" y="304" width="340" height="64" rx="3" />
+        <text class="t" x="296" y="326">The test runner</text>
+        <text class="s" x="296" y="344">started by either checker</text>
+        <text class="m" x="296" y="360">bin/contractRunner.mjs</text>
+
+        <path class="flow" d="M450,368 V400" />
+
+        <rect class="box" x="280" y="400" width="340" height="64" rx="3" />
+        <text class="t" x="296" y="422">Test harness</text>
+        <text class="s" x="296" y="440">a throwaway copy of the project&#8217;s data</text>
+        <text class="s" x="296" y="456">its own dev server and browser</text>
+
+        <path class="flow" style="marker-end:none" d="M450,464 V492" />
+        <path class="flow" style="marker-end:none" d="M166,492 H732" />
+        <path class="flow" d="M166,492 V516" />
+        <path class="flow" d="M450,492 V516" />
+        <path class="flow" d="M732,492 V516" />
+
+        <rect class="box" x="40" y="516" width="253" height="96" rx="3" />
+        <text class="t" x="56" y="538">Vitest</text>
+        <text class="s" x="56" y="558">the wiring, with no browser</text>
+        <text class="s" x="56" y="576">names, declarations and seeds</text>
+        <text class="s" x="56" y="594">for every editable value</text>
+
+        <rect class="box" x="323" y="516" width="253" height="96" rx="3" />
+        <text class="t" x="339" y="538">Playwright, the component</text>
+        <text class="s" x="339" y="558">opens the editor and edits it</text>
+        <text class="s" x="339" y="576">eight checks, among them a save,</text>
+        <text class="s" x="339" y="594">a reload and a theme change</text>
+
+        <rect class="box" x="606" y="516" width="253" height="96" rx="3" />
+        <text class="t" x="622" y="538">Playwright, the page</text>
+        <text class="s" x="622" y="558">opens the page at its own route</text>
+        <text class="s" x="622" y="576">five checks at each screen size</text>
+        <text class="s" x="622" y="594">paint, text, contrast, grid, overflow</text>
+
+        <path class="flow" style="marker-end:none" d="M166,612 V640" />
+        <path class="flow" style="marker-end:none" d="M450,612 V640" />
+        <path class="flow" style="marker-end:none" d="M732,612 V640" />
+        <path class="flow" style="marker-end:none" d="M166,640 H732" />
+        <path class="flow" d="M450,640 V664" />
+
+        <rect class="box" x="280" y="664" width="340" height="64" rx="3" />
+        <text class="t" x="296" y="686">Findings</text>
+        <text class="s" x="296" y="704">one per problem, with the file, the line</text>
+        <text class="s" x="296" y="720">and the name of the fix</text>
+
+        <path class="flow" d="M450,728 V752" />
+
+        <rect class="box-lead" x="300" y="752" width="300" height="52" rx="3" />
+        <text class="t" x="450" y="774" text-anchor="middle">Fix, then run the checks again</text>
+        <text class="s" x="450" y="792" text-anchor="middle">until every check passes</text>
+
+        <path class="back" style="marker-end:none" d="M300,778 H18 V203" />
+        <path class="back" d="M18,203 H38" />
+        <path class="back" style="marker-end:none" d="M600,778 H882 V203" />
+        <path class="back" d="M882,203 H862" />
+        <text class="rule" x="13" y="490" text-anchor="middle" transform="rotate(-90 13 490)">run again</text>
+
+        <text class="rule" x="450" y="834" text-anchor="middle">a check that never ran counts as a failure</text>
+      </svg>
+        <span class="fig-badge" aria-hidden="true"><svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.2"><path d="M4 1H1v3M6 9h3V6"/></svg>Enlarge</span>
+      </button>
+      <figcaption><b>Figure 4.</b> Both checkers open with the same question, put to the project's own <span class="mono">tokens.css</span>: is this a name the design system has? Then they hand the run to one runner, which builds a throwaway harness and starts three runs. The harness is what makes a result repeatable: nothing reads or writes the project's live state, and every run starts from the same baseline. Findings return to the checkers, and the pass repeats until every check is clean. Coverage is counted as well as collected, so a check that never ran is reported rather than passed.</figcaption>
+    </figure>
+
+    <h3>The registry contract, under Vitest</h3>
+    <p>Node and happy-dom, no browser, because these are wiring questions and none of them need a paint. The run imports the module the project names as <code>registrySetup</code>, a module that registers components and stops there. Importing an editor does not register it, and importing the app entry point would mount the app.</p>
+    <p>This is the second of the three places a token is checked. The static rules ask whether the name exists. Vitest asks whether it is wired: declared, seeded, and reachable. Playwright asks whether it paints.</p>
+    <p>Per registration it asserts that the entry is sound, declared, and seeded. Across the run it asserts that every component authored in the project is registered at all.</p>
+    <details class="drawer">
+      <summary>The registry checks <span class="count">8</span></summary>
+      <ul class="ruleset">
+        <li><span class="label">selection</span><span class="what">The run selects at least one component: the one requested, or every registered one.</span></li>
+        <li><span class="label">coverage</span><span class="what">Every component authored under <span class="mono">src/system/components</span> is registered.</span></li>
+        <li><span class="label">source file</span><span class="what"><code>sourceFile</code> resolves to a real file, and the schema is not empty.</span></li>
+        <li><span class="label">no duplicates</span><span class="what">No variable is declared twice in the schema.</span></li>
+        <li><span class="label">declared</span><span class="what">Every editable token in the schema is declared in the runtime's <code>:global(:root)</code> block.</span></li>
+        <li><span class="label">seeded</span><span class="what">Every editable token is seeded in <span class="mono">component-configs/&lt;id&gt;/default.json</span>.</span></li>
+        <li><span class="label">opacity floor</span><span class="what">A token with a minimum opacity seeds at or above it.</span></li>
+        <li><span class="label">alias round trip</span><span class="what">One alias survives a round trip through the editor store.</span></li>
+      </ul>
+    </details>
+    <p>It runs first for a reason. A component missing from the registry reports that one fact, instead of six preview failures all caused by the missing entry.</p>
+
+    <h3>The eight obligations, under Playwright</h3>
+    <p>The 26 component contracts are data, one file per component, naming that component's parts, states, persistence cases, and theme expectations. A single suite drives every contract through the same eight tests, in a serial describe so the first failure stops the cascade.</p>
+    <details class="drawer">
+      <summary>The component contracts <span class="count">26</span></summary>
+      <p class="drawer-note">One file per component in <span class="mono">src/testing/contracts/</span>, named by component id.</p>
+      <ul class="chips">
+        <li>badge</li><li>button</li><li>callout</li><li>card</li><li>codesnippet</li><li>collapsiblesection</li><li>cornerbadge</li><li>dialog</li><li>iconbutton</li><li>image</li><li>imagelightbox</li><li>inlineeditactions</li><li>input</li><li>menuselect</li><li>notification</li><li>panel</li><li>progressbar</li><li>radiobutton</li><li>sectiondivider</li><li>segmentedcontrol</li><li>sidenavigation</li><li>slider</li><li>tabbar</li><li>table</li><li>toggle</li><li>tooltip</li>
+      </ul>
+    </details>
+    <ul class="plain">
+      <li><span class="mono">contract-listed</span>. The component appears in its registry group, under the origin it claims.</li>
+      <li><span class="mono">contract-alias</span>. It declares every part and every shipped alias, so no part of the component is outside the editor's reach.</li>
+      <li><span class="mono">contract-alias</span> again, one position later. Every alias it paints with resolves to something. A custom property that resolves to an empty string is an editor row that edits nothing.</li>
+      <li><span class="mono">contract-states</span>. The preview renders the state being edited, and a component whose contract marks states inapplicable does not quietly render state tabs.</li>
+      <li><span class="mono">contract-interaction</span>. It answers the pointer and the keyboard, and a part carrying an interactive role cannot declare interaction inapplicable.</li>
+      <li><span class="mono">contract-persist</span>. An edit survives a save and a reload.</li>
+      <li><span class="mono">contract-theme</span>. A theme change reaches the paint, and cancelling it reaches the paint again.</li>
+      <li><span class="mono">contract-sketch</span>. Every painted part is drawn in Sketch mode.</li>
+    </ul>
+    <p>Two of those carry most of the weight, because they are the two no reading of the source can settle.</p>
+    <p><strong>Persistence</strong> drives a real control, reads the painted value before and after, saves, reopens the editor, then reads back both the stored value and the repainted preview. It finishes by asserting that the reset variable no longer holds its shipped value, because a Reset that cannot tell the shipped baseline from the saved one passes every naive version of this test.</p>
+    <p><strong>Theme projection</strong> is the third place, and the one that closes the chain. A name can exist in <span class="mono">tokens.css</span>, be declared in the runtime, be seeded in the config, and still never reach a pixel. This is the test that catches that. It previews a theme and asserts three things at once: every variable declared to change moved, every variable declared to hold stayed, and every aliased pair still resolves to one value. Then it cancels the preview and asserts that every watched variable is back where it started. A component that paints from a literal survives the first half and fails the second.</p>
+
+    <h3>Page compliance, under Playwright</h3>
+    <p>The page suite runs the five <span class="mono">page-*</span> rules in the ledger above. It opens the project's own route, taken from the <code>pages</code> object in the file that imports <code>LiveTokensRouter</code>, at each viewport the testing settings name. It reuses the component contracts: the parts and paint expectations that check a component in the editor are the same ones it looks for on the page.</p>
+    <p>A rule that cannot apply returns a reason rather than a pass. At 390px the grid rule reports that the page is one column, below the 768px the grid needs, and that sentence lands in the coverage table where a reader can see it.</p>
+
+    <h3>The run itself</h3>
+    <p>Determinism is mostly setup. The project's data directory is copied to a temporary directory with <span class="mono">_working.json</span>, <span class="mono">_active.json</span> and <span class="mono">_production.json</span> removed, so no run reads or writes live editor state and no two runs share a baseline. The Playwright config is generated rather than borrowed. The child process gets a deadline, and on a signal the runner stops the child before removing the directories it is still writing into.</p>
+    <p>Then the mapping. A result becomes a finding by its <em>position</em> in the suite, not by its title, so rewording a test cannot silently detach it from the rule it reports under. Every result also becomes a coverage row: passed, flaky, or inapplicable with the reason. Reconciliation compares that coverage against the full rule set, and a component and rule pair with no result at all becomes a <span class="mono">tests-incomplete</span> finding. <span class="mono">tests-not-installed</span>, <span class="mono">tests-setup</span> and <span class="mono">tests-incomplete</span> are the three rules a run can never silence. Nothing passes by not running.</p>
+
+    <div class="aside">
+      <p>This is the division of labour worth copying. The skills carry the judgement: which component fits the reader's task, which layout, which token for a role. The suites carry everything a machine can settle, and they return an exit code rather than an opinion. A skill that ends in a model reviewing its own diff has no verdict in it. A skill that ends in <code>--tests --strict</code> until exit 0 does.</p>
+    </div>
+  </section>
+
+  <section>
+    <span class="eyebrow">the walkthrough</span>
+    <h2>One page, one new component</h2>
+    <p>Here is the whole path for the case you asked about: a page that uses a shipped component, needs one that does not exist yet, lays both out, and is checked until it passes.</p>
+
+    <figure>
+      <button class="fig-open" type="button" aria-label="Enlarge figure 2, the page and component paths">
+      <svg class="dg" viewBox="0 0 900 800" role="img" aria-label="Creating a page: read the project, name the sections, match each need to a component. When nothing in the catalogue fits, author a component and check it until exit 0. Assemble the page, then verify it statically and in a browser, with findings returning to the assembly step until both checkers exit 0.">
+        <rect class="box-lead" x="110" y="20" width="330" height="50" rx="3" />
+        <text class="t" x="126" y="42">Create a page</text>
+        <text class="m" x="126" y="60">live-tokens-create-page</text>
+
+        <path class="flow" d="M275,70 V96" />
+
+        <rect class="box" x="110" y="96" width="330" height="64" rx="3" />
+        <text class="t" x="126" y="118">Read the project</text>
+        <text class="s" x="126" y="136">routes, --columns-count, the catalogue</text>
+        <text class="m" x="126" y="152">npx live-tokens components</text>
+
+        <path class="flow" d="M275,160 V186" />
+
+        <rect class="box" x="110" y="186" width="330" height="64" rx="3" />
+        <text class="t" x="126" y="208">Sections, then columns</text>
+        <text class="s" x="126" y="226">one row per purpose</text>
+        <text class="s" x="126" y="242">spans from the layout table</text>
+
+        <path class="flow" d="M275,250 V276" />
+
+        <rect class="box" x="110" y="276" width="330" height="52" rx="3" />
+        <text class="t" x="126" y="298">Match each need to a component</text>
+        <text class="s" x="126" y="316">the shipped catalogue first</text>
+
+        <path class="flow" d="M275,328 V470" />
+        <text class="lbl" x="287" y="404">a shipped component fits</text>
+
+        <path class="flow" d="M440,302 H490 V263 H560" />
+        <text class="lbl" x="497" y="320">no clear fit</text>
+
+        <line class="rail" x1="536" y1="228" x2="536" y2="462" />
+        <text class="lbl" x="536" y="214">when the catalogue does not settle it</text>
+
+        <rect class="box" x="560" y="238" width="300" height="50" rx="3" />
+        <text class="t" x="576" y="260">pick-component</text>
+        <text class="s" x="576" y="278">a decision test per confusable family</text>
+
+        <path class="flow" d="M710,288 V314" />
+        <text class="lbl" x="722" y="306">still nothing fits</text>
+
+        <rect class="box" x="560" y="314" width="300" height="76" rx="3" />
+        <text class="t" x="576" y="336">create-component</text>
+        <text class="s" x="576" y="354">runtime + editor + registration + contract</text>
+        <text class="s" x="576" y="372">one semantic property per editable value</text>
+
+        <path class="flow" d="M710,390 V414" />
+
+        <rect class="box" x="560" y="414" width="300" height="48" rx="3" />
+        <text class="m" x="576" y="435">check-component &lt;id&gt; --tests --strict</text>
+        <text class="s" x="576" y="453">eight obligations, run in a browser</text>
+
+        <path class="back" d="M860,438 H876 V352 H862" />
+        <text class="rule" x="866" y="395" text-anchor="middle" transform="rotate(-90 866 395)">re-run</text>
+
+        <path class="flow" d="M710,462 V512 H440" />
+        <text class="lbl" x="575" y="504" text-anchor="middle">registered, with its contract</text>
+
+        <rect class="box" x="110" y="470" width="330" height="84" rx="3" />
+        <text class="t" x="126" y="492">Assemble the page</text>
+        <text class="s" x="126" y="510">components at their defaults</text>
+        <text class="s" x="126" y="526">page CSS in design tokens</text>
+        <text class="s" x="126" y="542">one text style per element, route with source</text>
+
+        <path class="flow" d="M275,554 V580" />
+
+        <rect class="box" x="110" y="580" width="330" height="112" rx="3" />
+        <text class="t" x="126" y="602">Verify</text>
+        <text class="m" x="126" y="621">npx live-tokens report</text>
+        <text class="s" x="126" y="638">static findings, classified and counted</text>
+        <text class="m" x="126" y="657">check-page &lt;file&gt; --tests --strict</text>
+        <text class="s" x="126" y="674">paint, text style, contrast, grid, overflow</text>
+        <text class="s" x="126" y="688">at each viewport the settings name</text>
+
+        <path class="back" d="M110,636 H78 V512 H108" />
+        <text class="rule" x="70" y="574" text-anchor="middle" transform="rotate(-90 70 574)">fix-findings</text>
+
+        <path class="flow" d="M275,692 V718" />
+        <text class="lbl" x="287" y="710">exit 0</text>
+
+        <rect class="box-lead" x="110" y="718" width="330" height="46" rx="3" />
+        <text class="t" x="126" y="746">Then read the page yourself</text>
+
+        <text class="rule" x="110" y="786">amber: findings return to the step that fixes them</text>
+      </svg>
+        <span class="fig-badge" aria-hidden="true"><svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.2"><path d="M4 1H1v3M6 9h3V6"/></svg>Enlarge</span>
+      </button>
+      <figcaption><b>Figure 2.</b> The page path runs down the left. The component excursion on the right closes its own loop before returning, so a component reaches the page already registered and already passing its contract. Both loops end on an exit code, and the last box is the part no checker can do: the layout laws, read by eye at the width the page is built for.</figcaption>
+    </figure>
+
+    <ol class="steps">
+      <li><strong>Read the project.</strong> The route table in <span class="mono">App.svelte</span>, <code>--columns-count</code> in the vendored <span class="mono">tokens.css</span>, and the catalogue from <code>npx live-tokens components</code>, which lists shipped and project components alike with the usage comment each one carries.</li>
+      <li><strong>Name the sections before the columns.</strong> Read the page top to bottom, name each section by what the user reads, types into, or presses, and take its column spans from the layout that matches the reader's task. Each section is a row of the page grid.</li>
+      <li><strong>Match each need to a component.</strong> When two could fit, pick-component applies a decision test written for that family. When nothing fits, create-component authors one.</li>
+      <li><strong>Author the component as three files and a contract.</strong> A runtime file whose <code>:global(:root)</code> block declares one semantic property per editable value, each assigned a token; an editor file exporting the schema; a registration; and a <span class="mono">ComponentContract</span> that names the component's parts. Without the contract, <code>--tests</code> reports <span class="mono">contract-missing</span>.</li>
+      <li><strong>Check the component alone.</strong> <code>npx live-tokens check-component &lt;id&gt; --tests --strict</code> runs that one id through the static rules, the registry contract under Vitest, and the eight editor obligations under Playwright. Repeat until exit 0 with complete coverage.</li>
+      <li><strong>Assemble.</strong> Components at their shipped defaults, page CSS in design tokens, one text style per element, one primary action, one space step per position, and a route whose <code>source</code> entry is what makes Page Source work.</li>
+      <li><strong>Verify the page.</strong> <code>report</code> for the static picture, then <code>check-page &lt;file&gt; --tests --strict</code>, which opens the page's own route in a browser and proves what only a rendered page can.</li>
+      <li><strong>Loop.</strong> Findings go to fix-findings by rule, largest error group first. Re-run both. Then <code>--strict</code>, which promotes every warning to an error.</li>
+      <li><strong>Read the page yourself.</strong> One <span class="mono">h1</span>, no skipped heading levels, copy at 45 to 90 characters, containers aligned at the bottom, the primary action last. The checkers cannot see a layout.</li>
+    </ol>
+  </section>
+
+  <section>
+    <span class="eyebrow">tests/e2e · scripts/</span>
+    <h2>How the rules prove themselves</h2>
+    <p>A rule that cannot fail proves nothing, and a skill that names a flag the CLI dropped hands the model a command that exits 1. Both classes of drift have happened here, so both are now gated.</p>
+
+    <figure>
+      <button class="fig-open" type="button" aria-label="Enlarge figure 3, how the rules prove themselves">
+      <svg class="dg" viewBox="0 0 900 300" role="img" aria-label="A skill states the contract in prose, a checker rule detects a breach, a finding carries the rule and its fix slug, and the slug names the skill section that fixes it. Each link is pinned by its own gate: check:skills, the checker unit tests and defect fixtures, and the fix-slug table.">
+        <text class="lbl" x="136" y="40" text-anchor="middle">check:skills, 25 rules</text>
+        <text class="lbl" x="136" y="56" text-anchor="middle">check:cli-strings · check:skill-atlas</text>
+        <line class="lead" x1="136" y1="70" x2="136" y2="116" />
+
+        <text class="lbl" x="450" y="40" text-anchor="middle">bin/check-page.test.ts</text>
+        <text class="lbl" x="450" y="56" text-anchor="middle">tests/e2e/contract-defects · page-defects</text>
+        <line class="lead" x1="450" y1="70" x2="450" y2="116" />
+
+        <text class="lbl" x="764" y="40" text-anchor="middle">COMPONENT_RULE_FIX</text>
+        <text class="lbl" x="764" y="56" text-anchor="middle">one slug per rule</text>
+        <line class="lead" x1="764" y1="70" x2="764" y2="116" />
+
+        <rect class="box" x="30" y="120" width="212" height="84" rx="3" />
+        <text class="t" x="46" y="146">SKILL.md</text>
+        <text class="s" x="46" y="165">the contract in prose</text>
+        <text class="s" x="46" y="183">the model reads this</text>
+
+        <rect class="box" x="344" y="120" width="212" height="84" rx="3" />
+        <text class="t" x="360" y="146">The rule</text>
+        <text class="s" x="360" y="165">one id, one severity</text>
+        <text class="s" x="360" y="183">per project or per run</text>
+
+        <rect class="box" x="658" y="120" width="212" height="84" rx="3" />
+        <text class="t" x="674" y="146">The finding</text>
+        <text class="m" x="674" y="165">rule · file · line · fix</text>
+        <text class="s" x="674" y="183">fed to fix-findings</text>
+
+        <path class="flow" d="M242,162 H336" />
+        <text class="lbl" x="289" y="154" text-anchor="middle">in prose</text>
+        <path class="flow" d="M556,162 H650" />
+        <text class="lbl" x="603" y="154" text-anchor="middle">on failure</text>
+
+        <path class="back" d="M764,204 V262 H136 V206" />
+        <text class="rule" x="450" y="254" text-anchor="middle">the fix slug names the section that fixes it</text>
+      </svg>
+        <span class="fig-badge" aria-hidden="true"><svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.2"><path d="M4 1H1v3M6 9h3V6"/></svg>Enlarge</span>
+      </button>
+      <figcaption><b>Figure 3.</b> The loop closes on a slug. A rule does not need its own paragraph in a skill, because the finding carries the name of the section that fixes it, and adding a rule that reuses an existing slug costs no skill edit. Two skills once enumerated every rule id in their own tables, with nothing holding the two in agreement.</figcaption>
+    </figure>
+
+    <h3>The gates</h3>
+    <ul class="plain">
+      <li><strong>Defect fixtures.</strong> <span class="mono">tests/e2e/contract-defects</span> and <span class="mono">page-defects</span> fail every rule once on a fixture written to fail it, and pass it once on the exception the rule reserves. They are the only pages in the repository carrying a defect on purpose, and they are kept out of the shipped project so a consumer never runs them.</li>
+      <li><strong>Checker unit tests.</strong> <span class="mono">bin/check-page.test.ts</span> and <span class="mono">check-component.test.ts</span> drive the static rules directly, about 2,000 lines between them.</li>
+      <li><strong>check:skills.</strong> Twenty-five rules over the prose itself: frontmatter name matches the directory, the body stays under 250 lines, every reference file is named and every named reference exists, every <code>npx live-tokens &lt;verb&gt;</code> is one the CLI dispatches, every flag the CLI offers on that verb is named by the skill, no retired flag survives, no flag is attributed to the wrong verb, every sibling skill named is bundled, and every dispatched verb reaches some skill or is exempted with a written reason.</li>
+      <li><strong>check:skill-atlas and check:skill-sources.</strong> The editor renders each skill as a diagram whose nodes cite SKILL.md by line number. Anchor text repairs a range that moved and refuses one whose anchor is gone.</li>
+    </ul>
+    <details class="drawer">
+      <summary>The check:skills rules <span class="count">25</span></summary>
+      <p class="drawer-note">Each is one <code>errors.push</code> in <span class="mono">scripts/lib/skillChecks.mjs</span>. Its test counts them and fails when a rule arrives without a case.</p>
+      <ul class="ruleset">
+        <li><span class="label">SKILL.md</span><span class="what">Every skill directory holds a SKILL.md.</span></li>
+        <li><span class="label">name</span><span class="what">The frontmatter name matches the directory.</span></li>
+        <li><span class="label">description</span><span class="what">The frontmatter carries a description.</span></li>
+        <li><span class="label">length</span><span class="what">The body stays under 250 lines.</span></li>
+        <li><span class="label">fence length</span><span class="what">No code fence runs past 40 lines.</span></li>
+        <li><span class="label">fence closed</span><span class="what">Every code fence closes.</span></li>
+        <li><span class="label">reference exists</span><span class="what">Every <span class="mono">references/</span> file the skill names exists.</span></li>
+        <li><span class="label">reference named</span><span class="what">Every <span class="mono">references/</span> file is named by the skill.</span></li>
+        <li><span class="label">verb exists</span><span class="what">Every <code>live-tokens &lt;verb&gt;</code> the skill mentions is one the CLI dispatches.</span></li>
+        <li><span class="label">flags named</span><span class="what">A skill that documents a verb names every flag the CLI offers on it.</span></li>
+        <li><span class="label">retired flag</span><span class="what">No flag the CLI dropped survives in the prose.</span></li>
+        <li><span class="label">flag owner</span><span class="what">No flag is attributed to a verb that does not take it.</span></li>
+        <li><span class="label">sibling bundled</span><span class="what">Every sibling skill named is bundled.</span></li>
+        <li><span class="label">sample prompt</span><span class="what">Every skill has a <code>SAMPLE_PROMPTS</code> entry, so <code>setup-claude</code> can show how to trigger it.</span></li>
+        <li><span class="label">step count</span><span class="what">No heading promises an N-step recipe, because counts drift.</span></li>
+        <li><span class="label">verb reached</span><span class="what">Every verb the CLI dispatches is run by some skill or exempted in <code>UNSKILLED_VERBS</code>.</span></li>
+        <li><span class="label">exemption live</span><span class="what">Every verb in <code>UNSKILLED_VERBS</code> is one the CLI still dispatches.</span></li>
+        <li><span class="label">prompt bundled</span><span class="what">Every skill <code>SAMPLE_PROMPTS</code> names is bundled.</span></li>
+        <li><span class="label">directions exist</span><span class="what">The design directions index exists.</span></li>
+        <li><span class="label">anchors exist</span><span class="what">The colour, type, and geometry anchor files each exist.</span></li>
+        <li><span class="label">anchor indexed</span><span class="what">Every anchor a dimension file defines appears in the directions index.</span></li>
+        <li><span class="label">index covered</span><span class="what">Every anchor the index names is defined by some dimension file.</span></li>
+        <li><span class="label">suffix file</span><span class="what">The token-naming reference that holds the suffix vocabulary exists.</span></li>
+        <li><span class="label">suffix listed</span><span class="what">It lists every suffix <code>check-component</code> accepts.</span></li>
+        <li><span class="label">suffix accepted</span><span class="what">It lists no suffix <code>check-component</code> rejects.</span></li>
+      </ul>
+    </details>
+    <p>All of it sits in <code>prepublishOnly</code>, alongside four smoke runs that install the tarball, scaffold a project, and run both test paths end to end.</p>
+    <details class="drawer">
+      <summary>The smoke runs <span class="count">4</span></summary>
+      <p class="drawer-note">Each packs the real tarball and installs it into a throwaway project outside the repository.</p>
+      <ul class="ruleset">
+        <li><span class="id">check:smoke-install</span><span class="what">A minimal Vite app that mounts the editor installs the tarball and builds with no special config.</span></li>
+        <li><span class="id">check:smoke-create</span><span class="what">The shipped <code>live-tokens create</code> scaffolds an app, which installs without <code>--legacy-peer-deps</code> and builds.</span></li>
+        <li><span class="id">check:smoke-component-tests</span><span class="what">Two projects built from the <code>create</code> template validate a component they authored with <code>check-component --tests</code>, covering registration, contracts, defects, and isolation.</span></li>
+        <li><span class="id">check:smoke-page-tests</span><span class="what">A project built from the template runs <code>check-page --tests</code> on its own clean page, then on the same page under a deliberate <span class="mono">site.css</span> override.</span></li>
+      </ul>
+    </details>
+
+    <div class="aside">
+      <p>The reverse direction is the one that costs. <code>--carry-from</code> shipped in the CLI and in <code>--help</code> and reached no skill, so two set-colors runs silently carried the first theme's fonts and geometry into the second. A flag its own skill never names is a flag the model never reaches for, which is why the verb and flag checks run in both directions.</p>
+    </div>
+  </section>
+
+  <section>
+    <span class="eyebrow">why it holds</span>
+    <h2>One loop, three statements of the same contract</h2>
+    <p>The prose tells the model what to build. The static rule catches the shape. The rendered test catches the cascade, which is the only place a design system actually fails: a component that stops repainting when the theme moves, a run of text that drifts off the shipped styles, a pair that misses AA, a section that leaves the grid.</p>
+    <p>The finding is what makes it a loop. It is an address: a rule, a file, a line, and the name of the paragraph that fixes it. The model runs the command, reads the address, edits, and runs again, until the exit code is 0 and the only work left is the work a person has to look at.</p>
+  </section>
+
+  <footer>Drawn from .claude/skills, bin/, src/testing, and scripts/ at v0.78.0.</footer>
+</article>
+
+<div class="lb" id="lightbox" hidden role="dialog" aria-modal="true" aria-labelledby="lb-title">
+  <div class="lb-panel">
+    <div class="lb-bar">
+      <span class="lb-title" id="lb-title"></span>
+      <button class="lb-close" id="lb-close" type="button">Close</button>
+    </div>
+    <div class="lb-stage" id="lb-stage"></div>
+  </div>
+  <p class="lb-cap" id="lb-cap"></p>
+</div>
+
+<script>
+  (function () {
+    var lb = document.getElementById('lightbox');
+    var stage = document.getElementById('lb-stage');
+    var title = document.getElementById('lb-title');
+    var cap = document.getElementById('lb-cap');
+    var closeBtn = document.getElementById('lb-close');
+    var opener = null;
+
+    function open(button) {
+      var figure = button.closest('figure');
+      var source = button.querySelector('svg.dg');
+      var box = (source.getAttribute('viewBox') || '0 0 1 1').split(/\s+/);
+      var clone = source.cloneNode(true);
+      // The markers are defined once, in figure 1. Dropping the clone's copy
+      // keeps their ids unique in the document; the clone resolves url(#arw)
+      // against the original either way.
+      var defs = clone.querySelector('defs');
+      if (defs) defs.remove();
+      clone.style.setProperty('--ar', Number(box[2]) / Number(box[3]));
+
+      stage.replaceChildren(clone);
+      var caption = figure.querySelector('figcaption');
+      var label = caption ? caption.textContent.trim() : '';
+      var stop = label.indexOf('.');
+      title.textContent = stop > 0 ? label.slice(0, stop) : 'Figure';
+      cap.textContent = stop > 0 ? label.slice(stop + 1).trim() : label;
+
+      opener = button;
+      lb.hidden = false;
+      document.documentElement.style.overflow = 'hidden';
+      closeBtn.focus();
+    }
+
+    function close() {
+      lb.hidden = true;
+      stage.replaceChildren();
+      document.documentElement.style.overflow = '';
+      if (opener) opener.focus();
+      opener = null;
+    }
+
+    document.querySelectorAll('.fig-open').forEach(function (button) {
+      button.addEventListener('click', function () { open(button); });
+    });
+    closeBtn.addEventListener('click', close);
+    lb.addEventListener('click', function (event) {
+      if (event.target === lb || event.target === cap) close();
+    });
+    document.addEventListener('keydown', function (event) {
+      if (event.key === 'Escape' && !lb.hidden) close();
+    });
+  })();
+</script>
