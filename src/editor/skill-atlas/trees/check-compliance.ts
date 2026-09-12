@@ -2,7 +2,7 @@ import type { SkillTree } from '../types';
 
 export const checkCompliance: SkillTree = {
   "id": "live-tokens-check-compliance",
-  "digest": "sha256:6ec5bd44eeee644c",
+  "digest": "sha256:2982362f50293a4a",
   "title": "check-compliance",
   "tagline": "Check to Ensure Live Tokens Is Used",
   "nodes": [
@@ -30,47 +30,47 @@ export const checkCompliance: SkillTree = {
       "kind": "chipset",
       "title": "Read the report sections",
       "desc": "Fixes in the report are listed by section.",
-      "lines": [19, 19],
+      "lines": [17, 17],
       "anchor": "Read each section of the report with the Report sections tab",
       "chips": [
         {
           "label": "Pending token migrations",
-          "lines": [32, 32],
+          "lines": [30, 30],
           "anchor": "| Pending token migrations (`migrations`) | Whether `tokens."
         },
         {
           "label": "Checker findings by rule",
-          "lines": [33, 33],
+          "lines": [31, 31],
           "anchor": "| Checker findings by rule (`findings.pages`, `findings.comp"
         },
         {
           "label": "Tokens a component never reads",
-          "lines": [34, 34],
+          "lines": [32, 32],
           "anchor": "| Tokens a component never reads (`components[].unread`) | T"
         },
         {
           "label": "Component registration",
-          "lines": [35, 35],
+          "lines": [33, 33],
           "anchor": "| Component registration (`components[].registered`) | Wheth"
         },
         {
           "label": "Component usage comment",
-          "lines": [36, 36],
+          "lines": [34, 34],
           "anchor": "| Component usage comment (`components[].described`) | Wheth"
         },
         {
           "label": "Components each page renders",
-          "lines": [37, 37],
+          "lines": [35, 35],
           "anchor": "| Components each page renders (`usage.byPage`) | Which comp"
         },
         {
           "label": "Shipped components no page renders",
-          "lines": [38, 38],
+          "lines": [36, 36],
           "anchor": "| Shipped components no page renders (`usage.unusedShipped`)"
         },
         {
           "label": "Project components unregistered or unused",
-          "lines": [39, 39],
+          "lines": [37, 37],
           "anchor": "| Project components unregistered or unused (`usage.customUn"
         }
       ]
@@ -81,22 +81,22 @@ export const checkCompliance: SkillTree = {
       "kind": "decide",
       "title": "Get details",
       "desc": "A finding may need more about one component or one token scale, such as space or color.",
-      "lines": [20, 20],
+      "lines": [18, 18],
       "anchor": "When a finding needs component or token scale details, run t",
       "chips": [
         {
           "label": "component",
-          "lines": [26, 26],
+          "lines": [24, 24],
           "anchor": "For one component, run `npx live-tokens components <id>`. Fo"
         },
         {
           "label": "token scale",
-          "lines": [26, 26],
+          "lines": [24, 24],
           "anchor": "For one component, run `npx live-tokens components <id>`. Fo"
         },
         {
           "label": "continue with classification",
-          "lines": [21, 21],
+          "lines": [19, 19],
           "anchor": "Classify each finding as Mechanical, Judgement, or Deliberat"
         }
       ]
@@ -107,7 +107,7 @@ export const checkCompliance: SkillTree = {
       "kind": "cli",
       "title": "Inspect the component",
       "desc": "Shows one component's props and usage.",
-      "lines": [26, 26],
+      "lines": [24, 24],
       "anchor": "For one component, run `npx live-tokens components <id>`. Fo"
     },
     {
@@ -116,7 +116,7 @@ export const checkCompliance: SkillTree = {
       "kind": "cli",
       "title": "Inspect the token scale",
       "desc": "Shows every token in one scale, such as space or color, with its value.",
-      "lines": [26, 26],
+      "lines": [24, 24],
       "anchor": "For one component, run `npx live-tokens components <id>`. Fo"
     },
     {
@@ -125,7 +125,7 @@ export const checkCompliance: SkillTree = {
       "kind": "chipset",
       "title": "Classify the findings",
       "desc": "Mechanical maps a value to an existing token.\nJudgement asks the user to decide.\nDeliberate records a decision the project made.",
-      "lines": [21, 21],
+      "lines": [19, 19],
       "anchor": "Classify each finding as Mechanical, Judgement, or Deliberat"
     },
     {
@@ -134,7 +134,7 @@ export const checkCompliance: SkillTree = {
       "kind": "hand",
       "title": "live-tokens-fix-findings",
       "desc": "Reply with the findings and the fixes, in the order the repair skill takes them, and hand it the list.",
-      "lines": [22, 24],
+      "lines": [20, 22],
       "anchor": "Reply with the findings of each section in the table's order",
       "anchorEnd": "End with the hand-off: run **live-tokens-fix-findings** on t"
     }

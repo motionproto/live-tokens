@@ -9,8 +9,6 @@ Fix every finding of `check-page` and `check-component` until both exit 0. `chec
 
 ## Workflow
 
-When `check-page` is an unknown command, upgrade `@motion-proto/live-tokens` first.
-
 1. Run `npx live-tokens migrate --check` to see the plan, then `npx live-tokens migrate` to apply it. `--tokens <path>` names a tokens.css in an unusual place.
 2. Run both checkers with `--json`. Each finding carries a `rule`, a file, and a line.
    ```sh

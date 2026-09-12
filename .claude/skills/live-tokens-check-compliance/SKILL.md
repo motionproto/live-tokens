@@ -13,8 +13,6 @@ Run `npx live-tokens report`. The CLI prints a report with the sections in the R
 
 ## Workflow
 
-When `report` is an unknown command, route the dependency upgrade to **live-tokens-fix-findings**. Resume the audit after the upgrade.
-
 1. Run `npx live-tokens report --json`.
 2. Read each section of the report with the Report sections table.
 3. When a finding needs component or token scale details, run the matching inspection command below. Otherwise continue with classification.
