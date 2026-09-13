@@ -49,9 +49,9 @@ the registry (see Deferred), and `report --tests`.
 | 3 | Behavior contracts under Vitest; `contract-preview` retired | B | Opus | 120 min | Done | 8faacb3 |
 | 4 | Merge lane B; `contract-behavior` through the CLI and the gate | main | Sonnet | 60 min | Done | 8fe7671, 31862df, 57b6f86 |
 | 5 | Guarded fixers behind `--fix` | main | Sonnet | 120 min | Done | 8393412, e79c5d2, 34c4917, fc81a6a, 2e90575, ea501eb, aa2bdf8, c356963, bfd2a16, 7531ca6, 6126023 |
-| 6 | Skills, references, docs, atlas, changelog | main | Sonnet | 90 min | In progress | 22e9a15 |
-| 7 | The static checkers read what this plan says they read | main | Sonnet | 90 min | In progress | 863c833 |
-| 8 | One defect, one finding under `--tests`; a deterministic page test | main | Opus | 120 min | In progress | 7fd4669 |
+| 6 | Skills, references, docs, atlas, changelog | main | Sonnet | 90 min | Done | 22e9a15, a00a954 |
+| 7 | The static checkers read what this plan says they read | main | Sonnet | 90 min | Done | 863c833, 049a1c7, bdeb3c2 |
+| 8 | One defect, one finding under `--tests`; a deterministic page test | main | Opus | 120 min | Done | 7fd4669, dd3854f |
 
 **Run of 2026-09-13.** Waves 1 to 4 approved. Wave 5 stopped `incomplete`
 on Fable after two BLOCK reviews (Sonnet, then Opus) and one Fable repair;
@@ -65,6 +65,21 @@ the component-side `deep-import` patch and on `declarationDeletion`; its
 Fable repair landed 7531ca6. Waves 7 and 8 were added the same
 day from the findings the reviews carried forward; Wave 6 gained the prose
 those findings owe. The next orchestrator starts at the first row not Done.
+
+**Second run of 2026-09-13.** Waves 6 to 8 approved; the plan is done, nothing
+pushed or tagged. Wave 6's Sonnet executor returned `incomplete` and Opus
+finished it. Wave 7's first review blocked and the Sonnet repair bdeb3c2 was
+approved on re-review. Wave 8's Opus executor was relaunched four times after
+its request hung under API load and was aborted; each relaunch resumed from
+the uncommitted tree and the fifth completed. Every gate is green at dd3854f.
+Follow-ups the reviews carried forward, none blocking: `src/testing-js/` is
+gitignored build output the tarball ships and no gate rebuilds it, so run
+`npm run build:testing` before the consumer gate; `clearTestResults` in
+`scripts/lib/componentGate.mjs` removes a directory with no retry and raced a
+Playwright process once; the registry suite's per-id coverage ignores
+`LIVE_TOKENS_COMPONENT`, so a single-id run writes 26 registry rows; the
+behavior suite also skips when no registry entry exists, which the Wave 8
+section does not say; the Wave 7 CHANGELOG entry carries em-dashes.
 
 ## Execution
 
@@ -814,13 +829,20 @@ in the background.
 
 ## Deferred
 
-**Description ownership.** The catalogue reads a leading runtime comment
-through `descriptionOf` in `bin/lib/catalogue.mjs`. Moving it to a
-`RegistryEntry.description` field is an organizational change that can
-follow this plan: migrate the 26 comments, update the catalogue readers and
-the create-component references, and make `missing-description` check the
-field. Keep one authoritative description the CLI can read without booting
-the editor.
+**Description ownership.** Decided 2026-09-13: the component file owns its
+description, and nothing copies it by hand. Today the runtime file's leading
+HTML comment is the single source; `descriptionOf` in `bin/lib/catalogue.mjs`
+reads it from source at run time and `missing-description` checks the
+comment. The comment cannot reach the running editor: the Svelte compiler
+drops it, and `registerComponent` receives only a path. The follow-up plan,
+`docs/plans/component-description-export.md`, moves the description to a
+typed `description` export in the runtime file's `<script module>` block.
+The built-in registry and each consumer's `registerComponent` call import
+that export from the component file, so the registry stays a reader. The CLI
+reads the same export statically, as it reads `component` and `allTokens`
+from editor files; `missing-description` checks the export; `components <id>`
+prints its fields. A hand-typed `RegistryEntry.description` field is
+rejected: it is a second copy, and it drifts.
 
 **`report --tests`.** An opt-in that aggregates `check-component --tests`
 over project-authored components and `check-page --tests` over routed pages,
