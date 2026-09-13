@@ -714,6 +714,29 @@ describe('contractRunner: mapping a Playwright report', () => {
     expect(coverage.widget['contract-alias']).toEqual({ status: 'failed' });
   });
 
+  it('a [contract-states] ContractViolation resolves to contract-states, fixed under "editor"', () => {
+    const root = widgetFixtureRoot();
+    const report = editorSuiteReport('widget', [
+      spec('widget previews the state being edited', 'component-editor.contract.ts', 30, {
+        status: 'unexpected',
+        results: [
+          {
+            status: 'failed',
+            errors: [{ message: 'ContractViolation: [contract-states] widget: no state tab labelled "hover"' }],
+          },
+        ],
+      }),
+    ]);
+    const { findings } = mapPlaywrightResults(report, { root, sourceDataDir: join(root, 'data'), knownIds: new Set(['widget']) });
+    expect(findings[0].rule).toBe('contract-states');
+    expect(COMPONENT_RULE_FIX['contract-states']).toBe('editor');
+  });
+
+  it('the harness no longer names contract-preview anywhere it can throw', () => {
+    const harness = readFileSync(join(process.cwd(), 'src/testing/support/contractHarness.ts'), 'utf8');
+    expect(harness).not.toContain('contract-preview');
+  });
+
   it('derives the rule from the suite file and position, never from title wording, for a plain expect() failure', () => {
     const root = widgetFixtureRoot();
     const report = flatSuiteReport('component-render.contract.ts', [
@@ -982,6 +1005,54 @@ describe('contractRunner: mapping a Vitest registry report', () => {
       },
     ]);
     expect(coverage.widget['contract-registry']).toEqual({ status: 'failed' });
+  });
+
+  it('keys the rule on the report file, not the describe titles: the behavior suite reports contract-behavior beside a passing registry file', () => {
+    const root = widgetFixtureRoot();
+    const report = {
+      testResults: [
+        {
+          name: 'registry.contract.ts',
+          assertionResults: [
+            {
+              ancestorTitles: ['component registry contract', 'widget'],
+              title: 'meets the registry contract',
+              fullName: 'component registry contract widget meets the registry contract',
+              status: 'passed',
+              failureMessages: [],
+            },
+          ],
+        },
+        {
+          name: 'component-behavior.contract.ts',
+          assertionResults: [
+            {
+              ancestorTitles: ['component behavior contract', 'widget'],
+              title: 'click calls onchange',
+              fullName: 'component behavior contract widget click calls onchange',
+              status: 'failed',
+              failureMessages: [
+                'ContractViolation: [contract-behavior] widget: click calls onchange: onchange was not called\n    at runCase (/project/src/testing/component-behavior.contract.ts:120:11)',
+              ],
+            },
+          ],
+        },
+      ],
+    };
+    const { findings, coverage } = mapVitestResults(report, { root, sourceDataDir: join(root, 'data') });
+    expect(findings).toEqual([
+      {
+        rule: 'contract-behavior',
+        file: 'src/system/components/Widget.svelte',
+        line: 1,
+        message: 'widget: click calls onchange: onchange was not called',
+        context: { suite: 'vitest', title: 'component behavior contract widget click calls onchange' },
+      },
+    ]);
+    expect(coverage.widget).toEqual({
+      'contract-registry': { status: 'passed' },
+      'contract-behavior': { status: 'failed' },
+    });
   });
 
   it('routes a catalogue-level failure (no component ancestor) to tests-setup', () => {
@@ -1343,6 +1414,7 @@ describe('contractRunner: runContractTests, end to end', () => {
     expect(result.findings).toEqual([]);
     expect(result.coverage.toggle).toEqual({
       'contract-registry': { status: 'passed' },
+      'contract-behavior': { status: 'passed' },
       'contract-listed': { status: 'passed' },
       'contract-alias': { status: 'passed' },
       'contract-states': { status: 'passed' },

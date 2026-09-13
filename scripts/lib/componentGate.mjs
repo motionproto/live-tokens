@@ -246,7 +246,7 @@ function scenarioCleanPass(dir, id, { expectSketchInapplicable = true, dataDir =
   check((result.json?.findings ?? []).length === 0, `${id} --tests reports no findings`);
   const rules = result.json?.coverage?.[id] ?? {};
   const ruleIds = Object.keys(rules);
-  check(ruleIds.length === 9, `${id}: coverage names all 9 contract rules (has ${ruleIds.length})`);
+  check(ruleIds.length === 10, `${id}: coverage names all 10 contract rules (has ${ruleIds.length})`);
   const statuses = Object.entries(rules).map(([rule, e]) => [rule, e.status]);
   const badStatus = statuses.filter(([, s]) => s !== 'passed' && s !== 'inapplicable');
   check(badStatus.length === 0, `${id}: every rule is passed or inapplicable (${JSON.stringify(badStatus)})`);
@@ -361,7 +361,7 @@ async function runFixtureAScenarios(dir) {
     const toggleCoverage = result.json?.coverage?.toggle ?? {};
     const statuses = Object.values(toggleCoverage).map((e) => e.status);
     check(
-      statuses.length === 9 && statuses.every((s) => s === 'passed'),
+      statuses.length === 10 && statuses.every((s) => s === 'passed'),
       'the contract run is fully green for the shipped id',
     );
   }
@@ -440,7 +440,7 @@ async function runFixtureAScenarios(dir) {
     const rules = result.json?.coverage?.beacon ?? {};
     const statuses = Object.values(rules).map((e) => e.status);
     check(
-      statuses.length === 9 && statuses.every((s) => s === 'passed' || s === 'inapplicable'),
+      statuses.length === 10 && statuses.every((s) => s === 'passed' || s === 'inapplicable'),
       'the requested component\'s own coverage stays complete: this finding carries no coverage entry',
     );
   }
@@ -542,7 +542,7 @@ async function runFixtureAScenarios(dir) {
       'the finding names the editor file at the line-1 fallback: positional index 0 carries no reporter location',
     );
     const rules = result.json?.coverage?.beacon ?? {};
-    check(Object.keys(rules).length === 9, 'coverage still names all 9 rules');
+    check(Object.keys(rules).length === 10, 'coverage still names all 10 rules');
     check(rules['contract-listed']?.status === 'failed', 'coverage marks contract-listed failed');
     check(rules['contract-registry']?.status === 'passed', 'the registry check does not read the contract fixture\'s origin');
     check(rules['contract-render']?.status === 'passed', 'the separate always-run render suite is unaffected by origin');

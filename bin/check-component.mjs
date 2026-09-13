@@ -73,6 +73,7 @@ export const COMPONENT_RULES = {
   // rules, which `--tests` treats as never-silenceable (see cli.mjs). A failed
   // obligation is always authored: the component has to start behaving.
   'contract-registry': { severity: 'error', fix: 'registration', repair: 'authored' },
+  'contract-behavior': { severity: 'error', fix: 'runtime', repair: 'authored' },
   'contract-render': { severity: 'error', fix: 'editor', repair: 'authored' },
   'contract-alias': { severity: 'error', fix: 'editor', repair: 'authored' },
   'contract-persist': { severity: 'error', fix: 'runtime-defaults', repair: 'authored' },

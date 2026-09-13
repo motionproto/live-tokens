@@ -112,6 +112,39 @@ export const beaconContract: ComponentContract = {
       },
     ],
   },
+  behavior: {
+    cases: [
+      {
+        name: 'clicking an off beacon asks for on',
+        props: { on: false },
+        action: { kind: 'click', part: 'root' },
+        expect: { kind: 'callback', prop: 'onchange', args: [true] },
+      },
+      {
+        name: 'clicking leaves the switch where the prop put it',
+        props: { on: false },
+        action: { kind: 'click', part: 'root' },
+        expect: { kind: 'attribute', part: 'root', name: 'aria-checked', value: 'false' },
+      },
+      {
+        name: 'clicking an on beacon asks for off',
+        props: { on: true },
+        action: { kind: 'click', part: 'root' },
+        expect: { kind: 'callback', prop: 'onchange', args: [false] },
+      },
+      {
+        name: 'on drives aria-checked',
+        props: { on: true },
+        expect: { kind: 'attribute', part: 'root', name: 'aria-checked', value: 'true' },
+      },
+      {
+        name: 'a disabled beacon stays silent',
+        props: { on: false, disabled: true },
+        action: { kind: 'click', part: 'root' },
+        expect: { kind: 'no-callback', prop: 'onchange' },
+      },
+    ],
+  },
   // The documented consumer opt-in (references/sketch-mode.md): a reserved
   // class puts a runtime-registered component into PART_SPECS without a
   // first-party row. This asserts that path works from a real consumer.

@@ -74,6 +74,7 @@ const HARD_FAILURE_RULES = new Set(['tests-not-installed', 'tests-setup', 'tests
  *  coverage against. */
 const ALL_CONTRACT_RULES = [
   'contract-registry',
+  'contract-behavior',
   'contract-listed',
   'contract-alias',
   'contract-states',
@@ -423,6 +424,7 @@ const settings = resolveTestingConfig(${settingsExpr}, ${JSON.stringify(root)});
 
 export default createVitestConfig(viteConfigModule.default ?? viteConfigModule, {
   registrySetup: settings.registrySetup,
+  contractsModule: settings.contractsModule,
 });
 `,
   );
@@ -945,6 +947,12 @@ export function mapRegistryViolation(root, sourceDataDir, componentId, text) {
   return { file: relative(root, target), line: findTokenLine(target, token) };
 }
 
+/** `component-behavior.contract.ts` shares the same `describe(id) > it(case)`
+ *  shape `registry.contract.ts` uses (see `structuralRule`'s Playwright
+ *  analogue), so the file name — not the describe titles — is what tells the
+ *  two suites' assertions apart. */
+const BEHAVIOR_FILE_PREFIX = 'component-behavior.contract';
+
 /** Mirrors the Playwright side's zero-collection check: a file that failed
  *  before it ran a single assertion (`assertionResults` empty, `status`
  *  'failed') carries its own `message` — measured against a bad
@@ -979,16 +987,43 @@ export function mapVitestResults(report, { root, sourceDataDir, stderr } = {}) {
   const coverage = {};
   for (const file of files) {
     if (collectionFailures.includes(file)) continue;
+    const isBehaviorFile = basename(file.name ?? '').startsWith(BEHAVIOR_FILE_PREFIX);
+    const passRule = isBehaviorFile ? 'contract-behavior' : 'contract-registry';
     for (const assertion of file.assertionResults ?? []) {
       const componentId = assertion.ancestorTitles.length >= 2 ? assertion.ancestorTitles[1] : null;
       if (assertion.status !== 'failed') {
         if (assertion.status === 'passed' && componentId) {
           coverage[componentId] ??= {};
-          coverage[componentId]['contract-registry'] = { status: 'passed' };
+          coverage[componentId][passRule] = { status: 'passed' };
         }
         continue;
       }
       const text = (assertion.failureMessages ?? []).join('\n');
+      // `component-behavior.contract.ts` throws `ContractViolation` directly
+      // rather than a registry-style violation array, and Vitest's own stack
+      // frames follow the message on their own line with no blank line
+      // between (measured; unlike Playwright's ANSI code frame), so only the
+      // first line is the message `messageBlock`'s blank-line split expects.
+      if (isBehaviorFile) {
+        const violation = VIOLATION_RE.exec(text.split('\n')[0].trim());
+        const finalRule = violation?.[1] ?? 'contract-behavior';
+        const id = violation?.[2] ?? componentId;
+        const message = violation?.[3] ?? text.split('\n')[0].trim();
+        const token = extractToken(message);
+        const { file: f, line } = artifactForContractRule(root, sourceDataDir, finalRule, id, token);
+        findings.push({
+          rule: finalRule,
+          file: f,
+          line,
+          message: id ? `${id}: ${message}` : message,
+          context: { suite: 'vitest', title: assertion.fullName },
+        });
+        if (id) {
+          coverage[id] ??= {};
+          coverage[id][finalRule] = { status: 'failed' };
+        }
+        continue;
+      }
       const violations = componentId ? extractViolationArray(text) : [];
       if (violations.length > 0) {
         for (const violation of violations) {

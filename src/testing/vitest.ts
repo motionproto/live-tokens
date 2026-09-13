@@ -1,5 +1,6 @@
 import { mergeConfig, type UserConfig } from 'vite';
 import type { TestUserConfig } from 'vitest/config';
+import { CONTRACTS_MODULE_ENV } from './contracts';
 
 // The barrel (`./index`) re-exports this from `./playwright`, which imports
 // `@playwright/test` at module top. A Vitest-only consumer authoring
@@ -20,6 +21,12 @@ export interface VitestConfigOptions {
    *  components. Reaches the run as an environment variable because the
    *  contract file resolves the path itself. */
   registrySetup?: string;
+  /** Module `selectedContracts()` imports a project's own `ComponentContract[]`
+   *  from, same env-var seam as `registrySetup` and mirroring
+   *  `createPlaywrightConfig`'s own use of it: the behavior contract's
+   *  `describe.each` runs at module top, before a test can resolve anything
+   *  for it. */
+  contractsModule?: string;
 }
 
 // Matching both extensions would double-collect each contract when a developer
@@ -70,7 +77,14 @@ export function createVitestConfig(
       // reporter's `failureMessages` to attribute a finding, so nothing here
       // can afford to be summarized away.
       chaiConfig: { truncateThreshold: 0 },
-      ...(options.registrySetup ? { env: { LIVE_TOKENS_REGISTRY_SETUP: options.registrySetup } } : {}),
+      ...(options.registrySetup || options.contractsModule
+        ? {
+            env: {
+              ...(options.registrySetup ? { LIVE_TOKENS_REGISTRY_SETUP: options.registrySetup } : {}),
+              ...(options.contractsModule ? { [CONTRACTS_MODULE_ENV]: options.contractsModule } : {}),
+            },
+          }
+        : {}),
     },
   } satisfies UserConfig);
 }
