@@ -51,7 +51,7 @@ the registry (see Deferred), and `report --tests`.
 | 5 | Guarded fixers behind `--fix` | main | Sonnet | 120 min | Done | 8393412, e79c5d2, 34c4917, fc81a6a, 2e90575, ea501eb, aa2bdf8, c356963, bfd2a16, 7531ca6, 6126023 |
 | 6 | Skills, references, docs, atlas, changelog | main | Sonnet | 90 min | In progress | 22e9a15 |
 | 7 | The static checkers read what this plan says they read | main | Sonnet | 90 min | In progress | 863c833 |
-| 8 | One defect, one finding under `--tests`; a deterministic page test | main | Opus | 120 min | In progress | |
+| 8 | One defect, one finding under `--tests`; a deterministic page test | main | Opus | 120 min | In progress | 7fd4669 |
 
 **Run of 2026-09-13.** Waves 1 to 4 approved. Wave 5 stopped `incomplete`
 on Fable after two BLOCK reviews (Sonnet, then Opus) and one Fable repair;
