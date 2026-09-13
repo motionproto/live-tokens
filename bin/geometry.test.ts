@@ -80,6 +80,24 @@ describe('resolveGeometryLiteral', () => {
     expect(resolve('var(--space-8, 3px)', 'space', SPACE).literals).toEqual([]);
     expect(resolve('0px', 'space', SPACE).literals).toEqual([]);
   });
+
+  it('patches a shorthand mixing a zero-with-unit term and a resolvable one', () => {
+    const r = resolve('0px 15px', 'space', SPACE);
+    expect(r.auto).toBe(true);
+    expect(r.patch).toEqual({ from: '0px 15px', to: '0px var(--space-16)' });
+  });
+
+  it('patches a zero-with-unit term in rem the same way', () => {
+    const r = resolve('0rem 15px', 'space', SPACE);
+    expect(r.auto).toBe(true);
+    expect(r.patch).toEqual({ from: '0rem 15px', to: '0rem var(--space-16)' });
+  });
+
+  it('patches a zero-with-unit term repeated around resolvable ones', () => {
+    const r = resolve('0px 8px 8px 0px', 'radius', RADIUS);
+    expect(r.auto).toBe(true);
+    expect(r.patch).toEqual({ from: '0px 8px 8px 0px', to: '0px var(--radius-xl) var(--radius-xl) 0px' });
+  });
 });
 
 describe('geometryScaleOfProperty', () => {

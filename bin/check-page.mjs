@@ -241,9 +241,13 @@ function attributeDeletion(code, index, end) {
 /** A `--name: value;` CSS declaration, deleted whole. `index` may sit on the
  *  boundary character before it (a style-block match keeps that char as its
  *  own delimiter), so the search starts there and finds the declaration a
- *  few characters in rather than requiring an exact start. */
+ *  few characters in rather than requiring an exact start. The value is
+ *  bounded to its own declaration (`}` and newline excluded) so a term with
+ *  no trailing `;` cannot run on into the next rule; that case has no patch
+ *  to apply, since deleting it whole would need one.
+ */
 function declarationDeletion(text, name, index) {
-  const m = new RegExp(`${name}\\s*:\\s*[^;]+;`).exec(text.slice(index));
+  const m = new RegExp(`${name}\\s*:\\s*[^;}\\n]+;`).exec(text.slice(index));
   return m ? { from: m[0], to: '' } : null;
 }
 
@@ -546,12 +550,16 @@ function checkFile(file, text, vocab, root) {
         : site === 'directive'
           ? directiveDeletion(text, name, index)
           : null;
+    // A setProperty call is code around the value, not a value to delete, so
+    // it is always authored. Any other site with no patch (an inline
+    // attribute, or a declaration a fixer could not bound safely) has
+    // nothing auto to apply, so it is a choice rather than the rule's ceiling.
+    const repair = site === 'script' ? 'authored' : patch ? undefined : 'choice';
     add(
       'property-override',
       index,
       `${name} overrides ${owner}'s token here instead of the whole project; retune it at /live-tokens/components.`,
-      // A setProperty call is code around the value, not a value to delete.
-      { details: { site, ...(patch ? { patch } : {}) }, ...(site === 'script' ? { repair: 'authored' } : {}) },
+      { details: { site, ...(patch ? { patch } : {}) }, ...(repair ? { repair } : {}) },
     );
   }
 

@@ -728,6 +728,18 @@ describe('a page finding carries what its repair needs', () => {
     expect(f.repair).toBe('authored');
   });
 
+  it('lowers an inline-attribute override to a choice, since it has no patch', () => {
+    const f = detailsOf('<div style="--card-default-radius: 0"></div>', 'property-override');
+    expect(f.details).toEqual({ site: 'attribute' });
+    expect(f.repair).toBe('choice');
+  });
+
+  it('lowers a declaration with no terminating semicolon to a choice, rather than reaching past it', () => {
+    const f = detailsOf('<style>.a { --card-default-radius: 0 }\n  .b { color: red; }</style>', 'property-override');
+    expect(f.details).toEqual({ site: 'declaration' });
+    expect(f.repair).toBe('choice');
+  });
+
   it('names the public specifier a deep import rewrites to', () => {
     const f = detailsOf('<script>\n  import Card from "@motion-proto/live-tokens/src/system/components/Card.svelte";\n</script>', 'deep-import');
     expect(f.details).toEqual({

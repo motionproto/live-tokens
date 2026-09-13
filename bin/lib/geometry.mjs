@@ -38,10 +38,17 @@ export function geometryScaleOfProperty(prop) {
 
 /** Each literal in `text` (fallback-stripped, the same text `from` names)
  *  replaced by its one candidate's token. Only called once every literal is
- *  unique, so `candidates[0]` is never a guess. */
+ *  unique, so `candidates[0]` is never a guess. A zero-valued match has no
+ *  entry in `literals` (the census skips it too), so it must be recognised
+ *  here and left untouched rather than consuming the next entry.
+ */
 function rewriteLiterals(text, literals) {
   let i = 0;
-  return text.replace(LITERAL, () => `var(${literals[i++].candidates[0].token})`);
+  return text.replace(LITERAL, (match, num, unit) => {
+    const px = round(parseFloat(num) * (unit === 'rem' ? REM_PX : 1));
+    if (px === 0) return match;
+    return `var(${literals[i++].candidates[0].token})`;
+  });
 }
 
 /**

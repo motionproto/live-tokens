@@ -189,6 +189,19 @@ describe('check-page --fix, per rule', () => {
     expect(readFileSync(join(root, rel), 'utf8')).toBe(fixed);
   });
 
+  it('property-override: a declaration with no terminating semicolon is left untouched, not deleted into the next rule', () => {
+    const root = pageRoot(SPACE_TOKENS);
+    const rel = 'src/pages/Detail.svelte';
+    const source = `<style>.a { --card-default-radius: 0 }\n  .b { display: block; }</style>`;
+    writeFileSync(join(root, rel), source);
+    const { resolved, applied } = checkAndFix(root, [rel]);
+    expect(applied).toHaveLength(0);
+    expect(readFileSync(join(root, rel), 'utf8')).toBe(source);
+    const f = resolved.find((x: { rule: string }) => x.rule === 'property-override');
+    expect(f.repair).toBe('choice');
+    expect(f.details.patch).toBeUndefined();
+  });
+
   it('property-override: deletes a style:--x directive in place', () => {
     const root = pageRoot(SPACE_TOKENS);
     const rel = 'src/pages/Detail.svelte';
