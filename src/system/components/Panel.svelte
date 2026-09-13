@@ -3,8 +3,8 @@
 
   export const catalogue = {
     description: "A frame around one section of the page's content.",
-    useFor: 'a stage, a list, a form, or a block of copy that reads as one region.',
-    notFor: 'one item in a set (Card); a modal surface (Dialog).',
+    useFor: 'a stage, a list, a form, or a block of copy that forms one section.',
+    notFor: 'one item in a set (Card); a modal window (Dialog).',
     props: {
       minHeight: 'holds the height while the content changes.',
     },

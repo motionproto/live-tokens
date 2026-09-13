@@ -2,7 +2,7 @@
   import type { CatalogueEntry } from '../../editor/component-editor/scaffolding/types';
 
   export const catalogue = {
-    description: 'A hint that appears on an element on hover or focus.',
+    description: 'A short note that appears on an element on hover or focus.',
     useFor: 'a definition or a shortcut the reader can do without.',
     notFor: 'content the reader must not miss (Callout); feedback after an action (Notification).',
   } satisfies CatalogueEntry;

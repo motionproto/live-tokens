@@ -3,7 +3,7 @@
 
   export const catalogue = {
     description: 'Tabs that swap the content below them.',
-    useFor: 'two to seven panels the reader moves between inside one page.',
+    useFor: 'two to seven views the reader moves between inside one page.',
     notFor: 'one switch among others in a row (SegmentedControl); navigation that changes the URL (SideNavigation).',
   } satisfies CatalogueEntry;
 </script>

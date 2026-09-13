@@ -87,6 +87,9 @@
   description are now the `unread-token` and `missing-description` findings
   under `findings.components`. `usage` drops `customUnregistered`; an
   unregistered project component is now `missing-registration`.
+- **The catalogue reads "views" for what TabBar switches, "a note" for
+  Tooltip, "section" for what Panel frames, and "a modal window" for
+  Dialog.**
 
 ### Fixed
 

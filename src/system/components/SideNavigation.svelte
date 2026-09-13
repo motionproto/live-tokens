@@ -4,7 +4,7 @@
   export const catalogue = {
     description: 'The rail that moves between the pages of a site.',
     useFor: 'navigation that follows the current path.',
-    notFor: 'switching panels inside one page (TabBar); a menu of actions (MenuSelect).',
+    notFor: 'switching views inside one page (TabBar); a menu of actions (MenuSelect).',
   } satisfies CatalogueEntry;
 </script>
 

@@ -4,7 +4,7 @@
   export const catalogue = {
     description: 'A standing message that sits inside a section.',
     useFor: 'something the reader must know about the content around it.',
-    notFor: 'feedback after an action (Notification); a hint that hangs off one element (Tooltip).',
+    notFor: 'feedback after an action (Notification); a note that hangs off one element (Tooltip).',
     props: {
       variant: '`info` notes, `success` confirms, `warning` cautions, `danger` flags harm.',
     },

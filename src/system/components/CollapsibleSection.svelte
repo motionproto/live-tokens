@@ -6,7 +6,7 @@
     useFor: 'secondary content that most readers skip.',
     notFor: 'content every reader needs (Card); moving between pages (SideNavigation).',
     props: {
-      variant: '`chromeless` sits inside other content, `divider` rules a line under the header, `container` frames the whole section.',
+      variant: '`chromeless` sits inside other content, `divider` draws a hairline under the header, `container` frames the whole section.',
     },
   } satisfies CatalogueEntry;
 </script>
