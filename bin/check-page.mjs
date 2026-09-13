@@ -12,42 +12,48 @@
 
 import { existsSync, readFileSync, statSync } from 'node:fs';
 import { join, relative, resolve, basename } from 'node:path';
-import { isExcluded, lineOf } from './lib/findings.mjs';
+import { deepImportRepair, scaleTokens } from './lib/catalogue.mjs';
+import { fixMap, isExcluded, lineOf } from './lib/findings.mjs';
 import { blankStrings, hasColorLiteral, hasDimensionLiteral, stripVarFallbacks } from './lib/cssValues.mjs';
+import { geometryScaleOfProperty, resolveGeometryLiteral } from './lib/geometry.mjs';
 import { isContractToken, loadVocabulary, walk } from './lib/tokenVocabulary.mjs';
 import { resolveTokensCssPath } from './migrate.mjs';
 
+/** Every rule, with its default severity, where it is fixed, and how. Same
+ *  three fields, same meanings, as `COMPONENT_RULES`. */
 export const PAGE_RULES = {
-  'unknown-component': 'error',
-  'unknown-prop': 'error',
-  'unknown-prop-value': 'error',
-  'deep-import': 'error',
-  'unknown-token': 'error',
-  'color-literal': 'error',
-  'reserved-route': 'error',
-  'site-css-in-main': 'error',
-  'raw-text-axis': 'error',
-  'dimension-literal': 'warn',
-  'hardcoded-columns': 'warn',
-  'missing-source': 'warn',
-  'control-size': 'warn',
-  'multiple-primary': 'warn',
-  'danger-without-dialog': 'warn',
-  'native-control': 'warn',
-  'property-override': 'warn',
+  'unknown-component': { severity: 'error', fix: 'page-component', repair: 'authored' },
+  'unknown-prop': { severity: 'error', fix: 'page-component', repair: 'choice' },
+  'unknown-prop-value': { severity: 'error', fix: 'page-component', repair: 'choice' },
+  'deep-import': { severity: 'error', fix: 'routing', repair: 'auto' },
+  'unknown-token': { severity: 'error', fix: 'page-token', repair: 'choice' },
+  'color-literal': { severity: 'error', fix: 'page-token', repair: 'choice' },
+  'reserved-route': { severity: 'error', fix: 'routing', repair: 'authored' },
+  'site-css-in-main': { severity: 'error', fix: 'routing', repair: 'authored' },
+  'raw-text-axis': { severity: 'error', fix: 'page-token', repair: 'choice' },
+  'dimension-literal': { severity: 'warn', fix: 'page-token', repair: 'auto' },
+  'hardcoded-columns': { severity: 'warn', fix: 'page-layout', repair: 'choice' },
+  'missing-source': { severity: 'warn', fix: 'routing', repair: 'authored' },
+  'control-size': { severity: 'warn', fix: 'page-component', repair: 'auto' },
+  'multiple-primary': { severity: 'warn', fix: 'page-component', repair: 'authored' },
+  'danger-without-dialog': { severity: 'warn', fix: 'page-component', repair: 'authored' },
+  'native-control': { severity: 'warn', fix: 'page-component', repair: 'authored' },
+  'property-override': { severity: 'warn', fix: 'page-component', repair: 'auto' },
   // `--tests` (bin/contractRunner.mjs's `runPageTests`). Fixed by design
   // decision 9, same reasoning as `check-component`'s own `contract-*` rules:
   // every one is an error, including the setup rules, which `--tests` treats
   // as never-silenceable (see cli.mjs).
-  'page-component-paint': 'error',
-  'page-text-style': 'error',
-  'page-contrast': 'error',
-  'page-grid': 'error',
-  'page-overflow': 'error',
-  'tests-not-installed': 'error',
-  'tests-setup': 'error',
-  'tests-incomplete': 'error',
+  'page-component-paint': { severity: 'error', fix: 'page-paint', repair: 'authored' },
+  'page-text-style': { severity: 'error', fix: 'page-paint', repair: 'authored' },
+  'page-contrast': { severity: 'error', fix: 'page-paint', repair: 'authored' },
+  'page-grid': { severity: 'error', fix: 'page-layout', repair: 'authored' },
+  'page-overflow': { severity: 'error', fix: 'page-layout', repair: 'authored' },
+  'tests-not-installed': { severity: 'error', fix: 'tooling', repair: 'authored' },
+  'tests-setup': { severity: 'error', fix: 'tooling', repair: 'authored' },
+  'tests-incomplete': { severity: 'error', fix: 'coverage', repair: 'authored' },
 };
+
+export const PAGE_RULE_FIX = fixMap(PAGE_RULES);
 
 // Directories that hold the system, not pages built on it.
 export const NOT_PAGES = ['src/system', 'src/editor', 'src/lib', 'src/live-tokens'];
@@ -79,6 +85,19 @@ const THEMED_GEOMETRY = /^(padding|margin|gap|row-gap|column-gap|border|outline|
 // count reads as a claim about the page grid, which `--columns-count` owns.
 const PAGE_GRID_COLUMNS = 4;
 
+// The two forms that keep a grid in step: the page grid itself, and a sub-grid
+// spanning fewer than every column.
+const COLUMN_FORMS = ['repeat(var(--columns-count), 1fr)', 'repeat(calc(var(--columns-count) - N), 1fr)'];
+
+/** The token scale a CSS property draws its colour from. The role inside that
+ *  scale stays the user's choice. */
+function colorScaleOfProperty(prop) {
+  if (prop === 'color') return 'text';
+  if (/^background/.test(prop)) return 'surface';
+  if (/^(border|outline)(-|$)/.test(prop)) return 'border';
+  return null;
+}
+
 /** Blank out comments, url() payloads, and string contents so none of them can match a rule. */
 function neutralise(css) {
   return blankStrings(
@@ -88,12 +107,13 @@ function neutralise(css) {
   );
 }
 
-/** `<style>` blocks with their absolute offset in the file; whole file for .css. */
+/** `<style>` blocks with their absolute offset in the file; whole file for .css.
+ *  `site` is what a repair would edit, which the finding carries. */
 function styleRegions(text, file) {
-  if (file.endsWith('.css')) return [{ text, offset: 0 }];
+  if (file.endsWith('.css')) return [{ text, offset: 0, site: 'declaration' }];
   const out = [];
   for (const m of text.matchAll(/<style[^>]*>([\s\S]*?)<\/style>/g)) {
-    out.push({ text: m[1], offset: m.index + m[0].indexOf(m[1]) });
+    out.push({ text: m[1], offset: m.index + m[0].indexOf(m[1]), site: 'declaration' });
   }
   return out;
 }
@@ -106,10 +126,10 @@ function styleRegions(text, file) {
 function inlineStyleRegions(code) {
   const out = [];
   for (const m of code.matchAll(/\sstyle=(["'])([^"']*)\1/g)) {
-    out.push({ text: `${m[2]};`, offset: m.index + m[0].indexOf(m[2]) });
+    out.push({ text: `${m[2]};`, offset: m.index + m[0].indexOf(m[2]), site: 'attribute' });
   }
   for (const m of code.matchAll(/\sstyle:([a-z-]+)=(["'])([^"']*)\2/g)) {
-    out.push({ text: `${m[1]}: ${m[3]};`, offset: m.index + 1 });
+    out.push({ text: `${m[1]}: ${m[3]};`, offset: m.index + 1, site: 'directive' });
   }
   return out;
 }
@@ -278,18 +298,23 @@ function checkComponentUsage(code, imports, add) {
       for (const { name, value, index } of tag.attrs) {
         if (name.includes(':') || name.startsWith('@') || name === 'children') continue;
         if (!props.props.has(name)) {
-          add('unknown-prop', index, `${entry.name} has no prop '${name}'; it accepts ${[...props.props].join(', ')}`);
+          add('unknown-prop', index, `${entry.name} has no prop '${name}'; it accepts ${[...props.props].join(', ')}`, {
+            details: { accepts: [...props.props] },
+          });
           continue;
         }
         const allowed = props.enums.get(name);
         if (allowed && value !== null && !allowed.has(value)) {
-          add('unknown-prop-value', index, `${entry.name} ${name}="${value}" is not one of ${[...allowed].join(', ')}`);
+          add('unknown-prop-value', index, `${entry.name} ${name}="${value}" is not one of ${[...allowed].join(', ')}`, {
+            details: { accepts: [...allowed] },
+          });
         }
         if (name === 'size' && entry.origin === 'shipped') {
           add(
             'control-size',
             index,
             `${entry.name} ${value === null ? 'is sized here' : `size="${value}"`}. Drop it for the shipped default, or retune ${entry.name} for the whole project in /live-tokens/components.`,
+            { details: { site: 'attribute' } },
           );
         }
       }
@@ -390,8 +415,8 @@ function enclosingObject(text, index) {
 function checkFile(file, text, vocab, root) {
   const rel = relative(root, file);
   const findings = [];
-  const add = (rule, index, message) =>
-    findings.push({ rule, file: rel, line: lineOf(text, index), message });
+  const add = (rule, index, message, extra = {}) =>
+    findings.push({ rule, file: rel, line: lineOf(text, index), message, ...extra });
 
   const code = codeRegion(text, file);
   if (code !== null) {
@@ -400,7 +425,7 @@ function checkFile(file, text, vocab, root) {
       const spec = m[2];
       for (const pattern of DEEP_IMPORT_PATTERNS) {
         if (pattern.test(spec)) {
-          add('deep-import', m.index, `deep import into package internals: ${spec}`);
+          add('deep-import', m.index, `deep import into package internals: ${spec}`, deepImportRepair(spec));
         }
       }
       const comp = spec.match(COMPONENT_IMPORT);
@@ -456,7 +481,7 @@ function checkFile(file, text, vocab, root) {
   const styleBlockDeclarations = (regionList, at) => {
     for (const region of regionList) {
       for (const m of neutralise(region.text).matchAll(/(?:^|[;{])\s*(--[a-z0-9-]+)\s*:/gim)) {
-        at(m[1], region.offset + m.index);
+        at(m[1], region.offset + m.index, region.site);
       }
     }
   };
@@ -472,25 +497,27 @@ function checkFile(file, text, vocab, root) {
   // inline `style="--x: ..."` attribute, a `style:--x=` directive, or a
   // setProperty('--x', ...) call.
   const overrideSites = new Map();
-  const overrideAt = (name, index) => {
-    if (!overrideSites.has(name) || index < overrideSites.get(name)) overrideSites.set(name, index);
+  const overrideAt = (name, index, site) => {
+    if (!overrideSites.has(name) || index < overrideSites.get(name).index) overrideSites.set(name, { index, site });
   };
   styleBlockDeclarations(regions, overrideAt);
   if (code !== null) styleBlockDeclarations(inlineStyleRegions(code), overrideAt);
   for (const m of text.matchAll(/(?:style:|setProperty\(\s*['"`])(--[a-z0-9-]+)/g)) {
-    overrideAt(m[1], m.index);
+    overrideAt(m[1], m.index, m[0].startsWith('style:') ? 'directive' : 'script');
   }
 
   // A name the vocabulary already ties to a component is that component's
   // token, so declaring it here is one instance overriding the whole
   // project's retuning surface at /live-tokens/components.
-  for (const [name, index] of overrideSites) {
+  for (const [name, { index, site }] of overrideSites) {
     if (!vocab.componentTokens.has(name)) continue;
     const owner = componentTokenOwners(vocab).get(name) ?? 'a shipped component';
     add(
       'property-override',
       index,
       `${name} overrides ${owner}'s token here instead of the whole project; retune it at /live-tokens/components.`,
+      // A setProperty call is code around the value, not a value to delete.
+      { details: { site }, ...(site === 'script' ? { repair: 'authored' } : {}) },
     );
   }
 
@@ -518,7 +545,10 @@ function checkFile(file, text, vocab, root) {
       // inside one is not the page's value.
       const painted = stripVarFallbacks(value);
       if (!TEXT_AXES.includes(prop) && hasColorLiteral(painted)) {
-        add('color-literal', at(index), `${prop}: ${value}. Use a design token.`);
+        const scale = colorScaleOfProperty(prop);
+        add('color-literal', at(index), `${prop}: ${value}. Use a design token.`, {
+          details: { scale, candidates: scaleTokens(vocab, scale).map((t) => t.name) },
+        });
         continue;
       }
 
@@ -553,10 +583,16 @@ function checkFile(file, text, vocab, root) {
       }
 
       if (THEMED_GEOMETRY.test(prop) && hasDimensionLiteral(painted)) {
+        const scale = geometryScaleOfProperty(prop);
+        const resolved = resolveGeometryLiteral(painted, scale, scaleTokens(vocab, scale));
         add(
           'dimension-literal',
           at(index),
           `${prop}: ${value}. Use a --space-*, --radius-*, --border-width-*, or --shadow-* token.`,
+          {
+            details: { scale: resolved.scale, literals: resolved.literals },
+            ...(resolved.auto ? {} : { repair: 'choice' }),
+          },
         );
       }
 
@@ -566,6 +602,7 @@ function checkFile(file, text, vocab, root) {
           'hardcoded-columns',
           at(index),
           `${prop}: ${value}. Use repeat(var(--columns-count), 1fr) so the page grid stays in step.`,
+          { details: { columns: Number(columns[1]), candidates: COLUMN_FORMS } },
         );
       }
     }

@@ -18,7 +18,7 @@ import { writeSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import process from 'node:process';
-import { COMPONENT_RULES, COMPONENT_RULE_FIX, checkComponent, discoverComponents, formatReport } from './check-component.mjs';
+import { COMPONENT_RULES, checkComponent, discoverComponents, formatReport } from './check-component.mjs';
 import { PAGE_RULES, checkPages, discoverPages } from './check-page.mjs';
 import { resolvePageTestTargets } from './lib/pageRoutes.mjs';
 import { describeComponents, describeTokens, formatComponents, formatTokens } from './lib/catalogue.mjs';
@@ -194,9 +194,9 @@ if (command === 'create') {
   }
 }
 
-function reportChecks(label, findings, checked, rules, opts, { coverage, hardFailure, fixes } = {}) {
+function reportChecks(label, findings, checked, rules, opts, { coverage, hardFailure, exclude } = {}) {
   const checksConfig = readChecksConfig(process.cwd());
-  const resolved = applySeverity(findings, rules, opts, checksConfig, fixes ?? {});
+  const resolved = applySeverity(findings, rules, opts, checksConfig, { exclude });
   const resolvedCoverage = coverage ? applyCoverageSeverity(coverage, rules, opts, checksConfig) : coverage;
   console.log(
     opts.json
@@ -265,13 +265,12 @@ if (command === 'check-component') {
   }
   const label = ids.length === 1 ? `check-component ${ids[0]}${opts.tests ? ' --tests' : ''}` : `check-component${opts.tests ? ' --tests' : ''}`;
   if (!opts.tests) {
-    reportChecks(label, results.flatMap(([, r]) => r.findings), ids.length, COMPONENT_RULES, opts, { fixes: COMPONENT_RULE_FIX });
+    reportChecks(label, results.flatMap(([, r]) => r.findings), ids.length, COMPONENT_RULES, opts);
   }
   const { hasHardFailure, runContractTests } = await import('./contractRunner.mjs');
   const testOutcome = await runContractTests(opts.rest[0], { root: process.cwd() });
   const findings = [...results.flatMap(([, r]) => r.findings), ...testOutcome.findings];
   reportChecks(label, findings, Math.max(ids.length, 1), COMPONENT_RULES, opts, {
-    fixes: COMPONENT_RULE_FIX,
     coverage: testOutcome.coverage,
     hardFailure: hasHardFailure(testOutcome.findings),
   });
@@ -282,7 +281,7 @@ if (command === 'check-page') {
   const targets = opts.rest.length > 0 ? opts.rest : discoverPages(process.cwd());
   const { findings, checked } = checkPages(targets, { root: process.cwd() });
   if (!opts.tests) {
-    reportChecks('check-page', findings, checked, PAGE_RULES, opts);
+    reportChecks('check-page', findings, checked, PAGE_RULES, opts, { exclude: true });
   }
   const { hasHardFailure, runPageTests } = await import('./contractRunner.mjs');
   const pageTargets = resolvePageTestTargets(opts.rest, process.cwd());
@@ -290,6 +289,7 @@ if (command === 'check-page') {
   const label = 'check-page --tests';
   const allFindings = [...findings, ...testOutcome.findings];
   reportChecks(label, allFindings, Math.max(checked, pageTargets.length), PAGE_RULES, opts, {
+    exclude: true,
     coverage: testOutcome.coverage,
     hardFailure: hasHardFailure(testOutcome.findings),
   });

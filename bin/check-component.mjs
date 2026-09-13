@@ -14,15 +14,19 @@
 //     token, so the component repaints when the theme changes. A value with no
 //     token behind it must be a declared intrinsic (a structural keyword the
 //     editor exports in `intrinsics`), never a literal.
+//   - every property the runtime declares is read by the runtime's own CSS
+//   - the runtime opens with the comment the catalogue reads
 //
 // Returns { errors, warnings, findings }. `errors`/`warnings` are the message
-// strings; `findings` carries the same items with a stable `rule` id and line
-// number for --json consumers.
+// strings; `findings` carries the same items with a stable `rule` id, a line
+// number, and, where a repair needs more than the message, `details`.
 
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { extname, join, relative } from 'node:path';
+import { deepImportRepair, scaleTokens } from './lib/catalogue.mjs';
 import { hasColorLiteral, hasDimensionLiteral, stripVarFallbacks } from './lib/cssValues.mjs';
-import { lineOf } from './lib/findings.mjs';
+import { fixMap, lineOf } from './lib/findings.mjs';
+import { resolveGeometryLiteral } from './lib/geometry.mjs';
 import {
   EDITOR_DIRS,
   PKG_ROOT,
@@ -34,83 +38,56 @@ import {
   loadVocabulary,
 } from './lib/tokenVocabulary.mjs';
 
+/**
+ * Every rule, with its default severity, where it is fixed, and how.
+ *
+ * `fix` is a stable slug the skills resolve to one of their own headings, so
+ * adding a rule here costs no skill edit as long as it reuses a slug. `repair`
+ * is the ceiling: `auto` when code can rewrite the site, `choice` when code can
+ * name the candidates but not pick one, `authored` when a person writes the
+ * repair. A finding may lower its rule's `repair`; none raises it.
+ */
 export const COMPONENT_RULES = {
-  'invalid-id': 'error',
-  'missing-file': 'error',
-  'missing-root-block': 'error',
-  'no-tokens': 'error',
-  'state-after-property': 'error',
-  'disabled-is-terminal': 'error',
-  'unknown-suffix': 'error',
-  'phantom-editor-token': 'error',
-  'color-literal': 'error',
-  'missing-component-const': 'error',
-  'missing-all-tokens': 'error',
-  'deep-import': 'error',
-  'missing-registration': 'error',
-  'unknown-token-ref': 'error',
-  'default-not-token': 'error',
-  'phantom-link': 'warn',
-  'dimension-literal': 'warn',
-  'config-token': 'error',
+  'invalid-id': { severity: 'error', fix: 'runtime', repair: 'authored' },
+  'missing-file': { severity: 'error', fix: 'runtime', repair: 'authored' },
+  'missing-root-block': { severity: 'error', fix: 'runtime', repair: 'authored' },
+  'no-tokens': { severity: 'error', fix: 'runtime', repair: 'authored' },
+  'missing-description': { severity: 'warn', fix: 'runtime', repair: 'authored' },
+  'unread-token': { severity: 'warn', fix: 'runtime', repair: 'choice' },
+  'state-after-property': { severity: 'error', fix: 'property-name', repair: 'authored' },
+  'disabled-is-terminal': { severity: 'error', fix: 'property-name', repair: 'authored' },
+  'unknown-suffix': { severity: 'error', fix: 'property-name', repair: 'authored' },
+  'phantom-editor-token': { severity: 'error', fix: 'editor', repair: 'authored' },
+  'color-literal': { severity: 'error', fix: 'property-token', repair: 'choice' },
+  'missing-component-const': { severity: 'error', fix: 'editor', repair: 'authored' },
+  'missing-all-tokens': { severity: 'error', fix: 'editor', repair: 'authored' },
+  'deep-import': { severity: 'error', fix: 'editor', repair: 'auto' },
+  'missing-registration': { severity: 'error', fix: 'registration', repair: 'authored' },
+  'unknown-token-ref': { severity: 'error', fix: 'property-token', repair: 'choice' },
+  'default-not-token': { severity: 'error', fix: 'property-token', repair: 'choice' },
+  'phantom-link': { severity: 'warn', fix: 'editor', repair: 'authored' },
+  'dimension-literal': { severity: 'warn', fix: 'property-token', repair: 'auto' },
+  'config-token': { severity: 'error', fix: 'property-token', repair: 'choice' },
   // `--tests` (bin/contractRunner.mjs). Fixed by design decision 8 so
   // `fix-findings` can map them; every one is an error, including the setup
-  // rules, which `--tests` treats as never-silenceable (see cli.mjs).
-  'contract-registry': 'error',
-  'contract-render': 'error',
-  'contract-alias': 'error',
-  'contract-persist': 'error',
-  'contract-theme': 'error',
-  'contract-states': 'error',
-  'contract-interaction': 'error',
-  'contract-listed': 'error',
-  'contract-sketch': 'error',
-  'contract-missing': 'error',
-  'tests-not-installed': 'error',
-  'tests-setup': 'error',
-  'tests-incomplete': 'error',
+  // rules, which `--tests` treats as never-silenceable (see cli.mjs). A failed
+  // obligation is always authored: the component has to start behaving.
+  'contract-registry': { severity: 'error', fix: 'registration', repair: 'authored' },
+  'contract-render': { severity: 'error', fix: 'editor', repair: 'authored' },
+  'contract-alias': { severity: 'error', fix: 'editor', repair: 'authored' },
+  'contract-persist': { severity: 'error', fix: 'runtime-defaults', repair: 'authored' },
+  'contract-theme': { severity: 'error', fix: 'property-token', repair: 'authored' },
+  'contract-states': { severity: 'error', fix: 'editor', repair: 'authored' },
+  'contract-interaction': { severity: 'error', fix: 'editor', repair: 'authored' },
+  'contract-listed': { severity: 'error', fix: 'registration', repair: 'authored' },
+  'contract-sketch': { severity: 'error', fix: 'sketch', repair: 'authored' },
+  'contract-missing': { severity: 'error', fix: 'coverage', repair: 'authored' },
+  'tests-not-installed': { severity: 'error', fix: 'tooling', repair: 'authored' },
+  'tests-setup': { severity: 'error', fix: 'tooling', repair: 'authored' },
+  'tests-incomplete': { severity: 'error', fix: 'coverage', repair: 'authored' },
 };
 
-/**
- * Where a rule is fixed, as a stable slug carried on the finding. The skills
- * resolve the slug to one of their own headings, so adding a rule here costs
- * no skill edit as long as it reuses a slug. Two skills used to enumerate every
- * rule id in their own tables, with nothing holding the two in agreement or
- * checking either against this list.
- */
-export const COMPONENT_RULE_FIX = {
-  'unknown-suffix': 'property-name',
-  'state-after-property': 'property-name',
-  'disabled-is-terminal': 'property-name',
-  'default-not-token': 'property-token',
-  'color-literal': 'property-token',
-  'dimension-literal': 'property-token',
-  'unknown-token-ref': 'property-token',
-  'contract-theme': 'property-token',
-  'config-token': 'property-token',
-  'invalid-id': 'runtime',
-  'missing-file': 'runtime',
-  'missing-root-block': 'runtime',
-  'no-tokens': 'runtime',
-  'contract-persist': 'runtime-defaults',
-  'missing-component-const': 'editor',
-  'missing-all-tokens': 'editor',
-  'phantom-editor-token': 'editor',
-  'phantom-link': 'editor',
-  'deep-import': 'editor',
-  'contract-render': 'editor',
-  'contract-alias': 'editor',
-  'contract-states': 'editor',
-  'contract-interaction': 'editor',
-  'missing-registration': 'registration',
-  'contract-registry': 'registration',
-  'contract-listed': 'registration',
-  'contract-sketch': 'sketch',
-  'contract-missing': 'coverage',
-  'tests-not-installed': 'tooling',
-  'tests-setup': 'tooling',
-  'tests-incomplete': 'coverage',
-};
+export const COMPONENT_RULE_FIX = fixMap(COMPONENT_RULES);
 
 // Property suffixes come from the editor's own kind table, so the checker and
 // the picker can never disagree about what a name means. Read as text rather
@@ -118,20 +95,55 @@ export const COMPONENT_RULE_FIX = {
 // suite before the plugin is built).
 const ALIAS_KINDS = 'src/editor/core/components/aliasKinds.ts';
 
-function readKnownSuffixes(root) {
+/** Each kind with the suffixes that name it, in the file's own order, since
+ *  the first match wins there too. */
+function readKindRules(root) {
   for (const base of [root, PKG_ROOT]) {
     const path = join(base, ALIAS_KINDS);
     if (!existsSync(path)) continue;
     const src = readFileSync(path, 'utf8');
     const block = src.match(/KIND_RULES[^=]*=\s*\[([\s\S]*?)\n\];/);
     if (!block) continue;
-    const out = new Set();
-    for (const m of block[1].matchAll(/suffix:\s*\[([\s\S]*?)\]/g)) {
-      for (const n of m[1].matchAll(/'-([a-z0-9-]+)'/g)) out.add(n[1]);
+    const out = [];
+    for (const m of block[1].matchAll(/\{\s*kind:\s*'([a-z-]+)',\s*suffix:\s*\[([\s\S]*?)\]/g)) {
+      out.push({ kind: m[1], suffixes: [...m[2].matchAll(/'-([a-z0-9-]+)'/g)].map((n) => n[1]) });
     }
-    if (out.size > 0) return [...out];
+    if (out.length > 0) return out;
   }
   return [];
+}
+
+function readKnownSuffixes(root) {
+  return [...new Set(readKindRules(root).flatMap((r) => r.suffixes))];
+}
+
+/**
+ * The token scale a property draws its value from, by way of the editor's own
+ * kind for it. A kind with no scale behind it — a length, a duration, a font
+ * axis — has none, so a literal there has no candidate to offer.
+ */
+const KIND_SCALE = {
+  'text-color': 'text',
+  surface: 'surface',
+  border: 'border',
+  radius: 'radius',
+  padding: 'space',
+  gap: 'space',
+  'divider-inset': 'space',
+  'border-width': 'border-width',
+  'divider-width': 'border-width',
+  'accent-width': 'border-width',
+  shadow: 'shadow',
+};
+
+const COLOR_SCALES = ['text', 'surface', 'border'];
+const GEOMETRY_SCALES = ['space', 'radius', 'border-width', 'shadow'];
+
+function tokenScale(token, kindRules, wanted) {
+  const bare = SIDE_SUFFIXES.find((x) => token.endsWith(x)) ? token.slice(0, token.lastIndexOf('-')) : token;
+  const rule = kindRules.find((r) => r.suffixes.some((s) => bare.endsWith(`-${s}`)));
+  const scale = rule ? (KIND_SCALE[rule.kind] ?? null) : null;
+  return wanted.includes(scale) ? scale : null;
 }
 
 /** True when `id` is one of the package's own components. */
@@ -343,6 +355,7 @@ function checkDefaultsAreSemantic({ blocks, runtime, editor, root, runtimePath, 
   const vocab = vocabulary ?? loadVocabulary({ root });
   const matchers = intrinsicMatchers(editor);
   const rel = relative(root, runtimePath);
+  const kindRules = readKindRules(root);
 
   const own = new Set();
   for (const block of blocks) {
@@ -371,10 +384,12 @@ function checkDefaultsAreSemantic({ blocks, runtime, editor, root, runtimePath, 
       }
 
       if (hasColorLiteral(painted)) {
+        const scale = tokenScale(name, kindRules, COLOR_SCALES);
         record(
           'color-literal',
           `${rel}: ${name}: ${value} is a colour literal; defaults must reference design tokens (e.g. var(--surface-primary))`,
           at,
+          { details: { scale, candidates: scaleTokens(vocab, scale).map((t) => t.name) } },
         );
         continue;
       }
@@ -388,14 +403,40 @@ function checkDefaultsAreSemantic({ blocks, runtime, editor, root, runtimePath, 
       }
 
       if (hasDimensionLiteral(painted)) {
+        const scale = tokenScale(name, kindRules, GEOMETRY_SCALES);
+        const resolved = resolveGeometryLiteral(painted, scale, scaleTokens(vocab, scale));
         record(
           'dimension-literal',
           `${rel}: ${name}: ${value} pins a raw dimension; use a --space-*, --radius-*, or --border-width-* token`,
           at,
+          {
+            details: { scale: resolved.scale, literals: resolved.literals },
+            ...(resolved.auto ? {} : { repair: 'choice' }),
+          },
         );
       }
     }
   }
+}
+
+/**
+ * Properties a component declares that nothing in its own file reads. A read is
+ * the name appearing outside the `:global(:root)` block: in a `var()`, in a
+ * `style:` directive, or as the string a padding mixin takes. SCSS interpolation
+ * (`--badge-#{$v}-surface`) reads every property the pattern covers. A per-side
+ * padding is read through its parent.
+ */
+export function unreadTokens(source, tokens) {
+  let body = source.replace(/\/\*[\s\S]*?\*\//g, ' ').replace(/<!--[\s\S]*?-->/g, ' ');
+  for (const block of extractGlobalRootBlocks(body)) body = body.replace(block, ' ');
+  const patterns = [...body.matchAll(/--[a-z0-9-]*(?:#\{[^}]*\}[a-z0-9-]*)+/g)].map(
+    (m) => new RegExp(`^${m[0].replace(/[.*+?^()|[\]\\]/g, '\\$&').replace(/#\{[^}]*\}/g, '[a-z0-9-]+')}$`),
+  );
+  const isRead = (name) => body.includes(name) || patterns.some((re) => re.test(name));
+  return [...tokens].filter((name) => {
+    const side = SIDE_SUFFIXES.find((s) => name.endsWith(s));
+    return !isRead(name) && !(side && isRead(name.slice(0, -side.length)));
+  });
 }
 
 /** Every `--name` inside a JSON string value, in the order it appears. Simple
@@ -443,13 +484,20 @@ function checkConfigTokens({ id, root, intrinsic, vocab, recordAt }) {
           `${rel}: ${prop}: "${value}" has no design token behind it, and ${prop} is not a declared intrinsic`,
           rel,
           line,
+          { details: { property: prop, value } },
         );
       }
       continue;
     }
     for (const name of names) {
       if (vocab.knows(name)) continue;
-      recordAt('config-token', `${rel}: ${prop} names ${name}, which is not a design token or a semantic property`, rel, line);
+      recordAt(
+        'config-token',
+        `${rel}: ${prop} names ${name}, which is not a design token or a semantic property`,
+        rel,
+        line,
+        { details: { property: prop, value } },
+      );
     }
   }
 }
@@ -461,21 +509,22 @@ export function checkComponent(id, root = process.cwd(), { vocabulary } = {}) {
   let file = '';
   let source = '';
 
-  const record = (rule, message, index = -1) => {
+  const record = (rule, message, index = -1, extra = {}) => {
     findings.push({
       rule,
       file,
       line: index >= 0 && source ? lineOf(source, index) : 1,
       message,
+      ...extra,
     });
-    (COMPONENT_RULES[rule] === 'warn' ? warnings : errors).push(message);
+    (COMPONENT_RULES[rule]?.severity === 'warn' ? warnings : errors).push(message);
   };
   // For a finding about a different file (config-token, against the saved
   // alias config): the line is already resolved against that file's own text,
   // never `source` (the runtime).
-  const recordAt = (rule, message, atFile, line = 1) => {
-    findings.push({ rule, file: atFile, line, message });
-    (COMPONENT_RULES[rule] === 'warn' ? warnings : errors).push(message);
+  const recordAt = (rule, message, atFile, line = 1, extra = {}) => {
+    findings.push({ rule, file: atFile, line, message, ...extra });
+    (COMPONENT_RULES[rule]?.severity === 'warn' ? warnings : errors).push(message);
   };
   const done = () => ({ errors, warnings, findings });
 
@@ -503,6 +552,16 @@ export function checkComponent(id, root = process.cwd(), { vocabulary } = {}) {
   const editor = editorMissing ? '' : readFileSync(editorPath, 'utf8');
   source = runtime;
   const vocab = vocabulary ?? loadVocabulary({ root });
+
+  // Runtime: the file opens with the comment that says what the component is
+  // for. The catalogue reads that comment; without it the component is
+  // pickable but unexplained.
+  if (!/^\s*<!--[\s\S]*?-->/.test(runtime)) {
+    record(
+      'missing-description',
+      `${relative(root, runtimePath)}: opens with no description comment. Say what ${Id} is for, and what it is not for`,
+    );
+  }
 
   // Runtime: :global(:root) block present.
   const blocks = extractGlobalRootBlocks(runtime);
@@ -572,6 +631,17 @@ export function checkComponent(id, root = process.cwd(), { vocabulary } = {}) {
     for (const n of declaredCustomProperties(block.replace(/\/\*[\s\S]*?\*\//g, ' '))) declared.add(n);
   }
 
+  // Runtime: a property nothing in the file reads paints nothing, so the editor
+  // offers a control that moves nothing.
+  for (const name of unreadTokens(runtime, declared)) {
+    record(
+      'unread-token',
+      `${relative(root, runtimePath)}: ${name} is declared and never read in this file's own CSS. Read it where it paints, or drop it`,
+      runtime.indexOf(name),
+      { details: { property: name } },
+    );
+  }
+
   // The editor-dependent rules below need real editor content; a missing
   // editor already has its own `missing-file` finding, and running these
   // against an empty string would only restate it under different rules.
@@ -638,7 +708,7 @@ export function checkComponent(id, root = process.cwd(), { vocabulary } = {}) {
     for (const imp of extractImports(source)) {
       for (const pattern of DEEP_IMPORT_PATTERNS) {
         if (pattern.test(imp)) {
-          record('deep-import', `${relative(root, path)}: deep import not supported: ${imp}`);
+          record('deep-import', `${relative(root, path)}: deep import not supported: ${imp}`, -1, deepImportRepair(imp));
         }
       }
     }
@@ -679,7 +749,7 @@ export function checkComponent(id, root = process.cwd(), { vocabulary } = {}) {
     for (const imp of extractImports(regSource)) {
       for (const pattern of DEEP_IMPORT_PATTERNS) {
         if (pattern.test(imp)) {
-          record('deep-import', `${relative(root, registrationFile)}: deep import not supported: ${imp}`);
+          record('deep-import', `${relative(root, registrationFile)}: deep import not supported: ${imp}`, -1, deepImportRepair(imp));
         }
       }
     }

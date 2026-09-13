@@ -3,7 +3,7 @@ import { mkdtempSync, mkdirSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 // @ts-expect-error — plain .mjs module, no types
-import { PAGE_RULES, checkPages, discoverPages } from './check-page.mjs';
+import { PAGE_RULES, PAGE_RULE_FIX, checkPages, discoverPages } from './check-page.mjs';
 // @ts-expect-error — plain .mjs module, no types
 import { applySeverity, countBySeverity, parseCheckFlags } from './lib/findings.mjs';
 // @ts-expect-error — plain .mjs module, no types
@@ -21,6 +21,7 @@ function fixtureRoot(): string {
       --surface-neutral: #111;
       --text-primary: #eee;
       --space-8: 0.5rem;
+      --space-16: 1rem;
       --radius-xl: 1rem;
       --columns-count: 12;
       --heading-lg-font-size: 2rem;
@@ -380,7 +381,7 @@ describe('PAGE_RULES carries the --tests rule surface, decision 9', () => {
       'tests-setup',
       'tests-incomplete',
     ]) {
-      expect(PAGE_RULES[rule]).toBe('error');
+      expect(PAGE_RULES[rule].severity).toBe('error');
     }
   });
 });
@@ -626,5 +627,101 @@ describe("this repo's own pages", () => {
     const { findings } = checkPages(discoverPages(root), { root });
     const resolved = applySeverity(findings, PAGE_RULES, { strict: true });
     expect(resolved.map((f: { file: string; message: string }) => `${f.file}: ${f.message}`)).toEqual([]);
+  });
+});
+
+describe('the rule-to-fix registry', () => {
+  it('names a fix slug and a repair for every rule, and no rule that does not exist', () => {
+    expect(Object.keys(PAGE_RULE_FIX).sort()).toEqual(Object.keys(PAGE_RULES).sort());
+    for (const [id, rule] of Object.entries(PAGE_RULES) as [string, { severity: string; repair: string }][]) {
+      expect(['off', 'warn', 'error'], id).toContain(rule.severity);
+      expect(['auto', 'choice', 'authored'], id).toContain(rule.repair);
+    }
+  });
+
+  it('resolves every slug the skills document', () => {
+    const documented = new Set(['page-token', 'page-component', 'page-layout', 'page-paint', 'routing', 'tooling', 'coverage']);
+    expect([...new Set(Object.values(PAGE_RULE_FIX))].filter((s) => !documented.has(s as string))).toEqual([]);
+  });
+});
+
+describe('a page finding carries what its repair needs', () => {
+  const detailsOf = (body: string, rule: string) => {
+    const root = fixtureRoot();
+    custom(root, 'Widget');
+    const rel = page(root, 'Detail.svelte', body);
+    const found = checkPages([rel], { root }).findings.find((f: { rule: string }) => f.rule === rule);
+    return found as { details: Record<string, unknown>; repair?: string };
+  };
+
+  it('names the props a component accepts, the list the message already prints', () => {
+    const f = detailsOf('<script>\n  import Button from "@motion-proto/live-tokens/components/Button.svelte";\n</script>\n<Button nope="x" />', 'unknown-prop') as unknown as { details: { accepts: string[] }; message: string };
+    expect(f.details.accepts.join(', ')).toBe(f.message.split('it accepts ')[1]);
+    expect(f.details.accepts).toContain('variant');
+  });
+
+  it('names the values a prop accepts', () => {
+    const f = detailsOf('<script>\n  import Button from "@motion-proto/live-tokens/components/Button.svelte";\n</script>\n<Button variant="huge" />', 'unknown-prop-value') as unknown as { details: { accepts: string[] }; message: string };
+    expect(f.details.accepts.join(', ')).toBe(f.message.split('is not one of ')[1]);
+    expect(f.details.accepts).toContain('primary');
+  });
+
+  it('names the scale and the step a raw dimension lands on', () => {
+    const f = detailsOf('<style>.a { padding: 8px; }</style>', 'dimension-literal');
+    expect(f.details).toEqual({
+      scale: 'space',
+      literals: [{ value: '8px', px: 8, candidates: [{ token: '--space-8', px: 8, shift: 0 }] }],
+    });
+    expect(f.repair).toBeUndefined();
+  });
+
+  it('lowers the repair to a choice when no single step is nearest', () => {
+    const f = detailsOf('<style>.a { padding: 12px; }</style>', 'dimension-literal') as unknown as { details: { literals: { candidates: unknown[] }[] }; repair: string };
+    expect(f.details.literals[0].candidates).toEqual([
+      { token: '--space-8', px: 8, shift: -4 },
+      { token: '--space-16', px: 16, shift: 4 },
+    ]);
+    expect(f.repair).toBe('choice');
+  });
+
+  it('names the colour scale without picking the role', () => {
+    const f = detailsOf('<style>.a { color: #fff; }</style>', 'color-literal');
+    expect(f.details).toEqual({ scale: 'text', candidates: ['--text-primary', '--text-secondary'] });
+  });
+
+  it('names both column forms', () => {
+    const f = detailsOf('<style>.a { grid-template-columns: repeat(4, 1fr); }</style>', 'hardcoded-columns');
+    expect(f.details).toEqual({
+      columns: 4,
+      candidates: ['repeat(var(--columns-count), 1fr)', 'repeat(calc(var(--columns-count) - N), 1fr)'],
+    });
+  });
+
+  it('names the site a control-size and a property-override sit at', () => {
+    expect(detailsOf('<script>\n  import Card from "@motion-proto/live-tokens/components/Card.svelte";\n</script>\n<Card size="small" />', 'control-size').details)
+      .toEqual({ site: 'attribute' });
+    expect(detailsOf('<style>.a { --card-default-radius: 0; }</style>', 'property-override').details)
+      .toEqual({ site: 'declaration' });
+  });
+
+  it('keeps a setProperty override authored, since the site is code', () => {
+    const f = detailsOf('<script>\n  el.style.setProperty("--card-default-radius", "0");\n</script>', 'property-override');
+    expect(f.details).toEqual({ site: 'script' });
+    expect(f.repair).toBe('authored');
+  });
+
+  it('names the public specifier a deep import rewrites to', () => {
+    const f = detailsOf('<script>\n  import Card from "@motion-proto/live-tokens/src/system/components/Card.svelte";\n</script>', 'deep-import');
+    expect(f.details).toEqual({
+      specifier: '@motion-proto/live-tokens/src/system/components/Card.svelte',
+      public: '@motion-proto/live-tokens/components/Card.svelte',
+    });
+    expect(f.repair).toBeUndefined();
+  });
+
+  it('lists the public subpaths when no rewrite applies', () => {
+    const f = detailsOf('<script>\n  import { x } from "@motion-proto/live-tokens/src/editor/core/state";\n</script>', 'deep-import');
+    expect(f.details.exports).toContain('@motion-proto/live-tokens/component-editor');
+    expect(f.repair).toBe('choice');
   });
 });

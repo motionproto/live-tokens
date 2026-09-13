@@ -65,12 +65,30 @@ export function parseCheckFlags(argv) {
   return opts;
 }
 
+/** The slug half of a rule table, the shape the skills and the CLI read. */
+export function fixMap(rules) {
+  return Object.fromEntries(Object.entries(rules).map(([id, rule]) => [id, rule.fix]));
+}
+
+/**
+ * The config entry that records a deliberate decision to keep a finding.
+ *
+ * A page or CSS file drops out of discovery, which is narrower than turning a
+ * rule off across the project. Everything else steps its rule down one notch,
+ * since a rule already resolved to `warn` is not silenced by `warn`.
+ */
+function exceptionFor(finding, severity, exclude) {
+  return exclude
+    ? { checks: { exclude: [finding.file] } }
+    : { checks: { rules: { [finding.rule]: severity === 'error' ? 'warn' : 'off' } } };
+}
+
 /** The same last-wins resolution `applySeverity` applies per finding, exposed
  *  standalone so coverage (which has no findings to attach a severity to, but
  *  still has to honor `--off`) can ask the same question. */
 export function resolveRuleSeverity(ruleId, rules, opts = {}, config = {}) {
   const configured = config.rules ?? {};
-  let severity = rules[ruleId] ?? 'error';
+  let severity = rules[ruleId]?.severity ?? 'error';
   if (SEVERITIES.includes(configured[ruleId])) severity = configured[ruleId];
   if (opts.off?.includes(ruleId)) severity = 'off';
   if (opts.warn?.includes(ruleId)) severity = 'warn';
@@ -80,16 +98,27 @@ export function resolveRuleSeverity(ruleId, rules, opts = {}, config = {}) {
 }
 
 /**
- * Resolve each finding's severity and drop the ones turned off.
- * `rules` maps rule id to its default severity.
+ * Resolve each finding's severity and drop the ones turned off, then attach
+ * what a repair needs: where it is fixed (`fix`), how (`repair`), and the
+ * config entry that records a decision to keep it (`exception`).
+ *
+ * `rules` maps rule id to `{ severity, fix, repair }`. A rule's `repair` is the
+ * ceiling: a finding that arrives carrying its own has already lowered it,
+ * because its context is more ambiguous than the rule's.
  */
-export function applySeverity(findings, rules, opts = {}, config = {}, fixes = {}) {
+export function applySeverity(findings, rules, opts = {}, config = {}, { exclude = false } = {}) {
   return findings
-    .map((f) => ({
-      ...f,
-      severity: resolveRuleSeverity(f.rule, rules, opts, config),
-      ...(fixes[f.rule] ? { fix: fixes[f.rule] } : {}),
-    }))
+    .map((f) => {
+      const severity = resolveRuleSeverity(f.rule, rules, opts, config);
+      const rule = rules[f.rule];
+      return {
+        ...f,
+        severity,
+        ...(rule?.fix ? { fix: rule.fix } : {}),
+        repair: f.repair ?? rule?.repair ?? 'authored',
+        exception: exceptionFor(f, severity, exclude),
+      };
+    })
     .filter((f) => f.severity !== 'off');
 }
 

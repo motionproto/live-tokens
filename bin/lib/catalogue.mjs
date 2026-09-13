@@ -4,8 +4,39 @@
 // use, so a skill or a script sees exactly what the checkers will hold it to.
 
 import { readFileSync } from 'node:fs';
-import { relative } from 'node:path';
-import { CONTRACT_SCALES } from './tokenVocabulary.mjs';
+import { join, relative } from 'node:path';
+import { CONTRACT_SCALES, PKG_ROOT } from './tokenVocabulary.mjs';
+
+const PKG = '@motion-proto/live-tokens';
+
+// The one deep import with a public equivalent: a component by file.
+const DEEP_COMPONENT = new RegExp(`^${PKG}/src/system/components/([A-Za-z0-9]+\\.svelte)$`);
+
+let subpaths = null;
+
+/** Everything the package's `exports` map makes importable, as specifiers. */
+export function publicSubpaths() {
+  if (subpaths) return subpaths;
+  try {
+    const pkg = JSON.parse(readFileSync(join(PKG_ROOT, 'package.json'), 'utf8'));
+    subpaths = Object.keys(pkg.exports ?? {}).map((key) => (key === '.' ? PKG : `${PKG}/${key.slice(2)}`));
+  } catch {
+    subpaths = [];
+  }
+  return subpaths;
+}
+
+/**
+ * What a `deep-import` finding's repair needs. A component file has one public
+ * specifier, so the rewrite is mechanical; anything else reaches for internals
+ * that may have no public equivalent at all, which leaves the choice open.
+ */
+export function deepImportRepair(specifier) {
+  const m = DEEP_COMPONENT.exec(specifier);
+  return m
+    ? { details: { specifier, public: `${PKG}/components/${m[1]}` } }
+    : { details: { specifier, exports: publicSubpaths() }, repair: 'choice' };
+}
 
 /** The runtime file's leading HTML comment, which is where a component says what
     it is for. A labelled line (`Use for:`, `Not for:`, `Emphasis:`) opens a line
@@ -31,6 +62,41 @@ function scaleOf(name) {
     .filter((f) => stem === f || stem.startsWith(`${f}-`))
     .sort((a, b) => b.length - a.length)[0];
   return hit ?? stem.split('-')[0];
+}
+
+// Cached per vocabulary: a checker asks for a scale once per finding, and the
+// values come from re-reading tokens.css.
+const scalesCache = new WeakMap();
+
+/**
+ * Every design token grouped by its scale, each with the value tokens.css
+ * declares for it. The candidates a `color-literal` or `dimension-literal`
+ * repair picks from, and what `describeTokens` prints.
+ */
+export function tokenScales(vocab) {
+  const cached = scalesCache.get(vocab);
+  if (cached) return cached;
+
+  const values = new Map();
+  if (vocab.tokensCssPath) {
+    const css = readFileSync(vocab.tokensCssPath, 'utf8').replace(/\/\*[\s\S]*?\*\//g, ' ');
+    for (const m of css.matchAll(/(--[a-z0-9-]+)\s*:\s*([^;]+);/g)) {
+      if (!values.has(m[1])) values.set(m[1], m[2].trim());
+    }
+  }
+  const byScale = new Map();
+  for (const name of vocab.themeTokens) {
+    const scale = scaleOf(name);
+    if (!byScale.has(scale)) byScale.set(scale, []);
+    byScale.get(scale).push({ name, value: values.get(name) ?? '' });
+  }
+  scalesCache.set(vocab, byScale);
+  return byScale;
+}
+
+/** One scale's tokens, empty when the project has no such scale. */
+export function scaleTokens(vocab, scale) {
+  return (scale && tokenScales(vocab).get(scale)) || [];
 }
 
 export function describeComponents(vocab, { root = process.cwd() } = {}) {
@@ -60,22 +126,9 @@ export function describeComponents(vocab, { root = process.cwd() } = {}) {
 }
 
 export function describeTokens(vocab, { root = process.cwd() } = {}) {
-  const values = new Map();
-  if (vocab.tokensCssPath) {
-    const css = readFileSync(vocab.tokensCssPath, 'utf8').replace(/\/\*[\s\S]*?\*\//g, ' ');
-    for (const m of css.matchAll(/(--[a-z0-9-]+)\s*:\s*([^;]+);/g)) {
-      if (!values.has(m[1])) values.set(m[1], m[2].trim());
-    }
-  }
-  const byScale = new Map();
-  for (const name of vocab.themeTokens) {
-    const scale = scaleOf(name);
-    if (!byScale.has(scale)) byScale.set(scale, []);
-    byScale.get(scale).push({ name, value: values.get(name) ?? '' });
-  }
   return {
     tokensCss: vocab.tokensCssPath ? relative(root, vocab.tokensCssPath) : null,
-    scales: [...byScale].map(([scale, tokens]) => ({ scale, tokens })),
+    scales: [...tokenScales(vocab)].map(([scale, tokens]) => ({ scale, tokens })),
     components: [...vocab.components.values()].map((c) => ({
       id: c.id,
       tokens: [...c.tokens].map(([name, value]) => ({ name, default: value })),

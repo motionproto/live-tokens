@@ -220,7 +220,12 @@ describe('the shipped catalogue satisfies the contract it documents', () => {
   });
 
   it.each(ids)('%s', (id) => {
-    expect(checkComponent(id, root).errors).toEqual([]);
+    const { errors, findings } = checkComponent(id, root);
+    expect(errors).toEqual([]);
+    // The two rules that only warn, so `errors` alone would not hold them.
+    expect(
+      findings.filter((f: { rule: string }) => f.rule === 'missing-description' || f.rule === 'unread-token'),
+    ).toEqual([]);
   });
 });
 
@@ -246,9 +251,11 @@ describe('shipped components', () => {
  * has stopped holding the line.
  */
 const CLEAN = {
-  runtime: `<script lang="ts">
+  runtime: `<!-- Widget.svelte — a dial. Use for: one value on a scale. Not for: navigation. -->
+<script lang="ts">
   import { editorState } from '@motion-proto/live-tokens';
 </script>
+<div class="widget"></div>
 <style>
   :global(:root) {
     --widget-surface: var(--surface-neutral);
@@ -256,6 +263,12 @@ const CLEAN = {
     --widget-radius: var(--radius-md);
     --widget-align: start;
   }
+  .widget {
+    background: var(--widget-surface);
+    border-radius: var(--widget-radius);
+    justify-items: var(--widget-align);
+  }
+  .widget:hover { background: var(--widget-hover-surface); }
 </style>`,
   editor: `<script module lang="ts">
   import type { Token } from '@motion-proto/live-tokens/component-editor';
@@ -323,7 +336,9 @@ describe('the clean component and its mutations', () => {
 
   it('an editor row may name a per-side padding the runtime declares only as a parent', () => {
     const files = swap('editor', "{ label: 'radius', variable: '--widget-radius' },", "{ label: 'radius', variable: '--widget-radius' }, { label: 'top', variable: '--widget-padding-top' }, { label: 'all', variable: `--widget-${'default'}-surface` },")(
-      swap('runtime', '--widget-align: start;', '--widget-align: start;\n    --widget-padding: var(--space-8);\n    --widget-default-surface: var(--surface-neutral);')(CLEAN),
+      swap('runtime', '  .widget {', '  .widget-default { padding: var(--widget-padding); background: var(--widget-default-surface); }\n  .widget {')(
+        swap('runtime', '--widget-align: start;', '--widget-align: start;\n    --widget-padding: var(--space-8);\n    --widget-default-surface: var(--surface-neutral);')(CLEAN),
+      ),
     );
     expect(strictFindings(files)).toEqual([]);
   });
@@ -1060,14 +1075,14 @@ describe('contractRunner: hard failures never get silenced', () => {
 
 describe('coverage honors --off: disabled, not a silent pass', () => {
   it('resolveRuleSeverity answers the same question applySeverity does, for a rule with no finding to attach it to', () => {
-    const rules = { 'contract-alias': 'error' };
+    const rules = { 'contract-alias': { severity: 'error', fix: 'editor', repair: 'authored' } };
     expect(resolveRuleSeverity('contract-alias', rules, { off: ['contract-alias'] })).toBe('off');
     expect(resolveRuleSeverity('contract-alias', rules, {})).toBe('error');
   });
 
   it('turns an off rule into disabled coverage regardless of its actual status', () => {
     const coverage = { toggle: { 'contract-alias': { status: 'failed' }, 'contract-render': { status: 'passed' } } };
-    const out = applyCoverageSeverity(coverage, { 'contract-alias': 'error', 'contract-render': 'error' }, { off: ['contract-alias'] });
+    const out = applyCoverageSeverity(coverage, { 'contract-alias': { severity: 'error' }, 'contract-render': { severity: 'error' } }, { off: ['contract-alias'] });
     expect(out.toggle['contract-alias']).toEqual({ status: 'disabled' });
     expect(out.toggle['contract-render']).toEqual({ status: 'passed' });
   });
@@ -1393,6 +1408,13 @@ describe('the rule-to-fix registry', () => {
     expect(Object.keys(COMPONENT_RULE_FIX).sort()).toEqual(Object.keys(COMPONENT_RULES).sort());
   });
 
+  it('names a severity and a repair for every rule', () => {
+    for (const [id, rule] of Object.entries(COMPONENT_RULES) as [string, { severity: string; repair: string }][]) {
+      expect(['off', 'warn', 'error'], id).toContain(rule.severity);
+      expect(['auto', 'choice', 'authored'], id).toContain(rule.repair);
+    }
+  });
+
   it('resolves every slug the skills document', () => {
     const documented = new Set([
       'property-name', 'property-token', 'runtime', 'runtime-defaults',
@@ -1400,5 +1422,106 @@ describe('the rule-to-fix registry', () => {
     ]);
     const used = new Set(Object.values(COMPONENT_RULE_FIX));
     expect([...used].filter((s) => !documented.has(s))).toEqual([]);
+  });
+});
+
+describe('unread-token', () => {
+  function widgetWith(root: string, rootBlock: string, css: string, markup = '<div class="w"></div>') {
+    withTokens(root);
+    writeFileSync(
+      join(root, 'src/system/components/Widget.svelte'),
+      `<!-- Widget.svelte — a dial. -->\n${markup}\n<style lang="scss">\n  :global(:root) {\n${rootBlock}\n  }\n${css}\n</style>`,
+    );
+    writeFileSync(
+      join(root, 'src/system/components/WidgetEditor.svelte'),
+      `<script module lang="ts">\n  const component = 'widget';\n  export const allTokens = [];\n</script>`,
+    );
+    writeFileSync(join(root, 'src/main.ts'), `registerComponent({ id: 'widget', label: 'Widget' });`);
+  }
+
+  const unread = (root: string) =>
+    checkComponent('widget', root)
+      .findings.filter((f: { rule: string }) => f.rule === 'unread-token')
+      .map((f: { details: { property: string } }) => f.details.property);
+
+  it('counts a var() read, a mixin string, a style directive, an interpolated pattern, and a parent for its sides', () => {
+    const root = fixtureRoot();
+    widgetWith(
+      root,
+      `    --widget-surface: var(--surface-neutral);
+    --widget-radius: var(--radius-md);
+    --widget-info-fill: var(--surface-neutral);
+    --widget-padding: var(--space-8);
+    --widget-padding-top: var(--space-8);
+    --widget-glow-surface: var(--surface-neutral);`,
+      `  .w { background: var(--widget-surface); }
+  .p { @include themed-padding(--widget-padding); }
+  @each $v in (info) { .c { background: var(--widget-#{$v}-fill); } }`,
+      '<div class="w" style:--widget-radius={x}></div>',
+    );
+    expect(unread(root)).toEqual(['--widget-glow-surface']);
+  });
+
+  it('warns rather than errors, and says which property to read or drop', () => {
+    const root = fixtureRoot();
+    widgetWith(root, '    --widget-surface: var(--surface-neutral);', '');
+    const { errors, warnings, findings } = checkComponent('widget', root);
+    expect(errors).toEqual([]);
+    expect(warnings.some((w: string) => /--widget-surface is declared and never read/.test(w))).toBe(true);
+    const f = findings.find((x: { rule: string }) => x.rule === 'unread-token');
+    expect(f.details).toEqual({ property: '--widget-surface' });
+    expect(f.line).toBe(5);
+  });
+});
+
+describe('missing-description', () => {
+  it('fires on a runtime that opens with no comment, and stays quiet once it has one', () => {
+    const root = fixtureRoot();
+    const runtime = join(root, 'src/system/components/Widget.svelte');
+    widget(root, '--widget-surface: var(--surface-neutral);');
+    expect(rules(root)).toContain('missing-description');
+    writeFileSync(runtime, `<!-- Widget.svelte — a dial. -->\n${readFileSync(runtime, 'utf8')}`);
+    expect(rules(root)).not.toContain('missing-description');
+  });
+});
+
+describe('a component finding carries what its repair needs', () => {
+  const findingFor = (rootBlock: string, rule: string) => {
+    const root = fixtureRoot();
+    widget(root, rootBlock);
+    return checkComponent('widget', root).findings.find((f: { rule: string }) => f.rule === rule) as {
+      details: Record<string, unknown>;
+      repair?: string;
+    };
+  };
+
+  it('names the scale and the nearest step for a raw dimension', () => {
+    const f = findingFor('--widget-radius: 4px;', 'dimension-literal');
+    expect(f.details).toEqual({
+      scale: 'radius',
+      literals: [{ value: '4px', px: 4, candidates: [{ token: '--radius-md', px: 8, shift: 4 }] }],
+    });
+    expect(f.repair).toBeUndefined();
+  });
+
+  it('names the colour scale a property paints from, without picking the role', () => {
+    expect(findingFor('--widget-surface: #fff;', 'color-literal').details).toEqual({
+      scale: 'surface',
+      candidates: ['--surface-neutral'],
+    });
+  });
+
+  it('leaves the scale null when the property has no scale behind it', () => {
+    const f = findingFor('--widget-width: 7px;', 'dimension-literal');
+    expect(f.details).toEqual({ scale: null, literals: [{ value: '7px', px: 7, candidates: [] }] });
+    expect(f.repair).toBe('choice');
+  });
+
+  it('names the property and the value a saved assignment carries', () => {
+    const root = fixtureRoot();
+    widget(root, '--widget-surface: var(--surface-neutral);');
+    writeConfig(root, 'widget', { '--widget-surface': 'var(--surface-nope)' });
+    const f = checkComponent('widget', root).findings.find((x: { rule: string }) => x.rule === 'config-token');
+    expect(f.details).toEqual({ property: '--widget-surface', value: 'var(--surface-nope)' });
   });
 });

@@ -9,29 +9,6 @@ import { relative } from 'node:path';
 import { COMPONENT_RULES, checkComponent, discoverComponents } from '../check-component.mjs';
 import { COMPONENT_IMPORT, PAGE_RULES, checkPages, discoverPages } from '../check-page.mjs';
 import { applySeverity, readChecksConfig } from './findings.mjs';
-import { extractGlobalRootBlocks } from './tokenVocabulary.mjs';
-
-const SIDES = ['-top', '-right', '-bottom', '-left'];
-
-/**
- * Tokens a component declares that nothing in its file reads. A read is the
- * name appearing outside the `:global(:root)` block: in a `var()`, in a `style:`
- * directive, or as the string a padding mixin takes. SCSS interpolation
- * (`--badge-#{$v}-surface`) reads every token the pattern covers. A per-side
- * padding is read through its parent.
- */
-export function unreadTokens(source, tokens) {
-  let body = source.replace(/\/\*[\s\S]*?\*\//g, ' ').replace(/<!--[\s\S]*?-->/g, ' ');
-  for (const block of extractGlobalRootBlocks(body)) body = body.replace(block, ' ');
-  const patterns = [...body.matchAll(/--[a-z0-9-]*(?:#\{[^}]*\}[a-z0-9-]*)+/g)].map(
-    (m) => new RegExp(`^${m[0].replace(/[.*+?^()|[\]\\]/g, '\\$&').replace(/#\{[^}]*\}/g, '[a-z0-9-]+')}$`),
-  );
-  const isRead = (name) => body.includes(name) || patterns.some((re) => re.test(name));
-  return [...tokens].filter((name) => {
-    const side = SIDES.find((s) => name.endsWith(s));
-    return !isRead(name) && !(side && isRead(name.slice(0, -side.length)));
-  });
-}
 
 function countByRule(findings) {
   const out = {};
@@ -39,34 +16,50 @@ function countByRule(findings) {
   return out;
 }
 
-function summarise(findings, rules, config) {
-  const resolved = applySeverity(findings, rules, {}, config);
-  const strict = applySeverity(findings, rules, { strict: true }, config);
+const SEVERITY_ORDER = { error: 0, warn: 1 };
+
+/**
+ * Errors first, then the rule with the most findings, then file and line. The
+ * rule tiebreak keeps one rule's findings together when two rules tie on count,
+ * so the list reads as a fix list rather than a file listing.
+ */
+function sortFindings(findings) {
+  const counts = countByRule(findings);
+  return [...findings].sort(
+    (a, b) =>
+      SEVERITY_ORDER[a.severity] - SEVERITY_ORDER[b.severity] ||
+      counts[b.rule] - counts[a.rule] ||
+      a.rule.localeCompare(b.rule) ||
+      a.file.localeCompare(b.file) ||
+      a.line - b.line,
+  );
+}
+
+function summarise(findings, rules, config, exclude) {
+  const resolved = sortFindings(applySeverity(findings, rules, {}, config, { exclude }));
+  const strict = applySeverity(findings, rules, { strict: true }, config, { exclude });
   return {
     errors: resolved.filter((f) => f.severity === 'error').length,
     warnings: resolved.filter((f) => f.severity === 'warn').length,
     strictErrors: strict.filter((f) => f.severity === 'error').length,
     byRule: countByRule(resolved),
-    items: resolved.map((f) => ({ rule: f.rule, severity: f.severity, file: f.file, line: f.line, message: f.message })),
+    items: resolved,
   };
 }
 
 export function buildReport(vocab, { root = process.cwd() } = {}) {
   const config = readChecksConfig(root);
 
-  const components = [...vocab.components.values()].map((c) => {
-    const source = readFileSync(c.file, 'utf8');
-    return {
-      id: c.id,
-      name: c.name,
-      origin: c.origin,
-      file: relative(root, c.file),
-      registered: vocab.builtIn.has(c.id) || vocab.registered.has(c.id),
-      described: /^\s*<!--[\s\S]*?-->/.test(source),
-      tokens: c.tokens.size,
-      unread: unreadTokens(source, c.tokens.keys()),
-    };
-  });
+  // What a component is, as facts. What is wrong with it is a finding:
+  // unread properties, a missing description, and an unregistered project
+  // component are rules now, each carrying its own severity and repair.
+  const components = [...vocab.components.values()].map((c) => ({
+    id: c.id,
+    origin: c.origin,
+    file: relative(root, c.file),
+    registered: vocab.builtIn.has(c.id) || vocab.registered.has(c.id),
+    tokens: c.tokens.size,
+  }));
 
   const pageFiles = discoverPages(root);
   const byPage = [];
@@ -92,6 +85,9 @@ export function buildReport(vocab, { root = process.cwd() } = {}) {
   const authored = discoverComponents(root);
   const componentFindings = authored.flatMap((id) => checkComponent(id, root, { vocabulary: vocab }).findings);
 
+  // Key order is the order a reader takes the report in, and `migrations` is
+  // filled by the caller (it needs the compiled engine), so it holds its place
+  // here rather than landing last.
   return {
     project: {
       root,
@@ -100,23 +96,28 @@ export function buildReport(vocab, { root = process.cwd() } = {}) {
       components: components.length,
       pages: pageFiles.length,
     },
+    migrations: null,
     components,
+    findings: {
+      pages: summarise(pageFindings, PAGE_RULES, config, true),
+      components: { checked: authored, ...summarise(componentFindings, COMPONENT_RULES, config) },
+    },
     usage: {
       byPage,
       byComponent,
       unusedShipped: byComponent.filter((c) => c.origin === 'shipped' && c.pages.length === 0).map((c) => c.id),
-      customUnregistered: components.filter((c) => c.origin === 'custom' && !c.registered).map((c) => c.id),
       customUnused: byComponent.filter((c) => c.origin === 'custom' && c.pages.length === 0).map((c) => c.id),
-    },
-    findings: {
-      pages: summarise(pageFindings, PAGE_RULES, config),
-      components: { checked: authored, ...summarise(componentFindings, COMPONENT_RULES, config) },
     },
   };
 }
 
 const list = (items, max = 20) =>
   items.length <= max ? items.join(', ') : `${items.slice(0, max).join(', ')}, +${items.length - max} more`;
+
+/** How a rule's findings are repaired. A rule that lowered its repair on some
+ *  of them names both, so the line never overstates what code can do. */
+const repairsFor = (items, rule) =>
+  [...new Set(items.filter((f) => f.rule === rule).map((f) => f.repair))].sort().join('/');
 
 export function formatReport(r) {
   const out = [];
@@ -128,14 +129,19 @@ export function formatReport(r) {
 
   out.push('');
   out.push('Components');
-  const unread = r.components.filter((c) => c.unread.length);
-  out.push(`  tokens declared and read by their own CSS: ${r.components.reduce((n, c) => n + c.tokens - c.unread.length, 0)} of ${r.components.reduce((n, c) => n + c.tokens, 0)}`);
-  for (const c of unread) out.push(`    ${c.id}: ${c.unread.length} unread (${list(c.unread, 6)})`);
-  const undescribed = r.components.filter((c) => !c.described).map((c) => c.id);
-  if (undescribed.length) out.push(`  no description comment: ${list(undescribed)}`);
+  out.push(`  semantic properties declared: ${r.components.reduce((n, c) => n + c.tokens, 0)}`);
   const custom = r.components.filter((c) => c.origin === 'custom');
   out.push(`  custom: ${custom.length}${custom.length ? ` (${list(custom.map((c) => c.id))})` : ''}`);
-  if (r.usage.customUnregistered.length) out.push(`    not registered: ${list(r.usage.customUnregistered)}`);
+
+  const section = (label, s) => {
+    out.push('');
+    out.push(`${label}: ${s.errors} error(s), ${s.warnings} warning(s); ${s.strictErrors} under --strict`);
+    for (const [rule, n] of Object.entries(s.byRule).sort((a, b) => b[1] - a[1])) {
+      out.push(`  ${rule}: ${n}  [${repairsFor(s.items, rule)}]`);
+    }
+  };
+  section('check-page', r.findings.pages);
+  section(`check-component (${r.findings.components.checked.length} authored)`, r.findings.components);
 
   out.push('');
   out.push('Usage');
@@ -146,13 +152,5 @@ export function formatReport(r) {
   out.push(`  pages rendering no catalogue component: ${r.usage.byPage.filter((p) => p.components.length === 0).length}`);
   out.push(`  shipped components used nowhere: ${r.usage.unusedShipped.length}${r.usage.unusedShipped.length ? ` (${list(r.usage.unusedShipped)})` : ''}`);
   if (r.usage.customUnused.length) out.push(`  custom components used nowhere: ${list(r.usage.customUnused)}`);
-
-  const section = (label, s) => {
-    out.push('');
-    out.push(`${label}: ${s.errors} error(s), ${s.warnings} warning(s); ${s.strictErrors} under --strict`);
-    for (const [rule, n] of Object.entries(s.byRule).sort((a, b) => b[1] - a[1])) out.push(`  ${rule}: ${n}`);
-  };
-  section('check-page', r.findings.pages);
-  section(`check-component (${r.findings.components.checked.length} authored)`, r.findings.components);
   return out.join('\n');
 }

@@ -3,7 +3,7 @@ import { mkdtempSync, mkdirSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 // @ts-expect-error — plain .mjs module, no types
-import { buildReport, formatReport, unreadTokens } from './lib/report.mjs';
+import { buildReport, formatReport } from './lib/report.mjs';
 // @ts-expect-error — plain .mjs module, no types
 import { loadVocabulary } from './lib/tokenVocabulary.mjs';
 
@@ -52,29 +52,18 @@ function project(): string {
   return root;
 }
 
-describe('unreadTokens', () => {
-  it('counts a var() read, a mixin string, a style directive, an interpolated pattern, and a parent for its sides', () => {
-    const source = `<div style:--w-c={x}></div>
-<style lang="scss">
-  :global(:root) { --w-a: 1; --w-b: 2; --w-c: 3; --w-info-fill: 4; --w-d: 5; --w-pad: 6; --w-pad-top: 7; }
-  .a { color: var(--w-a); }
-  .b { @include themed-padding(--w-b); }
-  @each $v in (info) { .c { background: var(--w-#{$v}-fill); } }
-  .p { @include themed-padding(--w-pad); }
-</style>`;
-    expect(unreadTokens(source, ['--w-a', '--w-b', '--w-c', '--w-info-fill', '--w-d', '--w-pad', '--w-pad-top'])).toEqual(['--w-d']);
-  });
-});
-
 describe('buildReport', () => {
-  it('states the facts: unread tokens, registration, usage, and findings by rule', () => {
+  it('states the facts: what a component is, what each page renders, and the findings by rule', () => {
     const root = project();
     const r = buildReport(loadVocabulary({ root }), { root });
     const widget = r.components.find((c: { id: string }) => c.id === 'widget');
-    expect(widget.unread).toEqual(['--widget-glow-surface']);
-    expect(widget.registered).toBe(true);
-    expect(widget.described).toBe(true);
-    expect(r.usage.customUnregistered).toEqual(['stray']);
+    expect(widget).toEqual({
+      id: 'widget',
+      origin: 'custom',
+      file: 'src/system/components/Widget.svelte',
+      registered: true,
+      tokens: 2,
+    });
     expect(r.usage.customUnused).toEqual(['stray', 'widget']);
     expect(r.usage.byPage).toEqual([{ file: 'src/pages/Home.svelte', components: [{ id: 'card', rendered: 2 }] }]);
     expect(r.usage.unusedShipped).toContain('button');
@@ -85,31 +74,90 @@ describe('buildReport', () => {
     expect(r.findings.components.checked.slice().sort()).toEqual(['stray', 'widget']);
   });
 
-  it('lists a component with no usage comment, shipped or custom', () => {
+  it('reports an unread property, a missing description, and an unregistered component as findings', () => {
     const root = project();
-    const pkgRoot = mkdtempSync(join(tmpdir(), 'lt-report-pkg-'));
-    roots.push(pkgRoot);
-    mkdirSync(join(pkgRoot, 'src/system/components'), { recursive: true });
-    writeFileSync(
-      join(pkgRoot, 'src/system/components/Knob.svelte'),
-      `<div />\n<style>:global(:root) { --knob-surface: var(--surface-neutral); }</style>`,
-    );
-    const text = formatReport(buildReport(loadVocabulary({ root, pkgRoot }), { root }));
-    expect(text).toContain('no description comment: knob, stray');
+    const byRule = buildReport(loadVocabulary({ root }), { root }).findings.components.byRule;
+    expect(byRule['unread-token']).toBe(2);
+    expect(byRule['missing-description']).toBe(1);
+    expect(byRule['missing-registration']).toBe(1);
   });
 
-  it('finds a usage comment on every shipped component', () => {
+  it('sorts findings by severity, then by how many share the rule, then by file and line', () => {
     const root = project();
-    const r = buildReport(loadVocabulary({ root }), { root });
-    expect(r.components.filter((c: { origin: string; described: boolean }) => c.origin === 'shipped' && !c.described)).toEqual([]);
+    const items = buildReport(loadVocabulary({ root }), { root }).findings.components.items;
+    expect(items.map((f: { rule: string }) => f.rule)).toEqual([
+      'missing-file',
+      'missing-registration',
+      'unread-token',
+      'unread-token',
+      'missing-description',
+    ]);
   });
 
-  it('formats every section with its count', () => {
+  it('orders the JSON sections the way the report reads', () => {
+    const root = project();
+    expect(Object.keys(buildReport(loadVocabulary({ root }), { root }))).toEqual([
+      'project',
+      'migrations',
+      'components',
+      'findings',
+      'usage',
+    ]);
+  });
+
+  it('formats every section with its count, and names each rule\'s repair', () => {
     const root = project();
     const text = formatReport(buildReport(loadVocabulary({ root }), { root }));
-    expect(text).toContain('widget: 1 unread (--widget-glow-surface)');
-    expect(text).toContain('not registered: stray');
+    expect(text).toMatch(/semantic properties declared: \d+/);
+    expect(text).toContain('custom: 2 (stray, widget)');
+    expect(text).toContain('unread-token: 2  [choice]');
+    expect(text).toContain('dimension-literal: 1  [auto]');
     expect(text).toContain('src/pages/Home.svelte: card×2');
     expect(text).toContain('check-page: 1 error(s), 1 warning(s); 2 under --strict');
+  });
+});
+
+describe('the finding contract both checkers meet', () => {
+  it('carries the fields a repair needs on every finding', () => {
+    const root = project();
+    const r = buildReport(loadVocabulary({ root }), { root });
+    const all = [...r.findings.pages.items, ...r.findings.components.items];
+    expect(all.length).toBeGreaterThan(4);
+    for (const f of all) {
+      expect(Object.keys(f)).toEqual(
+        expect.arrayContaining(['rule', 'severity', 'file', 'line', 'message', 'fix', 'repair', 'exception']),
+      );
+      expect(['auto', 'choice', 'authored']).toContain(f.repair);
+      expect(typeof f.fix).toBe('string');
+    }
+  });
+
+  it('reads as one object, whole', () => {
+    const root = project();
+    const r = buildReport(loadVocabulary({ root }), { root });
+    expect(r.findings.pages.items.find((f: { rule: string }) => f.rule === 'dimension-literal')).toEqual({
+      rule: 'dimension-literal',
+      severity: 'warn',
+      file: 'src/pages/Home.svelte',
+      line: 5,
+      message: 'padding: 12px. Use a --space-*, --radius-*, --border-width-*, or --shadow-* token.',
+      fix: 'page-token',
+      repair: 'auto',
+      exception: { checks: { exclude: ['src/pages/Home.svelte'] } },
+      details: {
+        scale: 'space',
+        literals: [{ value: '12px', px: 12, candidates: [{ token: '--space-8', px: 8, shift: -4 }] }],
+      },
+    });
+  });
+
+  it('excludes the file for a page finding and steps the rule down for a component one', () => {
+    const root = project();
+    const r = buildReport(loadVocabulary({ root }), { root });
+    expect(r.findings.pages.items[0].exception).toEqual({ checks: { exclude: ['src/pages/Home.svelte'] } });
+    const unread = r.findings.components.items.find((f: { rule: string }) => f.rule === 'unread-token');
+    expect(unread.exception).toEqual({ checks: { rules: { 'unread-token': 'off' } } });
+    const registration = r.findings.components.items.find((f: { rule: string }) => f.rule === 'missing-registration');
+    expect(registration.exception).toEqual({ checks: { rules: { 'missing-registration': 'warn' } } });
   });
 });
