@@ -201,7 +201,7 @@ test('literal, token-opacity, gradient, intrinsic, padding, font, undo, and redo
     editor.setComponentAlias('sectiondivider', '--sectiondivider-md-hairline-color', {
       kind: 'token', name: '--color-danger-600', opacity: 36,
     });
-    editor.setComponentAlias('sectiondivider', '--sectiondivider-md-background', {
+    editor.setComponentAlias('sectiondivider', '--sectiondivider-md-surface', {
       kind: 'gradient',
       value: {
         type: 'linear',
@@ -256,7 +256,7 @@ test('literal, token-opacity, gradient, intrinsic, padding, font, undo, and redo
       '--sectiondivider-md-title-font-weight',
       '--sectiondivider-md-title-font-size',
       '--sectiondivider-md-hairline-color',
-      '--sectiondivider-md-background',
+      '--sectiondivider-md-surface',
       '--sectiondivider-md-description-display',
       '--font-display',
     ];
@@ -272,8 +272,8 @@ test('literal, token-opacity, gradient, intrinsic, padding, font, undo, and redo
   expect(roots.same).toBe(true);
   expect(roots.values['--sectiondivider-md-hairline-color'])
     .toBe('color-mix(in srgb, var(--color-danger-600) 36%, transparent)');
-  expect(roots.values['--sectiondivider-md-background']).toContain('linear-gradient(90deg');
-  expect(roots.values['--sectiondivider-md-background']).toContain('40%');
+  expect(roots.values['--sectiondivider-md-surface']).toContain('linear-gradient(90deg');
+  expect(roots.values['--sectiondivider-md-surface']).toContain('40%');
   expect(roots.values['--sectiondivider-md-description-display']).toBe('none');
   expect(roots.values['--font-display']).toBe('"Playwright Live", sans-serif');
   expect(roots.selfFontNode && roots.hostFontNode).toBe(true);

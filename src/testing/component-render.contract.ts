@@ -382,7 +382,7 @@ async function probeCurrentView(
       if (variable.includes('letter-spacing')) add('7px', '-2px');
       if (variable.includes('shadow')) add('rgb(1, 2, 3) 7px 9px 0 3px', 'none');
       if (variable.includes('blur')) add('blur(7px)', 'none');
-      if (variable.includes('gradient') || variable.endsWith('-background')) {
+      if (variable.includes('gradient')) {
         add('linear-gradient(90deg, rgb(1, 2, 3), rgb(253, 127, 3))', 'none');
       }
       if (variable.includes('duration') || variable.includes('transition')) add('9s', '0s');

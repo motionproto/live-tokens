@@ -17,7 +17,7 @@ function variantPaints(v: Variant): PaintMap {
       borderTopWidth: `--sectiondivider-${v}-border-width`,
       borderTopColor: `--sectiondivider-${v}-border`,
       boxShadow: `--sectiondivider-${v}-shadow`,
-      backgroundImage: `--sectiondivider-${v}-background`,
+      backgroundImage: `--sectiondivider-${v}-surface`,
     },
     titleRow: { paddingTop: `--sectiondivider-${v}-title-padding` },
     title: {
@@ -83,7 +83,7 @@ export const sectionDividerContract: ComponentContract = {
       },
       {
         shape: 'gradient',
-        variable: '--sectiondivider-lg-background',
+        variable: '--sectiondivider-lg-surface',
         observe: { part: 'root', css: 'backgroundColor' },
       },
       {

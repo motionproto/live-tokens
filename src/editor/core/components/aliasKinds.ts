@@ -72,7 +72,7 @@ export const KIND_RULES: ReadonlyArray<{
   { kind: 'length',         suffix: ['-width', '-height', '-size'] },
   // Fills. A tint is a wash over a surface, so it takes the surface picker: the
   // full palette with an alpha, not just the tint stops it defaults to.
-  { kind: 'surface',        suffix: ['-surface', '-fill', '-background', '-indicator',
+  { kind: 'surface',        suffix: ['-surface', '-fill', '-indicator',
                                      '-thumb', '-color', '-tint', '-opacity'],
                             prefix: ['--surface-', '--tint', '--color-'] },
 ];

@@ -36,19 +36,19 @@
       { label: 'hairline width', canBeLinked: true, groupKey: 'hairline-width', variable: `--sectiondivider-${v}-hairline-width`, element: 'hairline' },
     ];
   }
-  function backgroundTokens(v: Variant): Token[] {
+  function surfaceTokens(v: Variant): Token[] {
     return [
-      { label: 'background', groupKey: 'background', variable: `--sectiondivider-${v}-background`, kind: 'gradient', family: variants.find((x) => x.key === v)!.family },
+      { label: 'surface', groupKey: 'surface', variable: `--sectiondivider-${v}-surface`, kind: 'gradient', family: variants.find((x) => x.key === v)!.family },
     ];
   }
   function variantTokens(v: Variant): Token[] {
-    return [...containerTokens(v), ...hairlineTokens(v), ...backgroundTokens(v), ...typePaddingTokens(v)];
+    return [...containerTokens(v), ...hairlineTokens(v), ...surfaceTokens(v), ...typePaddingTokens(v)];
   }
   function stateTokens(v: Variant): Token[] {
     return [
       ...containerTokens(v),
       ...hairlineTokens(v),
-      ...backgroundTokens(v).map((t) => ({ ...t, hidden: true })),
+      ...surfaceTokens(v).map((t) => ({ ...t, hidden: true })),
       ...typePaddingTokens(v),
     ];
   }
@@ -292,7 +292,7 @@
   let visibleVariantTokens = $derived((v: Variant) => withLinkedDisabled(stateTokens(v), linked.varSet));
 
   const gradientSources = Object.fromEntries(
-    variants.map((v) => [v.key, componentGradientSource(component, `--sectiondivider-${v.key}-background`)]),
+    variants.map((v) => [v.key, componentGradientSource(component, `--sectiondivider-${v.key}-surface`)]),
   ) as Record<Variant, ReturnType<typeof componentGradientSource>>;
 
   // Family swap on color-family change: for every alias under this variant

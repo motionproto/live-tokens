@@ -25,7 +25,7 @@
     "--sectiondivider-lg-border-width": "--border-width-1",
     "--sectiondivider-lg-shadow": "--shadow-none",
     "--sectiondivider-lg-hairline-width": "--border-width-1",
-    "--sectiondivider-lg-background": "--color-transparent",
+    "--sectiondivider-lg-surface": "--color-transparent",
     "--sectiondivider-lg-title": "--text-primary",
     "--sectiondivider-lg-description": "--text-alternate",
     "--sectiondivider-lg-eyebrow": "--text-brand",
@@ -52,7 +52,7 @@
     "--sectiondivider-md-border-width": "--border-width-1",
     "--sectiondivider-md-shadow": "--shadow-none",
     "--sectiondivider-md-hairline-width": "--border-width-1",
-    "--sectiondivider-md-background": "--color-transparent",
+    "--sectiondivider-md-surface": "--color-transparent",
     "--sectiondivider-md-title": "--text-primary",
     "--sectiondivider-md-description": "--text-secondary",
     "--sectiondivider-md-eyebrow": "--text-tertiary",
@@ -79,12 +79,12 @@
     "--sectiondivider-sm-border-width": "--border-width-1",
     "--sectiondivider-sm-shadow": "--shadow-none",
     "--sectiondivider-sm-hairline-width": "--border-width-1",
-    "--sectiondivider-sm-background": "--color-transparent",
+    "--sectiondivider-sm-surface": "--color-transparent",
     "--sectiondivider-sm-title": "--text-brand",
     "--sectiondivider-sm-description": "--text-secondary",
     "--sectiondivider-sm-eyebrow": "--text-tertiary",
     "--sectiondivider-sm-border": "--color-transparent",
     "--sectiondivider-sm-hairline-color": "color-mix(in srgb, var(--border-brand-medium) 50%, transparent)"
   },
-  "schemaVersion": 30
+  "schemaVersion": 31
 }

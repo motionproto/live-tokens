@@ -137,7 +137,7 @@
     --sectiondivider-lg-border-width: var(--border-width-1);
     --sectiondivider-lg-shadow: var(--shadow-none);
     --sectiondivider-lg-hairline-width: var(--border-width-1);
-    --sectiondivider-lg-background: var(--color-transparent);
+    --sectiondivider-lg-surface: var(--color-transparent);
     --sectiondivider-lg-title: var(--text-primary);
     --sectiondivider-lg-description: var(--text-alternate);
     --sectiondivider-lg-eyebrow: var(--text-brand);
@@ -166,7 +166,7 @@
     --sectiondivider-md-border-width: var(--border-width-1);
     --sectiondivider-md-shadow: var(--shadow-none);
     --sectiondivider-md-hairline-width: var(--border-width-1);
-    --sectiondivider-md-background: var(--color-transparent);
+    --sectiondivider-md-surface: var(--color-transparent);
     --sectiondivider-md-title: var(--text-primary);
     --sectiondivider-md-description: var(--text-secondary);
     --sectiondivider-md-eyebrow: var(--text-tertiary);
@@ -195,7 +195,7 @@
     --sectiondivider-sm-border-width: var(--border-width-1);
     --sectiondivider-sm-shadow: var(--shadow-none);
     --sectiondivider-sm-hairline-width: var(--border-width-1);
-    --sectiondivider-sm-background: var(--color-transparent);
+    --sectiondivider-sm-surface: var(--color-transparent);
     --sectiondivider-sm-title: var(--text-brand);
     --sectiondivider-sm-description: var(--text-secondary);
     --sectiondivider-sm-eyebrow: var(--text-tertiary);
@@ -271,7 +271,7 @@
     --_divider-border-width: var(--sectiondivider-lg-border-width);
     --_divider-shadow: var(--sectiondivider-lg-shadow);
     --_divider-hairline-width: var(--sectiondivider-lg-hairline-width);
-    --_divider-bg: var(--sectiondivider-lg-background);
+    --_divider-bg: var(--sectiondivider-lg-surface);
     --_divider-title: var(--sectiondivider-lg-title);
     --_divider-description: var(--sectiondivider-lg-description);
     --_divider-eyebrow: var(--sectiondivider-lg-eyebrow);
@@ -306,7 +306,7 @@
     --_divider-border-width: var(--sectiondivider-md-border-width);
     --_divider-shadow: var(--sectiondivider-md-shadow);
     --_divider-hairline-width: var(--sectiondivider-md-hairline-width);
-    --_divider-bg: var(--sectiondivider-md-background);
+    --_divider-bg: var(--sectiondivider-md-surface);
     --_divider-title: var(--sectiondivider-md-title);
     --_divider-description: var(--sectiondivider-md-description);
     --_divider-eyebrow: var(--sectiondivider-md-eyebrow);
@@ -341,7 +341,7 @@
     --_divider-border-width: var(--sectiondivider-sm-border-width);
     --_divider-shadow: var(--sectiondivider-sm-shadow);
     --_divider-hairline-width: var(--sectiondivider-sm-hairline-width);
-    --_divider-bg: var(--sectiondivider-sm-background);
+    --_divider-bg: var(--sectiondivider-sm-surface);
     --_divider-title: var(--sectiondivider-sm-title);
     --_divider-description: var(--sectiondivider-sm-description);
     --_divider-eyebrow: var(--sectiondivider-sm-eyebrow);

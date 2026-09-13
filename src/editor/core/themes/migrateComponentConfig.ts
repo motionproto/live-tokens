@@ -98,7 +98,7 @@ function renameSectionDividerObjectSlots(
   }
 
   // If we found a canvas gradient (any era), fan it into the three new
-  // per-variant background slots and drop every other family's gradient.
+  // per-variant surface slots and drop every other family's gradient.
   // If no canvas gradient is found, pass through non-family keys verbatim
   // so non-migration data (theme tokens, other components) isn't touched.
   const out: Record<string, AliasDiskValue> = {};
@@ -116,14 +116,22 @@ function renameSectionDividerObjectSlots(
         break;
       }
     }
-    // Pass through anything that's already at the final lg/md/sm shape so
-    // re-running the migration is idempotent.
     if (isFamilyGradient) continue;
+    // A size-keyed `-background` slot is the pre-surface-rename shape (the
+    // migration runner only sees string keys, so an object-valued one never
+    // reaches it); carry its value forward under `-surface`.
+    const backgroundVariant = SIZE_VARIANTS.find((v) => key === `--sectiondivider-${v}-background`);
+    if (backgroundVariant) {
+      out[`--sectiondivider-${backgroundVariant}-surface`] = value;
+      continue;
+    }
+    // Pass through anything that's already at the final lg/md/sm `-surface`
+    // shape so re-running the migration is idempotent.
     out[key] = value;
   }
   if (canvasGradient !== undefined) {
     for (const v of SIZE_VARIANTS) {
-      out[`--sectiondivider-${v}-background`] = canvasGradient;
+      out[`--sectiondivider-${v}-surface`] = canvasGradient;
     }
   }
   return out;

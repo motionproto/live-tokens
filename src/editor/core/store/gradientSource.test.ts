@@ -5,7 +5,7 @@ import { editorState, setComponentAlias, __resetForTests } from './editorStore';
 import type { GradientAliasValue } from './editorTypes';
 
 const COMPONENT = 'sectiondivider';
-const VAR = '--sectiondivider-lg-background';
+const VAR = '--sectiondivider-lg-surface';
 
 function source() {
   return componentGradientSource(COMPONENT, VAR);

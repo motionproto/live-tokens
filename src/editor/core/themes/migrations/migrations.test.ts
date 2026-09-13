@@ -553,6 +553,30 @@ describe('migration runner — schemaVersion gating', () => {
     expect(out).toEqual(v29);
   });
 
+  it('component-config v30 → v31: sectiondivider\'s fill reads surface', () => {
+    const v30 = {
+      '--sectiondivider-lg-background': '--color-transparent',
+      '--sectiondivider-md-background': '--color-transparent',
+      '--sectiondivider-sm-background': '--color-transparent',
+      '--sectiondivider-lg-hairline-color': '--border-brand-medium',
+    };
+    const expected = {
+      '--sectiondivider-lg-surface': '--color-transparent',
+      '--sectiondivider-md-surface': '--color-transparent',
+      '--sectiondivider-sm-surface': '--color-transparent',
+      '--sectiondivider-lg-hairline-color': '--border-brand-medium',
+    };
+    const out = runMigrations('component-config', 30, v30, { component: 'sectiondivider' });
+    expect(out).toEqual(expected);
+    expect(runMigrations('component-config', 30, out, { component: 'sectiondivider' })).toEqual(expected);
+  });
+
+  it('component-config v30 → v31 fires only for sectiondivider', () => {
+    const v30 = { '--card-default-surface': '--surface-canvas' };
+    const out = runMigrations('component-config', 30, v30, { component: 'card' });
+    expect(out).toEqual(v30);
+  });
+
   it('component-config at current version → no migrations run', () => {
     const current = { '--button-primary-surface': '--surface-success' };
     const out = runMigrations(

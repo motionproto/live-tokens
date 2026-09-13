@@ -53,9 +53,9 @@ describe('migrateComponentConfig', () => {
         ],
       },
     };
-    expect(aliases['--sectiondivider-lg-background']).toEqual(synthesized);
-    expect(aliases['--sectiondivider-md-background']).toEqual(synthesized);
-    expect(aliases['--sectiondivider-sm-background']).toEqual(synthesized);
+    expect(aliases['--sectiondivider-lg-surface']).toEqual(synthesized);
+    expect(aliases['--sectiondivider-md-surface']).toEqual(synthesized);
+    expect(aliases['--sectiondivider-sm-surface']).toEqual(synthesized);
     expect(aliases['--sectiondivider-canvas-gradient']).toBeUndefined();
   });
 
@@ -76,12 +76,12 @@ describe('migrateComponentConfig', () => {
       undefined,
       CURRENT_COMPONENT_SCHEMA_VERSION,
     );
-    expect(aliases['--sectiondivider-lg-background']).toEqual(existing);
-    expect(aliases['--sectiondivider-md-background']).toEqual(existing);
-    expect(aliases['--sectiondivider-sm-background']).toEqual(existing);
+    expect(aliases['--sectiondivider-lg-surface']).toEqual(existing);
+    expect(aliases['--sectiondivider-md-surface']).toEqual(existing);
+    expect(aliases['--sectiondivider-sm-surface']).toEqual(existing);
   });
 
-  it('fans a canvas-family background gradient across the lg/md/sm variants', () => {
+  it('fans a canvas-family background gradient across the lg/md/sm variants, under -surface', () => {
     const canvasGradient = {
       kind: 'gradient' as const,
       value: {
@@ -99,9 +99,56 @@ describe('migrateComponentConfig', () => {
       undefined,
       CURRENT_COMPONENT_SCHEMA_VERSION,
     );
-    expect(aliases['--sectiondivider-lg-background']).toEqual(canvasGradient);
-    expect(aliases['--sectiondivider-md-background']).toEqual(canvasGradient);
-    expect(aliases['--sectiondivider-sm-background']).toEqual(canvasGradient);
+    expect(aliases['--sectiondivider-lg-surface']).toEqual(canvasGradient);
+    expect(aliases['--sectiondivider-md-surface']).toEqual(canvasGradient);
+    expect(aliases['--sectiondivider-sm-surface']).toEqual(canvasGradient);
     expect(aliases['--sectiondivider-canvas-background']).toBeUndefined();
+  });
+
+  it('renames a string-valued sectiondivider background slot to surface', () => {
+    const { aliases } = migrateComponentConfig(
+      'sectiondivider',
+      { '--sectiondivider-lg-background': '--color-transparent' },
+      undefined,
+      30,
+    );
+    expect(aliases['--sectiondivider-lg-surface']).toBe('--color-transparent');
+    expect(aliases['--sectiondivider-lg-background']).toBeUndefined();
+  });
+
+  it('renames an object-valued (gradient) sectiondivider background slot to surface', () => {
+    const gradient = {
+      kind: 'gradient' as const,
+      value: { type: 'solid' as const, angle: 0, stops: [{ position: 0, color: '--surface-canvas' }] },
+    };
+    const { aliases } = migrateComponentConfig(
+      'sectiondivider',
+      { '--sectiondivider-md-background': gradient },
+      undefined,
+      CURRENT_COMPONENT_SCHEMA_VERSION,
+    );
+    expect(aliases['--sectiondivider-md-surface']).toEqual(gradient);
+    expect(aliases['--sectiondivider-md-background']).toBeUndefined();
+  });
+
+  it('leaves an already-migrated sectiondivider surface slot untouched on a re-run', () => {
+    const gradient = {
+      kind: 'gradient' as const,
+      value: { type: 'solid' as const, angle: 0, stops: [{ position: 0, color: '--surface-canvas' }] },
+    };
+    const first = migrateComponentConfig(
+      'sectiondivider',
+      { '--sectiondivider-sm-background': gradient },
+      undefined,
+      30,
+    );
+    const second = migrateComponentConfig(
+      'sectiondivider',
+      first.aliases,
+      undefined,
+      CURRENT_COMPONENT_SCHEMA_VERSION,
+    );
+    expect(second.aliases).toEqual(first.aliases);
+    expect(second.aliases['--sectiondivider-sm-surface']).toEqual(gradient);
   });
 });

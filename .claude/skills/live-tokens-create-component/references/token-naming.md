@@ -22,7 +22,6 @@ to that list, so the two cannot drift apart.
 | `-opacity`  | Opacity (0–1)                                                 |
 | `-blur`     | Backdrop or filter blur radius                                |
 | `-tint`     | A wash over the surface, aliasing a `--tint-*` stop            |
-| `-background` | Fill, where the component's own vocabulary says background   |
 | `-indicator` | The colour of the bar or stripe that marks an item             |
 | `-thumb`    | A scrollbar or slider thumb's colour                           |
 | `-title`    | Title text colour                                              |

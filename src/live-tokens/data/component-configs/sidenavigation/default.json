@@ -159,5 +159,5 @@
     "--sidenavigation-footer-selected-text-font-weight": "--font-weight-normal",
     "--sidenavigation-footer-selected-text-line-height": "--line-height-normal"
   },
-  "schemaVersion": 30
+  "schemaVersion": 31
 }

@@ -91,6 +91,10 @@
   is `indicator-width`, and an ops file naming the old kind is rejected.
   `accent` now names the color family only, so Badge's and CornerBadge's
   `--*-accent-*` are untouched.
+- **SectionDivider's fill reads `-surface`.** Its three `-background`
+  properties are `-surface`, matching every other component's fill name,
+  renamed on load. `check-component` no longer accepts the suffix
+  `-background`; a property carrying one is a naming finding.
 
 ### Changed
 
