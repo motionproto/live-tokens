@@ -95,7 +95,7 @@ describe('restingPaintSpec', () => {
 
   it('reads the variant of a corner badge past its anchor class', () => {
     expect(variantsReached(restingPaintSpec(cornerBadgeContract),
-      ['corner-badge', 'corner-badge-bottom-right', 'corner-badge-info'])).toEqual(['info']);
+      ['cornerbadge', 'cornerbadge-bottom-right', 'cornerbadge-info'])).toEqual(['info']);
   });
 
   it('reaches a variant the markup spells by value and the contract labels in prose', () => {

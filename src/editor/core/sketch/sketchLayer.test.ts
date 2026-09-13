@@ -201,7 +201,7 @@ describe('part coverage', () => {
     }
     const positionRule = css.match(/\[data-sketch\] :is\(([^{]*)\)\{position:relative;\}/);
     expect(positionRule).not.toBeNull();
-    expect(positionRule![1]).not.toMatch(/\.tooltip|\.corner-badge-/);
+    expect(positionRule![1]).not.toMatch(/\.tooltip|\.cornerbadge-/);
   });
 
   // The arrow is the tooltip's own ::after; the stroke layer would replace it.

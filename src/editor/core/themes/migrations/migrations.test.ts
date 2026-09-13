@@ -304,10 +304,12 @@ describe('migration runner — schemaVersion gating', () => {
       // Non-variant key passes through untouched.
       '--corner-badge-unrelated': '--foo',
     };
+    // Chained past 2026-09-13-cornerbadge-prefix, so the flattened keys land
+    // under the current `--cornerbadge-` prefix, not the pre-rename hyphenated one.
     const migrated = runMigrations('component-config', 15, v15, { component: 'cornerbadge' });
-    expect(migrated['--corner-badge-margin']).toBe('--space-0');
-    expect(migrated['--corner-badge-padding']).toBe('--space-6');
-    expect(migrated['--corner-badge-text-font-family']).toBe('--font-sans');
+    expect(migrated['--cornerbadge-margin']).toBe('--space-0');
+    expect(migrated['--cornerbadge-padding']).toBe('--space-6');
+    expect(migrated['--cornerbadge-text-font-family']).toBe('--font-sans');
     expect(migrated['--corner-badge-unrelated']).toBe('--foo');
     // Per-variant keys are gone.
     expect(migrated['--corner-badge-primary-margin']).toBeUndefined();
@@ -324,10 +326,20 @@ describe('migration runner — schemaVersion gating', () => {
       '--corner-badge-danger-border': '--border-danger',
       '--corner-badge-danger-text': '--text-danger',
     };
+    // Chained past 2026-09-13-cornerbadge-prefix, so the values survive under
+    // the current `--cornerbadge-` prefix.
+    const expected = {
+      '--cornerbadge-primary-surface': '--surface-brand',
+      '--cornerbadge-primary-border': '--border-brand',
+      '--cornerbadge-primary-text': '--text-brand',
+      '--cornerbadge-danger-surface': '--surface-danger',
+      '--cornerbadge-danger-border': '--border-danger',
+      '--cornerbadge-danger-text': '--text-danger',
+    };
 
     const out = runMigrations('component-config', 15, currentColors, { component: 'cornerbadge' });
 
-    expect(out).toEqual(currentColors);
+    expect(out).toEqual(expected);
     expect(out['--corner-badge-surface']).toBeUndefined();
     expect(out['--corner-badge-border']).toBeUndefined();
     expect(out['--corner-badge-text']).toBeUndefined();
@@ -575,6 +587,28 @@ describe('migration runner — schemaVersion gating', () => {
     const v30 = { '--card-default-surface': '--surface-canvas' };
     const out = runMigrations('component-config', 30, v30, { component: 'card' });
     expect(out).toEqual(v30);
+  });
+
+  it('component-config v31 → v32: cornerbadge\'s prefix is its id', () => {
+    const v31 = {
+      '--corner-badge-margin': '--space-0',
+      '--corner-badge-primary-surface': '--surface-brand',
+      '--corner-badge-info-text': '--text-info',
+    };
+    const expected = {
+      '--cornerbadge-margin': '--space-0',
+      '--cornerbadge-primary-surface': '--surface-brand',
+      '--cornerbadge-info-text': '--text-info',
+    };
+    const out = runMigrations('component-config', 31, v31, { component: 'cornerbadge' });
+    expect(out).toEqual(expected);
+    expect(runMigrations('component-config', 31, out, { component: 'cornerbadge' })).toEqual(expected);
+  });
+
+  it('component-config v31 → v32 fires only for cornerbadge', () => {
+    const v31 = { '--badge-primary-surface': '--surface-brand' };
+    const out = runMigrations('component-config', 31, v31, { component: 'badge' });
+    expect(out).toEqual(v31);
   });
 
   it('component-config at current version → no migrations run', () => {

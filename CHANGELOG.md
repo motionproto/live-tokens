@@ -95,6 +95,10 @@
   properties are `-surface`, matching every other component's fill name,
   renamed on load. `check-component` no longer accepts the suffix
   `-background`; a property carrying one is a naming finding.
+- **A property's prefix is the component's id, with no exception.**
+  CornerBadge's forty `--corner-badge-*` properties are `--cornerbadge-*`,
+  renamed on load. `check-component` no longer accepts a hyphenated prefix
+  for any component; a property that carries one is a naming finding.
 
 ### Changed
 

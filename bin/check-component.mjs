@@ -219,28 +219,18 @@ function extractImports(source) {
 /**
  * `--<id>-*` tokens declared in the given blocks.
  *
- * The prefix may also be the hyphenated word form of the id: CornerBadge is
- * registered as `cornerbadge` but names its tokens `--corner-badge-*`, and the
- * whole system (config, theme, editor) follows that. Segments never end on a
- * hyphen, so a trailing `-` cannot be mistaken for a token name.
+ * Segments never end on a hyphen, so a trailing `-` cannot be mistaken for a
+ * token name.
  */
-function extractTokensForId(blocks, id, kebab) {
+function extractTokensForId(blocks, id) {
   const tokens = new Set();
   // Comments name tokens too (`the --card-hover-* tokens`); they are prose.
   blocks = blocks.map((b) => b.replace(/\/\*[\s\S]*?\*\//g, ' '));
-  const prefixes = kebab && kebab !== id ? [id, kebab] : [id];
-  for (const prefix of prefixes) {
-    const re = new RegExp(`--${prefix}(?:-[a-z0-9]+)+`, 'g');
-    for (const block of blocks) {
-      for (const t of block.match(re) ?? []) tokens.add(t);
-    }
+  const re = new RegExp(`--${id}(?:-[a-z0-9]+)+`, 'g');
+  for (const block of blocks) {
+    for (const t of block.match(re) ?? []) tokens.add(t);
   }
   return [...tokens];
-}
-
-/** `CornerBadge` -> `corner-badge`; the other accepted token prefix. */
-function kebabOf(name) {
-  return name.replace(/([a-z0-9])([A-Z])/g, '$1-$2').toLowerCase();
 }
 
 function tokenSuffix(token, known) {
@@ -602,7 +592,7 @@ export function checkComponent(id, root = process.cwd(), { vocabulary } = {}) {
   }
 
   // Runtime: at least one --<id>-* token.
-  const tokens = extractTokensForId(blocks, id, kebabOf(Id));
+  const tokens = extractTokensForId(blocks, id);
   if (blocks.length > 0 && tokens.length === 0) {
     record('no-tokens', `${relative(root, runtimePath)}: no --${id}-* tokens declared in :global(:root)`);
   }

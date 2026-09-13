@@ -422,6 +422,17 @@ describe('discoverComponents', () => {
     const ids = [...registry.matchAll(/^\s{4}id: '([a-z0-9]+)',$/gm)].map((m) => m[1]);
     for (const id of ids) expect(discoverComponents(process.cwd())).toContain(id);
   });
+
+  it('a runtime whose tokens use the hyphenated form of a two-word id gets a naming finding', () => {
+    const root = fixtureRoot();
+    writeFileSync(
+      join(root, 'src/system/components/CornerBadge.svelte'),
+      '<style>:global(:root){--corner-badge-surface:var(--surface-neutral);}</style>',
+    );
+    writeFileSync(join(root, 'src/main.ts'), `registerComponent({ id: 'cornerbadge', label: 'CornerBadge' });`);
+    const { findings } = checkComponent('cornerbadge', root);
+    expect(findings.map((f: { rule: string }) => f.rule)).toContain('no-tokens');
+  });
 });
 
 function writeConfig(root: string, id: string, aliases: Record<string, unknown>) {

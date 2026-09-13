@@ -79,6 +79,7 @@ import { componentMigration_2026_09_13_selectedState } from './2026-09-13-select
 import { componentMigration_2026_09_13_hairline } from './2026-09-13-hairline';
 import { componentMigration_2026_09_13_indicator } from './2026-09-13-indicator';
 import { componentMigration_2026_09_13_sectiondividerSurface } from './2026-09-13-sectiondivider-surface';
+import { componentMigration_2026_09_13_cornerbadgePrefix } from './2026-09-13-cornerbadge-prefix';
 
 /**
  * Registered migrations. Order in this array does not matter — the runner
@@ -124,6 +125,7 @@ export const MIGRATIONS: Migration[] = [
   componentMigration_2026_09_13_hairline,
   componentMigration_2026_09_13_indicator,
   componentMigration_2026_09_13_sectiondividerSurface,
+  componentMigration_2026_09_13_cornerbadgePrefix,
 ];
 
 function countFor(kind: 'colors-and-type' | 'component-config'): number {

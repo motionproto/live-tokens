@@ -12,26 +12,26 @@ const variants: Variant[] = [
 function colorPaints(v: Variant): PaintMap {
   return {
     badge: {
-      backgroundColor: `--corner-badge-${v}-surface`,
-      borderTopColor: `--corner-badge-${v}-border`,
-      color: `--corner-badge-${v}-text`,
+      backgroundColor: `--cornerbadge-${v}-surface`,
+      borderTopColor: `--cornerbadge-${v}-border`,
+      color: `--cornerbadge-${v}-text`,
     },
   };
 }
 
 /** Default anchor is bottom-right: TL=inner, TR=v-axis, BR=outer, BL=h-axis. */
 const basePaints: PaintMap = {
-  root: { bottom: '--corner-badge-margin' },
+  root: { bottom: '--cornerbadge-margin' },
   badge: {
-    borderTopLeftRadius: '--corner-badge-inner-radius',
-    borderTopRightRadius: '--corner-badge-v-axis-radius',
-    borderBottomRightRadius: '--corner-badge-outer-radius',
-    borderBottomLeftRadius: '--corner-badge-h-axis-radius',
-    paddingTop: '--corner-badge-padding',
-    fontFamily: '--corner-badge-text-font-family',
-    fontSize: '--corner-badge-text-font-size',
-    fontWeight: '--corner-badge-text-font-weight',
-    lineHeight: '--corner-badge-text-line-height',
+    borderTopLeftRadius: '--cornerbadge-inner-radius',
+    borderTopRightRadius: '--cornerbadge-v-axis-radius',
+    borderBottomRightRadius: '--cornerbadge-outer-radius',
+    borderBottomLeftRadius: '--cornerbadge-h-axis-radius',
+    paddingTop: '--cornerbadge-padding',
+    fontFamily: '--cornerbadge-text-font-family',
+    fontSize: '--cornerbadge-text-font-size',
+    fontWeight: '--cornerbadge-text-font-weight',
+    lineHeight: '--cornerbadge-text-line-height',
   },
 };
 
@@ -41,8 +41,8 @@ export const cornerBadgeContract: ComponentContract = {
   view: { variant: 'Primary' },
   root: 'root',
   parts: {
-    root: '.corner-badge',
-    badge: '.corner-badge .badge',
+    root: '.cornerbadge',
+    badge: '.cornerbadge .badge',
   },
   properties: [
     {
@@ -62,21 +62,21 @@ export const cornerBadgeContract: ComponentContract = {
     cases: [
       {
         shape: 'token',
-        variable: '--corner-badge-outer-radius',
+        variable: '--cornerbadge-outer-radius',
         observe: { part: 'badge', css: 'borderBottomRightRadius' },
       },
     ],
-    resetVariable: '--corner-badge-outer-radius',
+    resetVariable: '--cornerbadge-outer-radius',
   },
   theme: {
     theme: 'ocean',
-    changed: ['--corner-badge-outer-radius', '--corner-badge-inner-radius', '--corner-badge-margin'],
-    unchanged: ['--corner-badge-text-font-size'],
+    changed: ['--cornerbadge-outer-radius', '--cornerbadge-inner-radius', '--cornerbadge-margin'],
+    unchanged: ['--cornerbadge-text-font-size'],
     aliasedTo: {
-      '--corner-badge-outer-radius': '--radius-md',
-      '--corner-badge-inner-radius': '--radius-md',
+      '--cornerbadge-outer-radius': '--radius-md',
+      '--cornerbadge-inner-radius': '--radius-md',
     },
-    observe: { part: 'badge', css: 'borderBottomRightRadius', variable: '--corner-badge-outer-radius' },
+    observe: { part: 'badge', css: 'borderBottomRightRadius', variable: '--cornerbadge-outer-radius' },
   },
   interaction: {
     applicable: false,
@@ -88,6 +88,6 @@ export const cornerBadgeContract: ComponentContract = {
   },
   sketch: {
     style: 'pencil',
-    parts: [{ part: 'badge', fill: '--corner-badge-primary-surface', stroke: '--corner-badge-primary-border' }],
+    parts: [{ part: 'badge', fill: '--cornerbadge-primary-surface', stroke: '--cornerbadge-primary-border' }],
   },
 };

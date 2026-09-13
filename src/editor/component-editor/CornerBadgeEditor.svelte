@@ -8,25 +8,25 @@
   // Shape, spacing, type — uniform across variants, one flat token set.
   // Authored from any variant's panel; edits write the same flat keys.
   const baseTokens: Token[] = [
-    { label: 'offset from corner', canBeLinked: true, groupKey: 'margin', variable: '--corner-badge-margin', element: 'frame' },
-    { label: 'padding', canBeLinked: true, groupKey: 'padding', variable: '--corner-badge-padding', element: 'frame' },
-    { label: 'outer corner radius', canBeLinked: true, groupKey: 'outer-radius', variable: '--corner-badge-outer-radius', element: 'frame' },
-    { label: 'inner corner radius', canBeLinked: true, groupKey: 'inner-radius', variable: '--corner-badge-inner-radius', element: 'frame' },
-    { label: 'horizontal-axis radius', canBeLinked: true, groupKey: 'h-axis-radius', variable: '--corner-badge-h-axis-radius', element: 'frame' },
-    { label: 'vertical-axis radius', canBeLinked: true, groupKey: 'v-axis-radius', variable: '--corner-badge-v-axis-radius', element: 'frame' },
-    { label: 'font family', canBeLinked: true, groupKey: 'text-font-family', variable: '--corner-badge-text-font-family', element: 'text' },
-    { label: 'font size', canBeLinked: true, groupKey: 'text-font-size', variable: '--corner-badge-text-font-size', element: 'text' },
-    { label: 'font weight', canBeLinked: true, groupKey: 'text-font-weight', variable: '--corner-badge-text-font-weight', element: 'text' },
-    { label: 'line height', canBeLinked: true, groupKey: 'text-line-height', variable: '--corner-badge-text-line-height', element: 'text' },
+    { label: 'offset from corner', canBeLinked: true, groupKey: 'margin', variable: '--cornerbadge-margin', element: 'frame' },
+    { label: 'padding', canBeLinked: true, groupKey: 'padding', variable: '--cornerbadge-padding', element: 'frame' },
+    { label: 'outer corner radius', canBeLinked: true, groupKey: 'outer-radius', variable: '--cornerbadge-outer-radius', element: 'frame' },
+    { label: 'inner corner radius', canBeLinked: true, groupKey: 'inner-radius', variable: '--cornerbadge-inner-radius', element: 'frame' },
+    { label: 'horizontal-axis radius', canBeLinked: true, groupKey: 'h-axis-radius', variable: '--cornerbadge-h-axis-radius', element: 'frame' },
+    { label: 'vertical-axis radius', canBeLinked: true, groupKey: 'v-axis-radius', variable: '--cornerbadge-v-axis-radius', element: 'frame' },
+    { label: 'font family', canBeLinked: true, groupKey: 'text-font-family', variable: '--cornerbadge-text-font-family', element: 'text' },
+    { label: 'font size', canBeLinked: true, groupKey: 'text-font-size', variable: '--cornerbadge-text-font-size', element: 'text' },
+    { label: 'font weight', canBeLinked: true, groupKey: 'text-font-weight', variable: '--cornerbadge-text-font-weight', element: 'text' },
+    { label: 'line height', canBeLinked: true, groupKey: 'text-line-height', variable: '--cornerbadge-text-line-height', element: 'text' },
   ];
 
   // Per-variant color slots — surface, border, text — rebind the inner Badge's
-  // colors inside .corner-badge-{v} scope.
+  // colors inside .cornerbadge-{v} scope.
   function variantColorTokens(v: Variant): Token[] {
     return [
-      { label: 'surface color', groupKey: 'surface', variable: `--corner-badge-${v}-surface` },
-      { label: 'border color', groupKey: 'border', variable: `--corner-badge-${v}-border` },
-      { label: 'text color', groupKey: 'text', variable: `--corner-badge-${v}-text` },
+      { label: 'surface color', groupKey: 'surface', variable: `--cornerbadge-${v}-surface` },
+      { label: 'border color', groupKey: 'border', variable: `--cornerbadge-${v}-border` },
+      { label: 'text color', groupKey: 'text', variable: `--cornerbadge-${v}-text` },
     ];
   }
 

@@ -349,11 +349,6 @@ handles them on load; confirm that end to end rather than by reading it.
 
 ### Open decisions, not defects
 
-- **CornerBadge** is registered `cornerbadge` and names its tokens
-  `--corner-badge-*`. The checker accepts the hyphenated form because the config,
-  themes, and editor all follow it. Either normalize the component or document
-  the prefix rule as allowing both — currently one shipped component silently
-  disagrees with the documented scheme.
 - **The tint layer's off switch** clears each hover-surface override, so a
   customized hover surface returns to the shipped default rather than the user's
   value. Undo covers the immediate flip. Is a snapshot worth building?
