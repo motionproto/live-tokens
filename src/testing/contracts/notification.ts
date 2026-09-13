@@ -39,7 +39,10 @@ export const notificationContract: ComponentContract = {
   origin: 'system',
   view: {
     variant: 'Info',
-    setup: [{ kind: 'control', selector: '.toolbar-check:has-text("Header button") input', check: true }],
+    setup: [
+      { kind: 'control', selector: '.toolbar-check:has-text("Header button") input', check: true },
+      { kind: 'control', selector: '.toolbar-check:has-text("Dismissible") input', check: true },
+    ],
   },
   root: 'root',
   parts: {
@@ -49,6 +52,7 @@ export const notificationContract: ComponentContract = {
     title: '.notification-title',
     actionBackdrop: '.action-button-backdrop',
     actionButton: '.action-button-backdrop button',
+    closeButton: '.notification-close',
   },
   properties: variants.map((v) => ({ variant: v.charAt(0).toUpperCase() + v.slice(1), paints: paintsFor(v) })),
   states: [{ state: 'base' }, { state: 'colors' }],
@@ -80,6 +84,21 @@ export const notificationContract: ComponentContract = {
         name: 'clicking the header action focuses it',
         action: { kind: 'click', part: 'actionButton' },
         expect: { kind: 'focused', part: 'actionButton', value: true },
+      },
+    ],
+  },
+  behavior: {
+    cases: [
+      {
+        name: 'clicking dismiss reports it',
+        props: { title: 'Saved', description: 'Your changes are live.', dismissible: true },
+        action: { kind: 'click', part: 'closeButton' },
+        expect: { kind: 'callback', prop: 'ondismiss', args: [] },
+      },
+      {
+        name: 'title drives the heading',
+        props: { title: 'Saved', description: 'Your changes are live.' },
+        expect: { kind: 'text', part: 'title', value: 'Saved' },
       },
     ],
   },

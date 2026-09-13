@@ -9,8 +9,8 @@ export { defineTestingConfig, resolveTestingConfig } from './config';
 export type { LiveTokensTestingConfig, ResolvedTestingConfig } from './config';
 
 export interface VitestConfigOptions {
-  /** Files the run collects. Default: the shipped registry contract, matched
-   *  both in this package and in an installed copy of it. */
+  /** Files the run collects. Default: the shipped registry and behavior
+   *  contracts, matched both in this package and in an installed copy. */
   include?: string[];
   exclude?: string[];
   setupFiles?: string[];
@@ -22,12 +22,12 @@ export interface VitestConfigOptions {
   registrySetup?: string;
 }
 
-// Matching both extensions would double-collect the registry contract when a
-// developer runs build:lib without cleaning: this module's own URL is `.ts`
-// running from source and `.js` once tsup compiles it, so one glob follows it.
-const CONTRACT_INCLUDE = [import.meta.url.endsWith('.ts')
-  ? '**/src/testing/registry.contract.ts'
-  : '**/src/testing-js/registry.contract.js'];
+// Matching both extensions would double-collect each contract when a developer
+// runs build:lib without cleaning: this module's own URL is `.ts` running from
+// source and `.js` once tsup compiles it, so one set of globs follows it.
+const CONTRACT_INCLUDE = import.meta.url.endsWith('.ts')
+  ? ['**/src/testing/registry.contract.ts', '**/src/testing/component-behavior.contract.ts']
+  : ['**/src/testing-js/registry.contract.js', '**/src/testing-js/component-behavior.contract.js'];
 
 /** Vitest's own default drops everything under `node_modules`, which is where
  *  an installed package's contract file lives. */

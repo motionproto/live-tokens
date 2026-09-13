@@ -85,6 +85,10 @@ export const tableContract: ComponentContract = {
     applicable: false,
     reason: 'a styled table wrapper carries no interactive role',
   },
+  behavior: {
+    applicable: false,
+    reason: 'a table wrapper declares no callback prop; its rows arrive as a snippet',
+  },
   sketch: {
     style: 'pencil',
     parts: [{ part: 'wrapper', fill: '--table-default-surface', stroke: '--table-default-border' }],

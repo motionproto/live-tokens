@@ -120,6 +120,21 @@ export const buttonContract: ComponentContract = {
       },
     ],
   },
+  behavior: {
+    cases: [
+      {
+        name: 'clicking a button hands the click on',
+        action: { kind: 'click', part: 'root' },
+        expect: { kind: 'callback', prop: 'onclick', args: [{ type: 'click' }] },
+      },
+      {
+        name: 'a disabled button stays silent',
+        props: { disabled: true },
+        action: { kind: 'click', part: 'root' },
+        expect: { kind: 'no-callback', prop: 'onclick' },
+      },
+    ],
+  },
   sketch: {
     style: 'pencil',
     parts: [{ part: 'root', fill: '--button-primary-surface', stroke: '--button-primary-border' }],

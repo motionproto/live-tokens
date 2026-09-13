@@ -106,6 +106,10 @@ export async function createPlaywrightConfig(
         // `.ts` in this repo, `.js` once tsup compiles the shipped build into
         // `src/testing-js`; matching both here needs no build-time swap.
         testMatch: '**/component-*.contract.{ts,js}',
+        // The behavior suite shares the prefix and runs under Vitest. Left in,
+        // Playwright collects it, meets its Svelte imports and reports the
+        // whole project as collecting nothing.
+        testIgnore: '**/component-behavior.contract.{ts,js}',
         // `.tabs-preview` now caps its sticky band at 50vh, which is enough for
         // image, panel, card and sidenavigation to pass alone at 1280x720. A
         // full parallel run still fails panel's gradient radio there, so the

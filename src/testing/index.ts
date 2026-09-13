@@ -19,6 +19,8 @@ export type { IsolatedData } from './isolation';
 export { PORT_ENV, resolvePort } from './port';
 export { ContractViolation, isInapplicable, partLocator, requiresInteraction } from './componentContract';
 export type {
+  BehaviorCase,
+  BehaviorExpectation,
   ComponentContract,
   ContractRule,
   ControlStep,

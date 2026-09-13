@@ -78,6 +78,26 @@ export const inlineEditActionsContract: ComponentContract = {
       },
     ],
   },
+  behavior: {
+    cases: [
+      {
+        name: 'clicking save reports it',
+        action: { kind: 'click', part: 'saveBtn' },
+        expect: { kind: 'callback', prop: 'onSave', args: [{ type: 'click' }] },
+      },
+      {
+        name: 'clicking cancel reports it',
+        action: { kind: 'click', part: 'cancelBtn' },
+        expect: { kind: 'callback', prop: 'onCancel', args: [{ type: 'click' }] },
+      },
+      {
+        name: 'disabled actions stay silent',
+        props: { disabled: true },
+        action: { kind: 'click', part: 'saveBtn' },
+        expect: { kind: 'no-callback', prop: 'onSave' },
+      },
+    ],
+  },
   sketch: {
     style: 'pencil',
     parts: [

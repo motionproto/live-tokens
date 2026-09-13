@@ -59,6 +59,15 @@ export const tooltipContract: ComponentContract = {
     applicable: false,
     reason: 'a hint carries no interactive role; visibility follows the trigger element\'s hover or focus, which this component does not own',
   },
+  behavior: {
+    cases: [
+      {
+        name: 'text drives the hint',
+        props: { text: 'Copy to clipboard' },
+        expect: { kind: 'text', part: 'root', value: 'Copy to clipboard' },
+      },
+    ],
+  },
   sketch: {
     style: 'pencil',
     parts: [{ part: 'root', fill: '--tooltip-surface' }],

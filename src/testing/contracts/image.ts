@@ -57,6 +57,10 @@ export const imageContract: ComponentContract = {
     applicable: false,
     reason: 'a framed picture carries no interactive role; the zoom effect is a hover transform, not an action',
   },
+  behavior: {
+    applicable: false,
+    reason: 'an image declares no callback prop; zoom is a hover transform the browser paints',
+  },
   sketch: {
     style: 'pencil',
     parts: [{ part: 'root', stroke: '--image-default-border' }],

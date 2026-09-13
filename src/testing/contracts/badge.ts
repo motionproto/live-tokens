@@ -91,6 +91,10 @@ export const badgeContract: ComponentContract = {
     applicable: false,
     reason: 'a badge is a static label with no interactive role',
   },
+  behavior: {
+    applicable: false,
+    reason: 'a badge declares no callback prop and answers no event: its props select paint, which the render obligation reads',
+  },
   sketch: {
     style: 'pencil',
     parts: [{ part: 'root', fill: '--badge-primary-surface', stroke: '--badge-primary-border' }],

@@ -55,6 +55,10 @@ export const panelContract: ComponentContract = {
     applicable: false,
     reason: 'a framed container carries no interactive role',
   },
+  behavior: {
+    applicable: false,
+    reason: 'a panel declares no callback prop; its content arrives as a snippet',
+  },
   sketch: {
     style: 'pencil',
     parts: [{ part: 'root', fill: '--panel-stage-surface', stroke: '--panel-frame-border' }],

@@ -29,6 +29,11 @@ function tabPaints(part: string, iconPart: string, s: string, full: boolean): Pa
   };
 }
 
+const behaviorTabs = [
+  { id: 'one', label: 'One' },
+  { id: 'two', label: 'Two' },
+];
+
 export const tabBarContract: ComponentContract = {
   id: 'tabbar',
   origin: 'system',
@@ -124,6 +129,28 @@ export const tabBarContract: ComponentContract = {
         state: 'disabled tab',
         action: { kind: 'click', part: 'disabledTab' },
         expect: { kind: 'focused', part: 'disabledTab', value: false },
+      },
+    ],
+  },
+  behavior: {
+    cases: [
+      {
+        name: 'clicking a tab asks for it',
+        props: { tabs: behaviorTabs, selectedTab: 'one' },
+        action: { kind: 'click', part: 'secondTab' },
+        expect: { kind: 'callback', prop: 'ontabChange', args: ['two'] },
+      },
+      {
+        name: 'clicking leaves the selection where the prop put it',
+        props: { tabs: behaviorTabs, selectedTab: 'one' },
+        action: { kind: 'click', part: 'secondTab' },
+        expect: { kind: 'text', part: 'activeTab', value: 'One' },
+      },
+      {
+        name: 'a disabled tab stays silent',
+        props: { tabs: [behaviorTabs[0], { ...behaviorTabs[1], disabled: true }], selectedTab: 'one' },
+        action: { kind: 'click', part: 'secondTab' },
+        expect: { kind: 'no-callback', prop: 'ontabChange' },
       },
     ],
   },

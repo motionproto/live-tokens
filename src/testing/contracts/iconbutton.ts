@@ -101,6 +101,22 @@ export const iconButtonContract: ComponentContract = {
       },
     ],
   },
+  behavior: {
+    cases: [
+      {
+        name: 'clicking an icon button hands the click on',
+        props: { icon: 'fas fa-check', ariaLabel: 'Confirm' },
+        action: { kind: 'click', part: 'root' },
+        expect: { kind: 'callback', prop: 'onclick', args: [{ type: 'click' }] },
+      },
+      {
+        name: 'a disabled icon button stays silent',
+        props: { icon: 'fas fa-check', ariaLabel: 'Confirm', disabled: true },
+        action: { kind: 'click', part: 'root' },
+        expect: { kind: 'no-callback', prop: 'onclick' },
+      },
+    ],
+  },
   sketch: {
     style: 'pencil',
     parts: [{ part: 'root', fill: '--iconbutton-primary-surface', stroke: '--iconbutton-primary-border' }],
