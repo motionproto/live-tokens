@@ -9,7 +9,7 @@ function paintsFor(v: Variant): PaintMap {
       backgroundColor: `--callout-${v}-surface`,
       borderTopColor: `--callout-${v}-border`,
       borderTopWidth: `--callout-${v}-border-width`,
-      borderLeftWidth: `--callout-${v}-accent-width`,
+      borderLeftWidth: `--callout-${v}-indicator-width`,
       borderRadius: `--callout-${v}-radius`,
       paddingTop: `--callout-${v}-padding`,
     },

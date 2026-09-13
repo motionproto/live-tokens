@@ -81,6 +81,16 @@
   property carrying one is a naming finding. The `set-geometry` op kind
   `divider-width` is `hairline-width`, and an ops file naming the old kind is
   rejected.
+- **One indicator.** The bar beside SideNavigation's current item and the
+  stripe on Callout's leading edge are indicators, the word MenuSelect and
+  TabBar already use. SideNavigation's twelve `-accent` and twelve
+  `-accent-width` properties and Callout's four `-accent-width` are
+  `-indicator` and `-indicator-width`, renamed on load. `check-component` no
+  longer accepts the suffixes `-accent` or `-accent-width`; a property
+  carrying one is a naming finding. The `set-geometry` op kind `accent-width`
+  is `indicator-width`, and an ops file naming the old kind is rejected.
+  `accent` now names the color family only, so Badge's and CornerBadge's
+  `--*-accent-*` are untouched.
 
 ### Changed
 

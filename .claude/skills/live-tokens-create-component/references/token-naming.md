@@ -23,8 +23,7 @@ to that list, so the two cannot drift apart.
 | `-blur`     | Backdrop or filter blur radius                                |
 | `-tint`     | A wash over the surface, aliasing a `--tint-*` stop            |
 | `-background` | Fill, where the component's own vocabulary says background   |
-| `-accent`   | An accent bar or indicator's colour                            |
-| `-indicator` | A selection indicator's colour                                |
+| `-indicator` | The colour of the bar or stripe that marks an item             |
 | `-thumb`    | A scrollbar or slider thumb's colour                           |
 | `-title`    | Title text colour                                              |
 | `-body`     | Body text colour                                               |
@@ -41,8 +40,7 @@ to that list, so the two cannot drift apart.
 |-----------------|---------------------------------------------------------------|
 | `-radius`       | Corner radius                                                 |
 | `-border-width` | Stroke thickness (used even when CSS uses `outline:`)         |
-| `-accent-width` | An accent bar's thickness                                     |
-| `-indicator-width` | An indicator's thickness, moved with `-accent-width`      |
+| `-indicator-width` | An indicator's thickness                                  |
 | `-hairline-width` | A hairline rule's thickness                               |
 | `-dot-size`     | A dot indicator's diameter                                    |
 | `-hairline-inset` | Inset trimmed from a stretched hairline                     |

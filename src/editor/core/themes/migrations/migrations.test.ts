@@ -454,7 +454,7 @@ describe('migration runner — schemaVersion gating', () => {
     expect(out).toEqual(v26);
   });
 
-  it('component-config v27 → v28: the selection states of radiobutton, tabbar and sidenavigation read selected (named by v29)', () => {
+  it('component-config v27 → v28: the selection states of radiobutton, tabbar and sidenavigation read selected (named by v30)', () => {
     const cases: Array<[string, Record<string, string>, Record<string, string>]> = [
       ['radiobutton',
         { '--radiobutton-active-dot-fill': '--text-secondary', '--radiobutton-hover-dot-fill': '--text-secondary' },
@@ -465,7 +465,7 @@ describe('migration runner — schemaVersion gating', () => {
       ['sidenavigation',
         { '--sidenavigation-item-active-accent': '--border-brand-medium', '--sidenavigation-footer-active-text-font-size': '--font-size-sm',
           '--sidenavigation-panel-surface': '--surface-canvas' },
-        { '--sidenavigation-item-selected-accent': '--border-brand-medium', '--sidenavigation-footer-selected-text-font-size': '--font-size-sm',
+        { '--sidenavigation-item-selected-indicator': '--border-brand-medium', '--sidenavigation-footer-selected-text-font-size': '--font-size-sm',
           '--sidenavigation-panel-surface': '--surface-canvas' }],
     ];
     for (const [component, input, expected] of cases) {
@@ -523,6 +523,34 @@ describe('migration runner — schemaVersion gating', () => {
     const v28 = { '--card-default-border-width': '--border-width-1', '--card-default-surface': '--surface-canvas' };
     const out = runMigrations('component-config', 28, v28, { component: 'card' });
     expect(out).toEqual(v28);
+  });
+
+  it('component-config v29 → v30: the bar and the stripe read indicator', () => {
+    const cases: Array<[string, Record<string, string>, Record<string, string>]> = [
+      ['sidenavigation',
+        { '--sidenavigation-item-selected-accent': '--border-brand-medium',
+          '--sidenavigation-item-selected-accent-width': '--border-width-3',
+          '--sidenavigation-title-hover-accent': '--color-transparent',
+          '--sidenavigation-panel-surface': '--surface-canvas' },
+        { '--sidenavigation-item-selected-indicator': '--border-brand-medium',
+          '--sidenavigation-item-selected-indicator-width': '--border-width-3',
+          '--sidenavigation-title-hover-indicator': '--color-transparent',
+          '--sidenavigation-panel-surface': '--surface-canvas' }],
+      ['callout',
+        { '--callout-info-accent-width': '--border-width-1', '--callout-info-border-width': '--border-width-0' },
+        { '--callout-info-indicator-width': '--border-width-1', '--callout-info-border-width': '--border-width-0' }],
+    ];
+    for (const [component, input, expected] of cases) {
+      const out = runMigrations('component-config', 29, input, { component });
+      expect(out, component).toEqual(expected);
+      expect(runMigrations('component-config', 29, out, { component }), `${component} idempotent`).toEqual(expected);
+    }
+  });
+
+  it('component-config v29 → v30 leaves the accent color family of badge alone', () => {
+    const v29 = { '--badge-accent-surface': '--surface-accent', '--badge-accent-text': '--text-accent' };
+    const out = runMigrations('component-config', 29, v29, { component: 'badge' });
+    expect(out).toEqual(v29);
   });
 
   it('component-config at current version → no migrations run', () => {

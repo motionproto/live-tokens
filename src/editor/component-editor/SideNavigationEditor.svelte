@@ -48,8 +48,8 @@
       { label: 'surface color', groupKey: 'title-surface', variable: `--sidenavigation-title-${s}-surface` },
       { label: 'border color', groupKey: 'title-border', variable: `--sidenavigation-title-${s}-border` },
       { label: 'border width', canBeLinked: true, groupKey: 'title-border-width', variable: `--sidenavigation-title-${s}-border-width` },
-      { label: 'indicator color', groupKey: 'title-accent', variable: `--sidenavigation-title-${s}-accent` },
-      { label: 'indicator width', canBeLinked: true, groupKey: 'title-accent-width', variable: `--sidenavigation-title-${s}-accent-width` },
+      { label: 'indicator color', groupKey: 'title-indicator', variable: `--sidenavigation-title-${s}-indicator` },
+      { label: 'indicator width', canBeLinked: true, groupKey: 'title-indicator-width', variable: `--sidenavigation-title-${s}-indicator-width` },
       { label: 'padding', canBeLinked: true, groupKey: 'title-padding', variable: `--sidenavigation-title-${s}-padding` },
     ];
   }
@@ -105,8 +105,8 @@
   function sectionStateTokens(s: StatefulState): Token[] {
     return [
       { label: 'surface color', groupKey: 'section-surface', variable: `--sidenavigation-section-${s}-surface` },
-      { label: 'indicator color', groupKey: 'section-accent', variable: `--sidenavigation-section-${s}-accent` },
-      { label: 'indicator width', canBeLinked: true, groupKey: 'section-accent-width', variable: `--sidenavigation-section-${s}-accent-width` },
+      { label: 'indicator color', groupKey: 'section-indicator', variable: `--sidenavigation-section-${s}-indicator` },
+      { label: 'indicator width', canBeLinked: true, groupKey: 'section-indicator-width', variable: `--sidenavigation-section-${s}-indicator-width` },
     ];
   }
   function sectionStateTypeGroups(s: StatefulState): TypeGroupConfig[] {
@@ -131,8 +131,8 @@
     return [
       { label: 'surface color', groupKey: 'item-surface', variable: `--sidenavigation-item-${s}-surface` },
       { label: 'padding', canBeLinked: true, groupKey: 'item-padding', variable: `--sidenavigation-item-${s}-padding` },
-      { label: 'indicator color', groupKey: 'item-accent', variable: `--sidenavigation-item-${s}-accent` },
-      { label: 'indicator width', canBeLinked: true, groupKey: 'item-accent-width', variable: `--sidenavigation-item-${s}-accent-width` },
+      { label: 'indicator color', groupKey: 'item-indicator', variable: `--sidenavigation-item-${s}-indicator` },
+      { label: 'indicator width', canBeLinked: true, groupKey: 'item-indicator-width', variable: `--sidenavigation-item-${s}-indicator-width` },
     ];
   }
   function itemStateTypeGroups(s: StatefulState): TypeGroupConfig[] {
@@ -158,8 +158,8 @@
       { label: 'surface color', groupKey: 'footer-surface', variable: `--sidenavigation-footer-${s}-surface` },
       { label: 'padding', canBeLinked: true, groupKey: 'footer-padding', variable: `--sidenavigation-footer-${s}-padding` },
       { label: 'icon gap', groupKey: 'footer-gap', variable: `--sidenavigation-footer-${s}-gap` },
-      { label: 'indicator color', groupKey: 'footer-accent', variable: `--sidenavigation-footer-${s}-accent` },
-      { label: 'indicator width', canBeLinked: true, groupKey: 'footer-accent-width', variable: `--sidenavigation-footer-${s}-accent-width` },
+      { label: 'indicator color', groupKey: 'footer-indicator', variable: `--sidenavigation-footer-${s}-indicator` },
+      { label: 'indicator width', canBeLinked: true, groupKey: 'footer-indicator-width', variable: `--sidenavigation-footer-${s}-indicator-width` },
       { label: 'icon color', groupKey: 'footer-icon', variable: `--sidenavigation-footer-${s}-icon` },
       { label: 'icon size', canBeLinked: true, groupKey: 'footer-icon-size', variable: `--sidenavigation-footer-${s}-icon-size` },
     ];
@@ -218,7 +218,7 @@
   const linkableContexts = new Map<string, string>([
     ...STATEFUL_STATES.flatMap((s): Array<[string, string]> => [
       [`--sidenavigation-title-${s}-border-width`, `title ${s}`],
-      [`--sidenavigation-title-${s}-accent-width`, `title ${s}`],
+      [`--sidenavigation-title-${s}-indicator-width`, `title ${s}`],
       [`--sidenavigation-title-${s}-padding`, `title ${s}`],
       [`--sidenavigation-title-${s}-label-font-family`, `title ${s}`],
       [`--sidenavigation-title-${s}-label-font-size`, `title ${s}`],
@@ -232,7 +232,7 @@
       [`--sidenavigation-toggle-${s}-icon-size`, `toggle ${s}`],
     ]),
     ...STATEFUL_STATES.flatMap((s): Array<[string, string]> => [
-      [`--sidenavigation-section-${s}-accent-width`, `section ${s}`],
+      [`--sidenavigation-section-${s}-indicator-width`, `section ${s}`],
       [`--sidenavigation-section-${s}-text-font-family`, `section ${s}`],
       [`--sidenavigation-section-${s}-text-font-size`, `section ${s}`],
       [`--sidenavigation-section-${s}-text-font-weight`, `section ${s}`],
@@ -240,7 +240,7 @@
     ]),
     ...STATEFUL_STATES.flatMap((s): Array<[string, string]> => [
       [`--sidenavigation-item-${s}-padding`, `item ${s}`],
-      [`--sidenavigation-item-${s}-accent-width`, `item ${s}`],
+      [`--sidenavigation-item-${s}-indicator-width`, `item ${s}`],
       [`--sidenavigation-item-${s}-text-font-family`, `item ${s}`],
       [`--sidenavigation-item-${s}-text-font-size`, `item ${s}`],
       [`--sidenavigation-item-${s}-text-font-weight`, `item ${s}`],
@@ -248,7 +248,7 @@
     ]),
     ...STATEFUL_STATES.flatMap((s): Array<[string, string]> => [
       [`--sidenavigation-footer-${s}-padding`, `footer ${s}`],
-      [`--sidenavigation-footer-${s}-accent-width`, `footer ${s}`],
+      [`--sidenavigation-footer-${s}-indicator-width`, `footer ${s}`],
       [`--sidenavigation-footer-${s}-icon-size`, `footer ${s}`],
       [`--sidenavigation-footer-${s}-text-font-family`, `footer ${s}`],
       [`--sidenavigation-footer-${s}-text-font-size`, `footer ${s}`],

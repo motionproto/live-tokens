@@ -37,7 +37,7 @@ function fixture(): Record<string, ComponentConfig> {
       '--table-default-header-hairline-width': '--border-width-1',
       '--table-default-row-hairline-width': '--border-width-1',
       '--table-default-hairline-width': '--border-width-1',
-      '--table-default-accent-width': '--border-width-3',
+      '--table-default-indicator-width': '--border-width-3',
       '--table-default-tab-border-width': '--border-width-0',
     }),
   };
@@ -203,18 +203,18 @@ describe('adjustAliases', () => {
     const { configs } = adjustAliases(fixture(), [{ kind: 'border-width', shift: 1 }], NOW);
     expect(configs.table.aliases['--table-default-border-width']).toBe('--border-width-2');
     expect(configs.table.aliases['--table-default-header-hairline-width']).toBe('--border-width-1');
-    expect(configs.table.aliases['--table-default-accent-width']).toBe('--border-width-3');
+    expect(configs.table.aliases['--table-default-indicator-width']).toBe('--border-width-3');
 
     const hairlines = adjustAliases(fixture(), [{ kind: 'hairline-width', shift: 1 }], NOW).configs;
     expect(hairlines.table.aliases['--table-default-border-width']).toBe('--border-width-1');
     expect(hairlines.table.aliases['--table-default-header-hairline-width']).toBe('--border-width-2');
     expect(hairlines.table.aliases['--table-default-row-hairline-width']).toBe('--border-width-2');
     expect(hairlines.table.aliases['--table-default-hairline-width']).toBe('--border-width-2');
-    expect(hairlines.table.aliases['--table-default-accent-width']).toBe('--border-width-3');
+    expect(hairlines.table.aliases['--table-default-indicator-width']).toBe('--border-width-3');
 
-    const accents = adjustAliases(fixture(), [{ kind: 'accent-width', shift: -1 }], NOW).configs;
-    expect(accents.table.aliases['--table-default-accent-width']).toBe('--border-width-2');
-    expect(accents.table.aliases['--table-default-border-width']).toBe('--border-width-1');
+    const indicators = adjustAliases(fixture(), [{ kind: 'indicator-width', shift: -1 }], NOW).configs;
+    expect(indicators.table.aliases['--table-default-indicator-width']).toBe('--border-width-2');
+    expect(indicators.table.aliases['--table-default-border-width']).toBe('--border-width-1');
   });
 
   it('never draws a line a shift did not ask for', () => {

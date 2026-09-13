@@ -40,7 +40,7 @@
     --callout-info-surface: var(--surface-info-lowest);
     --callout-info-border: var(--border-info-medium);
     --callout-info-border-width: var(--border-width-1);
-    --callout-info-accent-width: var(--border-width-1);
+    --callout-info-indicator-width: var(--border-width-1);
     --callout-info-radius: var(--radius-lg);
     --callout-info-padding: var(--space-12);
     --callout-info-label: var(--text-primary);
@@ -58,7 +58,7 @@
     --callout-success-surface: var(--surface-success-lowest);
     --callout-success-border: var(--border-success-subtle);
     --callout-success-border-width: var(--border-width-1);
-    --callout-success-accent-width: var(--border-width-1);
+    --callout-success-indicator-width: var(--border-width-1);
     --callout-success-radius: var(--radius-lg);
     --callout-success-padding: var(--space-12);
     --callout-success-label: var(--text-primary);
@@ -76,7 +76,7 @@
     --callout-warning-surface: var(--surface-warning-lowest);
     --callout-warning-border: var(--border-warning-subtle);
     --callout-warning-border-width: var(--border-width-1);
-    --callout-warning-accent-width: var(--border-width-1);
+    --callout-warning-indicator-width: var(--border-width-1);
     --callout-warning-radius: var(--radius-lg);
     --callout-warning-padding: var(--space-12);
     --callout-warning-label: var(--text-primary);
@@ -94,7 +94,7 @@
     --callout-danger-surface: var(--surface-danger-lowest);
     --callout-danger-border: var(--border-danger-subtle);
     --callout-danger-border-width: var(--border-width-1);
-    --callout-danger-accent-width: var(--border-width-1);
+    --callout-danger-indicator-width: var(--border-width-1);
     --callout-danger-radius: var(--radius-lg);
     --callout-danger-padding: var(--space-12);
     --callout-danger-label: var(--text-primary);
@@ -135,7 +135,7 @@
     .callout-#{$variant} {
       background: var(--callout-#{$variant}-surface);
       border: var(--callout-#{$variant}-border-width) solid var(--callout-#{$variant}-border);
-      border-left-width: var(--callout-#{$variant}-accent-width);
+      border-left-width: var(--callout-#{$variant}-indicator-width);
       border-radius: var(--callout-#{$variant}-radius);
       @include themed-padding(--callout-#{$variant}-padding, $h: 1.33);
 

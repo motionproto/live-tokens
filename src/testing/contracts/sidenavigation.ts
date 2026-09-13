@@ -13,8 +13,8 @@ function titlePaints(s: 'default' | 'hover' | 'selected'): PaintMap {
       backgroundColor: `--sidenavigation-title-${s}-surface`,
       borderTopColor: `--sidenavigation-title-${s}-border`,
       borderTopWidth: `--sidenavigation-title-${s}-border-width`,
-      borderLeftColor: `--sidenavigation-title-${s}-accent`,
-      borderLeftWidth: `--sidenavigation-title-${s}-accent-width`,
+      borderLeftColor: `--sidenavigation-title-${s}-indicator`,
+      borderLeftWidth: `--sidenavigation-title-${s}-indicator-width`,
       paddingTop: `--sidenavigation-title-${s}-padding`,
     },
     titleLabel: {
@@ -45,8 +45,8 @@ function sectionPaints(part: string, labelPart: string, s: 'default' | 'hover' |
   return {
     [part]: {
       backgroundColor: `--sidenavigation-section-${s}-surface`,
-      borderLeftColor: `--sidenavigation-section-${s}-accent`,
-      borderLeftWidth: `--sidenavigation-section-${s}-accent-width`,
+      borderLeftColor: `--sidenavigation-section-${s}-indicator`,
+      borderLeftWidth: `--sidenavigation-section-${s}-indicator-width`,
     },
     [labelPart]: {
       color: `--sidenavigation-section-${s}-text`,
@@ -62,8 +62,8 @@ function itemPaints(part: string, s: 'default' | 'hover' | 'selected'): PaintMap
   return {
     [part]: {
       backgroundColor: `--sidenavigation-item-${s}-surface`,
-      borderLeftColor: `--sidenavigation-item-${s}-accent`,
-      borderLeftWidth: `--sidenavigation-item-${s}-accent-width`,
+      borderLeftColor: `--sidenavigation-item-${s}-indicator`,
+      borderLeftWidth: `--sidenavigation-item-${s}-indicator-width`,
       paddingTop: `--sidenavigation-item-${s}-padding`,
       color: `--sidenavigation-item-${s}-text`,
       fontFamily: `--sidenavigation-item-${s}-text-font-family`,
@@ -78,8 +78,8 @@ function footerPaints(s: 'default' | 'hover' | 'selected'): PaintMap {
   return {
     footer: {
       backgroundColor: `--sidenavigation-footer-${s}-surface`,
-      borderLeftColor: `--sidenavigation-footer-${s}-accent`,
-      borderLeftWidth: `--sidenavigation-footer-${s}-accent-width`,
+      borderLeftColor: `--sidenavigation-footer-${s}-indicator`,
+      borderLeftWidth: `--sidenavigation-footer-${s}-indicator-width`,
       paddingTop: `--sidenavigation-footer-${s}-padding`,
       columnGap: `--sidenavigation-footer-${s}-gap`,
       color: `--sidenavigation-footer-${s}-text`,

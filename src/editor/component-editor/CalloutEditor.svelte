@@ -12,7 +12,7 @@
       { label: 'surface color', element: 'frame', groupKey: 'surface', variable: `--callout-${v}-surface` },
       { label: 'border color', element: 'frame', groupKey: 'border', variable: `--callout-${v}-border` },
       { label: 'border width', element: 'frame', canBeLinked: true, groupKey: 'border-width', variable: `--callout-${v}-border-width` },
-      { label: 'accent edge width', element: 'frame', canBeLinked: true, groupKey: 'accent-width', variable: `--callout-${v}-accent-width` },
+      { label: 'indicator width', element: 'frame', canBeLinked: true, groupKey: 'indicator-width', variable: `--callout-${v}-indicator-width` },
       { label: 'corner radius', element: 'frame', canBeLinked: true, groupKey: 'radius', variable: `--callout-${v}-radius` },
       { label: 'padding', element: 'frame', canBeLinked: true, groupKey: 'padding', variable: `--callout-${v}-padding` },
     ];
@@ -59,7 +59,7 @@
   ]);
 
   const linkableProps = [
-    'border-width', 'accent-width', 'radius', 'padding',
+    'border-width', 'indicator-width', 'radius', 'padding',
     'label-font-family', 'label-font-size', 'label-font-weight', 'label-line-height',
     'text-font-family', 'text-font-size', 'text-font-weight', 'text-line-height',
   ] as const;

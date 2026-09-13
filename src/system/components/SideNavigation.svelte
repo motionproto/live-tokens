@@ -302,8 +302,8 @@
     --sidenavigation-title-default-border: var(--border-canvas-faint);
     --sidenavigation-title-default-border-width: var(--border-width-1);
     --sidenavigation-title-default-padding: var(--space-12);
-    --sidenavigation-title-default-accent: var(--color-transparent);
-    --sidenavigation-title-default-accent-width: var(--border-width-3);
+    --sidenavigation-title-default-indicator: var(--color-transparent);
+    --sidenavigation-title-default-indicator-width: var(--border-width-3);
     --sidenavigation-title-default-label: var(--text-primary);
     --sidenavigation-title-default-label-font-family: var(--font-display);
     --sidenavigation-title-default-label-font-size: var(--font-size-2xl);
@@ -315,8 +315,8 @@
     --sidenavigation-title-hover-border: var(--border-canvas-faint);
     --sidenavigation-title-hover-border-width: var(--border-width-1);
     --sidenavigation-title-hover-padding: var(--space-12);
-    --sidenavigation-title-hover-accent: var(--color-transparent);
-    --sidenavigation-title-hover-accent-width: var(--border-width-3);
+    --sidenavigation-title-hover-indicator: var(--color-transparent);
+    --sidenavigation-title-hover-indicator-width: var(--border-width-3);
     --sidenavigation-title-hover-label: var(--text-primary);
     --sidenavigation-title-hover-label-font-family: var(--font-display);
     --sidenavigation-title-hover-label-font-size: var(--font-size-2xl);
@@ -328,8 +328,8 @@
     --sidenavigation-title-selected-border: var(--border-canvas-faint);
     --sidenavigation-title-selected-border-width: var(--border-width-1);
     --sidenavigation-title-selected-padding: var(--space-12);
-    --sidenavigation-title-selected-accent: var(--border-brand-medium);
-    --sidenavigation-title-selected-accent-width: var(--border-width-3);
+    --sidenavigation-title-selected-indicator: var(--border-brand-medium);
+    --sidenavigation-title-selected-indicator-width: var(--border-width-3);
     --sidenavigation-title-selected-label: var(--text-primary);
     --sidenavigation-title-selected-label-font-family: var(--font-display);
     --sidenavigation-title-selected-label-font-size: var(--font-size-2xl);
@@ -360,8 +360,8 @@
        so section typography can be edited per-state without touching the
        generic chromeless variant used elsewhere. */
     --sidenavigation-section-default-surface: var(--color-transparent);
-    --sidenavigation-section-default-accent: var(--color-transparent);
-    --sidenavigation-section-default-accent-width: var(--border-width-3);
+    --sidenavigation-section-default-indicator: var(--color-transparent);
+    --sidenavigation-section-default-indicator-width: var(--border-width-3);
     --sidenavigation-section-default-text: var(--text-primary);
     --sidenavigation-section-default-text-font-family: var(--font-sans);
     --sidenavigation-section-default-text-font-size: var(--font-size-lg);
@@ -370,8 +370,8 @@
 
     /* Section header — hover */
     --sidenavigation-section-hover-surface: var(--surface-canvas);
-    --sidenavigation-section-hover-accent: var(--color-transparent);
-    --sidenavigation-section-hover-accent-width: var(--border-width-3);
+    --sidenavigation-section-hover-indicator: var(--color-transparent);
+    --sidenavigation-section-hover-indicator-width: var(--border-width-3);
     --sidenavigation-section-hover-text: var(--text-primary);
     --sidenavigation-section-hover-text-font-family: var(--font-sans);
     --sidenavigation-section-hover-text-font-size: var(--font-size-lg);
@@ -380,8 +380,8 @@
 
     /* Section header — selected (this section's page is the current route) */
     --sidenavigation-section-selected-surface: var(--surface-canvas-low);
-    --sidenavigation-section-selected-accent: var(--border-brand-medium);
-    --sidenavigation-section-selected-accent-width: var(--border-width-3);
+    --sidenavigation-section-selected-indicator: var(--border-brand-medium);
+    --sidenavigation-section-selected-indicator-width: var(--border-width-3);
     --sidenavigation-section-selected-text: var(--text-primary);
     --sidenavigation-section-selected-text-font-family: var(--font-sans);
     --sidenavigation-section-selected-text-font-size: var(--font-size-lg);
@@ -391,8 +391,8 @@
     /* Item — default */
     --sidenavigation-item-default-surface: var(--color-transparent);
     --sidenavigation-item-default-padding: var(--space-6);
-    --sidenavigation-item-default-accent: var(--color-transparent);
-    --sidenavigation-item-default-accent-width: var(--border-width-3);
+    --sidenavigation-item-default-indicator: var(--color-transparent);
+    --sidenavigation-item-default-indicator-width: var(--border-width-3);
     --sidenavigation-item-default-text: var(--text-tertiary);
     --sidenavigation-item-default-text-font-family: var(--font-sans);
     --sidenavigation-item-default-text-font-size: var(--font-size-md);
@@ -402,8 +402,8 @@
     /* Item — hover */
     --sidenavigation-item-hover-surface: var(--surface-canvas);
     --sidenavigation-item-hover-padding: var(--space-6);
-    --sidenavigation-item-hover-accent: var(--color-transparent);
-    --sidenavigation-item-hover-accent-width: var(--border-width-3);
+    --sidenavigation-item-hover-indicator: var(--color-transparent);
+    --sidenavigation-item-hover-indicator-width: var(--border-width-3);
     --sidenavigation-item-hover-text: var(--text-secondary);
     --sidenavigation-item-hover-text-font-family: var(--font-sans);
     --sidenavigation-item-hover-text-font-size: var(--font-size-md);
@@ -413,8 +413,8 @@
     /* Item — selected */
     --sidenavigation-item-selected-surface: var(--surface-canvas-low);
     --sidenavigation-item-selected-padding: var(--space-6);
-    --sidenavigation-item-selected-accent: var(--border-brand-medium);
-    --sidenavigation-item-selected-accent-width: var(--border-width-3);
+    --sidenavigation-item-selected-indicator: var(--border-brand-medium);
+    --sidenavigation-item-selected-indicator-width: var(--border-width-3);
     --sidenavigation-item-selected-text: var(--text-primary);
     --sidenavigation-item-selected-text-font-family: var(--font-sans);
     --sidenavigation-item-selected-text-font-size: var(--font-size-md);
@@ -425,8 +425,8 @@
     --sidenavigation-footer-default-surface: var(--color-transparent);
     --sidenavigation-footer-default-padding: var(--space-8);
     --sidenavigation-footer-default-gap: var(--space-8);
-    --sidenavigation-footer-default-accent: var(--color-transparent);
-    --sidenavigation-footer-default-accent-width: var(--border-width-3);
+    --sidenavigation-footer-default-indicator: var(--color-transparent);
+    --sidenavigation-footer-default-indicator-width: var(--border-width-3);
     --sidenavigation-footer-default-icon: var(--text-muted);
     --sidenavigation-footer-default-icon-size: var(--icon-size-xs);
     --sidenavigation-footer-default-text: var(--text-tertiary);
@@ -439,8 +439,8 @@
     --sidenavigation-footer-hover-surface: var(--surface-canvas);
     --sidenavigation-footer-hover-padding: var(--space-8);
     --sidenavigation-footer-hover-gap: var(--space-8);
-    --sidenavigation-footer-hover-accent: var(--color-transparent);
-    --sidenavigation-footer-hover-accent-width: var(--border-width-3);
+    --sidenavigation-footer-hover-indicator: var(--color-transparent);
+    --sidenavigation-footer-hover-indicator-width: var(--border-width-3);
     --sidenavigation-footer-hover-icon: var(--text-secondary);
     --sidenavigation-footer-hover-icon-size: var(--icon-size-xs);
     --sidenavigation-footer-hover-text: var(--text-secondary);
@@ -453,8 +453,8 @@
     --sidenavigation-footer-selected-surface: var(--surface-canvas-low);
     --sidenavigation-footer-selected-padding: var(--space-8);
     --sidenavigation-footer-selected-gap: var(--space-8);
-    --sidenavigation-footer-selected-accent: var(--border-brand-medium);
-    --sidenavigation-footer-selected-accent-width: var(--border-width-3);
+    --sidenavigation-footer-selected-indicator: var(--border-brand-medium);
+    --sidenavigation-footer-selected-indicator-width: var(--border-width-3);
     --sidenavigation-footer-selected-icon: var(--text-primary);
     --sidenavigation-footer-selected-icon-size: var(--icon-size-xs);
     --sidenavigation-footer-selected-text: var(--text-primary);
@@ -496,8 +496,8 @@
     --_surface: var(--sidenavigation-title-default-surface);
     --_border: var(--sidenavigation-title-default-border);
     --_border-width: var(--sidenavigation-title-default-border-width);
-    --_indicator: var(--sidenavigation-title-default-accent);
-    --_indicator-width: var(--sidenavigation-title-default-accent-width);
+    --_indicator: var(--sidenavigation-title-default-indicator);
+    --_indicator-width: var(--sidenavigation-title-default-indicator-width);
     --_padding: var(--sidenavigation-title-default-padding);
     --_label: var(--sidenavigation-title-default-label);
     --_label-family: var(--sidenavigation-title-default-label-font-family);
@@ -530,8 +530,8 @@
     --_surface: var(--sidenavigation-title-hover-surface);
     --_border: var(--sidenavigation-title-hover-border);
     --_border-width: var(--sidenavigation-title-hover-border-width);
-    --_indicator: var(--sidenavigation-title-hover-accent);
-    --_indicator-width: var(--sidenavigation-title-hover-accent-width);
+    --_indicator: var(--sidenavigation-title-hover-indicator);
+    --_indicator-width: var(--sidenavigation-title-hover-indicator-width);
     --_padding: var(--sidenavigation-title-hover-padding);
     --_label: var(--sidenavigation-title-hover-label);
     --_label-family: var(--sidenavigation-title-hover-label-font-family);
@@ -544,8 +544,8 @@
     --_surface: var(--sidenavigation-title-selected-surface);
     --_border: var(--sidenavigation-title-selected-border);
     --_border-width: var(--sidenavigation-title-selected-border-width);
-    --_indicator: var(--sidenavigation-title-selected-accent);
-    --_indicator-width: var(--sidenavigation-title-selected-accent-width);
+    --_indicator: var(--sidenavigation-title-selected-indicator);
+    --_indicator-width: var(--sidenavigation-title-selected-indicator-width);
     --_padding: var(--sidenavigation-title-selected-padding);
     --_label: var(--sidenavigation-title-selected-label);
     --_label-family: var(--sidenavigation-title-selected-label-font-family);
@@ -665,8 +665,8 @@
      without touching the generic chromeless variant. */
   .sn-section-header {
     --_surface: var(--sidenavigation-section-default-surface);
-    --_indicator: var(--sidenavigation-section-default-accent);
-    --_indicator-width: var(--sidenavigation-section-default-accent-width);
+    --_indicator: var(--sidenavigation-section-default-indicator);
+    --_indicator-width: var(--sidenavigation-section-default-indicator-width);
 
     --collapsiblesection-chromeless-default-label: var(--sidenavigation-section-default-text);
     --collapsiblesection-chromeless-default-label-font-family: var(--sidenavigation-section-default-text-font-family);
@@ -687,8 +687,8 @@
   .sn-section-header.force-hover:not(.selected) {
     background-image: linear-gradient(var(--sidenavigation-hover-tint-enabled), var(--sidenavigation-hover-tint-enabled));
     --_surface: var(--sidenavigation-section-hover-surface);
-    --_indicator: var(--sidenavigation-section-hover-accent);
-    --_indicator-width: var(--sidenavigation-section-hover-accent-width);
+    --_indicator: var(--sidenavigation-section-hover-indicator);
+    --_indicator-width: var(--sidenavigation-section-hover-indicator-width);
     --collapsiblesection-chromeless-default-label: var(--sidenavigation-section-hover-text);
     --collapsiblesection-chromeless-default-label-font-family: var(--sidenavigation-section-hover-text-font-family);
     --collapsiblesection-chromeless-default-label-font-size: var(--sidenavigation-section-hover-text-font-size);
@@ -697,8 +697,8 @@
   }
   .sn-section-header.selected {
     --_surface: var(--sidenavigation-section-selected-surface);
-    --_indicator: var(--sidenavigation-section-selected-accent);
-    --_indicator-width: var(--sidenavigation-section-selected-accent-width);
+    --_indicator: var(--sidenavigation-section-selected-indicator);
+    --_indicator-width: var(--sidenavigation-section-selected-indicator-width);
 
     /* Inner CollapsibleSection has no selected state — shadow both the
        default-slot and hover-slot with the selected text values so the section
@@ -724,8 +724,8 @@
   .sn-item {
     --_surface: var(--sidenavigation-item-default-surface);
     --_padding: var(--sidenavigation-item-default-padding);
-    --_indicator: var(--sidenavigation-item-default-accent);
-    --_indicator-width: var(--sidenavigation-item-default-accent-width);
+    --_indicator: var(--sidenavigation-item-default-indicator);
+    --_indicator-width: var(--sidenavigation-item-default-indicator-width);
     --_text: var(--sidenavigation-item-default-text);
     --_text-family: var(--sidenavigation-item-default-text-font-family);
     --_text-size: var(--sidenavigation-item-default-text-font-size);
@@ -751,8 +751,8 @@
     background-image: linear-gradient(var(--sidenavigation-hover-tint-enabled), var(--sidenavigation-hover-tint-enabled));
     --_surface: var(--sidenavigation-item-hover-surface);
     --_padding: var(--sidenavigation-item-hover-padding);
-    --_indicator: var(--sidenavigation-item-hover-accent);
-    --_indicator-width: var(--sidenavigation-item-hover-accent-width);
+    --_indicator: var(--sidenavigation-item-hover-indicator);
+    --_indicator-width: var(--sidenavigation-item-hover-indicator-width);
     --_text: var(--sidenavigation-item-hover-text);
     --_text-family: var(--sidenavigation-item-hover-text-font-family);
     --_text-size: var(--sidenavigation-item-hover-text-font-size);
@@ -763,8 +763,8 @@
   .sn-item.selected {
     --_surface: var(--sidenavigation-item-selected-surface);
     --_padding: var(--sidenavigation-item-selected-padding);
-    --_indicator: var(--sidenavigation-item-selected-accent);
-    --_indicator-width: var(--sidenavigation-item-selected-accent-width);
+    --_indicator: var(--sidenavigation-item-selected-indicator);
+    --_indicator-width: var(--sidenavigation-item-selected-indicator-width);
     --_text: var(--sidenavigation-item-selected-text);
     --_text-family: var(--sidenavigation-item-selected-text-font-family);
     --_text-size: var(--sidenavigation-item-selected-text-font-size);
@@ -776,8 +776,8 @@
     --_surface: var(--sidenavigation-footer-default-surface);
     --_padding: var(--sidenavigation-footer-default-padding);
     --_gap: var(--sidenavigation-footer-default-gap);
-    --_indicator: var(--sidenavigation-footer-default-accent);
-    --_indicator-width: var(--sidenavigation-footer-default-accent-width);
+    --_indicator: var(--sidenavigation-footer-default-indicator);
+    --_indicator-width: var(--sidenavigation-footer-default-indicator-width);
     --_icon: var(--sidenavigation-footer-default-icon);
     --_icon-size: var(--sidenavigation-footer-default-icon-size);
     --_text: var(--sidenavigation-footer-default-text);
@@ -814,8 +814,8 @@
     --_surface: var(--sidenavigation-footer-hover-surface);
     --_padding: var(--sidenavigation-footer-hover-padding);
     --_gap: var(--sidenavigation-footer-hover-gap);
-    --_indicator: var(--sidenavigation-footer-hover-accent);
-    --_indicator-width: var(--sidenavigation-footer-hover-accent-width);
+    --_indicator: var(--sidenavigation-footer-hover-indicator);
+    --_indicator-width: var(--sidenavigation-footer-hover-indicator-width);
     --_icon: var(--sidenavigation-footer-hover-icon);
     --_icon-size: var(--sidenavigation-footer-hover-icon-size);
     --_text: var(--sidenavigation-footer-hover-text);
@@ -830,8 +830,8 @@
     --_surface: var(--sidenavigation-footer-selected-surface);
     --_padding: var(--sidenavigation-footer-selected-padding);
     --_gap: var(--sidenavigation-footer-selected-gap);
-    --_indicator: var(--sidenavigation-footer-selected-accent);
-    --_indicator-width: var(--sidenavigation-footer-selected-accent-width);
+    --_indicator: var(--sidenavigation-footer-selected-indicator);
+    --_indicator-width: var(--sidenavigation-footer-selected-indicator-width);
     --_icon: var(--sidenavigation-footer-selected-icon);
     --_icon-size: var(--sidenavigation-footer-selected-icon-size);
     --_text: var(--sidenavigation-footer-selected-text);

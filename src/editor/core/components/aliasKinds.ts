@@ -3,7 +3,7 @@ export type TokenKind =
   | 'border'
   | 'border-width'
   | 'hairline-width'
-  | 'accent-width'
+  | 'indicator-width'
   | 'radius'
   | 'track-height'
   | 'hairline-inset'
@@ -28,11 +28,12 @@ export type TokenKind =
     rule, so the three cannot drift. `bin/check-component.mjs` reads the
     `suffix:` arrays out of this file, which is why they are plain literals.
 
-    Order matters: `-text` must run before `-border`/`-surface`, and
-    `-accent-width` before `-accent` and `-width`, because the first match wins. A variable
-    matching nothing falls through to `text-color` (a palette picker), but that
-    fall-through is a smell — `check-component` rejects an unrecognised suffix,
-    so add the name here rather than letting it drift. */
+    Order matters: `-text` must run before `-border`/`-surface`, and every
+    named `-width` before the bare `length` rule, because the first match
+    wins. A variable matching nothing falls through to `text-color` (a
+    palette picker), but that fall-through is a smell — `check-component`
+    rejects an unrecognised suffix, so add the name here rather than letting
+    it drift. */
 export const KIND_RULES: ReadonlyArray<{
   kind: TokenKind;
   suffix?: readonly string[];
@@ -52,6 +53,7 @@ export const KIND_RULES: ReadonlyArray<{
   // a hairline separates, an indicator emphasises. `set-geometry` moves each
   // role on its own, so a suffix has to say which line it names.
   { kind: 'hairline-width', suffix: ['-hairline-width'] },
+  { kind: 'indicator-width', suffix: ['-indicator-width'] },
   { kind: 'track-height',   suffix: ['-track-height'] },
   { kind: 'hairline-inset', suffix: ['-hairline-inset'] },
   { kind: 'dot-size',       suffix: ['-dot-size'] },
@@ -62,7 +64,6 @@ export const KIND_RULES: ReadonlyArray<{
   { kind: 'gap',            suffix: ['-gap'] },
   { kind: 'duration',       suffix: ['-duration'], prefix: ['--duration-'] },
   { kind: 'easing',         suffix: ['-easing'], prefix: ['--ease-'] },
-  { kind: 'accent-width',   suffix: ['-accent-width', '-indicator-width'] },
   { kind: 'border-width',   suffix: ['-border-width'], prefix: ['--border-width-'] },
   { kind: 'border',         suffix: ['-border'], prefix: ['--border-'] },
   // A dimension with no more specific name behind it — a panel's width, an
@@ -72,7 +73,7 @@ export const KIND_RULES: ReadonlyArray<{
   // Fills. A tint is a wash over a surface, so it takes the surface picker: the
   // full palette with an alpha, not just the tint stops it defaults to.
   { kind: 'surface',        suffix: ['-surface', '-fill', '-background', '-indicator',
-                                     '-thumb', '-accent', '-color', '-tint', '-opacity'],
+                                     '-thumb', '-color', '-tint', '-opacity'],
                             prefix: ['--surface-', '--tint', '--color-'] },
 ];
 

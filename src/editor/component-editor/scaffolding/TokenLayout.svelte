@@ -85,7 +85,7 @@
     'surface',
     'border-width',
     'hairline-width',
-    'accent-width',
+    'indicator-width',
     'border',
   ];
   const orderRank: Record<Kind, number> = Object.fromEntries(
@@ -136,7 +136,7 @@
     'letter-spacing': { component: UILetterSpacingSelector },
     'border-width': { component: UIVariantSelector, extra: () => ({ ...BORDER_WIDTH }) },
     'hairline-width': { component: UIVariantSelector, extra: () => ({ ...BORDER_WIDTH }) },
-    'accent-width': { component: UIVariantSelector, extra: () => ({ ...BORDER_WIDTH }) },
+    'indicator-width': { component: UIVariantSelector, extra: () => ({ ...BORDER_WIDTH }) },
     'track-height': { component: UIVariantSelector, extra: () => ({ ...TRACK_HEIGHT }) },
     'hairline-inset': { component: UIVariantSelector, extra: () => ({ ...HAIRLINE_INSET }) },
     'dot-size': { component: UIVariantSelector, extra: () => ({ ...DOT_SIZE }) },
@@ -194,7 +194,7 @@
       'surface',
       'border-width',
       'hairline-width',
-      'accent-width',
+      'indicator-width',
       'border',
     ];
     return Object.fromEntries(reordered.map((k, i) => [k, i])) as Record<Kind, number>;

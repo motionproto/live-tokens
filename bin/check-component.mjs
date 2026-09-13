@@ -134,7 +134,7 @@ const KIND_SCALE = {
   'hairline-inset': 'space',
   'border-width': 'border-width',
   'hairline-width': 'border-width',
-  'accent-width': 'border-width',
+  'indicator-width': 'border-width',
   shadow: 'shadow',
 };
 

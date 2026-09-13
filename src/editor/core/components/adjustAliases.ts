@@ -1,7 +1,7 @@
 import { matchesKind, stripSide } from './aliasKinds';
 import type { AliasDiskValue, ComponentConfig } from '../themes/themeTypes';
 
-export type AdjustKind = 'radius' | 'padding' | 'gap' | 'border-width' | 'hairline-width' | 'accent-width';
+export type AdjustKind = 'radius' | 'padding' | 'gap' | 'border-width' | 'hairline-width' | 'indicator-width';
 
 export interface AdjustOp {
   /** Component id; omitted applies the op to every config. */
@@ -88,7 +88,7 @@ const BORDER_WIDTH_SETTABLE = [
 const STROKE_STEPS = BORDER_WIDTH_SETTABLE.slice(1);
 
 /** Three stroke roles ride the one `--border-width-*` scale. A border
-    encloses, a hairline separates, an accent emphasises, and an intent
+    encloses, a hairline separates, an indicator emphasises, and an intent
     such as "hairline rules" names one role without the others. */
 const STROKE_SCALE = {
   steps: STROKE_STEPS,
@@ -106,7 +106,7 @@ const SCALES: Record<AdjustKind, { steps: string[]; settable: string[]; family: 
   gap: { steps: SPACE_STEPS, settable: SPACE_SETTABLE, family: SPACE_FAMILY },
   'border-width': STROKE_SCALE,
   'hairline-width': STROKE_SCALE,
-  'accent-width': STROKE_SCALE,
+  'indicator-width': STROKE_SCALE,
 };
 
 const TOKEN_NAME = /^--[a-z0-9-]+$/;
