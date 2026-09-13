@@ -101,7 +101,7 @@ export class ContractHarness {
         .locator('.variant-group:visible .tabs-states-block .state-tab-btn', { hasText: merged.state })
         .first();
       if (await tab.count() === 0) {
-        this.fail('contract-preview', `no state tab labelled "${merged.state}"`);
+        this.fail('contract-states', `no state tab labelled "${merged.state}"`);
       }
       await tab.click({ force: true });
       await settle(this.page);
@@ -312,7 +312,7 @@ export class ContractHarness {
     const named = new Set(this.contract.states.map((state) => state.state));
     const unnamed = tabs.map((tab) => tab.trim()).filter((tab) => tab && !named.has(tab));
     if (unnamed.length > 0) {
-      this.fail('contract-preview', `the editor renders state tabs the contract does not name: ${unnamed.join(', ')}`);
+      this.fail('contract-states', `the editor renders state tabs the contract does not name: ${unnamed.join(', ')}`);
     }
   }
 
@@ -339,7 +339,7 @@ export class ContractHarness {
     if (isInapplicable(declared)) {
       const tabs = await this.page.locator('.variant-group:visible .tabs-states-block .state-tab-btn').count();
       if (tabs > 0) {
-        this.fail('contract-preview', `the editor renders ${tabs} state tabs but the contract marks states inapplicable: ${declared.reason}`);
+        this.fail('contract-states', `the editor renders ${tabs} state tabs but the contract marks states inapplicable: ${declared.reason}`);
       }
       return;
     }
@@ -347,18 +347,18 @@ export class ContractHarness {
       await this.selectView(state);
       const classes = await this.locator(this.contract.root).evaluate((node) => [...node.classList]);
       if (state.forceClass && !classes.includes(state.forceClass)) {
-        this.fail('contract-preview', `state "${state.state}" does not put "${state.forceClass}" on the preview`);
+        this.fail('contract-states', `state "${state.state}" does not put "${state.forceClass}" on the preview`);
       }
       for (const [key, attributes] of Object.entries(state.attributes ?? {})) {
         const observed = await this.locator(key).evaluate((node, names) =>
           Object.fromEntries(names.map((name) => [name, node.getAttribute(name)])), Object.keys(attributes));
         for (const [name, value] of Object.entries(attributes)) {
           if (observed[name] !== value) {
-            this.fail('contract-preview', `state "${state.state}" has ${key}[${name}]="${observed[name]}", expected "${value}"`);
+            this.fail('contract-states', `state "${state.state}" has ${key}[${name}]="${observed[name]}", expected "${value}"`);
           }
         }
       }
-      if (state.paints) await this.assertPaintMap(state.paints, 'contract-preview');
+      if (state.paints) await this.assertPaintMap(state.paints, 'contract-states');
     }
   }
 
@@ -383,17 +383,17 @@ export class ContractHarness {
       for (const key of Object.keys(this.contract.parts)) {
         const role = await this.roleOf(key);
         if (requiresInteraction(role)) {
-          this.fail('contract-preview', `part "${key}" carries role "${role}" but the contract marks interaction inapplicable: ${declared.reason}`);
+          this.fail('contract-interaction', `part "${key}" carries role "${role}" but the contract marks interaction inapplicable: ${declared.reason}`);
         }
       }
       return;
     }
     const role = await this.roleOf(declared.part);
     if (role !== declared.role) {
-      this.fail('contract-preview', `part "${declared.part}" carries role "${role}", contract declares "${declared.role}"`);
+      this.fail('contract-interaction', `part "${declared.part}" carries role "${role}", contract declares "${declared.role}"`);
     }
     if (declared.cases.length === 0) {
-      this.fail('contract-preview', `role "${declared.role}" is interactive and declares no action`);
+      this.fail('contract-interaction', `role "${declared.role}" is interactive and declares no action`);
     }
     for (const testCase of declared.cases) await this.runInteraction(testCase);
   }
@@ -422,7 +422,7 @@ export class ContractHarness {
     }
     const from = await this.locator(action.part).boundingBox();
     const along = await this.locator(action.along).boundingBox();
-    if (!from || !along) this.fail('contract-preview', `"${action.part}" or "${action.along}" has no box to drag along`);
+    if (!from || !along) this.fail('contract-interaction', `"${action.part}" or "${action.along}" has no box to drag along`);
     await this.page.mouse.move(from.x + from.width / 2, from.y + from.height / 2);
     await this.page.mouse.down();
     await this.page.mouse.move(along.x + along.width * action.fraction, along.y + along.height / 2, { steps: 8 });
@@ -449,14 +449,14 @@ export class ContractHarness {
       const actual = await this.locator(outcome.part)
         .evaluate((node, name) => node.getAttribute(name), outcome.name);
       if (actual !== outcome.value) {
-        this.fail('contract-preview', `${testCase.name}: ${outcome.part}[${outcome.name}] is "${actual}", expected "${outcome.value}"`);
+        this.fail('contract-interaction', `${testCase.name}: ${outcome.part}[${outcome.name}] is "${actual}", expected "${outcome.value}"`);
       }
       return;
     }
     if (outcome.kind === 'focused') {
       const focused = await this.isFocused(outcome.part);
       if (focused !== outcome.value) {
-        this.fail('contract-preview', `${testCase.name}: ${outcome.part} is ${focused ? '' : 'not '}focused, expected ${outcome.value ? '' : 'not '}focused`);
+        this.fail('contract-interaction', `${testCase.name}: ${outcome.part} is ${focused ? '' : 'not '}focused, expected ${outcome.value ? '' : 'not '}focused`);
       }
       return;
     }
@@ -464,26 +464,26 @@ export class ContractHarness {
     const after = await this.valueOf(outcome.part);
     if (outcome.kind === 'valueHolds') {
       if (after !== before) {
-        this.fail('contract-preview', `${testCase.name}: value moved from ${before} to ${after}`);
+        this.fail('contract-interaction', `${testCase.name}: value moved from ${before} to ${after}`);
       }
       return;
     }
     if (outcome.kind === 'valueChanges') {
       if (after === before) {
-        this.fail('contract-preview', `${testCase.name}: value held at ${before}`);
+        this.fail('contract-interaction', `${testCase.name}: value held at ${before}`);
       }
       return;
     }
     if (outcome.kind === 'valueBecomes') {
       if (after !== outcome.value) {
-        this.fail('contract-preview', `${testCase.name}: value is ${after}, expected ${outcome.value}`);
+        this.fail('contract-interaction', `${testCase.name}: value is ${after}, expected ${outcome.value}`);
       }
       return;
     }
     const moved = Number(after) - Number(before);
     const wanted = outcome.direction === 'up' ? moved > 0 : moved < 0;
     if (!wanted) {
-      this.fail('contract-preview', `${testCase.name}: value went ${before} -> ${after}, expected to move ${outcome.direction}`);
+      this.fail('contract-interaction', `${testCase.name}: value went ${before} -> ${after}, expected to move ${outcome.direction}`);
     }
   }
 

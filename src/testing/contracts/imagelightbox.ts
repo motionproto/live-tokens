@@ -124,6 +124,10 @@ export const imageLightboxContract: ComponentContract = {
   // can observe, even though PART_SPECS draws it on a real host page (where
   // Sketch mode's scope is the page root). `thumb` never portals, so it is the
   // part this contract can pin.
+  behavior: {
+    applicable: false,
+    reason: 'the lightbox declares no callback prop; opening portals a modal sized from measured geometry, which happy-dom has no layout for',
+  },
   sketch: {
     style: 'pencil',
     parts: [

@@ -69,6 +69,10 @@ export const calloutContract: ComponentContract = {
     applicable: false,
     reason: 'a callout is a static box with no interactive role',
   },
+  behavior: {
+    applicable: false,
+    reason: 'a callout declares no callback prop and answers no event',
+  },
   sketch: {
     style: 'pencil',
     parts: [{ part: 'root', fill: '--callout-info-surface', stroke: '--callout-info-border' }],

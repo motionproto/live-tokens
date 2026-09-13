@@ -121,6 +121,10 @@ export const sectionDividerContract: ComponentContract = {
     applicable: false,
     reason: 'a divider is a static banner: no interactive role, nothing focusable, no pointer behaviour',
   },
+  behavior: {
+    applicable: false,
+    reason: 'a divider declares no callback prop and answers no event',
+  },
   sketch: {
     style: 'pencil',
     parts: [{ part: 'hairline', fill: '--sectiondivider-lg-hairline-color' }],

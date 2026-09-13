@@ -74,7 +74,7 @@ test('an alias naming a token that does not exist fails contract-alias', async (
   expect(violation.message).toContain('--slider-single-track-surface');
 });
 
-test('a state that does not repaint what it claims fails contract-preview', async ({ page }) => {
+test('a state that does not repaint what it claims fails contract-states', async ({ page }) => {
   const defect = withDefect(sliderContract, (draft) => {
     draft.states = [{
       state: 'hover',
@@ -83,11 +83,11 @@ test('a state that does not repaint what it claims fails contract-preview', asyn
     }];
   });
   const harness = await open(page, defect);
-  const violation = await expectViolation('contract-preview', () => harness.assertStates());
+  const violation = await expectViolation('contract-states', () => harness.assertStates());
   expect(violation.message).toContain('thumb.backgroundColor');
 });
 
-test('a keyboard outcome in the wrong direction fails contract-preview', async ({ page }) => {
+test('a keyboard outcome in the wrong direction fails contract-interaction', async ({ page }) => {
   const defect = withDefect(sliderContract, (draft) => {
     draft.interaction = {
       part: 'input',
@@ -100,11 +100,11 @@ test('a keyboard outcome in the wrong direction fails contract-preview', async (
     };
   });
   const harness = await open(page, defect);
-  const violation = await expectViolation('contract-preview', () => harness.assertInteraction());
+  const violation = await expectViolation('contract-interaction', () => harness.assertInteraction());
   expect(violation.message).toContain('expected to move down');
 });
 
-test('a pointer outcome the drag does not produce fails contract-preview', async ({ page }) => {
+test('a pointer outcome the drag does not produce fails contract-interaction', async ({ page }) => {
   const defect = withDefect(sliderContract, (draft) => {
     draft.interaction = {
       part: 'input',
@@ -117,16 +117,16 @@ test('a pointer outcome the drag does not produce fails contract-preview', async
     };
   });
   const harness = await open(page, defect);
-  const violation = await expectViolation('contract-preview', () => harness.assertInteraction());
+  const violation = await expectViolation('contract-interaction', () => harness.assertInteraction());
   expect(violation.message).toContain('expected to move down');
 });
 
-test('an interactive role marked inapplicable fails contract-preview', async ({ page }) => {
+test('an interactive role marked inapplicable fails contract-interaction', async ({ page }) => {
   const defect = withDefect(sliderContract, (draft) => {
     draft.interaction = { applicable: false, reason: 'claiming a slider does nothing' };
   });
   const harness = await open(page, defect);
-  const violation = await expectViolation('contract-preview', () => harness.assertInteraction());
+  const violation = await expectViolation('contract-interaction', () => harness.assertInteraction());
   expect(violation.message).toContain('carries role "slider"');
 });
 
@@ -244,7 +244,7 @@ function bareContract(id: string, parts: ComponentContract['parts'], root: strin
 
 const inputContract = bareContract('input', { root: '.input-field', field: 'input.input-control' }, 'root');
 
-test('a typed value the field does not hold fails contract-preview', async ({ page }) => {
+test('a typed value the field does not hold fails contract-interaction', async ({ page }) => {
   const defect = withDefect(inputContract, (draft) => {
     draft.interaction = {
       part: 'field',
@@ -264,7 +264,7 @@ test('a typed value the field does not hold fails contract-preview', async ({ pa
     };
   });
   const harness = await open(page, defect);
-  const violation = await expectViolation('contract-preview', () => harness.assertInteraction());
+  const violation = await expectViolation('contract-interaction', () => harness.assertInteraction());
   expect(violation.message).toContain('expected something else');
 });
 

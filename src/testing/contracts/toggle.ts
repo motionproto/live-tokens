@@ -116,6 +116,39 @@ export const toggleContract: ComponentContract = {
       },
     ],
   },
+  behavior: {
+    cases: [
+      {
+        name: 'clicking an off toggle asks for on',
+        props: { checked: false },
+        action: { kind: 'click', part: 'root' },
+        expect: { kind: 'callback', prop: 'onchange', args: [true] },
+      },
+      {
+        name: 'clicking leaves the switch where the prop put it',
+        props: { checked: false },
+        action: { kind: 'click', part: 'root' },
+        expect: { kind: 'attribute', part: 'root', name: 'aria-checked', value: 'false' },
+      },
+      {
+        name: 'clicking an on toggle asks for off',
+        props: { checked: true },
+        action: { kind: 'click', part: 'root' },
+        expect: { kind: 'callback', prop: 'onchange', args: [false] },
+      },
+      {
+        name: 'checked drives aria-checked',
+        props: { checked: true },
+        expect: { kind: 'attribute', part: 'root', name: 'aria-checked', value: 'true' },
+      },
+      {
+        name: 'a disabled toggle stays silent',
+        props: { checked: false, disabled: true },
+        action: { kind: 'click', part: 'root' },
+        expect: { kind: 'no-callback', prop: 'onchange' },
+      },
+    ],
+  },
   sketch: {
     style: 'pencil',
     parts: [{ part: 'track', fill: '--toggle-track-surface', stroke: '--toggle-track-border' }],

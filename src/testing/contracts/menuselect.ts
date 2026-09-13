@@ -18,6 +18,11 @@ function itemTextPaints(s: string, full: boolean): PaintMap[string] {
   return paints;
 }
 
+const behaviorItems = [
+  { value: 'daily', label: 'Daily' },
+  { value: 'weekly', label: 'Weekly' },
+];
+
 export const menuSelectContract: ComponentContract = {
   id: 'menuselect',
   origin: 'system',
@@ -124,6 +129,27 @@ export const menuSelectContract: ComponentContract = {
         name: 'clicking an item selects it',
         action: { kind: 'click', part: 'item' },
         expect: { kind: 'attribute', part: 'item', name: 'aria-selected', value: 'true' },
+      },
+    ],
+  },
+  behavior: {
+    cases: [
+      {
+        name: 'clicking an item asks for its value',
+        props: { items: behaviorItems, value: 'weekly' },
+        action: { kind: 'click', part: 'item' },
+        expect: { kind: 'callback', prop: 'onchange', args: ['daily'] },
+      },
+      {
+        name: 'value drives the selected item',
+        props: { items: behaviorItems, value: 'daily' },
+        expect: { kind: 'attribute', part: 'item', name: 'aria-selected', value: 'true' },
+      },
+      {
+        name: 'a disabled item stays silent',
+        props: { items: [{ ...behaviorItems[0], disabled: true }, behaviorItems[1]], value: 'weekly' },
+        action: { kind: 'click', part: 'item' },
+        expect: { kind: 'no-callback', prop: 'onchange' },
       },
     ],
   },

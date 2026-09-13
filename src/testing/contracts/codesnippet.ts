@@ -77,6 +77,10 @@ export const codeSnippetContract: ComponentContract = {
       },
     ],
   },
+  behavior: {
+    applicable: false,
+    reason: 'the copy control reports through the system clipboard and a timed popover, neither of which is a callback prop',
+  },
   sketch: {
     style: 'pencil',
     parts: [{ part: 'root', fill: '--codesnippet-surface', stroke: '--codesnippet-border' }],

@@ -68,6 +68,20 @@ export const progressBarContract: ComponentContract = {
     applicable: false,
     reason: 'a progress readout carries no interactive role',
   },
+  behavior: {
+    cases: [
+      {
+        name: 'value drives the readout',
+        props: { label: 'Upload', value: 60 },
+        expect: { kind: 'text', part: 'value', value: '60%' },
+      },
+      {
+        name: 'a value past the end clamps',
+        props: { label: 'Upload', value: 140 },
+        expect: { kind: 'text', part: 'value', value: '100%' },
+      },
+    ],
+  },
   sketch: {
     style: 'pencil',
     parts: [{ part: 'track', fill: '--progressbar-track-surface', stroke: '--progressbar-track-border' }],

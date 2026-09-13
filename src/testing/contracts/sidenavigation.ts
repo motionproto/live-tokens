@@ -216,6 +216,27 @@ export const sideNavigationContract: ComponentContract = {
       },
     ],
   },
+  behavior: {
+    cases: [
+      {
+        name: 'clicking the rail toggle reports it',
+        props: { titleLabel: 'Docs' },
+        action: { kind: 'click', part: 'toggle' },
+        expect: { kind: 'callback', prop: 'ontoggle', args: [] },
+      },
+      {
+        name: 'open drives the toggle',
+        props: { titleLabel: 'Docs', open: false },
+        expect: { kind: 'attribute', part: 'toggle', name: 'aria-expanded', value: 'false' },
+      },
+      {
+        name: 'clicking leaves the rail where the prop put it',
+        props: { titleLabel: 'Docs', open: true },
+        action: { kind: 'click', part: 'toggle' },
+        expect: { kind: 'attribute', part: 'toggle', name: 'aria-expanded', value: 'true' },
+      },
+    ],
+  },
   sketch: {
     style: 'pencil',
     parts: [{ part: 'root', fill: '--sidenavigation-panel-surface', stroke: '--sidenavigation-panel-border' }],

@@ -1,5 +1,10 @@
 import type { ComponentContract } from '../componentContract';
 
+const behaviorSegments = [
+  { value: 'grid', label: 'Grid' },
+  { value: 'list', label: 'List' },
+];
+
 export const segmentedControlContract: ComponentContract = {
   id: 'segmentedcontrol',
   origin: 'system',
@@ -176,6 +181,27 @@ export const segmentedControlContract: ComponentContract = {
         state: 'disabled option',
         action: { kind: 'click', part: 'segment' },
         expect: { kind: 'focused', part: 'segment', value: false },
+      },
+    ],
+  },
+  behavior: {
+    cases: [
+      {
+        name: 'clicking a segment asks for its value',
+        props: { segments: behaviorSegments, value: 'list' },
+        action: { kind: 'click', part: 'segment' },
+        expect: { kind: 'callback', prop: 'onchange', args: ['grid'] },
+      },
+      {
+        name: 'value drives the checked segment',
+        props: { segments: behaviorSegments, value: 'grid' },
+        expect: { kind: 'attribute', part: 'segment', name: 'aria-checked', value: 'true' },
+      },
+      {
+        name: 'a disabled control stays silent',
+        props: { segments: behaviorSegments, value: 'list', disabled: true },
+        action: { kind: 'click', part: 'segment' },
+        expect: { kind: 'no-callback', prop: 'onchange' },
       },
     ],
   },

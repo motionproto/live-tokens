@@ -90,6 +90,21 @@ export const radioButtonContract: ComponentContract = {
       },
     ],
   },
+  behavior: {
+    cases: [
+      {
+        name: 'clicking an option reports it',
+        props: { label: 'Weekly' },
+        action: { kind: 'click', part: 'root' },
+        expect: { kind: 'callback', prop: 'onclick', args: [] },
+      },
+      {
+        name: 'label names the option',
+        props: { label: 'Weekly' },
+        expect: { kind: 'text', part: 'label', value: 'Weekly' },
+      },
+    ],
+  },
   sketch: {
     style: 'pencil',
     parts: [{ part: 'dot', fill: '--radiobutton-default-dot-fill', stroke: '--radiobutton-default-dot-border-color' }],

@@ -182,6 +182,30 @@ export const sliderContract: ComponentContract = {
       },
     ],
   },
+  behavior: {
+    // No disabled case: a range reports through `input`, and a dispatched
+    // input event reaches a disabled control, so the case would assert the
+    // environment rather than the slider.
+    cases: [
+      {
+        name: 'moving the thumb reports the value',
+        props: { label: 'Level', value: 30 },
+        action: { kind: 'input', part: 'input', value: '70' },
+        expect: { kind: 'callback', prop: 'onchange', args: [70] },
+      },
+      {
+        name: 'a range thumb reports both ends',
+        props: { variant: 'range', low: 25, high: 75 },
+        action: { kind: 'input', part: 'input', value: '10' },
+        expect: { kind: 'callback', prop: 'onrangechange', args: [10, 75] },
+      },
+      {
+        name: 'value drives the readout',
+        props: { label: 'Level', value: 30 },
+        expect: { kind: 'text', part: 'value', value: '30' },
+      },
+    ],
+  },
   sketch: {
     style: 'pencil',
     parts: [

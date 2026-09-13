@@ -4,7 +4,9 @@ export type ContractRule =
   | 'contract-alias'
   | 'contract-persist'
   | 'contract-theme'
-  | 'contract-preview'
+  | 'contract-states'
+  | 'contract-interaction'
+  | 'contract-behavior'
   | 'contract-sketch'
   | 'contract-missing';
 
@@ -177,6 +179,29 @@ export interface InteractionExpectation {
   cases: InteractionCase[];
 }
 
+/**
+ * One mounted case under happy-dom: props in, a DOM event, one assertion. It
+ * carries what a browser cannot reach, the callback a controlled component
+ * calls instead of moving its own state.
+ */
+export interface BehaviorCase {
+  name: string;
+  /** Props the fixture mounts with. A snippet-valued prop is not
+   *  expressible; a component whose behavior needs one records that case
+   *  as inapplicable with the reason. */
+  props?: Record<string, unknown>;
+  action?: { kind: 'click' | 'keydown' | 'input'; part: string; key?: string; value?: string };
+  expect:
+    | { kind: 'callback'; prop: string; args: unknown[] }
+    | { kind: 'no-callback'; prop: string }
+    | { kind: 'attribute'; part: string; name: string; value: string | null }
+    | { kind: 'text'; part: string; value: string };
+}
+
+export interface BehaviorExpectation {
+  cases: BehaviorCase[];
+}
+
 export interface SketchPartExpectation {
   part: string;
   /** The design token `--sketch-fill` must resolve to on this part. */
@@ -217,6 +242,8 @@ export interface ComponentContract {
   persistence: PersistenceExpectation;
   theme: ThemeExpectation;
   interaction: InteractionExpectation | Inapplicable;
+  /** What the component does when it is driven, proven under happy-dom. */
+  behavior: BehaviorExpectation | Inapplicable;
   sketch: SketchExpectation | Inapplicable;
 }
 

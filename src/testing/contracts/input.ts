@@ -178,6 +178,21 @@ export const inputContract: ComponentContract = {
       },
     ],
   },
+  behavior: {
+    cases: [
+      {
+        name: 'typing reports every keystroke',
+        props: { label: 'Name' },
+        action: { kind: 'input', part: 'field', value: 'probe' },
+        expect: { kind: 'callback', prop: 'oninput', args: ['probe'] },
+      },
+      {
+        name: 'an error marks the field invalid',
+        props: { label: 'Name', error: 'Required' },
+        expect: { kind: 'attribute', part: 'field', name: 'aria-invalid', value: 'true' },
+      },
+    ],
+  },
   sketch: {
     style: 'pencil',
     parts: [{ part: 'field', fill: '--input-default-surface', stroke: '--input-default-border' }],

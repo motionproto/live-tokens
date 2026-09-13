@@ -118,6 +118,10 @@ export const cardContract: ComponentContract = {
     applicable: false,
     reason: 'a card is a static container with no interactive role',
   },
+  behavior: {
+    applicable: false,
+    reason: 'a card declares no callback prop; its header and body arrive as snippets, which a mounted fixture cannot express',
+  },
   sketch: {
     style: 'pencil',
     parts: [

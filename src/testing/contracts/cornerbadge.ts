@@ -82,6 +82,10 @@ export const cornerBadgeContract: ComponentContract = {
     applicable: false,
     reason: 'a corner badge is a static marker with no interactive role',
   },
+  behavior: {
+    applicable: false,
+    reason: 'a corner badge declares no callback prop and answers no event',
+  },
   sketch: {
     style: 'pencil',
     parts: [{ part: 'badge', fill: '--corner-badge-primary-surface', stroke: '--corner-badge-primary-border' }],

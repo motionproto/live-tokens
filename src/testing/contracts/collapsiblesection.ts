@@ -104,6 +104,27 @@ export const collapsibleSectionContract: ComponentContract = {
       },
     ],
   },
+  behavior: {
+    cases: [
+      {
+        name: 'clicking the chevron asks to toggle',
+        props: { label: 'Details' },
+        action: { kind: 'click', part: 'toggleButton' },
+        expect: { kind: 'callback', prop: 'ontoggle', args: [] },
+      },
+      {
+        name: 'expanded drives the chevron',
+        props: { label: 'Details', expanded: true },
+        expect: { kind: 'attribute', part: 'toggleButton', name: 'aria-expanded', value: 'true' },
+      },
+      {
+        name: 'clicking leaves the section where the prop put it',
+        props: { label: 'Details' },
+        action: { kind: 'click', part: 'toggleButton' },
+        expect: { kind: 'attribute', part: 'toggleButton', name: 'aria-expanded', value: 'false' },
+      },
+    ],
+  },
   sketch: {
     style: 'pencil',
     parts: [
