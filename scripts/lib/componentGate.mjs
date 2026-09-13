@@ -407,9 +407,21 @@ async function runFixtureAScenarios(dir) {
     check(before === after, 'source data unchanged across a failing run');
     check(result.status === 1, 'exits 1');
     const findings = result.json?.findings ?? [];
-    check(findings.length === 1 && findings[0].rule === 'contract-alias', `exactly one contract-alias finding (got ${JSON.stringify(findings.map((f) => f.rule))})`);
-    check(findings[0]?.file === 'src/live-tokens/data/component-configs/beacon/default.json', 'the finding names the real config file');
-    check(typeof findings[0]?.line === 'number' && findings[0].line > 1, 'the finding names a real line, not the line-1 fallback');
+    // The static `config-token` rule reads the same alias as data, so this one
+    // defect is reported twice over: once without a browser, once by the
+    // alias suite's store round-trip.
+    check(
+      findings.length === 2 && findings.map((f) => f.rule).sort().join() === 'config-token,contract-alias',
+      `one config-token and one contract-alias finding (got ${JSON.stringify(findings.map((f) => f.rule))})`,
+    );
+    const aliasFinding = findings.find((f) => f.rule === 'contract-alias');
+    const configFinding = findings.find((f) => f.rule === 'config-token');
+    check(aliasFinding?.file === 'src/live-tokens/data/component-configs/beacon/default.json', 'the finding names the real config file');
+    check(typeof aliasFinding?.line === 'number' && aliasFinding.line > 1, 'the finding names a real line, not the line-1 fallback');
+    check(
+      configFinding?.file === aliasFinding?.file && configFinding?.line > 1,
+      'the static rule names the same config file at the alias it read',
+    );
     const rules = result.json?.coverage?.beacon ?? {};
     check(rules['contract-alias']?.status === 'failed', 'coverage marks contract-alias failed');
     check(rules['contract-render']?.status === 'passed', 'the separate always-run render suite still passes cleanly');
@@ -434,9 +446,14 @@ async function runFixtureAScenarios(dir) {
     check(before === after, 'source data unchanged across a failing catalogue-wide run');
     check(result.status === 1, 'exits 1');
     const findings = result.json?.findings ?? [];
-    check(findings.length === 1, `exactly one finding (got ${findings.length})`);
-    check(findings[0]?.rule === 'contract-alias', 'the rule id is contract-alias');
-    check(findings[0]?.file === 'package.json', 'no consumer artifact names this failure; the rule id alone identifies it');
+    const aliasFindings = findings.filter((f) => f.rule === 'contract-alias');
+    // The registry contract fails on the duplicate too, in an assertion that
+    // names no component, which reaches the CLI as `tests-setup`.
+    check(
+      findings.map((f) => f.rule).sort().join() === 'contract-alias,tests-setup',
+      `contract-alias and tests-setup (got ${JSON.stringify(findings.map((f) => f.rule))})`,
+    );
+    check(aliasFindings[0]?.file === 'package.json', 'no consumer artifact names this failure; the rule id alone identifies it');
     const rules = result.json?.coverage?.beacon ?? {};
     const statuses = Object.values(rules).map((e) => e.status);
     check(
@@ -474,17 +491,23 @@ async function runFixtureAScenarios(dir) {
     check(before === after, 'source data unchanged across a failing registry run');
     check(result.status === 1, 'exits 1');
     const findings = result.json?.findings ?? [];
+    const registryFindings = findings.filter((f) => f.rule === 'contract-registry');
+    // The behavior suite mounts the runtime the registration names, so every
+    // declared case fails on the same unresolved file the registry contract
+    // reports.
     check(
-      findings.length === 1 && findings[0].rule === 'contract-registry',
-      `exactly one contract-registry finding (got ${JSON.stringify(findings.map((f) => f.rule))})`,
+      registryFindings.length === 1
+        && findings.every((f) => f.rule === 'contract-registry' || f.rule === 'contract-behavior'),
+      `one contract-registry finding, and behavior cases beside it (got ${JSON.stringify(findings.map((f) => f.rule))})`,
     );
-    check(/does not resolve to a file/.test(findings[0]?.message ?? ''), 'names the unresolved sourceFile');
+    check(/does not resolve to a file/.test(registryFindings[0]?.message ?? ''), 'names the unresolved sourceFile');
     const rules = result.json?.coverage?.beacon ?? {};
     check(rules['contract-registry']?.status === 'failed', 'coverage marks contract-registry failed');
-    const others = Object.entries(rules).filter(([rule]) => rule !== 'contract-registry');
+    check(rules['contract-behavior']?.status === 'failed', 'coverage marks contract-behavior failed: it loads the same file');
+    const others = Object.entries(rules).filter(([rule]) => rule !== 'contract-registry' && rule !== 'contract-behavior');
     check(
       others.length === 8 && others.every(([, e]) => e.status === 'passed' || e.status === 'inapplicable'),
-      'every other rule still runs and passes: the defect is isolated to the Vitest child',
+      'every browser obligation still runs and passes: the defect is isolated to the Vitest child',
     );
   }
 
@@ -514,7 +537,7 @@ async function runFixtureAScenarios(dir) {
     check(rules['contract-render']?.status === 'failed', 'coverage marks contract-render failed');
     const others = Object.entries(rules).filter(([rule]) => rule !== 'contract-render');
     check(
-      others.length === 8 && others.every(([, e]) => e.status === 'passed' || e.status === 'inapplicable'),
+      others.length === 9 && others.every(([, e]) => e.status === 'passed' || e.status === 'inapplicable'),
       'the editor-suite describe.serial block is untouched: this obligation runs outside it',
     );
   }
@@ -598,16 +621,23 @@ async function buildFixtureB(workDir, tarballPath) {
   const appPath = join(dir, 'src/App.svelte');
   writeFileSync(appPath, readFileSync(appPath, 'utf8').replace('<LiveTokensRouter {pages} />', "<LiveTokensRouter {pages} editorRoutes={{ components: '/design' }} />"));
 
-  // Seed the DEFAULT (unrelocated) path as a decoy with a broken alias, via a
+  // Seed the DEFAULT (unrelocated) path as a decoy with a wrong alias, via a
   // real dev-server boot under the plugin's own default resolution (no
   // live-tokens.testing.ts influences a plain `vite` boot). If the settings
   // resolver's source-text scrape ever falls back to this path instead of the
   // relocated one below, this is what turns that into a loud contract-alias
   // failure instead of a silent pass against the wrong tree.
+  //
+  // The decoy names a real design token, one the contract does not declare
+  // for this property (`aliasedTo` says `--surface-neutral`). A name outside
+  // the vocabulary would also trip the static `config-token` rule, which
+  // reads the plugin's own data directory and knows nothing of a testing
+  // override, and the decoy would then report a defect for the tree the
+  // contract run never touched.
   await seedRealDataDir(dir, 51740);
   const decoyPath = join(dir, 'src/live-tokens/data/component-configs/beacon/default.json');
   const decoy = JSON.parse(readFileSync(decoyPath, 'utf8'));
-  decoy.aliases['--beacon-track-surface'] = '--nonexistent-decoy-token';
+  decoy.aliases['--beacon-track-surface'] = '--surface-neutral-high';
   writeFileSync(decoyPath, JSON.stringify(decoy, null, 2));
 
   mkdirSync(join(dir, 'lt-data-relocated'), { recursive: true });

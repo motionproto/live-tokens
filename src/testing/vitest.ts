@@ -53,6 +53,11 @@ export function createVitestConfig(
   options: VitestConfigOptions = {},
 ): UserConfig {
   return mergeConfig(viteConfig, {
+    // `svelte`'s package exports resolve to `index-server.js` without it, whose
+    // `mount` throws `lifecycle_function_unavailable`, and whose
+    // `createEventDispatcher` is a silent no-op. A project's own vite config
+    // states the condition for its build, not for a test run under happy-dom.
+    resolve: { conditions: ['browser'] },
     test: {
       include: options.include ?? CONTRACT_INCLUDE,
       exclude: options.exclude ?? CONTRACT_EXCLUDE,
