@@ -675,6 +675,7 @@ describe('a page finding carries what its repair needs', () => {
     expect(f.details).toEqual({
       scale: 'space',
       literals: [{ value: '8px', px: 8, candidates: [{ token: '--space-8', px: 8, shift: 0 }] }],
+      patch: { from: '8px', to: 'var(--space-8)' },
     });
     expect(f.repair).toBeUndefined();
   });
@@ -698,6 +699,7 @@ describe('a page finding carries what its repair needs', () => {
     expect(width.details).toEqual({
       scale: 'border-width',
       literals: [{ value: '1px', px: 1, candidates: [{ token: '--border-width-1', px: 1, shift: 0 }] }],
+      patch: { from: '1px solid var(--border-neutral)', to: 'var(--border-width-1) solid var(--border-neutral)' },
     });
     expect(width.repair).toBeUndefined();
 
@@ -715,9 +717,9 @@ describe('a page finding carries what its repair needs', () => {
 
   it('names the site a control-size and a property-override sit at', () => {
     expect(detailsOf('<script>\n  import Card from "@motion-proto/live-tokens/components/Card.svelte";\n</script>\n<Card size="small" />', 'control-size').details)
-      .toEqual({ site: 'attribute' });
+      .toEqual({ site: 'attribute', patch: { from: ' size="small"', to: '' } });
     expect(detailsOf('<style>.a { --card-default-radius: 0; }</style>', 'property-override').details)
-      .toEqual({ site: 'declaration' });
+      .toEqual({ site: 'declaration', patch: { from: '--card-default-radius: 0;', to: '' } });
   });
 
   it('keeps a setProperty override authored, since the site is code', () => {
@@ -731,6 +733,10 @@ describe('a page finding carries what its repair needs', () => {
     expect(f.details).toEqual({
       specifier: '@motion-proto/live-tokens/src/system/components/Card.svelte',
       public: '@motion-proto/live-tokens/components/Card.svelte',
+      patch: {
+        from: '@motion-proto/live-tokens/src/system/components/Card.svelte',
+        to: '@motion-proto/live-tokens/components/Card.svelte',
+      },
     });
     expect(f.repair).toBeUndefined();
   });

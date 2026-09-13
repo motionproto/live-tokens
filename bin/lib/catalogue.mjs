@@ -33,9 +33,9 @@ export function publicSubpaths() {
  */
 export function deepImportRepair(specifier) {
   const m = DEEP_COMPONENT.exec(specifier);
-  return m
-    ? { details: { specifier, public: `${PKG}/components/${m[1]}` } }
-    : { details: { specifier, exports: publicSubpaths() }, repair: 'choice' };
+  if (!m) return { details: { specifier, exports: publicSubpaths() }, repair: 'choice' };
+  const publicSpecifier = `${PKG}/components/${m[1]}`;
+  return { details: { specifier, public: publicSpecifier, patch: { from: specifier, to: publicSpecifier } } };
 }
 
 /** The runtime file's leading HTML comment, which is where a component says what

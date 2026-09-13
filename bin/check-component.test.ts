@@ -1572,6 +1572,7 @@ describe('a component finding carries what its repair needs', () => {
     expect(f.details).toEqual({
       scale: 'radius',
       literals: [{ value: '4px', px: 4, candidates: [{ token: '--radius-md', px: 8, shift: 4 }] }],
+      patch: { from: '4px', to: 'var(--radius-md)' },
     });
     expect(f.repair).toBeUndefined();
   });

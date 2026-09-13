@@ -52,7 +52,7 @@ export function isExcluded(relPath, root) {
  * Unrecognised flags are returned in `rest` for the caller to handle.
  */
 export function parseCheckFlags(argv) {
-  const opts = { off: [], warn: [], error: [], strict: false, json: false, tests: false, rest: [] };
+  const opts = { off: [], warn: [], error: [], strict: false, json: false, tests: false, fix: false, rest: [] };
   for (const arg of argv) {
     const m = arg.match(/^--(off|warn|error)=(.+)$/);
     if (m) {
@@ -60,6 +60,7 @@ export function parseCheckFlags(argv) {
     } else if (arg === '--strict') opts.strict = true;
     else if (arg === '--json') opts.json = true;
     else if (arg === '--tests') opts.tests = true;
+    else if (arg === '--fix') opts.fix = true;
     else opts.rest.push(arg);
   }
   return opts;

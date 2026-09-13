@@ -194,7 +194,7 @@ function tagAttributes(code, start) {
       }
       const inner = code.slice(i + 1, j).trim();
       if (inner.startsWith('...')) return null;
-      if (/^\w+$/.test(inner)) attrs.push({ name: inner, value: null, index: i });
+      if (/^\w+$/.test(inner)) attrs.push({ name: inner, value: null, index: i, end: j + 1 });
       i = j + 1;
       continue;
     }
@@ -223,9 +223,37 @@ function tagAttributes(code, start) {
         i += bare.length;
       }
     }
-    attrs.push({ name, value, index: at });
+    // `end` marks where this attribute's own text stops, so a fixer can delete
+    // exactly it without disturbing whatever follows in the tag.
+    attrs.push({ name, value, index: at, end: i });
   }
   return { attrs, end: tagEnd };
+}
+
+/** The exact text a fixer deletes for one attribute: its own span, plus one
+ *  leading whitespace char if present, so removal doesn't leave a double
+ *  space or a lone trailing one before the tag's `>`. */
+function attributeDeletion(code, index, end) {
+  const start = /\s/.test(code[index - 1] ?? '') ? index - 1 : index;
+  return { from: code.slice(start, end), to: '' };
+}
+
+/** A `--name: value;` CSS declaration, deleted whole. `index` may sit on the
+ *  boundary character before it (a style-block match keeps that char as its
+ *  own delimiter), so the search starts there and finds the declaration a
+ *  few characters in rather than requiring an exact start. */
+function declarationDeletion(text, name, index) {
+  const m = new RegExp(`${name}\\s*:\\s*[^;]+;`).exec(text.slice(index));
+  return m ? { from: m[0], to: '' } : null;
+}
+
+/** A `style:--name="value"` directive, deleted whole. `overrideAt` always
+ *  records `index` at the start of `style:` itself for this site. */
+function directiveDeletion(text, name, index) {
+  const m = new RegExp(`style:${name}=(["'])[^"']*\\1`).exec(text.slice(index));
+  if (!m) return null;
+  const start = /\s/.test(text[index - 1] ?? '') ? index - 1 : index;
+  return { from: text.slice(start, index + m[0].length), to: '' };
 }
 
 // The shipped component that owns each native control's paint.
@@ -295,7 +323,7 @@ function checkComponentUsage(code, imports, add) {
     for (const m of code.matchAll(re)) {
       const tag = tagAttributes(code, m.index);
       if (!tag) continue;
-      for (const { name, value, index } of tag.attrs) {
+      for (const { name, value, index, end } of tag.attrs) {
         if (name.includes(':') || name.startsWith('@') || name === 'children') continue;
         if (!props.props.has(name)) {
           add('unknown-prop', index, `${entry.name} has no prop '${name}'; it accepts ${[...props.props].join(', ')}`, {
@@ -314,7 +342,7 @@ function checkComponentUsage(code, imports, add) {
             'control-size',
             index,
             `${entry.name} ${value === null ? 'is sized here' : `size="${value}"`}. Drop it for the shipped default, or retune ${entry.name} for the whole project in /live-tokens/components.`,
-            { details: { site: 'attribute' } },
+            { details: { site: 'attribute', patch: attributeDeletion(code, index, end) } },
           );
         }
       }
@@ -512,12 +540,18 @@ function checkFile(file, text, vocab, root) {
   for (const [name, { index, site }] of overrideSites) {
     if (!vocab.componentTokens.has(name)) continue;
     const owner = componentTokenOwners(vocab).get(name) ?? 'a shipped component';
+    const patch =
+      site === 'declaration'
+        ? declarationDeletion(text, name, index)
+        : site === 'directive'
+          ? directiveDeletion(text, name, index)
+          : null;
     add(
       'property-override',
       index,
       `${name} overrides ${owner}'s token here instead of the whole project; retune it at /live-tokens/components.`,
       // A setProperty call is code around the value, not a value to delete.
-      { details: { site }, ...(site === 'script' ? { repair: 'authored' } : {}) },
+      { details: { site, ...(patch ? { patch } : {}) }, ...(site === 'script' ? { repair: 'authored' } : {}) },
     );
   }
 
@@ -590,7 +624,7 @@ function checkFile(file, text, vocab, root) {
           at(index),
           `${prop}: ${value}. Use a --space-*, --radius-*, --border-width-*, or --shadow-* token.`,
           {
-            details: { scale: resolved.scale, literals: resolved.literals },
+            details: { scale: resolved.scale, literals: resolved.literals, ...(resolved.patch ? { patch: resolved.patch } : {}) },
             ...(resolved.auto ? {} : { repair: 'choice' }),
           },
         );

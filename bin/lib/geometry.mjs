@@ -36,6 +36,14 @@ export function geometryScaleOfProperty(prop) {
   return null;
 }
 
+/** Each literal in `text` (fallback-stripped, the same text `from` names)
+ *  replaced by its one candidate's token. Only called once every literal is
+ *  unique, so `candidates[0]` is never a guess. */
+function rewriteLiterals(text, literals) {
+  let i = 0;
+  return text.replace(LITERAL, () => `var(${literals[i++].candidates[0].token})`);
+}
+
 /**
  * Every literal in a declaration, each with the nearest step of `scale`.
  *
@@ -51,8 +59,9 @@ export function resolveGeometryLiteral(value, scale, tokens = []) {
     if (px !== null) steps.push({ token: token.name, px });
   }
 
+  const stripped = stripVarFallbacks(value);
   const literals = [];
-  for (const m of stripVarFallbacks(value).matchAll(LITERAL)) {
+  for (const m of stripped.matchAll(LITERAL)) {
     const px = round(parseFloat(m[1]) * (m[2] === 'rem' ? REM_PX : 1));
     if (px === 0) continue;
     const nearest = steps.reduce((best, s) => Math.min(best, Math.abs(s.px - px)), Infinity);
@@ -62,9 +71,15 @@ export function resolveGeometryLiteral(value, scale, tokens = []) {
     literals.push({ value: m[0], px, candidates });
   }
 
+  const auto = literals.length > 0 && literals.every((l) => l.candidates.length === 1);
+  // `from` is the fallback-stripped text: when a real var() fallback sits
+  // alongside a flagged literal (no fixture exercises this), `from` will not
+  // appear verbatim in the source, so applying it finds nothing and skips
+  // rather than rewriting the wrong span.
   return {
     scale,
     literals,
-    auto: literals.length > 0 && literals.every((l) => l.candidates.length === 1),
+    auto,
+    patch: auto ? { from: stripped, to: rewriteLiterals(stripped, literals) } : null,
   };
 }

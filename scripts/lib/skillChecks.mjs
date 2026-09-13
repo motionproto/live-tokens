@@ -23,7 +23,13 @@ const MAX_FENCE_LINES = 40;
 
 // A flag whose owning skill leaves it out on purpose, keyed `verb --flag`, with
 // the reason. Declaring one keeps the check honest; deleting the check does not.
-const OMITTED_FLAGS = new Map();
+const OMITTED_FLAGS = new Map([
+  // --fix ships in the CLI ahead of the skill prose that teaches it; the next
+  // wave of check-compliance-simplification (docs/check-compliance-simplification.md)
+  // writes both skills onto it. Remove this pair once that wave lands.
+  ['check-component --fix', 'documented in a later wave of check-compliance-simplification'],
+  ['check-page --fix', 'documented in a later wave of check-compliance-simplification'],
+]);
 // A flag the CLI used to take. Nothing dispatches it, so USAGE cannot say it is
 // gone and the flag rule below has nothing to compare against; a skill still
 // naming one hands the model a command that exits 1.

@@ -411,7 +411,7 @@ function checkDefaultsAreSemantic({ blocks, runtime, editor, root, runtimePath, 
           `${rel}: ${name}: ${value} pins a raw dimension; use a --space-*, --radius-*, or --border-width-* token`,
           at,
           {
-            details: { scale: resolved.scale, literals: resolved.literals },
+            details: { scale: resolved.scale, literals: resolved.literals, ...(resolved.patch ? { patch: resolved.patch } : {}) },
             ...(resolved.auto ? {} : { repair: 'choice' }),
           },
         );

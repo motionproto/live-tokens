@@ -22,6 +22,7 @@ import { COMPONENT_RULES, checkComponent, discoverComponents, formatReport } fro
 import { PAGE_RULES, checkPages, discoverPages } from './check-page.mjs';
 import { resolvePageTestTargets } from './lib/pageRoutes.mjs';
 import { describeComponents, describeTokens, formatComponents, formatTokens } from './lib/catalogue.mjs';
+import { applyFixes } from './lib/fixers.mjs';
 import { buildReport, formatReport as formatProjectReport } from './lib/report.mjs';
 import { loadVocabulary } from './lib/tokenVocabulary.mjs';
 import {
@@ -98,6 +99,13 @@ check-component and check-page also accept:
                               (or set "checks": { "rules": {...} } in
                               live-tokens.config.json; "checks": { "exclude":
                               [...] } drops paths from discovery entirely)
+  --fix                       Apply every finding whose repair is auto (a
+                              deep import into a component, a raw dimension
+                              with one nearest design token, a shipped
+                              component's size prop, a semantic property
+                              overridden in place), then report what changed
+                              and re-check. Refused together with --tests:
+                              fix first, then verify.
   set-colors <base-colors.json> [--dry-run]
                               Build the theme's whole color identity from 10
                               OKLCH base colors (see the live-tokens-set-colors
@@ -209,6 +217,30 @@ function reportChecks(label, findings, checked, rules, opts, { coverage, hardFai
   process.exit(countBySeverity(resolved).errors === 0 && !hardFailure ? 0 : 1);
 }
 
+/** `--fix`: apply every `auto` patch the static findings already carry, then
+ *  report what changed against a fresh run over the fixed file, so a patch
+ *  already applied or a file that moved on is never double-reported. */
+function runFix(label, findings, checked, rules, opts, { exclude } = {}, recheck) {
+  const root = process.cwd();
+  const checksConfig = readChecksConfig(root);
+  const resolved = applySeverity(findings, rules, opts, checksConfig, { exclude });
+  const { applied, skipped } = applyFixes(resolved, root);
+  const remaining = applySeverity(recheck(), rules, opts, checksConfig, { exclude });
+  if (opts.json) {
+    const { errors, warnings } = countBySeverity(remaining);
+    console.log(JSON.stringify({ check: label, fix: { applied, skipped }, checked, errors, warnings, findings: remaining }, null, 2));
+  } else {
+    const lines = [`${label} --fix: ${applied.length} patch(es) applied, ${skipped.length} left unresolved.`];
+    for (const f of applied) {
+      lines.push(`  fixed    ${f.file}:${f.line}  ${f.details.patch.from} → ${f.details.patch.to || '(removed)'}  [${f.rule}]`);
+    }
+    for (const f of skipped) lines.push(`  skipped  ${f.file}:${f.line}  ${f.details.patch.from}  [${f.rule}]`);
+    lines.push('', formatFindings(remaining, { label, checked }));
+    console.log(lines.join('\n'));
+  }
+  process.exit(countBySeverity(remaining).errors === 0 ? 0 : 1);
+}
+
 if (command === 'components') {
   const opts = parseCheckFlags(rest);
   const list = describeComponents(loadVocabulary());
@@ -252,18 +284,26 @@ if (command === 'report') {
 
 if (command === 'check-component') {
   const opts = parseCheckFlags(rest);
+  if (opts.fix && opts.tests) {
+    fail('--fix cannot run with --tests. Fix the static findings first, then verify with --tests.');
+  }
   const ids = opts.rest.length > 0 ? [opts.rest[0]] : discoverComponents();
   if (ids.length === 0 && !opts.tests) {
     console.log('✓ check-component: no component authored under src/system/components yet.');
     process.exit(0);
   }
   const results = ids.map((id) => [id, checkComponent(id)]);
+  const label = ids.length === 1 ? `check-component ${ids[0]}${opts.tests ? ' --tests' : ''}` : `check-component${opts.tests ? ' --tests' : ''}`;
+  if (opts.fix) {
+    runFix(label, results.flatMap(([, r]) => r.findings), ids.length, COMPONENT_RULES, opts, {}, () =>
+      ids.flatMap((id) => checkComponent(id).findings),
+    );
+  }
   if (!opts.tests && ids.length === 1 && !opts.json && !opts.strict && opts.off.length + opts.warn.length + opts.error.length === 0) {
     const [id, result] = results[0];
     console.log(formatReport(id, result));
     process.exit(result.errors.length === 0 ? 0 : 1);
   }
-  const label = ids.length === 1 ? `check-component ${ids[0]}${opts.tests ? ' --tests' : ''}` : `check-component${opts.tests ? ' --tests' : ''}`;
   if (!opts.tests) {
     reportChecks(label, results.flatMap(([, r]) => r.findings), ids.length, COMPONENT_RULES, opts);
   }
@@ -278,8 +318,14 @@ if (command === 'check-component') {
 
 if (command === 'check-page') {
   const opts = parseCheckFlags(rest);
+  if (opts.fix && opts.tests) {
+    fail('--fix cannot run with --tests. Fix the static findings first, then verify with --tests.');
+  }
   const targets = opts.rest.length > 0 ? opts.rest : discoverPages(process.cwd());
   const { findings, checked } = checkPages(targets, { root: process.cwd() });
+  if (opts.fix) {
+    runFix('check-page', findings, checked, PAGE_RULES, opts, { exclude: true }, () => checkPages(targets, { root: process.cwd() }).findings);
+  }
   if (!opts.tests) {
     reportChecks('check-page', findings, checked, PAGE_RULES, opts, { exclude: true });
   }
