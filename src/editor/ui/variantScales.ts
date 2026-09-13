@@ -102,10 +102,10 @@ export const SHADOW: VariantScaleEntry = {
   ],
 };
 
-/** Used by `*-divider-height` / `*-track-height` variables; values come from the `--space-*` scale,
- *  not a dedicated `--divider-height-*` scale. The label-set differs from BORDER_WIDTH so a divider
- *  can pick from larger heights (up to 100%). */
-export const DIVIDER_HEIGHT: VariantScaleEntry = {
+/** Used by `*-track-height` variables; values come from the `--space-*` scale,
+ *  not a dedicated height scale. The label-set differs from BORDER_WIDTH so a
+ *  track can pick from larger heights (up to 100%). */
+export const TRACK_HEIGHT: VariantScaleEntry = {
   varPrefix: '--space-',
   options: [
     { key: '0', label: 'None', value: '0px' },
@@ -135,12 +135,12 @@ export const DURATION: VariantScaleEntry = {
   ],
 };
 
-/** Used by `*-divider-inset` variables (margin-block trimmed off a stretched
- *  divider). Labels describe the resulting divider, not the inset value: 0
- *  inset = bar-height divider ("Full"); larger insets = shorter divider.
+/** Used by `*-hairline-inset` variables (margin-block trimmed off a stretched
+ *  hairline). Labels describe the resulting line, not the inset value: 0
+ *  inset = bar-height line ("Full"); larger insets = shorter line.
  *  Replaces the percentage-height approach that collapsed to 0 in
  *  auto-height flex parents. */
-export const DIVIDER_INSET: VariantScaleEntry = {
+export const HAIRLINE_INSET: VariantScaleEntry = {
   varPrefix: '--space-',
   options: [
     { key: '0', label: 'Full', value: '0px' },

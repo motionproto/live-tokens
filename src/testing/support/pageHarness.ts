@@ -92,9 +92,9 @@ interface PaintEntry {
  * A class token names a variant when it is the variant's own word or carries
  * it as a suffix: the three spellings the shipped components use are bare
  * (`button primary`), component-prefixed (`badge badge-primary`), and
- * axis-prefixed (`es-root variant-divider`). A contract's variant label is the
- * editor's prose (`With Divider`), so each of its words is a key as well as
- * the whole label, which is what reaches the `divider` the markup spells.
+ * axis-prefixed (`es-root variant-hairline`). A contract's variant label is the
+ * editor's prose (`With Hairline`), so each of its words is a key as well as
+ * the whole label, which is what reaches the `hairline` the markup spells.
  */
 function variantPattern(label: string | undefined | null): string | null {
   if (!label) return null;

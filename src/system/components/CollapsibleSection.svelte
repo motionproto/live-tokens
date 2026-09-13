@@ -6,7 +6,7 @@
     useFor: 'secondary content that most readers skip.',
     notFor: 'content every reader needs (Card); moving between pages (SideNavigation).',
     props: {
-      variant: '`chromeless` sits inside other content, `divider` draws a hairline under the header, `container` frames the whole section.',
+      variant: '`chromeless` sits inside other content, `hairline` draws a line under the header, `container` frames the whole section.',
     },
   } satisfies CatalogueEntry;
 </script>
@@ -18,7 +18,7 @@
       label: string;
       expanded?: boolean;
       href?: string | undefined;
-      variant?: 'chromeless' | 'divider' | 'container';
+      variant?: 'chromeless' | 'hairline' | 'container';
       /** false → the section stops pinning body typography so the consumer fully owns slotted content's styling. */
       prose?: boolean;
       class?: string;
@@ -124,32 +124,32 @@
       /* Chromeless — expanded */
       --collapsiblesection-chromeless-expanded-padding: var(--space-4);
 
-      /* Divider — default */
-      --collapsiblesection-divider-default-surface: var(--color-transparent);
-      --collapsiblesection-divider-default-hairline-color: var(--border-brand);
-      --collapsiblesection-divider-default-hairline-thickness: var(--border-width-1);
-      --collapsiblesection-divider-default-padding: var(--space-4);
-      --collapsiblesection-divider-default-label: var(--text-primary);
-      --collapsiblesection-divider-default-label-font-family: var(--font-sans);
-      --collapsiblesection-divider-default-label-font-size: var(--font-size-md);
-      --collapsiblesection-divider-default-label-font-weight: var(--font-weight-normal);
-      --collapsiblesection-divider-default-label-line-height: var(--line-height-normal);
-      --collapsiblesection-divider-default-icon: var(--text-primary);
-      --collapsiblesection-divider-default-icon-size: var(--icon-size-xs);
-      /* Divider — hover */
-      --collapsiblesection-divider-hover-surface: var(--color-transparent);
-      --collapsiblesection-divider-hover-hairline-color: var(--border-neutral);
-      --collapsiblesection-divider-hover-hairline-thickness: var(--border-width-1);
-      --collapsiblesection-divider-hover-padding: var(--space-4);
-      --collapsiblesection-divider-hover-label: var(--text-primary);
-      --collapsiblesection-divider-hover-label-font-family: var(--font-sans);
-      --collapsiblesection-divider-hover-label-font-size: var(--font-size-md);
-      --collapsiblesection-divider-hover-label-font-weight: var(--font-weight-normal);
-      --collapsiblesection-divider-hover-label-line-height: var(--line-height-normal);
-      --collapsiblesection-divider-hover-icon: var(--text-primary);
-      --collapsiblesection-divider-hover-icon-size: var(--icon-size-xs);
-      /* Divider — expanded */
-      --collapsiblesection-divider-expanded-padding: var(--space-4);
+      /* Hairline — default */
+      --collapsiblesection-hairline-default-surface: var(--color-transparent);
+      --collapsiblesection-hairline-default-hairline-color: var(--border-brand);
+      --collapsiblesection-hairline-default-hairline-width: var(--border-width-1);
+      --collapsiblesection-hairline-default-padding: var(--space-4);
+      --collapsiblesection-hairline-default-label: var(--text-primary);
+      --collapsiblesection-hairline-default-label-font-family: var(--font-sans);
+      --collapsiblesection-hairline-default-label-font-size: var(--font-size-md);
+      --collapsiblesection-hairline-default-label-font-weight: var(--font-weight-normal);
+      --collapsiblesection-hairline-default-label-line-height: var(--line-height-normal);
+      --collapsiblesection-hairline-default-icon: var(--text-primary);
+      --collapsiblesection-hairline-default-icon-size: var(--icon-size-xs);
+      /* Hairline — hover */
+      --collapsiblesection-hairline-hover-surface: var(--color-transparent);
+      --collapsiblesection-hairline-hover-hairline-color: var(--border-neutral);
+      --collapsiblesection-hairline-hover-hairline-width: var(--border-width-1);
+      --collapsiblesection-hairline-hover-padding: var(--space-4);
+      --collapsiblesection-hairline-hover-label: var(--text-primary);
+      --collapsiblesection-hairline-hover-label-font-family: var(--font-sans);
+      --collapsiblesection-hairline-hover-label-font-size: var(--font-size-md);
+      --collapsiblesection-hairline-hover-label-font-weight: var(--font-weight-normal);
+      --collapsiblesection-hairline-hover-label-line-height: var(--line-height-normal);
+      --collapsiblesection-hairline-hover-icon: var(--text-primary);
+      --collapsiblesection-hairline-hover-icon-size: var(--icon-size-xs);
+      /* Hairline — expanded */
+      --collapsiblesection-hairline-expanded-padding: var(--space-4);
 
       /* Container — frame (always-on outer chrome) */
       --collapsiblesection-container-frame-border: var(--border-neutral);
@@ -256,8 +256,8 @@
       }
    }
 
-   @mixin divider-bottom($state) {
-      border-bottom: var(--collapsiblesection-divider-#{$state}-hairline-thickness) solid var(--collapsiblesection-divider-#{$state}-hairline-color);
+   @mixin hairline-bottom($state) {
+      border-bottom: var(--collapsiblesection-hairline-#{$state}-hairline-width) solid var(--collapsiblesection-hairline-#{$state}-hairline-color);
    }
 
    .es-root.variant-chromeless {
@@ -271,21 +271,21 @@
       }
    }
 
-   .es-root.variant-divider {
+   .es-root.variant-hairline {
       > .section-header {
-         @include header-paint(divider, default);
-         @include divider-bottom(default);
+         @include header-paint(hairline, default);
+         @include hairline-bottom(default);
          &:hover {
-            @include header-paint(divider, hover);
-            @include divider-bottom(hover);
+            @include header-paint(hairline, hover);
+            @include hairline-bottom(hover);
          }
       }
       &.force-hover > .section-header {
-         @include header-paint(divider, hover);
-         @include divider-bottom(hover);
+         @include header-paint(hairline, hover);
+         @include hairline-bottom(hover);
       }
       > .section-content {
-         @include themed-padding(--collapsiblesection-divider-expanded-padding, $h: 2);
+         @include themed-padding(--collapsiblesection-hairline-expanded-padding, $h: 2);
       }
    }
 

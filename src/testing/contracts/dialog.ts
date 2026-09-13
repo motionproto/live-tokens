@@ -28,8 +28,8 @@ export const dialogContract: ComponentContract = {
         },
         header: {
           backgroundColor: '--dialog-header-surface',
-          borderBottomColor: '--dialog-header-divider',
-          borderBottomWidth: '--dialog-header-divider-width',
+          borderBottomColor: '--dialog-header-hairline-color',
+          borderBottomWidth: '--dialog-header-hairline-width',
           paddingTop: '--dialog-header-padding',
         },
         title: {
@@ -52,8 +52,8 @@ export const dialogContract: ComponentContract = {
           lineHeight: '--dialog-body-line-height',
         },
         footer: {
-          borderTopColor: '--dialog-footer-divider',
-          borderTopWidth: '--dialog-footer-divider-width',
+          borderTopColor: '--dialog-footer-hairline-color',
+          borderTopWidth: '--dialog-footer-hairline-width',
           paddingTop: '--dialog-footer-padding',
         },
       },

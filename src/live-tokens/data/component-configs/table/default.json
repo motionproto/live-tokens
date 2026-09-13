@@ -16,8 +16,8 @@
     "--table-default-header-font-weight": "--font-weight-semibold",
     "--table-default-header-line-height": "--line-height-none",
     "--table-default-header-padding": "--space-12",
-    "--table-default-header-divider": "--border-neutral",
-    "--table-default-header-divider-width": "--border-width-1",
+    "--table-default-header-hairline-color": "--border-neutral",
+    "--table-default-header-hairline-width": "--border-width-1",
     "--table-default-cell-text": "--text-secondary",
     "--table-default-cell-font-family": "--font-sans",
     "--table-default-cell-font-size": "--font-size-md",
@@ -25,11 +25,11 @@
     "--table-default-cell-line-height": "--line-height-normal",
     "--table-default-cell-padding": "--space-8",
     "--table-default-row-surface": "--color-transparent",
-    "--table-default-row-divider": "--border-neutral-subtle",
-    "--table-default-row-divider-width": "--border-width-1",
+    "--table-default-row-hairline-color": "--border-neutral-subtle",
+    "--table-default-row-hairline-width": "--border-width-1",
     "--table-default-row-stripe-surface": "--color-transparent",
-    "--table-default-column-divider": "--border-neutral-faint",
-    "--table-default-column-divider-width": "--border-width-1"
+    "--table-default-column-hairline-color": "--border-neutral-faint",
+    "--table-default-column-hairline-width": "--border-width-1"
   },
-  "schemaVersion": 28
+  "schemaVersion": 29
 }

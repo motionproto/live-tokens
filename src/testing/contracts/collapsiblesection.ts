@@ -10,9 +10,9 @@ function headerPaints(v: string, s: 'default' | 'hover'): PaintMap {
     backgroundColor: `${p}-surface`,
     paddingTop: `${p}-padding`,
   };
-  if (v === 'divider') {
+  if (v === 'hairline') {
     header.borderBottomColor = `${p}-hairline-color`;
-    header.borderBottomWidth = `${p}-hairline-thickness`;
+    header.borderBottomWidth = `${p}-hairline-width`;
   }
   return {
     header,
@@ -62,9 +62,9 @@ export const collapsibleSectionContract: ComponentContract = {
     { variant: 'Chromeless', state: 'Header', paints: headerPaints('chromeless', 'default') },
     { variant: 'Chromeless', state: 'Header', setup: clickHover(), paints: headerPaints('chromeless', 'hover') },
     { variant: 'Chromeless', state: 'Body', paints: { body: { paddingTop: '--collapsiblesection-chromeless-expanded-padding' } } },
-    { variant: 'With Divider', state: 'Header', paints: headerPaints('divider', 'default') },
-    { variant: 'With Divider', state: 'Header', setup: clickHover(), paints: headerPaints('divider', 'hover') },
-    { variant: 'With Divider', state: 'Body', paints: { body: { paddingTop: '--collapsiblesection-divider-expanded-padding' } } },
+    { variant: 'With Hairline', state: 'Header', paints: headerPaints('hairline', 'default') },
+    { variant: 'With Hairline', state: 'Header', setup: clickHover(), paints: headerPaints('hairline', 'hover') },
+    { variant: 'With Hairline', state: 'Body', paints: { body: { paddingTop: '--collapsiblesection-hairline-expanded-padding' } } },
   ],
   states: [{ state: 'Container' }, { state: 'Header' }, { state: 'Body' }],
   persistence: {

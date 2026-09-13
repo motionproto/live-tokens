@@ -17,8 +17,7 @@ to that list, so the two cannot drift apart.
 | `-icon`     | Icon color                                                    |
 | `-label`    | Label text color                                              |
 | `-fill`     | Inner fill (distinct from outer surface)                      |
-| `-divider`  | Divider / separator color                                     |
-| `-color`    | Generic color, when none of the above name the role           |
+| `-color`    | A hairline rule's colour, or a color no role word above names |
 | `-shadow`   | Box-shadow                                                    |
 | `-opacity`  | Opacity (0–1)                                                 |
 | `-blur`     | Backdrop or filter blur radius                                |
@@ -42,21 +41,16 @@ to that list, so the two cannot drift apart.
 |-----------------|---------------------------------------------------------------|
 | `-radius`       | Corner radius                                                 |
 | `-border-width` | Stroke thickness (used even when CSS uses `outline:`)         |
-| `-thickness`    | Alternative to `-width` when fallback siblings would collide  |
 | `-accent-width` | An accent bar's thickness                                     |
 | `-indicator-width` | An indicator's thickness, moved with `-accent-width`      |
-| `-hairline-thickness` | A hairline rule's thickness                             |
+| `-hairline-width` | A hairline rule's thickness                               |
 | `-dot-size`     | A dot indicator's diameter                                    |
-| `-divider-width` | A divider's thickness                                        |
-| `-divider-thickness` | Alternative to `-divider-width`                          |
-| `-divider-height` | A divider's length                                          |
-| `-divider-inset` | Inset trimmed from a stretched divider                       |
+| `-hairline-inset` | Inset trimmed from a stretched hairline                     |
 | `-track-height` | A track's height (progress bar, slider)                       |
 | `-icon-size`    | An icon's rendered size                                       |
 | `-thumb-size`   | A thumb's rendered size                                       |
 | `-height`       | A measured height (a track, a panel)                          |
 | `-margin`       | Outer spacing, moved on the same scale as `-padding`          |
-| `-inset`        | Inset trimmed from a stretched element                        |
 | `-duration`     | Motion duration                                               |
 | `-easing`       | Motion easing curve                                           |
 | `-scale`        | A transform scale factor                                      |
@@ -67,7 +61,7 @@ to that list, so the two cannot drift apart.
 
 `-width`, `-height` and `-size` are the fall-through: any dimension with no
 more specific name behind it. They read the `--space-*` scale through the same
-picker `-gap` uses, and they match last, so `-border-width`, `-divider-height`,
+picker `-gap` uses, and they match last, so `-border-width`, `-hairline-width`,
 `-icon-size` and the rest claim their token first. Reach for the specific name
 when one fits; a stroke is `-border-width` even where the CSS says `outline:`.
 

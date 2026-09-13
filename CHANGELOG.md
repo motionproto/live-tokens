@@ -68,6 +68,19 @@
   class on a radio row, a tab, and a rail part is `.selected`. A saved theme
   or component config is renamed on load. `active` stays the pressed state,
   so Button's and IconButton's `--*-outline-active-*` are untouched.
+- **One hairline.** The line a component draws between its parts is
+  `-hairline-color` and its width is `-hairline-width` everywhere. Dialog's,
+  Table's, and TabBar's `-divider` and `-divider-width`, SegmentedControl's
+  `-divider-color`, `-divider-thickness`, and `-divider-inset`,
+  CollapsibleSection's twenty-three `--collapsiblesection-divider-*`, and
+  SectionDivider's three `-hairline-thickness` are renamed on load.
+  CollapsibleSection's `variant="divider"` is `variant="hairline"`, and its
+  class is `.variant-hairline`. `check-component` no longer accepts the
+  suffixes `-thickness`, `-divider`, `-divider-width`, `-divider-thickness`,
+  `-hairline-thickness`, `-divider-height`, `-divider-inset`, or `-inset`; a
+  property carrying one is a naming finding. The `set-geometry` op kind
+  `divider-width` is `hairline-width`, and an ops file naming the old kind is
+  rejected.
 
 ### Changed
 

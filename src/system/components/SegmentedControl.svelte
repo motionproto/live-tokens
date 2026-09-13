@@ -64,7 +64,7 @@
 >
   {#each segments as seg, i (seg.value)}
     {#if i > 0}
-      <span class="segment-divider" aria-hidden="true"></span>
+      <span class="segment-hairline" aria-hidden="true"></span>
     {/if}
     <button
       type="button"
@@ -99,11 +99,11 @@
     --segmentedcontrol-bar-padding: var(--space-4);
     --segmentedcontrol-bar-gap: var(--space-8);
 
-    /* Divider (line between non-selected options). Inset is the top + bottom
-       margin trimmed from the divider; 0 = bar-height divider. */
-    --segmentedcontrol-divider-color: var(--border-neutral);
-    --segmentedcontrol-divider-thickness: var(--border-width-1);
-    --segmentedcontrol-divider-inset: var(--space-6);
+    /* Hairline (line between non-selected options). Inset is the top + bottom
+       margin trimmed from the line; 0 = bar-height line. */
+    --segmentedcontrol-hairline-color: var(--border-neutral);
+    --segmentedcontrol-hairline-width: var(--border-width-1);
+    --segmentedcontrol-hairline-inset: var(--space-6);
 
     /* Option (inner button) — shape applies to every state */
     --segmentedcontrol-option-padding: var(--space-8);
@@ -154,8 +154,8 @@
        values so existing state-specific cascades flow through unchanged. */
     --segmentedcontrol-bar-small-padding: var(--space-2);
     --segmentedcontrol-bar-small-radius: var(--radius-md);
-    --segmentedcontrol-small-divider-inset: var(--space-4);
-    --segmentedcontrol-small-divider-thickness: var(--border-width-1);
+    --segmentedcontrol-small-hairline-inset: var(--space-4);
+    --segmentedcontrol-small-hairline-width: var(--border-width-1);
     --segmentedcontrol-option-small-padding: var(--space-6);
     --segmentedcontrol-option-small-gap: var(--space-6);
     --segmentedcontrol-option-small-icon-size: var(--icon-size-sm);
@@ -192,8 +192,8 @@
     --segmentedcontrol-bar-padding-left: var(--segmentedcontrol-bar-small-padding-left, var(--segmentedcontrol-bar-small-padding));
     --segmentedcontrol-bar-radius: var(--segmentedcontrol-bar-small-radius);
 
-    --segmentedcontrol-divider-inset: var(--segmentedcontrol-small-divider-inset);
-    --segmentedcontrol-divider-thickness: var(--segmentedcontrol-small-divider-thickness);
+    --segmentedcontrol-hairline-inset: var(--segmentedcontrol-small-hairline-inset);
+    --segmentedcontrol-hairline-width: var(--segmentedcontrol-small-hairline-width);
 
     --segmentedcontrol-option-padding: var(--segmentedcontrol-option-small-padding);
     --segmentedcontrol-option-padding-top: var(--segmentedcontrol-option-small-padding-top, var(--segmentedcontrol-option-small-padding));
@@ -259,21 +259,21 @@
     transition: color var(--duration-150);
   }
 
-  /* Divider between adjacent segments. Stretches to the bar's cross-axis size
+  /* Hairline between adjacent segments. Stretches to the bar's cross-axis size
      by inheriting the parent's `align-items: stretch`; an explicit margin-block
      trims top + bottom so "Full" (0 inset) gives a bar-height line and larger
      insets give shorter ones. Avoids the percentage-height collapse that bit us
-     when the divider was `align-self: center; height: 100%`.
+     when the line was `align-self: center; height: 100%`.
      Negative inline margins absorb the surrounding flex gap so seg-to-seg
      distance stays var(--bar-gap). */
-  .segment-divider {
+  .segment-hairline {
     flex-shrink: 0;
-    width: var(--segmentedcontrol-divider-thickness);
-    margin-block: var(--segmentedcontrol-divider-inset);
+    width: var(--segmentedcontrol-hairline-width);
+    margin-block: var(--segmentedcontrol-hairline-inset);
     margin-inline: calc(
-      var(--segmentedcontrol-bar-gap) * -0.5 - var(--segmentedcontrol-divider-thickness) * 0.5
+      var(--segmentedcontrol-bar-gap) * -0.5 - var(--segmentedcontrol-hairline-width) * 0.5
     );
-    background: var(--segmentedcontrol-divider-color);
+    background: var(--segmentedcontrol-hairline-color);
     pointer-events: none;
   }
 

@@ -9,7 +9,7 @@
   import UIPaddingSelector from '../../ui/UIPaddingSelector.svelte';
   import UILetterSpacingSelector from '../../ui/UILetterSpacingSelector.svelte';
   import UIEasingSelector from '../../ui/UIEasingSelector.svelte';
-  import { BLUR, BORDER_WIDTH, DOT_SIZE, DURATION, RADIUS, SCALE, SHADOW, DIVIDER_HEIGHT, DIVIDER_INSET } from '../../ui/variantScales';
+  import { BLUR, BORDER_WIDTH, DOT_SIZE, DURATION, RADIUS, SCALE, SHADOW, TRACK_HEIGHT, HAIRLINE_INSET } from '../../ui/variantScales';
   import {
     editorState,
     getComponentPropertySiblings,
@@ -68,8 +68,8 @@
     'font-size',
     'line-height',
     'letter-spacing',
-    'divider-height',
-    'divider-inset',
+    'track-height',
+    'hairline-inset',
     'dot-size',
     'length',
     'radius',
@@ -84,7 +84,7 @@
     'text-color',
     'surface',
     'border-width',
-    'divider-width',
+    'hairline-width',
     'accent-width',
     'border',
   ];
@@ -135,10 +135,10 @@
     'line-height': { component: UILineHeightSelector },
     'letter-spacing': { component: UILetterSpacingSelector },
     'border-width': { component: UIVariantSelector, extra: () => ({ ...BORDER_WIDTH }) },
-    'divider-width': { component: UIVariantSelector, extra: () => ({ ...BORDER_WIDTH }) },
+    'hairline-width': { component: UIVariantSelector, extra: () => ({ ...BORDER_WIDTH }) },
     'accent-width': { component: UIVariantSelector, extra: () => ({ ...BORDER_WIDTH }) },
-    'divider-height': { component: UIVariantSelector, extra: () => ({ ...DIVIDER_HEIGHT }) },
-    'divider-inset': { component: UIVariantSelector, extra: () => ({ ...DIVIDER_INSET }) },
+    'track-height': { component: UIVariantSelector, extra: () => ({ ...TRACK_HEIGHT }) },
+    'hairline-inset': { component: UIVariantSelector, extra: () => ({ ...HAIRLINE_INSET }) },
     'dot-size': { component: UIVariantSelector, extra: () => ({ ...DOT_SIZE }) },
     'radius': { component: UIVariantSelector, extra: () => ({ ...RADIUS }) },
     'padding': { component: UIPaddingSelector, extra: (t) => ({ mode: 'single', splittable: t.splittable !== false }) },
@@ -167,7 +167,7 @@
   };
 
   /** Multi-col rank: same as `orderRank` but with `text-color` hoisted between
-      `line-height` and `divider-height` so typography reads as one logical block
+      `line-height` and `track-height` so typography reads as one logical block
       in column flow. Single-col mode keeps `orderRank` (linked-first sort
       already segregates text-color to the bottom). */
   const multiColRank: Record<Kind, number> = (() => {
@@ -178,8 +178,8 @@
       'line-height',
       'letter-spacing',
       'text-color',
-      'divider-height',
-      'divider-inset',
+      'track-height',
+      'hairline-inset',
       'dot-size',
       'length',
       'radius',
@@ -193,7 +193,7 @@
       'shadow',
       'surface',
       'border-width',
-      'divider-width',
+      'hairline-width',
       'accent-width',
       'border',
     ];

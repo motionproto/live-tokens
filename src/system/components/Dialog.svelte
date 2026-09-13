@@ -189,8 +189,8 @@
 
     /* Header */
     --dialog-header-surface: var(--surface-neutral-lower);
-    --dialog-header-divider: var(--border-neutral-subtle);
-    --dialog-header-divider-width: var(--border-width-1);
+    --dialog-header-hairline-color: var(--border-neutral-subtle);
+    --dialog-header-hairline-width: var(--border-width-1);
     --dialog-header-padding: var(--space-8);
 
     /* Title */
@@ -213,8 +213,8 @@
     --dialog-body-line-height: var(--line-height-normal);
 
     /* Footer */
-    --dialog-footer-divider: var(--border-neutral-subtle);
-    --dialog-footer-divider-width: var(--border-width-1);
+    --dialog-footer-hairline-color: var(--border-neutral-subtle);
+    --dialog-footer-hairline-width: var(--border-width-1);
     --dialog-footer-padding: var(--space-16);
   }
 
@@ -274,7 +274,7 @@
       var(--dialog-header-padding-right, calc(var(--dialog-header-padding) * 3))
       var(--dialog-header-padding-bottom, var(--dialog-header-padding))
       var(--dialog-header-padding-left, calc(var(--dialog-header-padding) * 3));
-    border-bottom: var(--dialog-header-divider-width) solid var(--dialog-header-divider);
+    border-bottom: var(--dialog-header-hairline-width) solid var(--dialog-header-hairline-color);
     background: var(--dialog-header-surface);
     display: flex;
     justify-content: space-between;
@@ -330,7 +330,7 @@
       var(--dialog-footer-padding-right, var(--dialog-footer-padding))
       var(--dialog-footer-padding-bottom, var(--dialog-footer-padding))
       var(--dialog-footer-padding-left, var(--dialog-footer-padding));
-    border-top: var(--dialog-footer-divider-width) solid var(--dialog-footer-divider);
+    border-top: var(--dialog-footer-hairline-width) solid var(--dialog-footer-hairline-color);
     display: flex;
     justify-content: space-between;
     align-items: center;

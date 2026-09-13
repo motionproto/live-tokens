@@ -100,7 +100,7 @@ describe('restingPaintSpec', () => {
 
   it('reaches a variant the markup spells by value and the contract labels in prose', () => {
     const spec = restingPaintSpec(collapsibleSectionContract);
-    expect(variantsReached(spec, ['es-root', 'variant-divider'])).toEqual(['with divider']);
+    expect(variantsReached(spec, ['es-root', 'variant-hairline'])).toEqual(['with hairline']);
     expect(variantsReached(spec, ['es-root', 'variant-container'])).toEqual(['container']);
   });
 

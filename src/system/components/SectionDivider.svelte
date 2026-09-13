@@ -136,7 +136,7 @@
     --sectiondivider-lg-radius: var(--radius-lg);
     --sectiondivider-lg-border-width: var(--border-width-1);
     --sectiondivider-lg-shadow: var(--shadow-none);
-    --sectiondivider-lg-hairline-thickness: var(--border-width-1);
+    --sectiondivider-lg-hairline-width: var(--border-width-1);
     --sectiondivider-lg-background: var(--color-transparent);
     --sectiondivider-lg-title: var(--text-primary);
     --sectiondivider-lg-description: var(--text-alternate);
@@ -165,7 +165,7 @@
     --sectiondivider-md-radius: var(--radius-lg);
     --sectiondivider-md-border-width: var(--border-width-1);
     --sectiondivider-md-shadow: var(--shadow-none);
-    --sectiondivider-md-hairline-thickness: var(--border-width-1);
+    --sectiondivider-md-hairline-width: var(--border-width-1);
     --sectiondivider-md-background: var(--color-transparent);
     --sectiondivider-md-title: var(--text-primary);
     --sectiondivider-md-description: var(--text-secondary);
@@ -194,7 +194,7 @@
     --sectiondivider-sm-radius: var(--radius-lg);
     --sectiondivider-sm-border-width: var(--border-width-1);
     --sectiondivider-sm-shadow: var(--shadow-none);
-    --sectiondivider-sm-hairline-thickness: var(--border-width-1);
+    --sectiondivider-sm-hairline-width: var(--border-width-1);
     --sectiondivider-sm-background: var(--color-transparent);
     --sectiondivider-sm-title: var(--text-brand);
     --sectiondivider-sm-description: var(--text-secondary);
@@ -270,7 +270,7 @@
     --_divider-radius: var(--sectiondivider-lg-radius);
     --_divider-border-width: var(--sectiondivider-lg-border-width);
     --_divider-shadow: var(--sectiondivider-lg-shadow);
-    --_divider-hairline-thickness: var(--sectiondivider-lg-hairline-thickness);
+    --_divider-hairline-width: var(--sectiondivider-lg-hairline-width);
     --_divider-bg: var(--sectiondivider-lg-background);
     --_divider-title: var(--sectiondivider-lg-title);
     --_divider-description: var(--sectiondivider-lg-description);
@@ -305,7 +305,7 @@
     --_divider-radius: var(--sectiondivider-md-radius);
     --_divider-border-width: var(--sectiondivider-md-border-width);
     --_divider-shadow: var(--sectiondivider-md-shadow);
-    --_divider-hairline-thickness: var(--sectiondivider-md-hairline-thickness);
+    --_divider-hairline-width: var(--sectiondivider-md-hairline-width);
     --_divider-bg: var(--sectiondivider-md-background);
     --_divider-title: var(--sectiondivider-md-title);
     --_divider-description: var(--sectiondivider-md-description);
@@ -340,7 +340,7 @@
     --_divider-radius: var(--sectiondivider-sm-radius);
     --_divider-border-width: var(--sectiondivider-sm-border-width);
     --_divider-shadow: var(--sectiondivider-sm-shadow);
-    --_divider-hairline-thickness: var(--sectiondivider-sm-hairline-thickness);
+    --_divider-hairline-width: var(--sectiondivider-sm-hairline-width);
     --_divider-bg: var(--sectiondivider-sm-background);
     --_divider-title: var(--sectiondivider-sm-title);
     --_divider-description: var(--sectiondivider-sm-description);
@@ -483,7 +483,7 @@
   .sd-hairline {
     display: none;
     background: var(--_divider-hairline-color);
-    height: var(--_divider-hairline-thickness);
+    height: var(--_divider-hairline-width);
   }
   .sd-hairline--row {
     width: 100%;

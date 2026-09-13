@@ -34,9 +34,9 @@ function fixture(): Record<string, ComponentConfig> {
     }),
     table: config('table', {
       '--table-default-border-width': '--border-width-1',
-      '--table-default-header-divider-width': '--border-width-1',
-      '--table-default-row-divider-width': '--border-width-1',
-      '--table-default-hairline-thickness': '--border-width-1',
+      '--table-default-header-hairline-width': '--border-width-1',
+      '--table-default-row-hairline-width': '--border-width-1',
+      '--table-default-hairline-width': '--border-width-1',
       '--table-default-accent-width': '--border-width-3',
       '--table-default-tab-border-width': '--border-width-0',
     }),
@@ -202,15 +202,15 @@ describe('adjustAliases', () => {
   it('moves each stroke role on its own kind', () => {
     const { configs } = adjustAliases(fixture(), [{ kind: 'border-width', shift: 1 }], NOW);
     expect(configs.table.aliases['--table-default-border-width']).toBe('--border-width-2');
-    expect(configs.table.aliases['--table-default-header-divider-width']).toBe('--border-width-1');
+    expect(configs.table.aliases['--table-default-header-hairline-width']).toBe('--border-width-1');
     expect(configs.table.aliases['--table-default-accent-width']).toBe('--border-width-3');
 
-    const dividers = adjustAliases(fixture(), [{ kind: 'divider-width', shift: 1 }], NOW).configs;
-    expect(dividers.table.aliases['--table-default-border-width']).toBe('--border-width-1');
-    expect(dividers.table.aliases['--table-default-header-divider-width']).toBe('--border-width-2');
-    expect(dividers.table.aliases['--table-default-row-divider-width']).toBe('--border-width-2');
-    expect(dividers.table.aliases['--table-default-hairline-thickness']).toBe('--border-width-2');
-    expect(dividers.table.aliases['--table-default-accent-width']).toBe('--border-width-3');
+    const hairlines = adjustAliases(fixture(), [{ kind: 'hairline-width', shift: 1 }], NOW).configs;
+    expect(hairlines.table.aliases['--table-default-border-width']).toBe('--border-width-1');
+    expect(hairlines.table.aliases['--table-default-header-hairline-width']).toBe('--border-width-2');
+    expect(hairlines.table.aliases['--table-default-row-hairline-width']).toBe('--border-width-2');
+    expect(hairlines.table.aliases['--table-default-hairline-width']).toBe('--border-width-2');
+    expect(hairlines.table.aliases['--table-default-accent-width']).toBe('--border-width-3');
 
     const accents = adjustAliases(fixture(), [{ kind: 'accent-width', shift: -1 }], NOW).configs;
     expect(accents.table.aliases['--table-default-accent-width']).toBe('--border-width-2');
@@ -236,7 +236,7 @@ describe('adjustAliases', () => {
       NOW,
     );
     expect(configs.table.aliases['--table-default-border-width']).toBe('--border-width-0');
-    expect(configs.table.aliases['--table-default-header-divider-width']).toBe('--border-width-1');
+    expect(configs.table.aliases['--table-default-header-hairline-width']).toBe('--border-width-1');
   });
 
   it('applies a targeted op to that component alone', () => {

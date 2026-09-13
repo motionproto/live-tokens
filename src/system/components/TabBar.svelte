@@ -89,8 +89,8 @@
     --tabbar-hover-tint-enabled: var(--color-transparent);
 
     /* Bar */
-    --tabbar-bar-divider: var(--border-neutral-subtle);
-    --tabbar-bar-divider-thickness: var(--border-width-1);
+    --tabbar-bar-hairline-color: var(--border-neutral-subtle);
+    --tabbar-bar-hairline-width: var(--border-width-1);
     --tabbar-bar-top-margin: var(--space-0);
     --tabbar-bar-bottom-padding: var(--space-0);
     --tabbar-bar-bottom-margin: var(--space-0);
@@ -164,7 +164,7 @@
   .tab-bar {
     display: flex;
     gap: var(--tabbar-tab-gap);
-    border-bottom: var(--tabbar-bar-divider-thickness) solid var(--tabbar-bar-divider);
+    border-bottom: var(--tabbar-bar-hairline-width) solid var(--tabbar-bar-hairline-color);
     margin-top: var(--tabbar-bar-top-margin);
     padding-bottom: var(--tabbar-bar-bottom-padding);
     margin-bottom: var(--tabbar-bar-bottom-margin);

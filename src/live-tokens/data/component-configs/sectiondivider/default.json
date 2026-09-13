@@ -24,7 +24,7 @@
     "--sectiondivider-lg-radius": "--radius-lg",
     "--sectiondivider-lg-border-width": "--border-width-1",
     "--sectiondivider-lg-shadow": "--shadow-none",
-    "--sectiondivider-lg-hairline-thickness": "--border-width-1",
+    "--sectiondivider-lg-hairline-width": "--border-width-1",
     "--sectiondivider-lg-background": "--color-transparent",
     "--sectiondivider-lg-title": "--text-primary",
     "--sectiondivider-lg-description": "--text-alternate",
@@ -51,7 +51,7 @@
     "--sectiondivider-md-radius": "--radius-lg",
     "--sectiondivider-md-border-width": "--border-width-1",
     "--sectiondivider-md-shadow": "--shadow-none",
-    "--sectiondivider-md-hairline-thickness": "--border-width-1",
+    "--sectiondivider-md-hairline-width": "--border-width-1",
     "--sectiondivider-md-background": "--color-transparent",
     "--sectiondivider-md-title": "--text-primary",
     "--sectiondivider-md-description": "--text-secondary",
@@ -78,7 +78,7 @@
     "--sectiondivider-sm-radius": "--radius-lg",
     "--sectiondivider-sm-border-width": "--border-width-1",
     "--sectiondivider-sm-shadow": "--shadow-none",
-    "--sectiondivider-sm-hairline-thickness": "--border-width-1",
+    "--sectiondivider-sm-hairline-width": "--border-width-1",
     "--sectiondivider-sm-background": "--color-transparent",
     "--sectiondivider-sm-title": "--text-brand",
     "--sectiondivider-sm-description": "--text-secondary",
@@ -86,5 +86,5 @@
     "--sectiondivider-sm-border": "--color-transparent",
     "--sectiondivider-sm-hairline-color": "color-mix(in srgb, var(--border-brand-medium) 50%, transparent)"
   },
-  "schemaVersion": 28
+  "schemaVersion": 29
 }

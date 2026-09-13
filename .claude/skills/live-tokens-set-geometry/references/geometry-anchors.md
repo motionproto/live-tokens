@@ -7,7 +7,7 @@ came from, and a style's geometry is often targeted rather than global.
 Entries are written in the ops vocabulary. "radius +2" is a radius shift of 2.
 "borders +1" is a border-width shift of 1. "padding +1" is a padding and gap
 shift of 1. "hairline borders" is border-width `set: "--border-width-1"`, and
-"no borders" is `set: "--border-width-0"`. "hairline rules" is divider-width
+"no borders" is `set: "--border-width-0"`. "hairline rules" is hairline-width
 `set: "--border-width-1"`. A named component means a targeted op. Controls squeeze before containers,
 so a compaction of more than one step still spends its extra steps on
 containers by name.

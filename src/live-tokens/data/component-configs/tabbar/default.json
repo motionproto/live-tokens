@@ -6,8 +6,8 @@
   "aliases": {
     "--tabbar-hover-tint": "--tint",
     "--tabbar-hover-tint-enabled": "--color-transparent",
-    "--tabbar-bar-divider": "--border-neutral-subtle",
-    "--tabbar-bar-divider-thickness": "--border-width-1",
+    "--tabbar-bar-hairline-color": "--border-neutral-subtle",
+    "--tabbar-bar-hairline-width": "--border-width-1",
     "--tabbar-bar-top-margin": "--space-0",
     "--tabbar-bar-bottom-padding": "--space-0",
     "--tabbar-bar-bottom-margin": "--space-0",
@@ -69,5 +69,5 @@
     "--tabbar-disabled-tab-bottom-radius": "--radius-none",
     "--tabbar-disabled-indicator-width": "--border-width-2"
   },
-  "schemaVersion": 28
+  "schemaVersion": 29
 }

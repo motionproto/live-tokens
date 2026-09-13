@@ -46,7 +46,7 @@ function variantPaints(v: Variant): PaintMap {
     },
     hairline: {
       backgroundColor: `--sectiondivider-${v}-hairline-color`,
-      height: `--sectiondivider-${v}-hairline-thickness`,
+      height: `--sectiondivider-${v}-hairline-width`,
     },
   };
 }
@@ -100,7 +100,7 @@ export const sectionDividerContract: ComponentContract = {
     changed: [
       '--sectiondivider-lg-radius',
       '--sectiondivider-lg-border-width',
-      '--sectiondivider-lg-hairline-thickness',
+      '--sectiondivider-lg-hairline-width',
       '--sectiondivider-lg-hairline-color',
     ],
     unchanged: [
@@ -113,7 +113,7 @@ export const sectionDividerContract: ComponentContract = {
     aliasedTo: {
       '--sectiondivider-lg-radius': '--radius-none',
       '--sectiondivider-lg-border-width': '--border-width-3',
-      '--sectiondivider-lg-hairline-thickness': '--border-width-3',
+      '--sectiondivider-lg-hairline-width': '--border-width-3',
     },
     observe: { part: 'root', css: 'borderRadius', variable: '--sectiondivider-lg-radius' },
   },

@@ -262,8 +262,8 @@
   .doc-tabs {
     flex: 0 0 auto;
     /* The rule spans the pane, not the scrolled tab strip, so the component's
-       own divider steps aside. */
-    --tabbar-bar-divider: var(--color-transparent);
+       own hairline steps aside. */
+    --tabbar-bar-hairline-color: var(--color-transparent);
     padding: 0 var(--space-16);
     border-bottom: var(--border-width-1) solid var(--border-neutral-faint);
     overflow-x: auto;

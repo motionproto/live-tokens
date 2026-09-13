@@ -4,7 +4,7 @@
 
   export const component = 'collapsiblesection';
 
-  const VARIANTS = ['chromeless', 'divider', 'container'] as const;
+  const VARIANTS = ['chromeless', 'hairline', 'container'] as const;
   type Variant = typeof VARIANTS[number];
   const HEADER_STATES = ['default', 'hover'] as const;
   type HeaderState = typeof HEADER_STATES[number];
@@ -15,12 +15,12 @@
 
   const VARIANT_LABELS: Record<Variant, string> = {
     chromeless: 'Chromeless',
-    divider: 'With Divider',
+    hairline: 'With Hairline',
     container: 'Container',
   };
 
-  // Header tokens per variant. Chromeless has no chrome; divider exposes the
-  // hairline under the header per state; container's outer chrome lives
+  // Header tokens per variant. Chromeless has no chrome; hairline exposes the
+  // line under the header per state; container's outer chrome lives
   // in the Container part so the header strip just owns surface + padding + text.
   function headerStateTokens(v: Variant, s: HeaderState): Token[] {
     const p = `--collapsiblesection-${v}-${s}`;
@@ -30,10 +30,10 @@
       { label: 'icon color', groupKey: 'icon', variable: `${p}-icon` },
       { label: 'icon size', canBeLinked: true, groupKey: 'font-size', variable: `${p}-icon-size` },
     ];
-    if (v === 'divider') {
+    if (v === 'hairline') {
       base.splice(1, 0,
-        { label: 'divider color', groupKey: 'hairline-color', variable: `${p}-hairline-color` },
-        { label: 'divider thickness', canBeLinked: true, groupKey: 'hairline-thickness', variable: `${p}-hairline-thickness` },
+        { label: 'hairline color', groupKey: 'hairline-color', variable: `${p}-hairline-color` },
+        { label: 'hairline width', canBeLinked: true, groupKey: 'hairline-width', variable: `${p}-hairline-width` },
       );
     }
     return base;
@@ -46,7 +46,7 @@
     { label: 'corner radius', canBeLinked: true, groupKey: 'radius', variable: '--collapsiblesection-container-frame-radius' },
   ];
 
-  // Body: revealed content area. Chromeless/divider only own padding; container
+  // Body: revealed content area. Chromeless/hairline only own padding; container
   // also paints its own surface so the body can read distinct from the header.
   // (CSS var name keeps the `expanded` slug for backward compatibility.)
   function bodyTokens(v: Variant): Token[] {
@@ -107,7 +107,7 @@
         [`--collapsiblesection-${v}-${s}-label-font-weight`, `${v} ${s}`],
         [`--collapsiblesection-${v}-${s}-label-line-height`, `${v} ${s}`],
       ];
-      if (v === 'divider') base.push([`--collapsiblesection-divider-${s}-hairline-thickness`, `divider ${s}`]);
+      if (v === 'hairline') base.push([`--collapsiblesection-hairline-${s}-hairline-width`, `hairline ${s}`]);
       return base;
     })),
     ['--collapsiblesection-container-frame-border-width', 'container frame'],
@@ -135,7 +135,7 @@
   ) as Record<string, Token[]>);
 </script>
 
-<ComponentEditorBase {component} title="Collapsible Section" description="Expandable section with chevron toggle. Variants: chromeless, divider, container." tokens={allTokens} {linked} variants={variantOptions}>
+<ComponentEditorBase {component} title="Collapsible Section" description="Expandable section with chevron toggle. Variants: chromeless, hairline, container." tokens={allTokens} {linked} variants={variantOptions}>
   {#each VARIANTS as v}
     <VariantGroup
       name={v}

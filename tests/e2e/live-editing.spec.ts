@@ -152,7 +152,7 @@ test('component controls repaint the host without save, adopt, or reload', async
   // weight selector disables Black. Semibold is a real face and differs from
   // the theme's own Bold, which is what this assertion needs.
   await selectOption('--sectiondivider-md-title-font-weight', 'Semibold');
-  await selectOption('--sectiondivider-md-hairline-thickness', '12px');
+  await selectOption('--sectiondivider-md-hairline-width', '12px');
 
   await expect.poll(() => page.evaluate(() => {
     const root = document.documentElement.style;
@@ -160,7 +160,7 @@ test('component controls repaint the host without save, adopt, or reload', async
       color: root.getPropertyValue('--sectiondivider-md-title').trim(),
       weight: root.getPropertyValue('--sectiondivider-md-title-font-weight').trim(),
       size: root.getPropertyValue('--sectiondivider-md-title-font-size').trim(),
-      hairline: root.getPropertyValue('--sectiondivider-md-hairline-thickness').trim(),
+      hairline: root.getPropertyValue('--sectiondivider-md-hairline-width').trim(),
     };
   })).toEqual({
     color: 'var(--color-black)',
@@ -242,7 +242,7 @@ test('literal, token-opacity, gradient, intrinsic, padding, font, undo, and redo
       ],
     }]);
 
-    editor.setComponentAlias('sectiondivider', '--sectiondivider-md-hairline-thickness', {
+    editor.setComponentAlias('sectiondivider', '--sectiondivider-md-hairline-width', {
       kind: 'literal', value: '7px',
     });
     editor.undo();
@@ -265,7 +265,7 @@ test('literal, token-opacity, gradient, intrinsic, padding, font, undo, and redo
       values: Object.fromEntries(names.map((name) => [name, read(host, name)])),
       selfFontNode: !!document.head.querySelector('[data-font-source-id="playwright-font"]'),
       hostFontNode: !!window.parent.document.head.querySelector('[data-font-source-id="playwright-font"]'),
-      undoValue: read(host, '--sectiondivider-md-hairline-thickness'),
+      undoValue: read(host, '--sectiondivider-md-hairline-width'),
     };
   });
 
@@ -306,7 +306,7 @@ test('literal, token-opacity, gradient, intrinsic, padding, font, undo, and redo
   });
   await expect.poll(() => page.evaluate(() =>
     document.documentElement.style
-      .getPropertyValue('--sectiondivider-md-hairline-thickness')
+      .getPropertyValue('--sectiondivider-md-hairline-width')
       .trim(),
   )).toBe('7px');
 });

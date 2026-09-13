@@ -37,7 +37,7 @@ Targeted, absolute:
 ```
 
 - `target` (optional): a component id, one of the folder names under `src/live-tokens/data/component-configs/`. "Windows" or "modals" is `dialog`, "cards" is `card`, "tabs" is `tabbar`. "The UI", "everything", or no noun means global, so omit `target`.
-- `kind`: `radius | padding | gap | border-width | divider-width | accent-width`. `border-width` moves `-border-width` aliases. `divider-width` moves dividers, hairline rules, and `-thickness` aliases. `accent-width` moves accent bars and indicators.
+- `kind`: `radius | padding | gap | border-width | hairline-width | accent-width`. `border-width` moves `-border-width` aliases. `hairline-width` moves `-hairline-width` aliases. `accent-width` moves accent bars and indicators.
 - `set` or `shift`, one of the two. `set` takes a token on that kind's scale. `shift` is a whole number of steps and stops at the ends of the scale.
 - `full` (radius shifts only): admits `--radius-full` as the top of the scale. A pill request is `set: "--radius-full"` with no `full` flag.
 

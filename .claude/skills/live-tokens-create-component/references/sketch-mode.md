@@ -138,8 +138,8 @@ Make the rule an element, give it `sketch-rule`, and name its ink as the fill.
 ```css
 .mywidget-rule {
   height: var(--border-width-2);
-  background: var(--mywidget-divider);
-  --sketch-fill: var(--mywidget-divider);
+  background: var(--mywidget-hairline-color);
+  --sketch-fill: var(--mywidget-hairline-color);
 }
 ```
 

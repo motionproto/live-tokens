@@ -76,6 +76,7 @@ import { componentMigration_2026_09_02_sectiondividerDropTitleOutline } from './
 import { colorsAndTypeMigration_2026_09_03_dropLegacyComponentKeys } from './2026-09-03-drop-legacy-component-keys';
 import { componentMigration_2026_09_07_strokeRoleRenames } from './2026-09-07-stroke-role-renames';
 import { componentMigration_2026_09_13_selectedState } from './2026-09-13-selected-state';
+import { componentMigration_2026_09_13_hairline } from './2026-09-13-hairline';
 
 /**
  * Registered migrations. Order in this array does not matter — the runner
@@ -118,6 +119,7 @@ export const MIGRATIONS: Migration[] = [
   colorsAndTypeMigration_2026_09_03_dropLegacyComponentKeys,
   componentMigration_2026_09_07_strokeRoleRenames,
   componentMigration_2026_09_13_selectedState,
+  componentMigration_2026_09_13_hairline,
 ];
 
 function countFor(kind: 'colors-and-type' | 'component-config'): number {

@@ -87,7 +87,7 @@ Component tokens *reference* theme tokens. They're how a component names its own
 ```
 
 - **`componentId`.** The literal component ID. No abbreviations. The ID itself has no dashes (it's the file-system-safe form: `segmentedcontrol`, not `segmented-control`).
-- **`part`.** Which part of the component this slot belongs to: `bar`, `divider`, `option`, `selected`, `track`, `save`, `cancel`, etc.
+- **`part`.** Which part of the component this slot belongs to: `bar`, `hairline`, `option`, `selected`, `track`, `save`, `cancel`, etc.
 - **`state`.** Optional. The interaction state if more than default: `hover`, `disabled`, `active`, `focus`. States come **before** the property, never after.
 - **`element`.** Optional. A sub-element within the part: `dot`, `icon`, `label`, `text`.
 - **`property`.** Always last. Either a **theme role** (`surface`, `border`, `text`, `icon`, `label`, `fill`) or a **CSS property name** (`radius`, `border-width`, `font-weight`, `font-family`, `font-size`).
@@ -113,11 +113,10 @@ Component tokens *reference* theme tokens. They're how a component names its own
 | `-font-family` | Font family reference                                        |
 | `-font-weight` | Font weight reference                                        |
 | `-font-size`   | Font size reference                                          |
-| `-thickness`   | Alternative stroke dimension (used where `-width` would alias another token under name-based fallback grouping) |
 | `-height`      | Explicit height when `-width`'s sibling would collide under name-based fallback grouping |
 | `-color`       | Generic color when none of the role words fits (rare)        |
 
-**Why `thickness` and `height` sometimes stand in for `width`:** when an editor declares no explicit `groupKey` for a token, sibling grouping falls back to matching the final `-<property>` segment. If two unrelated slots both end in `-width` and neither has a `groupKey`, they get auto-linked. Either declare a `groupKey` per token in the editor (preferred) or use an alternative property word. The divider in SegmentedControl uses `--segmentedcontrol-divider-thickness` for legacy parity with the fallback rule, but it now also has `groupKey: 'divider-thickness'` declared in the editor. The `groupKey` is the source of truth.
+**Why `height` sometimes stands in for `width`:** when an editor declares no explicit `groupKey` for a token, sibling grouping falls back to matching the final `-<property>` segment. If two unrelated slots both end in `-width` and neither has a `groupKey`, they get auto-linked. Declare a `groupKey` per token in the editor. The `groupKey` is the source of truth.
 
 ### State order matters
 

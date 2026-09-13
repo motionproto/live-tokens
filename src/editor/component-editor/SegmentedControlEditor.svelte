@@ -13,9 +13,9 @@
       { label: 'surface color', element: 'frame', groupKey: 'surface', variable: '--segmentedcontrol-bar-surface' },
       { label: 'border color', element: 'frame', groupKey: 'border', variable: '--segmentedcontrol-bar-border' },
       { label: 'border width', element: 'frame', groupKey: 'width', variable: '--segmentedcontrol-bar-border-width' },
-      { label: 'color', element: 'divider', groupKey: 'color', variable: '--segmentedcontrol-divider-color' },
-      { label: 'width', element: 'divider', groupKey: 'thickness', variable: '--segmentedcontrol-divider-thickness' },
-      { label: 'inset', element: 'divider', groupKey: 'divider-inset', variable: '--segmentedcontrol-divider-inset' },
+      { label: 'color', element: 'hairline', groupKey: 'color', variable: '--segmentedcontrol-hairline-color' },
+      { label: 'width', element: 'hairline', groupKey: 'hairline-width', variable: '--segmentedcontrol-hairline-width' },
+      { label: 'inset', element: 'hairline', groupKey: 'hairline-inset', variable: '--segmentedcontrol-hairline-inset' },
       { label: 'corner radius', element: 'frame', groupKey: 'radius', variable: '--segmentedcontrol-bar-radius' },
       { label: 'option gap', element: 'frame', groupKey: 'gap', variable: '--segmentedcontrol-bar-gap' },
       { label: 'padding', element: 'frame', variable: '--segmentedcontrol-bar-padding', groupKey: 'bar-padding' },
@@ -54,8 +54,8 @@
     'control bar': [
       { label: 'corner radius', element: 'frame', groupKey: 'small-radius', variable: '--segmentedcontrol-bar-small-radius' },
       { label: 'padding', element: 'frame', variable: '--segmentedcontrol-bar-small-padding', groupKey: 'bar-small-padding' },
-      { label: 'inset', element: 'divider', groupKey: 'small-divider-inset', variable: '--segmentedcontrol-small-divider-inset' },
-      { label: 'width', element: 'divider', groupKey: 'small-divider-thickness', variable: '--segmentedcontrol-small-divider-thickness' },
+      { label: 'inset', element: 'hairline', groupKey: 'small-hairline-inset', variable: '--segmentedcontrol-small-hairline-inset' },
+      { label: 'width', element: 'hairline', groupKey: 'small-hairline-width', variable: '--segmentedcontrol-small-hairline-width' },
     ],
     'option base': [
       { label: 'icon size', groupKey: 'small-icon-size', variable: '--segmentedcontrol-option-small-icon-size' },

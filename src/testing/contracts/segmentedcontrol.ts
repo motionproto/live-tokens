@@ -16,7 +16,7 @@ export const segmentedControlContract: ComponentContract = {
     icon: '.segment i',
     selectedSegment: '.segment.selected',
     selectedIcon: '.segment.selected i',
-    divider: '.segment-divider',
+    hairline: '.segment-hairline',
   },
   properties: [
     {
@@ -30,10 +30,10 @@ export const segmentedControlContract: ComponentContract = {
           columnGap: '--segmentedcontrol-bar-gap',
           paddingTop: '--segmentedcontrol-bar-padding',
         },
-        divider: {
-          backgroundColor: '--segmentedcontrol-divider-color',
-          width: '--segmentedcontrol-divider-thickness',
-          marginTop: '--segmentedcontrol-divider-inset',
+        hairline: {
+          backgroundColor: '--segmentedcontrol-hairline-color',
+          width: '--segmentedcontrol-hairline-width',
+          marginTop: '--segmentedcontrol-hairline-inset',
         },
       },
     },
@@ -80,7 +80,7 @@ export const segmentedControlContract: ComponentContract = {
           lineHeight: '--segmentedcontrol-option-small-text-line-height',
         },
         icon: { fontSize: '--segmentedcontrol-option-small-icon-size' },
-        divider: { width: '--segmentedcontrol-small-divider-thickness', marginTop: '--segmentedcontrol-small-divider-inset' },
+        hairline: { width: '--segmentedcontrol-small-hairline-width', marginTop: '--segmentedcontrol-small-hairline-inset' },
       },
     },
   ],

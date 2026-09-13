@@ -177,10 +177,10 @@ describe('migration runner — schemaVersion gating', () => {
     expect(migrated['--collapsiblesection-chromeless-hover-border-width']).toBeUndefined();
     expect(migrated['--collapsiblesection-chromeless-active-radius']).toBeUndefined();
     expect(migrated['--collapsiblesection-chromeless-default-padding']).toBe('--space-4');
-    // Divider stroke survives under its v27 hairline names; radius drops
-    expect(migrated['--collapsiblesection-divider-default-hairline-color']).toBe('--border-neutral-faint');
-    expect(migrated['--collapsiblesection-divider-default-hairline-thickness']).toBe('--border-width-1');
-    expect(migrated['--collapsiblesection-divider-default-radius']).toBeUndefined();
+    // The variant's stroke survives under its v29 hairline names; radius drops
+    expect(migrated['--collapsiblesection-hairline-default-hairline-color']).toBe('--border-neutral-faint');
+    expect(migrated['--collapsiblesection-hairline-default-hairline-width']).toBe('--border-width-1');
+    expect(migrated['--collapsiblesection-hairline-default-radius']).toBeUndefined();
     // Expanded panel cleanup
     expect(migrated['--collapsiblesection-chromeless-expanded-border']).toBeUndefined();
     expect(migrated['--collapsiblesection-chromeless-expanded-surface']).toBeUndefined();
@@ -339,7 +339,7 @@ describe('migration runner — schemaVersion gating', () => {
     expect(out).toEqual(v15);
   });
 
-  it('component-config v17 → v18 tabbar: bar-level indicator-thickness fans out into per-state widths (named by v28)', () => {
+  it('component-config v17 → v18 tabbar: bar-level indicator-thickness fans out into per-state widths (named by v29)', () => {
     const v17 = {
       '--tabbar-bar-indicator-thickness': '--border-width-3',
       // Unrelated bar/tab keys pass through.
@@ -352,7 +352,7 @@ describe('migration runner — schemaVersion gating', () => {
     for (const s of ['default', 'hover', 'selected', 'disabled']) {
       expect(out[`--tabbar-${s}-indicator-width`]).toBe('--border-width-3');
     }
-    expect(out['--tabbar-bar-divider-thickness']).toBe('--border-width-1');
+    expect(out['--tabbar-bar-hairline-width']).toBe('--border-width-1');
     expect(out['--tabbar-selected-text']).toBe('--text-primary');
   });
 
@@ -370,7 +370,7 @@ describe('migration runner — schemaVersion gating', () => {
     expect(out['--tabbar-default-indicator-width']).toBeUndefined();
   });
 
-  it('component-config v18 → v19 segmentedcontrol: small-divider tokens reorder so the suffix matches the picker', () => {
+  it('component-config v18 → v19 segmentedcontrol: small-divider tokens reorder so the suffix matches the picker (named by v29)', () => {
     const v18 = {
       '--segmentedcontrol-divider-small-thickness': '--border-width-1',
       '--segmentedcontrol-divider-small-inset': '--space-4',
@@ -379,11 +379,11 @@ describe('migration runner — schemaVersion gating', () => {
       '--segmentedcontrol-bar-small-padding': '--space-2',
     };
     const out = runMigrations('component-config', 18, v18, { component: 'segmentedcontrol' });
-    expect(out['--segmentedcontrol-small-divider-thickness']).toBe('--border-width-1');
-    expect(out['--segmentedcontrol-small-divider-inset']).toBe('--space-4');
+    expect(out['--segmentedcontrol-small-hairline-width']).toBe('--border-width-1');
+    expect(out['--segmentedcontrol-small-hairline-inset']).toBe('--space-4');
     expect(out['--segmentedcontrol-divider-small-thickness']).toBeUndefined();
     expect(out['--segmentedcontrol-divider-small-inset']).toBeUndefined();
-    expect(out['--segmentedcontrol-divider-thickness']).toBe('--border-width-1');
+    expect(out['--segmentedcontrol-hairline-width']).toBe('--border-width-1');
     expect(out['--segmentedcontrol-bar-small-padding']).toBe('--space-2');
   });
 
@@ -424,7 +424,7 @@ describe('migration runner — schemaVersion gating', () => {
     expect(out).toEqual(v19);
   });
 
-  it('component-config v26 → v27: dividers and accents leave the -border suffix, values unchanged (named by v28)', () => {
+  it('component-config v26 → v27: the graphic line and the accent leave the -border suffix, values unchanged (named by v29)', () => {
     const cases: Array<[string, Record<string, string>, Record<string, string>]> = [
       ['tabbar',
         { '--tabbar-active-indicator-border-width': '--border-width-3', '--tabbar-active-border': '--color-brand-500' },
@@ -432,14 +432,14 @@ describe('migration runner — schemaVersion gating', () => {
       ['collapsiblesection',
         { '--collapsiblesection-divider-hover-border': '--border-neutral', '--collapsiblesection-divider-hover-border-width': '--border-width-1',
           '--collapsiblesection-container-frame-border': '--border-neutral' },
-        { '--collapsiblesection-divider-hover-hairline-color': '--border-neutral', '--collapsiblesection-divider-hover-hairline-thickness': '--border-width-1',
+        { '--collapsiblesection-hairline-hover-hairline-color': '--border-neutral', '--collapsiblesection-hairline-hover-hairline-width': '--border-width-1',
           '--collapsiblesection-container-frame-border': '--border-neutral' }],
       ['dialog',
         { '--dialog-header-border': '--border-neutral-subtle', '--dialog-footer-border-width': '--border-width-1', '--dialog-border': '--border-neutral' },
-        { '--dialog-header-divider': '--border-neutral-subtle', '--dialog-footer-divider-width': '--border-width-1', '--dialog-border': '--border-neutral' }],
+        { '--dialog-header-hairline-color': '--border-neutral-subtle', '--dialog-footer-hairline-width': '--border-width-1', '--dialog-border': '--border-neutral' }],
       ['table',
         { '--table-default-header-border': '--border-neutral', '--table-default-header-border-width': '--border-width-1', '--table-default-border': '--border-neutral' },
-        { '--table-default-header-divider': '--border-neutral', '--table-default-header-divider-width': '--border-width-1', '--table-default-border': '--border-neutral' }],
+        { '--table-default-header-hairline-color': '--border-neutral', '--table-default-header-hairline-width': '--border-width-1', '--table-default-border': '--border-neutral' }],
     ];
     for (const [component, input, expected] of cases) {
       const out = runMigrations('component-config', 26, input, { component });
@@ -454,14 +454,14 @@ describe('migration runner — schemaVersion gating', () => {
     expect(out).toEqual(v26);
   });
 
-  it('component-config v27 → v28: the selection states of radiobutton, tabbar and sidenavigation read selected', () => {
+  it('component-config v27 → v28: the selection states of radiobutton, tabbar and sidenavigation read selected (named by v29)', () => {
     const cases: Array<[string, Record<string, string>, Record<string, string>]> = [
       ['radiobutton',
         { '--radiobutton-active-dot-fill': '--text-secondary', '--radiobutton-hover-dot-fill': '--text-secondary' },
         { '--radiobutton-selected-dot-fill': '--text-secondary', '--radiobutton-hover-dot-fill': '--text-secondary' }],
       ['tabbar',
         { '--tabbar-active-surface': '--tint-low', '--tabbar-active-tab-top-radius': '--radius-none', '--tabbar-bar-divider': '--border-neutral-subtle' },
-        { '--tabbar-selected-surface': '--tint-low', '--tabbar-selected-tab-top-radius': '--radius-none', '--tabbar-bar-divider': '--border-neutral-subtle' }],
+        { '--tabbar-selected-surface': '--tint-low', '--tabbar-selected-tab-top-radius': '--radius-none', '--tabbar-bar-hairline-color': '--border-neutral-subtle' }],
       ['sidenavigation',
         { '--sidenavigation-item-active-accent': '--border-brand-medium', '--sidenavigation-footer-active-text-font-size': '--font-size-sm',
           '--sidenavigation-panel-surface': '--surface-canvas' },
@@ -479,6 +479,50 @@ describe('migration runner — schemaVersion gating', () => {
     const v27 = { '--button-outline-active-surface': '--surface-neutral-low' };
     const out = runMigrations('component-config', 27, v27, { component: 'button' });
     expect(out).toEqual(v27);
+  });
+
+  it('component-config v28 → v29: the graphic line and its width read hairline', () => {
+    const cases: Array<[string, Record<string, string>, Record<string, string>]> = [
+      ['dialog',
+        { '--dialog-header-divider': '--border-neutral-subtle', '--dialog-header-divider-width': '--border-width-1',
+          '--dialog-header-surface': '--surface-canvas' },
+        { '--dialog-header-hairline-color': '--border-neutral-subtle', '--dialog-header-hairline-width': '--border-width-1',
+          '--dialog-header-surface': '--surface-canvas' }],
+      ['table',
+        { '--table-default-column-divider': '--border-neutral-faint', '--table-default-row-divider-width': '--border-width-1' },
+        { '--table-default-column-hairline-color': '--border-neutral-faint', '--table-default-row-hairline-width': '--border-width-1' }],
+      ['tabbar',
+        { '--tabbar-bar-divider': '--border-neutral-subtle', '--tabbar-bar-divider-thickness': '--border-width-1' },
+        { '--tabbar-bar-hairline-color': '--border-neutral-subtle', '--tabbar-bar-hairline-width': '--border-width-1' }],
+      ['segmentedcontrol',
+        { '--segmentedcontrol-divider-color': '--border-neutral', '--segmentedcontrol-divider-thickness': '--border-width-1',
+          '--segmentedcontrol-small-divider-inset': '--space-4' },
+        { '--segmentedcontrol-hairline-color': '--border-neutral', '--segmentedcontrol-hairline-width': '--border-width-1',
+          '--segmentedcontrol-small-hairline-inset': '--space-4' }],
+      ['collapsiblesection',
+        { '--collapsiblesection-divider-default-hairline-color': '--border-brand',
+          '--collapsiblesection-divider-hover-hairline-thickness': '--border-width-1',
+          '--collapsiblesection-divider-expanded-padding': '--space-4',
+          '--collapsiblesection-container-frame-border': '--border-neutral' },
+        { '--collapsiblesection-hairline-default-hairline-color': '--border-brand',
+          '--collapsiblesection-hairline-hover-hairline-width': '--border-width-1',
+          '--collapsiblesection-hairline-expanded-padding': '--space-4',
+          '--collapsiblesection-container-frame-border': '--border-neutral' }],
+      ['sectiondivider',
+        { '--sectiondivider-lg-hairline-thickness': '--border-width-1', '--sectiondivider-lg-hairline-color': '--border-brand-medium' },
+        { '--sectiondivider-lg-hairline-width': '--border-width-1', '--sectiondivider-lg-hairline-color': '--border-brand-medium' }],
+    ];
+    for (const [component, input, expected] of cases) {
+      const out = runMigrations('component-config', 28, input, { component });
+      expect(out, component).toEqual(expected);
+      expect(runMigrations('component-config', 28, out, { component }), `${component} idempotent`).toEqual(expected);
+    }
+  });
+
+  it('component-config v28 → v29 leaves a component that draws no hairline alone', () => {
+    const v28 = { '--card-default-border-width': '--border-width-1', '--card-default-surface': '--surface-canvas' };
+    const out = runMigrations('component-config', 28, v28, { component: 'card' });
+    expect(out).toEqual(v28);
   });
 
   it('component-config at current version → no migrations run', () => {

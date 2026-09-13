@@ -15,8 +15,8 @@
     ],
     header: [
       { label: 'surface color', groupKey: 'header-surface', variable: '--table-default-header-surface' },
-      { label: 'divider color', canBeLinked: true, groupKey: 'border', variable: '--table-default-header-divider' },
-      { label: 'divider width', canBeLinked: true, groupKey: 'width', variable: '--table-default-header-divider-width' },
+      { label: 'hairline color', canBeLinked: true, groupKey: 'border', variable: '--table-default-header-hairline-color' },
+      { label: 'hairline width', canBeLinked: true, groupKey: 'width', variable: '--table-default-header-hairline-width' },
       { label: 'padding', groupKey: 'header-padding', variable: '--table-default-header-padding' },
     ],
     cell: [
@@ -25,12 +25,12 @@
     row: [
       { label: 'surface color', groupKey: 'row-surface', variable: '--table-default-row-surface' },
       { label: 'stripe surface', groupKey: 'row-stripe-surface', variable: '--table-default-row-stripe-surface' },
-      { label: 'divider color', canBeLinked: true, groupKey: 'border', variable: '--table-default-row-divider' },
-      { label: 'divider width', canBeLinked: true, groupKey: 'width', variable: '--table-default-row-divider-width' },
+      { label: 'hairline color', canBeLinked: true, groupKey: 'border', variable: '--table-default-row-hairline-color' },
+      { label: 'hairline width', canBeLinked: true, groupKey: 'width', variable: '--table-default-row-hairline-width' },
     ],
     column: [
-      { label: 'divider color', canBeLinked: true, groupKey: 'border', variable: '--table-default-column-divider' },
-      { label: 'divider width', canBeLinked: true, groupKey: 'width', variable: '--table-default-column-divider-width' },
+      { label: 'hairline color', canBeLinked: true, groupKey: 'border', variable: '--table-default-column-hairline-color' },
+      { label: 'hairline width', canBeLinked: true, groupKey: 'width', variable: '--table-default-column-hairline-width' },
     ],
   };
 

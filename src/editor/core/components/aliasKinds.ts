@@ -2,11 +2,11 @@ export type TokenKind =
   | 'surface'
   | 'border'
   | 'border-width'
-  | 'divider-width'
+  | 'hairline-width'
   | 'accent-width'
   | 'radius'
-  | 'divider-height'
-  | 'divider-inset'
+  | 'track-height'
+  | 'hairline-inset'
   | 'dot-size'
   | 'length'
   | 'blur'
@@ -49,11 +49,11 @@ export const KIND_RULES: ReadonlyArray<{
                             prefix: ['--text-'] },
   { kind: 'radius',         suffix: ['-radius'], prefix: ['--radius-'] },
   // Three stroke roles share the `--border-width-*` scale: a border encloses,
-  // a divider separates, an accent emphasises. `set-geometry` moves each role
-  // on its own, so a suffix has to say which line it names.
-  { kind: 'divider-width',  suffix: ['-divider-width', '-divider-thickness', '-hairline-thickness', '-thickness'] },
-  { kind: 'divider-height', suffix: ['-divider-height', '-track-height'] },
-  { kind: 'divider-inset',  suffix: ['-divider-inset', '-inset'] },
+  // a hairline separates, an indicator emphasises. `set-geometry` moves each
+  // role on its own, so a suffix has to say which line it names.
+  { kind: 'hairline-width', suffix: ['-hairline-width'] },
+  { kind: 'track-height',   suffix: ['-track-height'] },
+  { kind: 'hairline-inset', suffix: ['-hairline-inset'] },
   { kind: 'dot-size',       suffix: ['-dot-size'] },
   { kind: 'blur',           suffix: ['-blur'], prefix: ['--blur-'] },
   { kind: 'scale',          suffix: ['-scale'], prefix: ['--scale-'] },
@@ -67,11 +67,11 @@ export const KIND_RULES: ReadonlyArray<{
   { kind: 'border',         suffix: ['-border'], prefix: ['--border-'] },
   // A dimension with no more specific name behind it — a panel's width, an
   // avatar's size. Last of the geometry rules, so every `-border-width`,
-  // `-divider-height`, `-icon-size` and the rest claim their token first.
+  // `-track-height`, `-icon-size` and the rest claim their token first.
   { kind: 'length',         suffix: ['-width', '-height', '-size'] },
   // Fills. A tint is a wash over a surface, so it takes the surface picker: the
   // full palette with an alpha, not just the tint stops it defaults to.
-  { kind: 'surface',        suffix: ['-surface', '-fill', '-divider', '-background', '-indicator',
+  { kind: 'surface',        suffix: ['-surface', '-fill', '-background', '-indicator',
                                      '-thumb', '-accent', '-color', '-tint', '-opacity'],
                             prefix: ['--surface-', '--tint', '--color-'] },
 ];

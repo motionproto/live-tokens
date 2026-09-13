@@ -33,7 +33,7 @@
   function hairlineTokens(v: Variant): Token[] {
     return [
       { label: 'hairline color', canBeLinked: true, groupKey: 'hairline-color', variable: `--sectiondivider-${v}-hairline-color`, element: 'hairline' },
-      { label: 'hairline thickness', canBeLinked: true, groupKey: 'hairline-thickness', variable: `--sectiondivider-${v}-hairline-thickness`, element: 'hairline' },
+      { label: 'hairline width', canBeLinked: true, groupKey: 'hairline-width', variable: `--sectiondivider-${v}-hairline-width`, element: 'hairline' },
     ];
   }
   function backgroundTokens(v: Variant): Token[] {
@@ -117,7 +117,7 @@
 
   const LINKED_GROUP_KEYS = [
     'container-padding', 'radius', 'border', 'border-width', 'shadow',
-    'hairline-color', 'hairline-thickness',
+    'hairline-color', 'hairline-width',
     'title-color', 'description-color', 'eyebrow-color',
     'title-padding', 'description-padding', 'eyebrow-padding',
     'title-font-family', 'title-font-weight', 'title-line-height', 'title-letter-spacing',

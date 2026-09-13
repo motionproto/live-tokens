@@ -131,9 +131,9 @@ const KIND_SCALE = {
   radius: 'radius',
   padding: 'space',
   gap: 'space',
-  'divider-inset': 'space',
+  'hairline-inset': 'space',
   'border-width': 'border-width',
-  'divider-width': 'border-width',
+  'hairline-width': 'border-width',
   'accent-width': 'border-width',
   shadow: 'shadow',
 };

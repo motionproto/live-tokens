@@ -39,14 +39,14 @@
   // states (mirrors SegmentedControl's "control bar" + per-option states layout).
   const states: Record<string, Token[]> = {
     bar: [
-      { label: 'divider color', groupKey: 'bar-divider', variable: '--tabbar-bar-divider' },
-      { label: 'divider thickness', groupKey: 'bar-divider-thickness', variable: '--tabbar-bar-divider-thickness' },
+      { label: 'hairline color', groupKey: 'bar-hairline', variable: '--tabbar-bar-hairline-color' },
+      { label: 'hairline width', groupKey: 'bar-hairline-width', variable: '--tabbar-bar-hairline-width' },
       { label: 'space above', groupKey: 'bar-top-margin', variable: '--tabbar-bar-top-margin' },
       // Consumed via `padding-bottom: var(--tabbar-bar-bottom-padding)` — a
       // one-axis read. Splitting would produce top/left/right values that have
       // nowhere to render.
       { label: 'space below tabs', groupKey: 'bar-bottom-padding', variable: '--tabbar-bar-bottom-padding', splittable: false },
-      { label: 'space under divider', groupKey: 'bar-bottom-margin', variable: '--tabbar-bar-bottom-margin' },
+      { label: 'space under hairline', groupKey: 'bar-bottom-margin', variable: '--tabbar-bar-bottom-margin' },
       { label: 'tab gap', groupKey: 'tab-gap', variable: '--tabbar-tab-gap' },
     ],
     ...Object.fromEntries(tabStateNames.map((s) => [`${s} tab`, tabStateTokens(s)])),

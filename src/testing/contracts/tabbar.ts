@@ -56,8 +56,8 @@ export const tabBarContract: ComponentContract = {
       state: 'bar',
       paints: {
         root: {
-          borderBottomColor: '--tabbar-bar-divider',
-          borderBottomWidth: '--tabbar-bar-divider-thickness',
+          borderBottomColor: '--tabbar-bar-hairline-color',
+          borderBottomWidth: '--tabbar-bar-hairline-width',
           marginTop: '--tabbar-bar-top-margin',
           paddingBottom: '--tabbar-bar-bottom-padding',
           marginBottom: '--tabbar-bar-bottom-margin',

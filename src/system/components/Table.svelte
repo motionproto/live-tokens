@@ -39,8 +39,8 @@
     --table-default-header-font-weight: var(--font-weight-semibold);
     --table-default-header-line-height: var(--line-height-none);
     --table-default-header-padding: var(--space-12);
-    --table-default-header-divider: var(--border-neutral);
-    --table-default-header-divider-width: var(--border-width-1);
+    --table-default-header-hairline-color: var(--border-neutral);
+    --table-default-header-hairline-width: var(--border-width-1);
 
     /* Cell */
     --table-default-cell-text: var(--text-secondary);
@@ -52,13 +52,13 @@
 
     /* Row */
     --table-default-row-surface: var(--color-transparent);
-    --table-default-row-divider: var(--border-neutral-subtle);
-    --table-default-row-divider-width: var(--border-width-1);
+    --table-default-row-hairline-color: var(--border-neutral-subtle);
+    --table-default-row-hairline-width: var(--border-width-1);
     --table-default-row-stripe-surface: var(--color-transparent);
 
     /* Column */
-    --table-default-column-divider: var(--border-neutral-faint);
-    --table-default-column-divider-width: var(--border-width-1);
+    --table-default-column-hairline-color: var(--border-neutral-faint);
+    --table-default-column-hairline-width: var(--border-width-1);
   }
 
   .table-wrapper {
@@ -87,8 +87,8 @@
     line-height: var(--table-default-header-line-height);
     @include themed-padding(--table-default-header-padding);
     text-align: left;
-    border-bottom: var(--table-default-header-divider-width) solid var(--table-default-header-divider);
-    border-right: var(--table-default-column-divider-width) solid var(--table-default-column-divider);
+    border-bottom: var(--table-default-header-hairline-width) solid var(--table-default-header-hairline-color);
+    border-right: var(--table-default-column-hairline-width) solid var(--table-default-column-hairline-color);
     white-space: nowrap;
   }
 
@@ -104,8 +104,8 @@
       var(--table-default-cell-padding-right, calc(var(--table-default-cell-padding) * 1.5))
       var(--table-default-cell-padding-bottom, var(--table-default-cell-padding))
       var(--table-default-cell-padding-left, calc(var(--table-default-cell-padding) * 1.5));
-    border-bottom: var(--table-default-row-divider-width) solid var(--table-default-row-divider);
-    border-right: var(--table-default-column-divider-width) solid var(--table-default-column-divider);
+    border-bottom: var(--table-default-row-hairline-width) solid var(--table-default-row-hairline-color);
+    border-right: var(--table-default-column-hairline-width) solid var(--table-default-column-hairline-color);
   }
 
   .table-wrapper :global(th:last-child),
