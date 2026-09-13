@@ -175,6 +175,18 @@ describe('check-page --fix, per rule', () => {
     expect(readFileSync(join(root, rel), 'utf8')).toBe(fixed);
   });
 
+  it('control-size: an attribute a newline precedes keeps that newline, so no later finding shifts a line', () => {
+    const root = pageRoot(SPACE_TOKENS);
+    const rel = 'src/pages/Detail.svelte';
+    const head = `<script>\n  import Card from "@motion-proto/live-tokens/components/Card.svelte";\n</script>\n`;
+    writeFileSync(join(root, rel), `${head}<Card class="x"\nsize="small"\n/>`);
+    const { resolved, applied } = checkAndFix(root, [rel]);
+    expect(applied.some((f: { rule: string }) => f.rule === 'control-size')).toBe(true);
+    const f = resolved.find((x: { rule: string }) => x.rule === 'control-size');
+    expect(f.details.patch).toEqual({ from: 'size="small"', to: '' });
+    expect(readFileSync(join(root, rel), 'utf8')).toBe(`${head}<Card class="x"\n\n/>`);
+  });
+
   it('property-override: deletes a declaration in place, and a second pass is a no-op', () => {
     const root = pageRoot(SPACE_TOKENS);
     const rel = 'src/pages/Detail.svelte';
@@ -193,6 +205,32 @@ describe('check-page --fix, per rule', () => {
     const root = pageRoot(SPACE_TOKENS);
     const rel = 'src/pages/Detail.svelte';
     const source = `<style>.a { --card-default-radius: 0 }\n  .b { display: block; }</style>`;
+    writeFileSync(join(root, rel), source);
+    const { resolved, applied } = checkAndFix(root, [rel]);
+    expect(applied).toHaveLength(0);
+    expect(readFileSync(join(root, rel), 'utf8')).toBe(source);
+    const f = resolved.find((x: { rule: string }) => x.rule === 'property-override');
+    expect(f.repair).toBe('choice');
+    expect(f.details.patch).toBeUndefined();
+  });
+
+  it('property-override: a semicolon-less declaration never reaches a later namesake or a string literal', () => {
+    const root = pageRoot(SPACE_TOKENS);
+    const rel = 'src/pages/Detail.svelte';
+    const source = `<style>.a { --card-default-radius: 0 }\n  .b { --card-default-radius: 4px; }</style>\n<script>\n  const css = "--card-default-radius: 8px;";\n</script>`;
+    writeFileSync(join(root, rel), source);
+    const { resolved, applied } = checkAndFix(root, [rel]);
+    expect(applied).toHaveLength(0);
+    expect(readFileSync(join(root, rel), 'utf8')).toBe(source);
+    const f = resolved.find((x: { rule: string }) => x.rule === 'property-override');
+    expect(f.repair).toBe('choice');
+    expect(f.details.patch).toBeUndefined();
+  });
+
+  it('property-override: a directive whose value is an expression is left untouched, never cut to a later namesake', () => {
+    const root = pageRoot(SPACE_TOKENS);
+    const rel = 'src/pages/Detail.svelte';
+    const source = `<div style:--card-default-radius={r}>x</div>\n<span style:--card-default-radius="0.25rem">y</span>`;
     writeFileSync(join(root, rel), source);
     const { resolved, applied } = checkAndFix(root, [rel]);
     expect(applied).toHaveLength(0);

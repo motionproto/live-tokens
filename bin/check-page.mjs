@@ -231,32 +231,41 @@ function tagAttributes(code, start) {
 }
 
 /** The exact text a fixer deletes for one attribute: its own span, plus one
- *  leading whitespace char if present, so removal doesn't leave a double
- *  space or a lone trailing one before the tag's `>`. */
+ *  leading space or tab if present, so removal doesn't leave a double space or
+ *  a lone trailing one before the tag's `>`. A newline is never taken: the
+ *  patch has to stay inside the line the finding names, and `applyFixes`
+ *  applies a file's patches in line order on the assumption that none of them
+ *  moves a later line. */
 function attributeDeletion(code, index, end) {
-  const start = /\s/.test(code[index - 1] ?? '') ? index - 1 : index;
+  const start = /[^\S\n]/.test(code[index - 1] ?? '') ? index - 1 : index;
   return { from: code.slice(start, end), to: '' };
 }
 
-/** A `--name: value;` CSS declaration, deleted whole. `index` may sit on the
- *  boundary character before it (a style-block match keeps that char as its
- *  own delimiter), so the search starts there and finds the declaration a
- *  few characters in rather than requiring an exact start. The value is
- *  bounded to its own declaration (`}` and newline excluded) so a term with
- *  no trailing `;` cannot run on into the next rule; that case has no patch
- *  to apply, since deleting it whole would need one.
+/** A `--name: value;` CSS declaration, deleted whole. The match is anchored at
+ *  `index`, which sits either on the name or on the boundary character before
+ *  it (a style-block match keeps that char as its own delimiter), and the
+ *  value stops at `}` and at a newline as well as at `;`. Unanchored and
+ *  unbounded, the search ran past its own rule and deleted the next
+ *  same-named declaration, or the text of a string literal further down the
+ *  file. A declaration no `;` terminates inside its own block yields no patch,
+ *  since deleting it whole would need one.
  */
 function declarationDeletion(text, name, index) {
-  const m = new RegExp(`${name}\\s*:\\s*[^;}\\n]+;`).exec(text.slice(index));
-  return m ? { from: m[0], to: '' } : null;
+  const m = new RegExp(`^[;{]?\\s*(${name}\\s*:\\s*[^;}\\n]+;)`).exec(text.slice(index));
+  return m ? { from: m[1], to: '' } : null;
 }
 
 /** A `style:--name="value"` directive, deleted whole. `overrideAt` always
- *  records `index` at the start of `style:` itself for this site. */
+ *  records `index` at the start of `style:` itself, so the match is anchored
+ *  there and its length measures this directive. Unanchored, a directive whose
+ *  value is an expression (`style:--name={r}`) matched a quoted namesake
+ *  further down the file and cut that match's length out of this tag's markup.
+ *  An expression value has no patch: the value is code, not text to delete.
+ */
 function directiveDeletion(text, name, index) {
-  const m = new RegExp(`style:${name}=(["'])[^"']*\\1`).exec(text.slice(index));
+  const m = new RegExp(`^style:${name}=(["'])[^"']*\\1`).exec(text.slice(index));
   if (!m) return null;
-  const start = /\s/.test(text[index - 1] ?? '') ? index - 1 : index;
+  const start = /[^\S\n]/.test(text[index - 1] ?? '') ? index - 1 : index;
   return { from: text.slice(start, index + m[0].length), to: '' };
 }
 
