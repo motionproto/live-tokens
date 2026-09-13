@@ -174,6 +174,42 @@ describe('check-page --fix, per rule', () => {
     expect(f.details.patch).toBeUndefined();
   });
 
+  it('dimension-literal: lands on the flagged declaration, never an earlier namesake literal on an unflagged property', () => {
+    const root = pageRoot(SPACE_TOKENS);
+    const rel = 'src/pages/Detail.svelte';
+    writeFileSync(
+      join(root, rel),
+      `<div style="width: 8px; padding: 8px"></div>\n<style>.a { width: 8px; padding: 8px; }</style>`,
+    );
+    const { resolved, applied } = checkAndFix(root, [rel]);
+    expect(resolved.filter((x: { rule: string }) => x.rule === 'dimension-literal')).toHaveLength(2);
+    expect(applied).toHaveLength(2);
+    const fixed = readFileSync(join(root, rel), 'utf8');
+    expect(fixed).toBe(
+      `<div style="width: 8px; padding: var(--space-8)"></div>\n<style>.a { width: 8px; padding: var(--space-8); }</style>`,
+    );
+
+    const second = checkAndFix(root, [rel]);
+    expect(second.resolved.filter((x: { rule: string }) => x.rule === 'dimension-literal')).toHaveLength(0);
+    expect(second.applied).toHaveLength(0);
+    expect(readFileSync(join(root, rel), 'utf8')).toBe(fixed);
+  });
+
+  it('dimension-literal: rewrites a style: directive in place, and a second pass is a no-op', () => {
+    const root = pageRoot(SPACE_TOKENS);
+    const rel = 'src/pages/Detail.svelte';
+    writeFileSync(join(root, rel), `<div style:width="8px" style:padding="8px"></div>`);
+    const { applied } = checkAndFix(root, [rel]);
+    expect(applied).toHaveLength(1);
+    expect(applied[0].details.patch).toEqual({ from: 'style:padding="8px"', to: 'style:padding="var(--space-8)"' });
+    const fixed = readFileSync(join(root, rel), 'utf8');
+    expect(fixed).toBe(`<div style:width="8px" style:padding="var(--space-8)"></div>`);
+
+    const second = checkAndFix(root, [rel]);
+    expect(second.applied).toHaveLength(0);
+    expect(readFileSync(join(root, rel), 'utf8')).toBe(fixed);
+  });
+
   it('control-size: deletes the size attribute, and a second pass is a no-op', () => {
     const root = pageRoot(SPACE_TOKENS);
     // control-size only fires for a shipped-origin component, so this uses the real Card.
@@ -413,6 +449,7 @@ describe('--fix through the CLI', () => {
     writeFileSync(join(root, rel), `<style>.a { padding: 8px; }</style>`);
     const out = execFileSync('node', [cli, 'check-page', rel, '--fix'], { cwd: root }).toString();
     expect(out).toContain('1 patch(es) applied');
+    expect(out).toContain('padding: 8px → padding: var(--space-8)  [dimension-literal]  shift 0px');
     expect(readFileSync(join(root, rel), 'utf8')).toBe(`<style>.a { padding: var(--space-8); }</style>`);
   });
 

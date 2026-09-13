@@ -406,13 +406,18 @@ function checkDefaultsAreSemantic({ blocks, runtime, editor, root, runtimePath, 
       if (hasDimensionLiteral(painted)) {
         const scale = tokenScale(name, kindRules, GEOMETRY_SCALES);
         const resolved = resolveGeometryLiteral(value, scale, scaleTokens(vocab, scale));
+        // Anchored at the whole declaration: a value-only patch applied at the
+        // first namesake literal at or after the line, whatever property held it.
+        const patch = resolved.patch
+          ? { from: decl, to: `${decl.slice(0, decl.length - raw.length - 1)}${raw.replace(value, resolved.patch.to)};` }
+          : null;
         record(
           'dimension-literal',
           `${rel}: ${name}: ${value} pins a raw dimension; use a --space-*, --radius-*, or --border-width-* token`,
           at,
           {
-            details: { scale: resolved.scale, literals: resolved.literals, ...(resolved.patch ? { patch: resolved.patch } : {}) },
-            ...(resolved.auto ? {} : { repair: 'choice' }),
+            details: { scale: resolved.scale, literals: resolved.literals, ...(patch ? { patch } : {}) },
+            ...(patch ? {} : { repair: 'choice' }),
           },
         );
       }

@@ -675,7 +675,7 @@ describe('a page finding carries what its repair needs', () => {
     expect(f.details).toEqual({
       scale: 'space',
       literals: [{ value: '8px', px: 8, candidates: [{ token: '--space-8', px: 8, shift: 0 }] }],
-      patch: { from: '8px', to: 'var(--space-8)' },
+      patch: { from: 'padding: 8px', to: 'padding: var(--space-8)' },
     });
     expect(f.repair).toBeUndefined();
   });
@@ -699,7 +699,7 @@ describe('a page finding carries what its repair needs', () => {
     expect(width.details).toEqual({
       scale: 'border-width',
       literals: [{ value: '1px', px: 1, candidates: [{ token: '--border-width-1', px: 1, shift: 0 }] }],
-      patch: { from: '1px solid var(--border-neutral)', to: 'var(--border-width-1) solid var(--border-neutral)' },
+      patch: { from: 'border: 1px solid var(--border-neutral)', to: 'border: var(--border-width-1) solid var(--border-neutral)' },
     });
     expect(width.repair).toBeUndefined();
 

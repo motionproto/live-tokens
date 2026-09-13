@@ -217,6 +217,12 @@ function reportChecks(label, findings, checked, rules, opts, { coverage, hardFai
   process.exit(countBySeverity(resolved).errors === 0 && !hardFailure ? 0 : 1);
 }
 
+function shiftNote(f) {
+  if (f.rule !== 'dimension-literal') return '';
+  const shifts = f.details.literals.map((l) => l.candidates[0].shift).map((n) => `${n > 0 ? '+' : ''}${n}px`);
+  return `  shift ${shifts.join(', ')}`;
+}
+
 /** `--fix`: apply every `auto` patch the static findings already carry, then
  *  report what changed against a fresh run over the fixed file, so a patch
  *  already applied or a file that moved on is never double-reported. */
@@ -232,7 +238,7 @@ function runFix(label, findings, checked, rules, opts, { exclude } = {}, recheck
   } else {
     const lines = [`${label} --fix: ${applied.length} patch(es) applied, ${skipped.length} left unresolved.`];
     for (const f of applied) {
-      lines.push(`  fixed    ${f.file}:${f.line}  ${f.details.patch.from} → ${f.details.patch.to || '(removed)'}  [${f.rule}]`);
+      lines.push(`  fixed    ${f.file}:${f.line}  ${f.details.patch.from} → ${f.details.patch.to || '(removed)'}  [${f.rule}]${shiftNote(f)}`);
     }
     for (const f of skipped) lines.push(`  skipped  ${f.file}:${f.line}  ${f.details.patch.from}  [${f.rule}]`);
     lines.push('', formatFindings(remaining, { label, checked }));

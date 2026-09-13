@@ -147,7 +147,7 @@ describe('the finding contract both checkers meet', () => {
       details: {
         scale: 'space',
         literals: [{ value: '12px', px: 12, candidates: [{ token: '--space-8', px: 8, shift: -4 }] }],
-        patch: { from: '12px', to: 'var(--space-8)' },
+        patch: { from: 'padding: 12px', to: 'padding: var(--space-8)' },
       },
     });
   });
