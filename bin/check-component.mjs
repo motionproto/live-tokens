@@ -470,7 +470,17 @@ function findJsonKeyLine(text, key) {
  * gradient, is out of scope here.
  */
 function checkConfigTokens({ id, root, intrinsic, vocab, recordAt }) {
-  const dataDir = resolveSourceDataDir(root, settingsFilePath(root));
+  // A non-literal `dataDir` in `live-tokens.testing.ts` (a template literal, a
+  // computed value) is only resolvable at `--tests` time, when the settings
+  // module itself runs; `resolveSourceDataDir` throws rather than guess. This
+  // plain-Node rule has no settings module to run, so it skips instead of
+  // taking the whole static lint down with it.
+  let dataDir;
+  try {
+    dataDir = resolveSourceDataDir(root, settingsFilePath(root));
+  } catch {
+    return;
+  }
   const configPath = join(dataDir, 'component-configs', id, 'default.json');
   if (!existsSync(configPath)) return;
   const text = readFileSync(configPath, 'utf8');

@@ -272,6 +272,7 @@ describe('check-page --fix, per rule', () => {
     const { resolved, applied } = checkAndFix(root, [rel]);
     expect(applied.some((f: { rule: string }) => f.rule === 'control-size')).toBe(true);
     const f = resolved.find((x: { rule: string }) => x.rule === 'control-size');
+    expect(f.message).toContain('size="small"'); // parses the spaced `=` to the value, not a stray attribute
     expect(f.details.patch).toEqual({ from: ' size = "small"', to: '' });
     expect(readFileSync(join(root, rel), 'utf8')).toBe(`${CARD_IMPORT}<Card />`);
   });

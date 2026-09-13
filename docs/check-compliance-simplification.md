@@ -693,17 +693,20 @@ reading less than the plan says it reads. All are fixture-shaped.
 **Verify.** Fixtures under `bin/` prove: a runtime one directory below a
 `componentDirs` entry is discovered, resolved, and checked; a project whose
 `live-tokens.config.json` sets `dataDir` gets a `config-token` finding from a
-broken alias under that directory and none from the default path; an alias in
-one component's `default.json` naming another component's property is a
-`config-token` finding; a registered id with neither file yields two
-`missing-file` findings; `<Card\nsize="small"\n/>` and
-`<Card size=\n"small" />` each yield `control-size` with `repair: choice`,
-and `--fix` leaves both byte-identical; `<Card size = "small" />` yields
-`control-size` with value `small` and `--fix` deletes the whole attribute. All 26 shipped `default.json` files
-and the template's pass `config-token`; if one aliases a foreign property,
-stop and report. Invariant 4 by grep: no `readdirSync` of a components
-directory outside `walk`. Invariant 7, with `check:smoke-component-tests` in
-the background.
+broken alias under that directory and none from the default path; a project
+whose `live-tokens.testing.ts` sets `dataDir` to anything but a string
+literal skips `config-token` instead of throwing out of the static lint; an
+alias in one component's `default.json` naming another component's property
+is a `config-token` finding; a registered id with neither file yields two
+`missing-file` findings; `<Card\nsize="small"\n/>` yields `control-size` and
+`--fix` deletes the attribute, since the span it patches carries no newline;
+`<Card size=\n"small" />` yields `control-size` with `repair: choice` and
+`--fix` leaves it byte-identical, since the value itself crosses a line;
+`<Card size = "small" />` parses with value `small`, yields `control-size`,
+and `--fix` deletes the whole attribute. All 26 shipped `default.json` files
+pass `config-token`; if one aliases a foreign property, stop and report.
+Invariant 4 by grep: no `readdirSync` of a components directory outside
+`walk`. Invariant 7, with `check:smoke-component-tests` in the background.
 
 ## Wave 8: one defect, one finding under `--tests`
 

@@ -67,7 +67,7 @@ export function scrapeSettingsField(settingsPath, fieldName) {
   if (new RegExp(`\\b${fieldName}\\s*:`).test(live)) {
     throw new Error(
       `"${fieldName}" in ${settingsPath} is set to something other than a plain string literal, ` +
-        `so --tests cannot read it statically. Use a literal string, or remove the key to fall back to the default.`,
+        `so it cannot be read statically. Use a literal string, or remove the key to fall back to the default.`,
     );
   }
   return null;

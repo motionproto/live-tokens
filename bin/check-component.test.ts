@@ -496,6 +496,15 @@ describe('config-token', () => {
     expect(rules(root)).toContain('config-token');
   });
 
+  it('a dataDir set to anything other than a string literal skips the rule instead of throwing', () => {
+    const root = fixtureRoot();
+    widget(root, '--widget-surface: var(--surface-neutral);');
+    writeFileSync(join(root, 'live-tokens.testing.ts'), 'export default { dataDir: process.env.DATA_DIR };\n');
+    writeConfig(root, 'widget', { '--widget-surface': '--surface-nope' });
+    expect(() => checkComponent('widget', root)).not.toThrow();
+    expect(rules(root)).not.toContain('config-token');
+  });
+
   it('all 26 shipped default.json files pass it', () => {
     for (const id of discoverComponents(process.cwd())) {
       expect(rules(process.cwd(), id)).not.toContain('config-token');
