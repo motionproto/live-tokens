@@ -270,7 +270,11 @@ function directiveDeletion(text, name, index) {
   const m = new RegExp(`^style:${name}=(["'])[^"']*\\1`).exec(text.slice(index));
   if (!m) return null;
   const start = /[^\S\n]/.test(text[index - 1] ?? '') ? index - 1 : index;
-  return { from: text.slice(start, index + m[0].length), to: '' };
+  const from = text.slice(start, index + m[0].length);
+  // A quoted value may run over a line, and deleting it would move every later
+  // finding's line out from under `applyFixes`.
+  if (from.includes('\n')) return null;
+  return { from, to: '' };
 }
 
 // The shipped component that owns each native control's paint.

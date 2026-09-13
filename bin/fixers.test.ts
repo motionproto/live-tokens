@@ -288,6 +288,21 @@ describe('check-page --fix, per rule', () => {
     expect(readFileSync(join(root, rel), 'utf8')).toBe(`<div></div>`);
   });
 
+  it('property-override: a directive whose quoted value runs over a line is left untouched', () => {
+    const root = pageRoot(SPACE_TOKENS);
+    const rel = 'src/pages/Detail.svelte';
+    const source = `<div\n  style:--card-default-radius="0 0\n  0 0"\n>x</div>\n<style>.a { padding: 8px; }</style>\n`;
+    writeFileSync(join(root, rel), source);
+    const { resolved, applied } = checkAndFix(root, [rel]);
+    expect(applied.some((f: { rule: string }) => f.rule === 'property-override')).toBe(false);
+    const f = resolved.find((x: { rule: string }) => x.rule === 'property-override');
+    expect(f.repair).toBe('choice');
+    expect(f.details.patch).toBeUndefined();
+    expect(readFileSync(join(root, rel), 'utf8')).toBe(
+      `<div\n  style:--card-default-radius="0 0\n  0 0"\n>x</div>\n<style>.a { padding: var(--space-8); }</style>\n`,
+    );
+  });
+
   it('property-override: a setProperty override stays authored, untouched by --fix', () => {
     const root = pageRoot(SPACE_TOKENS);
     const rel = 'src/pages/Detail.svelte';
