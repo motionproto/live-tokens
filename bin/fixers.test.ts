@@ -264,17 +264,28 @@ describe('check-page --fix, per rule', () => {
     expect(f.details.patch).toBeUndefined();
   });
 
-  it('control-size: spaces around the equals sign are left untouched, never cut down to an orphan', () => {
+  it('control-size: spaces around the equals sign read as one attribute, as Svelte does, and delete whole', () => {
     const root = pageRoot(SPACE_TOKENS);
     const rel = 'src/pages/Detail.svelte';
     const source = `${CARD_IMPORT}<Card size = "small" />`;
     writeFileSync(join(root, rel), source);
     const { resolved, applied } = checkAndFix(root, [rel]);
-    expect(applied.some((f: { rule: string }) => f.rule === 'control-size')).toBe(false);
-    expect(readFileSync(join(root, rel), 'utf8')).toBe(source);
+    expect(applied.some((f: { rule: string }) => f.rule === 'control-size')).toBe(true);
     const f = resolved.find((x: { rule: string }) => x.rule === 'control-size');
-    expect(f.repair).toBe('choice');
-    expect(f.details.patch).toBeUndefined();
+    expect(f.details.patch).toEqual({ from: ' size = "small"', to: '' });
+    expect(readFileSync(join(root, rel), 'utf8')).toBe(`${CARD_IMPORT}<Card />`);
+  });
+
+  it('control-size: an attribute with nothing but a newline before it still deletes whole, keeping that newline', () => {
+    const root = pageRoot(SPACE_TOKENS);
+    const rel = 'src/pages/Detail.svelte';
+    const source = `${CARD_IMPORT}<Card\nsize="small"\n/>`;
+    writeFileSync(join(root, rel), source);
+    const { resolved, applied } = checkAndFix(root, [rel]);
+    expect(applied.some((f: { rule: string }) => f.rule === 'control-size')).toBe(true);
+    const f = resolved.find((x: { rule: string }) => x.rule === 'control-size');
+    expect(f.details.patch).toEqual({ from: 'size="small"', to: '' });
+    expect(readFileSync(join(root, rel), 'utf8')).toBe(`${CARD_IMPORT}<Card\n\n/>`);
   });
 
   it('dimension-literal: lands on its own line while an unfixable control-size sits above it', () => {

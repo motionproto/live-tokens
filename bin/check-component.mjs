@@ -25,6 +25,7 @@ import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { extname, join, relative } from 'node:path';
 import { deepImportRepair, scaleTokens } from './lib/catalogue.mjs';
 import { hasColorLiteral, hasDimensionLiteral, stripVarFallbacks } from './lib/cssValues.mjs';
+import { resolveSourceDataDir, settingsFilePath } from './lib/dataDir.mjs';
 import { fixMap, lineOf } from './lib/findings.mjs';
 import { resolveGeometryLiteral } from './lib/geometry.mjs';
 import {
@@ -469,7 +470,8 @@ function findJsonKeyLine(text, key) {
  * gradient, is out of scope here.
  */
 function checkConfigTokens({ id, root, intrinsic, vocab, recordAt }) {
-  const configPath = join(root, 'src/live-tokens/data/component-configs', id, 'default.json');
+  const dataDir = resolveSourceDataDir(root, settingsFilePath(root));
+  const configPath = join(dataDir, 'component-configs', id, 'default.json');
   if (!existsSync(configPath)) return;
   const text = readFileSync(configPath, 'utf8');
   const rel = relative(root, configPath);
@@ -479,6 +481,11 @@ function checkConfigTokens({ id, root, intrinsic, vocab, recordAt }) {
   } catch {
     return;
   }
+  // Only this component's own tokens, not the union across every component:
+  // an alias naming a sibling component's property is exactly the case this
+  // rule exists to catch.
+  const ownTokens = vocab.components.get(id)?.tokens;
+  const knows = (name) => vocab.themeTokens.has(name) || (ownTokens?.has(name) ?? false);
   for (const [prop, value] of Object.entries(data.aliases ?? {})) {
     if (typeof value !== 'string') continue;
     const line = findJsonKeyLine(text, prop);
@@ -496,7 +503,7 @@ function checkConfigTokens({ id, root, intrinsic, vocab, recordAt }) {
       continue;
     }
     for (const name of names) {
-      if (vocab.knows(name)) continue;
+      if (knows(name)) continue;
       recordAt(
         'config-token',
         `${rel}: ${prop} names ${name}, which is not a design token or a semantic property`,
@@ -543,6 +550,12 @@ export function checkComponent(id, root = process.cwd(), { vocabulary } = {}) {
   const { Id, runtimePath, editorPath } = resolveComponentPaths(id, root);
 
   file = relative(root, runtimePath);
+  // Recorded before the runtime check below, so an id with neither file gets
+  // both findings rather than stopping silently on the first.
+  const editorMissing = !existsSync(editorPath);
+  if (editorMissing) {
+    record('missing-file', `editor missing: ${relative(root, editorPath)}`);
+  }
   if (!existsSync(runtimePath)) {
     record('missing-file', `runtime missing: ${relative(root, runtimePath)}`);
     return done();
@@ -550,10 +563,6 @@ export function checkComponent(id, root = process.cwd(), { vocabulary } = {}) {
   // A missing editor still gets its own finding, but the rules that need only
   // the runtime (token shape, semantics, config, registration) still run —
   // an editor-less component is exactly the case those rules exist to catch.
-  const editorMissing = !existsSync(editorPath);
-  if (editorMissing) {
-    record('missing-file', `editor missing: ${relative(root, editorPath)}`);
-  }
 
   const runtime = readFileSync(runtimePath, 'utf8');
   const editor = editorMissing ? '' : readFileSync(editorPath, 'utf8');

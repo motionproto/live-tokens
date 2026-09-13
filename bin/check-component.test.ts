@@ -383,11 +383,14 @@ describe('discoverComponents', () => {
     expect(findings.some((f: { rule: string }) => f.rule === 'missing-registration')).toBe(false);
   });
 
-  it('a registered id with no runtime produces missing-file', () => {
+  it('a registered id with neither file yields two missing-file findings', () => {
     const root = fixtureRoot();
     writeFileSync(join(root, 'src/main.ts'), `registerComponent({ id: 'ghost', label: 'Ghost' });`);
     const { findings } = checkComponent('ghost', root);
-    expect(findings).toEqual([expect.objectContaining({ rule: 'missing-file' })]);
+    expect(findings).toEqual([
+      expect.objectContaining({ rule: 'missing-file', message: expect.stringContaining('editor missing') }),
+      expect.objectContaining({ rule: 'missing-file', message: expect.stringContaining('runtime missing') }),
+    ]);
   });
 
   it('discovers a component under a configured componentDirs directory', () => {
@@ -395,6 +398,17 @@ describe('discoverComponents', () => {
     mkdirSync(join(root, 'src/widgets'), { recursive: true });
     writeFileSync(join(root, 'live-tokens.config.json'), JSON.stringify({ componentDirs: ['src/widgets'] }));
     writeFileSync(join(root, 'src/widgets/Gizmo.svelte'), '<div />\n<style>:global(:root){--gizmo-surface:var(--surface-neutral);}</style>');
+    writeFileSync(join(root, 'src/main.ts'), `registerComponent({ id: 'gizmo', label: 'Gizmo' });`);
+    expect(discoverComponents(root)).toContain('gizmo');
+    const { findings } = checkComponent('gizmo', root);
+    expect(findings.some((f: { rule: string }) => f.rule === 'missing-registration')).toBe(false);
+  });
+
+  it('discovers a runtime one directory below a configured componentDirs entry', () => {
+    const root = fixtureRoot();
+    mkdirSync(join(root, 'src/widgets/nested'), { recursive: true });
+    writeFileSync(join(root, 'live-tokens.config.json'), JSON.stringify({ componentDirs: ['src/widgets'] }));
+    writeFileSync(join(root, 'src/widgets/nested/Gizmo.svelte'), '<div />\n<style>:global(:root){--gizmo-surface:var(--surface-neutral);}</style>');
     writeFileSync(join(root, 'src/main.ts'), `registerComponent({ id: 'gizmo', label: 'Gizmo' });`);
     expect(discoverComponents(root)).toContain('gizmo');
     const { findings } = checkComponent('gizmo', root);
@@ -454,6 +468,34 @@ describe('config-token', () => {
     expect(rules(root)).not.toContain('config-token');
   });
 
+  it('reads component-configs under a configured dataDir, never the default path', () => {
+    const root = fixtureRoot();
+    widget(root, '--widget-surface: var(--surface-neutral);');
+    writeFileSync(join(root, 'live-tokens.config.json'), JSON.stringify({ dataDir: 'custom-data' }));
+    // A broken alias under the default path is never read once dataDir points elsewhere.
+    writeConfig(root, 'widget', { '--widget-surface': '--surface-nope' });
+    expect(rules(root)).not.toContain('config-token');
+
+    const dir = join(root, 'custom-data/component-configs/widget');
+    mkdirSync(dir, { recursive: true });
+    writeFileSync(
+      join(dir, 'default.json'),
+      JSON.stringify({ name: 'default', component: 'widget', aliases: { '--widget-surface': '--surface-nope' } }, null, 2),
+    );
+    expect(rules(root)).toContain('config-token');
+  });
+
+  it("fires when an alias names another component's property, not the union across every component", () => {
+    const root = fixtureRoot();
+    widget(root, '--widget-surface: var(--surface-neutral);');
+    writeFileSync(
+      join(root, 'src/system/components/Gadget.svelte'),
+      '<style>:global(:root){--gadget-surface:var(--surface-neutral);}</style>',
+    );
+    writeConfig(root, 'widget', { '--widget-surface': 'var(--gadget-surface)' });
+    expect(rules(root)).toContain('config-token');
+  });
+
   it('all 26 shipped default.json files pass it', () => {
     for (const id of discoverComponents(process.cwd())) {
       expect(rules(process.cwd(), id)).not.toContain('config-token');
@@ -478,12 +520,13 @@ import {
   readPlaywrightTests,
   readReportOrSetupFinding,
   reconcileCoverage,
-  resolveSourceDataDir,
   runContractTests,
   runPlaywrightSuite,
   runRegistrySuite,
   writeGeneratedConfigs,
 } from './contractRunner.mjs';
+// @ts-expect-error — plain .mjs module, no types
+import { resolveSourceDataDir } from './lib/dataDir.mjs';
 // @ts-expect-error — plain .mjs module, no types
 import { applyCoverageSeverity, resolveRuleSeverity } from './lib/findings.mjs';
 

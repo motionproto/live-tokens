@@ -62,6 +62,25 @@
   under `findings.components`. `usage` drops `customUnregistered`; an
   unregistered project component is now `missing-registration`.
 
+### Fixed
+
+- **The component inventory discovers a runtime nested below a
+  `componentDirs` entry**, not only one directly inside it. `componentInventory`
+  now walks each directory recursively, the way the discovery it replaced did.
+- **`config-token` reads `component-configs/<id>/default.json` from the
+  project's actual data directory** — `dataDir` in `live-tokens.testing.ts` or
+  `live-tokens.config.json`, same resolution `check-component --tests`
+  already isolates — instead of the literal `src/live-tokens/data`.
+- **`config-token` checks an alias against its own component's properties**,
+  not the union across every component's. An alias that names a sibling
+  component's property now fires, where it used to pass silently.
+- **A component with neither a runtime nor an editor reports both
+  `missing-file` findings**, not only the runtime's. The editor check runs
+  before the runtime check returns.
+- **`check-page`'s attribute parser reads an attribute a newline separates
+  from the tag name**, and reads `size = "small"` — spaces around `=` — as
+  Svelte does, as one attribute rather than a stray `=` that stopped the scan.
+
 ## 0.78.0 — A page proves compliance as rendered
 
 ### Added

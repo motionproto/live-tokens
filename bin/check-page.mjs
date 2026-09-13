@@ -164,7 +164,6 @@ function declarations(css) {
  * set unknowable.
  */
 function tagAttributes(code, start) {
-  let i = code.indexOf(' ', start);
   const tagEnd = (() => {
     let depth = 0;
     let quote = null;
@@ -179,7 +178,18 @@ function tagAttributes(code, start) {
     }
     return code.length;
   })();
-  if (i === -1 || i > tagEnd) return { attrs: [], end: tagEnd };
+  // The tag name carries no whitespace of its own, so the first whitespace
+  // character at or after `start` — space, tab, or a wrapped newline — is
+  // always the boundary right after it, never only a literal space on the
+  // same line.
+  let i = -1;
+  for (let k = start; k < tagEnd; k++) {
+    if (/\s/.test(code[k])) {
+      i = k;
+      break;
+    }
+  }
+  if (i === -1) return { attrs: [], end: tagEnd };
   const attrs = [];
   while (i < tagEnd) {
     const c = code[i];
@@ -204,9 +214,15 @@ function tagAttributes(code, start) {
     if (!name) break;
     const at = i;
     i += name.length;
+    // Horizontal whitespace around `=` reads as the same attribute — Svelte
+    // itself accepts `size = "small"` — but a newline on either side does
+    // not: that's a bare boolean attribute followed by unrelated markup.
+    let j = i;
+    while (j < tagEnd && /[^\S\n]/.test(code[j])) j++;
     let value = null;
-    if (code[i] === '=') {
-      i++;
+    if (code[j] === '=') {
+      i = j + 1;
+      while (i < tagEnd && /[^\S\n]/.test(code[i])) i++;
       const q = code[i];
       if (q === '"' || q === "'") {
         const close = code.indexOf(q, i + 1);
@@ -244,9 +260,6 @@ function attributeDeletion(code, index, end) {
   const start = /[^\S\n]/.test(code[index - 1] ?? '') ? index - 1 : index;
   const from = code.slice(start, end);
   if (from.includes('\n') || from.endsWith('=')) return null;
-  // `size = "small"` parses as a bare `size` followed by `=`, so the span is
-  // the name alone and deleting it would strand the value.
-  if (/^[^\S\n]*=/.test(code.slice(end))) return null;
   return { from, to: '' };
 }
 

@@ -16,7 +16,7 @@
 // Reads files only. Nothing here may import dist-plugin at module top: CI runs
 // the suite before the plugin is built (see bin/engineLoadsLazily.test.ts).
 
-import { existsSync, readFileSync, readdirSync, realpathSync, statSync } from 'node:fs';
+import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { resolveTokensCssPath } from '../migrate.mjs';
@@ -155,26 +155,6 @@ function walk(dir, exts, out = []) {
   return out;
 }
 
-function componentFiles(roots) {
-  const seen = new Set();
-  const files = [];
-  for (const dir of roots) {
-    for (const file of walk(dir, ['.svelte'])) {
-      if (file.endsWith('Editor.svelte')) continue;
-      let key = file;
-      try {
-        key = realpathSync(file);
-      } catch {
-        // unreadable link; fall back to the path itself
-      }
-      if (seen.has(key)) continue;
-      seen.add(key);
-      files.push(file);
-    }
-  }
-  return files;
-}
-
 /** The package's own component ids, read from the frozen registry that declares
     them. A shipped component is registered by the package rather than by the
     project, so it never appears in the project's own `registerComponent` scan. */
@@ -236,8 +216,9 @@ export function componentInventory(root = process.cwd(), pkgRoot = PKG_ROOT) {
   for (const dirRel of dirs) {
     const dir = join(root, dirRel);
     if (!existsSync(dir)) continue;
-    for (const fileName of readdirSync(dir)) {
-      if (!fileName.endsWith('.svelte') || fileName.endsWith('Editor.svelte')) continue;
+    for (const file of walk(dir, ['.svelte'])) {
+      const fileName = file.slice(file.lastIndexOf('/') + 1);
+      if (fileName.endsWith('Editor.svelte')) continue;
       const Id = fileName.replace('.svelte', '');
       const id = Id.toLowerCase();
       if (entries.has(id)) continue;
@@ -246,7 +227,7 @@ export function componentInventory(root = process.cwd(), pkgRoot = PKG_ROOT) {
         id,
         Id,
         origin: built.has(id) ? 'shipped' : 'custom',
-        runtimePath: join(dir, fileName),
+        runtimePath: file,
         editorPath,
         registered: built.has(id) || registered.has(id),
         runtimeExists: true,
@@ -306,9 +287,8 @@ export function loadVocabulary({ root = process.cwd(), pkgRoot = PKG_ROOT } = {}
   // instead of a second directory scan, is what keeps `report.components` and
   // `report.findings.components.checked` naming the same ids.
   const filesById = new Map();
-  for (const file of componentFiles([join(pkgRoot, SHIPPED_COMPONENTS_DIR)])) {
-    const id = file.slice(file.lastIndexOf('/') + 1).replace('.svelte', '').toLowerCase();
-    filesById.set(id, file);
+  for (const entry of componentInventory(pkgRoot, pkgRoot).values()) {
+    if (entry.runtimeExists) filesById.set(entry.id, entry.runtimePath);
   }
   for (const entry of componentInventory(root, pkgRoot).values()) {
     if (entry.runtimeExists) filesById.set(entry.id, entry.runtimePath);
