@@ -82,7 +82,7 @@ describe('buildReport', () => {
     expect(r.findings.pages.byRule).toEqual({ 'color-literal': 1, 'dimension-literal': 1 });
     expect(r.findings.pages.errors).toBe(1);
     expect(r.findings.pages.strictErrors).toBe(2);
-    expect(r.findings.components.checked).toEqual(['widget']);
+    expect(r.findings.components.checked.slice().sort()).toEqual(['stray', 'widget']);
   });
 
   it('lists a component with no usage comment, shipped or custom', () => {

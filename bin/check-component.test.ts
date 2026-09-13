@@ -349,18 +349,100 @@ describe('the clean component and its mutations', () => {
 });
 
 describe('discoverComponents', () => {
-  it('finds every runtime with an editor beside it and skips the rest', () => {
+  it('finds every runtime, with or without an editor beside it', () => {
     const root = fixtureRoot();
     writeFileSync(join(root, 'src/system/components/Widget.svelte'), CLEAN.runtime);
     writeFileSync(join(root, 'src/system/components/WidgetEditor.svelte'), CLEAN.editor);
     writeFileSync(join(root, 'src/system/components/Stray.svelte'), '<div />');
-    expect(discoverComponents(root)).toEqual(['widget']);
+    expect(discoverComponents(root).sort()).toEqual(['stray', 'widget']);
+  });
+
+  it('a runtime with no editor produces missing-file and stays in the batch', () => {
+    const root = fixtureRoot();
+    writeFileSync(join(root, 'src/system/components/Stray.svelte'), '<div />\n<style>:global(:root){--stray-surface:var(--surface-neutral);}</style>');
+    writeFileSync(join(root, 'src/main.ts'), `registerComponent({ id: 'stray', label: 'Stray' });`);
+    const { findings } = checkComponent('stray', root);
+    expect(findings.map((f: { rule: string }) => f.rule)).toContain('missing-file');
+    expect(findings.some((f: { rule: string; message: string }) => f.rule === 'missing-file' && /editor missing/.test(f.message))).toBe(true);
+    // still ran the rules that need only the runtime
+    expect(findings.some((f: { rule: string }) => f.rule === 'missing-registration')).toBe(false);
+  });
+
+  it('a registered id with no runtime produces missing-file', () => {
+    const root = fixtureRoot();
+    writeFileSync(join(root, 'src/main.ts'), `registerComponent({ id: 'ghost', label: 'Ghost' });`);
+    const { findings } = checkComponent('ghost', root);
+    expect(findings).toEqual([expect.objectContaining({ rule: 'missing-file' })]);
+  });
+
+  it('discovers a component under a configured componentDirs directory', () => {
+    const root = fixtureRoot();
+    mkdirSync(join(root, 'src/widgets'), { recursive: true });
+    writeFileSync(join(root, 'live-tokens.config.json'), JSON.stringify({ componentDirs: ['src/widgets'] }));
+    writeFileSync(join(root, 'src/widgets/Gizmo.svelte'), '<div />\n<style>:global(:root){--gizmo-surface:var(--surface-neutral);}</style>');
+    writeFileSync(join(root, 'src/main.ts'), `registerComponent({ id: 'gizmo', label: 'Gizmo' });`);
+    expect(discoverComponents(root)).toContain('gizmo');
+    const { findings } = checkComponent('gizmo', root);
+    expect(findings.some((f: { rule: string }) => f.rule === 'missing-registration')).toBe(false);
   });
 
   it('covers the shipped catalogue in this repo', () => {
     const registry = readFileSync(join(process.cwd(), 'src/editor/component-editor/registry.ts'), 'utf8');
     const ids = [...registry.matchAll(/^\s{4}id: '([a-z0-9]+)',$/gm)].map((m) => m[1]);
     for (const id of ids) expect(discoverComponents(process.cwd())).toContain(id);
+  });
+});
+
+function writeConfig(root: string, id: string, aliases: Record<string, unknown>) {
+  const dir = join(root, 'src/live-tokens/data/component-configs', id);
+  mkdirSync(dir, { recursive: true });
+  writeFileSync(join(dir, 'default.json'), JSON.stringify({ name: 'default', component: id, aliases }, null, 2));
+}
+
+describe('config-token', () => {
+  it('fires on an alias naming a token the vocabulary lacks', () => {
+    const root = fixtureRoot();
+    widget(root, '--widget-surface: var(--surface-neutral);');
+    writeConfig(root, 'widget', { '--widget-surface': '--surface-nope' });
+    expect(rules(root)).toContain('config-token');
+  });
+
+  it('fires on a bare literal for a property with no intrinsic', () => {
+    const root = fixtureRoot();
+    widget(root, '--widget-surface: var(--surface-neutral);');
+    writeConfig(root, 'widget', { '--widget-surface': 'solid' });
+    expect(rules(root)).toContain('config-token');
+  });
+
+  it('stays silent on the color-mix opacity form', () => {
+    const root = fixtureRoot();
+    widget(root, '--widget-surface: var(--surface-neutral);');
+    writeConfig(root, 'widget', { '--widget-surface': 'color-mix(in srgb, var(--surface-neutral) 70%, transparent)' });
+    expect(rules(root)).not.toContain('config-token');
+  });
+
+  it('stays silent on var(--x) naming a real token', () => {
+    const root = fixtureRoot();
+    widget(root, '--widget-surface: var(--surface-neutral);');
+    writeConfig(root, 'widget', { '--widget-surface': 'var(--surface-neutral)' });
+    expect(rules(root)).not.toContain('config-token');
+  });
+
+  it('stays silent on a literal for a declared intrinsic', () => {
+    const root = fixtureRoot();
+    widget(
+      root,
+      '--widget-align: start;',
+      `export const intrinsics = [{ key: 'align', variants: ['default'], variable: () => '--widget-align', values: ['start', 'center'], default: { default: 'start' } }];`,
+    );
+    writeConfig(root, 'widget', { '--widget-align': 'center' });
+    expect(rules(root)).not.toContain('config-token');
+  });
+
+  it('all 26 shipped default.json files pass it', () => {
+    for (const id of discoverComponents(process.cwd())) {
+      expect(rules(process.cwd(), id)).not.toContain('config-token');
+    }
   });
 });
 

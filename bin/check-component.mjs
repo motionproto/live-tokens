@@ -23,7 +23,16 @@ import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { extname, join, relative } from 'node:path';
 import { hasColorLiteral, hasDimensionLiteral, stripVarFallbacks } from './lib/cssValues.mjs';
 import { lineOf } from './lib/findings.mjs';
-import { PKG_ROOT, builtInIds, declaredCustomProperties, extractGlobalRootBlocks, isContractToken, loadVocabulary } from './lib/tokenVocabulary.mjs';
+import {
+  EDITOR_DIRS,
+  PKG_ROOT,
+  builtInIds,
+  componentInventory,
+  declaredCustomProperties,
+  extractGlobalRootBlocks,
+  isContractToken,
+  loadVocabulary,
+} from './lib/tokenVocabulary.mjs';
 
 export const COMPONENT_RULES = {
   'invalid-id': 'error',
@@ -43,6 +52,7 @@ export const COMPONENT_RULES = {
   'default-not-token': 'error',
   'phantom-link': 'warn',
   'dimension-literal': 'warn',
+  'config-token': 'error',
   // `--tests` (bin/contractRunner.mjs). Fixed by design decision 8 so
   // `fix-findings` can map them; every one is an error, including the setup
   // rules, which `--tests` treats as never-silenceable (see cli.mjs).
@@ -77,6 +87,7 @@ export const COMPONENT_RULE_FIX = {
   'dimension-literal': 'property-token',
   'unknown-token-ref': 'property-token',
   'contract-theme': 'property-token',
+  'config-token': 'property-token',
   'invalid-id': 'runtime',
   'missing-file': 'runtime',
   'missing-root-block': 'runtime',
@@ -100,10 +111,6 @@ export const COMPONENT_RULE_FIX = {
   'tests-setup': 'tooling',
   'tests-incomplete': 'coverage',
 };
-
-// Shipped components keep their editor beside the other editors; a
-// consumer-authored one sits next to its runtime. Probe both.
-const EDITOR_DIRS = ['src/system/components', 'src/editor/component-editor'];
 
 // Property suffixes come from the editor's own kind table, so the checker and
 // the picker can never disagree about what a name means. Read as text rather
@@ -153,33 +160,36 @@ function capitalize(id) {
   return id.charAt(0).toUpperCase() + id.slice(1);
 }
 
+const pick = (entry) => ({ Id: entry.Id, runtimePath: entry.runtimePath, editorPath: entry.editorPath });
+
 /**
- * Where `id`'s runtime and editor files live, resolved the same way
- * `checkComponent` does: the real on-disk filename rather than a capitalised
- * guess, since `cornerbadge` ships as `CornerBadge.svelte`. Exported so a
- * caller outside the lint (the `--tests` runner, attributing a contract
- * finding to a consumer artifact) doesn't re-derive it differently.
+ * Where `id`'s runtime and editor files live, resolved from `root`'s own
+ * inventory first, the real on-disk filename rather than a capitalised guess,
+ * since `cornerbadge` ships as `CornerBadge.svelte`. Exported so a caller
+ * outside the lint (the `--tests` runner, attributing a contract finding to a
+ * consumer artifact) doesn't re-derive it differently.
  */
 export function resolveComponentPaths(id, root = process.cwd()) {
+  const local = componentInventory(root).get(id);
+  if (local?.runtimeExists) return pick(local);
+
   // A consumer names a shipped id and owns no copy of its files. Falling back
   // to the package keeps the lint reading the same source the contract run
   // resolves, instead of reporting the component's own files missing. In this
-  // repo the consumer paths always exist, so the fallback never fires here.
-  const roots = builtInIds(root).has(id) ? [root, PKG_ROOT] : [root];
-  for (const base of roots) {
-    const dir = join(base, 'src/system/components');
-    const Id =
-      (existsSync(dir) ? readdirSync(dir) : [])
-        .find((f) => f.toLowerCase() === `${id}.svelte`)
-        ?.replace('.svelte', '') ?? capitalize(id);
-    const runtimePath = join(dir, `${Id}.svelte`);
-    const editorPath =
-      EDITOR_DIRS.map((d) => join(base, d, `${Id}Editor.svelte`)).find(existsSync) ??
-      join(base, EDITOR_DIRS[0], `${Id}Editor.svelte`);
-    if (base === roots.at(-1) || (existsSync(runtimePath) && existsSync(editorPath))) {
-      return { Id, runtimePath, editorPath };
-    }
+  // repo the consumer paths always exist, so this fallback never fires here.
+  if (root !== PKG_ROOT && builtInIds(root, PKG_ROOT).has(id)) {
+    const shipped = componentInventory(PKG_ROOT).get(id);
+    if (shipped?.runtimeExists) return pick(shipped);
   }
+
+  // A registered id with no runtime anywhere: report where it would live.
+  if (local) return pick(local);
+
+  const Id = capitalize(id);
+  const editorPath =
+    EDITOR_DIRS.map((d) => join(root, d, `${Id}Editor.svelte`)).find(existsSync) ??
+    join(root, EDITOR_DIRS[0], `${Id}Editor.svelte`);
+  return { Id, runtimePath: join(root, 'src/system/components', `${Id}.svelte`), editorPath };
 }
 
 function extractImports(source) {
@@ -388,6 +398,62 @@ function checkDefaultsAreSemantic({ blocks, runtime, editor, root, runtimePath, 
   }
 }
 
+/** Every `--name` inside a JSON string value, in the order it appears. Simple
+ *  greedy extraction: `--card-default-body-padding` is one match, never two,
+ *  since `[a-z0-9-]+` already consumes the longer run first. */
+const TOKEN_NAME_RE = /--[a-z0-9-]+/g;
+
+/** The line a `"<key>":` sits on. The quote on both sides of the key makes
+ *  this exact by construction — `"--card-default-body"` cannot match inside
+ *  `"--card-default-body-padding"`, unlike a bare substring search. */
+function findJsonKeyLine(text, key) {
+  const escaped = key.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const m = new RegExp(`"${escaped}"\\s*:`).exec(text);
+  return m ? lineOf(text, m.index) : 1;
+}
+
+/**
+ * Saved assignments, validated as data. Every `--name` an alias string in
+ * `component-configs/<id>/default.json` carries, whatever wraps it (`var()`,
+ * the color-mix opacity form the editor writes, or nothing), must resolve —
+ * a design token, or one of the component's own properties. A string with no
+ * `--name` at all is a bare literal, allowed only on a property the editor
+ * declares in `intrinsics`. A structured (non-string) alias value, such as a
+ * gradient, is out of scope here.
+ */
+function checkConfigTokens({ id, root, intrinsic, vocab, recordAt }) {
+  const configPath = join(root, 'src/live-tokens/data/component-configs', id, 'default.json');
+  if (!existsSync(configPath)) return;
+  const text = readFileSync(configPath, 'utf8');
+  const rel = relative(root, configPath);
+  let data;
+  try {
+    data = JSON.parse(text);
+  } catch {
+    return;
+  }
+  for (const [prop, value] of Object.entries(data.aliases ?? {})) {
+    if (typeof value !== 'string') continue;
+    const line = findJsonKeyLine(text, prop);
+    const names = value.match(TOKEN_NAME_RE);
+    if (!names) {
+      if (!intrinsic.some((re) => re.test(prop))) {
+        recordAt(
+          'config-token',
+          `${rel}: ${prop}: "${value}" has no design token behind it, and ${prop} is not a declared intrinsic`,
+          rel,
+          line,
+        );
+      }
+      continue;
+    }
+    for (const name of names) {
+      if (vocab.knows(name)) continue;
+      recordAt('config-token', `${rel}: ${prop} names ${name}, which is not a design token or a semantic property`, rel, line);
+    }
+  }
+}
+
 export function checkComponent(id, root = process.cwd(), { vocabulary } = {}) {
   const errors = [];
   const warnings = [];
@@ -404,6 +470,13 @@ export function checkComponent(id, root = process.cwd(), { vocabulary } = {}) {
     });
     (COMPONENT_RULES[rule] === 'warn' ? warnings : errors).push(message);
   };
+  // For a finding about a different file (config-token, against the saved
+  // alias config): the line is already resolved against that file's own text,
+  // never `source` (the runtime).
+  const recordAt = (rule, message, atFile, line = 1) => {
+    findings.push({ rule, file: atFile, line, message });
+    (COMPONENT_RULES[rule] === 'warn' ? warnings : errors).push(message);
+  };
   const done = () => ({ errors, warnings, findings });
 
   if (!/^[a-z][a-z0-9]*$/.test(id)) {
@@ -416,15 +489,20 @@ export function checkComponent(id, root = process.cwd(), { vocabulary } = {}) {
   file = relative(root, runtimePath);
   if (!existsSync(runtimePath)) {
     record('missing-file', `runtime missing: ${relative(root, runtimePath)}`);
+    return done();
   }
-  if (!existsSync(editorPath)) {
+  // A missing editor still gets its own finding, but the rules that need only
+  // the runtime (token shape, semantics, config, registration) still run —
+  // an editor-less component is exactly the case those rules exist to catch.
+  const editorMissing = !existsSync(editorPath);
+  if (editorMissing) {
     record('missing-file', `editor missing: ${relative(root, editorPath)}`);
   }
-  if (errors.length) return done();
 
   const runtime = readFileSync(runtimePath, 'utf8');
-  const editor = readFileSync(editorPath, 'utf8');
+  const editor = editorMissing ? '' : readFileSync(editorPath, 'utf8');
   source = runtime;
+  const vocab = vocabulary ?? loadVocabulary({ root });
 
   // Runtime: :global(:root) block present.
   const blocks = extractGlobalRootBlocks(runtime);
@@ -486,66 +564,73 @@ export function checkComponent(id, root = process.cwd(), { vocabulary } = {}) {
     }
   }
 
-  checkDefaultsAreSemantic({ blocks, runtime, editor, root, runtimePath, record, vocabulary });
+  checkDefaultsAreSemantic({ blocks, runtime, editor, root, runtimePath, record, vocabulary: vocab });
+  checkConfigTokens({ id, root, intrinsic, vocab, recordAt });
 
-  // Editor: declares `const component = '<id>'` (module block).
-  const componentDecl = new RegExp(`\\bconst\\s+component\\s*=\\s*['"]${id}['"]`);
-  if (!componentDecl.test(editor)) {
-    record(
-      'missing-component-const',
-      `${relative(root, editorPath)}: missing 'const component = "${id}"' in <script module>`,
-    );
-  }
-
-  // Editor: exports allTokens.
-  if (!/\bexport\s+const\s+allTokens\b/.test(editor)) {
-    record('missing-all-tokens', `${relative(root, editorPath)}: missing 'export const allTokens'`);
-  }
-
-  // Editor: every token a row names is one the runtime declares. A row that
-  // names nothing renders a control that edits nothing.
   const declared = new Set();
   for (const block of blocks) {
     for (const n of declaredCustomProperties(block.replace(/\/\*[\s\S]*?\*\//g, ' '))) declared.add(n);
   }
-  const refs = editorTokenRefs(editor);
-  for (const name of refs.literals) {
-    if (!declared.has(name)) {
-      record(
-        'phantom-editor-token',
-        `${relative(root, editorPath)}: names ${name}, which ${relative(root, runtimePath)} never declares in :global(:root)`,
-      );
-    }
-  }
-  for (const [name, re] of refs.patterns) {
-    if (![...declared].some((d) => re.test(d))) {
-      record(
-        'phantom-editor-token',
-        `${relative(root, editorPath)}: names ${name}, which matches nothing ${relative(root, runtimePath)} declares in :global(:root)`,
-      );
-    }
-  }
 
-  // Editor: phantom-link guard. The font type-group helpers fall back to bare
-  // `font-family`/`font-size`/… keys when called with a single argument (no
-  // derivation). Across more than one slot that silently links every slot's fonts
-  // into one tree. Passing `{ component, variants }` (a second arg) opts into
-  // distinct, structural keys and suppresses the check, so this only fires on the
-  // silent inference path. (The color helper no longer infers — a bare call there
-  // emits solo, un-grouped colors, which can't phantom-link.)
-  const colorPatterns = new Set();
-  for (const m of editor.matchAll(/colorVariable\s*:\s*[`'"]([^`'"]+)[`'"]/g)) {
-    colorPatterns.add(m[1].replace(/\$\{[^}]*\}/g, '*'));
-  }
-  const slots = colorPatterns.size;
-  const fontBare =
-    hasBareCall(editor, 'buildTypeGroupFontTokens') || hasBareCall(editor, 'buildTypeGroupTokens');
-  if (slots > 1 && fontBare) {
-    record(
-      'phantom-link',
-      `${relative(root, editorPath)}: a type-group font helper is called across ${slots} slots without a derivation; ` +
-        `its bare font-family/font-size/… keys would phantom-link every slot's fonts. Pass { component, variants } to buildTypeGroupTokens/buildTypeGroupFontTokens.`,
-    );
+  // The editor-dependent rules below need real editor content; a missing
+  // editor already has its own `missing-file` finding, and running these
+  // against an empty string would only restate it under different rules.
+  if (!editorMissing) {
+    // Editor: declares `const component = '<id>'` (module block).
+    const componentDecl = new RegExp(`\\bconst\\s+component\\s*=\\s*['"]${id}['"]`);
+    if (!componentDecl.test(editor)) {
+      record(
+        'missing-component-const',
+        `${relative(root, editorPath)}: missing 'const component = "${id}"' in <script module>`,
+      );
+    }
+
+    // Editor: exports allTokens.
+    if (!/\bexport\s+const\s+allTokens\b/.test(editor)) {
+      record('missing-all-tokens', `${relative(root, editorPath)}: missing 'export const allTokens'`);
+    }
+
+    // Editor: every token a row names is one the runtime declares. A row that
+    // names nothing renders a control that edits nothing.
+    const refs = editorTokenRefs(editor);
+    for (const name of refs.literals) {
+      if (!declared.has(name)) {
+        record(
+          'phantom-editor-token',
+          `${relative(root, editorPath)}: names ${name}, which ${relative(root, runtimePath)} never declares in :global(:root)`,
+        );
+      }
+    }
+    for (const [name, re] of refs.patterns) {
+      if (![...declared].some((d) => re.test(d))) {
+        record(
+          'phantom-editor-token',
+          `${relative(root, editorPath)}: names ${name}, which matches nothing ${relative(root, runtimePath)} declares in :global(:root)`,
+        );
+      }
+    }
+
+    // Editor: phantom-link guard. The font type-group helpers fall back to bare
+    // `font-family`/`font-size`/… keys when called with a single argument (no
+    // derivation). Across more than one slot that silently links every slot's fonts
+    // into one tree. Passing `{ component, variants }` (a second arg) opts into
+    // distinct, structural keys and suppresses the check, so this only fires on the
+    // silent inference path. (The color helper no longer infers — a bare call there
+    // emits solo, un-grouped colors, which can't phantom-link.)
+    const colorPatterns = new Set();
+    for (const m of editor.matchAll(/colorVariable\s*:\s*[`'"]([^`'"]+)[`'"]/g)) {
+      colorPatterns.add(m[1].replace(/\$\{[^}]*\}/g, '*'));
+    }
+    const slots = colorPatterns.size;
+    const fontBare =
+      hasBareCall(editor, 'buildTypeGroupFontTokens') || hasBareCall(editor, 'buildTypeGroupTokens');
+    if (slots > 1 && fontBare) {
+      record(
+        'phantom-link',
+        `${relative(root, editorPath)}: a type-group font helper is called across ${slots} slots without a derivation; ` +
+          `its bare font-family/font-size/… keys would phantom-link every slot's fonts. Pass { component, variants } to buildTypeGroupTokens/buildTypeGroupFontTokens.`,
+      );
+    }
   }
 
   // Imports across runtime + editor: reject deep imports into the package.
@@ -605,17 +690,13 @@ export function checkComponent(id, root = process.cwd(), { vocabulary } = {}) {
 
 /**
  * Every component authored in `root`: a runtime file under
- * src/system/components with an editor beside it or in the package's editor
- * directory. What `check-component` runs over when no id is named.
+ * `src/system/components` or a configured `componentDirs` entry, editor or
+ * not — a runtime with no editor is still in the batch, so `checkComponent`
+ * can report its own `missing-file`. What `check-component` runs over when no
+ * id is named.
  */
 export function discoverComponents(root = process.cwd()) {
-  const dir = join(root, 'src/system/components');
-  if (!existsSync(dir)) return [];
-  return readdirSync(dir)
-    .filter((f) => f.endsWith('.svelte') && !f.endsWith('Editor.svelte'))
-    .map((f) => f.replace('.svelte', ''))
-    .filter((Id) => EDITOR_DIRS.some((d) => existsSync(join(root, d, `${Id}Editor.svelte`))))
-    .map((Id) => Id.toLowerCase());
+  return [...componentInventory(root).values()].filter((e) => e.runtimeExists).map((e) => e.id);
 }
 
 export function formatReport(id, result) {

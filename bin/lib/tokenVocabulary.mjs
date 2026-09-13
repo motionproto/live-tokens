@@ -25,6 +25,14 @@ const PKG_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
 
 const SHIPPED_COMPONENTS_DIR = 'src/system/components';
 
+// Shipped components keep their editor beside the other editors; a
+// consumer-authored one sits next to its runtime. Probe both.
+export const EDITOR_DIRS = ['src/system/components', 'src/editor/component-editor'];
+
+function capitalize(id) {
+  return id.charAt(0).toUpperCase() + id.slice(1);
+}
+
 /** Token scales whose names are governed by the token contract (see TOKENS.md). */
 export const CONTRACT_SCALES = [
   'surface', 'text', 'border', 'color', 'space', 'radius', 'font', 'line-height',
@@ -198,6 +206,72 @@ function registeredIds(root) {
 }
 
 /**
+ * Every component this project can resolve on its own: a runtime under
+ * `src/system/components` or a configured `componentDirs` entry, plus every
+ * id `registeredIds` finds with no runtime anywhere, so a dangling
+ * registration is a fact in the inventory rather than a silent gap.
+ *
+ * Deliberately never looks under `pkgRoot` for a shipped id a project hasn't
+ * vendored — that is `resolveComponentPaths`'s own fallback for a single
+ * named id, not a batch this inventory would run over (a consumer's batch is
+ * their own components only; shipped runtimes sit in node_modules, where no
+ * inventory looks).
+ *
+ * The single scan every caller reads: `report`, the `check-component` batch,
+ * `resolveComponentPaths`, and the `components` verb.
+ */
+export function componentInventory(root = process.cwd(), pkgRoot = PKG_ROOT) {
+  const built = builtInIds(root, pkgRoot);
+  const registered = registeredIds(root);
+  const dirs = [SHIPPED_COMPONENTS_DIR, ...(readProjectConfig(root).componentDirs ?? [])];
+  const entries = new Map();
+
+  const guessEditorPath = (Id) =>
+    EDITOR_DIRS.map((d) => join(root, d, `${Id}Editor.svelte`)).find(existsSync) ??
+    join(root, EDITOR_DIRS[0], `${Id}Editor.svelte`);
+
+  for (const dirRel of dirs) {
+    const dir = join(root, dirRel);
+    if (!existsSync(dir)) continue;
+    for (const fileName of readdirSync(dir)) {
+      if (!fileName.endsWith('.svelte') || fileName.endsWith('Editor.svelte')) continue;
+      const Id = fileName.replace('.svelte', '');
+      const id = Id.toLowerCase();
+      if (entries.has(id)) continue;
+      const editorPath = guessEditorPath(Id);
+      entries.set(id, {
+        id,
+        Id,
+        origin: built.has(id) ? 'shipped' : 'custom',
+        runtimePath: join(dir, fileName),
+        editorPath,
+        registered: built.has(id) || registered.has(id),
+        runtimeExists: true,
+        editorExists: existsSync(editorPath),
+      });
+    }
+  }
+
+  for (const id of registered) {
+    if (entries.has(id)) continue;
+    const Id = capitalize(id);
+    const editorPath = guessEditorPath(Id);
+    entries.set(id, {
+      id,
+      Id,
+      origin: built.has(id) ? 'shipped' : 'custom',
+      runtimePath: join(root, SHIPPED_COMPONENTS_DIR, `${Id}.svelte`),
+      editorPath,
+      registered: true,
+      runtimeExists: false,
+      editorExists: existsSync(editorPath),
+    });
+  }
+
+  return entries;
+}
+
+/**
  * Build the vocabulary for `root` (a consumer project, or this repo).
  *
  * Returns sets of names plus the paths they came from, so a checker can say
@@ -217,12 +291,27 @@ export function loadVocabulary({ root = process.cwd(), pkgRoot = PKG_ROOT } = {}
 
   const componentTokens = new Set();
   const components = new Map();
-  // A project's own components sit beside the shipped ones, plus any directory
-  // `componentDirs` in live-tokens.config.json names.
-  const own = [SHIPPED_COMPONENTS_DIR, ...(readProjectConfig(root).componentDirs ?? [])].map((d) => join(root, d));
-  const shippedDir = join(pkgRoot, SHIPPED_COMPONENTS_DIR);
-  const dirs = [shippedDir, ...own];
-  for (const file of componentFiles(dirs)) {
+  const registered = registeredIds(root);
+  const builtIn = builtInIds(root, pkgRoot);
+
+  // The package's shipped directory first, so a shipped component's tokens
+  // are in the vocabulary even when a project hasn't vendored it — the one
+  // gap the inventory itself deliberately leaves, since it never looks under
+  // `pkgRoot`. Then the project's own inventory (its `src/system/components`
+  // plus any `componentDirs`), which overrides by id: a project's own copy of
+  // a shipped component wins over the package's. Reusing the inventory here,
+  // instead of a second directory scan, is what keeps `report.components` and
+  // `report.findings.components.checked` naming the same ids.
+  const filesById = new Map();
+  for (const file of componentFiles([join(pkgRoot, SHIPPED_COMPONENTS_DIR)])) {
+    const id = file.slice(file.lastIndexOf('/') + 1).replace('.svelte', '').toLowerCase();
+    filesById.set(id, file);
+  }
+  for (const entry of componentInventory(root, pkgRoot).values()) {
+    if (entry.runtimeExists) filesById.set(entry.id, entry.runtimePath);
+  }
+
+  for (const [id, file] of filesById) {
     const Id = file.slice(file.lastIndexOf('/') + 1).replace('.svelte', '');
     const src = readFileSync(file, 'utf8');
     const tokens = new Map();
@@ -231,17 +320,15 @@ export function loadVocabulary({ root = process.cwd(), pkgRoot = PKG_ROOT } = {}
       for (const n of declaredCustomProperties(clean)) componentTokens.add(n);
       for (const m of clean.matchAll(/(--[a-z0-9-]+)\s*:\s*([^;]+);/g)) if (!tokens.has(m[1])) tokens.set(m[1], m[2].trim());
     }
-    components.set(Id.toLowerCase(), {
-      id: Id.toLowerCase(),
+    components.set(id, {
+      id,
       name: Id,
       file,
-      origin: file.startsWith(shippedDir) ? 'shipped' : 'custom',
+      origin: builtIn.has(id) ? 'shipped' : 'custom',
       props: componentProps(src),
       tokens,
     });
   }
-  const registered = registeredIds(root);
-  const builtIn = builtInIds(root, pkgRoot);
 
   return {
     themeTokens,
