@@ -1,8 +1,13 @@
-<!--
-  Table.svelte. A themed frame around the rows and cells the page writes.
-  Use for: records the reader scans and compares.
-  Not for: a set of things the reader acts on (Card).
--->
+<script module lang="ts">
+  import type { CatalogueEntry } from '../../editor/component-editor/scaffolding/types';
+
+  export const catalogue = {
+    description: 'A themed frame around the rows and cells the page writes.',
+    useFor: 'records the reader scans and compares.',
+    notFor: 'a set of things the reader acts on (Card).',
+  } satisfies CatalogueEntry;
+</script>
+
 <script lang="ts">
   interface Props {
     children?: import('svelte').Snippet;

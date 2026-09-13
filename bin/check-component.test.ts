@@ -251,7 +251,9 @@ describe('shipped components', () => {
  * has stopped holding the line.
  */
 const CLEAN = {
-  runtime: `<!-- Widget.svelte — a dial. Use for: one value on a scale. Not for: navigation. -->
+  runtime: `<script module lang="ts">
+  export const catalogue = { description: 'A dial.', useFor: 'one value on a scale.', notFor: 'navigation.' };
+</script>
 <script lang="ts">
   import { editorState } from '@motion-proto/live-tokens';
 </script>
@@ -1599,12 +1601,52 @@ describe('unread-token', () => {
 });
 
 describe('missing-description', () => {
-  it('fires on a runtime that opens with no comment, and stays quiet once it has one', () => {
+  const prependModule = (runtime: string, body: string) =>
+    writeFileSync(runtime, `<script module lang="ts">\n${body}\n</script>\n${readFileSync(runtime, 'utf8')}`);
+  const findingMessage = (root: string) =>
+    checkComponent('widget', root).findings.find((f: { rule: string }) => f.rule === 'missing-description')?.message;
+
+  it('fires on a runtime with no catalogue export, and names what is missing', () => {
     const root = fixtureRoot();
-    const runtime = join(root, 'src/system/components/Widget.svelte');
     widget(root, '--widget-surface: var(--surface-neutral);');
     expect(rules(root)).toContain('missing-description');
-    writeFileSync(runtime, `<!-- Widget.svelte — a dial. -->\n${readFileSync(runtime, 'utf8')}`);
+    expect(findingMessage(root)).toContain('has no catalogue export. Say what Widget is for, and what it is not for');
+  });
+
+  it('stays quiet once a catalogue export supplies all three required fields', () => {
+    const root = fixtureRoot();
+    const runtime = widget(root, '--widget-surface: var(--surface-neutral);');
+    prependModule(
+      runtime,
+      `export const catalogue = { description: 'A dial.', useFor: 'testing.', notFor: 'anything real.' };`,
+    );
+    expect(rules(root)).not.toContain('missing-description');
+  });
+
+  it('fires and names the field when a required field is missing', () => {
+    const root = fixtureRoot();
+    const runtime = widget(root, '--widget-surface: var(--surface-neutral);');
+    prependModule(runtime, `export const catalogue = { description: 'A dial.', notFor: 'anything real.' };`);
+    expect(findingMessage(root)).toBe('src/system/components/Widget.svelte: catalogue has no useFor');
+  });
+
+  it('fires when a field is given as an identifier rather than a string literal', () => {
+    const root = fixtureRoot();
+    const runtime = widget(root, '--widget-surface: var(--surface-neutral);');
+    prependModule(
+      runtime,
+      `const reason = 'testing.';\nexport const catalogue = { description: 'A dial.', useFor: reason, notFor: 'anything real.' };`,
+    );
+    expect(findingMessage(root)).toBe('src/system/components/Widget.svelte: catalogue has no useFor');
+  });
+
+  it('parses a backtick literal spanning lines', () => {
+    const root = fixtureRoot();
+    const runtime = widget(root, '--widget-surface: var(--surface-neutral);');
+    prependModule(
+      runtime,
+      "export const catalogue = {\n  description: 'A dial.',\n  useFor: `a bounded number\n  whose position carries the meaning.`,\n  notFor: 'anything real.',\n};",
+    );
     expect(rules(root)).not.toContain('missing-description');
   });
 });

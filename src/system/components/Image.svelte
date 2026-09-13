@@ -1,11 +1,17 @@
-<!--
-  Image.svelte. A framed picture in the page flow.
-  Use for: any picture the page shows.
-  Not for: a picture whose detail the reader must open (ImageLightbox);
-  decoration that page CSS paints.
-  Variant: `default` keeps the picture's own proportions, `banner` gives it a
-  tall frame, `medium` and `compact` shorter ones.
--->
+<script module lang="ts">
+  import type { CatalogueEntry } from '../../editor/component-editor/scaffolding/types';
+
+  export const catalogue = {
+    description: 'A framed picture in the page flow.',
+    useFor: 'any picture the page shows.',
+    notFor: 'a picture whose detail the reader must open (ImageLightbox); decoration that page CSS paints.',
+    props: {
+      variant:
+        "`default` keeps the picture's own proportions, `banner` gives it a tall frame, `medium` and `compact` shorter ones.",
+    },
+  } satisfies CatalogueEntry;
+</script>
+
 <script lang="ts">
   interface Props {
     src: string;

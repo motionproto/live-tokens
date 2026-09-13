@@ -1,9 +1,13 @@
-<!--
-  ImageLightbox.svelte. A picture that opens to a full view on click.
-  Use for: a screenshot, artwork, or chart whose detail is the point, and for
-  a gallery of them.
-  Not for: decoration or a picture the reader takes in at a glance (Image).
--->
+<script module lang="ts">
+  import type { CatalogueEntry } from '../../editor/component-editor/scaffolding/types';
+
+  export const catalogue = {
+    description: 'A picture that opens to a full view on click.',
+    useFor: 'a screenshot, artwork, or chart whose detail is the point, and for a gallery of them.',
+    notFor: 'decoration or a picture the reader takes in at a glance (Image).',
+  } satisfies CatalogueEntry;
+</script>
+
 <script lang="ts">
   import { onMount, tick } from 'svelte';
   import { portal } from '../internal/portal';

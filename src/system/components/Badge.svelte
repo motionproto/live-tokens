@@ -1,11 +1,12 @@
-<!--
-  Badge.svelte. A short standing label on an element.
-  Use for: status the reader takes at a glance, such as "Beta", "New", or a
-  version.
-  Not for: a marker that sits on a parent's corner (CornerBadge); feedback
-  after an action (Notification).
--->
 <script module lang="ts">
+  import type { CatalogueEntry } from '../../editor/component-editor/scaffolding/types';
+
+  export const catalogue = {
+    description: 'A short standing label on an element.',
+    useFor: 'status the reader takes at a glance, such as "Beta", "New", or a version.',
+    notFor: "a marker that sits on a parent's corner (CornerBadge); feedback after an action (Notification).",
+  } satisfies CatalogueEntry;
+
   export const badgeVariants = [
     'primary',
     'accent',

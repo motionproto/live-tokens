@@ -1,10 +1,12 @@
-<!--
-  CornerBadge.svelte. A badge that sits on a corner of its parent.
-  Use for: a count or status marker that sits on the thing it describes.
-  Not for: a label in the text flow (Badge); feedback after an action
-  (Notification).
--->
 <script module lang="ts">
+  import type { CatalogueEntry } from '../../editor/component-editor/scaffolding/types';
+
+  export const catalogue = {
+    description: 'A badge that sits on a corner of its parent.',
+    useFor: 'a count or status marker that sits on the thing it describes.',
+    notFor: 'a label in the text flow (Badge); feedback after an action (Notification).',
+  } satisfies CatalogueEntry;
+
   export type CornerAnchor = 'bottom-right' | 'bottom-left' | 'top-right' | 'top-left';
 </script>
 

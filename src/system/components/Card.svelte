@@ -1,10 +1,14 @@
-<!--
-  Card.svelte. One item with a title.
-  Use for: an item on its own, or each item in a set: a product, a record, a
-  plan the reader may act on.
-  Not for: a section of the page's content (Panel); content the reader opens
-  on demand (CollapsibleSection); a decision that blocks the page (Dialog).
--->
+<script module lang="ts">
+  import type { CatalogueEntry } from '../../editor/component-editor/scaffolding/types';
+
+  export const catalogue = {
+    description: 'One item with a title.',
+    useFor: 'an item on its own, or each item in a set: a product, a record, a plan the reader may act on.',
+    notFor:
+      "a section of the page's content (Panel); content the reader opens on demand (CollapsibleSection); a decision that blocks the page (Dialog).",
+  } satisfies CatalogueEntry;
+</script>
+
 <script lang="ts">
   interface Props {
     icon?: string;

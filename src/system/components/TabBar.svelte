@@ -1,9 +1,13 @@
-<!--
-  TabBar.svelte. Tabs that swap the content below them.
-  Use for: two to seven panels the reader moves between inside one page.
-  Not for: one switch among others in a row (SegmentedControl); navigation
-  that changes the URL (SideNavigation).
--->
+<script module lang="ts">
+  import type { CatalogueEntry } from '../../editor/component-editor/scaffolding/types';
+
+  export const catalogue = {
+    description: 'Tabs that swap the content below them.',
+    useFor: 'two to seven panels the reader moves between inside one page.',
+    notFor: 'one switch among others in a row (SegmentedControl); navigation that changes the URL (SideNavigation).',
+  } satisfies CatalogueEntry;
+</script>
+
 <script lang="ts">
   import { createEventDispatcher } from 'svelte';
 

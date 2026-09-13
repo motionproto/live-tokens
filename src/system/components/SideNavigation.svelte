@@ -1,9 +1,13 @@
-<!--
-  SideNavigation.svelte. The rail that moves between the pages of a site.
-  Use for: navigation that follows the current path.
-  Not for: switching panels inside one page (TabBar); a menu of actions
-  (MenuSelect).
--->
+<script module lang="ts">
+  import type { CatalogueEntry } from '../../editor/component-editor/scaffolding/types';
+
+  export const catalogue = {
+    description: 'The rail that moves between the pages of a site.',
+    useFor: 'navigation that follows the current path.',
+    notFor: 'switching panels inside one page (TabBar); a menu of actions (MenuSelect).',
+  } satisfies CatalogueEntry;
+</script>
+
 <script lang="ts">
   import { createEventDispatcher } from 'svelte';
   import CollapsibleSection from './CollapsibleSection.svelte';

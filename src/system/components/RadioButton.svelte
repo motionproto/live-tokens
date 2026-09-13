@@ -1,10 +1,13 @@
-<!--
-  RadioButton.svelte. A form row that selects one option.
-  Use for: a choice the reader reviews as text before committing to a larger
-  form.
-  Not for: an inline switch between views (SegmentedControl); a setting that
-  takes effect at once (Toggle).
--->
+<script module lang="ts">
+  import type { CatalogueEntry } from '../../editor/component-editor/scaffolding/types';
+
+  export const catalogue = {
+    description: 'A form row that selects one option.',
+    useFor: 'a choice the reader reviews as text before committing to a larger form.',
+    notFor: 'an inline switch between views (SegmentedControl); a setting that takes effect at once (Toggle).',
+  } satisfies CatalogueEntry;
+</script>
+
 <script lang="ts">
   import { createEventDispatcher } from 'svelte';
 

@@ -21,7 +21,9 @@ function project(): string {
   writeFileSync(join(root, 'src/system/styles/tokens.css'), ':root { --surface-neutral: #111; --text-primary: #eee; --space-8: 0.5rem; }');
   writeFileSync(
     join(root, 'src/system/components/Widget.svelte'),
-    `<!-- Widget.svelte — a dial. -->
+    `<script module lang="ts">
+  export const catalogue = { description: 'A dial.', useFor: 'testing.', notFor: 'anything real.' };
+</script>
 <script lang="ts">
   interface Props { label?: string }
   let { label = '' }: Props = $props();

@@ -1,12 +1,16 @@
-<!--
-  IconButton.svelte. An action that an icon alone carries.
-  Use for: an action whose meaning is plain from the glyph, such as close,
-  edit, or delete.
-  Not for: an action that needs a word (Button); the confirm-and-cancel pair
-  after an inline edit (InlineEditActions).
-  Emphasis: one primary per page; secondary for the rest; outline for a
-  tertiary action; danger for a destructive one.
--->
+<script module lang="ts">
+  import type { CatalogueEntry } from '../../editor/component-editor/scaffolding/types';
+
+  export const catalogue = {
+    description: 'An action that an icon alone carries.',
+    useFor: 'an action whose meaning is plain from the glyph, such as close, edit, or delete.',
+    notFor: 'an action that needs a word (Button); the confirm-and-cancel pair after an inline edit (InlineEditActions).',
+    props: {
+      variant: 'one primary per page; secondary for the rest; outline for a tertiary action; danger for a destructive one.',
+    },
+  } satisfies CatalogueEntry;
+</script>
+
 <script lang="ts">
    interface Props {
     /** Wash the hovered surface with the theme's tint. `undefined` inherits the

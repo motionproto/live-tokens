@@ -1,10 +1,13 @@
-<!--
-  Input.svelte. A text field with its label, hint, and error line.
-  Use for: an answer the page cannot list, such as a name, an amount, or a
-  search string.
-  Not for: a choice from a set the page can write down (MenuSelect); an on/off
-  setting (Toggle).
--->
+<script module lang="ts">
+  import type { CatalogueEntry } from '../../editor/component-editor/scaffolding/types';
+
+  export const catalogue = {
+    description: 'A text field with its label, hint, and error line.',
+    useFor: 'an answer the page cannot list, such as a name, an amount, or a search string.',
+    notFor: 'a choice from a set the page can write down (MenuSelect); an on/off setting (Toggle).',
+  } satisfies CatalogueEntry;
+</script>
+
 <script lang="ts">
   import { createEventDispatcher } from 'svelte';
 

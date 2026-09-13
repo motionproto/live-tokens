@@ -38,22 +38,87 @@ export function deepImportRepair(specifier) {
   return { details: { specifier, public: publicSpecifier, patch: { from: specifier, to: publicSpecifier } } };
 }
 
-/** The runtime file's leading HTML comment, which is where a component says what
-    it is for. A labelled line (`Use for:`, `Not for:`, `Emphasis:`) opens a line
-    of the description and every other line continues the one above it, so the
-    comment wraps in the source and still reads as its four lines here. */
-function descriptionOf(source) {
-  const m = source.match(/^\s*<!--([\s\S]*?)-->/);
-  if (!m) return '';
-  const lines = [];
-  for (const raw of m[1].split('\n')) {
-    const line = raw.trim().replace(/\s+/g, ' ');
-    if (!line) continue;
-    if (lines.length && !/^[A-Z][A-Za-z ]{0,20}:/.test(line)) lines[lines.length - 1] += ` ${line}`;
-    else lines.push(line);
+const STRING_LITERAL = /'(?:[^'\\]|\\.)*'|"(?:[^"\\]|\\.)*"|`(?:[^`\\]|\\.)*`/;
+
+function literalValue(raw) {
+  const quote = raw[0];
+  const inner = raw.slice(1, -1);
+  if (quote === '`' && inner.includes('${')) return undefined;
+  return inner.replace(/\s+/g, ' ').trim();
+}
+
+// Brace matching skips over quoted literals so a `}` inside a description
+// (or a description containing a stray brace) never closes the object early.
+function findBalanced(text, openIndex) {
+  let depth = 0;
+  for (let i = openIndex; i < text.length; i++) {
+    const ch = text[i];
+    if (ch === "'" || ch === '"' || ch === '`') {
+      const quote = ch;
+      i++;
+      while (i < text.length && text[i] !== quote) i += text[i] === '\\' ? 2 : 1;
+      continue;
+    }
+    if (ch === '{') depth++;
+    else if (ch === '}') {
+      depth--;
+      if (depth === 0) return { content: text.slice(openIndex + 1, i), end: i + 1 };
+    }
   }
-  if (lines.length) lines[0] = lines[0].replace(/^\S+\.svelte\s*(?:[—–-]+|\.)\s*/, '');
-  return lines.join('\n');
+  return null;
+}
+
+function parseFieldObject(body) {
+  const fields = {};
+  const re = new RegExp(`([A-Za-z_$][A-Za-z0-9_$]*)\\s*:\\s*(${STRING_LITERAL.source})`, 'g');
+  let m;
+  while ((m = re.exec(body))) {
+    if (m[1] in fields) continue;
+    const value = literalValue(m[2]);
+    if (value !== undefined) fields[m[1]] = value;
+  }
+  return fields;
+}
+
+/**
+ * Bounded, non-evaluating parse of the runtime file's `catalogue` export:
+ * `key: <string literal>` pairs inside the `<script module>` block's
+ * `export const catalogue = { ... }`, the same way `builtInIds` and
+ * `componentProps` read the rest of the vocabulary without importing the
+ * module. A field given as an identifier, a template with `${}`, or a
+ * concatenation is not a string literal, so it is silently absent rather
+ * than evaluated. Returns `null` when the file has no such export.
+ */
+export function catalogueOf(source) {
+  const moduleBlock = source.match(/<script\s+module[^>]*>([\s\S]*?)<\/script>/);
+  if (!moduleBlock) return null;
+  const exportMatch = /export\s+const\s+catalogue\s*=\s*\{/.exec(moduleBlock[1]);
+  if (!exportMatch) return null;
+  const openIndex = exportMatch.index + exportMatch[0].length - 1;
+  const balanced = findBalanced(moduleBlock[1], openIndex);
+  if (!balanced) return null;
+
+  let body = balanced.content;
+  let props;
+  const propsMatch = /\bprops\s*:\s*\{/.exec(body);
+  if (propsMatch) {
+    const propsOpen = propsMatch.index + propsMatch[0].length - 1;
+    const propsBalanced = findBalanced(body, propsOpen);
+    if (propsBalanced) {
+      const parsedProps = parseFieldObject(propsBalanced.content);
+      if (Object.keys(parsedProps).length) props = parsedProps;
+      body = body.slice(0, propsMatch.index) + body.slice(propsBalanced.end);
+    }
+  }
+
+  const fields = parseFieldObject(body);
+  const catalogue = {
+    description: fields.description,
+    useFor: fields.useFor,
+    notFor: fields.notFor,
+  };
+  if (props) catalogue.props = props;
+  return catalogue;
 }
 
 function scaleOf(name) {
@@ -116,7 +181,7 @@ export function describeComponents(vocab, { root = process.cwd() } = {}) {
       origin: entry.origin,
       file: relative(root, entry.file),
       registered: vocab.builtIn.has(entry.id) || vocab.registered.has(entry.id),
-      description: descriptionOf(source),
+      catalogue: catalogueOf(source),
       variants: entry.props?.enums.get('variant') ? [...entry.props.enums.get('variant')] : [],
       props,
       tokens: [...entry.tokens].map(([name, value]) => ({ name, default: value })),
@@ -136,7 +201,12 @@ export function describeTokens(vocab, { root = process.cwd() } = {}) {
   };
 }
 
-const describeLines = (c) => (c.description ? c.description.split('\n') : []);
+function describeLines(c) {
+  if (!c.catalogue) return [];
+  const lines = [c.catalogue.description, `Use for: ${c.catalogue.useFor}`, `Not for: ${c.catalogue.notFor}`];
+  for (const [prop, text] of Object.entries(c.catalogue.props ?? {})) lines.push(`${prop}: ${text}`);
+  return lines;
+}
 
 export function formatComponents(list, { id } = {}) {
   const lines = [];

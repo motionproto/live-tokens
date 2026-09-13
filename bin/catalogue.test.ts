@@ -24,9 +24,14 @@ function project(): string {
   );
   writeFileSync(
     join(root, 'src/system/components/Widget.svelte'),
-    `<!--
-  Widget.svelte — a dial for one bounded number. Not for free text.
--->
+    `<script module lang="ts">
+  export const catalogue = {
+    description: 'A dial for one bounded number.',
+    useFor: 'a value the reader sets by turning a ring.',
+    notFor: 'free text.',
+    props: { variant: '\`round\` is a full circle, \`flat\` is a half circle.' },
+  };
+</script>
 <script lang="ts">
   interface Props {
     variant?: 'round' | 'flat';
@@ -45,12 +50,13 @@ function project(): string {
   );
   writeFileSync(
     join(root, 'src/system/components/Dial.svelte'),
-    `<!--
-  Dial.svelte. A number chosen by turning a ring.
-  Use for: a bounded number whose position on the ring carries the
-  meaning.
-  Not for: an exact number the reader would rather type (Input).
--->
+    `<script module lang="ts">
+  export const catalogue = {
+    description: 'A number chosen by turning a ring.',
+    useFor: 'a bounded number whose position on the ring carries the meaning.',
+    notFor: 'an exact number the reader would rather type (Input).',
+  };
+</script>
 <script lang="ts">
   interface Props { value?: number }
   let { value = 0 }: Props = $props();
@@ -85,10 +91,15 @@ describe('describeComponents', () => {
     expect(byId.gizmo.file).toBe('src/widgets/Gizmo.svelte');
   });
 
-  it('reads the description from the header comment, the variants from the prop union, and the tokens with defaults', () => {
+  it('reads the catalogue export, the variants from the prop union, and the tokens with defaults', () => {
     const root = project();
     const widget = describeComponents(loadVocabulary({ root }), { root }).find((c: { id: string }) => c.id === 'widget');
-    expect(widget.description).toBe('a dial for one bounded number. Not for free text.');
+    expect(widget.catalogue).toEqual({
+      description: 'A dial for one bounded number.',
+      useFor: 'a value the reader sets by turning a ring.',
+      notFor: 'free text.',
+      props: { variant: '`round` is a full circle, `flat` is a half circle.' },
+    });
     expect(widget.variants).toEqual(['round', 'flat']);
     expect(widget.props.map((p: { name: string }) => p.name)).toEqual(['variant', 'value', 'label']);
     expect(widget.props[1].type).toBe('number');
@@ -98,14 +109,18 @@ describe('describeComponents', () => {
     ]);
   });
 
-  it('keeps a labelled line of the usage comment on its own line and joins the wrapping', () => {
+  it('prints the catalogue as description, Use for, Not for, then one line per guidance-bearing prop', () => {
     const root = project();
+    const widget = describeComponents(loadVocabulary({ root }), { root }).find((c: { id: string }) => c.id === 'widget');
     const dial = describeComponents(loadVocabulary({ root }), { root }).find((c: { id: string }) => c.id === 'dial');
-    expect(dial.description.split('\n')).toEqual([
-      'A number chosen by turning a ring.',
-      'Use for: a bounded number whose position on the ring carries the meaning.',
-      'Not for: an exact number the reader would rather type (Input).',
-    ]);
+    expect(formatComponents([widget], { id: 'widget' }).split('\n')).toEqual(
+      expect.arrayContaining([
+        '  A dial for one bounded number.',
+        '  Use for: a value the reader sets by turning a ring.',
+        '  Not for: free text.',
+        '  variant: `round` is a full circle, `flat` is a half circle.',
+      ]),
+    );
     expect(formatComponents([dial], { id: 'dial' })).toContain('  Not for: an exact number the reader would rather type (Input).');
   });
 

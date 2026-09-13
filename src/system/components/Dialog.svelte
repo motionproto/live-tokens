@@ -1,10 +1,13 @@
-<!--
-  Dialog.svelte. A modal window that blocks the page.
-  Use for: a decision the page cannot continue without, such as a destructive
-  confirmation or a sign-in.
-  Not for: a routine form (Panel); a message that asks nothing of the reader
-  (Notification).
--->
+<script module lang="ts">
+  import type { CatalogueEntry } from '../../editor/component-editor/scaffolding/types';
+
+  export const catalogue = {
+    description: 'A modal window that blocks the page.',
+    useFor: 'a decision the page cannot continue without, such as a destructive confirmation or a sign-in.',
+    notFor: 'a routine form (Panel); a message that asks nothing of the reader (Notification).',
+  } satisfies CatalogueEntry;
+</script>
+
 <script lang="ts">
   import { createEventDispatcher, tick } from 'svelte';
   import type { Snippet } from 'svelte';

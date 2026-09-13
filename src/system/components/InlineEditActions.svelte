@@ -1,12 +1,15 @@
-<!--
-  InlineEditActions.svelte. The confirm-and-cancel pair that ends an inline
-  edit.
-  Use for: the two actions that close an in-place rename or value edit.
-  Not for: the actions of a form or a dialog (Button); a lone action on a row
-  (IconButton).
--->
+<script module lang="ts">
+  import type { CatalogueEntry } from '../../editor/component-editor/scaffolding/types';
+
+  export const catalogue = {
+    description: 'The confirm-and-cancel pair that ends an inline edit.',
+    useFor: 'the two actions that close an in-place rename or value edit.',
+    notFor: 'the actions of a form or a dialog (Button); a lone action on a row (IconButton).',
+  } satisfies CatalogueEntry;
+</script>
+
 <script lang="ts">
-   
+
 
    interface Props {
       /**

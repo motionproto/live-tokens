@@ -15,7 +15,7 @@
 //     token behind it must be a declared intrinsic (a structural keyword the
 //     editor exports in `intrinsics`), never a literal.
 //   - every property the runtime declares is read by the runtime's own CSS
-//   - the runtime opens with the comment the catalogue reads
+//   - the runtime exports a `catalogue` the CLI and the registry both read
 //
 // Returns { errors, warnings, findings }. `errors`/`warnings` are the message
 // strings; `findings` carries the same items with a stable `rule` id, a line
@@ -23,7 +23,7 @@
 
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { extname, join, relative } from 'node:path';
-import { deepImportRepair, scaleTokens } from './lib/catalogue.mjs';
+import { catalogueOf, deepImportRepair, scaleTokens } from './lib/catalogue.mjs';
 import { hasColorLiteral, hasDimensionLiteral, stripVarFallbacks } from './lib/cssValues.mjs';
 import { resolveSourceDataDir, settingsFilePath } from './lib/dataDir.mjs';
 import { fixMap, lineOf } from './lib/findings.mjs';
@@ -579,14 +579,20 @@ export function checkComponent(id, root = process.cwd(), { vocabulary } = {}) {
   source = runtime;
   const vocab = vocabulary ?? loadVocabulary({ root });
 
-  // Runtime: the file opens with the comment that says what the component is
-  // for. The catalogue reads that comment; without it the component is
-  // pickable but unexplained.
-  if (!/^\s*<!--[\s\S]*?-->/.test(runtime)) {
+  // Runtime: the file exports the `catalogue` that says what the component
+  // is for. Without it the component is pickable but unexplained.
+  const catalogue = catalogueOf(runtime);
+  if (!catalogue) {
     record(
       'missing-description',
-      `${relative(root, runtimePath)}: opens with no description comment. Say what ${Id} is for, and what it is not for`,
+      `${relative(root, runtimePath)}: has no catalogue export. Say what ${Id} is for, and what it is not for`,
     );
+  } else {
+    for (const requiredField of ['description', 'useFor', 'notFor']) {
+      if (!catalogue[requiredField]) {
+        record('missing-description', `${relative(root, runtimePath)}: catalogue has no ${requiredField}`);
+      }
+    }
   }
 
   // Runtime: :global(:root) block present.

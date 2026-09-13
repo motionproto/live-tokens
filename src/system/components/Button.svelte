@@ -1,10 +1,16 @@
-<!--
-  Button.svelte. A labelled action.
-  Use for: an action that needs a word to be unambiguous.
-  Not for: an icon-only action (IconButton); a link to another page.
-  Emphasis: one primary per page; secondary for the rest; outline for a
-  tertiary action; danger for a destructive one.
--->
+<script module lang="ts">
+  import type { CatalogueEntry } from '../../editor/component-editor/scaffolding/types';
+
+  export const catalogue = {
+    description: 'A labelled action.',
+    useFor: 'an action that needs a word to be unambiguous.',
+    notFor: 'an icon-only action (IconButton); a link to another page.',
+    props: {
+      variant: 'one primary per page; secondary for the rest; outline for a tertiary action; danger for a destructive one.',
+    },
+  } satisfies CatalogueEntry;
+</script>
+
 <script lang="ts">
    import { createEventDispatcher } from 'svelte';
 

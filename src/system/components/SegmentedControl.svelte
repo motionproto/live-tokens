@@ -1,9 +1,13 @@
-<!--
-  SegmentedControl.svelte. An inline switch between named alternatives.
-  Use for: two to four short labels that pick one view of the same data.
-  Not for: swapping the page's content area (TabBar); labels long enough to
-  wrap (RadioButton).
--->
+<script module lang="ts">
+  import type { CatalogueEntry } from '../../editor/component-editor/scaffolding/types';
+
+  export const catalogue = {
+    description: 'An inline switch between named alternatives.',
+    useFor: 'two to four short labels that pick one view of the same data.',
+    notFor: "swapping the page's content area (TabBar); labels long enough to wrap (RadioButton).",
+  } satisfies CatalogueEntry;
+</script>
+
 <script lang="ts">
   import { createEventDispatcher } from 'svelte';
 

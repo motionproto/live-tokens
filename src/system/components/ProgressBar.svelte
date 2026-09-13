@@ -1,8 +1,13 @@
-<!--
-  ProgressBar.svelte. A read-out of progress against a labelled track.
-  Use for: reporting how far a task has run.
-  Not for: a number the reader sets (Slider); a standing status label (Badge).
--->
+<script module lang="ts">
+  import type { CatalogueEntry } from '../../editor/component-editor/scaffolding/types';
+
+  export const catalogue = {
+    description: 'A read-out of progress against a labelled track.',
+    useFor: 'reporting how far a task has run.',
+    notFor: 'a number the reader sets (Slider); a standing status label (Badge).',
+  } satisfies CatalogueEntry;
+</script>
+
 <script lang="ts">
   interface Props {
     value?: number;

@@ -46,6 +46,7 @@ function entryWith(schema: Token[], sourceFile = SOURCE_FILE): RegistryEntry {
     sourceFile,
     editorComponent: (() => {}) as never,
     schema,
+    catalogue: { description: 'A test fixture.', useFor: 'testing.', notFor: 'anything real.' },
     origin: 'custom',
   };
 }

@@ -1,33 +1,59 @@
 import type { Component } from 'svelte';
-import type { Token, IntrinsicSpec } from './scaffolding/types';
+import type { CatalogueEntry, Token, IntrinsicSpec } from './scaffolding/types';
 import { registerComponentSchema } from '../core/store/editorStore';
 
 import BadgeEditor, { allTokens as badgeTokens } from './BadgeEditor.svelte';
+import { catalogue as badgeCatalogue } from '../../system/components/Badge.svelte';
 import CalloutEditor, { allTokens as calloutTokens } from './CalloutEditor.svelte';
+import { catalogue as calloutCatalogue } from '../../system/components/Callout.svelte';
 import CornerBadgeEditor, { allTokens as cornerBadgeTokens } from './CornerBadgeEditor.svelte';
+import { catalogue as cornerBadgeCatalogue } from '../../system/components/CornerBadge.svelte';
 import ButtonEditor, { allTokens as buttonTokens } from './ButtonEditor.svelte';
+import { catalogue as buttonCatalogue } from '../../system/components/Button.svelte';
 import IconButtonEditor, { allTokens as iconButtonTokens } from './IconButtonEditor.svelte';
+import { catalogue as iconButtonCatalogue } from '../../system/components/IconButton.svelte';
 import CardEditor, { allTokens as cardTokens, intrinsics as cardIntrinsics } from './CardEditor.svelte';
+import { catalogue as cardCatalogue } from '../../system/components/Card.svelte';
 import CodeSnippetEditor, { allTokens as codeSnippetTokens } from './CodeSnippetEditor.svelte';
+import { catalogue as codeSnippetCatalogue } from '../../system/components/CodeSnippet.svelte';
 import CollapsibleSectionEditor, { allTokens as collapsibleSectionTokens } from './CollapsibleSectionEditor.svelte';
+import { catalogue as collapsibleSectionCatalogue } from '../../system/components/CollapsibleSection.svelte';
 import DialogEditor, { allTokens as dialogTokens } from './DialogEditor.svelte';
+import { catalogue as dialogCatalogue } from '../../system/components/Dialog.svelte';
 import ImageEditor, { allTokens as imageTokens, intrinsics as imageIntrinsics } from './ImageEditor.svelte';
+import { catalogue as imageCatalogue } from '../../system/components/Image.svelte';
 import ImageLightboxEditor, { allTokens as imageLightboxTokens } from './ImageLightboxEditor.svelte';
+import { catalogue as imageLightboxCatalogue } from '../../system/components/ImageLightbox.svelte';
 import InlineEditActionsEditor, { allTokens as inlineEditActionsTokens } from './InlineEditActionsEditor.svelte';
+import { catalogue as inlineEditActionsCatalogue } from '../../system/components/InlineEditActions.svelte';
 import InputEditor, { allTokens as inputTokens } from './InputEditor.svelte';
+import { catalogue as inputCatalogue } from '../../system/components/Input.svelte';
 import MenuSelectEditor, { allTokens as menuSelectTokens } from './MenuSelectEditor.svelte';
+import { catalogue as menuSelectCatalogue } from '../../system/components/MenuSelect.svelte';
 import NotificationEditor, { allTokens as notificationTokens } from './NotificationEditor.svelte';
+import { catalogue as notificationCatalogue } from '../../system/components/Notification.svelte';
 import PanelEditor, { allTokens as panelTokens } from './PanelEditor.svelte';
+import { catalogue as panelCatalogue } from '../../system/components/Panel.svelte';
 import ProgressBarEditor, { allTokens as progressBarTokens } from './ProgressBarEditor.svelte';
+import { catalogue as progressBarCatalogue } from '../../system/components/ProgressBar.svelte';
 import SliderEditor, { allTokens as sliderTokens } from './SliderEditor.svelte';
+import { catalogue as sliderCatalogue } from '../../system/components/Slider.svelte';
 import RadioButtonEditor, { allTokens as radioButtonTokens } from './RadioButtonEditor.svelte';
+import { catalogue as radioButtonCatalogue } from '../../system/components/RadioButton.svelte';
 import SectionDividerEditor, { allTokens as sectionDividerTokens, intrinsics as sectionDividerIntrinsics } from './SectionDividerEditor.svelte';
+import { catalogue as sectionDividerCatalogue } from '../../system/components/SectionDivider.svelte';
 import SegmentedControlEditor, { allTokens as segmentedControlTokens } from './SegmentedControlEditor.svelte';
+import { catalogue as segmentedControlCatalogue } from '../../system/components/SegmentedControl.svelte';
 import SideNavigationEditor, { allTokens as sideNavigationTokens } from './SideNavigationEditor.svelte';
+import { catalogue as sideNavigationCatalogue } from '../../system/components/SideNavigation.svelte';
 import TableEditor, { allTokens as tableTokens } from './TableEditor.svelte';
+import { catalogue as tableCatalogue } from '../../system/components/Table.svelte';
 import TabBarEditor, { allTokens as tabBarTokens } from './TabBarEditor.svelte';
+import { catalogue as tabBarCatalogue } from '../../system/components/TabBar.svelte';
 import ToggleEditor, { allTokens as toggleTokens } from './ToggleEditor.svelte';
+import { catalogue as toggleCatalogue } from '../../system/components/Toggle.svelte';
 import TooltipEditor, { allTokens as tooltipTokens } from './TooltipEditor.svelte';
+import { catalogue as tooltipCatalogue } from '../../system/components/Tooltip.svelte';
 
 /** Internal narrowed union of the first-party component ids. Not exposed publicly. */
 type BuiltInComponentId =
@@ -81,6 +107,10 @@ export interface RegistryEntry {
       most components have none. When present, each spec's per-variant default is
       pinned to the runtime `:global(:root)` by intrinsicsContract.test. */
   intrinsics?: IntrinsicSpec[];
+  /** What the component is, what to use it for, and what not to use it for.
+      Imported from the runtime file's own `catalogue` export — never copied —
+      so registryContract.test's identity check pins it to that one source. */
+  catalogue: CatalogueEntry;
   /** `'system'` for first-party entries; `'custom'` for entries added via `registerComponent()`. */
   origin: 'system' | 'custom';
 }
@@ -100,6 +130,7 @@ const builtInRegistry: Readonly<Record<BuiltInComponentId, RegistryEntry>> = Obj
     sourceFile: 'src/system/components/SegmentedControl.svelte',
     editorComponent: SegmentedControlEditor,
     schema: segmentedControlTokens,
+    catalogue: segmentedControlCatalogue,
     origin: 'system',
   },
   button: {
@@ -109,6 +140,7 @@ const builtInRegistry: Readonly<Record<BuiltInComponentId, RegistryEntry>> = Obj
     sourceFile: 'src/system/components/Button.svelte',
     editorComponent: ButtonEditor,
     schema: buttonTokens,
+    catalogue: buttonCatalogue,
     origin: 'system',
   },
   iconbutton: {
@@ -118,6 +150,7 @@ const builtInRegistry: Readonly<Record<BuiltInComponentId, RegistryEntry>> = Obj
     sourceFile: 'src/system/components/IconButton.svelte',
     editorComponent: IconButtonEditor,
     schema: iconButtonTokens,
+    catalogue: iconButtonCatalogue,
     origin: 'system',
   },
   notification: {
@@ -127,6 +160,7 @@ const builtInRegistry: Readonly<Record<BuiltInComponentId, RegistryEntry>> = Obj
     sourceFile: 'src/system/components/Notification.svelte',
     editorComponent: NotificationEditor,
     schema: notificationTokens,
+    catalogue: notificationCatalogue,
     origin: 'system',
   },
   dialog: {
@@ -136,6 +170,7 @@ const builtInRegistry: Readonly<Record<BuiltInComponentId, RegistryEntry>> = Obj
     sourceFile: 'src/system/components/Dialog.svelte',
     editorComponent: DialogEditor,
     schema: dialogTokens,
+    catalogue: dialogCatalogue,
     origin: 'system',
   },
   radiobutton: {
@@ -145,6 +180,7 @@ const builtInRegistry: Readonly<Record<BuiltInComponentId, RegistryEntry>> = Obj
     sourceFile: 'src/system/components/RadioButton.svelte',
     editorComponent: RadioButtonEditor,
     schema: radioButtonTokens,
+    catalogue: radioButtonCatalogue,
     origin: 'system',
   },
   card: {
@@ -155,6 +191,7 @@ const builtInRegistry: Readonly<Record<BuiltInComponentId, RegistryEntry>> = Obj
     editorComponent: CardEditor,
     schema: cardTokens,
     intrinsics: cardIntrinsics,
+    catalogue: cardCatalogue,
     origin: 'system',
   },
   badge: {
@@ -164,6 +201,7 @@ const builtInRegistry: Readonly<Record<BuiltInComponentId, RegistryEntry>> = Obj
     sourceFile: 'src/system/components/Badge.svelte',
     editorComponent: BadgeEditor,
     schema: badgeTokens,
+    catalogue: badgeCatalogue,
     origin: 'system',
   },
   callout: {
@@ -173,6 +211,7 @@ const builtInRegistry: Readonly<Record<BuiltInComponentId, RegistryEntry>> = Obj
     sourceFile: 'src/system/components/Callout.svelte',
     editorComponent: CalloutEditor,
     schema: calloutTokens,
+    catalogue: calloutCatalogue,
     origin: 'system',
   },
   codesnippet: {
@@ -182,6 +221,7 @@ const builtInRegistry: Readonly<Record<BuiltInComponentId, RegistryEntry>> = Obj
     sourceFile: 'src/system/components/CodeSnippet.svelte',
     editorComponent: CodeSnippetEditor,
     schema: codeSnippetTokens,
+    catalogue: codeSnippetCatalogue,
     origin: 'system',
   },
   cornerbadge: {
@@ -191,6 +231,7 @@ const builtInRegistry: Readonly<Record<BuiltInComponentId, RegistryEntry>> = Obj
     sourceFile: 'src/system/components/CornerBadge.svelte',
     editorComponent: CornerBadgeEditor,
     schema: cornerBadgeTokens,
+    catalogue: cornerBadgeCatalogue,
     origin: 'system',
   },
   image: {
@@ -201,6 +242,7 @@ const builtInRegistry: Readonly<Record<BuiltInComponentId, RegistryEntry>> = Obj
     editorComponent: ImageEditor,
     schema: imageTokens,
     intrinsics: imageIntrinsics,
+    catalogue: imageCatalogue,
     origin: 'system',
   },
   imagelightbox: {
@@ -210,6 +252,7 @@ const builtInRegistry: Readonly<Record<BuiltInComponentId, RegistryEntry>> = Obj
     sourceFile: 'src/system/components/ImageLightbox.svelte',
     editorComponent: ImageLightboxEditor,
     schema: imageLightboxTokens,
+    catalogue: imageLightboxCatalogue,
     origin: 'system',
   },
   inlineeditactions: {
@@ -219,6 +262,7 @@ const builtInRegistry: Readonly<Record<BuiltInComponentId, RegistryEntry>> = Obj
     sourceFile: 'src/system/components/InlineEditActions.svelte',
     editorComponent: InlineEditActionsEditor,
     schema: inlineEditActionsTokens,
+    catalogue: inlineEditActionsCatalogue,
     origin: 'system',
   },
   input: {
@@ -228,6 +272,7 @@ const builtInRegistry: Readonly<Record<BuiltInComponentId, RegistryEntry>> = Obj
     sourceFile: 'src/system/components/Input.svelte',
     editorComponent: InputEditor,
     schema: inputTokens,
+    catalogue: inputCatalogue,
     origin: 'system',
   },
   menuselect: {
@@ -237,6 +282,7 @@ const builtInRegistry: Readonly<Record<BuiltInComponentId, RegistryEntry>> = Obj
     sourceFile: 'src/system/components/MenuSelect.svelte',
     editorComponent: MenuSelectEditor,
     schema: menuSelectTokens,
+    catalogue: menuSelectCatalogue,
     origin: 'system',
   },
   panel: {
@@ -246,6 +292,7 @@ const builtInRegistry: Readonly<Record<BuiltInComponentId, RegistryEntry>> = Obj
     sourceFile: 'src/system/components/Panel.svelte',
     editorComponent: PanelEditor,
     schema: panelTokens,
+    catalogue: panelCatalogue,
     origin: 'system',
   },
   sectiondivider: {
@@ -256,6 +303,7 @@ const builtInRegistry: Readonly<Record<BuiltInComponentId, RegistryEntry>> = Obj
     editorComponent: SectionDividerEditor,
     schema: sectionDividerTokens,
     intrinsics: sectionDividerIntrinsics,
+    catalogue: sectionDividerCatalogue,
     origin: 'system',
   },
   collapsiblesection: {
@@ -265,6 +313,7 @@ const builtInRegistry: Readonly<Record<BuiltInComponentId, RegistryEntry>> = Obj
     sourceFile: 'src/system/components/CollapsibleSection.svelte',
     editorComponent: CollapsibleSectionEditor,
     schema: collapsibleSectionTokens,
+    catalogue: collapsibleSectionCatalogue,
     origin: 'system',
   },
   sidenavigation: {
@@ -274,6 +323,7 @@ const builtInRegistry: Readonly<Record<BuiltInComponentId, RegistryEntry>> = Obj
     sourceFile: 'src/system/components/SideNavigation.svelte',
     editorComponent: SideNavigationEditor,
     schema: sideNavigationTokens,
+    catalogue: sideNavigationCatalogue,
     origin: 'system',
   },
   table: {
@@ -283,6 +333,7 @@ const builtInRegistry: Readonly<Record<BuiltInComponentId, RegistryEntry>> = Obj
     sourceFile: 'src/system/components/Table.svelte',
     editorComponent: TableEditor,
     schema: tableTokens,
+    catalogue: tableCatalogue,
     origin: 'system',
   },
   tabbar: {
@@ -292,6 +343,7 @@ const builtInRegistry: Readonly<Record<BuiltInComponentId, RegistryEntry>> = Obj
     sourceFile: 'src/system/components/TabBar.svelte',
     editorComponent: TabBarEditor,
     schema: tabBarTokens,
+    catalogue: tabBarCatalogue,
     origin: 'system',
   },
   toggle: {
@@ -301,6 +353,7 @@ const builtInRegistry: Readonly<Record<BuiltInComponentId, RegistryEntry>> = Obj
     sourceFile: 'src/system/components/Toggle.svelte',
     editorComponent: ToggleEditor,
     schema: toggleTokens,
+    catalogue: toggleCatalogue,
     origin: 'system',
   },
   tooltip: {
@@ -310,6 +363,7 @@ const builtInRegistry: Readonly<Record<BuiltInComponentId, RegistryEntry>> = Obj
     sourceFile: 'src/system/components/Tooltip.svelte',
     editorComponent: TooltipEditor,
     schema: tooltipTokens,
+    catalogue: tooltipCatalogue,
     origin: 'system',
   },
   progressbar: {
@@ -319,6 +373,7 @@ const builtInRegistry: Readonly<Record<BuiltInComponentId, RegistryEntry>> = Obj
     sourceFile: 'src/system/components/ProgressBar.svelte',
     editorComponent: ProgressBarEditor,
     schema: progressBarTokens,
+    catalogue: progressBarCatalogue,
     origin: 'system',
   },
   slider: {
@@ -328,6 +383,7 @@ const builtInRegistry: Readonly<Record<BuiltInComponentId, RegistryEntry>> = Obj
     sourceFile: 'src/system/components/Slider.svelte',
     editorComponent: SliderEditor,
     schema: sliderTokens,
+    catalogue: sliderCatalogue,
     origin: 'system',
   },
 });

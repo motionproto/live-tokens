@@ -1,11 +1,16 @@
-<!--
-  SectionDivider.svelte. A titled break between the sections of a page.
-  Use for: naming the band that follows it.
-  Not for: moving between pages (SideNavigation); a title inside a container
-  (Card).
-  Level: `md` titles a page and `sm` titles a section; `eyebrow` is an opt-in
-  label above the title.
--->
+<script module lang="ts">
+  import type { CatalogueEntry } from '../../editor/component-editor/scaffolding/types';
+
+  export const catalogue = {
+    description: 'A titled break between the sections of a page.',
+    useFor: 'naming the band that follows it.',
+    notFor: 'moving between pages (SideNavigation); a title inside a container (Card).',
+    props: {
+      level: '`md` titles a page and `sm` titles a section; `eyebrow` is an opt-in label above the title.',
+    },
+  } satisfies CatalogueEntry;
+</script>
+
 <script lang="ts">
   /** Size variant. Each variant owns everything that defines its style:
    *  typography, geometry, colors AND the intrinsic display properties

@@ -29,3 +29,6 @@ export type { Token } from './scaffolding/types';
 // Intrinsic spec — structural/display props an editor drives outside the token
 // grid (alignment, visibility). Pass an array as `registerComponent({ intrinsics })`.
 export type { IntrinsicSpec } from './scaffolding/types';
+
+// Catalogue entry — the shape a runtime file's `catalogue` export satisfies.
+export type { CatalogueEntry } from './scaffolding/types';

@@ -3,6 +3,7 @@
 // registrySetup (so the registry contract sees it too), one list serving
 // both, per the live-tokens-create-component contract-tests recipe.
 import { registerComponent } from '@motion-proto/live-tokens';
+import { catalogue } from './system/components/Beacon.svelte';
 import BeaconEditor, { allTokens } from './system/components/BeaconEditor.svelte';
 
 registerComponent({
@@ -12,4 +13,5 @@ registerComponent({
   sourceFile: 'src/system/components/Beacon.svelte',
   editorComponent: BeaconEditor,
   schema: allTokens,
+  catalogue,
 });

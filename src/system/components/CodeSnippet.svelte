@@ -1,9 +1,13 @@
-<!--
-  CodeSnippet.svelte. A command or value with a copy button.
-  Use for: text the reader is meant to run or paste somewhere else.
-  Not for: prose the reader only reads (a paragraph in its Card or Panel); a
-  value the reader edits (Input).
--->
+<script module lang="ts">
+  import type { CatalogueEntry } from '../../editor/component-editor/scaffolding/types';
+
+  export const catalogue = {
+    description: 'A command or value with a copy button.',
+    useFor: 'text the reader is meant to run or paste somewhere else.',
+    notFor: 'prose the reader only reads (a paragraph in its Card or Panel); a value the reader edits (Input).',
+  } satisfies CatalogueEntry;
+</script>
+
 <script lang="ts">
   import Tooltip from './Tooltip.svelte';
 

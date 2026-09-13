@@ -1,3 +1,18 @@
+/** A component's catalogue entry: what it is, what to use it for, what not
+    to use it for, and what any guidance-bearing prop's values mean. Exported
+    as `catalogue` from the runtime file's `<script module>` block — the
+    Svelte compiler drops a leading HTML comment before it reaches the
+    running editor, so this is the one form every reader (CLI, registry,
+    consumer) can read. */
+export type CatalogueEntry = {
+  /** One sentence: what the component is. */
+  description: string;
+  useFor: string;
+  notFor: string;
+  /** Keyed by prop name; the value explains that prop's values. */
+  props?: Record<string, string>;
+};
+
 /** Editor token: a single CSS custom property the user can theme. */
 export type Token = {
   label: string;

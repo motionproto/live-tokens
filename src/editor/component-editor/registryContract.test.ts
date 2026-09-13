@@ -26,3 +26,26 @@ describe('component registry contract', () => {
     });
   });
 });
+
+// A copied literal reads the same as an import, so the registry contract
+// above can't tell them apart — only object identity against the runtime
+// module's own export catches a copy.
+describe('a built-in entry imports its catalogue, never copies it', () => {
+  const runtimeModules = import.meta.glob('/src/system/components/*.svelte', { eager: true }) as Record<
+    string,
+    { catalogue?: unknown }
+  >;
+  const builtIns = entries.filter((e) => e.origin === 'system');
+
+  it('covers every built-in entry', () => {
+    expect(builtIns.length).toBeGreaterThan(20);
+  });
+
+  describe.each(builtIns.map((e) => [e.id, e] as const))('%s', (_id, entry) => {
+    it('entry.catalogue is the runtime module\'s own export', () => {
+      const mod = runtimeModules[`/${entry.sourceFile}`];
+      expect(mod?.catalogue).toBeDefined();
+      expect(entry.catalogue).toBe(mod!.catalogue);
+    });
+  });
+});

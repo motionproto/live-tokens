@@ -1,9 +1,13 @@
-<!--
-  Panel.svelte. A frame around one section of the page's content.
-  Use for: a stage, a list, a form, or a block of copy that reads as one
-  region. `minHeight` holds the height while the content changes.
-  Not for: one item in a set (Card); a modal surface (Dialog).
--->
+<script module lang="ts">
+  import type { CatalogueEntry } from '../../editor/component-editor/scaffolding/types';
+
+  export const catalogue = {
+    description: "A frame around one section of the page's content.",
+    useFor: 'a stage, a list, a form, or a block of copy that reads as one region. `minHeight` holds the height while the content changes.',
+    notFor: 'one item in a set (Card); a modal surface (Dialog).',
+  } satisfies CatalogueEntry;
+</script>
+
 <script lang="ts">
   import type { Snippet } from 'svelte';
 

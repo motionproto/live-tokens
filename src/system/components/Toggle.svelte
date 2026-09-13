@@ -1,9 +1,13 @@
-<!--
-  Toggle.svelte. An on/off switch that names the setting it controls.
-  Use for: a setting that takes effect the moment it flips.
-  Not for: a choice between two named alternatives (SegmentedControl); a
-  yes/no answer inside a form (RadioButton).
--->
+<script module lang="ts">
+  import type { CatalogueEntry } from '../../editor/component-editor/scaffolding/types';
+
+  export const catalogue = {
+    description: 'An on/off switch that names the setting it controls.',
+    useFor: 'a setting that takes effect the moment it flips.',
+    notFor: 'a choice between two named alternatives (SegmentedControl); a yes/no answer inside a form (RadioButton).',
+  } satisfies CatalogueEntry;
+</script>
+
 <script lang="ts">
   interface Props {
     checked?: boolean;

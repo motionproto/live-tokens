@@ -1,11 +1,12 @@
-<!--
-  Slider.svelte. A number the reader picks by position on a track.
-  Use for: a volume, a price band, or a percentage, where the position carries
-  the meaning.
-  Not for: an exact number the reader would rather type (Input); an on/off
-  setting (Toggle).
--->
 <script module lang="ts">
+  import type { CatalogueEntry } from '../../editor/component-editor/scaffolding/types';
+
+  export const catalogue = {
+    description: 'A number the reader picks by position on a track.',
+    useFor: 'a volume, a price band, or a percentage, where the position carries the meaning.',
+    notFor: 'an exact number the reader would rather type (Input); an on/off setting (Toggle).',
+  } satisfies CatalogueEntry;
+
   export const sliderVariants = ['single', 'range'] as const;
   export type SliderVariant = typeof sliderVariants[number];
 </script>
