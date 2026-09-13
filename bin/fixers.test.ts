@@ -110,6 +110,8 @@ const SPACE_TOKENS = `:root {
   --card-default-radius: 0.25rem;
 }`;
 
+const CARD_IMPORT = `<script>\n  import Card from "@motion-proto/live-tokens/components/Card.svelte";\n</script>\n`;
+
 function checkAndFix(root: string, files: string[]) {
   const { findings } = checkPages(files, { root });
   const resolved = applySeverity(findings, PAGE_RULES, {}, {});
@@ -185,6 +187,43 @@ describe('check-page --fix, per rule', () => {
     const f = resolved.find((x: { rule: string }) => x.rule === 'control-size');
     expect(f.details.patch).toEqual({ from: 'size="small"', to: '' });
     expect(readFileSync(join(root, rel), 'utf8')).toBe(`${head}<Card class="x"\n\n/>`);
+  });
+
+  it('control-size: an expression value spanning lines is left untouched, reported as choice', () => {
+    const root = pageRoot(SPACE_TOKENS);
+    const rel = 'src/pages/Detail.svelte';
+    const source = `${CARD_IMPORT}<Card\n  size={\n    big\n  }\n/>`;
+    writeFileSync(join(root, rel), source);
+    const { resolved, applied } = checkAndFix(root, [rel]);
+    expect(applied).toHaveLength(0);
+    expect(readFileSync(join(root, rel), 'utf8')).toBe(source);
+    const f = resolved.find((x: { rule: string }) => x.rule === 'control-size');
+    expect(f.repair).toBe('choice');
+    expect(f.details.patch).toBeUndefined();
+  });
+
+  it('control-size: a value on the next line is left untouched, never cut down to an orphan', () => {
+    const root = pageRoot(SPACE_TOKENS);
+    const rel = 'src/pages/Detail.svelte';
+    const source = `${CARD_IMPORT}<Card size=\n"small" />`;
+    writeFileSync(join(root, rel), source);
+    const { resolved, applied } = checkAndFix(root, [rel]);
+    expect(applied.some((f: { rule: string }) => f.rule === 'control-size')).toBe(false);
+    expect(readFileSync(join(root, rel), 'utf8')).toBe(source);
+    const f = resolved.find((x: { rule: string }) => x.rule === 'control-size');
+    expect(f.repair).toBe('choice');
+    expect(f.details.patch).toBeUndefined();
+  });
+
+  it('dimension-literal: lands on its own line while an unfixable control-size sits above it', () => {
+    const root = pageRoot(SPACE_TOKENS);
+    const rel = 'src/pages/Detail.svelte';
+    const head = `${CARD_IMPORT}<Card\n  size={\n    big\n  }\n/>\n`;
+    writeFileSync(join(root, rel), `${head}<style>.a { padding: 8px; }</style>\n<p>docs say padding: 8px here</p>\n`);
+    checkAndFix(root, [rel]);
+    expect(readFileSync(join(root, rel), 'utf8')).toBe(
+      `${head}<style>.a { padding: var(--space-8); }</style>\n<p>docs say padding: 8px here</p>\n`,
+    );
   });
 
   it('property-override: deletes a declaration in place, and a second pass is a no-op', () => {

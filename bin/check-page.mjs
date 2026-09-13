@@ -232,13 +232,17 @@ function tagAttributes(code, start) {
 
 /** The exact text a fixer deletes for one attribute: its own span, plus one
  *  leading space or tab if present, so removal doesn't leave a double space or
- *  a lone trailing one before the tag's `>`. A newline is never taken: the
- *  patch has to stay inside the line the finding names, and `applyFixes`
- *  applies a file's patches in line order on the assumption that none of them
- *  moves a later line. */
+ *  a lone trailing one before the tag's `>`. A span that crosses a newline
+ *  yields no patch: the patch has to stay inside the line the finding names,
+ *  and `applyFixes` applies a file's patches in line order on the assumption
+ *  that none of them moves a later line. A span stopping at its own `=` is an
+ *  attribute whose value starts on the next line, so deleting the span would
+ *  leave the value behind as orphan markup. */
 function attributeDeletion(code, index, end) {
   const start = /[^\S\n]/.test(code[index - 1] ?? '') ? index - 1 : index;
-  return { from: code.slice(start, end), to: '' };
+  const from = code.slice(start, end);
+  if (from.includes('\n') || from.endsWith('=')) return null;
+  return { from, to: '' };
 }
 
 /** A `--name: value;` CSS declaration, deleted whole. The match is anchored at
@@ -351,11 +355,14 @@ function checkComponentUsage(code, imports, add) {
           });
         }
         if (name === 'size' && entry.origin === 'shipped') {
+          // An attribute no fixer can delete whole has nothing auto to
+          // apply, so it lowers to a choice.
+          const patch = attributeDeletion(code, index, end);
           add(
             'control-size',
             index,
             `${entry.name} ${value === null ? 'is sized here' : `size="${value}"`}. Drop it for the shipped default, or retune ${entry.name} for the whole project in /live-tokens/components.`,
-            { details: { site: 'attribute', patch: attributeDeletion(code, index, end) } },
+            { details: { site: 'attribute', ...(patch ? { patch } : {}) }, ...(patch ? {} : { repair: 'choice' }) },
           );
         }
       }
