@@ -407,20 +407,20 @@ async function runFixtureAScenarios(dir) {
     check(before === after, 'source data unchanged across a failing run');
     check(result.status === 1, 'exits 1');
     const findings = result.json?.findings ?? [];
-    // The static `config-token` rule reads the same alias as data, so this one
-    // defect is reported twice over: once without a browser, once by the
-    // alias suite's store round-trip.
+    // One defect, one finding. The browser's alias obligation reads the same
+    // property resolving to nothing at the root that the static rule already
+    // read as data, so the merge drops it and keeps the finding a repair can
+    // act on.
     check(
-      findings.length === 2 && findings.map((f) => f.rule).sort().join() === 'config-token,contract-alias',
-      `one config-token and one contract-alias finding (got ${JSON.stringify(findings.map((f) => f.rule))})`,
+      findings.length === 1 && findings[0].rule === 'config-token',
+      `one config-token finding (got ${JSON.stringify(findings.map((f) => f.rule))})`,
     );
-    const aliasFinding = findings.find((f) => f.rule === 'contract-alias');
-    const configFinding = findings.find((f) => f.rule === 'config-token');
-    check(aliasFinding?.file === 'src/live-tokens/data/component-configs/beacon/default.json', 'the finding names the real config file');
-    check(typeof aliasFinding?.line === 'number' && aliasFinding.line > 1, 'the finding names a real line, not the line-1 fallback');
+    const configFinding = findings[0];
+    check(configFinding?.file === 'src/live-tokens/data/component-configs/beacon/default.json', 'the finding names the real config file');
+    check(typeof configFinding?.line === 'number' && configFinding.line > 1, 'the finding names a real line, not the line-1 fallback');
     check(
-      configFinding?.file === aliasFinding?.file && configFinding?.line > 1,
-      'the static rule names the same config file at the alias it read',
+      configFinding?.details?.property === '--beacon-track-surface' && configFinding?.details?.value === '--nonexistent-token-xyz',
+      'the finding carries the property and the value a repair needs',
     );
     const rules = result.json?.coverage?.beacon ?? {};
     check(rules['contract-alias']?.status === 'failed', 'coverage marks contract-alias failed');
@@ -447,11 +447,15 @@ async function runFixtureAScenarios(dir) {
     check(result.status === 1, 'exits 1');
     const findings = result.json?.findings ?? [];
     const aliasFindings = findings.filter((f) => f.rule === 'contract-alias');
-    // The registry contract fails on the duplicate too, in an assertion that
-    // names no component, which reaches the CLI as `tests-setup`.
+    // The twin is authored and registered nowhere, which the registry contract
+    // now asserts per id. `tests-setup` would say the tooling never ran.
     check(
-      findings.map((f) => f.rule).sort().join() === 'contract-alias,tests-setup',
-      `contract-alias and tests-setup (got ${JSON.stringify(findings.map((f) => f.rule))})`,
+      findings.map((f) => f.rule).sort().join() === 'contract-alias,contract-registry',
+      `contract-alias and contract-registry (got ${JSON.stringify(findings.map((f) => f.rule))})`,
+    );
+    check(
+      /beacontwin/.test(findings.find((f) => f.rule === 'contract-registry')?.message ?? ''),
+      'the registry finding names the unregistered component',
     );
     check(aliasFindings[0]?.file === 'package.json', 'no consumer artifact names this failure; the rule id alone identifies it');
     const rules = result.json?.coverage?.beacon ?? {};
@@ -492,18 +496,20 @@ async function runFixtureAScenarios(dir) {
     check(result.status === 1, 'exits 1');
     const findings = result.json?.findings ?? [];
     const registryFindings = findings.filter((f) => f.rule === 'contract-registry');
-    // The behavior suite mounts the runtime the registration names, so every
-    // declared case fails on the same unresolved file the registry contract
-    // reports.
+    // A missing runtime is the registry rule's finding. The behavior suite
+    // mounts the file the registration names, so it skips its cases with that
+    // reason rather than repeating the defect once per declared case.
     check(
-      registryFindings.length === 1
-        && findings.every((f) => f.rule === 'contract-registry' || f.rule === 'contract-behavior'),
-      `one contract-registry finding, and behavior cases beside it (got ${JSON.stringify(findings.map((f) => f.rule))})`,
+      findings.length === 1 && registryFindings.length === 1,
+      `exactly one contract-registry finding (got ${JSON.stringify(findings.map((f) => f.rule))})`,
     );
     check(/does not resolve to a file/.test(registryFindings[0]?.message ?? ''), 'names the unresolved sourceFile');
     const rules = result.json?.coverage?.beacon ?? {};
     check(rules['contract-registry']?.status === 'failed', 'coverage marks contract-registry failed');
-    check(rules['contract-behavior']?.status === 'failed', 'coverage marks contract-behavior failed: it loads the same file');
+    check(
+      rules['contract-behavior']?.status === 'incomplete',
+      'coverage marks contract-behavior incomplete, explained by the registry failure beside it',
+    );
     const others = Object.entries(rules).filter(([rule]) => rule !== 'contract-registry' && rule !== 'contract-behavior');
     check(
       others.length === 8 && others.every(([, e]) => e.status === 'passed' || e.status === 'inapplicable'),
@@ -628,16 +634,15 @@ async function buildFixtureB(workDir, tarballPath) {
   // relocated one below, this is what turns that into a loud contract-alias
   // failure instead of a silent pass against the wrong tree.
   //
-  // The decoy names a real design token, one the contract does not declare
-  // for this property (`aliasedTo` says `--surface-neutral`). A name outside
-  // the vocabulary would also trip the static `config-token` rule, which
-  // reads the plugin's own data directory and knows nothing of a testing
-  // override, and the decoy would then report a defect for the tree the
-  // contract run never touched.
+  // The decoy names nothing the vocabulary knows, so a fallback to this path
+  // trips the static `config-token` rule as well as the contract run. That
+  // rule reads the data directory the testing settings name, the relocated
+  // one, so the decoy stays invisible to it for as long as resolution is
+  // right.
   await seedRealDataDir(dir, 51740);
   const decoyPath = join(dir, 'src/live-tokens/data/component-configs/beacon/default.json');
   const decoy = JSON.parse(readFileSync(decoyPath, 'utf8'));
-  decoy.aliases['--beacon-track-surface'] = '--surface-neutral-high';
+  decoy.aliases['--beacon-track-surface'] = '--nonexistent-token-xyz';
   writeFileSync(decoyPath, JSON.stringify(decoy, null, 2));
 
   mkdirSync(join(dir, 'lt-data-relocated'), { recursive: true });

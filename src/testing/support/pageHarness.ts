@@ -268,6 +268,11 @@ const GRID_TOLERANCE = 1;
  *  section to. */
 const GRID_VIEWPORT = 768;
 
+/** How long the page has to hold still before a rule measures it, and how
+ *  long to wait for that before measuring anyway. */
+const SETTLE_QUIET_MS = 300;
+const SETTLE_BUDGET_MS = 5_000;
+
 /** WCAG's large-text sizes: the AA floor drops to 3:1 at either. */
 const LARGE_TEXT_PX = 24;
 const LARGE_BOLD_PX = 18.66;
@@ -314,25 +319,56 @@ export class PageHarness {
     await page.setViewportSize(viewport);
     await page.goto(target.route);
     await page.locator(PAGE_CONTAINER).waitFor();
-    // The lazy route module, then the theme's own custom properties: a page
-    // measured before either lands reads the browser's defaults as the
-    // theme's values.
+    // The lazy route module: until it mounts, the container holds the dev
+    // overlay and nothing of the page itself.
     await page.waitForFunction((selectors) => {
       const container = document.querySelector(selectors.container);
       if (!container) return false;
-      const content = [...container.children].some((child) => !child.matches(selectors.chrome));
-      const themed = getComputedStyle(document.documentElement)
-        .getPropertyValue('--body-md-font-size').trim().length > 0;
-      return content && themed;
+      return [...container.children].some((child) => !child.matches(selectors.chrome));
     }, { container: PAGE_CONTAINER, chrome: CHROME });
     await page.waitForLoadState('networkidle');
-    await page.evaluate(async () => {
-      await document.fonts.ready;
-      const frame = () => new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
-      await frame();
-      await frame();
-    });
+    await PageHarness.settle(page);
     return new PageHarness(page, target, viewport);
+  }
+
+  /**
+   * Every rule here measures geometry, and the geometry moves for as long as
+   * the theme's own values, the route's stylesheet, and the fonts are still
+   * arriving. This repository's own Home page holds 384px of twelve-column
+   * grid in a 375px container at a 390px viewport with the theme's 32px
+   * `--columns-gutter`, and fits with the 8px gutter `tokens.css` computes
+   * there on its own, so the same page reads as overflowing or not depending
+   * on what has landed. Waiting on a single custom property settles nothing:
+   * `--body-md-font-size`, the property this gate used to read, is one
+   * `tokens.css` sets itself, and a trace of the boot has it true 84ms before
+   * the page container exists at all. What a rule needs instead is a page that
+   * has stopped moving. The budget bounds a page that never does.
+   */
+  private static async settle(page: Page): Promise<void> {
+    await page.evaluate(async ({ quietMs, budgetMs }) => {
+      await document.fonts.ready;
+      const root = document.documentElement;
+      // `root.style.length` counts the custom properties the dev-time theme
+      // projection writes inline, which land without moving anything.
+      const signature = () => [
+        root.scrollWidth, root.scrollHeight, root.clientWidth, root.clientHeight,
+        root.style.length, document.fonts.size, document.fonts.status,
+      ].join('|');
+      const frame = () => new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+      const deadline = performance.now() + budgetMs;
+      let last = signature();
+      let quietSince = performance.now();
+      while (performance.now() < deadline) {
+        await frame();
+        const now = signature();
+        if (now !== last) {
+          last = now;
+          quietSince = performance.now();
+          continue;
+        }
+        if (performance.now() - quietSince >= quietMs) return;
+      }
+    }, { quietMs: SETTLE_QUIET_MS, budgetMs: SETTLE_BUDGET_MS });
   }
 
   fail(rule: PageRule, line: number, message: string): never {

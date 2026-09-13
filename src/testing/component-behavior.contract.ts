@@ -5,6 +5,7 @@
 // observable only from a mounted fixture, which is what this suite drives.
 // The setup module is what registers the project's components; without one the
 // run covers the components the package registers itself.
+import { existsSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { describe, it, vi } from 'vitest';
@@ -32,18 +33,19 @@ const consumerRoot = process.cwd();
 
 const contracts = await selectedContracts();
 
-function runtimeUrl(contract: ComponentContract): string {
+/**
+ * Where the registration says the runtime is, or why this suite cannot reach
+ * it. A registration naming a file that is not there is `contract-registry`'s
+ * finding, and reporting it again per behavior case would multiply one defect
+ * across every declared case.
+ */
+function runtimeSource(contract: ComponentContract): { url: string } | { skip: string } {
   const entry = getComponentRegistryEntries().find((candidate) => candidate.id === contract.id);
-  if (!entry) {
-    throw new ContractViolation('contract-behavior', contract.id, 'no component is registered under this id');
-  }
+  if (!entry) return { skip: 'no component is registered under this id' };
   const root = entry.origin === 'system' ? packageRoot : consumerRoot;
-  return pathToFileURL(path.resolve(root, entry.sourceFile)).href;
-}
-
-async function loadRuntime(contract: ComponentContract): Promise<Component<Record<string, unknown>>> {
-  const module = await import(/* @vite-ignore */ runtimeUrl(contract));
-  return module.default as Component<Record<string, unknown>>;
+  const file = path.resolve(root, entry.sourceFile);
+  if (!existsSync(file)) return { skip: `the registration names ${entry.sourceFile}, which does not exist` };
+  return { url: pathToFileURL(file).href };
 }
 
 function resolvePart(contract: ComponentContract, target: HTMLElement, key: string): HTMLElement {
@@ -90,8 +92,11 @@ function sameArgs(actual: unknown[], expected: unknown[]): boolean {
     && expected.every((value, index) => matchesArg(actual[index], value));
 }
 
-async function runCase(contract: ComponentContract, testCase: BehaviorCase): Promise<void> {
-  const runtime = await loadRuntime(contract);
+async function runCase(
+  contract: ComponentContract,
+  runtime: Component<Record<string, unknown>>,
+  testCase: BehaviorCase,
+): Promise<void> {
   const target = document.createElement('div');
   document.body.appendChild(target);
   const fail = (message: string): never => {
@@ -170,8 +175,19 @@ describe('component behavior contract', () => {
       });
       return;
     }
+    const source = runtimeSource(contract);
+    if ('skip' in source) {
+      for (const testCase of declared.cases) it.skip(`${testCase.name} (${source.skip})`, () => {});
+      return;
+    }
+    const { url } = source;
+    // One import for the whole component, started by the first case rather
+    // than during collection, so a runtime that fails to load rejects inside a
+    // test that reports it instead of as an unhandled rejection.
+    let loading: Promise<Component<Record<string, unknown>>> | null = null;
     it.each(declared.cases.map((testCase) => [testCase.name, testCase] as const))('%s', async (_name, testCase) => {
-      await runCase(contract, testCase);
+      loading ??= import(/* @vite-ignore */ url).then((module) => module.default as Component<Record<string, unknown>>);
+      await runCase(contract, await loading, testCase);
     });
   });
 });

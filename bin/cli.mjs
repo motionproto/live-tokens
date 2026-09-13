@@ -29,6 +29,7 @@ import {
   applyCoverageSeverity,
   applySeverity,
   countBySeverity,
+  dedupeAliasFindings,
   formatFindings,
   parseCheckFlags,
   readChecksConfig,
@@ -315,7 +316,7 @@ if (command === 'check-component') {
   }
   const { hasHardFailure, runContractTests } = await import('./contractRunner.mjs');
   const testOutcome = await runContractTests(opts.rest[0], { root: process.cwd() });
-  const findings = [...results.flatMap(([, r]) => r.findings), ...testOutcome.findings];
+  const findings = dedupeAliasFindings([...results.flatMap(([, r]) => r.findings), ...testOutcome.findings]);
   reportChecks(label, findings, Math.max(ids.length, 1), COMPONENT_RULES, opts, {
     coverage: testOutcome.coverage,
     hardFailure: hasHardFailure(testOutcome.findings),

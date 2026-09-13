@@ -89,7 +89,7 @@ describe('check-component phantom-link guard', () => {
 // @ts-expect-error — plain .mjs module, no types
 import { COMPONENT_RULE_FIX, COMPONENT_RULES, checkComponentDefaults, discoverComponents } from './check-component.mjs';
 // @ts-expect-error — plain .mjs module, no types
-import { applySeverity, countBySeverity } from './lib/findings.mjs';
+import { applySeverity, countBySeverity, dedupeAliasFindings } from './lib/findings.mjs';
 
 function withTokens(root: string) {
   mkdirSync(join(root, 'src/system/styles'), { recursive: true });
@@ -1648,5 +1648,61 @@ describe('a component finding carries what its repair needs', () => {
     writeConfig(root, 'widget', { '--widget-surface': 'var(--surface-nope)' });
     const f = checkComponent('widget', root).findings.find((x: { rule: string }) => x.rule === 'config-token');
     expect(f.details).toEqual({ property: '--widget-surface', value: 'var(--surface-nope)' });
+  });
+});
+
+describe('one broken alias, one finding', () => {
+  const configToken = (id: string, property: string) => ({
+    rule: 'config-token',
+    file: `src/live-tokens/data/component-configs/${id}/default.json`,
+    line: 4,
+    message: `${property} names --surface-nope, which is not a design token or a semantic property`,
+    details: { property, value: 'var(--surface-nope)' },
+  });
+  const contractAlias = (id: string, properties: string[]) => ({
+    rule: 'contract-alias',
+    file: `src/live-tokens/data/component-configs/${id}/default.json`,
+    line: 4,
+    message: `${id}: aliases resolve to nothing at the root: ${properties.join(', ')}`,
+  });
+
+  it('drops the browser copy of an alias the static rule already read as data', () => {
+    const findings = [configToken('widget', '--widget-surface'), contractAlias('widget', ['--widget-surface'])];
+    expect(dedupeAliasFindings(findings).map((f) => f.rule)).toEqual(['config-token']);
+  });
+
+  it('drops the browser copy when the harness stack follows the list on its own lines', () => {
+    const withStack = {
+      ...contractAlias('widget', ['--widget-surface']),
+      message: 'widget: aliases resolve to nothing at the root: --widget-surface\n'
+        + '    at _ContractHarness.fail (/project/node_modules/@motion-proto/live-tokens/src/testing/support/contractHarness.ts:73:11)',
+    };
+    expect(dedupeAliasFindings([configToken('widget', '--widget-surface'), withStack]).map((f) => f.rule)).toEqual(['config-token']);
+  });
+
+  it('keeps an alias the vocabulary knows that still resolves to nothing', () => {
+    const findings = [configToken('widget', '--widget-surface'), contractAlias('widget', ['--widget-border'])];
+    expect(dedupeAliasFindings(findings).map((f) => f.rule)).toEqual(['config-token', 'contract-alias']);
+  });
+
+  it('keeps the browser copy when one of the names it lists is spelled correctly', () => {
+    const findings = [
+      configToken('widget', '--widget-surface'),
+      contractAlias('widget', ['--widget-surface', '--widget-border']),
+    ];
+    expect(dedupeAliasFindings(findings).map((f) => f.rule)).toEqual(['config-token', 'contract-alias']);
+  });
+
+  it('reads the component, so one component\'s broken alias never silences another\'s', () => {
+    const findings = [configToken('widget', '--widget-surface'), contractAlias('gauge', ['--widget-surface'])];
+    expect(dedupeAliasFindings(findings).map((f) => f.rule)).toEqual(['config-token', 'contract-alias']);
+  });
+
+  it('leaves a contract-alias that lists no property alone', () => {
+    const findings = [
+      configToken('widget', '--widget-surface'),
+      { rule: 'contract-alias', file: 'package.json', line: 1, message: 'widget: the shipped config declares no aliases' },
+    ];
+    expect(dedupeAliasFindings(findings).map((f) => f.rule)).toEqual(['config-token', 'contract-alias']);
   });
 });

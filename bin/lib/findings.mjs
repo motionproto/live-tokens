@@ -182,3 +182,47 @@ export function toJson(findings, { label, checked = 0, coverage } = {}) {
     2,
   );
 }
+
+/** The unresolved property names a `contract-alias` finding lists, read off the
+ *  first line: a Playwright or Vitest stack follows on the lines after it.
+ *  `assertAliasesResolve` is the only obligation that lists them; every other
+ *  `contract-alias` message (an empty shipped config, say) misses and is left
+ *  alone. */
+const UNRESOLVED_ALIASES = /aliases resolve to nothing at the root: (.+)/;
+
+/** `component-configs/<id>/default.json`, the file both rules name. */
+const CONFIG_FILE = /component-configs[/\\]([^/\\]+)[/\\]default\.json$/;
+
+/**
+ * One broken alias, one finding.
+ *
+ * A `default.json` alias naming something the vocabulary lacks is a
+ * `config-token` finding from plain Node, and the same string makes the
+ * property resolve to nothing at the root, which the browser reports as
+ * `contract-alias`. Under `--tests` both run, so the merge drops the browser's
+ * copy when every name it lists already carries a `config-token` finding for
+ * the same component. A `contract-alias` naming a token the vocabulary knows,
+ * declared, spelled correctly, and still unresolved, is a different defect and
+ * stays.
+ */
+export function dedupeAliasFindings(findings) {
+  const broken = new Map();
+  for (const f of findings) {
+    if (f.rule !== 'config-token') continue;
+    const id = CONFIG_FILE.exec(f.file ?? '')?.[1];
+    const property = f.details?.property;
+    if (!id || !property) continue;
+    if (!broken.has(id)) broken.set(id, new Set());
+    broken.get(id).add(property);
+  }
+  if (broken.size === 0) return findings;
+  return findings.filter((f) => {
+    if (f.rule !== 'contract-alias') return true;
+    const id = CONFIG_FILE.exec(f.file ?? '')?.[1];
+    const known = id ? broken.get(id) : undefined;
+    if (!known) return true;
+    const listed = UNRESOLVED_ALIASES.exec(String(f.message ?? '').split('\n')[0])?.[1];
+    if (!listed) return true;
+    return !listed.split(',').map((name) => name.trim()).filter(Boolean).every((name) => known.has(name));
+  });
+}

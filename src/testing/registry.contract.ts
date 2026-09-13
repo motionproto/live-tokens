@@ -49,9 +49,14 @@ describe('component registry contract', () => {
     ).not.toEqual([]);
   });
 
-  it('registers every component authored in the project', () => {
-    const ids = new Set(entries.map((entry) => entry.id));
-    expect(authored.filter((id) => !ids.has(id))).toEqual([]);
+  // One assertion per authored id, not one over the whole list: a failure that
+  // names no component reaches the CLI as `tests-setup`, which means the
+  // tooling never ran, and buries the id that is actually missing.
+  describe.each(authored.map((id) => [id] as const))('%s', (id) => {
+    it('is registered', () => {
+      const ids = new Set(entries.map((entry) => entry.id));
+      expect(ids.has(id), `${id} is authored in the project and registered nowhere`).toBe(true);
+    });
   });
 
   describe.each(targets.map((entry) => [entry.id, entry] as const))('%s', (_id, entry) => {

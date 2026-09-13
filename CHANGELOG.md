@@ -80,6 +80,31 @@
 - **`check-page`'s attribute parser reads an attribute a newline separates
   from the tag name**, and reads `size = "small"` — spaces around `=` — as
   Svelte does, as one attribute rather than a stray `=` that stopped the scan.
+- **One broken alias is one finding.** `check-component <id> --tests` used to
+  report a `default.json` alias naming an unknown token twice: once as
+  `config-token` from the static read, once as `contract-alias` from the
+  browser watching the same property resolve to nothing. The merge now drops
+  the browser's copy when every property it names already carries a
+  `config-token` finding for that component. A `contract-alias` naming a token
+  the vocabulary knows, declared and still unresolved, is a different defect
+  and stays.
+- **A missing runtime is the registry rule's finding.** The behavior suite
+  skips a component's cases, with the reason, when the file its registration
+  names does not exist, instead of failing every declared case on the same
+  unresolved import. `contract-behavior` then reads `incomplete` in coverage,
+  explained by the `contract-registry` failure beside it.
+- **Every registry assertion names its component.** "Every authored component
+  is registered" is now one assertion per authored id, so an unregistered
+  component reports `contract-registry` naming itself. It used to reach the
+  CLI as `tests-setup`, which means the tooling never ran.
+- **A page obligation measures a page that has stopped moving.** `PageHarness`
+  waited on `--body-md-font-size`, which `tokens.css` sets on its own, then on
+  two animation frames. A page whose theme values, route stylesheet, or fonts
+  were still arriving could be measured mid-flight, and a rule reading its
+  geometry would report a finding on one run and none on the next. The harness
+  now waits for a quiet window over the page's geometry, its projected root
+  style, and its font set, bounded so a page that never settles is still
+  measured.
 
 ## 0.78.0 — A page proves compliance as rendered
 

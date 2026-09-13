@@ -51,7 +51,7 @@ the registry (see Deferred), and `report --tests`.
 | 5 | Guarded fixers behind `--fix` | main | Sonnet | 120 min | Done | 8393412, e79c5d2, 34c4917, fc81a6a, 2e90575, ea501eb, aa2bdf8, c356963, bfd2a16, 7531ca6, 6126023 |
 | 6 | Skills, references, docs, atlas, changelog | main | Sonnet | 90 min | In progress | 22e9a15 |
 | 7 | The static checkers read what this plan says they read | main | Sonnet | 90 min | In progress | 863c833 |
-| 8 | One defect, one finding under `--tests`; a deterministic page test | main | Opus | 120 min | Not started | |
+| 8 | One defect, one finding under `--tests`; a deterministic page test | main | Opus | 120 min | In progress | |
 
 **Run of 2026-09-13.** Waves 1 to 4 approved. Wave 5 stopped `incomplete`
 on Fable after two BLOCK reviews (Sonnet, then Opus) and one Fable repair;
@@ -756,6 +756,50 @@ reviews saw red and the executors saw green.
   lands in the harness so every page obligation measures a page that has
   finished loading; the test keeps its assertions. If the cause lies outside
   this repository's control, record it in this section and stop for review.
+
+**Root cause, measured 2026-09-13.** The failure the Wave 4 and 5 reviews
+recorded is `expected 0 to be greater than 0` at `:337`
+(`scratch/w4/pagetest.log`): the run found no finding at all, so the 390x844
+obligation measured a page that did not overflow. The overflow is 9px wide.
+Home's twelve-column grid holds 384px of content in a 375px container at that
+viewport with the theme's 32px `--columns-gutter`, and `tokens.css` computes
+`clamp(0.5rem, 1.5vw, 1.5rem)` there, an 8px gutter whose eleven gaps fit.
+So the finding stands or falls on which value the page carries when the rule
+reads it, which is what the plan says.
+
+Four probes against this repository's own dev server, at 390x844: the
+projected `--columns-gutter` reads 32px inline on `:root` in every sample,
+including the one taken before the page container exists, and the geometry is
+384px in 375px from that first sample through five seconds; blocking
+`fonts.googleapis.com` and `use.typekit.net` drops the document from 60 font
+faces to 10 and leaves the geometry unchanged, so the webfonts do not move
+this page. A per-frame trace of the boot puts `--body-md-font-size` true at
+503ms, the page container at 587ms holding only the dev overlay, and the
+route's own content at 605ms. The readiness gate's own themed half therefore
+establishes nothing about the theme: the property it reads is one `tokens.css`
+sets, true 84ms before there is a page to measure. Ten runs in isolation
+(five by the previous executor, five here) pass, so the window this opens is
+narrow and takes a loaded machine to hit.
+
+The fix is the one the plan names, at the gate. `PageHarness.open` keeps the
+content half of the readiness gate, drops the property that proved nothing,
+and replaces the two-frame settle with a quiet window: it waits until the
+document's geometry, the count of custom properties the projection writes
+inline on `:root`, and the font set all hold still for 300ms, bounded at 5s so
+a page that never settles is still measured. That is what "has finished
+loading" means for a rule that reads geometry, and it holds for whichever of
+the three inputs is the late one on any given run.
+
+**Alias message shape, measured 2026-09-13.** In a consumer run the browser's
+alias finding carries the harness stack on the lines after the list, because
+`messageBlock` ends a message at the first blank line and Playwright writes
+none between the two: `beacon: aliases resolve to nothing at the root:
+--beacon-track-surface` then `    at _ContractHarness.fail (...)`. In this
+repository's own run the stack arrives as a code frame behind a blank line and
+the message is one line. The dedupe therefore reads the names off the first
+line and takes the component from the config file both rules name, not from the
+message prefix.
+
 - `CHANGELOG.md` records each under `## Unreleased`.
 
 **Verify.** `check-component <id> --tests` on a fixture with one broken alias
