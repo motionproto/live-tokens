@@ -33,9 +33,12 @@ function capitalize(id) {
   return id.charAt(0).toUpperCase() + id.slice(1);
 }
 
-/** Token scales whose names are governed by the token contract (see TOKENS.md). */
+/** Token scales whose names are governed by the token contract (see TOKENS.md).
+ *  `border-width` stands apart from `border` because the two measure different
+ *  things: a stroke's width resolves on a length scale, its paint on a colour
+ *  one, and a repair that offered the other's tokens would be nonsense. */
 export const CONTRACT_SCALES = [
-  'surface', 'text', 'border', 'color', 'space', 'radius', 'font', 'line-height',
+  'surface', 'text', 'border', 'border-width', 'color', 'space', 'radius', 'font', 'line-height',
   'letter-spacing', 'shadow', 'blur', 'icon-size', 'scrim', 'tint', 'columns',
   'heading', 'body', 'editorial', 'eyebrow', 'code', 'easing', 'duration', 'zoom',
   'gradient', 'stroke',

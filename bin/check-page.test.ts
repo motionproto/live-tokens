@@ -22,6 +22,10 @@ function fixtureRoot(): string {
       --text-primary: #eee;
       --space-8: 0.5rem;
       --space-16: 1rem;
+      --border-neutral: #333;
+      --border-subtle: #222;
+      --border-width-1: 1px;
+      --border-width-4: 4px;
       --radius-xl: 1rem;
       --columns-count: 12;
       --heading-lg-font-size: 2rem;
@@ -687,6 +691,18 @@ describe('a page finding carries what its repair needs', () => {
   it('names the colour scale without picking the role', () => {
     const f = detailsOf('<style>.a { color: #fff; }</style>', 'color-literal');
     expect(f.details).toEqual({ scale: 'text', candidates: ['--text-primary', '--text-secondary'] });
+  });
+
+  it('measures a stroke on the width scale and paints it from the colour scale', () => {
+    const width = detailsOf('<style>.a { border: 1px solid var(--border-neutral); }</style>', 'dimension-literal');
+    expect(width.details).toEqual({
+      scale: 'border-width',
+      literals: [{ value: '1px', px: 1, candidates: [{ token: '--border-width-1', px: 1, shift: 0 }] }],
+    });
+    expect(width.repair).toBeUndefined();
+
+    const paint = detailsOf('<style>.a { border-color: #fff; }</style>', 'color-literal');
+    expect(paint.details).toEqual({ scale: 'border', candidates: ['--border-neutral', '--border-subtle'] });
   });
 
   it('names both column forms', () => {
