@@ -50,7 +50,7 @@ the registry (see Deferred), and `report --tests`.
 | 4 | Merge lane B; `contract-behavior` through the CLI and the gate | main | Sonnet | 60 min | Done | 8fe7671, 31862df, 57b6f86 |
 | 5 | Guarded fixers behind `--fix` | main | Sonnet | 120 min | Done | 8393412, e79c5d2, 34c4917, fc81a6a, 2e90575, ea501eb, aa2bdf8, c356963, bfd2a16, 7531ca6, 6126023 |
 | 6 | Skills, references, docs, atlas, changelog | main | Sonnet | 90 min | In progress | 22e9a15 |
-| 7 | The static checkers read what this plan says they read | main | Sonnet | 90 min | Not started | |
+| 7 | The static checkers read what this plan says they read | main | Sonnet | 90 min | In progress | 863c833 |
 | 8 | One defect, one finding under `--tests`; a deterministic page test | main | Opus | 120 min | Not started | |
 
 **Run of 2026-09-13.** Waves 1 to 4 approved. Wave 5 stopped `incomplete`
