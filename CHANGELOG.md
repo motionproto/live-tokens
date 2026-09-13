@@ -61,6 +61,13 @@
   runtime file beside its editor import. The runtime file's leading comment
   is deleted; the CLI never falls back to it. A consumer's registration
   stops compiling until it imports and passes `catalogue`.
+- **Selection says `selected`.** RadioButton's `active` prop is `selected`
+  and SideNavigation's `forceActivePart` is `forceSelectedPart`. The
+  `-active-` segment reads `-selected-` across RadioButton's nine, TabBar's
+  fourteen, and SideNavigation's forty semantic properties, and the `.active`
+  class on a radio row, a tab, and a rail part is `.selected`. A saved theme
+  or component config is renamed on load. `active` stays the pressed state,
+  so Button's and IconButton's `--*-outline-active-*` are untouched.
 
 ### Changed
 

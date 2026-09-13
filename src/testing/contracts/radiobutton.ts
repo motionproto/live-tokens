@@ -8,7 +8,7 @@ import type { ComponentContract, PaintMap } from '../componentContract';
  * percentage or a unitless multiplier outside the original layout context.
  * States therefore skip `dotFill.width` and `label.lineHeight`.
  */
-function statePaints(s: 'default' | 'hover' | 'active', full: boolean): PaintMap {
+function statePaints(s: 'default' | 'hover' | 'selected', full: boolean): PaintMap {
   const dotFill: PaintMap[string] = { backgroundColor: `--radiobutton-${s}-dot-fill` };
   if (full) dotFill.width = `--radiobutton-${s}-dot-size`;
   const label: PaintMap[string] = {
@@ -41,7 +41,7 @@ export const radioButtonContract: ComponentContract = {
   properties: [
     { paints: statePaints('default', true) },
     { state: 'hover', paints: statePaints('hover', true) },
-    { state: 'active', paints: statePaints('active', true) },
+    { state: 'selected', paints: statePaints('selected', true) },
   ],
   states: [
     { state: 'default' },
@@ -51,9 +51,9 @@ export const radioButtonContract: ComponentContract = {
       paints: statePaints('hover', false),
     },
     {
-      state: 'active',
-      forceClass: 'active',
-      paints: statePaints('active', false),
+      state: 'selected',
+      forceClass: 'selected',
+      paints: statePaints('selected', false),
     },
   ],
   persistence: {
@@ -71,7 +71,7 @@ export const radioButtonContract: ComponentContract = {
     changed: [
       '--radiobutton-default-dot-border-width',
       '--radiobutton-hover-dot-border-width',
-      '--radiobutton-active-dot-border-width',
+      '--radiobutton-selected-dot-border-width',
     ],
     unchanged: ['--radiobutton-default-label-font-size'],
     aliasedTo: {

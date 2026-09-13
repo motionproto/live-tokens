@@ -5,10 +5,10 @@
   export const component = 'sidenavigation';
 
   // Single-variant component with five structural parts. Three of them (Title,
-  // Item, Footer) carry default/hover/active interaction sub-states; Toggle
+  // Item, Footer) carry default/hover/selected interaction sub-states; Toggle
   // carries default/hover. Panel is geometry only. Keys use the " / " convention
   // VariantGroup recognises for two-tier parts/state strips.
-  const STATEFUL_STATES = ['default', 'hover', 'active'] as const;
+  const STATEFUL_STATES = ['default', 'hover', 'selected'] as const;
   const TOGGLE_STATES = ['default', 'hover'] as const;
   type StatefulState = typeof STATEFUL_STATES[number];
   type ToggleState = typeof TOGGLE_STATES[number];
@@ -16,7 +16,7 @@
   const STATE_LABELS: Record<string, string> = {
     default: 'Default',
     hover: 'Hover',
-    active: 'Active',
+    selected: 'Selected',
   };
 
   // --- Panel --------------------------------------------------------------
@@ -42,7 +42,7 @@
   // Title is a flex card containing the label box + toggle box. Per-state
   // tokens drive the card chrome (surface, border, padding); the stateless
   // bar + label-box structure lives in `titleBlockTokens` since it doesn't
-  // vary across default/hover/active.
+  // vary across default/hover/selected.
   function titleStateTokens(s: StatefulState): Token[] {
     return [
       { label: 'surface color', groupKey: 'title-surface', variable: `--sidenavigation-title-${s}-surface` },
@@ -214,7 +214,7 @@
   ];
 
   // Link contexts: within each part, the per-state values share a link tree so
-  // a single edit can fan padding/border-width/typography across default/hover/active.
+  // a single edit can fan padding/border-width/typography across default/hover/selected.
   const linkableContexts = new Map<string, string>([
     ...STATEFUL_STATES.flatMap((s): Array<[string, string]> => [
       [`--sidenavigation-title-${s}-border-width`, `title ${s}`],
@@ -349,20 +349,20 @@
     ]),
   ) as Record<string, Token[]>);
 
-  // Map the active part/state to the demo's force-hover / force-active hooks
+  // Map the shown part/state to the demo's force-hover / force-selected hooks
   // so token edits always have a row painted in that state for the viewer.
   function deriveForce(activeState: string) {
     const [part, sub] = activeState.includes(' / ') ? activeState.split(' / ') : [activeState, ''];
     const partKey = part.toLowerCase();
     const subKey = sub.toLowerCase();
     let forceHoverPart: 'title' | 'toggle' | 'item' | 'footer' | 'section' | null = null;
-    let forceActivePart: 'title' | 'item' | 'footer' | 'section' | null = null;
+    let forceSelectedPart: 'title' | 'item' | 'footer' | 'section' | null = null;
     if (subKey === 'hover' && (partKey === 'title' || partKey === 'toggle' || partKey === 'item' || partKey === 'footer' || partKey === 'section')) {
       forceHoverPart = partKey;
-    } else if (subKey === 'active' && (partKey === 'title' || partKey === 'item' || partKey === 'footer' || partKey === 'section')) {
-      forceActivePart = partKey;
+    } else if (subKey === 'selected' && (partKey === 'title' || partKey === 'item' || partKey === 'footer' || partKey === 'section')) {
+      forceSelectedPart = partKey;
     }
-    return { forceHoverPart, forceActivePart };
+    return { forceHoverPart, forceSelectedPart };
   }
 </script>
 
@@ -396,7 +396,7 @@
       {/if}
     {/snippet}
     {#snippet children({ activeState })}
-      {@const { forceHoverPart, forceActivePart } = deriveForce(activeState)}
+      {@const { forceHoverPart, forceSelectedPart } = deriveForce(activeState)}
       <div class="sn-preview-frame">
         <SideNavigation
           sections={demoSections}
@@ -407,7 +407,7 @@
           open={previewOpen}
           ontoggle={() => (previewOpen = !previewOpen)}
           {forceHoverPart}
-          {forceActivePart}
+          {forceSelectedPart}
         />
       </div>
     {/snippet}

@@ -218,7 +218,7 @@ const PART_SPECS: readonly PartSpec[] = [
     unmasked: true,
   },
   { sel: '.tab', stem: 'tabbar-default', radius: 'var(--tabbar-default-tab-top-radius, 0px)' },
-  { sel: '.tab.active', stem: 'tabbar-active', radius: 'var(--tabbar-active-tab-top-radius, 0px)' },
+  { sel: '.tab.selected', stem: 'tabbar-selected', radius: 'var(--tabbar-selected-tab-top-radius, 0px)' },
   {
     sel: '.segmented-control',
     fill: 'var(--segmentedcontrol-bar-surface)',

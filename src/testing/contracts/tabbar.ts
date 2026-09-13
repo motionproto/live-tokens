@@ -40,14 +40,14 @@ export const tabBarContract: ComponentContract = {
   root: 'root',
   parts: {
     root: '.tab-bar',
-    tab: '.tab:not(.active):not(:disabled)',
-    icon: '.tab:not(.active):not(:disabled) i',
-    activeTab: '.tab.active',
-    activeIcon: '.tab.active i',
+    tab: '.tab:not(.selected):not(:disabled)',
+    icon: '.tab:not(.selected):not(:disabled) i',
+    selectedTab: '.tab.selected',
+    selectedIcon: '.tab.selected i',
     disabledTab: '.tab:disabled',
     disabledIcon: '.tab:disabled i',
-    // Position-stable: clicking `tab` (".tab:not(.active)") makes that very
-    // tab active, which would invalidate that selector out from under a
+    // Position-stable: clicking `tab` (".tab:not(.selected)") makes that very
+    // tab selected, which would invalidate that selector out from under a
     // focus check re-resolved after the click.
     secondTab: '.tab:nth-of-type(2)',
   },
@@ -67,14 +67,14 @@ export const tabBarContract: ComponentContract = {
     },
     { state: 'default tab', paints: tabPaints('tab', 'icon', 'default', true) },
     { state: 'hover tab', paints: tabPaints('tab', 'icon', 'hover', true) },
-    { state: 'active tab', paints: tabPaints('activeTab', 'activeIcon', 'active', true) },
+    { state: 'selected tab', paints: tabPaints('selectedTab', 'selectedIcon', 'selected', true) },
     { state: 'disabled tab', paints: tabPaints('disabledTab', 'disabledIcon', 'disabled', true) },
   ],
   states: [
     { state: 'bar' },
     { state: 'default tab', paints: tabPaints('tab', 'icon', 'default', false) },
     { state: 'hover tab', paints: tabPaints('tab', 'icon', 'hover', false) },
-    { state: 'active tab', paints: tabPaints('activeTab', 'activeIcon', 'active', false) },
+    { state: 'selected tab', paints: tabPaints('selectedTab', 'selectedIcon', 'selected', false) },
     {
       state: 'disabled tab',
       attributes: { disabledTab: { disabled: '' } },
@@ -144,7 +144,7 @@ export const tabBarContract: ComponentContract = {
         name: 'clicking leaves the selection where the prop put it',
         props: { tabs: behaviorTabs, selectedTab: 'one' },
         action: { kind: 'click', part: 'secondTab' },
-        expect: { kind: 'text', part: 'activeTab', value: 'One' },
+        expect: { kind: 'text', part: 'selectedTab', value: 'One' },
       },
       {
         name: 'a disabled tab stays silent',
@@ -158,7 +158,7 @@ export const tabBarContract: ComponentContract = {
     style: 'pencil',
     parts: [
       { part: 'tab', fill: '--tabbar-default-surface', stroke: '--tabbar-default-border' },
-      { part: 'activeTab', fill: '--tabbar-active-surface', stroke: '--tabbar-active-border' },
+      { part: 'selectedTab', fill: '--tabbar-selected-surface', stroke: '--tabbar-selected-border' },
     ],
   },
 };

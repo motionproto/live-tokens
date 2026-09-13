@@ -339,7 +339,7 @@ describe('migration runner — schemaVersion gating', () => {
     expect(out).toEqual(v15);
   });
 
-  it('component-config v17 → v18 tabbar: bar-level indicator-thickness fans out into per-state widths (named by v27)', () => {
+  it('component-config v17 → v18 tabbar: bar-level indicator-thickness fans out into per-state widths (named by v28)', () => {
     const v17 = {
       '--tabbar-bar-indicator-thickness': '--border-width-3',
       // Unrelated bar/tab keys pass through.
@@ -349,16 +349,16 @@ describe('migration runner — schemaVersion gating', () => {
     const out = runMigrations('component-config', 17, v17, { component: 'tabbar' });
     expect(out['--tabbar-bar-indicator-thickness']).toBeUndefined();
     // Seed value fans out unchanged across all four states.
-    for (const s of ['default', 'hover', 'active', 'disabled']) {
+    for (const s of ['default', 'hover', 'selected', 'disabled']) {
       expect(out[`--tabbar-${s}-indicator-width`]).toBe('--border-width-3');
     }
     expect(out['--tabbar-bar-divider-thickness']).toBe('--border-width-1');
-    expect(out['--tabbar-active-text']).toBe('--text-primary');
+    expect(out['--tabbar-selected-text']).toBe('--text-primary');
   });
 
   it('component-config v17 → v18 tabbar: absent bar key seeds states with the runtime fallback', () => {
     const out = runMigrations('component-config', 17, {}, { component: 'tabbar' });
-    for (const s of ['default', 'hover', 'active', 'disabled']) {
+    for (const s of ['default', 'hover', 'selected', 'disabled']) {
       expect(out[`--tabbar-${s}-indicator-width`]).toBe('--border-width-2');
     }
   });
@@ -424,11 +424,11 @@ describe('migration runner — schemaVersion gating', () => {
     expect(out).toEqual(v19);
   });
 
-  it('component-config v26 → v27: dividers and accents leave the -border suffix, values unchanged', () => {
+  it('component-config v26 → v27: dividers and accents leave the -border suffix, values unchanged (named by v28)', () => {
     const cases: Array<[string, Record<string, string>, Record<string, string>]> = [
       ['tabbar',
         { '--tabbar-active-indicator-border-width': '--border-width-3', '--tabbar-active-border': '--color-brand-500' },
-        { '--tabbar-active-indicator-width': '--border-width-3', '--tabbar-active-border': '--color-brand-500' }],
+        { '--tabbar-selected-indicator-width': '--border-width-3', '--tabbar-selected-border': '--color-brand-500' }],
       ['collapsiblesection',
         { '--collapsiblesection-divider-hover-border': '--border-neutral', '--collapsiblesection-divider-hover-border-width': '--border-width-1',
           '--collapsiblesection-container-frame-border': '--border-neutral' },
@@ -452,6 +452,33 @@ describe('migration runner — schemaVersion gating', () => {
     const v26 = { '--button-primary-border-width': '--border-width-1' };
     const out = runMigrations('component-config', 26, v26, { component: 'button' });
     expect(out).toEqual(v26);
+  });
+
+  it('component-config v27 → v28: the selection states of radiobutton, tabbar and sidenavigation read selected', () => {
+    const cases: Array<[string, Record<string, string>, Record<string, string>]> = [
+      ['radiobutton',
+        { '--radiobutton-active-dot-fill': '--text-secondary', '--radiobutton-hover-dot-fill': '--text-secondary' },
+        { '--radiobutton-selected-dot-fill': '--text-secondary', '--radiobutton-hover-dot-fill': '--text-secondary' }],
+      ['tabbar',
+        { '--tabbar-active-surface': '--tint-low', '--tabbar-active-tab-top-radius': '--radius-none', '--tabbar-bar-divider': '--border-neutral-subtle' },
+        { '--tabbar-selected-surface': '--tint-low', '--tabbar-selected-tab-top-radius': '--radius-none', '--tabbar-bar-divider': '--border-neutral-subtle' }],
+      ['sidenavigation',
+        { '--sidenavigation-item-active-accent': '--border-brand-medium', '--sidenavigation-footer-active-text-font-size': '--font-size-sm',
+          '--sidenavigation-panel-surface': '--surface-canvas' },
+        { '--sidenavigation-item-selected-accent': '--border-brand-medium', '--sidenavigation-footer-selected-text-font-size': '--font-size-sm',
+          '--sidenavigation-panel-surface': '--surface-canvas' }],
+    ];
+    for (const [component, input, expected] of cases) {
+      const out = runMigrations('component-config', 27, input, { component });
+      expect(out, component).toEqual(expected);
+      expect(runMigrations('component-config', 27, out, { component }), `${component} idempotent`).toEqual(expected);
+    }
+  });
+
+  it('component-config v27 → v28 leaves the pressed state of button alone', () => {
+    const v27 = { '--button-outline-active-surface': '--surface-neutral-low' };
+    const out = runMigrations('component-config', 27, v27, { component: 'button' });
+    expect(out).toEqual(v27);
   });
 
   it('component-config at current version → no migrations run', () => {

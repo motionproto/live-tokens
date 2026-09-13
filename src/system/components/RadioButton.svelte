@@ -12,7 +12,7 @@
   import { createEventDispatcher } from 'svelte';
 
   interface Props {
-    active?: boolean;
+    selected?: boolean;
     label: string;
     color?: string;
     class?: string;
@@ -21,7 +21,7 @@
   }
 
   let {
-    active = false,
+    selected = false,
     label,
     color = '',
     class: className = '',
@@ -39,7 +39,7 @@
 
 <button
   class="radio-button {className}"
-  class:active
+  class:selected
   style={color ? `--radiobutton-color: ${color};` : ''}
   onclick={fireClick}
 >
@@ -71,16 +71,16 @@
     --radiobutton-hover-label-font-weight: var(--font-weight-semibold);
     --radiobutton-hover-label-line-height: var(--line-height-none);
 
-    /* Active */
-    --radiobutton-active-dot-border-color: var(--border-neutral);
-    --radiobutton-active-dot-border-width: var(--border-width-2);
-    --radiobutton-active-dot-fill: var(--text-secondary);
-    --radiobutton-active-dot-size: var(--dot-size-50);
-    --radiobutton-active-label: var(--text-primary);
-    --radiobutton-active-label-font-family: var(--font-sans);
-    --radiobutton-active-label-font-size: var(--font-size-md);
-    --radiobutton-active-label-font-weight: var(--font-weight-semibold);
-    --radiobutton-active-label-line-height: var(--line-height-none);
+    /* Selected */
+    --radiobutton-selected-dot-border-color: var(--border-neutral);
+    --radiobutton-selected-dot-border-width: var(--border-width-2);
+    --radiobutton-selected-dot-fill: var(--text-secondary);
+    --radiobutton-selected-dot-size: var(--dot-size-50);
+    --radiobutton-selected-label: var(--text-primary);
+    --radiobutton-selected-label-font-family: var(--font-sans);
+    --radiobutton-selected-label-font-size: var(--font-size-md);
+    --radiobutton-selected-label-font-weight: var(--font-weight-semibold);
+    --radiobutton-selected-label-line-height: var(--line-height-none);
   }
 
   .radio-button {
@@ -122,7 +122,7 @@
       }
     }
 
-    &.active {
+    &.selected {
       background: linear-gradient(
         135deg,
         color-mix(in srgb, var(--radiobutton-color) 15%, var(--surface-neutral-lowest)),
@@ -130,20 +130,20 @@
       );
 
       .radio-label {
-        color: var(--radiobutton-active-label);
-        font-family: var(--radiobutton-active-label-font-family);
-        font-size: var(--radiobutton-active-label-font-size);
-        font-weight: var(--radiobutton-active-label-font-weight);
-        line-height: var(--radiobutton-active-label-line-height);
+        color: var(--radiobutton-selected-label);
+        font-family: var(--radiobutton-selected-label-font-family);
+        font-size: var(--radiobutton-selected-label-font-size);
+        font-weight: var(--radiobutton-selected-label-font-weight);
+        line-height: var(--radiobutton-selected-label-line-height);
       }
 
       .radio-dot {
-        border: var(--radiobutton-active-dot-border-width) solid var(--radiobutton-color, var(--radiobutton-active-dot-border-color));
+        border: var(--radiobutton-selected-dot-border-width) solid var(--radiobutton-color, var(--radiobutton-selected-dot-border-color));
 
         .radio-dot-fill {
-          width: var(--radiobutton-active-dot-size);
-          height: var(--radiobutton-active-dot-size);
-          background: var(--radiobutton-color, var(--radiobutton-active-dot-fill));
+          width: var(--radiobutton-selected-dot-size);
+          height: var(--radiobutton-selected-dot-size);
+          background: var(--radiobutton-color, var(--radiobutton-selected-dot-fill));
           opacity: 1;
         }
       }

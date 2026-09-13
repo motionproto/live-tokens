@@ -19,10 +19,10 @@ describe('structuralGroupKey', () => {
   });
 
   it('strips a mid-variable state segment, keeping the part (SideNav-shaped)', () => {
-    const d = { component: 'sidenavigation', variants: ['default', 'hover', 'active'] };
+    const d = { component: 'sidenavigation', variants: ['default', 'hover', 'selected'] };
     expect(structuralGroupKey('--sidenavigation-section-default-text', d)).toBe('section-text');
     expect(structuralGroupKey('--sidenavigation-item-hover-text', d)).toBe('item-text');
-    expect(structuralGroupKey('--sidenavigation-footer-active-text', d)).toBe('footer-text');
+    expect(structuralGroupKey('--sidenavigation-footer-selected-text', d)).toBe('footer-text');
     expect(structuralGroupKey('--sidenavigation-title-default-label', d)).toBe('title-label');
   });
 

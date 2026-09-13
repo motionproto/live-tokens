@@ -3,7 +3,7 @@
  * The read door strips a theme's per-entry `schemaVersion` and stamps the
  * theme instead, so every client reader has to migrate off
  * `componentSchemaVersion`. Reading the entry's own field yields undefined,
- * and a `?? 0` default replays all 27 component migrations over already
+ * and a `?? 0` default replays all 28 component migrations over already
  * current data. That is not a no-op: the tabbar pair
  * `2026-05-29-tabbar-indicator-thickness-to-per-state-width` and
  * `2026-09-07-stroke-role-renames` re-adds the indicator width at its
@@ -41,7 +41,7 @@ const resolvers: ThemeResolvers = {
 const serve = (slug: string): Theme =>
   normalizeTheme(readJson(path.join(DATA, 'themes', `${slug}.json`)), resolvers).theme as unknown as Theme;
 
-const INDICATOR_WIDTHS = ['default', 'hover', 'active', 'disabled'].map(
+const INDICATOR_WIDTHS = ['default', 'hover', 'selected', 'disabled'].map(
   (state) => `--tabbar-${state}-indicator-width`,
 );
 

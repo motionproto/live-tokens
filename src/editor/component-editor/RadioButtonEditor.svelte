@@ -17,11 +17,11 @@
       { label: 'dot fill', groupKey: 'fill', variable: '--radiobutton-hover-dot-fill' },
       { label: 'dot size', groupKey: 'size', variable: '--radiobutton-hover-dot-size' },
     ],
-    active: [
-      { label: 'border color', groupKey: 'color', variable: '--radiobutton-active-dot-border-color' },
-      { label: 'border thickness', canBeLinked: true, groupKey: 'border-width', variable: '--radiobutton-active-dot-border-width' },
-      { label: 'dot fill', groupKey: 'fill', variable: '--radiobutton-active-dot-fill' },
-      { label: 'dot size', groupKey: 'size', variable: '--radiobutton-active-dot-size' },
+    selected: [
+      { label: 'border color', groupKey: 'color', variable: '--radiobutton-selected-dot-border-color' },
+      { label: 'border thickness', canBeLinked: true, groupKey: 'border-width', variable: '--radiobutton-selected-dot-border-width' },
+      { label: 'dot fill', groupKey: 'fill', variable: '--radiobutton-selected-dot-fill' },
+      { label: 'dot size', groupKey: 'size', variable: '--radiobutton-selected-dot-size' },
     ],
   };
 
@@ -42,16 +42,16 @@
       weightVariable: '--radiobutton-hover-label-font-weight',
       lineHeightVariable: '--radiobutton-hover-label-line-height',
     }],
-    active: [{
+    selected: [{
       legend: 'label',
-      colorVariable: '--radiobutton-active-label',
-      familyVariable: '--radiobutton-active-label-font-family',
-      sizeVariable: '--radiobutton-active-label-font-size',
-      weightVariable: '--radiobutton-active-label-font-weight',
-      lineHeightVariable: '--radiobutton-active-label-line-height',
+      colorVariable: '--radiobutton-selected-label',
+      familyVariable: '--radiobutton-selected-label-font-family',
+      sizeVariable: '--radiobutton-selected-label-font-size',
+      weightVariable: '--radiobutton-selected-label-font-weight',
+      lineHeightVariable: '--radiobutton-selected-label-line-height',
     }],
   };
-  const typeGroupTokens: Token[] = (['default', 'hover', 'active'] as const).flatMap((s) => [
+  const typeGroupTokens: Token[] = (['default', 'hover', 'selected'] as const).flatMap((s) => [
     { label: 'font family', canBeLinked: true, groupKey: 'font-family', variable: `--radiobutton-${s}-label-font-family` },
     { label: 'font size', canBeLinked: true, groupKey: 'font-size', variable: `--radiobutton-${s}-label-font-size` },
     { label: 'font weight', canBeLinked: true, groupKey: 'font-weight', variable: `--radiobutton-${s}-label-font-weight` },
@@ -60,19 +60,19 @@
   const linkableContexts = new Map<string, string>([
     ['--radiobutton-default-dot-border-width', 'default'],
     ['--radiobutton-hover-dot-border-width', 'hover'],
-    ['--radiobutton-active-dot-border-width', 'active'],
+    ['--radiobutton-selected-dot-border-width', 'selected'],
     ['--radiobutton-default-label-font-family', 'default'],
     ['--radiobutton-hover-label-font-family', 'hover'],
-    ['--radiobutton-active-label-font-family', 'active'],
+    ['--radiobutton-selected-label-font-family', 'selected'],
     ['--radiobutton-default-label-font-size', 'default'],
     ['--radiobutton-hover-label-font-size', 'hover'],
-    ['--radiobutton-active-label-font-size', 'active'],
+    ['--radiobutton-selected-label-font-size', 'selected'],
     ['--radiobutton-default-label-font-weight', 'default'],
     ['--radiobutton-hover-label-font-weight', 'hover'],
-    ['--radiobutton-active-label-font-weight', 'active'],
+    ['--radiobutton-selected-label-font-weight', 'selected'],
     ['--radiobutton-default-label-line-height', 'default'],
     ['--radiobutton-hover-label-line-height', 'hover'],
-    ['--radiobutton-active-label-line-height', 'active'],
+    ['--radiobutton-selected-label-line-height', 'selected'],
   ]);
   export const allTokens: Token[] = [
     ...Object.values(states).flat(),
@@ -108,23 +108,23 @@
   >
     {#snippet children({ activeState })}
         {@const forceClass = activeState === 'hover' ? 'force-hover' : ''}
-      {@const forceActive = activeState === 'active'}
+      {@const forceSelected = activeState === 'selected'}
       <div class="radio-demo-row">
         <RadioButton
           label="Defense"
-          active={forceActive || selectedRadio === 'option-a'}
+          selected={forceSelected || selectedRadio === 'option-a'}
           class={forceClass}
           on:click={() => (selectedRadio = 'option-a')}
         />
         <RadioButton
           label="Economy"
-          active={forceActive || selectedRadio === 'option-b'}
+          selected={forceSelected || selectedRadio === 'option-b'}
           class={forceClass}
           on:click={() => (selectedRadio = 'option-b')}
         />
         <RadioButton
           label="Loyalty"
-          active={forceActive || selectedRadio === 'option-c'}
+          selected={forceSelected || selectedRadio === 'option-c'}
           class={forceClass}
           on:click={() => (selectedRadio = 'option-c')}
         />

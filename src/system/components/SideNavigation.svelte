@@ -13,7 +13,7 @@
   import CollapsibleSection from './CollapsibleSection.svelte';
 
   export type SideNavItem = {
-    /** Full path. Matches `currentPath` exactly when this item is active. */
+    /** Full path. Matches `currentPath` exactly when this item is selected. */
     path: string;
     title: string;
   };
@@ -49,8 +49,8 @@
     hrefFor?: (path: string) => string;
     /** Force-hover one part for editor previews. */
     forceHoverPart?: 'title' | 'toggle' | 'item' | 'footer' | 'section' | null;
-    /** Force-active one part for editor previews. */
-    forceActivePart?: 'title' | 'item' | 'footer' | 'section' | null;
+    /** Force the selected state on one part for editor previews. */
+    forceSelectedPart?: 'title' | 'item' | 'footer' | 'section' | null;
     class?: string;
     /** Toggle callback. Preferred over `on:toggle` from 0.5.0 onward. */
     ontoggle?: () => void;
@@ -73,7 +73,7 @@
     open = true,
     hrefFor,
     forceHoverPart = null,
-    forceActivePart = null,
+    forceSelectedPart = null,
     class: className = '',
     ontoggle,
     lead,
@@ -90,11 +90,11 @@
 
   let expandedSections: Record<string, boolean> = $state({});
 
-  // Auto-expand sections that match the current path or contain an active item.
+  // Auto-expand sections that match the current path or contain the selected item.
   $effect(() => {
     for (const section of sections) {
-      const containsActive = section.items.some((i) => i.path === currentPath);
-      if (currentPath === section.path || containsActive) {
+      const containsSelected = section.items.some((i) => i.path === currentPath);
+      if (currentPath === section.path || containsSelected) {
         expandedSections[section.path] = true;
       }
     }
@@ -131,10 +131,10 @@
   }
 
   // The first section's first / second items are the canonical preview targets
-  // when the editor force-activates or force-hovers an item, so token edits
+  // when the editor forces an item selected or hovered, so token edits
   // always have a row to paint against.
-  let activeItemKey = $derived(() => {
-    if (forceActivePart !== 'item') return null;
+  let selectedItemKey = $derived(() => {
+    if (forceSelectedPart !== 'item') return null;
     const s = sections[0];
     if (!s || s.items.length === 0) return null;
     return s.items[0].path;
@@ -146,13 +146,13 @@
     return s.items.find((item) => item.path !== currentPath)?.path ?? s.items[0].path;
   });
 
-  let titleActive = $derived(forceActivePart === 'title' || currentPath === '');
+  let titleSelected = $derived(forceSelectedPart === 'title' || currentPath === '');
 
-  // When the editor force-activates the "section" part, pick the first section
-  // that's a valid route (hasIndexPage) so the active styling has somewhere
+  // When the editor forces the "section" part selected, pick the first section
+  // that's a valid route (hasIndexPage) so the selected styling has somewhere
   // to land in the preview.
-  let activeSectionKey = $derived(() => {
-    if (forceActivePart !== 'section') return null;
+  let selectedSectionKey = $derived(() => {
+    if (forceSelectedPart !== 'section') return null;
     const s = sections.find((sec) => sec.hasIndexPage) ?? sections[0];
     return s?.path ?? null;
   });
@@ -162,9 +162,9 @@
     return s?.path ?? null;
   });
 
-  function isSectionActive(section: SideNavSection): boolean {
+  function isSectionSelected(section: SideNavSection): boolean {
     if (!section.hasIndexPage) return false;
-    if (activeSectionKey() === section.path) return true;
+    if (selectedSectionKey() === section.path) return true;
     return currentPath === section.path;
   }
   function isSectionHover(section: SideNavSection): boolean {
@@ -179,7 +179,7 @@
   class:force-title-hover={forceHoverPart === 'title'}
   class:force-toggle-hover={forceHoverPart === 'toggle'}
   class:force-footer-hover={forceHoverPart === 'footer'}
-  class:force-footer-active={forceActivePart === 'footer'}
+  class:force-footer-selected={forceSelectedPart === 'footer'}
 >
   {#if open && lead}{@render lead()}{/if}
 
@@ -188,7 +188,7 @@
        rail is closed, the header reduces to just the toggle, centred via the
        toggle's own `left` calc. Header stays locked to open-width regardless;
        the aside's overflow clips it during the close animation. -->
-  <header class="sn-title" class:active={titleActive}>
+  <header class="sn-title" class:selected={titleSelected}>
     {#if open}
       <a href={titleHref} class="sn-title-label">{titleLabel}</a>
     {/if}
@@ -211,7 +211,7 @@
           <!-- svelte-ignore a11y_click_events_have_key_events, a11y_no_noninteractive_element_interactions, a11y_no_static_element_interactions -->
           <div
             class="sn-section-header"
-            class:active={isSectionActive(section)}
+            class:selected={isSectionSelected(section)}
             class:force-hover={isSectionHover(section)}
             onclick={(e) => maybeInterceptLabel(e, section)}
           >
@@ -230,7 +230,7 @@
                 <a
                   href={buildHref(item.path)}
                   class="sn-item"
-                  class:active={item.path === currentPath || item.path === activeItemKey()}
+                  class:selected={item.path === currentPath || item.path === selectedItemKey()}
                   class:force-hover={item.path === hoverItemKey()}
                 >
                   {item.title}
@@ -245,7 +245,7 @@
         <a
           href={buildHref(footer.path)}
           class="sn-footer"
-          class:active={currentPath === footer.path}
+          class:selected={currentPath === footer.path}
         >
           {#if footer.icon}<i class={footer.icon} aria-hidden="true"></i>{/if}
           <span>{footer.title}</span>
@@ -323,18 +323,18 @@
     --sidenavigation-title-hover-label-font-weight: var(--font-weight-bold);
     --sidenavigation-title-hover-label-line-height: var(--line-height-tighter);
 
-    /* Title — active */
-    --sidenavigation-title-active-surface: var(--surface-canvas-low);
-    --sidenavigation-title-active-border: var(--border-canvas-faint);
-    --sidenavigation-title-active-border-width: var(--border-width-1);
-    --sidenavigation-title-active-padding: var(--space-12);
-    --sidenavigation-title-active-accent: var(--border-brand-medium);
-    --sidenavigation-title-active-accent-width: var(--border-width-3);
-    --sidenavigation-title-active-label: var(--text-primary);
-    --sidenavigation-title-active-label-font-family: var(--font-display);
-    --sidenavigation-title-active-label-font-size: var(--font-size-2xl);
-    --sidenavigation-title-active-label-font-weight: var(--font-weight-bold);
-    --sidenavigation-title-active-label-line-height: var(--line-height-tighter);
+    /* Title — selected */
+    --sidenavigation-title-selected-surface: var(--surface-canvas-low);
+    --sidenavigation-title-selected-border: var(--border-canvas-faint);
+    --sidenavigation-title-selected-border-width: var(--border-width-1);
+    --sidenavigation-title-selected-padding: var(--space-12);
+    --sidenavigation-title-selected-accent: var(--border-brand-medium);
+    --sidenavigation-title-selected-accent-width: var(--border-width-3);
+    --sidenavigation-title-selected-label: var(--text-primary);
+    --sidenavigation-title-selected-label-font-family: var(--font-display);
+    --sidenavigation-title-selected-label-font-size: var(--font-size-2xl);
+    --sidenavigation-title-selected-label-font-weight: var(--font-weight-bold);
+    --sidenavigation-title-selected-label-line-height: var(--line-height-tighter);
 
     /* Toggle — default */
     --sidenavigation-toggle-default-surface: var(--color-transparent);
@@ -378,15 +378,15 @@
     --sidenavigation-section-hover-text-font-weight: var(--font-weight-medium);
     --sidenavigation-section-hover-text-line-height: var(--line-height-normal);
 
-    /* Section header — active (this section's page is the current route) */
-    --sidenavigation-section-active-surface: var(--surface-canvas-low);
-    --sidenavigation-section-active-accent: var(--border-brand-medium);
-    --sidenavigation-section-active-accent-width: var(--border-width-3);
-    --sidenavigation-section-active-text: var(--text-primary);
-    --sidenavigation-section-active-text-font-family: var(--font-sans);
-    --sidenavigation-section-active-text-font-size: var(--font-size-lg);
-    --sidenavigation-section-active-text-font-weight: var(--font-weight-medium);
-    --sidenavigation-section-active-text-line-height: var(--line-height-normal);
+    /* Section header — selected (this section's page is the current route) */
+    --sidenavigation-section-selected-surface: var(--surface-canvas-low);
+    --sidenavigation-section-selected-accent: var(--border-brand-medium);
+    --sidenavigation-section-selected-accent-width: var(--border-width-3);
+    --sidenavigation-section-selected-text: var(--text-primary);
+    --sidenavigation-section-selected-text-font-family: var(--font-sans);
+    --sidenavigation-section-selected-text-font-size: var(--font-size-lg);
+    --sidenavigation-section-selected-text-font-weight: var(--font-weight-medium);
+    --sidenavigation-section-selected-text-line-height: var(--line-height-normal);
 
     /* Item — default */
     --sidenavigation-item-default-surface: var(--color-transparent);
@@ -410,16 +410,16 @@
     --sidenavigation-item-hover-text-font-weight: var(--font-weight-light);
     --sidenavigation-item-hover-text-line-height: var(--line-height-normal);
 
-    /* Item — active */
-    --sidenavigation-item-active-surface: var(--surface-canvas-low);
-    --sidenavigation-item-active-padding: var(--space-6);
-    --sidenavigation-item-active-accent: var(--border-brand-medium);
-    --sidenavigation-item-active-accent-width: var(--border-width-3);
-    --sidenavigation-item-active-text: var(--text-primary);
-    --sidenavigation-item-active-text-font-family: var(--font-sans);
-    --sidenavigation-item-active-text-font-size: var(--font-size-md);
-    --sidenavigation-item-active-text-font-weight: var(--font-weight-normal);
-    --sidenavigation-item-active-text-line-height: var(--line-height-normal);
+    /* Item — selected */
+    --sidenavigation-item-selected-surface: var(--surface-canvas-low);
+    --sidenavigation-item-selected-padding: var(--space-6);
+    --sidenavigation-item-selected-accent: var(--border-brand-medium);
+    --sidenavigation-item-selected-accent-width: var(--border-width-3);
+    --sidenavigation-item-selected-text: var(--text-primary);
+    --sidenavigation-item-selected-text-font-family: var(--font-sans);
+    --sidenavigation-item-selected-text-font-size: var(--font-size-md);
+    --sidenavigation-item-selected-text-font-weight: var(--font-weight-normal);
+    --sidenavigation-item-selected-text-line-height: var(--line-height-normal);
 
     /* Footer — default */
     --sidenavigation-footer-default-surface: var(--color-transparent);
@@ -449,19 +449,19 @@
     --sidenavigation-footer-hover-text-font-weight: var(--font-weight-light);
     --sidenavigation-footer-hover-text-line-height: var(--line-height-normal);
 
-    /* Footer — active */
-    --sidenavigation-footer-active-surface: var(--surface-canvas-low);
-    --sidenavigation-footer-active-padding: var(--space-8);
-    --sidenavigation-footer-active-gap: var(--space-8);
-    --sidenavigation-footer-active-accent: var(--border-brand-medium);
-    --sidenavigation-footer-active-accent-width: var(--border-width-3);
-    --sidenavigation-footer-active-icon: var(--text-primary);
-    --sidenavigation-footer-active-icon-size: var(--icon-size-xs);
-    --sidenavigation-footer-active-text: var(--text-primary);
-    --sidenavigation-footer-active-text-font-family: var(--font-sans);
-    --sidenavigation-footer-active-text-font-size: var(--font-size-sm);
-    --sidenavigation-footer-active-text-font-weight: var(--font-weight-normal);
-    --sidenavigation-footer-active-text-line-height: var(--line-height-normal);
+    /* Footer — selected */
+    --sidenavigation-footer-selected-surface: var(--surface-canvas-low);
+    --sidenavigation-footer-selected-padding: var(--space-8);
+    --sidenavigation-footer-selected-gap: var(--space-8);
+    --sidenavigation-footer-selected-accent: var(--border-brand-medium);
+    --sidenavigation-footer-selected-accent-width: var(--border-width-3);
+    --sidenavigation-footer-selected-icon: var(--text-primary);
+    --sidenavigation-footer-selected-icon-size: var(--icon-size-xs);
+    --sidenavigation-footer-selected-text: var(--text-primary);
+    --sidenavigation-footer-selected-text-font-family: var(--font-sans);
+    --sidenavigation-footer-selected-text-font-size: var(--font-size-sm);
+    --sidenavigation-footer-selected-text-font-weight: var(--font-weight-normal);
+    --sidenavigation-footer-selected-text-line-height: var(--line-height-normal);
   }
 
   .sidenavigation {
@@ -524,8 +524,8 @@
     transition: background var(--duration-150);
   }
 
-  .sn-title:hover:not(.active),
-  .sidenavigation.force-title-hover .sn-title:not(.active) {
+  .sn-title:hover:not(.selected),
+  .sidenavigation.force-title-hover .sn-title:not(.selected) {
     background-image: linear-gradient(var(--sidenavigation-hover-tint-enabled), var(--sidenavigation-hover-tint-enabled));
     --_surface: var(--sidenavigation-title-hover-surface);
     --_border: var(--sidenavigation-title-hover-border);
@@ -540,18 +540,18 @@
     --_label-line-height: var(--sidenavigation-title-hover-label-line-height);
   }
 
-  .sn-title.active {
-    --_surface: var(--sidenavigation-title-active-surface);
-    --_border: var(--sidenavigation-title-active-border);
-    --_border-width: var(--sidenavigation-title-active-border-width);
-    --_indicator: var(--sidenavigation-title-active-accent);
-    --_indicator-width: var(--sidenavigation-title-active-accent-width);
-    --_padding: var(--sidenavigation-title-active-padding);
-    --_label: var(--sidenavigation-title-active-label);
-    --_label-family: var(--sidenavigation-title-active-label-font-family);
-    --_label-size: var(--sidenavigation-title-active-label-font-size);
-    --_label-weight: var(--sidenavigation-title-active-label-font-weight);
-    --_label-line-height: var(--sidenavigation-title-active-label-line-height);
+  .sn-title.selected {
+    --_surface: var(--sidenavigation-title-selected-surface);
+    --_border: var(--sidenavigation-title-selected-border);
+    --_border-width: var(--sidenavigation-title-selected-border-width);
+    --_indicator: var(--sidenavigation-title-selected-accent);
+    --_indicator-width: var(--sidenavigation-title-selected-accent-width);
+    --_padding: var(--sidenavigation-title-selected-padding);
+    --_label: var(--sidenavigation-title-selected-label);
+    --_label-family: var(--sidenavigation-title-selected-label-font-family);
+    --_label-size: var(--sidenavigation-title-selected-label-font-size);
+    --_label-weight: var(--sidenavigation-title-selected-label-font-weight);
+    --_label-line-height: var(--sidenavigation-title-selected-label-line-height);
   }
 
   /* In the collapsed state the header narrows with the rail. Drop horizontal
@@ -658,7 +658,7 @@
   }
 
   /* Section header wrapper. Paints background + left indicator around the
-     CollapsibleSection so a section that's also a route can show an active
+     CollapsibleSection so a section that's also a route can show a selected
      state matching the panel's item/footer treatment. Section text tokens
      are forwarded into the inner CollapsibleSection by shadowing its
      chromeless slots — section typography can then be edited per-state
@@ -683,8 +683,8 @@
     border-left: var(--_indicator-width) solid var(--_indicator);
     transition: background var(--duration-150), border-color var(--duration-150);
   }
-  .sn-section-header:hover:not(.active),
-  .sn-section-header.force-hover:not(.active) {
+  .sn-section-header:hover:not(.selected),
+  .sn-section-header.force-hover:not(.selected) {
     background-image: linear-gradient(var(--sidenavigation-hover-tint-enabled), var(--sidenavigation-hover-tint-enabled));
     --_surface: var(--sidenavigation-section-hover-surface);
     --_indicator: var(--sidenavigation-section-hover-accent);
@@ -695,24 +695,24 @@
     --collapsiblesection-chromeless-default-label-font-weight: var(--sidenavigation-section-hover-text-font-weight);
     --collapsiblesection-chromeless-default-label-line-height: var(--sidenavigation-section-hover-text-line-height);
   }
-  .sn-section-header.active {
-    --_surface: var(--sidenavigation-section-active-surface);
-    --_indicator: var(--sidenavigation-section-active-accent);
-    --_indicator-width: var(--sidenavigation-section-active-accent-width);
+  .sn-section-header.selected {
+    --_surface: var(--sidenavigation-section-selected-surface);
+    --_indicator: var(--sidenavigation-section-selected-accent);
+    --_indicator-width: var(--sidenavigation-section-selected-accent-width);
 
-    /* Inner CollapsibleSection has no "active" state — shadow both the
-       default-slot and hover-slot with the active text values so the section
-       header keeps painting active typography whether or not it's hovered. */
-    --collapsiblesection-chromeless-default-label: var(--sidenavigation-section-active-text);
-    --collapsiblesection-chromeless-default-label-font-family: var(--sidenavigation-section-active-text-font-family);
-    --collapsiblesection-chromeless-default-label-font-size: var(--sidenavigation-section-active-text-font-size);
-    --collapsiblesection-chromeless-default-label-font-weight: var(--sidenavigation-section-active-text-font-weight);
-    --collapsiblesection-chromeless-default-label-line-height: var(--sidenavigation-section-active-text-line-height);
-    --collapsiblesection-chromeless-hover-label: var(--sidenavigation-section-active-text);
-    --collapsiblesection-chromeless-hover-label-font-family: var(--sidenavigation-section-active-text-font-family);
-    --collapsiblesection-chromeless-hover-label-font-size: var(--sidenavigation-section-active-text-font-size);
-    --collapsiblesection-chromeless-hover-label-font-weight: var(--sidenavigation-section-active-text-font-weight);
-    --collapsiblesection-chromeless-hover-label-line-height: var(--sidenavigation-section-active-text-line-height);
+    /* Inner CollapsibleSection has no selected state — shadow both the
+       default-slot and hover-slot with the selected text values so the section
+       header keeps painting selected typography whether or not it's hovered. */
+    --collapsiblesection-chromeless-default-label: var(--sidenavigation-section-selected-text);
+    --collapsiblesection-chromeless-default-label-font-family: var(--sidenavigation-section-selected-text-font-family);
+    --collapsiblesection-chromeless-default-label-font-size: var(--sidenavigation-section-selected-text-font-size);
+    --collapsiblesection-chromeless-default-label-font-weight: var(--sidenavigation-section-selected-text-font-weight);
+    --collapsiblesection-chromeless-default-label-line-height: var(--sidenavigation-section-selected-text-line-height);
+    --collapsiblesection-chromeless-hover-label: var(--sidenavigation-section-selected-text);
+    --collapsiblesection-chromeless-hover-label-font-family: var(--sidenavigation-section-selected-text-font-family);
+    --collapsiblesection-chromeless-hover-label-font-size: var(--sidenavigation-section-selected-text-font-size);
+    --collapsiblesection-chromeless-hover-label-font-weight: var(--sidenavigation-section-selected-text-font-weight);
+    --collapsiblesection-chromeless-hover-label-line-height: var(--sidenavigation-section-selected-text-line-height);
   }
 
   .sn-items {
@@ -746,8 +746,8 @@
     transition: background var(--duration-150), color var(--duration-150);
   }
 
-  .sn-item:hover:not(.active),
-  .sn-item.force-hover:not(.active) {
+  .sn-item:hover:not(.selected),
+  .sn-item.force-hover:not(.selected) {
     background-image: linear-gradient(var(--sidenavigation-hover-tint-enabled), var(--sidenavigation-hover-tint-enabled));
     --_surface: var(--sidenavigation-item-hover-surface);
     --_padding: var(--sidenavigation-item-hover-padding);
@@ -760,16 +760,16 @@
     --_text-line-height: var(--sidenavigation-item-hover-text-line-height);
   }
 
-  .sn-item.active {
-    --_surface: var(--sidenavigation-item-active-surface);
-    --_padding: var(--sidenavigation-item-active-padding);
-    --_indicator: var(--sidenavigation-item-active-accent);
-    --_indicator-width: var(--sidenavigation-item-active-accent-width);
-    --_text: var(--sidenavigation-item-active-text);
-    --_text-family: var(--sidenavigation-item-active-text-font-family);
-    --_text-size: var(--sidenavigation-item-active-text-font-size);
-    --_text-weight: var(--sidenavigation-item-active-text-font-weight);
-    --_text-line-height: var(--sidenavigation-item-active-text-line-height);
+  .sn-item.selected {
+    --_surface: var(--sidenavigation-item-selected-surface);
+    --_padding: var(--sidenavigation-item-selected-padding);
+    --_indicator: var(--sidenavigation-item-selected-accent);
+    --_indicator-width: var(--sidenavigation-item-selected-accent-width);
+    --_text: var(--sidenavigation-item-selected-text);
+    --_text-family: var(--sidenavigation-item-selected-text-font-family);
+    --_text-size: var(--sidenavigation-item-selected-text-font-size);
+    --_text-weight: var(--sidenavigation-item-selected-text-font-weight);
+    --_text-line-height: var(--sidenavigation-item-selected-text-line-height);
   }
 
   .sn-footer {
@@ -808,8 +808,8 @@
     line-height: 1;
   }
 
-  .sn-footer:hover:not(.active),
-  .sidenavigation.force-footer-hover .sn-footer:not(.active) {
+  .sn-footer:hover:not(.selected),
+  .sidenavigation.force-footer-hover .sn-footer:not(.selected) {
     background-image: linear-gradient(var(--sidenavigation-hover-tint-enabled), var(--sidenavigation-hover-tint-enabled));
     --_surface: var(--sidenavigation-footer-hover-surface);
     --_padding: var(--sidenavigation-footer-hover-padding);
@@ -825,19 +825,19 @@
     --_text-line-height: var(--sidenavigation-footer-hover-text-line-height);
   }
 
-  .sn-footer.active,
-  .sidenavigation.force-footer-active .sn-footer {
-    --_surface: var(--sidenavigation-footer-active-surface);
-    --_padding: var(--sidenavigation-footer-active-padding);
-    --_gap: var(--sidenavigation-footer-active-gap);
-    --_indicator: var(--sidenavigation-footer-active-accent);
-    --_indicator-width: var(--sidenavigation-footer-active-accent-width);
-    --_icon: var(--sidenavigation-footer-active-icon);
-    --_icon-size: var(--sidenavigation-footer-active-icon-size);
-    --_text: var(--sidenavigation-footer-active-text);
-    --_text-family: var(--sidenavigation-footer-active-text-font-family);
-    --_text-size: var(--sidenavigation-footer-active-text-font-size);
-    --_text-weight: var(--sidenavigation-footer-active-text-font-weight);
-    --_text-line-height: var(--sidenavigation-footer-active-text-line-height);
+  .sn-footer.selected,
+  .sidenavigation.force-footer-selected .sn-footer {
+    --_surface: var(--sidenavigation-footer-selected-surface);
+    --_padding: var(--sidenavigation-footer-selected-padding);
+    --_gap: var(--sidenavigation-footer-selected-gap);
+    --_indicator: var(--sidenavigation-footer-selected-accent);
+    --_indicator-width: var(--sidenavigation-footer-selected-accent-width);
+    --_icon: var(--sidenavigation-footer-selected-icon);
+    --_icon-size: var(--sidenavigation-footer-selected-icon-size);
+    --_text: var(--sidenavigation-footer-selected-text);
+    --_text-family: var(--sidenavigation-footer-selected-text-font-family);
+    --_text-size: var(--sidenavigation-footer-selected-text-font-size);
+    --_text-weight: var(--sidenavigation-footer-selected-text-font-weight);
+    --_text-line-height: var(--sidenavigation-footer-selected-text-line-height);
   }
 </style>

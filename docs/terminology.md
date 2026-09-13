@@ -100,7 +100,7 @@ Retired words:
 | **variant** | The prop whose values pick one of the component's named styles; each value owns a full set of semantic properties. |
 | **part** | A structural region of a component: Dialog's header, body, and footer. A part is never a state. |
 | **component state** | One of default, selected, and disabled, mutually exclusive. Disabled is terminal: a disabled element has no other state. |
-| **interaction state** | Default or hover, a segment inside a property name such as `--button-outline-hover-surface`. A state is never a token. |
+| **interaction state** | Default, hover, or active (pressed), a segment inside a property name such as `--button-outline-hover-surface`. Selected is a component state. A state is never a token. |
 | **intrinsic** | A structural or display setting the editor exposes outside the token list: alignment, a hairline's position, a part's visibility. |
 | **linked** | Two semantic properties that share one value because the component's author declared them siblings. Linkage is authored in code. |
 

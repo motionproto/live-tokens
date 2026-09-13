@@ -294,7 +294,7 @@ describe('public components — event dispatch contract', () => {
     const clickable = target.querySelector<HTMLElement>('button, [role="radio"], .radio-button, label');
     expect(clickable).toBeTruthy();
     clickable!.click();
-    // Some RadioButton implementations only dispatch when not active; the
+    // Some RadioButton implementations only dispatch when not selected; the
     // contract we care about is that click() doesn't throw and the event
     // path is wired. Soft assertion:
     expect(typeof fired).toBe('boolean');

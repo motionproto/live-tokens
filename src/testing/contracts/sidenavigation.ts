@@ -7,7 +7,7 @@ function sub(label: string): SetupStep[] {
   return [{ kind: 'control', selector: `.tabs-selectors.substrip .state-tab-btn:has-text("${label}")` }];
 }
 
-function titlePaints(s: 'default' | 'hover' | 'active'): PaintMap {
+function titlePaints(s: 'default' | 'hover' | 'selected'): PaintMap {
   return {
     title: {
       backgroundColor: `--sidenavigation-title-${s}-surface`,
@@ -41,7 +41,7 @@ function togglePaints(s: 'default' | 'hover'): PaintMap {
   };
 }
 
-function sectionPaints(part: string, labelPart: string, s: 'default' | 'hover' | 'active'): PaintMap {
+function sectionPaints(part: string, labelPart: string, s: 'default' | 'hover' | 'selected'): PaintMap {
   return {
     [part]: {
       backgroundColor: `--sidenavigation-section-${s}-surface`,
@@ -58,7 +58,7 @@ function sectionPaints(part: string, labelPart: string, s: 'default' | 'hover' |
   };
 }
 
-function itemPaints(part: string, s: 'default' | 'hover' | 'active'): PaintMap {
+function itemPaints(part: string, s: 'default' | 'hover' | 'selected'): PaintMap {
   return {
     [part]: {
       backgroundColor: `--sidenavigation-item-${s}-surface`,
@@ -74,7 +74,7 @@ function itemPaints(part: string, s: 'default' | 'hover' | 'active'): PaintMap {
   };
 }
 
-function footerPaints(s: 'default' | 'hover' | 'active'): PaintMap {
+function footerPaints(s: 'default' | 'hover' | 'selected'): PaintMap {
   return {
     footer: {
       backgroundColor: `--sidenavigation-footer-${s}-surface`,
@@ -98,11 +98,11 @@ function footerPaints(s: 'default' | 'hover' | 'active'): PaintMap {
 export const sideNavigationContract: ComponentContract = {
   id: 'sidenavigation',
   origin: 'system',
-  // Section has no currentPath-driven active state (unlike Item, whose
+  // Section has no currentPath-driven selected state (unlike Item, whose
   // demo path lands inside section-1): it lights up only through the force
-  // mechanism behind the "Active" sub-tab, so the inventory's one view has
-  // to land there for `sectionActive` to resolve at all.
-  view: { state: 'Section', setup: sub('Active') },
+  // mechanism behind the "Selected" sub-tab, so the inventory's one view has
+  // to land there for `sectionSelected` to resolve at all.
+  view: { state: 'Section', setup: sub('Selected') },
   root: 'root',
   parts: {
     root: '.sidenavigation',
@@ -111,12 +111,12 @@ export const sideNavigationContract: ComponentContract = {
     toggle: '.sn-toggle',
     toggleIcon: '.sn-toggle i',
     sectionWrap: '.sn-section',
-    section: '.sn-section-header:not(.active)',
-    sectionLabel: '.sn-section-header:not(.active) .section-label',
-    sectionActive: '.sn-section-header.active',
-    sectionLabelActive: '.sn-section-header.active .section-label',
-    item: '.sn-item:not(.active)',
-    itemActive: '.sn-item.active',
+    section: '.sn-section-header:not(.selected)',
+    sectionLabel: '.sn-section-header:not(.selected) .section-label',
+    sectionSelected: '.sn-section-header.selected',
+    sectionLabelSelected: '.sn-section-header.selected .section-label',
+    item: '.sn-item:not(.selected)',
+    itemSelected: '.sn-item.selected',
     footer: '.sn-footer',
     footerIcon: '.sn-footer i',
   },
@@ -152,18 +152,18 @@ export const sideNavigationContract: ComponentContract = {
     },
     { state: 'Title', setup: [], paints: titlePaints('default') },
     { state: 'Title', setup: sub('Hover'), paints: titlePaints('hover') },
-    { state: 'Title', setup: sub('Active'), paints: titlePaints('active') },
+    { state: 'Title', setup: sub('Selected'), paints: titlePaints('selected') },
     { state: 'Toggle', setup: [], paints: togglePaints('default') },
     { state: 'Toggle', setup: sub('Hover'), paints: togglePaints('hover') },
     { state: 'Section', setup: [], paints: sectionPaints('section', 'sectionLabel', 'default') },
     { state: 'Section', setup: sub('Hover'), paints: sectionPaints('section', 'sectionLabel', 'hover') },
-    { state: 'Section', setup: sub('Active'), paints: sectionPaints('sectionActive', 'sectionLabelActive', 'active') },
+    { state: 'Section', setup: sub('Selected'), paints: sectionPaints('sectionSelected', 'sectionLabelSelected', 'selected') },
     { state: 'Item', setup: [], paints: itemPaints('item', 'default') },
     { state: 'Item', setup: sub('Hover'), paints: itemPaints('item', 'hover') },
-    { state: 'Item', setup: [], paints: itemPaints('itemActive', 'active') },
+    { state: 'Item', setup: [], paints: itemPaints('itemSelected', 'selected') },
     { state: 'Footer', setup: [], paints: footerPaints('default') },
     { state: 'Footer', setup: sub('Hover'), paints: footerPaints('hover') },
-    { state: 'Footer', setup: sub('Active'), paints: footerPaints('active') },
+    { state: 'Footer', setup: sub('Selected'), paints: footerPaints('selected') },
   ],
   states: [
     { state: 'Panel', setup: [] },

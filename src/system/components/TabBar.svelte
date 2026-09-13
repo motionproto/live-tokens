@@ -64,7 +64,7 @@
   {#each tabs as tab}
     <button
       class="tab"
-      class:active={selectedTab === tab.id}
+      class:selected={selectedTab === tab.id}
       class:icon-only={iconOnly}
       disabled={tab.disabled}
       onclick={() => selectTab(tab)}
@@ -128,21 +128,21 @@
     --tabbar-hover-tab-bottom-radius: var(--radius-none);
     --tabbar-hover-indicator-width: var(--border-width-2);
 
-    /* Active tab */
-    --tabbar-active-text: var(--text-primary);
-    --tabbar-active-border: var(--color-brand-500);
-    --tabbar-active-surface: var(--tint-low);
-    --tabbar-active-text-font-family: var(--font-sans);
-    --tabbar-active-text-font-size: var(--font-size-md);
-    --tabbar-active-text-font-weight: var(--font-weight-light);
-    --tabbar-active-text-line-height: var(--line-height-normal);
-    --tabbar-active-icon-size: var(--icon-size-md);
-    --tabbar-active-padding: var(--space-8);
-    --tabbar-active-tab-border-color: var(--color-transparent);
-    --tabbar-active-tab-border-width: var(--border-width-0);
-    --tabbar-active-tab-top-radius: var(--radius-none);
-    --tabbar-active-tab-bottom-radius: var(--radius-none);
-    --tabbar-active-indicator-width: var(--border-width-2);
+    /* Selected tab */
+    --tabbar-selected-text: var(--text-primary);
+    --tabbar-selected-border: var(--color-brand-500);
+    --tabbar-selected-surface: var(--tint-low);
+    --tabbar-selected-text-font-family: var(--font-sans);
+    --tabbar-selected-text-font-size: var(--font-size-md);
+    --tabbar-selected-text-font-weight: var(--font-weight-light);
+    --tabbar-selected-text-line-height: var(--line-height-normal);
+    --tabbar-selected-icon-size: var(--icon-size-md);
+    --tabbar-selected-padding: var(--space-8);
+    --tabbar-selected-tab-border-color: var(--color-transparent);
+    --tabbar-selected-tab-border-width: var(--border-width-0);
+    --tabbar-selected-tab-top-radius: var(--radius-none);
+    --tabbar-selected-tab-bottom-radius: var(--radius-none);
+    --tabbar-selected-indicator-width: var(--border-width-2);
 
     /* Disabled tab */
     --tabbar-disabled-text: var(--text-disabled);
@@ -172,7 +172,7 @@
 
   /* Per-state tokens are bound to `--_*` custom properties below. The actual
      layout-affecting declarations (padding, border, border-radius, font-*)
-     are written exactly once on `.tab`, so a hover/active state change can
+     are written exactly once on `.tab`, so a hover or selected state change can
      only repaint, not relayout. When two states resolve to the same value,
      the computed property is identical and no reshape is triggered. The
      `transition: all` of the old rule has also been narrowed to paint-only
@@ -222,8 +222,8 @@
     font-size: var(--_icon-size);
   }
 
-  .tab:hover:not(:disabled):not(.active),
-  .tab-bar.force-hover .tab:not(:disabled):not(.active) {
+  .tab:hover:not(:disabled):not(.selected),
+  .tab-bar.force-hover .tab:not(:disabled):not(.selected) {
     background-image: linear-gradient(var(--tabbar-hover-tint-enabled), var(--tabbar-hover-tint-enabled));
     --_text-color: var(--tabbar-hover-text);
     --_text-family: var(--tabbar-hover-text-font-family);
@@ -241,21 +241,21 @@
     --_bottom-radius: var(--tabbar-hover-tab-bottom-radius);
   }
 
-  .tab.active {
-    --_text-color: var(--tabbar-active-text);
-    --_text-family: var(--tabbar-active-text-font-family);
-    --_text-size: var(--tabbar-active-text-font-size);
-    --_text-weight: var(--tabbar-active-text-font-weight);
-    --_text-line-height: var(--tabbar-active-text-line-height);
-    --_icon-size: var(--tabbar-active-icon-size);
-    --_surface: var(--tabbar-active-surface);
-    --_indicator-color: var(--tabbar-active-border);
-    --_indicator-width: var(--tabbar-active-indicator-width);
-    --_padding: var(--tabbar-active-padding);
-    --_border-color: var(--tabbar-active-tab-border-color);
-    --_border-width: var(--tabbar-active-tab-border-width);
-    --_top-radius: var(--tabbar-active-tab-top-radius);
-    --_bottom-radius: var(--tabbar-active-tab-bottom-radius);
+  .tab.selected {
+    --_text-color: var(--tabbar-selected-text);
+    --_text-family: var(--tabbar-selected-text-font-family);
+    --_text-size: var(--tabbar-selected-text-font-size);
+    --_text-weight: var(--tabbar-selected-text-font-weight);
+    --_text-line-height: var(--tabbar-selected-text-line-height);
+    --_icon-size: var(--tabbar-selected-icon-size);
+    --_surface: var(--tabbar-selected-surface);
+    --_indicator-color: var(--tabbar-selected-border);
+    --_indicator-width: var(--tabbar-selected-indicator-width);
+    --_padding: var(--tabbar-selected-padding);
+    --_border-color: var(--tabbar-selected-tab-border-color);
+    --_border-width: var(--tabbar-selected-tab-border-width);
+    --_top-radius: var(--tabbar-selected-tab-top-radius);
+    --_bottom-radius: var(--tabbar-selected-tab-bottom-radius);
   }
 
   .tab:disabled {

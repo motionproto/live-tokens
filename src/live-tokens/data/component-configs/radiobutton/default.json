@@ -22,15 +22,15 @@
     "--radiobutton-hover-label-font-size": "--font-size-md",
     "--radiobutton-hover-label-font-weight": "--font-weight-semibold",
     "--radiobutton-hover-label-line-height": "--line-height-none",
-    "--radiobutton-active-dot-border-color": "--border-neutral",
-    "--radiobutton-active-dot-border-width": "--border-width-2",
-    "--radiobutton-active-dot-fill": "--text-secondary",
-    "--radiobutton-active-dot-size": "--dot-size-50",
-    "--radiobutton-active-label": "--text-primary",
-    "--radiobutton-active-label-font-family": "--font-sans",
-    "--radiobutton-active-label-font-size": "--font-size-md",
-    "--radiobutton-active-label-font-weight": "--font-weight-semibold",
-    "--radiobutton-active-label-line-height": "--line-height-none"
+    "--radiobutton-selected-dot-border-color": "--border-neutral",
+    "--radiobutton-selected-dot-border-width": "--border-width-2",
+    "--radiobutton-selected-dot-fill": "--text-secondary",
+    "--radiobutton-selected-dot-size": "--dot-size-50",
+    "--radiobutton-selected-label": "--text-primary",
+    "--radiobutton-selected-label-font-family": "--font-sans",
+    "--radiobutton-selected-label-font-size": "--font-size-md",
+    "--radiobutton-selected-label-font-weight": "--font-weight-semibold",
+    "--radiobutton-selected-label-line-height": "--line-height-none"
   },
-  "schemaVersion": 27
+  "schemaVersion": 28
 }

@@ -4,8 +4,8 @@
 
   export const component = 'tabbar';
 
-  // The tab object — four states (default/hover/active/disabled) of the same tab button.
-  const tabStateNames = ['default', 'hover', 'active', 'disabled'] as const;
+  // The tab object — four states (default/hover/selected/disabled) of the same tab button.
+  const tabStateNames = ['default', 'hover', 'selected', 'disabled'] as const;
   type TabState = typeof tabStateNames[number];
   // `element` tags split each tab state into frame / icon / indicator / text.
   // No elementOrder: it would force the flat `bar` state into grouped mode.
