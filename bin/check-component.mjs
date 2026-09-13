@@ -210,7 +210,7 @@ function extractImports(source) {
   const re = /import\s+(?:[^'"]*\s+from\s+)?['"]([^'"]+)['"]/g;
   let m;
   while ((m = re.exec(source)) !== null) {
-    out.push(m[1]);
+    out.push({ specifier: m[1], index: m.index + m[0].length - 1 - m[1].length });
   }
   return out;
 }
@@ -525,9 +525,10 @@ export function checkComponent(id, root = process.cwd(), { vocabulary } = {}) {
     });
     (COMPONENT_RULES[rule]?.severity === 'warn' ? warnings : errors).push(message);
   };
-  // For a finding about a different file (config-token, against the saved
-  // alias config): the line is already resolved against that file's own text,
-  // never `source` (the runtime).
+  // For a finding about a file other than the runtime (config-token against
+  // the saved alias config, deep-import against the editor or the registration
+  // file): the line is already resolved against that file's own text, never
+  // `source` (the runtime).
   const recordAt = (rule, message, atFile, line = 1, extra = {}) => {
     findings.push({ rule, file: atFile, line, message, ...extra });
     (COMPONENT_RULES[rule]?.severity === 'warn' ? warnings : errors).push(message);
@@ -710,11 +711,17 @@ export function checkComponent(id, root = process.cwd(), { vocabulary } = {}) {
   }
 
   // Imports across runtime + editor: reject deep imports into the package.
-  for (const [path, source] of [[runtimePath, runtime], [editorPath, editor]]) {
-    for (const imp of extractImports(source)) {
+  for (const [path, text] of [[runtimePath, runtime], [editorPath, editor]]) {
+    for (const { specifier, index } of extractImports(text)) {
       for (const pattern of DEEP_IMPORT_PATTERNS) {
-        if (pattern.test(imp)) {
-          record('deep-import', `${relative(root, path)}: deep import not supported: ${imp}`, -1, deepImportRepair(imp));
+        if (pattern.test(specifier)) {
+          recordAt(
+            'deep-import',
+            `${relative(root, path)}: deep import not supported: ${specifier}`,
+            relative(root, path),
+            lineOf(text, index),
+            deepImportRepair(specifier),
+          );
         }
       }
     }
@@ -752,10 +759,16 @@ export function checkComponent(id, root = process.cwd(), { vocabulary } = {}) {
   } else {
     // Check the registration file's imports too.
     const regSource = readFileSync(registrationFile, 'utf8');
-    for (const imp of extractImports(regSource)) {
+    for (const { specifier, index } of extractImports(regSource)) {
       for (const pattern of DEEP_IMPORT_PATTERNS) {
-        if (pattern.test(imp)) {
-          record('deep-import', `${relative(root, registrationFile)}: deep import not supported: ${imp}`, -1, deepImportRepair(imp));
+        if (pattern.test(specifier)) {
+          recordAt(
+            'deep-import',
+            `${relative(root, registrationFile)}: deep import not supported: ${specifier}`,
+            relative(root, registrationFile),
+            lineOf(regSource, index),
+            deepImportRepair(specifier),
+          );
         }
       }
     }

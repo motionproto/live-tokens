@@ -260,11 +260,18 @@ function attributeDeletion(code, index, end) {
  *  inside its own block yields no patch, since deleting it whole would need
  *  one. A declaration wrapped onto a second line yields none either: the
  *  patch has to stay inside the line the finding names, since `applyFixes`
- *  assumes no patch moves a later line.
+ *  assumes no patch moves a later line. The match runs on `clean`, the
+ *  neutralised text from `index` on, and the span it bounds has to read the
+ *  same in the file: matched on the raw text, a `;` inside a comment in the
+ *  value ended the match there, and the deletion left the comment's tail
+ *  behind.
  */
-function declarationDeletion(text, name, index) {
-  const m = new RegExp(`^[;{]?\\s*(${name}[^\\S\\n]*:[^\\S\\n]*[^;}\\n]+;)`).exec(text.slice(index));
-  return m ? { from: m[1], to: '' } : null;
+function declarationDeletion(text, name, index, clean) {
+  const m = new RegExp(`^[;{]?\\s*(${name}[^\\S\\n]*:[^\\S\\n]*[^;}\\n]+;)`).exec(clean);
+  if (!m) return null;
+  const start = index + m[0].length - m[1].length;
+  const from = text.slice(start, start + m[1].length);
+  return from === m[1] ? { from, to: '' } : null;
 }
 
 /** A `style:--name="value"` directive, deleted whole. `overrideAt` always
@@ -563,8 +570,9 @@ function checkFile(file, text, vocab, root) {
   const regions = styleRegions(text, file);
   const styleBlockDeclarations = (regionList, at) => {
     for (const region of regionList) {
-      for (const m of neutralise(region.text).matchAll(/(?:^|[;{])\s*(--[a-z0-9-]+)\s*:/gim)) {
-        at(m[1], region.offset + m.index, region.site);
+      const clean = neutralise(region.text);
+      for (const m of clean.matchAll(/(?:^|[;{])\s*(--[a-z0-9-]+)\s*:/gim)) {
+        at(m[1], region.offset + m.index, region.site, clean.slice(m.index));
       }
     }
   };
@@ -580,8 +588,8 @@ function checkFile(file, text, vocab, root) {
   // inline `style="--x: ..."` attribute, a `style:--x=` directive, or a
   // setProperty('--x', ...) call.
   const overrideSites = new Map();
-  const overrideAt = (name, index, site) => {
-    if (!overrideSites.has(name) || index < overrideSites.get(name).index) overrideSites.set(name, { index, site });
+  const overrideAt = (name, index, site, clean) => {
+    if (!overrideSites.has(name) || index < overrideSites.get(name).index) overrideSites.set(name, { index, site, clean });
   };
   styleBlockDeclarations(regions, overrideAt);
   if (code !== null) styleBlockDeclarations(inlineStyleRegions(code), overrideAt);
@@ -592,12 +600,12 @@ function checkFile(file, text, vocab, root) {
   // A name the vocabulary already ties to a component is that component's
   // token, so declaring it here is one instance overriding the whole
   // project's retuning surface at /live-tokens/components.
-  for (const [name, { index, site }] of overrideSites) {
+  for (const [name, { index, site, clean }] of overrideSites) {
     if (!vocab.componentTokens.has(name)) continue;
     const owner = componentTokenOwners(vocab).get(name) ?? 'a shipped component';
     const patch =
       site === 'declaration'
-        ? declarationDeletion(text, name, index)
+        ? declarationDeletion(text, name, index, clean)
         : site === 'directive'
           ? directiveDeletion(text, name, index)
           : null;

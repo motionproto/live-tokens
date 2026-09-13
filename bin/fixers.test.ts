@@ -315,6 +315,19 @@ describe('check-page --fix, per rule', () => {
     expect(f.details.patch).toBeUndefined();
   });
 
+  it('property-override: a value holding a comment with a `;` inside is left untouched, reported as choice', () => {
+    const root = pageRoot(SPACE_TOKENS);
+    const rel = 'src/pages/Detail.svelte';
+    const source = `<style>.a { --card-default-radius: 0 /* was 4px; */; color: red; }</style>`;
+    writeFileSync(join(root, rel), source);
+    const { resolved, applied } = checkAndFix(root, [rel]);
+    expect(applied).toHaveLength(0);
+    expect(readFileSync(join(root, rel), 'utf8')).toBe(source);
+    const f = resolved.find((x: { rule: string }) => x.rule === 'property-override');
+    expect(f.repair).toBe('choice');
+    expect(f.details.patch).toBeUndefined();
+  });
+
   it('property-override: a semicolon-less declaration never reaches a later namesake or a string literal', () => {
     const root = pageRoot(SPACE_TOKENS);
     const rel = 'src/pages/Detail.svelte';
@@ -421,35 +434,93 @@ describe('check-page --fix, per rule', () => {
   });
 });
 
+const RUNTIME = 'src/system/components/Widget.svelte';
+const EDITOR = 'src/system/components/WidgetEditor.svelte';
+const MAIN = 'src/main.ts';
+const DEEP_CARD = '@motion-proto/live-tokens/src/system/components/Card.svelte';
+const PUBLIC_CARD = '@motion-proto/live-tokens/components/Card.svelte';
+
+function widgetRoot(files: { runtime: string; editor: string; main: string }): string {
+  const root = fixtureRoot();
+  mkdirSync(join(root, 'src/system/components'), { recursive: true });
+  mkdirSync(join(root, 'src/system/styles'), { recursive: true });
+  writeFileSync(join(root, 'src/system/styles/tokens.css'), ':root { --surface-neutral: #111; --radius-md: 0.5rem; }');
+  writeFileSync(join(root, RUNTIME), files.runtime);
+  writeFileSync(join(root, EDITOR), files.editor);
+  writeFileSync(join(root, MAIN), files.main);
+  return root;
+}
+
+function fixWidget(root: string) {
+  const { findings } = checkComponent('widget', root);
+  const resolved = applySeverity(findings, COMPONENT_RULES, {}, {});
+  return { resolved, ...applyFixes(resolved, root) };
+}
+
+// The runtime's description names the deep specifier, so a deep-import patch
+// recorded against the runtime would land inside this comment.
+const RUNTIME_NAMING_CARD = `<!-- Widget.svelte — a dial. Not ${DEEP_CARD}. -->\n<style>:global(:root){\n--widget-radius: var(--radius-md);\n}\n.w { border-radius: var(--widget-radius); }</style>`;
+const PLAIN_EDITOR = `<script module lang="ts">\n  const component = 'widget';\n  export const allTokens = [];\n</script>`;
+const PLAIN_MAIN = `registerComponent({ id: 'widget', label: 'Widget' });`;
+
 describe('check-component --fix', () => {
   it('dimension-literal on a runtime default: rewrites the literal, and a second pass is a no-op', () => {
-    const root = fixtureRoot();
-    mkdirSync(join(root, 'src/system/components'), { recursive: true });
-    mkdirSync(join(root, 'src/system/styles'), { recursive: true });
-    writeFileSync(join(root, 'src/system/styles/tokens.css'), ':root { --surface-neutral: #111; --radius-md: 0.5rem; }');
-    writeFileSync(
-      join(root, 'src/system/components/Widget.svelte'),
-      `<!-- Widget.svelte — a dial. -->\n<style>:global(:root){\n--widget-radius: 4px;\n}</style>`,
-    );
-    writeFileSync(
-      join(root, 'src/system/components/WidgetEditor.svelte'),
-      `<script module lang="ts">\n  const component = 'widget';\n  export const allTokens = [];\n</script>`,
-    );
-    writeFileSync(join(root, 'src/main.ts'), `registerComponent({ id: 'widget', label: 'Widget' });`);
+    const root = widgetRoot({
+      runtime: `<!-- Widget.svelte — a dial. -->\n<style>:global(:root){\n--widget-radius: 4px;\n}</style>`,
+      editor: PLAIN_EDITOR,
+      main: PLAIN_MAIN,
+    });
 
-    const runFix = () => {
-      const { findings } = checkComponent('widget', root);
-      const resolved = applySeverity(findings, COMPONENT_RULES, {}, {});
-      return { resolved, ...applyFixes(resolved, root) };
-    };
-    const { applied } = runFix();
+    const { applied } = fixWidget(root);
     expect(applied.some((f: { rule: string }) => f.rule === 'dimension-literal')).toBe(true);
-    const fixed = readFileSync(join(root, 'src/system/components/Widget.svelte'), 'utf8');
+    const fixed = readFileSync(join(root, RUNTIME), 'utf8');
     expect(fixed).toContain('--widget-radius: var(--radius-md);');
 
-    const second = runFix();
+    const second = fixWidget(root);
     expect(second.applied).toHaveLength(0);
-    expect(readFileSync(join(root, 'src/system/components/Widget.svelte'), 'utf8')).toBe(fixed);
+    expect(readFileSync(join(root, RUNTIME), 'utf8')).toBe(fixed);
+  });
+
+  it('deep-import in the editor: rewrites that import in place, leaves the runtime byte-identical, and a second pass is a no-op', () => {
+    const editor = `<script module lang="ts">\n  import Card from '${DEEP_CARD}';\n  const component = 'widget';\n  export const allTokens = [];\n</script>`;
+    const root = widgetRoot({ runtime: RUNTIME_NAMING_CARD, editor, main: PLAIN_MAIN });
+
+    const { resolved, applied } = fixWidget(root);
+    const f = resolved.find((x: { rule: string }) => x.rule === 'deep-import');
+    expect(f.file).toBe(EDITOR);
+    expect(f.line).toBe(2);
+    expect(f.repair).toBe('auto');
+    expect(f.details.patch).toEqual({ from: DEEP_CARD, to: PUBLIC_CARD });
+    expect(applied.map((x: { rule: string }) => x.rule)).toEqual(['deep-import']);
+    expect(readFileSync(join(root, EDITOR), 'utf8')).toBe(editor.replace(DEEP_CARD, PUBLIC_CARD));
+    expect(readFileSync(join(root, RUNTIME), 'utf8')).toBe(RUNTIME_NAMING_CARD);
+
+    const second = fixWidget(root);
+    expect(second.resolved.some((x: { rule: string }) => x.rule === 'deep-import')).toBe(false);
+    expect(second.applied).toHaveLength(0);
+    expect(readFileSync(join(root, EDITOR), 'utf8')).toBe(editor.replace(DEEP_CARD, PUBLIC_CARD));
+    expect(readFileSync(join(root, RUNTIME), 'utf8')).toBe(RUNTIME_NAMING_CARD);
+  });
+
+  it('deep-import in the registration file: rewrites that import in place, leaves the runtime byte-identical, and a second pass is a no-op', () => {
+    const main = `import Card from '${DEEP_CARD}';\n${PLAIN_MAIN}`;
+    const root = widgetRoot({ runtime: RUNTIME_NAMING_CARD, editor: PLAIN_EDITOR, main });
+
+    const { resolved, applied } = fixWidget(root);
+    const f = resolved.find((x: { rule: string }) => x.rule === 'deep-import');
+    expect(f.file).toBe(MAIN);
+    expect(f.line).toBe(1);
+    expect(f.repair).toBe('auto');
+    expect(f.details.patch).toEqual({ from: DEEP_CARD, to: PUBLIC_CARD });
+    expect(applied.map((x: { rule: string }) => x.rule)).toEqual(['deep-import']);
+    expect(readFileSync(join(root, MAIN), 'utf8')).toBe(main.replace(DEEP_CARD, PUBLIC_CARD));
+    expect(readFileSync(join(root, RUNTIME), 'utf8')).toBe(RUNTIME_NAMING_CARD);
+
+    const second = fixWidget(root);
+    expect(second.resolved.some((x: { rule: string }) => x.rule === 'deep-import')).toBe(false);
+    expect(second.applied).toHaveLength(0);
+    expect(readFileSync(join(root, MAIN), 'utf8')).toBe(main.replace(DEEP_CARD, PUBLIC_CARD));
+    expect(readFileSync(join(root, RUNTIME), 'utf8')).toBe(RUNTIME_NAMING_CARD);
   });
 });
 
