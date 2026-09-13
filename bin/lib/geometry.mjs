@@ -56,8 +56,9 @@ function rewriteLiterals(text, literals) {
  *
  * A term inside `calc()` or a shorthand is measured on its own, so
  * `padding: 8px 16px` reports two literals and `calc(100% - 20px)` reports the
- * 20px. `auto` holds only when every one of them lands on a single step:
- * a tie, or a scale with no comparable steps, leaves the choice open.
+ * 20px. `auto` holds only when every one of them lands on a single step and
+ * the declaration carries no var() fallback: a tie, a scale with no
+ * comparable steps, or a fallback beside the literal leaves the choice open.
  */
 export function resolveGeometryLiteral(value, scale, tokens = []) {
   const steps = [];
@@ -78,11 +79,10 @@ export function resolveGeometryLiteral(value, scale, tokens = []) {
     literals.push({ value: m[0], px, candidates });
   }
 
-  const auto = literals.length > 0 && literals.every((l) => l.candidates.length === 1);
-  // `from` is the fallback-stripped text: when a real var() fallback sits
-  // alongside a flagged literal (no fixture exercises this), `from` will not
-  // appear verbatim in the source, so applying it finds nothing and skips
-  // rather than rewriting the wrong span.
+  // A var() fallback beside a flagged literal makes `stripped` text the source
+  // never contains, so no patch could find its site; the choice stays open.
+  const auto =
+    stripped === value && literals.length > 0 && literals.every((l) => l.candidates.length === 1);
   return {
     scale,
     literals,

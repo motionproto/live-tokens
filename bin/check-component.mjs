@@ -405,7 +405,7 @@ function checkDefaultsAreSemantic({ blocks, runtime, editor, root, runtimePath, 
 
       if (hasDimensionLiteral(painted)) {
         const scale = tokenScale(name, kindRules, GEOMETRY_SCALES);
-        const resolved = resolveGeometryLiteral(painted, scale, scaleTokens(vocab, scale));
+        const resolved = resolveGeometryLiteral(value, scale, scaleTokens(vocab, scale));
         record(
           'dimension-literal',
           `${rel}: ${name}: ${value} pins a raw dimension; use a --space-*, --radius-*, or --border-width-* token`,

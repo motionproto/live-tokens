@@ -649,7 +649,7 @@ function checkFile(file, text, vocab, root) {
 
       if (THEMED_GEOMETRY.test(prop) && hasDimensionLiteral(painted)) {
         const scale = geometryScaleOfProperty(prop);
-        const resolved = resolveGeometryLiteral(painted, scale, scaleTokens(vocab, scale));
+        const resolved = resolveGeometryLiteral(value, scale, scaleTokens(vocab, scale));
         add(
           'dimension-literal',
           at(index),

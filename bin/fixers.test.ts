@@ -161,6 +161,19 @@ describe('check-page --fix, per rule', () => {
     expect(f.details.patch).toBeUndefined();
   });
 
+  it('dimension-literal: a var() fallback beside the literal leaves the declaration a choice, with no patch', () => {
+    const root = pageRoot(SPACE_TOKENS);
+    const rel = 'src/pages/Detail.svelte';
+    const source = `<style>.a { padding: var(--space-8, 4px) 16px; }</style>`;
+    writeFileSync(join(root, rel), source);
+    const { resolved, applied } = checkAndFix(root, [rel]);
+    expect(applied).toHaveLength(0);
+    expect(readFileSync(join(root, rel), 'utf8')).toBe(source);
+    const f = resolved.find((x: { rule: string }) => x.rule === 'dimension-literal');
+    expect(f.repair).toBe('choice');
+    expect(f.details.patch).toBeUndefined();
+  });
+
   it('control-size: deletes the size attribute, and a second pass is a no-op', () => {
     const root = pageRoot(SPACE_TOKENS);
     // control-size only fires for a shipped-origin component, so this uses the real Card.
