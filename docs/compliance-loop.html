@@ -564,8 +564,8 @@
       <li><strong>create-theme</strong> reads one request, derives one design direction, and routes a color intent, a type intent, and a geometry intent to <strong>set-colors</strong>, <strong>set-type</strong>, and <strong>set-geometry</strong>. Each of those three changes one dimension and nothing else.</li>
       <li><strong>create-page</strong> assembles a page from shipped components at their defaults. It calls <strong>pick-component</strong> when two components could fit, and <strong>create-component</strong> when the catalogue lacks one.</li>
       <li><strong>create-component</strong> delivers a runtime file, an editor file, a registration, and a contract together.</li>
-      <li><strong>check-compliance</strong> reads one <code>npx live-tokens report</code> run, classifies every finding as mechanical, judgement, or deliberate, and hands the fix list to <strong>fix-findings</strong>. It edits no file.</li>
-      <li><strong>fix-findings</strong> edits the files the checkers name, groups the work by rule, and re-runs until both checkers exit 0.</li>
+      <li><strong>check-compliance</strong> reads one <code>npx live-tokens report --json</code> run, presents every finding with the repair level it carries, <code>auto</code>, <code>choice</code>, or <code>authored</code>, and hands the fix list to <strong>fix-findings</strong>. It edits no file.</li>
+      <li><strong>fix-findings</strong> applies every <code>auto</code> finding with <code>--fix</code>, then edits the files the checkers name for what remains, groups the work by rule, and re-runs until both checkers exit 0.</li>
     </ul>
     <p>The skills carry what a checker cannot decide: which layout suits a reading task, which component in a confusable family, which separator is the smallest one that separates. The checkers carry what prose cannot enforce: whether the file actually does it.</p>
   </section>
@@ -573,19 +573,19 @@
   <section>
     <span class="eyebrow">bin/</span>
     <h2>Two checkers, static and rendered</h2>
-    <p>Both checkers emit findings in one shape: a stable <code>rule</code> id, a file, a line, and a <code>fix</code> slug. That shape is what makes the loop mechanical, because a skill can parse <code>--json</code>, repair, and re-run against the exit code.</p>
+    <p>Both checkers emit findings in one shape: a stable <code>rule</code> id, a file, a line, a <code>fix</code> slug, a <code>repair</code> level, and the <code>exception</code> entry that records a decision to keep the finding. That shape is what makes the loop mechanical, because a skill can parse <code>--json</code>, repair, and re-run against the exit code.</p>
 
     <h3>The static half</h3>
     <p><code>check-page</code> reads a page source. <code>check-component</code> reads a runtime file, its editor, and its registration. Severity is a project decision: <code>live-tokens.config.json</code> sets it per rule, and <code>--off</code>, <code>--warn</code>, <code>--error</code>, and <code>--strict</code> move it for one run. <code>report</code> aggregates both and adds signals no rule covers, such as a token a component declares and never reads, a component with no registration, and a pending <span class="mono">tokens.css</span> migration.</p>
 
     <h3>The token vocabulary</h3>
     <p>Both checkers open by loading the project's vocabulary: every custom property declared in its own <span class="mono">tokens.css</span>, plus every semantic property declared in a component's <code>:global(:root)</code> block. That set is read from the project rather than compiled into the package, so a project running an older <span class="mono">tokens.css</span> is measured against the names it actually has.</p>
-    <p>A name outside the set is a finding, and the message depends on the shape of the name. A name matching one of the 25 scales the token contract governs is reported as a rename to chase in <span class="mono">tokens.css</span>, because a name with that shape and no declaration behind it is a typo. A name opening with a state, such as <span class="mono">--hover-surface</span>, is told that a state is a segment of a property name and never a token of its own. Anything else is reported as neither a design token nor a semantic property.</p>
+    <p>A name outside the set is a finding, and the message depends on the shape of the name. A name matching one of the 26 scales the token contract governs is reported as a rename to chase in <span class="mono">tokens.css</span>, because a name with that shape and no declaration behind it is a typo. A name opening with a state, such as <span class="mono">--hover-surface</span>, is told that a state is a segment of a property name and never a token of its own. Anything else is reported as neither a design token nor a semantic property.</p>
     <details class="drawer">
-      <summary>The scales the token contract governs <span class="count">25</span></summary>
+      <summary>The scales the token contract governs <span class="count">26</span></summary>
       <p class="drawer-note">Each name is the stem of a <code>--&lt;scale&gt;-*</code> family, listed in <span class="mono">bin/lib/tokenVocabulary.mjs</span> as <code>CONTRACT_SCALES</code>.</p>
       <ul class="chips">
-        <li>surface</li><li>text</li><li>border</li><li>color</li><li>space</li><li>radius</li><li>font</li><li>line-height</li><li>letter-spacing</li><li>shadow</li><li>blur</li><li>icon-size</li><li>scrim</li><li>tint</li><li>columns</li><li>heading</li><li>body</li><li>editorial</li><li>eyebrow</li><li>code</li><li>easing</li><li>duration</li><li>zoom</li><li>gradient</li><li>stroke</li>
+        <li>surface</li><li>text</li><li>border</li><li>border-width</li><li>color</li><li>space</li><li>radius</li><li>font</li><li>line-height</li><li>letter-spacing</li><li>shadow</li><li>blur</li><li>icon-size</li><li>scrim</li><li>tint</li><li>columns</li><li>heading</li><li>body</li><li>editorial</li><li>eyebrow</li><li>code</li><li>easing</li><li>duration</li><li>zoom</li><li>gradient</li><li>stroke</li>
       </ul>
     </details>
     <p>The same vocabulary answers a component and a page, from opposite directions. A component's <code>:global(:root)</code> default is checked for a token behind it. A page's CSS is checked for a literal where a token belongs.</p>
@@ -632,12 +632,14 @@
       </details>
 
       <details class="drawer">
-        <summary><span>check-component, static</span><span class="count">17</span><span class="gist">Property names, token-backed defaults, editor schema, registration, public imports only</span></summary>
+        <summary><span>check-component, static</span><span class="count">20</span><span class="gist">Property names, token-backed defaults, editor schema, registration, public imports only</span></summary>
         <ul class="ruleset">
           <li><span class="id">invalid-id</span><span class="what">The id holds anything other than lowercase letters and digits.</span></li>
           <li><span class="id">missing-file</span><span class="what">The runtime or editor file is absent from its expected path.</span></li>
           <li><span class="id">missing-root-block</span><span class="what">The runtime has no <code>:global(:root)</code> block.</span></li>
           <li><span class="id">no-tokens</span><span class="what">The <code>:global(:root)</code> block declares no <code>--&lt;id&gt;-*</code> property.</span></li>
+          <li><span class="id">missing-description<span class="warn">warn</span></span><span class="what">The runtime file opens with no HTML comment.</span></li>
+          <li><span class="id">unread-token<span class="warn">warn</span></span><span class="what">The runtime declares a property in <code>:global(:root)</code> and reads it nowhere in its own CSS.</span></li>
           <li><span class="id">state-after-property</span><span class="what">A state follows the property in a name. <code>-hover-surface</code> is correct; <code>-surface-hover</code> trips it.</span></li>
           <li><span class="id">disabled-is-terminal</span><span class="what">A name pairs <code>disabled</code> with hover, focus, selected, active, on, or checked, a state that never paints.</span></li>
           <li><span class="id">unknown-suffix</span><span class="what">A property name ends in a suffix the editor has no picker for.</span></li>
@@ -651,13 +653,15 @@
           <li><span class="id">default-not-token</span><span class="what">A default has no design token behind it and the editor declares no intrinsic for it.</span></li>
           <li><span class="id">phantom-link<span class="warn">warn</span></span><span class="what">A type-group font helper runs across several slots without a derivation, which links every slot's fonts into one.</span></li>
           <li><span class="id">dimension-literal<span class="warn">warn</span></span><span class="what">A default pins a raw dimension where a <code>--space-*</code>, <code>--radius-*</code>, or <code>--border-width-*</code> token belongs.</span></li>
+          <li><span class="id">config-token</span><span class="what">An alias in <span class="mono">component-configs/&lt;id&gt;/default.json</span> names something the vocabulary lacks, or a literal stands on a property with no intrinsic.</span></li>
         </ul>
       </details>
 
       <details class="drawer">
-        <summary><span>contract-*</span><span class="count">10</span><span class="gist">Listing, render, aliases, persistence, theme projection, states, interaction, sketch mode</span></summary>
+        <summary><span>contract-*</span><span class="count">11</span><span class="gist">Listing, render, aliases, persistence, theme projection, states, interaction, behavior, sketch mode</span></summary>
         <ul class="ruleset">
           <li><span class="id">contract-registry</span><span class="what">Vitest. The registration is sound, declared, and seeded. The next section lists its eight checks.</span></li>
+          <li><span class="id">contract-behavior</span><span class="what">Vitest. Each declared behavior case passes for the runtime the registration names: a callback's argument, an attribute a controlled prop drives, or the case's own reason for staying silent.</span></li>
           <li><span class="id">contract-listed</span><span class="what">Playwright, editor. The component appears in its registry group.</span></li>
           <li><span class="id">contract-alias</span><span class="what">Playwright, three tests. The component declares every part and shipped alias, every alias it paints with resolves, and each alias fans set, update, and remove out to the document root.</span></li>
           <li><span class="id">contract-states</span><span class="what">Playwright, editor. The preview renders the state being edited.</span></li>
@@ -802,6 +806,9 @@
       </ul>
     </details>
     <p>It runs first for a reason. A component missing from the registry reports that one fact, instead of six preview failures all caused by the missing entry.</p>
+
+    <h3>Behavior, under Vitest</h3>
+    <p>Node and happy-dom again, and wiring again, with its own question: whether the runtime does what its callback props promise. The suite lives beside the registry contract and mounts each component's own file with <code>mount</code> from Svelte, then drives every case its contract declares as a real DOM event: a click asks a controlled prop's callback to fire with the argument the case names, or asserts it stays silent, such as under <code>disabled</code>; a prop drives an attribute an action then leaves alone. A component with no callback prop declares the obligation inapplicable, with a reason. A failure reports <span class="mono">contract-behavior</span>, naming the case.</p>
 
     <h3>The eight obligations, under Playwright</h3>
     <p>The 26 component contracts are data, one file per component, naming that component's parts, states, persistence cases, and theme expectations. A single suite drives every contract through the same eight tests, in a serial describe so the first failure stops the cascade.</p>

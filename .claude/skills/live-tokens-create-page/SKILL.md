@@ -165,7 +165,7 @@ const pages = {
 
 ## Verify
 
-Run **live-tokens-check-compliance**, then `npx live-tokens check-page <file> --tests --strict`. The Playwright suite runs against the page's own route and proves what only a rendered page can: the cascade leaves every component painting from its semantic properties, every run of text sits in one shipped text style, every text and surface pair meets AA, sections sit on the page grid, and nothing overflows. Each finding carries a rule id and a line; `--off=<rule>` silences a rule for one run. The two reports carry every finding by rule, and **live-tokens-fix-findings** takes the fix list. Repeat until the page is clean.
+Run **live-tokens-check-compliance**, address its findings with **live-tokens-fix-findings**, whose `check-page <file> --fix` clears every repairable static finding before the rendered run (refused together with `--tests`), then run `npx live-tokens check-page <file> --tests --strict`. The Playwright suite runs against the page's own route and proves what only a rendered page can: the cascade leaves every component painting from its semantic properties, every run of text sits in one shipped text style, every text and surface pair meets AA, sections sit on the page grid, and nothing overflows. Each finding carries a rule id and a line; `--off=<rule>` silences a rule for one run. The two reports carry every finding by rule, and **live-tokens-fix-findings** takes the fix list. Repeat until the page is clean.
 
 The checkers cannot see a layout. Open the page at the width it is built for and check each line below.
 

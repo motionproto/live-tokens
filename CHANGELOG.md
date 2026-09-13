@@ -1,5 +1,67 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+- **Every finding carries its own repair.** `report --json` and both
+  checkers' `--json` now put `fix`, `repair`, and `exception` on every
+  finding, alongside `rule`, `severity`, `file`, `line`, and `message`.
+  `repair` is `auto` (code can apply the patch), `choice` (a role or a tie
+  needs the user, and `details` lists the candidates), or `authored` (the
+  user's own words are the fix). `exception` is the narrower
+  `live-tokens.config.json` entry that steps the rule down one level to
+  record a deliberate decision to leave the finding as it is.
+- **`--fix` on `check-page` and `check-component`.** Applies every `auto`
+  finding's patch: a deep import rewritten to its public path, a spacing,
+  radius, or stroke-width literal replaced by its one nearest design token,
+  a page's `size` prop deleted, a semantic property override deleted. It then
+  rechecks and reports what changed and what remains. A second run changes
+  nothing. Refused together with `--tests`: fix first, then verify.
+- **Three findings that used to be report-only facts.** `unread-token`
+  (warn): a runtime declares a property in `:global(:root)` and reads it
+  nowhere in its own CSS. `missing-description` (warn): a runtime file opens
+  with no HTML comment. `config-token`: an alias in
+  `component-configs/<id>/default.json` names something the vocabulary
+  lacks, or a bare literal stands on a property the editor declares no
+  intrinsic for.
+- **`ComponentContract` gains `behavior`.** A Vitest suite mounts the
+  runtime under happy-dom by its registration and drives each declared case
+  with a real DOM event: a callback fires with its documented argument,
+  stays silent under `disabled`, or a controlled prop drives its attribute
+  while an action leaves it alone. A failure reports `contract-behavior`,
+  naming the case. `behavior` is a required field; a component with no
+  callback prop declares it `{ applicable: false, reason: '...' }`.
+- **A stroke's width has its own token scale**, `border-width`, so a
+  `dimension-literal` on a border, divider, or accent resolves to a stroke
+  step instead of a colour scale with nothing to offer it. 26 scales in
+  total; `tokens --scale border-width` resolves the name.
+- **One component inventory.** `componentDirs` in `live-tokens.config.json`
+  is honoured everywhere a component is discovered, checked, or run under
+  `--tests`, not only by `report`. A registered id with no runtime, or a
+  runtime with no editor, now surfaces as a `missing-file` finding rather
+  than silently dropping out of the batch.
+
+### Changed (breaking)
+
+- **`behavior` is a required `ComponentContract` field.** A consumer's
+  `tests/contracts.ts` stops compiling until each contract declares a
+  behavior or marks it inapplicable with a reason. `references/contract-tests.md`
+  in the create-component skill carries the Toggle-shaped example and the
+  one-line inapplicable form.
+
+### Changed
+
+- **`contract-preview` is retired.** The harness throws `contract-states`
+  from its state assertions and `contract-interaction` from its interaction
+  assertions directly, so a failure the CLI used to report under
+  `contract-preview` now reports under the rule that actually failed.
+- **`report --json`'s `components[]` facts are narrower.** No `name`,
+  `unread`, or `described`; a component's unread tokens and missing
+  description are now the `unread-token` and `missing-description` findings
+  under `findings.components`. `usage` drops `customUnregistered`; an
+  unregistered project component is now `missing-registration`.
+
 ## 0.78.0 — A page proves compliance as rendered
 
 ### Added

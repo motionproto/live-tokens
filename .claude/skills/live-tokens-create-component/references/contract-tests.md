@@ -152,9 +152,70 @@ Each obligation and what it needs from the project:
   to under it.
 - `interaction`: the interactive part's role and its cases. `applicable:
   false` for a component with no interactive role.
+- `behavior`: what a callback prop does. See Behavior below.
 - `sketch`: a sketch style id and the fill and stroke each reserved-class part
   resolves to under it. `applicable: false` only for a component
   `references/sketch-mode.md` exempts.
+
+## Behavior
+
+`behavior` runs under Vitest with `mount` from Svelte and happy-dom, not in
+the editor preview, because a controlled component's callback prop has
+nothing driving it there: the preview edits the token, not the prop. One
+case names the props the runtime mounts with, the action a user takes, and
+what that should do.
+
+```ts
+behavior: {
+  cases: [
+    {
+      name: 'clicking an off toggle asks for on',
+      props: { checked: false },
+      action: { kind: 'click', part: 'root' },
+      expect: { kind: 'callback', prop: 'onchange', args: [true] },
+    },
+    {
+      name: 'clicking leaves the switch where the prop put it',
+      props: { checked: false },
+      action: { kind: 'click', part: 'root' },
+      expect: { kind: 'attribute', part: 'root', name: 'aria-checked', value: 'false' },
+    },
+    {
+      name: 'checked drives aria-checked',
+      props: { checked: true },
+      expect: { kind: 'attribute', part: 'root', name: 'aria-checked', value: 'true' },
+    },
+    {
+      name: 'a disabled toggle stays silent',
+      props: { checked: false, disabled: true },
+      action: { kind: 'click', part: 'root' },
+      expect: { kind: 'no-callback', prop: 'onchange' },
+    },
+  ],
+},
+```
+
+Toggle is controlled: it never flips `checked` itself, so the click case
+that asks for `on` and the mount case that reads `checked` are two separate
+cases, not one. The disabled case pins that a disabled toggle calls nothing
+back: the prop reaches the DOM as a real `disabled` attribute on the part,
+and happy-dom withholds a dispatched click from a disabled `<button>`. A
+component that reports through `input` rather than `click`, such as Slider,
+gets no disabled case, because happy-dom delivers a dispatched `input` event
+to a disabled control and the case would assert the environment rather than
+the component.
+
+A component with no callback prop declares the obligation inapplicable, in
+one line:
+
+```ts
+behavior: { applicable: false, reason: 'a table wrapper declares no callback prop; its rows arrive as a snippet' },
+```
+
+The fault this suite catches is a callback that fires with the wrong
+argument, fires when a case says it should stay silent, or never fires at
+all. `check-component <id> --tests` reports it as `contract-behavior`,
+naming the case.
 
 ## Running vitest yourself
 

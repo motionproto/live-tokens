@@ -32,38 +32,42 @@ These run at each screen size in the testing settings, by default 1280×900 and 
 4. `page-grid`: the page draws a `--columns-count` grid, and section edges sit on column lines within 1px. It reports "inapplicable" below 768px.
 5. `page-overflow`: nothing scrolls sideways, no box overflows its width, and no component extends past the element that clips it.
 
-## check-component, static (17)
+## check-component, static (20)
 
 1. `invalid-id`: the id holds anything other than lowercase letters and digits.
 2. `missing-file`: the runtime or editor file is absent.
 3. `missing-root-block`: the runtime has no `:global(:root)` block.
 4. `no-tokens`: that block declares no `--<id>-*` property.
-5. `state-after-property`: a state follows the property in a name (`-surface-hover`).
-6. `disabled-is-terminal`: a name pairs `disabled` with a state that never paints.
-7. `unknown-suffix`: a name ends in a suffix the editor has no picker for.
-8. `phantom-editor-token`: an editor row names a property the runtime never declares.
-9. `color-literal`: a default is a literal colour.
-10. `missing-component-const`: the editor lacks `const component = '<id>'`.
-11. `missing-all-tokens`: the editor does not export `allTokens`.
-12. `deep-import`: the runtime, editor, or registration imports package internals.
-13. `missing-registration`: nothing under `src/` registers the id.
-14. `unknown-token-ref`: a default reads a name that is neither a design token nor one of the component's own properties.
-15. `default-not-token`: a default has no token behind it and no declared intrinsic.
-16. `phantom-link` (warn): a type-group font helper links every slot's fonts into one.
-17. `dimension-literal` (warn): a default pins a raw dimension.
+5. `missing-description` (warn): the runtime file opens with no HTML comment.
+6. `unread-token` (warn): the runtime declares a property in `:global(:root)` and reads it nowhere in its own CSS.
+7. `state-after-property`: a state follows the property in a name (`-surface-hover`).
+8. `disabled-is-terminal`: a name pairs `disabled` with a state that never paints.
+9. `unknown-suffix`: a name ends in a suffix the editor has no picker for.
+10. `phantom-editor-token`: an editor row names a property the runtime never declares.
+11. `color-literal`: a default is a literal colour.
+12. `missing-component-const`: the editor lacks `const component = '<id>'`.
+13. `missing-all-tokens`: the editor does not export `allTokens`.
+14. `deep-import`: the runtime, editor, or registration imports package internals.
+15. `missing-registration`: nothing under `src/` registers the id.
+16. `unknown-token-ref`: a default reads a name that is neither a design token nor one of the component's own properties.
+17. `default-not-token`: a default has no token behind it and no declared intrinsic.
+18. `phantom-link` (warn): a type-group font helper links every slot's fonts into one.
+19. `dimension-literal` (warn): a default pins a raw dimension.
+20. `config-token`: an alias in `component-configs/<id>/default.json` names something the vocabulary lacks, or a literal stands on a property with no intrinsic.
 
-## contract-\*, rendered (10)
+## contract-\*, rendered (11)
 
 1. `contract-registry` (Vitest): the registration is sound, declared, and seeded.
-2. `contract-listed`: the component appears in its registry group.
-3. `contract-alias` (three tests): every part and shipped alias is declared, every alias resolves, and set, update, and remove reach the document root.
-4. `contract-states`: the preview renders the state being edited.
-5. `contract-interaction`: the component answers the pointer and the keyboard.
-6. `contract-persist`: an edit survives a save and a reload, and Reset returns the saved config.
-7. `contract-theme`: a theme preview reaches the paint, and cancelling it restores every value.
-8. `contract-sketch`: every painted part is drawn in Sketch mode.
-9. `contract-render`: the runtime preview repaints every property on its declared part.
-10. `contract-missing`: the run names a component with no contract.
+2. `contract-behavior` (Vitest): each declared behavior case passes for the runtime the registration names — a callback's argument, an attribute a controlled prop drives, or the case's own reason for staying silent.
+3. `contract-listed`: the component appears in its registry group.
+4. `contract-alias` (three tests): every part and shipped alias is declared, every alias resolves, and set, update, and remove reach the document root.
+5. `contract-states`: the preview renders the state being edited.
+6. `contract-interaction`: the component answers the pointer and the keyboard.
+7. `contract-persist`: an edit survives a save and a reload, and Reset returns the saved config.
+8. `contract-theme`: a theme preview reaches the paint, and cancelling it restores every value.
+9. `contract-sketch`: every painted part is drawn in Sketch mode.
+10. `contract-render`: the runtime preview repaints every property on its declared part.
+11. `contract-missing`: the run names a component with no contract.
 
 ## tests-\*, never silenceable (3)
 
@@ -84,11 +88,15 @@ These have no rule ids in the code, so the names below are descriptive. The suit
 7. A token with a minimum opacity seeds at or above it.
 8. One alias survives a round trip through the editor store.
 
-## Token contract scales (25)
+## Behavior suite under Vitest
+
+Reports `contract-behavior`. The suite lives beside the registry contract, in `src/testing/component-behavior.contract.ts`, under the same `happy-dom` environment. It mounts each registered component's runtime with `mount` from Svelte, drives its declared `behavior` cases with real DOM events, and asserts a callback fired (or stayed silent) with the documented argument, or that a controlled prop drove the attribute the case names. A component with no callback prop declares the obligation inapplicable, with a reason.
+
+## Token contract scales (26)
 
 Listed in `bin/lib/tokenVocabulary.mjs` as `CONTRACT_SCALES`.
 
-surface, text, border, color, space, radius, font, line-height, letter-spacing, shadow, blur, icon-size, scrim, tint, columns, heading, body, editorial, eyebrow, code, easing, duration, zoom, gradient, stroke
+surface, text, border, border-width, color, space, radius, font, line-height, letter-spacing, shadow, blur, icon-size, scrim, tint, columns, heading, body, editorial, eyebrow, code, easing, duration, zoom, gradient, stroke
 
 ## Component contracts (26)
 
