@@ -611,6 +611,28 @@ describe('migration runner — schemaVersion gating', () => {
     expect(out).toEqual(v31);
   });
 
+  it('component-config v32 → v33: toggle\'s label color drops the -text suffix', () => {
+    const v32 = {
+      '--toggle-label-text': '--text-primary',
+      '--toggle-disabled-label-text': '--text-disabled',
+      '--toggle-track-surface': '--surface-neutral',
+    };
+    const expected = {
+      '--toggle-label': '--text-primary',
+      '--toggle-disabled-label': '--text-disabled',
+      '--toggle-track-surface': '--surface-neutral',
+    };
+    const out = runMigrations('component-config', 32, v32, { component: 'toggle' });
+    expect(out).toEqual(expected);
+    expect(runMigrations('component-config', 32, out, { component: 'toggle' })).toEqual(expected);
+  });
+
+  it('component-config v32 → v33 fires only for toggle', () => {
+    const v32 = { '--card-default-title-text': '--text-primary' };
+    const out = runMigrations('component-config', 32, v32, { component: 'card' });
+    expect(out).toEqual(v32);
+  });
+
   it('component-config at current version → no migrations run', () => {
     const current = { '--button-primary-surface': '--surface-success' };
     const out = runMigrations(

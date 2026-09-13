@@ -99,6 +99,10 @@
   CornerBadge's forty `--corner-badge-*` properties are `--cornerbadge-*`,
   renamed on load. `check-component` no longer accepts a hyphenated prefix
   for any component; a property that carries one is a naming finding.
+- **A text part's color is its bare name.** Toggle's `--toggle-label-text`
+  and `--toggle-disabled-label-text` are `--toggle-label` and
+  `--toggle-disabled-label`, renamed on load, matching every other
+  component's bare-part color.
 
 ### Changed
 

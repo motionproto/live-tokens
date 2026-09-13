@@ -32,5 +32,5 @@
     "--radiobutton-selected-label-font-weight": "--font-weight-semibold",
     "--radiobutton-selected-label-line-height": "--line-height-none"
   },
-  "schemaVersion": 32
+  "schemaVersion": 33
 }

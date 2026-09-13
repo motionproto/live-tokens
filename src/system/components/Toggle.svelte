@@ -63,7 +63,7 @@
     --toggle-thumb-surface: var(--surface-neutral-highest);
     --toggle-thumb-border: var(--border-neutral-strong);
     --toggle-thumb-size: var(--font-size-md);
-    --toggle-label-text: var(--text-primary);
+    --toggle-label: var(--text-primary);
     --toggle-label-font-family: var(--font-sans);
     --toggle-label-font-size: var(--font-size-sm);
     --toggle-label-font-weight: var(--font-weight-normal);
@@ -86,7 +86,7 @@
     /* Disabled (terminal — applies regardless of on/off). */
     --toggle-disabled-track-surface: var(--surface-neutral-lower);
     --toggle-disabled-thumb-surface: var(--surface-neutral);
-    --toggle-disabled-label-text: var(--text-disabled);
+    --toggle-disabled-label: var(--text-disabled);
   }
 
   .toggle {
@@ -130,7 +130,7 @@
   }
 
   .label {
-    color: var(--toggle-label-text);
+    color: var(--toggle-label);
     font-family: var(--toggle-label-font-family);
     font-size: var(--toggle-label-font-size);
     font-weight: var(--toggle-label-font-weight);
@@ -178,6 +178,6 @@
     border-color: var(--toggle-disabled-thumb-surface);
   }
   .toggle:disabled .label {
-    color: var(--toggle-disabled-label-text);
+    color: var(--toggle-disabled-label);
   }
 </style>

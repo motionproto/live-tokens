@@ -3931,7 +3931,7 @@
         "--toggle-thumb-surface": "--surface-neutral-highest",
         "--toggle-thumb-border": "--border-neutral-strong",
         "--toggle-thumb-size": "--font-size-md",
-        "--toggle-label-text": "--text-primary",
+        "--toggle-label": "--text-primary",
         "--toggle-label-font-family": "--font-sans",
         "--toggle-label-font-size": "--font-size-sm",
         "--toggle-label-font-weight": "--font-weight-normal",
@@ -3946,7 +3946,7 @@
         "--toggle-on-hover-thumb-surface": "--text-primary",
         "--toggle-disabled-track-surface": "--surface-neutral-lower",
         "--toggle-disabled-thumb-surface": "--surface-neutral",
-        "--toggle-disabled-label-text": "--text-disabled"
+        "--toggle-disabled-label": "--text-disabled"
       }
     },
     "tooltip": {
@@ -4024,5 +4024,5 @@
       }
     }
   },
-  "componentSchemaVersion": 32
+  "componentSchemaVersion": 33
 }

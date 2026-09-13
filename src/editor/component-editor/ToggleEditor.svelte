@@ -16,7 +16,7 @@
       { label: 'surface',      element: 'thumb', variable: '--toggle-thumb-surface' },
       { label: 'border',       element: 'thumb', variable: '--toggle-thumb-border' },
       { label: 'size',         element: 'thumb', variable: '--toggle-thumb-size' },
-      { label: 'text',         element: 'label', variable: '--toggle-label-text' },
+      { label: 'text',         element: 'label', variable: '--toggle-label' },
       { label: 'font family',  element: 'label', variable: '--toggle-label-font-family' },
       { label: 'font size',    element: 'label', variable: '--toggle-label-font-size' },
       { label: 'font weight',  element: 'label', variable: '--toggle-label-font-weight' },
@@ -39,7 +39,7 @@
     disabled: [
       { label: 'track surface', variable: '--toggle-disabled-track-surface' },
       { label: 'thumb surface', variable: '--toggle-disabled-thumb-surface' },
-      { label: 'label text',    variable: '--toggle-disabled-label-text' },
+      { label: 'label text',    variable: '--toggle-disabled-label' },
     ],
   };
 

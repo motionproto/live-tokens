@@ -15,7 +15,7 @@ const defaultPaints: PaintMap = {
     left: '--toggle-track-padding',
   },
   label: {
-    color: '--toggle-label-text',
+    color: '--toggle-label',
     fontFamily: '--toggle-label-font-family',
     fontSize: '--toggle-label-font-size',
     fontWeight: '--toggle-label-font-weight',
@@ -69,7 +69,7 @@ export const toggleContract: ComponentContract = {
       paints: {
         track: { backgroundColor: '--toggle-disabled-track-surface' },
         thumb: { backgroundColor: '--toggle-disabled-thumb-surface' },
-        label: { color: '--toggle-disabled-label-text' },
+        label: { color: '--toggle-disabled-label' },
       },
     },
   ],
