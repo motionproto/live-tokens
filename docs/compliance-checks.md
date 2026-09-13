@@ -38,7 +38,7 @@ These run at each screen size in the testing settings, by default 1280×900 and 
 2. `missing-file`: the runtime or editor file is absent.
 3. `missing-root-block`: the runtime has no `:global(:root)` block.
 4. `no-tokens`: that block declares no `--<id>-*` property.
-5. `missing-description` (warn): the runtime file opens with no HTML comment.
+5. `missing-description` (warn): the runtime file's `catalogue` export is absent, or `description`, `useFor`, or `notFor` in it is not a plain string literal.
 6. `unread-token` (warn): the runtime declares a property in `:global(:root)` and reads it nowhere in its own CSS.
 7. `state-after-property`: a state follows the property in a name (`-surface-hover`).
 8. `disabled-is-terminal`: a name pairs `disabled` with a state that never paints.

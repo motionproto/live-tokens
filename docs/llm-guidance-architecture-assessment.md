@@ -95,7 +95,7 @@ Add the contract module to the component deliverables. Supply a minimal consumer
 
 **Priority: highest.** `report` performs static analysis and exits zero after producing its output, even when the output contains findings. It carries no runtime test results, revision identity, skill version, excluded-file inventory, or disabled-rule inventory. Its strict totals still respect rules set to `off`.
 
-The review run reported 528 design tokens, 26 components, five page files, zero findings, and no pending migrations. All component entries had registration and description comments, with no unread tokens. However, the configuration excludes `src/demo`, `src/app/Home.svelte`, and `src/app/LabeledSelect.svelte`. The usage section listed every shipped component as unused within its discovered page scope. That result describes the selected source set, not all application use.
+The review run reported 528 design tokens, 26 components, five page files, zero findings, and no pending migrations. All component entries had registration and descriptions, with no unread tokens. However, the configuration excludes `src/demo`, `src/app/Home.svelte`, and `src/app/LabeledSelect.svelte`. The usage section listed every shipped component as unused within its discovered page scope. That result describes the selected source set, not all application use.
 
 Report checked, excluded, undiscovered, and untested scope explicitly. Keep the static report fast, but allow it to attach runtime results with their source revision and configuration fingerprint. Label static cleanliness separately from runtime acceptance. [Report implementation](../bin/lib/report.mjs), [CLI exit behavior](../bin/cli.mjs), [project exclusions](../live-tokens.config.json).
 

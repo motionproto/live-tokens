@@ -11,7 +11,7 @@ Create a component whose structure and behavior serve the user's purpose. Give e
 
 1. Read the project: `package.json`, `live-tokens.config.json`, `src/main.ts`, the catalogue, the token scales the component will use, a shipped runtime and editor pair, and the property suffixes.
 2. Design the properties: separate the component's parts, variants, and states, then write one row per editable role with its token and the CSS it controls, named the way the shipped components name the same role.
-3. Write the runtime file: the usage comment and the `:global(:root)` block. A structural choice is an intrinsic. Every component joins the sketch layer, and a fixed overlay portals to `<body>`.
+3. Write the runtime file: the catalogue export and the `:global(:root)` block. A structural choice is an intrinsic. Every component joins the sketch layer, and a fixed overlay portals to `<body>`.
 4. Write the editor file: the schema, the preview props, and the markup. Variants that share a value are linked.
 5. Register the component in the module `src/main.ts` and `live-tokens.testing.ts` both name, and write its contract in the module `contractsModule` names.
 6. Run **live-tokens-check-compliance**, then `npx live-tokens check-component <id> --tests --strict --json` until exit 0 with complete applicable coverage, then the Svelte check and the build.
@@ -39,7 +39,7 @@ Props carry content and behavior: a value, a label, a callback. Properties carry
 Before writing a file:
 
 1. Read the project's `package.json`, `live-tokens.config.json`, and `src/main.ts`.
-2. Run `npx live-tokens components`. The list holds every component the project has, with its variants and usage comment. `npx live-tokens components <id>` prints one component's props.
+2. Run `npx live-tokens components`. The list holds every component the project has, with its variants and catalogue entry. `npx live-tokens components <id>` prints one component's props.
 3. Run `npx live-tokens tokens --scale <name>` for each token scale the component will use. Those names are the tokens a property can reference.
 4. Read a shipped runtime and editor pair: `Toggle` for interaction states, `Badge` for variants and linked values, `Card` for text and container parts.
 5. Read `references/token-naming.md` for the suffixes that select editor controls.
@@ -101,14 +101,18 @@ Name a role as the shipped component that paints the same thing names it. A fill
 
 Create `src/system/components/StatCard.svelte`. `check-component` finds a runtime there only. A component in another directory is listed by `components` and `report` when that directory is named in `"componentDirs"` in `live-tokens.config.json`, and `check-component` does not check it. Use Svelte 5 props and snippets, semantic HTML, and the behavior the task requires.
 
-Open the file with an HTML comment in the shape every shipped component carries. `npx live-tokens components` prints the comment beside the id, and `components <id>` prints the props.
+Open the file with a `<script module lang="ts">` block that exports a `catalogue` entry in the shape every shipped component carries. `npx live-tokens components` prints it beside the id, and `components <id>` prints it with the props. Each field is `key: <string literal>`, in single, double, or backtick quotes; no `${}` interpolation, no concatenation, no identifier reference.
 
 ```svelte
-<!--
-  StatCard.svelte. A figure with its label.
-  Use for: one number the reader takes in at a glance.
-  Not for: a set of records (Table); a titled block of content (Card).
--->
+<script module lang="ts">
+  import type { CatalogueEntry } from '@motion-proto/live-tokens';
+
+  export const catalogue = {
+    description: 'A figure with its label.',
+    useFor: 'one number the reader takes in at a glance.',
+    notFor: 'a set of records (Table); a titled block of content (Card).',
+  } satisfies CatalogueEntry;
+</script>
 ```
 
 Declare every editable property in a literal `:global(:root)` block, each assigned a token. The plugin parses the Svelte source to seed `component-configs/<id>/default.json`, so the block holds plain declarations with no SCSS loop or interpolation.
@@ -192,6 +196,7 @@ Register the component in `src/registerComponents.ts`, a registration-only modul
 ```ts
 // src/registerComponents.ts
 import { registerComponent } from '@motion-proto/live-tokens';
+import { catalogue } from './system/components/StatCard.svelte';
 import StatCardEditor, { allTokens as statCardTokens } from './system/components/StatCardEditor.svelte';
 
 registerComponent({
@@ -201,6 +206,7 @@ registerComponent({
   sourceFile: 'src/system/components/StatCard.svelte',
   editorComponent: StatCardEditor,
   schema: statCardTokens,
+  catalogue,
 });
 ```
 

@@ -2,7 +2,7 @@ import type { SkillTree } from '../types';
 
 export const pickComponent: SkillTree = {
   "id": "live-tokens-pick-component",
-  "digest": "sha256:5e4ca458665c95fd",
+  "digest": "sha256:9dd37f65beac914b",
   "title": "pick-component",
   "tagline": "Select a component from the catalogue",
   "nodes": [
@@ -139,7 +139,7 @@ export const pickComponent: SkillTree = {
       "desc": "Use a component from the catalogue if one fits, otherwise build a new one.",
       "lines": [92, 96],
       "anchor": "## Nothing fits",
-      "anchorEnd": "`npx live-tokens components <id>` prints one component's usa",
+      "anchorEnd": "`npx live-tokens components <id>` prints one component's cat",
       "chips": [
         {
           "label": "shipped component",
@@ -170,7 +170,7 @@ export const pickComponent: SkillTree = {
       "title": "Check the component",
       "desc": "See the component's props and usage before placing it.",
       "lines": [96, 96],
-      "anchor": "`npx live-tokens components <id>` prints one component's usa"
+      "anchor": "`npx live-tokens components <id>` prints one component's cat"
     },
     {
       "id": "pk-native",

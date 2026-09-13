@@ -41,6 +41,13 @@
   `--tests`, not only by `report`. A registered id with no runtime, or a
   runtime with no editor, now surfaces as a `missing-file` finding rather
   than silently dropping out of the batch.
+- **`CatalogueEntry` and the `catalogue` export.** A runtime file's
+  `<script module>` block exports `catalogue`, typed `CatalogueEntry`, with
+  `description`, `useFor`, `notFor`, and an optional `props` map keyed by
+  prop name. `CatalogueEntry` is exported from `@motion-proto/live-tokens`
+  and from `@motion-proto/live-tokens/component-editor`. `catalogueOf` reads
+  the export statically, the way the CLI already reads `component` and
+  `allTokens` from editor files, and `components <id>` prints its fields.
 
 ### Changed (breaking)
 
@@ -49,6 +56,11 @@
   behavior or marks it inapplicable with a reason. `references/contract-tests.md`
   in the create-component skill carries the Toggle-shaped example and the
   one-line inapplicable form.
+- **`RegistryEntry.catalogue` is required, with no default.** A
+  `registerComponent` call now passes `catalogue`, imported from the
+  runtime file beside its editor import. The runtime file's leading comment
+  is deleted; the CLI never falls back to it. A consumer's registration
+  stops compiling until it imports and passes `catalogue`.
 
 ### Changed
 

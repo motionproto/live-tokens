@@ -142,7 +142,7 @@ Measured on 0.78.0 in this repository, 26 shipped components, 5 pages:
 and two kinds of follow-up. It runs `report --json`. It runs `components <id>`
 or `tokens --scale <name>` when a finding needs details. It runs `report` a
 second time to confirm three facts the checker loop never reports: unread
-properties, missing description comments, and unregistered project
+properties, missing descriptions, and unregistered project
 components. It then classifies each finding as Mechanical, Judgement, or
 Deliberate, names the visible shift a geometry repair causes, and orders the
 fix list. Code can supply all of that except the choice of a color role, the
@@ -323,7 +323,7 @@ Never stash, reset, or checkout over uncommitted changes.
 |---|---|---|---|---|
 | `config-token` | check-component | error | choice | An alias string in `default.json` names something the vocabulary lacks, or a literal stands on a property with no intrinsic. |
 | `unread-token` | check-component | warn | choice | A property the runtime declares in `:global(:root)` and reads nowhere in its own CSS. The message names the property. |
-| `missing-description` | check-component | warn | authored | The runtime file opens with no HTML comment. Presence only; the catalogue's `descriptionOf` keeps its own parse. |
+| `missing-description` | check-component | warn | authored | The runtime file opens with no leading comment. Presence only; the catalogue's `descriptionOf` keeps its own parse. |
 | `contract-behavior` | check-component `--tests` | error | authored | A declared behavior case failed under Vitest. Fix slug `runtime`. |
 | `contract-states`, `contract-interaction` | check-component `--tests` | error | authored | Unchanged ids; they now reach the CLI for the failures the harness reported as `contract-preview`. |
 
@@ -831,18 +831,20 @@ in the background.
 
 **Description ownership.** Decided 2026-09-13: the component file owns its
 description, and nothing copies it by hand. Today the runtime file's leading
-HTML comment is the single source; `descriptionOf` in `bin/lib/catalogue.mjs`
+comment is the single source; `descriptionOf` in `bin/lib/catalogue.mjs`
 reads it from source at run time and `missing-description` checks the
 comment. The comment cannot reach the running editor: the Svelte compiler
 drops it, and `registerComponent` receives only a path. The follow-up plan,
-`docs/plans/component-description-export.md`, moves the description to a
-typed `description` export in the runtime file's `<script module>` block.
-The built-in registry and each consumer's `registerComponent` call import
-that export from the component file, so the registry stays a reader. The CLI
-reads the same export statically, as it reads `component` and `allTokens`
-from editor files; `missing-description` checks the export; `components <id>`
-prints its fields. A hand-typed `RegistryEntry.description` field is
-rejected: it is a second copy, and it drifts.
+`docs/plans/component-catalogue-entry.md`, moves the description into a
+typed `catalogue` export in the runtime file's `<script module>` block,
+whose `description` field takes the term Style Dictionary and DTCG use, with
+`useFor` and `notFor` beside it. The built-in registry and each consumer's
+`registerComponent` call import that export from the component file, so the
+registry stays a reader. The CLI reads the same export statically, as it
+reads `component` and `allTokens` from editor files; `missing-description`
+checks the export; `components <id>` prints its fields. A hand-typed
+`RegistryEntry.description` field is rejected: it is a second copy, and it
+drifts.
 
 **`report --tests`.** An opt-in that aggregates `check-component --tests`
 over project-authored components and `check-page --tests` over routed pages,

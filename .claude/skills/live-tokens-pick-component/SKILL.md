@@ -9,7 +9,7 @@ When more than one shipped component could fit, find the family below that names
 
 ## Catalogue
 
-Before choosing, run `npx live-tokens components`. The list holds every component the project has, shipped and custom, with each one's variants and usage comment. The family tests below name the shipped set only. Weigh a custom component by the same tests.
+Before choosing, run `npx live-tokens components`. The list holds every component the project has, shipped and custom, with each one's variants and catalogue entry. The family tests below name the shipped set only. Weigh a custom component by the same tests.
 
 ## Action family
 
@@ -93,4 +93,4 @@ Each pair holds a block the reader views and one the reader interacts with. The 
 
 A native element with no chrome of its own needs no component: an `<input type="file">` behind a Button, a `<canvas>`, an `<img>` inside a stage. When nothing in the catalogue fits a piece with chrome (a `DatePicker`, a `Stepper`), author the component with **live-tokens-create-component**. Size, emphasis, and placement are **live-tokens-create-page**'s.
 
-`npx live-tokens components <id>` prints one component's usage comment, its declared props, and the values each union accepts. `--json` returns the same as data.
+`npx live-tokens components <id>` prints one component's catalogue entry, its declared props, and the values each union accepts. `--json` returns the same as data.
