@@ -52,8 +52,8 @@ shows the entry.
 
 | Wave | Deliverable | Lane | Model | Budget | Status | Commit |
 |---|---|---|---|---|---|---|
-| 1 | The export, its type, the registry import, the CLI reader, the tests | main | Sonnet | 120 min | In progress | ce2d14c |
-| 2 | Skills, references, docs, atlas, changelog | main | Sonnet | 60 min | In progress | 7e90e01 |
+| 1 | The export, its type, the registry import, the CLI reader, the tests | main | Sonnet | 120 min | Done | ce2d14c |
+| 2 | Skills, references, docs, atlas, changelog | main | Sonnet | 60 min | Done | 7e90e01 |
 
 ## Execution
 
