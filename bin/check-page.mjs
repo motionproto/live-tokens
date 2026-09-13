@@ -244,6 +244,9 @@ function attributeDeletion(code, index, end) {
   const start = /[^\S\n]/.test(code[index - 1] ?? '') ? index - 1 : index;
   const from = code.slice(start, end);
   if (from.includes('\n') || from.endsWith('=')) return null;
+  // `size = "small"` parses as a bare `size` followed by `=`, so the span is
+  // the name alone and deleting it would strand the value.
+  if (/^[^\S\n]*=/.test(code.slice(end))) return null;
   return { from, to: '' };
 }
 
