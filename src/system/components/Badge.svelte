@@ -5,6 +5,9 @@
     description: 'A short standing label on an element.',
     useFor: 'status the reader takes at a glance, such as "Beta", "New", or a version.',
     notFor: "a marker that sits on a parent's corner (CornerBadge); feedback after an action (Notification).",
+    props: {
+      variant: '`primary`, `accent`, `special`, `alternate`, `canvas`, and `neutral` paint a color family; `success`, `warning`, `danger`, and `info` carry a status.',
+    },
   } satisfies CatalogueEntry;
 
   export const badgeVariants = [

@@ -3,8 +3,11 @@
 
   export const catalogue = {
     description: 'A number the reader picks by position on a track.',
-    useFor: 'a volume, a price band, or a percentage, where the position carries the meaning.',
+    useFor: 'a volume, a price range, or a percentage, where the position carries the meaning.',
     notFor: 'an exact number the reader would rather type (Input); an on/off setting (Toggle).',
+    props: {
+      variant: '`single` picks one number; `range` picks a low and a high.',
+    },
   } satisfies CatalogueEntry;
 
   export const sliderVariants = ['single', 'range'] as const;

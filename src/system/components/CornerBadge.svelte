@@ -5,6 +5,10 @@
     description: 'A badge that sits on a corner of its parent.',
     useFor: 'a count or status marker that sits on the thing it describes.',
     notFor: 'a label in the text flow (Badge); feedback after an action (Notification).',
+    props: {
+      variant: '`primary`, `accent`, `special`, `alternate`, `canvas`, and `neutral` paint a color family; `success`, `warning`, `danger`, and `info` carry a status.',
+      anchor: 'the corner the badge sits on; `bottom-right` unless named.',
+    },
   } satisfies CatalogueEntry;
 
   export type CornerAnchor = 'bottom-right' | 'bottom-left' | 'top-right' | 'top-left';

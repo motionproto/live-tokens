@@ -38,7 +38,7 @@ The test is whether the answer comes from a predefined list of options.
 - A predefined list (a status, a currency, a size, a country): the single-selection family, by its own test. Up to four options sit in a row; more go in a `MenuSelect`, which scrolls.
 - No list (a name, a search string, an amount, a message, a street address): `Input`. Validation keeps a typed answer well-formed.
 - A long list the reader would rather filter by typing (a city): no shipped component filters a list. Use `Input` with validation, or author a filtering select with **live-tokens-create-component**.
-- A number where the position on a track carries the meaning (a volume, a price band, a percentage): `Slider`. A number the reader knows and would rather type: `Input` with `type="number"`.
+- A number where the position on a track carries the meaning (a volume, a price range, a percentage): `Slider`. A number the reader knows and would rather type: `Input` with `type="number"`.
 
 ## On and off
 

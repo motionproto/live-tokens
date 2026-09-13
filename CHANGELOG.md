@@ -20,8 +20,8 @@
   nothing. Refused together with `--tests`: fix first, then verify.
 - **Three findings that used to be report-only facts.** `unread-token`
   (warn): a runtime declares a property in `:global(:root)` and reads it
-  nowhere in its own CSS. `missing-description` (warn): a runtime file opens
-  with no HTML comment. `config-token`: an alias in
+  nowhere in its own CSS. `missing-description` (warn): a runtime file has no
+  `catalogue` export, or a required field in it is not a string literal. `config-token`: an alias in
   `component-configs/<id>/default.json` names something the vocabulary
   lacks, or a bare literal stands on a property the editor declares no
   intrinsic for.
@@ -64,6 +64,20 @@
 
 ### Changed
 
+- **Every shipped catalogue entry explains the props that carry a choice.**
+  `props.variant` on Badge, CornerBadge, Callout, Notification, Card, and
+  Slider, `props.anchor` on CornerBadge, `props.type` on Input,
+  `props.role` on MenuSelect, and `props.minHeight` on Panel, which used to
+  sit inside `useFor`. SectionDivider's entry keys its size guidance under
+  `variant`, the prop's real name, instead of `level`, and adds `eyebrow`
+  and `description`. The registry contract test now fails on a `props` key
+  that names no declared prop.
+- **`components` prints only the catalogue fields a file has.** A file whose
+  export lacks a field no longer prints `Use for: undefined`; the
+  `missing-description` finding already names the field.
+- **"section" replaces "band" and "range" replaces "band"** in the catalogue,
+  the skills, the docs, and the README, following the design vocabulary in
+  `docs/terminology.md`.
 - **`contract-preview` is retired.** The harness throws `contract-states`
   from its state assertions and `contract-interaction` from its interaction
   assertions directly, so a failure the CLI used to report under

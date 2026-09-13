@@ -323,7 +323,7 @@ Never stash, reset, or checkout over uncommitted changes.
 |---|---|---|---|---|
 | `config-token` | check-component | error | choice | An alias string in `default.json` names something the vocabulary lacks, or a literal stands on a property with no intrinsic. |
 | `unread-token` | check-component | warn | choice | A property the runtime declares in `:global(:root)` and reads nowhere in its own CSS. The message names the property. |
-| `missing-description` | check-component | warn | authored | The runtime file opens with no leading comment. Presence only; the catalogue's `descriptionOf` keeps its own parse. |
+| `missing-description` | check-component | warn | authored | The runtime file has no `catalogue` export, or `description`, `useFor`, or `notFor` in it is not a string literal. The message names the missing field. Rewritten by `docs/plans/component-catalogue-entry.md`. |
 | `contract-behavior` | check-component `--tests` | error | authored | A declared behavior case failed under Vitest. Fix slug `runtime`. |
 | `contract-states`, `contract-interaction` | check-component `--tests` | error | authored | Unchanged ids; they now reach the CLI for the failures the harness reported as `contract-preview`. |
 
@@ -830,13 +830,15 @@ in the background.
 ## Deferred
 
 **Description ownership.** Decided 2026-09-13: the component file owns its
-description, and nothing copies it by hand. Today the runtime file's leading
-comment is the single source; `descriptionOf` in `bin/lib/catalogue.mjs`
-reads it from source at run time and `missing-description` checks the
-comment. The comment cannot reach the running editor: the Svelte compiler
-drops it, and `registerComponent` receives only a path. The follow-up plan,
-`docs/plans/component-catalogue-entry.md`, moves the description into a
-typed `catalogue` export in the runtime file's `<script module>` block,
+description, and nothing copies it by hand. Until that day the runtime
+file's leading comment was the single source; `descriptionOf` in
+`bin/lib/catalogue.mjs` read it from source at run time and
+`missing-description` checked the comment. The comment could not reach the
+running editor: the Svelte compiler drops it, and `registerComponent`
+receives only a path. The follow-up plan,
+`docs/plans/component-catalogue-entry.md`, executed the same day, moved the
+description into a typed `catalogue` export in the runtime file's
+`<script module>` block,
 whose `description` field takes the term Style Dictionary and DTCG use, with
 `useFor` and `notFor` beside it. The built-in registry and each consumer's
 `registerComponent` call import that export from the component file, so the

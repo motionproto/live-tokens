@@ -72,6 +72,20 @@ function project(): string {
 </script>
 <style>:global(:root) { --gizmo-surface: var(--surface-neutral); }</style>`,
   );
+  writeFileSync(
+    join(root, 'src/widgets/Knob.svelte'),
+    `<script module lang="ts">
+  export const catalogue = {
+    description: 'A knob.',
+    useFor: 'a value turned by hand.',
+  };
+</script>
+<script lang="ts">
+  interface Props { value?: number }
+  let { value = 0 }: Props = $props();
+</script>
+<style>:global(:root) { --knob-surface: var(--surface-neutral); }</style>`,
+  );
   writeFileSync(join(root, 'live-tokens.config.json'), JSON.stringify({ componentDirs: ['src/widgets'] }));
   writeFileSync(join(root, 'src/main.ts'), `bootLiveTokens(App, '#app', { components: [{ id: 'widget' }] });`);
   return root;
@@ -113,15 +127,22 @@ describe('describeComponents', () => {
     const root = project();
     const widget = describeComponents(loadVocabulary({ root }), { root }).find((c: { id: string }) => c.id === 'widget');
     const dial = describeComponents(loadVocabulary({ root }), { root }).find((c: { id: string }) => c.id === 'dial');
-    expect(formatComponents([widget], { id: 'widget' }).split('\n')).toEqual(
-      expect.arrayContaining([
-        '  A dial for one bounded number.',
-        '  Use for: a value the reader sets by turning a ring.',
-        '  Not for: free text.',
-        '  variant: `round` is a full circle, `flat` is a half circle.',
-      ]),
-    );
+    expect(formatComponents([widget], { id: 'widget' }).split('\n').slice(1, 5)).toEqual([
+      '  A dial for one bounded number.',
+      '  Use for: a value the reader sets by turning a ring.',
+      '  Not for: free text.',
+      '  variant: `round` is a full circle, `flat` is a half circle.',
+    ]);
     expect(formatComponents([dial], { id: 'dial' })).toContain('  Not for: an exact number the reader would rather type (Input).');
+  });
+
+  it('prints only the catalogue fields the file has', () => {
+    const root = project();
+    const knob = describeComponents(loadVocabulary({ root }), { root }).find((c: { id: string }) => c.id === 'knob');
+    const out = formatComponents([knob], { id: 'knob' });
+    expect(out.split('\n').slice(1, 3)).toEqual(['  A knob.', '  Use for: a value turned by hand.']);
+    expect(out).not.toContain('Not for:');
+    expect(out).not.toContain('undefined');
   });
 
   it('lists custom components first and names an unknown id', () => {

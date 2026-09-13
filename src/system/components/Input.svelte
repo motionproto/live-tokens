@@ -5,6 +5,9 @@
     description: 'A text field with its label, hint, and error line.',
     useFor: 'an answer the page cannot list, such as a name, an amount, or a search string.',
     notFor: 'a choice from a set the page can write down (MenuSelect); an on/off setting (Toggle).',
+    props: {
+      type: '`number` for an amount, `search` for a query, `password` for a secret; `text` otherwise.',
+    },
   } satisfies CatalogueEntry;
 </script>
 

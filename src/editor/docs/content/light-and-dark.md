@@ -20,7 +20,7 @@ selects, so a rule can key on it, and it sets `color-scheme`, so every
 ```
 
 That line is right on both sides of the theme, and it is right inside a dark
-band on a pale page, because the nearest `color-scheme` wins.
+section on a pale page, because the nearest `color-scheme` wins.
 
 ## Stating it
 
@@ -86,5 +86,5 @@ a stop function. `cssColorToHex` resolves any CSS colour — including the
 Polarity is a property of a surface, not of a component, so nothing is stamped
 for you below `<html>`: a section that needs an answer either states one or asks
 for one. And a measurement reads the paint at the moment it runs — an element
-that scrolls from a pale band onto a dark one keeps the answer it was given.
-State the tone on each band instead.
+that scrolls from a pale section onto a dark one keeps the answer it was given.
+State the tone on each section instead.

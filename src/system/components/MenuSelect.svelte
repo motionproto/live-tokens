@@ -5,6 +5,9 @@
     description: 'A list of options with one checked.',
     useFor: 'single selection from a set too long to sit in a row, dropped from a Button.',
     notFor: 'two to four inline alternatives (SegmentedControl); a form-style list read in full (RadioButton).',
+    props: {
+      role: '`listbox` for a select; `menu` for a command menu.',
+    },
   } satisfies CatalogueEntry;
 </script>
 

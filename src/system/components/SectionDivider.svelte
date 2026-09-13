@@ -3,10 +3,12 @@
 
   export const catalogue = {
     description: 'A titled break between the sections of a page.',
-    useFor: 'naming the band that follows it.',
+    useFor: 'naming the section that follows it.',
     notFor: 'moving between pages (SideNavigation); a title inside a container (Card).',
     props: {
-      level: '`md` titles a page and `sm` titles a section; `eyebrow` is an opt-in label above the title.',
+      variant: '`sm` titles a section, `md` titles a page, and `lg` is the largest size.',
+      eyebrow: 'an opt-in label above the title.',
+      description: 'an opt-in line under the title.',
     },
   } satisfies CatalogueEntry;
 </script>

@@ -88,7 +88,7 @@ rather than only on the buttons.
 | Christmas | red and green with gold, one of the two owning the ground |
 | Halloween | pumpkin, violet, and poison green, dark either way |
 | St. Patrick's | green with gold over a pale ground |
-| Ocean | blues held to one narrow band |
+| Ocean | blues held to one narrow range |
 | Sunset | a hue sweep through red, falling in lightness |
 | Autumn | parchment under rust, gold, and moss |
 | Spring | pastels, greens and pinks over a mint ground |

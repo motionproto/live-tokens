@@ -1,7 +1,7 @@
 # Color anchors: feelings, idioms, and occasions
 
 Read this when the color intent names one of these. Entries are starting
-points: apply the chroma budget, the per-role bands, and the canvas commitment
+points: apply the chroma budget, the per-role ranges, and the canvas commitment
 rules from SKILL.md on top of them.
 
 An idiom sets constraints and overrides the generic defaults in SKILL.md. The

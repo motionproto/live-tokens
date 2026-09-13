@@ -203,8 +203,12 @@ export function describeTokens(vocab, { root = process.cwd() } = {}) {
 
 function describeLines(c) {
   if (!c.catalogue) return [];
-  const lines = [c.catalogue.description, `Use for: ${c.catalogue.useFor}`, `Not for: ${c.catalogue.notFor}`];
-  for (const [prop, text] of Object.entries(c.catalogue.props ?? {})) lines.push(`${prop}: ${text}`);
+  const { description, useFor, notFor, props } = c.catalogue;
+  const lines = [];
+  if (description) lines.push(description);
+  if (useFor) lines.push(`Use for: ${useFor}`);
+  if (notFor) lines.push(`Not for: ${notFor}`);
+  for (const [prop, text] of Object.entries(props ?? {})) lines.push(`${prop}: ${text}`);
   return lines;
 }
 

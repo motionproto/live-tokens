@@ -35,10 +35,16 @@ describe('a built-in entry imports its catalogue, never copies it', () => {
     string,
     { catalogue?: unknown }
   >;
+  const runtimeSources = import.meta.glob('/src/system/components/*.svelte', {
+    eager: true,
+    query: '?raw',
+    import: 'default',
+  }) as Record<string, string>;
+  const runtimeFiles = Object.keys(runtimeModules).filter((path) => !path.endsWith('Editor.svelte'));
   const builtIns = entries.filter((e) => e.origin === 'system');
 
-  it('covers every built-in entry', () => {
-    expect(builtIns.length).toBeGreaterThan(20);
+  it('covers every runtime file', () => {
+    expect(builtIns.map((e) => `/${e.sourceFile}`).sort()).toEqual(runtimeFiles.sort());
   });
 
   describe.each(builtIns.map((e) => [e.id, e] as const))('%s', (_id, entry) => {
@@ -47,5 +53,27 @@ describe('a built-in entry imports its catalogue, never copies it', () => {
       expect(mod?.catalogue).toBeDefined();
       expect(entry.catalogue).toBe(mod!.catalogue);
     });
+
+    it('every catalogue.props key names a prop the file declares', () => {
+      const declared = declaredProps(runtimeSources[`/${entry.sourceFile}`]);
+      for (const key of Object.keys(entry.catalogue.props ?? {})) expect(declared).toContain(key);
+    });
   });
 });
+
+function declaredProps(source: string): string[] {
+  const withoutComments = source.replace(/\/\*[\s\S]*?\*\//g, '');
+  const start = withoutComments.search(/interface Props\s*\{/);
+  if (start < 0) return [];
+  let depth = 0;
+  let end = start;
+  for (let i = withoutComments.indexOf('{', start); i < withoutComments.length; i++) {
+    if (withoutComments[i] === '{') depth++;
+    else if (withoutComments[i] === '}' && --depth === 0) {
+      end = i;
+      break;
+    }
+  }
+  const body = withoutComments.slice(withoutComments.indexOf('{', start) + 1, end);
+  return [...body.matchAll(/^\s*([A-Za-z_$][\w$]*)\??\s*:/gm)].map((m) => m[1]);
+}

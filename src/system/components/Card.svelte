@@ -6,6 +6,9 @@
     useFor: 'an item on its own, or each item in a set: a product, a record, a plan the reader may act on.',
     notFor:
       "a section of the page's content (Panel); content the reader opens on demand (CollapsibleSection); a decision that blocks the page (Dialog).",
+    props: {
+      variant: '`bare` drops the header for content that carries its own title.',
+    },
   } satisfies CatalogueEntry;
 </script>
 

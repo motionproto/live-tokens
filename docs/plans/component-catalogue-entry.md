@@ -55,6 +55,11 @@ shows the entry.
 | 1 | The export, its type, the registry import, the CLI reader, the tests | main | Sonnet | 120 min | Done | ce2d14c |
 | 2 | Skills, references, docs, atlas, changelog | main | Sonnet | 60 min | Done | 7e90e01 |
 
+**Correction 2026-09-13.** Judgment call 1 keyed SectionDivider's size
+guidance as `props.level`; the prop is named `variant`. The follow-up commit
+after Wave 2 re-keyed it and added a registry contract test that every
+`props` key names a declared prop.
+
 ## Execution
 
 The `workflow-execution` skill, user-level, runs the plan from the Status
