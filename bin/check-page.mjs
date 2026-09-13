@@ -248,14 +248,17 @@ function attributeDeletion(code, index, end) {
 /** A `--name: value;` CSS declaration, deleted whole. The match is anchored at
  *  `index`, which sits either on the name or on the boundary character before
  *  it (a style-block match keeps that char as its own delimiter), and the
- *  value stops at `}` and at a newline as well as at `;`. Unanchored and
- *  unbounded, the search ran past its own rule and deleted the next
- *  same-named declaration, or the text of a string literal further down the
- *  file. A declaration no `;` terminates inside its own block yields no patch,
- *  since deleting it whole would need one.
+ *  declaration stops at `}` and at a newline as well as at `;`, the gaps
+ *  around its colon included. Unanchored and unbounded, the search ran past
+ *  its own rule and deleted the next same-named declaration, or the text of a
+ *  string literal further down the file. A declaration no `;` terminates
+ *  inside its own block yields no patch, since deleting it whole would need
+ *  one. A declaration wrapped onto a second line yields none either: the
+ *  patch has to stay inside the line the finding names, since `applyFixes`
+ *  assumes no patch moves a later line.
  */
 function declarationDeletion(text, name, index) {
-  const m = new RegExp(`^[;{]?\\s*(${name}\\s*:\\s*[^;}\\n]+;)`).exec(text.slice(index));
+  const m = new RegExp(`^[;{]?\\s*(${name}[^\\S\\n]*:[^\\S\\n]*[^;}\\n]+;)`).exec(text.slice(index));
   return m ? { from: m[1], to: '' } : null;
 }
 

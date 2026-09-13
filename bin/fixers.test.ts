@@ -303,6 +303,21 @@ describe('check-page --fix, per rule', () => {
     );
   });
 
+  it('property-override: a declaration wrapped onto a second line is left untouched, and a later finding lands at its own site', () => {
+    const root = pageRoot(SPACE_TOKENS);
+    const rel = 'src/pages/Detail.svelte';
+    const source = `<style>\n.a {\n  --card-default-radius:\n    0.5rem;\n}\n.b { padding: 8px; }\n</style>\n<p>the docs say padding: 8px in prose</p>`;
+    writeFileSync(join(root, rel), source);
+    const { resolved, applied } = checkAndFix(root, [rel]);
+    const f = resolved.find((x: { rule: string }) => x.rule === 'property-override');
+    expect(f.repair).toBe('choice');
+    expect(f.details.patch).toBeUndefined();
+    expect(applied.map((x: { rule: string }) => x.rule)).toEqual(['dimension-literal']);
+    expect(readFileSync(join(root, rel), 'utf8')).toBe(
+      `<style>\n.a {\n  --card-default-radius:\n    0.5rem;\n}\n.b { padding: var(--space-8); }\n</style>\n<p>the docs say padding: 8px in prose</p>`,
+    );
+  });
+
   it('property-override: a setProperty override stays authored, untouched by --fix', () => {
     const root = pageRoot(SPACE_TOKENS);
     const rel = 'src/pages/Detail.svelte';
