@@ -10,16 +10,12 @@ Fix every finding of `check-page` and `check-component` until both exit 0. `chec
 ## Workflow
 
 1. Run `npx live-tokens migrate --check` to see the plan, then `npx live-tokens migrate` to apply it. `--tokens <path>` names a tokens.css in an unusual place.
-2. Run `--fix` on both checkers. Each applies every finding whose `repair` is `auto`, rechecks, and reports the patches it applied and what remains. A second `--fix` run changes nothing; `--fix` refuses to run alongside `--tests`.
-   ```sh
-   npx live-tokens check-page --fix
-   npx live-tokens check-component --fix
-   ```
-3. Run both checkers with `--json` to read what remains. Each finding carries a `rule`, a file, a line, a `repair` of `choice` or `authored` (`--fix` already cleared every `auto` one), and, for `choice`, `details` naming the candidates.
+2. Run both checkers with `--json`. Each first applies every finding whose `repair` is `auto`, rechecks, and returns the fixes it applied in `fix.applied` beside the findings that remain. A second run applies nothing. `--no-fix` reports without editing, for a build or CI.
    ```sh
    npx live-tokens check-page --json
    npx live-tokens check-component --json
    ```
+3. Read what remains. Each finding carries a `rule`, a file, a line, a `repair` of `choice` or `authored` (the checkers already applied every `auto` one), and, for `choice`, `details` naming the candidates.
 4. Group the findings by rule.
 5. Take the largest error group first, then the remaining errors. Take warnings only when the repair scope includes warnings.
 6. Fix every finding in the group with its section: Color by role, Geometry by scale, or The remaining rules.
@@ -27,14 +23,14 @@ Fix every finding of `check-page` and `check-component` until both exit 0. `chec
 8. When the errors are clear, run both checkers with `--strict`. Report what `--strict` adds. Clear warnings within the existing request. Otherwise ask whether to clear the warnings now.
 9. When the repair scope includes warnings, return to step 4 with `--strict`. When strict checks pass or the user defers warnings, continue to the reply.
 10. Reply with:
-    - the patches `--fix` applied, each with its count and any visible shift
+    - the fixes the checkers applied, each with its count and any visible shift
     - the remaining changes by rule, each with its count and any visible shift
     - the findings left, each with its reason and any config entry the user chose
     - both checker commands with their exit codes
 
 `check-page <path>` scopes a run to one page. `check-component <id>` scopes a run to one component: its runtime, its editor, and its registration. The checkers read tokens.css from its default location.
 
-When `package.json` has no `check:design` script, add `"check:design": "live-tokens check-page && live-tokens check-component"`. When both checkers exit 0, prepend `npm run check:design &&` to the existing build command. Preserve its other build steps.
+When `package.json` has no `check:design` script, add `"check:design": "live-tokens check-page --no-fix && live-tokens check-component --no-fix"`. When both checkers exit 0, prepend `npm run check:design &&` to the existing build command. Preserve its other build steps.
 
 ## Scope
 
@@ -60,7 +56,7 @@ When `package.json` has no `check:design` script, add `"check:design": "live-tok
 
 ## Geometry by scale
 
-`dimension-literal` is an `auto` finding, so `--fix` already replaced every literal whose nearest step was unique. What remains has no single nearest step, `repair: choice`, so pick by the visual weight the candidates in `details` show. A size, such as a hero's height, is layout. Leave it.
+`dimension-literal` is an `auto` finding, so the checker already replaced every literal whose nearest step was unique. What remains has no single nearest step, `repair: choice`, so pick by the visual weight the candidates in `details` show. A size, such as a hero's height, is layout. Leave it.
 
 | Literal | Token | Notes |
 | --- | --- | --- |
@@ -81,11 +77,11 @@ When `package.json` has no `check:design` script, add `"check:design": "live-tok
 | `unknown-component` | Read **live-tokens-pick-component** for the shipped component that fits. When none fits, author one with **live-tokens-create-component**. |
 | `unknown-prop` | `npx live-tokens components <id>` prints the declared props and their values. Map the prop to one of them, or delete it. |
 | `unknown-prop-value` | Use a value from the union the message lists. |
-| `control-size` | `--fix` deletes the attribute it can bound whole. Delete the rest by hand. The shipped default is the page's size. When that default is wrong for the project, retune the component in `/live-tokens/components`. |
+| `control-size` | The checker deletes the attribute it can bound whole. Delete the rest by hand. The shipped default is the page's size. When that default is wrong for the project, retune the component in `/live-tokens/components`. |
 | `multiple-primary` | Keep the action that completes the main task `primary`. A Button with no `variant` counts as `primary`. Use `secondary` for supporting or related actions and `outline` for unrelated or informational actions. |
 | `danger-without-dialog` | Open a `Dialog` from the danger Button or IconButton and run the action from the Dialog's confirm. The rule fires once per page, when the page imports no Dialog. For other actions, assign emphasis by the action's relationship to the main task. |
 | `native-control` | Replace the native element with the shipped component the message names: Button or IconButton, Input, MenuSelect. |
-| `property-override` | `--fix` deletes the declaration or the `style:` directive. A `setProperty` call is code around the value, so rewrite it yourself. Retune the component's token for the whole project at `/live-tokens/components`. |
+| `property-override` | The checker deletes the declaration or the `style:` directive. A `setProperty` call is code around the value, so rewrite it yourself. Retune the component's token for the whole project at `/live-tokens/components`. |
 | `page-component-paint` | The finding names the page file and the line of the instance whose part painted a value its semantic property never resolves to. Remove the global rule reaching past the component, from `site.css` or the page's own CSS, and retune the component's token for the whole project at `/live-tokens/components`. |
 | `page-text-style` | The finding names the page file and the line of the text element and the nearest bundle it missed. Set the container's text style directly on the text element, one shipped bundle from `npx live-tokens tokens --scale heading` (or `body`, `editorial`, `code`), rather than leaving it to inherit from an ancestor typed for a different role. |
 | `page-contrast` | The finding names the page file and the line of the text element, the surface ancestor, and both computed colors. Pick the text token the surface pairs with, from the Color by role table above. |
@@ -95,7 +91,7 @@ When `package.json` has no `check:design` script, add `"check:design": "live-tok
 | `site-css-in-main` | Delete the import from `main.ts`. Add it to each page's `<script>`. Page CSS then stays off the editor routes. |
 | `missing-source` | Add `source: 'src/...'` to the route entry. |
 | `reserved-route` | Move the route out of `/live-tokens/*`. |
-| `deep-import` | `--fix` rewrites a `/src/system/components/<Name>.svelte` specifier to the public `/components/<Name>.svelte`. Import any other deep specifier from a public subpath, which `details.exports` lists. |
+| `deep-import` | The checker rewrites a `/src/system/components/<Name>.svelte` specifier to the public `/components/<Name>.svelte`. Import any other deep specifier from a public subpath, which `details.exports` lists. |
 | `unread-token` | The message names the property the runtime declares in `:global(:root)` and never reads. Wire it into the CSS, or delete the declaration when nothing should paint with it. |
 | `missing-description` | Add the `catalogue` export with `description`, `useFor`, and `notFor`. The finding's message names the field that is missing or malformed; `npx live-tokens components <id>` prints the entry once it is there. |
 | `config-token` | The message names the alias in `component-configs/<id>/default.json` that names something outside the vocabulary, or a bare literal on a property the editor declares no intrinsic for. Point it at a design token or one of the component's own properties, per Color by role and Geometry by scale, or declare the intrinsic in the editor. |

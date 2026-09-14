@@ -100,13 +100,15 @@ check-component and check-page also accept:
                               (or set "checks": { "rules": {...} } in
                               live-tokens.config.json; "checks": { "exclude":
                               [...] } drops paths from discovery entirely)
-  --fix                       Apply every finding whose repair is auto (a
+  --no-fix                    Report every finding and edit nothing, for a
+                              build or CI. Without it, both checkers first
+                              apply every finding whose repair is auto (a
                               deep import into a component, a raw dimension
                               with one nearest design token, a shipped
                               component's size prop, a semantic property
-                              overridden in place), then report what changed
-                              and re-check. Refused together with --tests:
-                              fix first, then verify.
+                              overridden in place), re-check, and list each
+                              fix beside what remains. --tests runs after
+                              the fixes land.
   set-colors <base-colors.json> [--dry-run]
                               Build the theme's whole color identity from 10
                               OKLCH base colors (see the live-tokens-set-colors
@@ -203,14 +205,14 @@ if (command === 'create') {
   }
 }
 
-function reportChecks(label, findings, checked, rules, opts, { coverage, hardFailure, exclude } = {}) {
+function reportChecks(label, findings, checked, rules, opts, { coverage, hardFailure, exclude, fix } = {}) {
   const checksConfig = readChecksConfig(process.cwd());
   const resolved = applySeverity(findings, rules, opts, checksConfig, { exclude });
   const resolvedCoverage = coverage ? applyCoverageSeverity(coverage, rules, opts, checksConfig) : coverage;
   console.log(
     opts.json
-      ? toJson(resolved, { label, checked, coverage: resolvedCoverage })
-      : formatFindings(resolved, { label, checked }),
+      ? toJson(resolved, { label, checked, coverage: resolvedCoverage, fix })
+      : [fix ? formatFixes(fix) : '', formatFindings(resolved, { label, checked })].filter(Boolean).join('\n'),
   );
   // Decision 2: a missing tool or a setup failure under --tests is an error
   // even if a project silenced its rule id, since silencing it would read as
@@ -224,28 +226,21 @@ function shiftNote(f) {
   return `  shift ${shifts.join(', ')}`;
 }
 
-/** `--fix`: apply every `auto` patch the static findings already carry, then
- *  report what changed against a fresh run over the fixed file, so a patch
- *  already applied or a file that moved on is never double-reported. */
-function runFix(label, findings, checked, rules, opts, { exclude } = {}, recheck) {
+/** Resolves severities and exclusions first, so a silenced rule or an excluded
+ *  file is never edited. */
+function applyStaticFixes(findings, rules, opts, { exclude } = {}) {
   const root = process.cwd();
-  const checksConfig = readChecksConfig(root);
-  const resolved = applySeverity(findings, rules, opts, checksConfig, { exclude });
-  const { applied, skipped } = applyFixes(resolved, root);
-  const remaining = applySeverity(recheck(), rules, opts, checksConfig, { exclude });
-  if (opts.json) {
-    const { errors, warnings } = countBySeverity(remaining);
-    console.log(JSON.stringify({ check: label, fix: { applied, skipped }, checked, errors, warnings, findings: remaining }, null, 2));
-  } else {
-    const lines = [`${label} --fix: ${applied.length} patch(es) applied, ${skipped.length} left unresolved.`];
-    for (const f of applied) {
-      lines.push(`  fixed    ${f.file}:${f.line}  ${f.details.patch.from} → ${f.details.patch.to || '(removed)'}  [${f.rule}]${shiftNote(f)}`);
-    }
-    for (const f of skipped) lines.push(`  skipped  ${f.file}:${f.line}  ${f.details.patch.from}  [${f.rule}]`);
-    lines.push('', formatFindings(remaining, { label, checked }));
-    console.log(lines.join('\n'));
+  return applyFixes(applySeverity(findings, rules, opts, readChecksConfig(root), { exclude }), root);
+}
+
+function formatFixes({ applied, skipped }) {
+  const lines = [];
+  for (const f of applied) {
+    lines.push(`  fixed    ${f.file}:${f.line}  ${f.details.patch.from} → ${f.details.patch.to || '(removed)'}  [${f.rule}]${shiftNote(f)}`);
   }
-  process.exit(countBySeverity(remaining).errors === 0 ? 0 : 1);
+  for (const f of skipped) lines.push(`  skipped  ${f.file}:${f.line}  ${f.details.patch.from}  [${f.rule}]`);
+  if (lines.length === 0) return '';
+  return [`${applied.length} fix(es) applied, ${skipped.length} skipped:`, ...lines, ''].join('\n');
 }
 
 if (command === 'components') {
@@ -291,33 +286,31 @@ if (command === 'report') {
 
 if (command === 'check-component') {
   const opts = parseCheckFlags(rest);
-  if (opts.fix && opts.tests) {
-    fail('--fix cannot run with --tests. Fix the static findings first, then verify with --tests.');
-  }
   const ids = opts.rest.length > 0 ? [opts.rest[0]] : discoverComponents();
   if (ids.length === 0 && !opts.tests) {
     console.log('✓ check-component: no component authored under src/system/components yet.');
     process.exit(0);
   }
-  const results = ids.map((id) => [id, checkComponent(id)]);
+  let results = ids.map((id) => [id, checkComponent(id)]);
   const label = ids.length === 1 ? `check-component ${ids[0]}${opts.tests ? ' --tests' : ''}` : `check-component${opts.tests ? ' --tests' : ''}`;
-  if (opts.fix) {
-    runFix(label, results.flatMap(([, r]) => r.findings), ids.length, COMPONENT_RULES, opts, {}, () =>
-      ids.flatMap((id) => checkComponent(id).findings),
-    );
+  let fix;
+  if (!opts.noFix) {
+    fix = applyStaticFixes(results.flatMap(([, r]) => r.findings), COMPONENT_RULES, opts);
+    if (fix.applied.length > 0) results = ids.map((id) => [id, checkComponent(id)]);
   }
   if (!opts.tests && ids.length === 1 && !opts.json && !opts.strict && opts.off.length + opts.warn.length + opts.error.length === 0) {
     const [id, result] = results[0];
-    console.log(formatReport(id, result));
+    console.log([fix ? formatFixes(fix) : '', formatReport(id, result)].filter(Boolean).join('\n'));
     process.exit(result.errors.length === 0 ? 0 : 1);
   }
   if (!opts.tests) {
-    reportChecks(label, results.flatMap(([, r]) => r.findings), ids.length, COMPONENT_RULES, opts);
+    reportChecks(label, results.flatMap(([, r]) => r.findings), ids.length, COMPONENT_RULES, opts, { fix });
   }
   const { hasHardFailure, runContractTests } = await import('./contractRunner.mjs');
   const testOutcome = await runContractTests(opts.rest[0], { root: process.cwd() });
   const findings = dedupeAliasFindings([...results.flatMap(([, r]) => r.findings), ...testOutcome.findings]);
   reportChecks(label, findings, Math.max(ids.length, 1), COMPONENT_RULES, opts, {
+    fix,
     coverage: testOutcome.coverage,
     hardFailure: hasHardFailure(testOutcome.findings),
   });
@@ -325,16 +318,15 @@ if (command === 'check-component') {
 
 if (command === 'check-page') {
   const opts = parseCheckFlags(rest);
-  if (opts.fix && opts.tests) {
-    fail('--fix cannot run with --tests. Fix the static findings first, then verify with --tests.');
-  }
   const targets = opts.rest.length > 0 ? opts.rest : discoverPages(process.cwd());
-  const { findings, checked } = checkPages(targets, { root: process.cwd() });
-  if (opts.fix) {
-    runFix('check-page', findings, checked, PAGE_RULES, opts, { exclude: true }, () => checkPages(targets, { root: process.cwd() }).findings);
+  let { findings, checked } = checkPages(targets, { root: process.cwd() });
+  let fix;
+  if (!opts.noFix) {
+    fix = applyStaticFixes(findings, PAGE_RULES, opts, { exclude: true });
+    if (fix.applied.length > 0) ({ findings, checked } = checkPages(targets, { root: process.cwd() }));
   }
   if (!opts.tests) {
-    reportChecks('check-page', findings, checked, PAGE_RULES, opts, { exclude: true });
+    reportChecks('check-page', findings, checked, PAGE_RULES, opts, { exclude: true, fix });
   }
   const { hasHardFailure, runPageTests } = await import('./contractRunner.mjs');
   const pageTargets = resolvePageTestTargets(opts.rest, process.cwd());
@@ -343,6 +335,7 @@ if (command === 'check-page') {
   const allFindings = [...findings, ...testOutcome.findings];
   reportChecks(label, allFindings, Math.max(checked, pageTargets.length), PAGE_RULES, opts, {
     exclude: true,
+    fix,
     coverage: testOutcome.coverage,
     hardFailure: hasHardFailure(testOutcome.findings),
   });

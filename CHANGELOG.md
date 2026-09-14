@@ -12,12 +12,14 @@
   user's own words are the fix). `exception` is the narrower
   `live-tokens.config.json` entry that steps the rule down one level to
   record a deliberate decision to leave the finding as it is.
-- **`--fix` on `check-page` and `check-component`.** Applies every `auto`
-  finding's patch: a deep import rewritten to its public path, a spacing,
-  radius, or stroke-width literal replaced by its one nearest design token,
-  a page's `size` prop deleted, a semantic property override deleted. It then
-  rechecks and reports what changed and what remains. A second run changes
-  nothing. Refused together with `--tests`: fix first, then verify.
+- **`check-page` and `check-component` fix what they can.** Both apply every
+  `auto` finding's patch before they report: a deep import rewritten to its
+  public path, a spacing, radius, or stroke-width literal replaced by its one
+  nearest design token, a page's `size` prop deleted, a semantic property
+  override deleted. They then recheck and list each fix beside the findings
+  that remain, in `--json` as `fix.applied`. With `--tests`, the fixes land
+  before the tests run. A second run applies nothing. `--no-fix` reports
+  without editing, for a build or CI; the template's `check:design` passes it.
 - **Three findings that used to be report-only facts.** `unread-token`
   (warn): a runtime declares a property in `:global(:root)` and reads it
   nowhere in its own CSS. `missing-description` (warn): a runtime file has no

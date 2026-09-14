@@ -52,7 +52,7 @@ export function isExcluded(relPath, root) {
  * Unrecognised flags are returned in `rest` for the caller to handle.
  */
 export function parseCheckFlags(argv) {
-  const opts = { off: [], warn: [], error: [], strict: false, json: false, tests: false, fix: false, rest: [] };
+  const opts = { off: [], warn: [], error: [], strict: false, json: false, tests: false, noFix: false, rest: [] };
   for (const arg of argv) {
     const m = arg.match(/^--(off|warn|error)=(.+)$/);
     if (m) {
@@ -60,7 +60,7 @@ export function parseCheckFlags(argv) {
     } else if (arg === '--strict') opts.strict = true;
     else if (arg === '--json') opts.json = true;
     else if (arg === '--tests') opts.tests = true;
-    else if (arg === '--fix') opts.fix = true;
+    else if (arg === '--no-fix') opts.noFix = true;
     else opts.rest.push(arg);
   }
   return opts;
@@ -174,10 +174,10 @@ export function formatFindings(findings, { label, checked = 0 } = {}) {
   return lines.join('\n');
 }
 
-export function toJson(findings, { label, checked = 0, coverage } = {}) {
+export function toJson(findings, { label, checked = 0, coverage, fix } = {}) {
   const { errors, warnings } = countBySeverity(findings);
   return JSON.stringify(
-    { check: label, checked, errors, warnings, findings, ...(coverage ? { coverage } : {}) },
+    { check: label, checked, errors, warnings, ...(fix ? { fix } : {}), findings, ...(coverage ? { coverage } : {}) },
     null,
     2,
   );

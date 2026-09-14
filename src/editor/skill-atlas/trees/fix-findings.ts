@@ -2,7 +2,7 @@ import type { SkillTree } from '../types';
 
 export const fixFindings: SkillTree = {
   "id": "live-tokens-fix-findings",
-  "digest": "sha256:d17bb94b5bdd12d3",
+  "digest": "sha256:171374ad04149a44",
   "title": "fix-findings",
   "tagline": "Repair Deviations from the Design System",
   "nodes": [
@@ -29,9 +29,9 @@ export const fixFindings: SkillTree = {
       "row": 2,
       "kind": "cli",
       "title": "Apply automatic fixes",
-      "desc": "`--fix` applies every finding whose repair is auto, on both checkers, then reports what changed and what remains.",
+      "desc": "Both checkers apply every finding whose repair is auto, then return each fix beside what remains.",
       "lines": [13, 17],
-      "anchor": "Run `--fix` on both checkers. Each applies every finding who",
+      "anchor": "Run both checkers with `--json`. Each first applies every fi",
       "anchorEnd": "```"
     },
     {
@@ -40,9 +40,8 @@ export const fixFindings: SkillTree = {
       "kind": "cli",
       "title": "Read what remains",
       "desc": "Every finding left carries a rule, a file, a line, and a repair of choice or authored.",
-      "lines": [18, 22],
-      "anchor": "Run both checkers with `--json` to read what remains. Each f",
-      "anchorEnd": "```"
+      "lines": [18, 18],
+      "anchor": "Read what remains. Each finding carries a `rule`, a file, a "
     },
     {
       "id": "ff-clean",
@@ -50,7 +49,7 @@ export const fixFindings: SkillTree = {
       "kind": "ok",
       "title": "Default checks pass",
       "desc": "Both checkers exit 0.",
-      "lines": [27, 27],
+      "lines": [23, 23],
       "anchor": "When the errors are clear, run both checkers with `--strict`"
     },
     {
@@ -59,7 +58,7 @@ export const fixFindings: SkillTree = {
       "kind": "step",
       "title": "Group findings by rule",
       "desc": "Findings of one rule share one fix.",
-      "lines": [23, 23],
+      "lines": [19, 19],
       "anchor": "Group the findings by rule."
     },
     {
@@ -68,7 +67,7 @@ export const fixFindings: SkillTree = {
       "kind": "chipset",
       "title": "Repair order",
       "desc": "Errors first, largest group first. Warnings only when the repair scope includes them.",
-      "lines": [24, 24],
+      "lines": [20, 20],
       "anchor": "Take the largest error group first, then the remaining error"
     },
     {
@@ -77,22 +76,22 @@ export const fixFindings: SkillTree = {
       "kind": "decide",
       "title": "Rule family",
       "desc": "Each rule belongs to one section, and that section gives the fix.",
-      "lines": [25, 25],
+      "lines": [21, 21],
       "anchor": "Fix every finding in the group with its section: Color by ro",
       "chips": [
         {
           "label": "Color by role",
-          "lines": [45, 45],
+          "lines": [41, 41],
           "anchor": "## Color by role"
         },
         {
           "label": "Geometry by scale",
-          "lines": [61, 61],
+          "lines": [57, 57],
           "anchor": "## Geometry by scale"
         },
         {
           "label": "The remaining rules",
-          "lines": [75, 75],
+          "lines": [71, 71],
           "anchor": "## The remaining rules"
         }
       ]
@@ -103,53 +102,53 @@ export const fixFindings: SkillTree = {
       "kind": "chipset",
       "title": "Color by role",
       "desc": "A color literal becomes the token for the role it plays.",
-      "lines": [45, 59],
+      "lines": [41, 55],
       "anchor": "## Color by role",
       "anchorEnd": "| A gradient | `--gradient-*` | Or compose one from surface ",
       "chips": [
         {
           "label": "Text on a surface",
-          "lines": [51, 51],
+          "lines": [47, 47],
           "anchor": "| Text on a surface | `--text-primary` through `--text-disab"
         },
         {
           "label": "Light text on a dark chip",
-          "lines": [52, 52],
+          "lines": [48, 48],
           "anchor": "| Light text on a dark chip | `--text-inverted` | No AA guar"
         },
         {
           "label": "A surface fill",
-          "lines": [53, 53],
+          "lines": [49, 49],
           "anchor": "| A surface fill | `--surface-<family>-<level>` | The role n"
         },
         {
           "label": "A stroke",
-          "lines": [54, 54],
+          "lines": [50, 50],
           "anchor": "| A stroke | `--border-<family>-<level>` | Levels run `faint"
         },
         {
           "label": "A translucent layer that dims what is behind it",
-          "lines": [55, 55],
+          "lines": [51, 51],
           "anchor": "| A translucent layer that dims what is behind it | `--scrim"
         },
         {
           "label": "A translucent wash on a surface",
-          "lines": [56, 56],
+          "lines": [52, 52],
           "anchor": "| A translucent wash on a surface | `--tint-low`, `--tint`, "
         },
         {
           "label": "Any other translucent color",
-          "lines": [57, 57],
+          "lines": [53, 53],
           "anchor": "| Any other translucent color | The role's token at an opaci"
         },
         {
           "label": "Fully transparent",
-          "lines": [58, 58],
+          "lines": [54, 54],
           "anchor": "| Fully transparent | `--color-transparent` | |"
         },
         {
           "label": "A gradient",
-          "lines": [59, 59],
+          "lines": [55, 55],
           "anchor": "| A gradient | `--gradient-*` | Or compose one from surface "
         }
       ]
@@ -160,7 +159,7 @@ export const fixFindings: SkillTree = {
       "kind": "chipset",
       "title": "Geometry by scale",
       "desc": "A dimension literal moves to the nearest step of its scale. A layout size stays.",
-      "lines": [61, 73],
+      "lines": [57, 69],
       "anchor": "## Geometry by scale",
       "anchorEnd": "| A `blur()` | `--blur-*` | No rule reports it. Fix it while"
     },
@@ -170,173 +169,173 @@ export const fixFindings: SkillTree = {
       "kind": "chipset",
       "title": "The remaining rules",
       "desc": "Every other rule has its fix in the table.",
-      "lines": [75, 116],
+      "lines": [71, 112],
       "anchor": "## The remaining rules",
       "anchorEnd": "| `fix: routing` | The rule is `reserved-route`, `site-css-i",
       "chips": [
         {
           "label": "unknown-token",
-          "lines": [79, 79],
+          "lines": [75, 75],
           "anchor": "| `unknown-token` | Search `tokens.css` for the stem. When a"
         },
         {
           "label": "raw-text-axis",
-          "lines": [80, 80],
+          "lines": [76, 76],
           "anchor": "| `raw-text-axis` | Set every axis from one text style, `-fo"
         },
         {
           "label": "unknown-component",
-          "lines": [81, 81],
+          "lines": [77, 77],
           "anchor": "| `unknown-component` | Read **live-tokens-pick-component** "
         },
         {
           "label": "unknown-prop",
-          "lines": [82, 82],
+          "lines": [78, 78],
           "anchor": "| `unknown-prop` | `npx live-tokens components <id>` prints "
         },
         {
           "label": "unknown-prop-value",
-          "lines": [83, 83],
+          "lines": [79, 79],
           "anchor": "| `unknown-prop-value` | Use a value from the union the mess"
         },
         {
           "label": "control-size",
-          "lines": [84, 84],
-          "anchor": "| `control-size` | `--fix` deletes the attribute it can boun"
+          "lines": [80, 80],
+          "anchor": "| `control-size` | The checker deletes the attribute it can "
         },
         {
           "label": "multiple-primary",
-          "lines": [85, 85],
+          "lines": [81, 81],
           "anchor": "| `multiple-primary` | Keep the action that completes the ma"
         },
         {
           "label": "danger-without-dialog",
-          "lines": [86, 86],
+          "lines": [82, 82],
           "anchor": "| `danger-without-dialog` | Open a `Dialog` from the danger "
         },
         {
           "label": "native-control",
-          "lines": [87, 87],
+          "lines": [83, 83],
           "anchor": "| `native-control` | Replace the native element with the shi"
         },
         {
           "label": "property-override",
-          "lines": [88, 88],
-          "anchor": "| `property-override` | `--fix` deletes the declaration or t"
+          "lines": [84, 84],
+          "anchor": "| `property-override` | The checker deletes the declaration "
         },
         {
           "label": "page-component-paint",
-          "lines": [89, 89],
+          "lines": [85, 85],
           "anchor": "| `page-component-paint` | The finding names the page file a"
         },
         {
           "label": "page-text-style",
-          "lines": [90, 90],
+          "lines": [86, 86],
           "anchor": "| `page-text-style` | The finding names the page file and th"
         },
         {
           "label": "page-contrast",
-          "lines": [91, 91],
+          "lines": [87, 87],
           "anchor": "| `page-contrast` | The finding names the page file and the "
         },
         {
           "label": "page-grid",
-          "lines": [92, 92],
+          "lines": [88, 88],
           "anchor": "| `page-grid` | The finding names the page file and the line"
         },
         {
           "label": "page-overflow",
-          "lines": [93, 93],
+          "lines": [89, 89],
           "anchor": "| `page-overflow` | The finding names the page file and the "
         },
         {
           "label": "hardcoded-columns",
-          "lines": [94, 94],
+          "lines": [90, 90],
           "anchor": "| `hardcoded-columns` | `repeat(var(--columns-count), 1fr)` "
         },
         {
           "label": "site-css-in-main",
-          "lines": [95, 95],
+          "lines": [91, 91],
           "anchor": "| `site-css-in-main` | Delete the import from `main.ts`. Add"
         },
         {
           "label": "missing-source",
-          "lines": [96, 96],
+          "lines": [92, 92],
           "anchor": "| `missing-source` | Add `source: 'src/...'` to the route en"
         },
         {
           "label": "reserved-route",
-          "lines": [97, 97],
+          "lines": [93, 93],
           "anchor": "| `reserved-route` | Move the route out of `/live-tokens/*`."
         },
         {
           "label": "deep-import",
-          "lines": [98, 98],
-          "anchor": "| `deep-import` | `--fix` rewrites a `/src/system/components"
+          "lines": [94, 94],
+          "anchor": "| `deep-import` | The checker rewrites a `/src/system/compon"
         },
         {
           "label": "unread-token",
-          "lines": [99, 99],
+          "lines": [95, 95],
           "anchor": "| `unread-token` | The message names the property the runtim"
         },
         {
           "label": "missing-description",
-          "lines": [100, 100],
+          "lines": [96, 96],
           "anchor": "| `missing-description` | Add the `catalogue` export with `d"
         },
         {
           "label": "config-token",
-          "lines": [101, 101],
+          "lines": [97, 97],
           "anchor": "| `config-token` | The message names the alias in `component"
         },
         {
           "label": "contract-behavior",
-          "lines": [102, 102],
+          "lines": [98, 98],
           "anchor": "| `contract-behavior` | A declared case in the component's c"
         },
         {
           "label": "Component name rules",
-          "lines": [103, 103],
+          "lines": [99, 99],
           "anchor": "| `fix: property-name` | Rename the token to the name a ship"
         },
         {
           "label": "Component token rules",
-          "lines": [104, 104],
+          "lines": [100, 100],
           "anchor": "| `fix: property-token` | Make the `:global(:root)` default "
         },
         {
           "label": "Component editor rules",
-          "lines": [107, 107],
+          "lines": [103, 103],
           "anchor": "| `fix: editor` | The editor names a token the runtime never"
         },
         {
           "label": "Component wiring rules",
-          "lines": [105, 105],
+          "lines": [101, 101],
           "anchor": "| `fix: runtime` | Wire the component as the recipe in **liv"
         },
         {
           "label": "fix: page-token",
-          "lines": [112, 112],
+          "lines": [108, 108],
           "anchor": "| `fix: page-token` | The rule is `unknown-token`, `color-li"
         },
         {
           "label": "fix: page-component",
-          "lines": [113, 113],
+          "lines": [109, 109],
           "anchor": "| `fix: page-component` | The rule is `unknown-component`, `"
         },
         {
           "label": "fix: page-layout",
-          "lines": [114, 114],
+          "lines": [110, 110],
           "anchor": "| `fix: page-layout` | The rule is `hardcoded-columns`, `pag"
         },
         {
           "label": "fix: page-paint",
-          "lines": [115, 115],
+          "lines": [111, 111],
           "anchor": "| `fix: page-paint` | The rule is `page-component-paint`, `p"
         },
         {
           "label": "fix: routing",
-          "lines": [116, 116],
+          "lines": [112, 112],
           "anchor": "| `fix: routing` | The rule is `reserved-route`, `site-css-i"
         }
       ]
@@ -347,7 +346,7 @@ export const fixFindings: SkillTree = {
       "kind": "cli",
       "title": "Rerun both checkers",
       "desc": "Run both checkers again to see what remains.",
-      "lines": [26, 26],
+      "lines": [22, 22],
       "anchor": "Run both checkers again. When repairable findings remain in "
     },
     {
@@ -356,7 +355,7 @@ export const fixFindings: SkillTree = {
       "kind": "gate",
       "title": "Regroup the remaining findings",
       "desc": "Findings a token can fix go back through grouping.",
-      "lines": [26, 26],
+      "lines": [22, 22],
       "anchor": "Run both checkers again. When repairable findings remain in "
     },
     {
@@ -365,7 +364,7 @@ export const fixFindings: SkillTree = {
       "kind": "step",
       "title": "Record the unresolved findings",
       "desc": "A finding no token fits stays, and the reply says why.",
-      "lines": [41, 41],
+      "lines": [37, 37],
       "anchor": "Add no token to `tokens.css`. Map a literal with no matching"
     },
     {
@@ -374,7 +373,7 @@ export const fixFindings: SkillTree = {
       "kind": "cli",
       "title": "Run strict checks",
       "desc": "Strict mode counts every warning as an error.",
-      "lines": [27, 27],
+      "lines": [23, 23],
       "anchor": "When the errors are clear, run both checkers with `--strict`"
     },
     {
@@ -383,18 +382,18 @@ export const fixFindings: SkillTree = {
       "kind": "decide",
       "title": "Warning scope",
       "desc": "Warnings are cleared when the request includes them. Otherwise the user chooses.",
-      "lines": [27, 28],
+      "lines": [23, 24],
       "anchor": "When the errors are clear, run both checkers with `--strict`",
       "anchorEnd": "When the repair scope includes warnings, return to step 4 wi",
       "chips": [
         {
           "label": "repair scope includes warnings",
-          "lines": [28, 28],
+          "lines": [24, 24],
           "anchor": "When the repair scope includes warnings, return to step 4 wi"
         },
         {
           "label": "user defers warnings",
-          "lines": [28, 28],
+          "lines": [24, 24],
           "anchor": "When the repair scope includes warnings, return to step 4 wi"
         }
       ]
@@ -405,7 +404,7 @@ export const fixFindings: SkillTree = {
       "kind": "gate",
       "title": "Include warnings in the repair scope",
       "desc": "The warnings go back through grouping, with --strict on every run.",
-      "lines": [28, 28],
+      "lines": [24, 24],
       "anchor": "When the repair scope includes warnings, return to step 4 wi"
     },
     {
@@ -414,7 +413,7 @@ export const fixFindings: SkillTree = {
       "kind": "step",
       "title": "Gate the existing build",
       "desc": "The build runs check:design first, so findings fail the build from now on.",
-      "lines": [37, 37],
+      "lines": [33, 33],
       "anchor": "When `package.json` has no `check:design` script, add `\"chec"
     },
     {
@@ -422,8 +421,8 @@ export const fixFindings: SkillTree = {
       "row": 19,
       "kind": "chipset",
       "title": "Reply with the repair results",
-      "desc": "Report the patches --fix applied, the remaining changes by rule, the findings left with their reasons, and both exit codes.",
-      "lines": [29, 33],
+      "desc": "Report the fixes the checkers applied, the remaining changes by rule, the findings left with their reasons, and both exit codes.",
+      "lines": [25, 29],
       "anchor": "Reply with:",
       "anchorEnd": "both checker commands with their exit codes"
     },
@@ -433,7 +432,7 @@ export const fixFindings: SkillTree = {
       "kind": "done",
       "title": "Repair results complete",
       "desc": "Both checkers pass, or every finding left has a reason.",
-      "lines": [29, 33],
+      "lines": [25, 29],
       "anchor": "Reply with:",
       "anchorEnd": "both checker commands with their exit codes"
     }

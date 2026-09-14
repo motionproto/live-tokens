@@ -565,7 +565,7 @@
       <li><strong>create-page</strong> assembles a page from shipped components at their defaults. It calls <strong>pick-component</strong> when two components could fit, and <strong>create-component</strong> when the catalogue lacks one.</li>
       <li><strong>create-component</strong> delivers a runtime file, an editor file, a registration, and a contract together.</li>
       <li><strong>check-compliance</strong> reads one <code>npx live-tokens report --json</code> run, presents every finding with the repair level it carries, <code>auto</code>, <code>choice</code>, or <code>authored</code>, and hands the fix list to <strong>fix-findings</strong>. It edits no file.</li>
-      <li><strong>fix-findings</strong> applies every <code>auto</code> finding with <code>--fix</code>, then edits the files the checkers name for what remains, groups the work by rule, and re-runs until both checkers exit 0.</li>
+      <li><strong>fix-findings</strong> runs both checkers, which apply every <code>auto</code> finding themselves, then edits the files the checkers name for what remains, groups the work by rule, and re-runs until both checkers exit 0.</li>
     </ul>
     <p>The skills carry what a checker cannot decide: which layout suits a reading task, which component in a confusable family, which separator is the smallest one that separates. The checkers carry what prose cannot enforce: whether the file actually does it.</p>
   </section>

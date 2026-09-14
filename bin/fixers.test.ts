@@ -1,5 +1,5 @@
 import { describe, it, expect, afterEach } from 'vitest';
-import { execFileSync } from 'node:child_process';
+import { execFileSync, spawnSync } from 'node:child_process';
 import { mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -27,9 +27,9 @@ function finding(file: string, line: number, rule: string, patch: { from: string
 }
 
 describe('parseCheckFlags', () => {
-  it('recognizes --fix', () => {
-    expect(parseCheckFlags(['--fix']).fix).toBe(true);
-    expect(parseCheckFlags([]).fix).toBe(false);
+  it('recognizes --no-fix', () => {
+    expect(parseCheckFlags(['--no-fix']).noFix).toBe(true);
+    expect(parseCheckFlags([]).noFix).toBe(false);
   });
 });
 
@@ -118,7 +118,7 @@ function checkAndFix(root: string, files: string[]) {
   return { resolved, ...applyFixes(resolved, root) };
 }
 
-describe('check-page --fix, per rule', () => {
+describe('check-page fixes, per rule', () => {
   it('dimension-literal: rewrites the one unique literal, and a second pass is a no-op', () => {
     const root = pageRoot(SPACE_TOKENS);
     const rel = 'src/pages/Detail.svelte';
@@ -405,7 +405,7 @@ describe('check-page --fix, per rule', () => {
     );
   });
 
-  it('property-override: a setProperty override stays authored, untouched by --fix', () => {
+  it('property-override: a setProperty override stays authored, left unfixed', () => {
     const root = pageRoot(SPACE_TOKENS);
     const rel = 'src/pages/Detail.svelte';
     const source = `<script>\n  el.style.setProperty("--card-default-radius", "0");\n</script>`;
@@ -475,7 +475,7 @@ const RUNTIME_NAMING_CARD = `<!-- Widget.svelte — a dial. Not ${DEEP_CARD}. --
 const PLAIN_EDITOR = `<script module lang="ts">\n  const component = 'widget';\n  export const allTokens = [];\n</script>`;
 const PLAIN_MAIN = `registerComponent({ id: 'widget', label: 'Widget' });`;
 
-describe('check-component --fix', () => {
+describe('check-component fixes', () => {
   it('dimension-literal on a runtime default: rewrites the literal, and a second pass is a no-op', () => {
     const root = widgetRoot({
       runtime: `<!-- Widget.svelte — a dial. -->\n<style>:global(:root){\n--widget-radius: 4px;\n}</style>`,
@@ -536,31 +536,43 @@ describe('check-component --fix', () => {
   });
 });
 
-describe('--fix through the CLI', () => {
+describe('fixing through the CLI', () => {
   const cli = join(process.cwd(), 'bin/cli.mjs');
+  const rel = 'src/pages/Detail.svelte';
+  const literal = `<style>.a { padding: 8px; }</style>`;
+  const fixed = `<style>.a { padding: var(--space-8); }</style>`;
 
   it('applies a fix, reports it, and exits 0', () => {
     const root = pageRoot(SPACE_TOKENS);
-    const rel = 'src/pages/Detail.svelte';
-    writeFileSync(join(root, rel), `<style>.a { padding: 8px; }</style>`);
-    const out = execFileSync('node', [cli, 'check-page', rel, '--fix'], { cwd: root }).toString();
-    expect(out).toContain('1 patch(es) applied');
+    writeFileSync(join(root, rel), literal);
+    const out = execFileSync('node', [cli, 'check-page', rel], { cwd: root }).toString();
+    expect(out).toContain('1 fix(es) applied');
     expect(out).toContain('padding: 8px → padding: var(--space-8)  [dimension-literal]  shift 0px');
-    expect(readFileSync(join(root, rel), 'utf8')).toBe(`<style>.a { padding: var(--space-8); }</style>`);
+    expect(readFileSync(join(root, rel), 'utf8')).toBe(fixed);
   });
 
-  it('refuses --fix together with --tests', () => {
+  it('reports the finding and edits nothing under --no-fix', () => {
     const root = pageRoot(SPACE_TOKENS);
-    expect(() => execFileSync('node', [cli, 'check-page', '--fix', '--tests'], { cwd: root, stdio: 'pipe' })).toThrow();
-    try {
-      execFileSync('node', [cli, 'check-component', '--fix', '--tests'], { cwd: root, stdio: 'pipe' });
-    } catch (err) {
-      expect(String((err as { stderr: Buffer }).stderr)).toContain('--fix cannot run with --tests');
-    }
+    writeFileSync(join(root, rel), literal);
+    const report = JSON.parse(execFileSync('node', [cli, 'check-page', rel, '--no-fix', '--json'], { cwd: root }).toString());
+    expect(report.fix).toBeUndefined();
+    expect(report.findings.map((f: { rule: string }) => f.rule)).toContain('dimension-literal');
+    expect(readFileSync(join(root, rel), 'utf8')).toBe(literal);
+  });
+
+  it('applies the fixes before --tests and returns them beside the remaining findings', () => {
+    const root = pageRoot(SPACE_TOKENS);
+    writeFileSync(join(root, rel), literal);
+    const run = spawnSync('node', [cli, 'check-page', rel, '--tests', '--json'], { cwd: root, encoding: 'utf8' });
+    expect(run.status).toBe(1);
+    const report = JSON.parse(run.stdout);
+    expect(report.fix.applied.map((f: { rule: string }) => f.rule)).toEqual(['dimension-literal']);
+    expect(report.findings.map((f: { rule: string }) => f.rule)).toContain('tests-not-installed');
+    expect(readFileSync(join(root, rel), 'utf8')).toBe(fixed);
   });
 });
 
-describe('invariant 5: --fix touches only the file a finding names', () => {
+describe('invariant 5: a fix touches only the file a finding names', () => {
   it('leaves tokens.css and the data tree byte-identical while it fixes a page', () => {
     const root = pageRoot(SPACE_TOKENS);
     const tokensCssPath = join(root, 'src/system/styles/tokens.css');
