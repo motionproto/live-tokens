@@ -833,7 +833,6 @@
   }
 
   .aside {
-    border-left: var(--border-width-2) solid var(--border-accent);
     background: var(--tint-low);
     padding: var(--space-16) var(--space-24);
     margin-top: var(--space-32);

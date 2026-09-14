@@ -128,7 +128,7 @@
 
       /* Heading — default */
       --collapsiblesection-heading-default-surface: var(--tint-low);
-      --collapsiblesection-heading-default-padding: var(--space-4);
+      --collapsiblesection-heading-default-padding: var(--space-8);
       --collapsiblesection-heading-default-label: var(--text-primary);
       --collapsiblesection-heading-default-label-font-family: var(--heading-md-font-family);
       --collapsiblesection-heading-default-label-font-size: var(--heading-md-font-size);
@@ -139,7 +139,7 @@
       --collapsiblesection-heading-default-icon-size: var(--icon-size-xs);
       /* Heading — hover */
       --collapsiblesection-heading-hover-surface: var(--tint);
-      --collapsiblesection-heading-hover-padding: var(--space-4);
+      --collapsiblesection-heading-hover-padding: var(--space-8);
       --collapsiblesection-heading-hover-label: var(--text-primary);
       --collapsiblesection-heading-hover-label-font-family: var(--heading-md-font-family);
       --collapsiblesection-heading-hover-label-font-size: var(--heading-md-font-size);
@@ -290,7 +290,11 @@
 
    @mixin header-paint($variant, $state) {
       background: var(--collapsiblesection-#{$variant}-#{$state}-surface);
-      @include themed-padding(--collapsiblesection-#{$variant}-#{$state}-padding, $h: 2);
+      @if $variant == heading {
+         @include themed-padding(--collapsiblesection-#{$variant}-#{$state}-padding);
+      } @else {
+         @include themed-padding(--collapsiblesection-#{$variant}-#{$state}-padding, $h: 2);
+      }
 
       .section-label {
          margin: 0;
