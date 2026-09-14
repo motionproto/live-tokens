@@ -188,7 +188,14 @@ so no two waves run at once and no agent uses worktree isolation.
 | 8a Skill Atlas cards | `visual-qa` reads the rendered cards, then `wave-executor` fixes the trees | `test-verifier` | `wave-reviewer` | automatic |
 | 8b Testing loops page | `svelte:svelte-file-editor` | `test-verifier` runs the page check | `wave-reviewer` | automatic |
 
-Pass each name as `agentType` in the workflow's `agent()` call.
+**Saved workflows.** `.claude/workflows/` holds the runs as slash commands.
+
+- `check-fix-wave.js` runs one wave: execute, verify, review, and the fix
+  rounds below. It passes each agent name above as `agentType`. Run one wave
+  on its own with `/check-fix-wave 4`.
+- `check-fix-run-a.js`, `check-fix-run-b.js` and `check-fix-run-c.js` call
+  it for each wave of their run in order. Each stops at the first wave that
+  stops.
 
 **Ledger.** Every executor commits with the subject prefix `Check-fix W<n>:`,
 such as `Check-fix W2:`. `git log --grep "Check-fix W"` is the record the
@@ -217,8 +224,8 @@ falls between runs. Each run stays under 15 agents before fix loops.
 | B | 3b, 4, 5 | 9 | create-page and create-component on one loop |
 | C | 6, 7, 8a, 8b | 13 | fix-findings deleted, the atlas and the page updated |
 
-- Pass the plan and the waves as `args`, such as
-  `{ plan: "docs/plans/check-and-fix-unification.md", waves: ["2", "3"] }`.
+- Start a run with `/check-fix-run-a`, `/check-fix-run-b` or
+  `/check-fix-run-c`. A stopped run resumes from its last finished agent.
 - Before each run, `git status --short` shows no change outside what the user
   means to keep. An editor session writes into `src/live-tokens/data`, so
   commit or restore that first.
@@ -293,12 +300,13 @@ An audit only. It changes no code.
    - whether a rule module already covers the same fact
    - a proposed disposition: keep (a fact about the library only), call the
      CLI, or delete the duplicate logic
+   - an Approved column, left blank for the user
 3. Read `check:component-defaults` against `default-not-token` and
    `config-token`, and `check:no-style-imports` against `deep-import`, first.
    They are the likeliest overlaps.
 
-**Reserved for the user.** Every disposition other than keep. No script
-changes until the user approves the table.
+**Reserved for the user.** Every disposition other than keep. The user marks
+the Approved column. No script changes until then.
 
 **Done when** the table has 19 rows and each row cites the script file and,
 for an overlap, the rule module.
@@ -308,8 +316,9 @@ for an overlap, the rule module.
 Runs only after the user approves the Release script audit table, and only
 for rows whose disposition is other than keep.
 
-1. Apply each approved disposition. A script that now calls the CLI passes
-   `--no-fix`.
+1. Apply each row marked in the Approved column whose disposition is other
+   than keep. A script that now calls the CLI passes `--no-fix`. When the
+   Approved column is blank, stop and report that the table awaits approval.
 2. Mark each applied row in the table.
 
 **Verify.** `npx vitest run bin scripts/lib`, then each changed script by its
