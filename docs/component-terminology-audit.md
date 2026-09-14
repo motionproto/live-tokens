@@ -56,15 +56,16 @@ anchor name shared across four files; and everything under Left as it is.
 | 9 | open everywhere | main | Sonnet | 60 min | Done | 32256a6 be07238 |
 | 10 | Size values default and small | main | Sonnet | 45 min | Done | aaf3ee4 |
 | 11 | TabBar value, SideNavigation title | main | Sonnet | 45 min | Done | c1a5998 |
-| 12 | Badge and CornerBadge brand | main | Opus | 90 min | Blocked | bc22fc9 e15820a e481bd2 |
-| 13 | The rules | main | Sonnet | 60 min | Not started | |
+| 12 | Badge and CornerBadge brand | main | Opus | 90 min | Done | bc22fc9 e15820a e481bd2 adf6547 |
+| 13 | The rules | main | Sonnet | 60 min | Done | 7a22aa6 8301e27 |
 
-Run of 2026-09-13 stopped at Wave 12, `blocked after repair`, at the top of
-the ladder. Waves 1 to 11 approved on their model. Wave 12 escalated from
-Opus to Fable and was reviewed by Fable; the re-review's one blocking finding
-(the create-component SKILL.md table still naming Badge's `primary`) was
-fixed by hand in e481bd2. Wave 12 resumes at its review gate with `reviewOnly`
-and the three commits above; Wave 13 has not run.
+Every wave approved as of 2026-09-14. Waves 1 to 11 ran on their model.
+Wave 12 escalated from Opus to Fable after the cornerbadge contract run hit
+the overlay pill covering the pinned preview band; the executor changed the
+harness's tab selection and recorded the pill overlap in
+`docs/contract-test-defects.md`. Waves 9, 12, and 13 each took one repair
+commit. Wave 12's last blocking finding was fixed by hand in e481bd2 and the
+run resumed at its review gate.
 
 ## Execution
 
