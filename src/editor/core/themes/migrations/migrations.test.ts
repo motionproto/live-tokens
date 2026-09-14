@@ -326,12 +326,12 @@ describe('migration runner — schemaVersion gating', () => {
       '--corner-badge-danger-border': '--border-danger',
       '--corner-badge-danger-text': '--text-danger',
     };
-    // Chained past 2026-09-13-cornerbadge-prefix, so the values survive under
-    // the current `--cornerbadge-` prefix.
+    // Chained past 2026-09-13-cornerbadge-prefix and 2026-09-13-badge-brand,
+    // so the values survive under the current prefix and variant name.
     const expected = {
-      '--cornerbadge-primary-surface': '--surface-brand',
-      '--cornerbadge-primary-border': '--border-brand',
-      '--cornerbadge-primary-text': '--text-brand',
+      '--cornerbadge-brand-surface': '--surface-brand',
+      '--cornerbadge-brand-border': '--border-brand',
+      '--cornerbadge-brand-text': '--text-brand',
       '--cornerbadge-danger-surface': '--surface-danger',
       '--cornerbadge-danger-border': '--border-danger',
       '--cornerbadge-danger-text': '--text-danger',
@@ -346,7 +346,7 @@ describe('migration runner — schemaVersion gating', () => {
   });
 
   it('component-config v15 cornerbadge-flatten migration only fires for cornerbadge', () => {
-    const v15 = { '--badge-primary-padding': '--space-6' };
+    const v15 = { '--badge-accent-padding': '--space-6' };
     const out = runMigrations('component-config', 15, v15, { component: 'badge' });
     expect(out).toEqual(v15);
   });
@@ -597,7 +597,7 @@ describe('migration runner — schemaVersion gating', () => {
     };
     const expected = {
       '--cornerbadge-margin': '--space-0',
-      '--cornerbadge-primary-surface': '--surface-brand',
+      '--cornerbadge-brand-surface': '--surface-brand',
       '--cornerbadge-info-text': '--text-info',
     };
     const out = runMigrations('component-config', 31, v31, { component: 'cornerbadge' });
@@ -606,7 +606,7 @@ describe('migration runner — schemaVersion gating', () => {
   });
 
   it('component-config v31 → v32 fires only for cornerbadge', () => {
-    const v31 = { '--badge-primary-surface': '--surface-brand' };
+    const v31 = { '--badge-accent-surface': '--surface-accent' };
     const out = runMigrations('component-config', 31, v31, { component: 'badge' });
     expect(out).toEqual(v31);
   });
@@ -657,6 +657,32 @@ describe('migration runner — schemaVersion gating', () => {
     const v33 = { '--dialog-body-padding': '--space-16' };
     const out = runMigrations('component-config', 33, v33, { component: 'dialog' });
     expect(out).toEqual(v33);
+  });
+
+  it('component-config v34 → v35: badge and cornerbadge\'s primary variant reads brand', () => {
+    const cases: Array<[string, Record<string, string>, Record<string, string>]> = [
+      ['badge',
+        { '--badge-primary-surface': '--surface-brand', '--badge-primary-text-font-size': '--font-size-md',
+          '--badge-accent-surface': '--surface-accent' },
+        { '--badge-brand-surface': '--surface-brand', '--badge-brand-text-font-size': '--font-size-md',
+          '--badge-accent-surface': '--surface-accent' }],
+      ['cornerbadge',
+        { '--cornerbadge-primary-surface': '--surface-brand', '--cornerbadge-primary-text': '--text-brand',
+          '--cornerbadge-margin': '--space-0' },
+        { '--cornerbadge-brand-surface': '--surface-brand', '--cornerbadge-brand-text': '--text-brand',
+          '--cornerbadge-margin': '--space-0' }],
+    ];
+    for (const [component, input, expected] of cases) {
+      const out = runMigrations('component-config', 34, input, { component });
+      expect(out, component).toEqual(expected);
+      expect(runMigrations('component-config', 34, out, { component }), `${component} idempotent`).toEqual(expected);
+    }
+  });
+
+  it('component-config v34 → v35 leaves button\'s primary variant alone', () => {
+    const v34 = { '--button-primary-surface': '--surface-brand', '--button-primary-text': '--text-brand' };
+    const out = runMigrations('component-config', 34, v34, { component: 'button' });
+    expect(out).toEqual(v34);
   });
 
   it('component-config at current version → no migrations run', () => {

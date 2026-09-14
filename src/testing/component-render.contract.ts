@@ -466,6 +466,13 @@ async function probeCurrentView(
   }, { allAliases: componentAliases, forced: forcedVariables, proven: provenVariables });
 }
 
+/** A tab strip pins with the preview band, where the overlay's fixed pill can
+ *  sit over a tab; a forced click still lands at the tab's centre and hits the
+ *  pill, so the click is dispatched on the tab itself. */
+async function selectTab(tab: Locator): Promise<void> {
+  await tab.dispatchEvent('click');
+}
+
 async function selectComponent(page: Page, component: string): Promise<void> {
   await page.evaluate(async (id) => {
     const editor = window.__liveTokensEditor;
@@ -554,9 +561,8 @@ for (const [component, aliases] of aliasesByComponent) {
 
           for (let variantIndex = 0; variantIndex < variantLabels.length; variantIndex++) {
             if (variantLabels[variantIndex]) {
-              await page.locator('.variant-group:visible .variant-tabs .variant-tab-btn')
-                .nth(variantIndex)
-                .click({ force: true });
+              await selectTab(page.locator('.variant-group:visible .variant-tabs .variant-tab-btn')
+                .nth(variantIndex));
             }
 
             await probe(componentAliases, forced);
@@ -565,9 +571,9 @@ for (const [component, aliases] of aliasesByComponent) {
             );
             const primaryLabels = await primaryTabs.allTextContents();
             for (let primaryIndex = 0; primaryIndex < primaryLabels.length; primaryIndex++) {
-              await page.locator(
+              await selectTab(page.locator(
                 '.variant-group:visible .tabs-states-block > .tabs-selectors:first-of-type .state-tab-btn',
-              ).nth(primaryIndex).click({ force: true });
+              ).nth(primaryIndex));
               await probe(componentAliases, forced);
 
               const secondaryTabs = page.locator(
@@ -575,9 +581,9 @@ for (const [component, aliases] of aliasesByComponent) {
               );
               const secondaryLabels = await secondaryTabs.allTextContents();
               for (let secondaryIndex = 0; secondaryIndex < secondaryLabels.length; secondaryIndex++) {
-                await page.locator(
+                await selectTab(page.locator(
                   '.variant-group:visible .tabs-states-block > .tabs-selectors.substrip .state-tab-btn',
-                ).nth(secondaryIndex).click({ force: true });
+                ).nth(secondaryIndex));
                 await probe(componentAliases, forced);
               }
             }
@@ -632,7 +638,7 @@ for (const [component, aliases] of aliasesByComponent) {
       const firstStateTab = page.locator(
         '.variant-group:visible .tabs-states-block > .tabs-selectors:first-of-type .state-tab-btn',
       ).first();
-      if (await firstStateTab.count()) await firstStateTab.click({ force: true });
+      if (await firstStateTab.count()) await selectTab(firstStateTab);
       const hoverTargets = page.locator('.variant-group:visible .tabs-preview *:visible');
       for (let index = 0; index < await hoverTargets.count(); index++) {
         if (forced.every((variable) => covered.has(variable))) return;

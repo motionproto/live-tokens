@@ -121,6 +121,16 @@
   MenuSelect's `value` props do. `titleHref` is unchanged. A consumer
   passing the old prop name stops compiling; there is no runtime migration
   for a prop.
+- **Badge's and CornerBadge's `primary` variant is `brand`.** The variant
+  paints the brand color family, which its tokens already name
+  (`--surface-brand`), so `variant="primary"` on either component is
+  `variant="brand"` and the rendered class is `badge-brand`. Badge's
+  thirteen `--badge-primary-*` and CornerBadge's three
+  `--cornerbadge-primary-*` properties are `--badge-brand-*` and
+  `--cornerbadge-brand-*`, renamed on load. Button's and IconButton's
+  `primary`, the one primary action a page carries, is unchanged. A consumer
+  passing the old value stops compiling; there is no runtime migration for a
+  prop.
 
 ### Changed
 

@@ -13,8 +13,8 @@ const keyOf = (tokens: { variable: string; groupKey?: string }[], variable: stri
 
 describe('structuralGroupKey', () => {
   it('strips the leading variant segment (Badge-shaped): collapses across variants', () => {
-    const d = { component: 'badge', variants: ['primary', 'accent'] };
-    expect(structuralGroupKey('--badge-primary-text', d)).toBe('text');
+    const d = { component: 'badge', variants: ['brand', 'accent'] };
+    expect(structuralGroupKey('--badge-brand-text', d)).toBe('text');
     expect(structuralGroupKey('--badge-accent-text', d)).toBe('text');
   });
 

@@ -82,6 +82,7 @@ import { componentMigration_2026_09_13_sectiondividerSurface } from './2026-09-1
 import { componentMigration_2026_09_13_cornerbadgePrefix } from './2026-09-13-cornerbadge-prefix';
 import { componentMigration_2026_09_13_toggleLabel } from './2026-09-13-toggle-label';
 import { componentMigration_2026_09_13_collapsiblesectionOpen } from './2026-09-13-collapsiblesection-open';
+import { componentMigration_2026_09_13_badgeBrand } from './2026-09-13-badge-brand';
 
 /**
  * Registered migrations. Order in this array does not matter — the runner
@@ -130,6 +131,7 @@ export const MIGRATIONS: Migration[] = [
   componentMigration_2026_09_13_cornerbadgePrefix,
   componentMigration_2026_09_13_toggleLabel,
   componentMigration_2026_09_13_collapsiblesectionOpen,
+  componentMigration_2026_09_13_badgeBrand,
 ];
 
 function countFor(kind: 'colors-and-type' | 'component-config'): number {

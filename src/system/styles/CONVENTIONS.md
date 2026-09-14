@@ -162,7 +162,7 @@ buildTypeGroupColorTokens(typeGroups, { component, variants: ['default', 'hover'
 buildTypeGroupTokens(typeGroups, { component, variants })
 ```
 
-The helper strips the `--<component>-` prefix and the variant/state segments, keeping the rest: `--sidenavigation-section-default-text` → `section-text`, `--card-default-title-font-family` → `title-font-family`. Two parts ending in the same word (`section-text`, `item-text`) stay distinct; the same slot across variants (`--badge-primary-text`, `--badge-accent-text`) collapses to one key. This is correct by construction — it cannot phantom-link independent slots.
+The helper strips the `--<component>-` prefix and the variant/state segments, keeping the rest: `--sidenavigation-section-default-text` → `section-text`, `--card-default-title-font-family` → `title-font-family`. Two parts ending in the same word (`section-text`, `item-text`) stay distinct; the same slot across variants (`--badge-brand-text`, `--badge-accent-text`) collapses to one key. This is correct by construction — it cannot phantom-link independent slots.
 
 Precedence, most specific first: a per-group `colorGroupKey` (the durable one-line fix; never recomputed) > a `groupKeyFor` callback > the structural derivation (`{ component, variants }`). There is **no name-based fallback**: call `buildTypeGroupColorTokens` with none of these and its color tokens are emitted solo (no `groupKey`), never inferred from the last dash. The font helpers (`buildTypeGroupTokens`, `buildTypeGroupFontTokens`) still default to the bare `font-family`/`font-size`/… keys, which is correct for a single slot but merges fonts across multiple slots — `check-component` warns when a font helper is called bare across more than one slot.
 

@@ -14,9 +14,9 @@
     "--cornerbadge-text-font-size": "--font-size-sm",
     "--cornerbadge-text-font-weight": "--font-weight-medium",
     "--cornerbadge-text-line-height": "--line-height-none",
-    "--cornerbadge-primary-surface": "--surface-brand",
-    "--cornerbadge-primary-border": "--border-brand",
-    "--cornerbadge-primary-text": "--text-brand",
+    "--cornerbadge-brand-surface": "--surface-brand",
+    "--cornerbadge-brand-border": "--border-brand",
+    "--cornerbadge-brand-text": "--text-brand",
     "--cornerbadge-accent-surface": "--surface-accent",
     "--cornerbadge-accent-border": "--border-accent",
     "--cornerbadge-accent-text": "--text-accent",
@@ -45,5 +45,5 @@
     "--cornerbadge-info-border": "--border-info",
     "--cornerbadge-info-text": "--text-info"
   },
-  "schemaVersion": 34
+  "schemaVersion": 35
 }

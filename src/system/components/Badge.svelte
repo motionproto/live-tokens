@@ -6,12 +6,12 @@
     useFor: 'status the reader takes at a glance, such as "Beta", "New", or a version.',
     notFor: "a marker that sits on a parent's corner (CornerBadge); feedback after an action (Notification).",
     props: {
-      variant: '`primary`, `accent`, `special`, `alternate`, `canvas`, and `neutral` paint a color family; `success`, `warning`, `danger`, and `info` carry a status.',
+      variant: '`brand`, `accent`, `special`, `alternate`, `canvas`, and `neutral` paint a color family; `success`, `warning`, `danger`, and `info` carry a status.',
     },
   } satisfies CatalogueEntry;
 
   export const badgeVariants = [
-    'primary',
+    'brand',
     'accent',
     'neutral',
     'alternate',
@@ -61,7 +61,7 @@
 <style lang="scss">
   @use '../styles/padding' as *;
 
-  $variants: info, accent, primary, success, warning, danger, neutral, special, alternate, canvas;
+  $variants: info, accent, brand, success, warning, danger, neutral, special, alternate, canvas;
 
   // Per-variant token block kept flat (not collapsed via SCSS @each) so the
   // Layer-2 token-discovery parser (`extractGlobalRootBody` in
@@ -71,20 +71,20 @@
   // Notification.svelte. `--text-primary` is the neutral primary text (with
   // -secondary/-tertiary scale); `--text-brand` is the brand-family text.
   :global(:root) {
-    /* Primary */
-    --badge-primary-surface: var(--surface-brand);
-    --badge-primary-text: var(--text-brand);
-    --badge-primary-border: var(--border-brand);
-    --badge-primary-text-font-family: var(--font-sans);
-    --badge-primary-text-font-size: var(--font-size-md);
-    --badge-primary-text-font-weight: var(--font-weight-normal);
-    --badge-primary-text-line-height: var(--line-height-none);
-    --badge-primary-border-width: var(--border-width-1);
-    --badge-primary-radius: var(--radius-full);
-    --badge-primary-padding: var(--space-6);
-    --badge-primary-shadow: var(--shadow-none);
-    --badge-primary-blur: var(--blur-none);
-    --badge-primary-icon-size: var(--icon-size-sm);
+    /* Brand */
+    --badge-brand-surface: var(--surface-brand);
+    --badge-brand-text: var(--text-brand);
+    --badge-brand-border: var(--border-brand);
+    --badge-brand-text-font-family: var(--font-sans);
+    --badge-brand-text-font-size: var(--font-size-md);
+    --badge-brand-text-font-weight: var(--font-weight-normal);
+    --badge-brand-text-line-height: var(--line-height-none);
+    --badge-brand-border-width: var(--border-width-1);
+    --badge-brand-radius: var(--radius-full);
+    --badge-brand-padding: var(--space-6);
+    --badge-brand-shadow: var(--shadow-none);
+    --badge-brand-blur: var(--blur-none);
+    --badge-brand-icon-size: var(--icon-size-sm);
 
     /* Accent */
     --badge-accent-surface: var(--surface-accent);

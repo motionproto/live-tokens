@@ -95,7 +95,7 @@ interface PartSpec {
 }
 
 const BADGE_VARIANTS = [
-  'primary', 'accent', 'special', 'neutral', 'alternate',
+  'brand', 'accent', 'special', 'neutral', 'alternate',
   'canvas', 'info', 'success', 'warning', 'danger',
 ];
 /** `outline` is filled by its border alone, so it is listed separately. */

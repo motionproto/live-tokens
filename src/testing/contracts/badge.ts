@@ -1,11 +1,11 @@
 import type { ComponentContract, PaintMap } from '../componentContract';
 
 type Variant =
-  | 'primary' | 'accent' | 'neutral' | 'alternate' | 'canvas'
+  | 'brand' | 'accent' | 'neutral' | 'alternate' | 'canvas'
   | 'special' | 'success' | 'warning' | 'danger' | 'info';
 
 const variants: Variant[] = [
-  'primary', 'accent', 'neutral', 'alternate', 'canvas',
+  'brand', 'accent', 'neutral', 'alternate', 'canvas',
   'special', 'success', 'warning', 'danger', 'info',
 ];
 
@@ -38,23 +38,23 @@ function colorPaints(v: Variant): PaintMap {
 export const badgeContract: ComponentContract = {
   id: 'badge',
   origin: 'system',
-  view: { variant: 'Primary' },
+  view: { variant: 'Brand' },
   root: 'root',
   parts: {
     root: '.badge',
     icon: '.icon',
   },
   properties: [
-    { variant: 'Primary', state: 'base', paints: basePaints('primary') },
-    { variant: 'Primary', state: 'colors', paints: colorPaints('primary') },
-    ...variants.filter((v) => v !== 'primary').flatMap((v) => [
+    { variant: 'Brand', state: 'base', paints: basePaints('brand') },
+    { variant: 'Brand', state: 'colors', paints: colorPaints('brand') },
+    ...variants.filter((v) => v !== 'brand').flatMap((v) => [
       { variant: v.charAt(0).toUpperCase() + v.slice(1), state: 'base', paints: basePaints(v) },
       { variant: v.charAt(0).toUpperCase() + v.slice(1), state: 'colors', paints: colorPaints(v) },
     ]),
   ],
   states: [{ state: 'base' }, { state: 'colors' }],
   uncovered: {
-    '--badge-primary-blur': 'consumed via backdrop-filter: blur(), which no probe covers',
+    '--badge-brand-blur': 'consumed via backdrop-filter: blur(), which no probe covers',
     '--badge-accent-blur': 'consumed via backdrop-filter: blur(), which no probe covers',
     '--badge-neutral-blur': 'consumed via backdrop-filter: blur(), which no probe covers',
     '--badge-alternate-blur': 'consumed via backdrop-filter: blur(), which no probe covers',
@@ -69,23 +69,23 @@ export const badgeContract: ComponentContract = {
     cases: [
       {
         shape: 'token',
-        variant: 'Primary',
+        variant: 'Brand',
         state: 'base',
-        variable: '--badge-primary-border-width',
+        variable: '--badge-brand-border-width',
         observe: { part: 'root', css: 'borderTopWidth' },
       },
     ],
-    resetVariable: '--badge-primary-border-width',
+    resetVariable: '--badge-brand-border-width',
   },
   theme: {
     theme: 'halloween',
-    changed: ['--badge-primary-border-width', '--badge-primary-radius', '--badge-primary-padding'],
-    unchanged: ['--badge-primary-shadow', '--badge-primary-icon-size'],
+    changed: ['--badge-brand-border-width', '--badge-brand-radius', '--badge-brand-padding'],
+    unchanged: ['--badge-brand-shadow', '--badge-brand-icon-size'],
     aliasedTo: {
-      '--badge-primary-border-width': '--border-width-3',
-      '--badge-primary-radius': '--radius-none',
+      '--badge-brand-border-width': '--border-width-3',
+      '--badge-brand-radius': '--radius-none',
     },
-    observe: { part: 'root', css: 'borderTopWidth', variable: '--badge-primary-border-width' },
+    observe: { part: 'root', css: 'borderTopWidth', variable: '--badge-brand-border-width' },
   },
   interaction: {
     applicable: false,
@@ -97,6 +97,6 @@ export const badgeContract: ComponentContract = {
   },
   sketch: {
     style: 'pencil',
-    parts: [{ part: 'root', fill: '--badge-primary-surface', stroke: '--badge-primary-border' }],
+    parts: [{ part: 'root', fill: '--badge-brand-surface', stroke: '--badge-brand-border' }],
   },
 };

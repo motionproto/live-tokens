@@ -6,7 +6,7 @@
     useFor: 'a count or status marker that sits on the thing it describes.',
     notFor: 'a label in the text flow (Badge); feedback after an action (Notification).',
     props: {
-      variant: '`primary`, `accent`, `special`, `alternate`, `canvas`, and `neutral` paint a color family; `success`, `warning`, `danger`, and `info` carry a status.',
+      variant: '`brand`, `accent`, `special`, `alternate`, `canvas`, and `neutral` paint a color family; `success`, `warning`, `danger`, and `info` carry a status.',
       anchor: 'the corner the badge sits on; `bottom-right` unless named.',
     },
   } satisfies CatalogueEntry;
@@ -47,7 +47,7 @@
 <style lang="scss">
   @use '../styles/padding' as *;
 
-  $variants: primary, accent, neutral, alternate, canvas, special, success, warning, danger, info;
+  $variants: brand, accent, neutral, alternate, canvas, special, success, warning, danger, info;
 
   // Shape, offset, and type are uniform across variants — one flat token set
   // owns them. Colors are per-variant so authors can tune CornerBadge to read
@@ -70,9 +70,9 @@
     /* Per-variant color overrides. Default = inherit the same family/level the
        inner Badge uses; author can swap to a different level (e.g. -low) to
        reduce contrast against the host surface. */
-    --cornerbadge-primary-surface: var(--surface-brand);
-    --cornerbadge-primary-border: var(--border-brand);
-    --cornerbadge-primary-text: var(--text-brand);
+    --cornerbadge-brand-surface: var(--surface-brand);
+    --cornerbadge-brand-border: var(--border-brand);
+    --cornerbadge-brand-text: var(--text-brand);
     --cornerbadge-accent-surface: var(--surface-accent);
     --cornerbadge-accent-border: var(--border-accent);
     --cornerbadge-accent-text: var(--text-accent);

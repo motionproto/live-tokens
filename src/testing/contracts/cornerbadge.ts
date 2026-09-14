@@ -1,11 +1,11 @@
 import type { ComponentContract, PaintMap } from '../componentContract';
 
 type Variant =
-  | 'primary' | 'accent' | 'neutral' | 'alternate' | 'canvas'
+  | 'brand' | 'accent' | 'neutral' | 'alternate' | 'canvas'
   | 'special' | 'success' | 'warning' | 'danger' | 'info';
 
 const variants: Variant[] = [
-  'primary', 'accent', 'neutral', 'alternate', 'canvas',
+  'brand', 'accent', 'neutral', 'alternate', 'canvas',
   'special', 'success', 'warning', 'danger', 'info',
 ];
 
@@ -38,7 +38,7 @@ const basePaints: PaintMap = {
 export const cornerBadgeContract: ComponentContract = {
   id: 'cornerbadge',
   origin: 'system',
-  view: { variant: 'Primary' },
+  view: { variant: 'Brand' },
   root: 'root',
   parts: {
     root: '.cornerbadge',
@@ -46,13 +46,13 @@ export const cornerBadgeContract: ComponentContract = {
   },
   properties: [
     {
-      variant: 'Primary',
+      variant: 'Brand',
       paints: {
         root: basePaints.root,
-        badge: { ...basePaints.badge, ...colorPaints('primary').badge },
+        badge: { ...basePaints.badge, ...colorPaints('brand').badge },
       },
     },
-    ...variants.filter((v) => v !== 'primary').map((v) => ({
+    ...variants.filter((v) => v !== 'brand').map((v) => ({
       variant: v.charAt(0).toUpperCase() + v.slice(1),
       paints: colorPaints(v),
     })),
@@ -88,6 +88,6 @@ export const cornerBadgeContract: ComponentContract = {
   },
   sketch: {
     style: 'pencil',
-    parts: [{ part: 'badge', fill: '--cornerbadge-primary-surface', stroke: '--cornerbadge-primary-border' }],
+    parts: [{ part: 'badge', fill: '--cornerbadge-brand-surface', stroke: '--cornerbadge-brand-border' }],
   },
 };

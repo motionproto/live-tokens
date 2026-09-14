@@ -95,7 +95,7 @@ A property name starts with the component id and ends with the property suffix. 
 
 For a state that affects several parts, follow Toggle: `--toggle-on-hover-track-surface`. State segments precede the affected part.
 
-Name a role as the shipped component that paints the same thing names it. A fill is `-surface` in every shipped component. A knob is `-thumb`. A text role's color sits on the role's own name, `-title`, `-body`, `-label`, `-value`, and its typography hangs off that name: `--card-default-title-font-size`. A component with one text role uses `-text`: `--badge-primary-text`.
+Name a role as the shipped component that paints the same thing names it. A fill is `-surface` in every shipped component. A knob is `-thumb`. A text role's color sits on the role's own name, `-title`, `-body`, `-label`, `-value`, and its typography hangs off that name: `--card-default-title-font-size`. A component with one text role uses `-text`: `--badge-brand-text`.
 
 ## Runtime component
 
