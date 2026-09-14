@@ -334,11 +334,10 @@ export class PageHarness {
   /**
    * Every rule here measures geometry, and the geometry moves for as long as
    * the theme's own values, the route's stylesheet, and the fonts are still
-   * arriving. This repository's own Home page holds 384px of twelve-column
-   * grid in a 375px container at a 390px viewport with the theme's 32px
-   * `--columns-gutter`, and fits with the 8px gutter `tokens.css` computes
-   * there on its own, so the same page reads as overflowing or not depending
-   * on what has landed. Waiting on a single custom property settles nothing:
+   * arriving. A twelve-column grid inside 32px of padding reaches 384px at a
+   * 390px viewport with the theme's 32px `--columns-gutter`, and 120px with
+   * the 8px gutter `tokens.css` computes there on its own, so the same page
+   * reads as overflowing or not depending on what has landed. Waiting on a single custom property settles nothing:
    * `--body-md-font-size`, the property this gate used to read, is one
    * `tokens.css` sets itself, and a trace of the boot has it true 84ms before
    * the page container exists at all. What a rule needs instead is a page that

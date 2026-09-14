@@ -317,14 +317,10 @@ describe('runPlaywrightSuite: the deadline, root is this repo\'s own (a real @pl
   }, 20_000);
 });
 
-// The genuine round trip: real subprocess, real browser, real dev server,
-// against this repo's own Home page — the ground truth Wave 2 and Wave 3's
-// calibration records already establish (0 failures at 1280x900, one
-// page-overflow at 390x844, this repo's twelve-column grid on a phone width).
 // A from-scratch fixture project able to boot its own dev server belongs to
 // Wave 5's consumer acceptance gate.
 describe('runPageTests: real tools, this repo\'s own Home page', () => {
-  it.skipIf(!hasChromium)('reports exactly the known page-overflow finding, nothing else', async () => {
+  it.skipIf(!hasChromium)('runs every rule at both viewports and finds Home clean', async () => {
     // `outputDir` resolves against `root` (this repo), so a failing test's
     // screenshot lands in the repo's own test-results/ — same seam
     // check-component.test.ts's own real round trip documents. Remove only
@@ -333,12 +329,15 @@ describe('runPageTests: real tools, this repo\'s own Home page', () => {
     const beforeArtifacts = existsSync(testResultsDir) ? new Set(readdirSync(testResultsDir)) : null;
     try {
       const result = await runPageTests([{ source: 'src/app/Home.svelte', route: '/' }], { root: process.cwd() });
-      expect(result.findings.every((f: { rule: string }) => f.rule === 'page-overflow')).toBe(true);
-      expect(result.findings.length).toBeGreaterThan(0);
+      expect(result.findings).toEqual([]);
+      for (const at of ['1280x900', '390x844']) {
+        const coverage = result.coverage[`src/app/Home.svelte@${at}`];
+        expect(Object.keys(coverage).sort()).toEqual([...PAGE_RUNTIME_RULES].sort());
+        for (const rule of PAGE_RUNTIME_RULES) expect(['passed', 'inapplicable']).toContain(coverage[rule].status);
+      }
       expect(result.coverage['src/app/Home.svelte@1280x900']['page-component-paint']).toEqual({ status: 'passed' });
-      expect(result.coverage['src/app/Home.svelte@1280x900']['page-text-style']).toEqual(
-        expect.objectContaining({ status: 'inapplicable' }),
-      );
+      expect(result.coverage['src/app/Home.svelte@1280x900']['page-grid']).toEqual({ status: 'passed' });
+      expect(result.coverage['src/app/Home.svelte@390x844']['page-overflow']).toEqual({ status: 'passed' });
     } finally {
       if (existsSync(testResultsDir)) {
         for (const entry of readdirSync(testResultsDir)) {

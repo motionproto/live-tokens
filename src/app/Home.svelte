@@ -101,4 +101,12 @@
     gap: var(--space-20);
     margin-top: var(--space-24);
   }
+
+  /* Eleven 32px gutters leave a phone no room, so Home is one column there. */
+  @media (max-width: 767px) {
+    .home {
+      grid-template-columns: 1fr;
+      column-gap: 0;
+    }
+  }
 </style>
