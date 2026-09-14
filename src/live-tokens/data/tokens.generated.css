@@ -316,3 +316,9 @@
 :where(:root) {
   color-scheme: dark;
 }
+
+/* Component aliases (production configs differing from defaults) */
+:root:root {
+  /* collapsiblesection */
+  --collapsiblesection-hairline-default-hairline-color: var(--border-neutral-medium);
+}

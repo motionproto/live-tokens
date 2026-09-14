@@ -1,7 +1,7 @@
 {
   "name": "My Theme",
   "createdAt": "2026-09-14T13:37:01.938Z",
-  "updatedAt": "2026-09-14T13:37:01.941Z",
+  "updatedAt": "2026-09-14T16:25:15.877Z",
   "schemaVersion": 5,
   "colorsAndType": {
     "name": "Motion Proto",
@@ -2818,10 +2818,10 @@
       }
     },
     "collapsiblesection": {
-      "name": "default",
+      "name": "My Theme",
       "component": "collapsiblesection",
-      "createdAt": "2026-05-10T20:40:17.048Z",
-      "updatedAt": "2026-07-21T19:44:56.533Z",
+      "createdAt": "2026-09-14T16:25:13.861Z",
+      "updatedAt": "2026-09-14T16:25:13.861Z",
       "aliases": {
         "--collapsiblesection-chromeless-default-surface": "--color-transparent",
         "--collapsiblesection-chromeless-default-padding": "--space-4",
@@ -2843,7 +2843,7 @@
         "--collapsiblesection-chromeless-hover-icon-size": "--icon-size-xs",
         "--collapsiblesection-chromeless-open-padding": "--space-4",
         "--collapsiblesection-hairline-default-surface": "--color-transparent",
-        "--collapsiblesection-hairline-default-hairline-color": "--border-brand",
+        "--collapsiblesection-hairline-default-hairline-color": "--border-neutral-medium",
         "--collapsiblesection-hairline-default-hairline-width": "--border-width-1",
         "--collapsiblesection-hairline-default-padding": "--space-4",
         "--collapsiblesection-hairline-default-label": "--text-primary",
@@ -2888,7 +2888,8 @@
         "--collapsiblesection-container-hover-icon-size": "--icon-size-xs",
         "--collapsiblesection-container-open-surface": "--surface-neutral-higher",
         "--collapsiblesection-container-open-padding": "--space-4"
-      }
+      },
+      "config": {}
     },
     "cornerbadge": {
       "name": "default",
