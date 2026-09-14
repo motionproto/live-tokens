@@ -4,7 +4,7 @@
 
   export const component = 'collapsiblesection';
 
-  const VARIANTS = ['chromeless', 'hairline', 'container'] as const;
+  const VARIANTS = ['chromeless', 'heading', 'hairline', 'container'] as const;
   type Variant = typeof VARIANTS[number];
   const HEADER_STATES = ['default', 'hover'] as const;
   type HeaderState = typeof HEADER_STATES[number];
@@ -15,6 +15,7 @@
 
   const VARIANT_LABELS: Record<Variant, string> = {
     chromeless: 'Chromeless',
+    heading: 'Heading',
     hairline: 'With Hairline',
     container: 'Container',
   };
@@ -80,6 +81,7 @@
       sizeVariable: `--collapsiblesection-${v}-${s}-label-font-size`,
       weightVariable: `--collapsiblesection-${v}-${s}-label-font-weight`,
       lineHeightVariable: `--collapsiblesection-${v}-${s}-label-line-height`,
+      ...(v === 'heading' ? { letterSpacingVariable: `--collapsiblesection-${v}-${s}-label-letter-spacing` } : {}),
     }]]));
   }
 
@@ -94,6 +96,7 @@
     ...VARIANTS.flatMap((v) => Object.values(variantStates(v)).flat()),
     ...VARIANTS.flatMap((v) => buildTypeGroupColorTokens(variantTypeGroups(v), { component, variants: [...VARIANTS, ...HEADER_STATES] })),
     ...headerTypeGroupTokens,
+    ...HEADER_STATES.map((s) => ({ label: 'letter spacing', variable: `--collapsiblesection-heading-${s}-label-letter-spacing` })),
   ];
 
   const linkableContexts = new Map<string, string>([
@@ -134,7 +137,7 @@
   ) as Record<string, Token[]>);
 </script>
 
-<ComponentEditorBase {component} title="Collapsible Section" description="Expandable section with chevron toggle. Variants: chromeless, hairline, container." tokens={allTokens} {linked} variants={variantOptions}>
+<ComponentEditorBase {component} title="Collapsible Section" description="Expandable section with chevron toggle. Variants: chromeless, heading, hairline, container." tokens={allTokens} {linked} variants={variantOptions}>
   {#each VARIANTS as v}
     <VariantGroup
       name={v}

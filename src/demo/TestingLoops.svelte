@@ -2,6 +2,8 @@
   import { onMount } from 'svelte';
   import CollapsibleSection from '../system/components/CollapsibleSection.svelte';
   import Panel from '../system/components/Panel.svelte';
+  import Table from '../system/components/Table.svelte';
+  import Badge from '../system/components/Badge.svelte';
   import { portal } from '../system/internal/portal';
   import { navigate } from '../editor/core/routing/router';
 
@@ -381,88 +383,120 @@
   <section class="chapter" id="reference" aria-labelledby="reference-title">
     <div class="chapter-body">
       <h2 id="reference-title">Rule reference</h2>
-      <p>Expand a group to read its rules. The <span class="warn">warn</span> label marks a warning by default. Add <code>--strict</code> to treat it as an error.</p>
-
-      <CollapsibleSection label="Page code · 17 rules" prose={false} open={openRules['0'] ?? false} ontoggle={() => openRules['0'] = !openRules['0']}>
-        <ul class="rules">
-          <li><span class="id">unknown-component</span><span>An import names a component outside the catalogue.</span></li>
-          <li><span class="id">unknown-prop</span><span>A component receives a prop it does not declare.</span></li>
-          <li><span class="id">unknown-prop-value</span><span>A prop receives a value outside the set the component accepts.</span></li>
-          <li><span class="id">deep-import</span><span>An import reaches into package internals. Import from a public entry point.</span></li>
-          <li><span class="id">unknown-token</span><span>A <code>var()</code> reference uses an unknown token name.</span></li>
-          <li><span class="id">color-literal</span><span>A color value uses a literal instead of a design token.</span></li>
-          <li><span class="id">reserved-route</span><span>A route uses the reserved <code>/live-tokens/*</code> namespace.</span></li>
-          <li><span class="id">site-css-in-main</span><span><code>main.ts</code> imports <code>site.css</code>, which leaks it into the editor routes.</span></li>
-          <li><span class="id">raw-text-axis</span><span>A font size, family, weight, line height, or letter spacing uses a value outside a text style.</span></li>
-          <li><span class="id">dimension-literal<span class="warn">warn</span></span><span>A spacing, stroke, or radius value uses a literal instead of a token.</span></li>
-          <li><span class="id">hardcoded-columns<span class="warn">warn</span></span><span>A grid hardcodes four or more columns. Use <code>--columns-count</code>.</span></li>
-          <li><span class="id">missing-source<span class="warn">warn</span></span><span>A route has no <code>source</code>, so Page Source cannot open it.</span></li>
-          <li><span class="id">control-size<span class="warn">warn</span></span><span>The page sets <code>size</code> on a shipped component.</span></li>
-          <li><span class="id">multiple-primary<span class="warn">warn</span></span><span>The page uses more than one primary Button.</span></li>
-          <li><span class="id">danger-without-dialog<span class="warn">warn</span></span><span>A danger Button has no Dialog to confirm it.</span></li>
-          <li><span class="id">native-control<span class="warn">warn</span></span><span>A bare <code>&lt;button&gt;</code>, <code>&lt;input&gt;</code>, <code>&lt;select&gt;</code>, or <code>&lt;textarea&gt;</code> replaces a shipped control.</span></li>
-          <li><span class="id">property-override<span class="warn">warn</span></span><span>The page redeclares a component's semantic property for one instance.</span></li>
-        </ul>
-      </CollapsibleSection>
-
-      <CollapsibleSection label="Page browser tests · 5 rules" prose={false} open={openRules['1'] ?? false} ontoggle={() => openRules['1'] = !openRules['1']}>
-        <ul class="rules">
-          <li><span class="id">page-component-paint</span><span>Each component part renders the value of its semantic property.</span></li>
-          <li><span class="id">page-text-style</span><span>Text outside components matches a complete text style from the design system.</span></li>
-          <li><span class="id">page-contrast</span><span>Every text and surface pair meets WCAG AA.</span></li>
-          <li><span class="id">page-grid</span><span>Section edges align to column lines at 768px and wider.</span></li>
-          <li><span class="id">page-overflow</span><span>Content stays inside its container, and the page scrolls only vertically.</span></li>
-        </ul>
-      </CollapsibleSection>
-
-      <CollapsibleSection label="Component code · 20 rules" prose={false} open={openRules['2'] ?? false} ontoggle={() => openRules['2'] = !openRules['2']}>
-        <ul class="rules">
-          <li><span class="id">invalid-id</span><span>The id contains characters other than lowercase letters and digits.</span></li>
-          <li><span class="id">missing-file</span><span>The runtime or editor file is missing.</span></li>
-          <li><span class="id">missing-root-block</span><span>The runtime has no <code>:global(:root)</code> block.</span></li>
-          <li><span class="id">no-tokens</span><span>The <code>:global(:root)</code> block declares no <code>--&lt;id&gt;-*</code> property.</span></li>
-          <li><span class="id">missing-description<span class="warn">warn</span></span><span>The runtime's <code>catalogue</code> export lacks a required field.</span></li>
-          <li><span class="id">unread-token<span class="warn">warn</span></span><span>The runtime declares a property and never reads it.</span></li>
-          <li><span class="id">state-after-property</span><span>A property name places the state after the property. Use <code>-hover-surface</code>.</span></li>
-          <li><span class="id">disabled-is-terminal</span><span>A property name combines <code>disabled</code> with another state. The component cannot render that combination.</span></li>
-          <li><span class="id">unknown-suffix</span><span>A property name uses a suffix the editor cannot edit.</span></li>
-          <li><span class="id">phantom-editor-token</span><span>An editor row names a property the runtime never declares.</span></li>
-          <li><span class="id">color-literal</span><span>A default is a literal color.</span></li>
-          <li><span class="id">missing-component-const</span><span>The editor lacks <code>const component = '&lt;id&gt;'</code>.</span></li>
-          <li><span class="id">missing-all-tokens</span><span>The editor does not export <code>allTokens</code>.</span></li>
-          <li><span class="id">deep-import</span><span>A component file imports from package internals.</span></li>
-          <li><span class="id">missing-registration</span><span>Nothing under <code>src/</code> registers the id.</span></li>
-          <li><span class="id">unknown-token-ref</span><span>A default references an unknown token name.</span></li>
-          <li><span class="id">default-not-token</span><span>A default lacks both a design token and a declared intrinsic.</span></li>
-          <li><span class="id">phantom-link<span class="warn">warn</span></span><span>A font helper spans several slots without a derivation, which links their fonts.</span></li>
-          <li><span class="id">dimension-literal<span class="warn">warn</span></span><span>A default uses a raw dimension where a space, radius, or border-width token belongs.</span></li>
-          <li><span class="id">config-token</span><span>A default config references an unknown token name.</span></li>
-        </ul>
-      </CollapsibleSection>
-
-      <CollapsibleSection label="Component tests · 11 rules" prose={false} open={openRules['3'] ?? false} ontoggle={() => openRules['3'] = !openRules['3']}>
-        <ul class="rules">
-          <li><span class="id">contract-registry</span><span>Vitest. The component has a valid registration, property declarations, and default values.</span></li>
-          <li><span class="id">contract-behavior</span><span>Vitest. Callback props receive the arguments each case expects.</span></li>
-          <li><span class="id">contract-listed</span><span>Playwright. The component appears in its registry group.</span></li>
-          <li><span class="id">contract-alias</span><span>Playwright. The component declares every part and alias, each alias resolves, and each edit reaches the document root.</span></li>
-          <li><span class="id">contract-states</span><span>Playwright. The preview renders the state the editor selects.</span></li>
-          <li><span class="id">contract-interaction</span><span>Playwright. The component responds to pointer and keyboard input.</span></li>
-          <li><span class="id">contract-persist</span><span>Playwright. An edit survives save and reload, and Reset restores the saved config.</span></li>
-          <li><span class="id">contract-theme</span><span>Playwright. A theme preview updates the component, and Cancel restores the original values.</span></li>
-          <li><span class="id">contract-sketch</span><span>Playwright. Sketch mode draws every visible part.</span></li>
-          <li><span class="id">contract-render</span><span>Playwright. The runtime preview applies each property to the correct part.</span></li>
-          <li><span class="id">contract-missing</span><span>A component in the run has no contract.</span></li>
-        </ul>
-      </CollapsibleSection>
-
-      <CollapsibleSection label="Test runner · 3 rules" prose={false} open={openRules['4'] ?? false} ontoggle={() => openRules['4'] = !openRules['4']}>
-        <ul class="rules">
-          <li><span class="id">tests-not-installed</span><span><code>@playwright/test</code>, <code>vitest</code>, or <code>happy-dom</code> is missing.</span></li>
-          <li><span class="id">tests-setup</span><span>The harness failed to start, or a tool crashed before it wrote a report.</span></li>
-          <li><span class="id">tests-incomplete</span><span>A run timed out, collected no tests, or left a component and rule pair without a result.</span></li>
-        </ul>
-      </CollapsibleSection>
+      <p>Expand a group to read its rules. The <Badge variant="warning">warn</Badge> label marks a warning by default. Add <code>--strict</code> to treat it as an error.</p>
+      <div class="reference-groups">
+        <div class="rule-group">
+          <CollapsibleSection label="Page code · 17 rules" variant="heading" prose={false} open={openRules['0'] ?? false} ontoggle={() => openRules['0'] = !openRules['0']}>
+            <Table>
+              <table aria-label="Page code · 17 rules">
+                <thead><tr><th scope="col">Rule</th><th scope="col">Description</th></tr></thead>
+                <tbody>
+                  <tr><td>unknown-component</td><td>An import names a component outside the catalogue.</td></tr>
+                  <tr><td>unknown-prop</td><td>A component receives a prop it does not declare.</td></tr>
+                  <tr><td>unknown-prop-value</td><td>A prop receives a value outside the set the component accepts.</td></tr>
+                  <tr><td>deep-import</td><td>An import reaches into package internals. Import from a public entry point.</td></tr>
+                  <tr><td>unknown-token</td><td>A <code>var()</code> reference uses an unknown token name.</td></tr>
+                  <tr><td>color-literal</td><td>A color value uses a literal instead of a design token.</td></tr>
+                  <tr><td>reserved-route</td><td>A route uses the reserved <code>/live-tokens/*</code> namespace.</td></tr>
+                  <tr><td>site-css-in-main</td><td><code>main.ts</code> imports <code>site.css</code>, which leaks it into the editor routes.</td></tr>
+                  <tr><td>raw-text-axis</td><td>A font size, family, weight, line height, or letter spacing uses a value outside a text style.</td></tr>
+                  <tr><td><div class="rule-name"><span>dimension-literal</span><Badge variant="warning">warn</Badge></div></td><td>A spacing, stroke, or radius value uses a literal instead of a token.</td></tr>
+                  <tr><td><div class="rule-name"><span>hardcoded-columns</span><Badge variant="warning">warn</Badge></div></td><td>A grid hardcodes four or more columns. Use <code>--columns-count</code>.</td></tr>
+                  <tr><td><div class="rule-name"><span>missing-source</span><Badge variant="warning">warn</Badge></div></td><td>A route has no <code>source</code>, so Page Source cannot open it.</td></tr>
+                  <tr><td><div class="rule-name"><span>control-size</span><Badge variant="warning">warn</Badge></div></td><td>The page sets <code>size</code> on a shipped component.</td></tr>
+                  <tr><td><div class="rule-name"><span>multiple-primary</span><Badge variant="warning">warn</Badge></div></td><td>The page uses more than one primary Button.</td></tr>
+                  <tr><td><div class="rule-name"><span>danger-without-dialog</span><Badge variant="warning">warn</Badge></div></td><td>A danger Button has no Dialog to confirm it.</td></tr>
+                  <tr><td><div class="rule-name"><span>native-control</span><Badge variant="warning">warn</Badge></div></td><td>A bare <code>&lt;button&gt;</code>, <code>&lt;input&gt;</code>, <code>&lt;select&gt;</code>, or <code>&lt;textarea&gt;</code> replaces a shipped control.</td></tr>
+                  <tr><td><div class="rule-name"><span>property-override</span><Badge variant="warning">warn</Badge></div></td><td>The page redeclares a component's semantic property for one instance.</td></tr>
+                </tbody>
+              </table>
+            </Table>
+          </CollapsibleSection>
+        </div>
+        <div class="rule-group">
+          <CollapsibleSection label="Page browser tests · 5 rules" variant="heading" prose={false} open={openRules['1'] ?? false} ontoggle={() => openRules['1'] = !openRules['1']}>
+            <Table>
+              <table aria-label="Page browser tests · 5 rules">
+                <thead><tr><th scope="col">Rule</th><th scope="col">Description</th></tr></thead>
+                <tbody>
+                  <tr><td>page-component-paint</td><td>Each component part renders the value of its semantic property.</td></tr>
+                  <tr><td>page-text-style</td><td>Text outside components matches a complete text style from the design system.</td></tr>
+                  <tr><td>page-contrast</td><td>Every text and surface pair meets WCAG AA.</td></tr>
+                  <tr><td>page-grid</td><td>Section edges align to column lines at 768px and wider.</td></tr>
+                  <tr><td>page-overflow</td><td>Content stays inside its container, and the page scrolls only vertically.</td></tr>
+                </tbody>
+              </table>
+            </Table>
+          </CollapsibleSection>
+        </div>
+        <div class="rule-group">
+          <CollapsibleSection label="Component code · 20 rules" variant="heading" prose={false} open={openRules['2'] ?? false} ontoggle={() => openRules['2'] = !openRules['2']}>
+            <Table>
+              <table aria-label="Component code · 20 rules">
+                <thead><tr><th scope="col">Rule</th><th scope="col">Description</th></tr></thead>
+                <tbody>
+                  <tr><td>invalid-id</td><td>The id contains characters other than lowercase letters and digits.</td></tr>
+                  <tr><td>missing-file</td><td>The runtime or editor file is missing.</td></tr>
+                  <tr><td>missing-root-block</td><td>The runtime has no <code>:global(:root)</code> block.</td></tr>
+                  <tr><td>no-tokens</td><td>The <code>:global(:root)</code> block declares no <code>--&lt;id&gt;-*</code> property.</td></tr>
+                  <tr><td><div class="rule-name"><span>missing-description</span><Badge variant="warning">warn</Badge></div></td><td>The runtime's <code>catalogue</code> export lacks a required field.</td></tr>
+                  <tr><td><div class="rule-name"><span>unread-token</span><Badge variant="warning">warn</Badge></div></td><td>The runtime declares a property and never reads it.</td></tr>
+                  <tr><td>state-after-property</td><td>A property name places the state after the property. Use <code>-hover-surface</code>.</td></tr>
+                  <tr><td>disabled-is-terminal</td><td>A property name combines <code>disabled</code> with another state. The component cannot render that combination.</td></tr>
+                  <tr><td>unknown-suffix</td><td>A property name uses a suffix the editor cannot edit.</td></tr>
+                  <tr><td>phantom-editor-token</td><td>An editor row names a property the runtime never declares.</td></tr>
+                  <tr><td>color-literal</td><td>A default is a literal color.</td></tr>
+                  <tr><td>missing-component-const</td><td>The editor lacks <code>const component = '&lt;id&gt;'</code>.</td></tr>
+                  <tr><td>missing-all-tokens</td><td>The editor does not export <code>allTokens</code>.</td></tr>
+                  <tr><td>deep-import</td><td>A component file imports from package internals.</td></tr>
+                  <tr><td>missing-registration</td><td>Nothing under <code>src/</code> registers the id.</td></tr>
+                  <tr><td>unknown-token-ref</td><td>A default references an unknown token name.</td></tr>
+                  <tr><td>default-not-token</td><td>A default lacks both a design token and a declared intrinsic.</td></tr>
+                  <tr><td><div class="rule-name"><span>phantom-link</span><Badge variant="warning">warn</Badge></div></td><td>A font helper spans several slots without a derivation, which links their fonts.</td></tr>
+                  <tr><td><div class="rule-name"><span>dimension-literal</span><Badge variant="warning">warn</Badge></div></td><td>A default uses a raw dimension where a space, radius, or border-width token belongs.</td></tr>
+                  <tr><td>config-token</td><td>A default config references an unknown token name.</td></tr>
+                </tbody>
+              </table>
+            </Table>
+          </CollapsibleSection>
+        </div>
+        <div class="rule-group">
+          <CollapsibleSection label="Component tests · 11 rules" variant="heading" prose={false} open={openRules['3'] ?? false} ontoggle={() => openRules['3'] = !openRules['3']}>
+            <Table>
+              <table aria-label="Component tests · 11 rules">
+                <thead><tr><th scope="col">Rule</th><th scope="col">Description</th></tr></thead>
+                <tbody>
+                  <tr><td>contract-registry</td><td>Vitest. The component has a valid registration, property declarations, and default values.</td></tr>
+                  <tr><td>contract-behavior</td><td>Vitest. Callback props receive the arguments each case expects.</td></tr>
+                  <tr><td>contract-listed</td><td>Playwright. The component appears in its registry group.</td></tr>
+                  <tr><td>contract-alias</td><td>Playwright. The component declares every part and alias, each alias resolves, and each edit reaches the document root.</td></tr>
+                  <tr><td>contract-states</td><td>Playwright. The preview renders the state the editor selects.</td></tr>
+                  <tr><td>contract-interaction</td><td>Playwright. The component responds to pointer and keyboard input.</td></tr>
+                  <tr><td>contract-persist</td><td>Playwright. An edit survives save and reload, and Reset restores the saved config.</td></tr>
+                  <tr><td>contract-theme</td><td>Playwright. A theme preview updates the component, and Cancel restores the original values.</td></tr>
+                  <tr><td>contract-sketch</td><td>Playwright. Sketch mode draws every visible part.</td></tr>
+                  <tr><td>contract-render</td><td>Playwright. The runtime preview applies each property to the correct part.</td></tr>
+                  <tr><td>contract-missing</td><td>A component in the run has no contract.</td></tr>
+                </tbody>
+              </table>
+            </Table>
+          </CollapsibleSection>
+        </div>
+        <div class="rule-group">
+          <CollapsibleSection label="Test runner · 3 rules" variant="heading" prose={false} open={openRules['4'] ?? false} ontoggle={() => openRules['4'] = !openRules['4']}>
+            <Table>
+              <table aria-label="Test runner · 3 rules">
+                <thead><tr><th scope="col">Rule</th><th scope="col">Description</th></tr></thead>
+                <tbody>
+                  <tr><td>tests-not-installed</td><td><code>@playwright/test</code>, <code>vitest</code>, or <code>happy-dom</code> is missing.</td></tr>
+                  <tr><td>tests-setup</td><td>The harness failed to start, or a tool crashed before it wrote a report.</td></tr>
+                  <tr><td>tests-incomplete</td><td>A run timed out, collected no tests, or left a component and rule pair without a result.</td></tr>
+                </tbody>
+              </table>
+            </Table>
+          </CollapsibleSection>
+        </div>
+      </div>
     </div>
   </section>
 
@@ -544,7 +578,7 @@
   }
 
   .chapter-body > .defs,
-  .chapter-body > :global(.es-root) {
+  .chapter-body > .reference-groups {
     grid-column: 1 / 10;
   }
 
@@ -780,50 +814,22 @@
     color: var(--text-secondary);
   }
 
-  /* The ids size their own column, so the descriptions line up without a
-     fixed width. */
-  .rules {
-    list-style: none;
-    margin: var(--space-0);
-    padding: var(--space-0);
+  .reference-groups {
     display: grid;
-    grid-template-columns: max-content minmax(var(--space-0), 1fr);
-    column-gap: var(--space-24);
+    grid-template-columns: minmax(var(--space-0), 1fr);
+    gap: var(--space-16);
   }
 
-  .rules li {
-    display: contents;
+  .rule-group {
+    width: 100%;
+    min-width: var(--space-0);
   }
 
-  .rules li > span {
-    padding-block: var(--space-12);
-    border-top: var(--border-width-1) solid var(--border-neutral-subtle);
-  }
-
-  .rules li:first-child > span {
-    border-top: none;
-  }
-
-  .rules li > span:last-child {
-    color: var(--text-secondary);
-  }
-
-  .rules .id {
-    font-family: var(--code-font-family);
-    font-size: var(--body-md-font-size);
-    color: var(--text-primary);
-  }
-
-  .warn {
-    display: inline-block;
-    margin-left: var(--space-8);
-    font-family: var(--code-font-family);
-    font-size: var(--body-md-font-size);
-    color: var(--text-warning);
-  }
-
-  .chapter-body > :global(.es-root) {
-    margin-bottom: var(--space-12);
+  .rule-name {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-8);
   }
 
   .aside {
@@ -962,7 +968,7 @@
     .chapter-body > *,
     .chapter-body > .defs,
     .chapter-body > .repair-levels,
-    .chapter-body > :global(.es-root),
+    .chapter-body > .reference-groups,
     figcaption {
       grid-column: 1 / -1;
     }
@@ -1008,17 +1014,5 @@
       margin-top: var(--space-8);
     }
 
-    .rules {
-      grid-template-columns: minmax(var(--space-0), 1fr);
-    }
-
-    .rules li > span:last-child {
-      padding-top: var(--space-0);
-      border-top: none;
-    }
-
-    .rules .id {
-      overflow-wrap: anywhere;
-    }
   }
 </style>
