@@ -24,7 +24,7 @@ wrong. This records what the skill could not say and what now closes each gap.
   `--font-size-xl`, which sits above `body-md`. Re-pointing a component
   token at a text style (`--heading-sm-font-size`) is not the fix: the
   editor's size picker enumerates `--font-size-*` only, and
-  `docs/semantic-text-styles-plan.md` keeps component labels in component
+  the text style model keeps component labels in component
   territory. The open decision is whether the shipped defaults should drop
   a step (title lg, body md), which is a visible change for every consumer
   and belongs in a release with a breaking heading.

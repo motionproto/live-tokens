@@ -126,7 +126,7 @@ read.
 
 ## CLI output that breaks the skills' writing rules
 
-The skills were rewritten under the rules in `skill-simplification.md`. A model
+The skills were rewritten in the 2026-09 simplification pass. A model
 reads CLI output in the same turn, so the same rules apply to every string a
 verb prints. The groups below follow those rules.
 

@@ -1,7 +1,6 @@
 # Defects the contract tests exposed
 
-Building the shipped component validation suite
-([plan](plans/shipped-component-tests.md)) surfaced faults nothing else was
+Building the shipped component validation suite surfaced faults nothing else was
 watching for. Each entry below was measured against running code during a wave
 review, not inferred from reading.
 
