@@ -95,7 +95,7 @@ export const createComponent: SkillTree = {
       "id": "cc-runtime",
       "row": 3,
       "kind": "chipset",
-      "title": "Write the component runtime ",
+      "title": "Write the component runtime",
       "desc": "Start with the catalogue export. Declare every property with its token, and read it in the CSS.",
       "lines": [14, 14],
       "anchor": "Write the runtime file: the catalogue export and the `:globa",
