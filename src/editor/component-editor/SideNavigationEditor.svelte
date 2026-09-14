@@ -401,7 +401,7 @@
         <SideNavigation
           sections={demoSections}
           footer={demoFooter}
-          titleLabel="Title"
+          title="Title"
           titleHref="#"
           currentPath="section-1/item-2"
           open={previewOpen}

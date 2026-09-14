@@ -17,7 +17,7 @@ beforeEach(() => {
 
 function makeProps(currentPath: string) {
   return {
-    titleLabel: 'Docs',
+    title: 'Docs',
     currentPath,
     open: true,
     sections: [

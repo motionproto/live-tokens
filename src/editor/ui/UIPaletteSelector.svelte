@@ -131,7 +131,7 @@
 
   let selector: UITokenSelector | undefined = $state();
   let selectedFamily: string | null = $state(null);
-  let selectedTab: Category = $state('palette');
+  let selectedCategory: Category = $state('palette');
 
   /** Compass-rose layout for the orientation grid. Angles follow the CSS
    *  linear-gradient convention (0° points up, 90° points right). */
@@ -455,7 +455,7 @@
     if (familyFilter && name !== familyFilter) return;
     selectedFamily = name;
     if (name === chosenFamily && chosenCategory) {
-      selectedTab = chosenCategory;
+      selectedCategory = chosenCategory;
     }
   }
 
@@ -571,8 +571,8 @@
     const family = selectedFamily;
     const tabs = availableTabs;
     untrack(() => {
-      if (family && !tabs.find(t => t.id === selectedTab)) {
-        selectedTab = 'palette';
+      if (family && !tabs.find(t => t.id === selectedCategory)) {
+        selectedCategory = 'palette';
       }
     });
   });
@@ -670,14 +670,14 @@
           {#each availableTabs as tab}
             <button
               class="tab-btn"
-              class:selected={selectedTab === tab.id}
+              class:selected={selectedCategory === tab.id}
               class:assigned={chosenCategory === tab.id && chosenFamily === selectedFamily}
-              onclick={() => selectedTab = tab.id}
+              onclick={() => selectedCategory = tab.id}
             >{tab.label}</button>
           {/each}
         </div>
 
-        {#if selectedTab === 'palette'}
+        {#if selectedCategory === 'palette'}
           <div class="step-grid">
             {#each paletteSteps as step}
               <button
@@ -690,7 +690,7 @@
               </button>
             {/each}
           </div>
-        {:else if selectedTab === 'surface'}
+        {:else if selectedCategory === 'surface'}
           <div class="step-grid">
             {#each surfaceSteps as step}
               <button
@@ -703,7 +703,7 @@
               </button>
             {/each}
           </div>
-        {:else if selectedTab === 'border'}
+        {:else if selectedCategory === 'border'}
           <div class="step-grid">
             {#each borderSteps as step}
               <button
@@ -716,7 +716,7 @@
               </button>
             {/each}
           </div>
-        {:else if selectedTab === 'text'}
+        {:else if selectedCategory === 'text'}
           <div class="step-grid">
             {#each (selectedFamily === 'neutral' ? neutralTextSteps : textSteps) as step}
               <button

@@ -23,7 +23,7 @@
         global default; `true`/`false` force this instance on/off. */
     hoverTint?: boolean | undefined;
     tabs?: Tab[];
-    selectedTab?: string;
+    value?: string;
     iconOnly?: boolean;
     class?: string;
     /** Fires with the id of the tab the reader picked. */
@@ -33,7 +33,7 @@
   let {
     hoverTint = undefined,
     tabs = [],
-    selectedTab = '',
+    value = '',
     iconOnly = false,
     class: className = '',
     onchange
@@ -64,7 +64,7 @@
   {#each tabs as tab}
     <button
       class="tab"
-      class:selected={selectedTab === tab.id}
+      class:selected={value === tab.id}
       class:icon-only={iconOnly}
       disabled={tab.disabled}
       onclick={() => selectTab(tab)}

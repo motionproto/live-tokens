@@ -116,6 +116,11 @@
   `size="small"`. Notification's `size="normal"` is `size="default"` and
   `size="compact"` is `size="small"`. A consumer passing the old value
   stops compiling; there is no runtime migration for a prop.
+- **TabBar's `selectedTab` is `value`; SideNavigation's `titleLabel` is
+  `title`.** Both now hold the same kind of value SegmentedControl's and
+  MenuSelect's `value` props do. `titleHref` is unchanged. A consumer
+  passing the old prop name stops compiling; there is no runtime migration
+  for a prop.
 
 ### Changed
 

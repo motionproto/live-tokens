@@ -41,7 +41,7 @@
     hoverTint?: boolean | undefined;
     sections?: SideNavSection[];
     footer?: SideNavFooter | undefined;
-    titleLabel?: string;
+    title?: string;
     titleHref?: string;
     currentPath?: string;
     open?: boolean;
@@ -67,7 +67,7 @@
     hoverTint = undefined,
     sections = [],
     footer = undefined,
-    titleLabel = '',
+    title = '',
     titleHref = '#',
     currentPath = '',
     open = true,
@@ -190,7 +190,7 @@
        the aside's overflow clips it during the close animation. -->
   <header class="sn-title" class:selected={titleSelected}>
     {#if open}
-      <a href={titleHref} class="sn-title-label">{titleLabel}</a>
+      <a href={titleHref} class="sn-title-label">{title}</a>
     {/if}
 
     <button

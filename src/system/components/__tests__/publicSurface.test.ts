@@ -183,7 +183,7 @@ describe('public components — smoke mount', () => {
               { id: 'one', label: 'One' },
               { id: 'two', label: 'Two' },
             ],
-            selectedTab: 'one',
+            value: 'one',
           },
         });
     expect(target.querySelectorAll('.tab').length).toBe(2);
@@ -262,7 +262,7 @@ describe('public components — event dispatch contract', () => {
               { id: 'one', label: 'One' },
               { id: 'two', label: 'Two' },
             ],
-            selectedTab: 'one',
+            value: 'one',
           },
         });
     let detail: unknown = undefined;

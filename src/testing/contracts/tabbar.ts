@@ -42,7 +42,7 @@ export const tabBarContract: ComponentContract = {
     root: '.tab-bar',
     tab: '.tab:not(.selected):not(:disabled)',
     icon: '.tab:not(.selected):not(:disabled) i',
-    selectedTab: '.tab.selected',
+    tabSelected: '.tab.selected',
     selectedIcon: '.tab.selected i',
     disabledTab: '.tab:disabled',
     disabledIcon: '.tab:disabled i',
@@ -67,14 +67,14 @@ export const tabBarContract: ComponentContract = {
     },
     { state: 'default tab', paints: tabPaints('tab', 'icon', 'default', true) },
     { state: 'hover tab', paints: tabPaints('tab', 'icon', 'hover', true) },
-    { state: 'selected tab', paints: tabPaints('selectedTab', 'selectedIcon', 'selected', true) },
+    { state: 'selected tab', paints: tabPaints('tabSelected', 'selectedIcon', 'selected', true) },
     { state: 'disabled tab', paints: tabPaints('disabledTab', 'disabledIcon', 'disabled', true) },
   ],
   states: [
     { state: 'bar' },
     { state: 'default tab', paints: tabPaints('tab', 'icon', 'default', false) },
     { state: 'hover tab', paints: tabPaints('tab', 'icon', 'hover', false) },
-    { state: 'selected tab', paints: tabPaints('selectedTab', 'selectedIcon', 'selected', false) },
+    { state: 'selected tab', paints: tabPaints('tabSelected', 'selectedIcon', 'selected', false) },
     {
       state: 'disabled tab',
       attributes: { disabledTab: { disabled: '' } },
@@ -136,19 +136,19 @@ export const tabBarContract: ComponentContract = {
     cases: [
       {
         name: 'clicking a tab asks for it',
-        props: { tabs: behaviorTabs, selectedTab: 'one' },
+        props: { tabs: behaviorTabs, value: 'one' },
         action: { kind: 'click', part: 'secondTab' },
         expect: { kind: 'callback', prop: 'onchange', args: ['two'] },
       },
       {
         name: 'clicking leaves the selection where the prop put it',
-        props: { tabs: behaviorTabs, selectedTab: 'one' },
+        props: { tabs: behaviorTabs, value: 'one' },
         action: { kind: 'click', part: 'secondTab' },
-        expect: { kind: 'text', part: 'selectedTab', value: 'One' },
+        expect: { kind: 'text', part: 'tabSelected', value: 'One' },
       },
       {
         name: 'a disabled tab stays silent',
-        props: { tabs: [behaviorTabs[0], { ...behaviorTabs[1], disabled: true }], selectedTab: 'one' },
+        props: { tabs: [behaviorTabs[0], { ...behaviorTabs[1], disabled: true }], value: 'one' },
         action: { kind: 'click', part: 'secondTab' },
         expect: { kind: 'no-callback', prop: 'onchange' },
       },
@@ -158,7 +158,7 @@ export const tabBarContract: ComponentContract = {
     style: 'pencil',
     parts: [
       { part: 'tab', fill: '--tabbar-default-surface', stroke: '--tabbar-default-border' },
-      { part: 'selectedTab', fill: '--tabbar-selected-surface', stroke: '--tabbar-selected-border' },
+      { part: 'tabSelected', fill: '--tabbar-selected-surface', stroke: '--tabbar-selected-border' },
     ],
   },
 };

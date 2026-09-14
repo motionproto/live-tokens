@@ -256,7 +256,7 @@
     <SideNavigation
       class="docs-sidebar"
       sections={navSections}
-      titleLabel="LiveTokens"
+      title="LiveTokens"
       titleHref="#01-overview"
       currentPath={parsedHash.chapter}
       open={sidebarOpen}

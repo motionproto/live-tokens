@@ -17,7 +17,7 @@ function titlePaints(s: 'default' | 'hover' | 'selected'): PaintMap {
       borderLeftWidth: `--sidenavigation-title-${s}-indicator-width`,
       paddingTop: `--sidenavigation-title-${s}-padding`,
     },
-    titleLabel: {
+    titleLinkBox: {
       color: `--sidenavigation-title-${s}-label`,
       fontFamily: `--sidenavigation-title-${s}-label-font-family`,
       fontSize: `--sidenavigation-title-${s}-label-font-size`,
@@ -107,7 +107,7 @@ export const sideNavigationContract: ComponentContract = {
   parts: {
     root: '.sidenavigation',
     title: '.sn-title',
-    titleLabel: '.sn-title-label',
+    titleLinkBox: '.sn-title-label',
     toggle: '.sn-toggle',
     toggleIcon: '.sn-toggle i',
     sectionWrap: '.sn-section',
@@ -141,7 +141,7 @@ export const sideNavigationContract: ComponentContract = {
       setup: [],
       paints: {
         title: { columnGap: '--sidenavigation-title-gap', borderRadius: '--sidenavigation-title-radius' },
-        titleLabel: {
+        titleLinkBox: {
           backgroundColor: '--sidenavigation-title-label-surface',
           borderTopColor: '--sidenavigation-title-label-border',
           borderTopWidth: '--sidenavigation-title-label-border-width',
@@ -220,18 +220,18 @@ export const sideNavigationContract: ComponentContract = {
     cases: [
       {
         name: 'clicking the rail toggle reports it',
-        props: { titleLabel: 'Docs' },
+        props: { title: 'Docs' },
         action: { kind: 'click', part: 'toggle' },
         expect: { kind: 'callback', prop: 'ontoggle', args: [] },
       },
       {
         name: 'open drives the toggle',
-        props: { titleLabel: 'Docs', open: false },
+        props: { title: 'Docs', open: false },
         expect: { kind: 'attribute', part: 'toggle', name: 'aria-expanded', value: 'false' },
       },
       {
         name: 'clicking leaves the rail where the prop put it',
-        props: { titleLabel: 'Docs', open: true },
+        props: { title: 'Docs', open: true },
         action: { kind: 'click', part: 'toggle' },
         expect: { kind: 'attribute', part: 'toggle', name: 'aria-expanded', value: 'true' },
       },
