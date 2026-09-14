@@ -26,6 +26,10 @@
       icon: 'fa-diagram-project',
       source: 'src/editor/skill-atlas/SkillAtlas.svelte',
     },
+    '/testing-loops': {
+      lazy: () => import('../demo/TestingLoops.svelte'),
+      source: 'src/demo/TestingLoops.svelte',
+    },
     '/playground/floating-tags': {
       lazy: () => import('../demo/FloatingTagsPlayground.svelte'),
       source: 'src/demo/FloatingTagsPlayground.svelte',

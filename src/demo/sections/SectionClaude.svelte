@@ -39,7 +39,7 @@
 
   <div class="copy">
     <p class="intro">
-      LiveTokens includes eight skills to build new components, themes, and pages, and to check what you have and bring it back into line.
+      LiveTokens includes nine skills to build new components, themes, and pages, and to check what you have and bring it back into line.
     </p>
 
     <div class="install">
@@ -48,9 +48,14 @@
     </div>
 
     <div class="atlas">
-      <Button variant="primary" onclick={() => navigate('/skills')} icon="fas fa-diagram-project" iconPosition="left">
-        How do skills work?
-      </Button>
+      <div class="atlas-actions">
+        <Button variant="primary" onclick={() => navigate('/skills')} icon="fas fa-diagram-project" iconPosition="left">
+          How do skills work?
+        </Button>
+        <Button variant="secondary" onclick={() => navigate('/testing-loops')} icon="fas fa-rotate" iconPosition="left">
+          Testing Loops
+        </Button>
+      </div>
       <p class="install-caption">
         Each skill as a decision tree, next to the lines of SKILL.md that decide it.
       </p>
@@ -135,6 +140,12 @@
     flex-direction: column;
     align-items: flex-start;
     gap: var(--space-8);
+  }
+
+  .atlas-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-12);
   }
 
   .skills {
