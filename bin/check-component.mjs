@@ -23,23 +23,29 @@
 
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { extname, join, relative } from 'node:path';
-import { catalogueOf, scaleTokens } from './lib/catalogue.mjs';
-import { hasColorLiteral, hasDimensionLiteral, stripVarFallbacks } from './lib/cssValues.mjs';
-import { resolveSourceDataDir, settingsFilePath } from './lib/dataDir.mjs';
+import { catalogueOf } from './lib/catalogue.mjs';
+import {
+  SIDE_SUFFIXES,
+  STATE_TOKENS,
+  declaredTokens,
+  intrinsicMatchers,
+  readKnownSuffixes,
+  tokenSuffix,
+} from './lib/componentSource.mjs';
 import { assembleRules, fixMap, lineOf } from './lib/findings.mjs';
-import { resolveGeometryLiteral } from './lib/geometry.mjs';
 import {
   EDITOR_DIRS,
   PKG_ROOT,
   builtInIds,
   componentInventory,
-  declaredCustomProperties,
   extractGlobalRootBlocks,
-  isContractToken,
   loadVocabulary,
 } from './lib/tokenVocabulary.mjs';
 import * as importsAndRoutes from './rules/importsAndRoutes.mjs';
 import * as testRuns from './rules/testRuns.mjs';
+import * as tokenRules from './rules/tokens.mjs';
+
+export { unreadTokens } from './lib/componentSource.mjs';
 
 /**
  * Every rule, with its default severity, where it is fixed, and how.
@@ -93,95 +99,26 @@ export const COMPONENT_RULES = assembleRules(
     'missing-root-block': { severity: 'error', fix: 'runtime', repair: 'authored' },
     'no-tokens': { severity: 'error', fix: 'runtime', repair: 'authored' },
     'missing-description': { severity: 'warn', fix: 'runtime', repair: 'authored' },
-    'unread-token': { severity: 'warn', fix: 'runtime', repair: 'choice' },
     'state-after-property': { severity: 'error', fix: 'property-name', repair: 'authored' },
     'disabled-is-terminal': { severity: 'error', fix: 'property-name', repair: 'authored' },
     'unknown-suffix': { severity: 'error', fix: 'property-name', repair: 'authored' },
     'phantom-editor-token': { severity: 'error', fix: 'editor', repair: 'authored' },
-    'color-literal': { severity: 'error', fix: 'property-token', repair: 'choice' },
     'missing-component-const': { severity: 'error', fix: 'editor', repair: 'authored' },
     'missing-all-tokens': { severity: 'error', fix: 'editor', repair: 'authored' },
     'missing-registration': { severity: 'error', fix: 'registration', repair: 'authored' },
-    'unknown-token-ref': { severity: 'error', fix: 'property-token', repair: 'choice' },
-    'default-not-token': { severity: 'error', fix: 'property-token', repair: 'choice' },
     'phantom-link': { severity: 'warn', fix: 'editor', repair: 'authored' },
-    'dimension-literal': { severity: 'warn', fix: 'property-token', repair: 'auto' },
-    'config-token': { severity: 'error', fix: 'property-token', repair: 'choice' },
   },
+  tokenRules.componentRules,
   importsAndRoutes.componentRules,
   testRuns.componentRules,
 );
 
 export const COMPONENT_RULE_FIX = fixMap(COMPONENT_RULES);
 
-// Property suffixes come from the editor's own kind table, so the checker and
-// the picker can never disagree about what a name means. Read as text rather
-// than imported: this module must load without the compiled engine (CI runs the
-// suite before the plugin is built).
-const ALIAS_KINDS = 'src/editor/core/components/aliasKinds.ts';
-
-/** Each kind with the suffixes that name it, in the file's own order, since
- *  the first match wins there too. */
-function readKindRules(root) {
-  for (const base of [root, PKG_ROOT]) {
-    const path = join(base, ALIAS_KINDS);
-    if (!existsSync(path)) continue;
-    const src = readFileSync(path, 'utf8');
-    const block = src.match(/KIND_RULES[^=]*=\s*\[([\s\S]*?)\n\];/);
-    if (!block) continue;
-    const out = [];
-    for (const m of block[1].matchAll(/\{\s*kind:\s*'([a-z-]+)',\s*suffix:\s*\[([\s\S]*?)\]/g)) {
-      out.push({ kind: m[1], suffixes: [...m[2].matchAll(/'-([a-z0-9-]+)'/g)].map((n) => n[1]) });
-    }
-    if (out.length > 0) return out;
-  }
-  return [];
-}
-
-function readKnownSuffixes(root) {
-  return [...new Set(readKindRules(root).flatMap((r) => r.suffixes))];
-}
-
-/**
- * The token scale a property draws its value from, by way of the editor's own
- * kind for it. A kind with no scale behind it — a length, a duration, a font
- * axis — has none, so a literal there has no candidate to offer.
- */
-const KIND_SCALE = {
-  'text-color': 'text',
-  surface: 'surface',
-  border: 'border',
-  radius: 'radius',
-  padding: 'space',
-  gap: 'space',
-  'hairline-inset': 'space',
-  'border-width': 'border-width',
-  'hairline-width': 'border-width',
-  'indicator-width': 'border-width',
-  shadow: 'shadow',
-};
-
-const COLOR_SCALES = ['text', 'surface', 'border'];
-const GEOMETRY_SCALES = ['space', 'radius', 'border-width', 'shadow'];
-
-function tokenScale(token, kindRules, wanted) {
-  const bare = SIDE_SUFFIXES.find((x) => token.endsWith(x)) ? token.slice(0, token.lastIndexOf('-')) : token;
-  const rule = kindRules.find((r) => r.suffixes.some((s) => bare.endsWith(`-${s}`)));
-  const scale = rule ? (KIND_SCALE[rule.kind] ?? null) : null;
-  return wanted.includes(scale) ? scale : null;
-}
-
 /** True when `id` is one of the package's own components. */
 function isBuiltIn(id) {
   return builtInIds(process.cwd(), PKG_ROOT).has(id);
 }
-
-// Per-side padding names (`--card-body-padding-top`) are written by the padding
-// selector, never declared by hand, and belong with their parent.
-const SIDE_SUFFIXES = ['-top', '-right', '-bottom', '-left'];
-
-// State tokens that must come *before* the property, never after.
-const STATE_TOKENS = ['hover', 'disabled', 'selected', 'focus', 'active', 'focused'];
 
 // Disabled is terminal: a disabled component cannot be hovered, focused, or
 // selected, so a token naming both describes a state that never paints.
@@ -238,14 +175,6 @@ function extractTokensForId(blocks, id) {
     for (const t of block.match(re) ?? []) tokens.add(t);
   }
   return [...tokens];
-}
-
-function tokenSuffix(token, known) {
-  const bare = SIDE_SUFFIXES.find((x) => token.endsWith(x)) ? token.slice(0, token.lastIndexOf('-')) : token;
-  for (const suffix of known) {
-    if (bare.endsWith(`-${suffix}`)) return suffix;
-  }
-  return null;
 }
 
 function detectStateAfterProperty(token, known) {
@@ -320,206 +249,6 @@ function editorTokenRefs(editor) {
 function stripSide(token) {
   const side = SIDE_SUFFIXES.find((x) => token.endsWith(x));
   return side ? token.slice(0, -side.length) : token;
-}
-
-/**
- * Token patterns the editor declares in `intrinsics` — the only tokens allowed a
- * bare keyword instead of a theme token.
- *
- * Matched on each spec's `variable`, not its `key`: the two need not agree
- * (Image's `zoom` key declares `--image-zoom-enabled`), and `variable` is what
- * actually names the token. A `${...}` hole stands for a variant segment.
- */
-function intrinsicMatchers(editor) {
-  const block = editor.match(/export\s+const\s+intrinsics[^=]*=\s*\[([\s\S]*?)\];/);
-  if (!block) return [];
-  const out = [];
-  for (const m of block[1].matchAll(/\bvariable\s*:[^`'"]*[`'"]([^`'"]+)[`'"]/g)) {
-    const pattern = m[1]
-      .replace(/[.*+?^${}()|[\]\\]/g, (c) => (c === '$' ? '$' : `\\${c}`))
-      .replace(/\$\\\{[^}]*\\\}/g, '[a-z0-9-]+')
-      .replace(/\$\{[^}]*\}/g, '[a-z0-9-]+');
-    out.push(new RegExp(`^${pattern}$`));
-  }
-  return out;
-}
-
-/**
- * The semantic half of the contract: a component token is a *property name*, and
- * its default is the theme token that property reads. So every default must
- * resolve to a real token — otherwise the component stops repainting when the
- * theme changes, which is the whole point of declaring it.
- */
-function checkDefaultsAreSemantic({ blocks, runtime, editor, root, runtimePath, record, vocabulary }) {
-  const vocab = vocabulary ?? loadVocabulary({ root });
-  const matchers = intrinsicMatchers(editor);
-  const rel = relative(root, runtimePath);
-  const kindRules = readKindRules(root);
-
-  const own = new Set();
-  for (const block of blocks) {
-    for (const m of block.matchAll(/(?:^|[;{])\s*(--[a-z0-9-]+)\s*:/gm)) own.add(m[1]);
-  }
-
-  for (const block of blocks) {
-    for (const m of block.matchAll(/(--[a-z0-9-]+)\s*:\s*([^;]+);/g)) {
-      const [decl, name, raw] = m;
-      const value = raw.trim();
-      const at = runtime.indexOf(decl);
-
-      const painted = stripVarFallbacks(value);
-      const refs = [...painted.matchAll(/var\(\s*(--[a-z0-9-]+)/g)].map((x) => x[1]);
-      for (const ref of refs) {
-        if (own.has(ref) || vocab.knows(ref)) continue;
-        record(
-          'unknown-token-ref',
-          STATE_TOKENS.includes(ref.replace(/^--/, '').split('-')[0])
-            ? `${rel}: ${name} reads ${ref}, but a state is a segment of a property name. Read the token the state should paint`
-            : isContractToken(ref)
-              ? `${rel}: ${name} reads ${ref}, which has the shape of a design token but no longer exists. Check tokens.css for a rename`
-              : `${rel}: ${name} reads ${ref}, which is not a design token or a semantic property`,
-          at,
-        );
-      }
-
-      if (hasColorLiteral(painted)) {
-        const scale = tokenScale(name, kindRules, COLOR_SCALES);
-        record(
-          'color-literal',
-          `${rel}: ${name}: ${value} is a colour literal; defaults must reference design tokens (e.g. var(--surface-primary))`,
-          at,
-          { details: { scale, candidates: scaleTokens(vocab, scale).map((t) => t.name) } },
-        );
-        continue;
-      }
-
-      if (refs.length === 0 && !matchers.some((re) => re.test(name))) {
-        record(
-          'default-not-token',
-          `${rel}: ${name}: ${value} has no design token behind it. Back it with a token, or declare it in the editor's \`intrinsics\` when it is a structural keyword`,
-          at,
-        );
-      }
-
-      if (hasDimensionLiteral(painted)) {
-        const scale = tokenScale(name, kindRules, GEOMETRY_SCALES);
-        const resolved = resolveGeometryLiteral(value, scale, scaleTokens(vocab, scale));
-        // Anchored at the whole declaration: a value-only patch applied at the
-        // first namesake literal at or after the line, whatever property held it.
-        const patch = resolved.patch
-          ? { from: decl, to: `${decl.slice(0, decl.length - raw.length - 1)}${raw.replace(value, resolved.patch.to)};` }
-          : null;
-        record(
-          'dimension-literal',
-          `${rel}: ${name}: ${value} pins a raw dimension; use a --space-*, --radius-*, or --border-width-* token`,
-          at,
-          {
-            details: { scale: resolved.scale, literals: resolved.literals, ...(patch ? { patch } : {}) },
-            ...(patch ? {} : { repair: 'choice' }),
-          },
-        );
-      }
-    }
-  }
-}
-
-/**
- * Properties a component declares that nothing in its own file reads. A read is
- * the name appearing outside the `:global(:root)` block: in a `var()`, in a
- * `style:` directive, or as the string a padding mixin takes. SCSS interpolation
- * (`--badge-#{$v}-surface`) reads every property the pattern covers. A per-side
- * padding is read through its parent.
- */
-export function unreadTokens(source, tokens) {
-  let body = source.replace(/\/\*[\s\S]*?\*\//g, ' ').replace(/<!--[\s\S]*?-->/g, ' ');
-  for (const block of extractGlobalRootBlocks(body)) body = body.replace(block, ' ');
-  const patterns = [...body.matchAll(/--[a-z0-9-]*(?:#\{[^}]*\}[a-z0-9-]*)+/g)].map(
-    (m) => new RegExp(`^${m[0].replace(/[.*+?^()|[\]\\]/g, '\\$&').replace(/#\{[^}]*\}/g, '[a-z0-9-]+')}$`),
-  );
-  const isRead = (name) => body.includes(name) || patterns.some((re) => re.test(name));
-  return [...tokens].filter((name) => {
-    const side = SIDE_SUFFIXES.find((s) => name.endsWith(s));
-    return !isRead(name) && !(side && isRead(name.slice(0, -side.length)));
-  });
-}
-
-/** Every `--name` inside a JSON string value, in the order it appears. Simple
- *  greedy extraction: `--card-default-body-padding` is one match, never two,
- *  since `[a-z0-9-]+` already consumes the longer run first. */
-const TOKEN_NAME_RE = /--[a-z0-9-]+/g;
-
-/** The line a `"<key>":` sits on. The quote on both sides of the key makes
- *  this exact by construction — `"--card-default-body"` cannot match inside
- *  `"--card-default-body-padding"`, unlike a bare substring search. */
-function findJsonKeyLine(text, key) {
-  const escaped = key.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  const m = new RegExp(`"${escaped}"\\s*:`).exec(text);
-  return m ? lineOf(text, m.index) : 1;
-}
-
-/**
- * Saved assignments, validated as data. Every `--name` an alias string in
- * `component-configs/<id>/default.json` carries, whatever wraps it (`var()`,
- * the color-mix opacity form the editor writes, or nothing), must resolve —
- * a design token, or one of the component's own properties. A string with no
- * `--name` at all is a bare literal, allowed only on a property the editor
- * declares in `intrinsics`. A structured (non-string) alias value, such as a
- * gradient, is out of scope here.
- */
-function checkConfigTokens({ id, root, intrinsic, vocab, recordAt }) {
-  // A non-literal `dataDir` in `live-tokens.testing.ts` (a template literal, a
-  // computed value) is only resolvable at `--tests` time, when the settings
-  // module itself runs; `resolveSourceDataDir` throws rather than guess. This
-  // plain-Node rule has no settings module to run, so it skips instead of
-  // taking the whole static lint down with it.
-  let dataDir;
-  try {
-    dataDir = resolveSourceDataDir(root, settingsFilePath(root));
-  } catch {
-    return;
-  }
-  const configPath = join(dataDir, 'component-configs', id, 'default.json');
-  if (!existsSync(configPath)) return;
-  const text = readFileSync(configPath, 'utf8');
-  const rel = relative(root, configPath);
-  let data;
-  try {
-    data = JSON.parse(text);
-  } catch {
-    return;
-  }
-  // Only this component's own tokens, not the union across every component:
-  // an alias naming a sibling component's property is exactly the case this
-  // rule exists to catch.
-  const ownTokens = vocab.components.get(id)?.tokens;
-  const knows = (name) => vocab.themeTokens.has(name) || (ownTokens?.has(name) ?? false);
-  for (const [prop, value] of Object.entries(data.aliases ?? {})) {
-    if (typeof value !== 'string') continue;
-    const line = findJsonKeyLine(text, prop);
-    const names = value.match(TOKEN_NAME_RE);
-    if (!names) {
-      if (!intrinsic.some((re) => re.test(prop))) {
-        recordAt(
-          'config-token',
-          `${rel}: ${prop}: "${value}" has no design token behind it, and ${prop} is not a declared intrinsic`,
-          rel,
-          line,
-          { details: { property: prop, value } },
-        );
-      }
-      continue;
-    }
-    for (const name of names) {
-      if (knows(name)) continue;
-      recordAt(
-        'config-token',
-        `${rel}: ${prop} names ${name}, which is not a design token or a semantic property`,
-        rel,
-        line,
-        { details: { property: prop, value } },
-      );
-    }
-  }
 }
 
 export function checkComponent(id, root = process.cwd(), { vocabulary } = {}) {
@@ -652,24 +381,11 @@ export function checkComponent(id, root = process.cwd(), { vocabulary } = {}) {
     }
   }
 
-  checkDefaultsAreSemantic({ blocks, runtime, editor, root, runtimePath, record, vocabulary: vocab });
-  checkConfigTokens({ id, root, intrinsic, vocab, recordAt });
-
-  const declared = new Set();
-  for (const block of blocks) {
-    for (const n of declaredCustomProperties(block.replace(/\/\*[\s\S]*?\*\//g, ' '))) declared.add(n);
-  }
-
-  // Runtime: a property nothing in the file reads paints nothing, so the editor
-  // offers a control that moves nothing.
-  for (const name of unreadTokens(runtime, declared)) {
-    record(
-      'unread-token',
-      `${relative(root, runtimePath)}: ${name} is declared and never read in this file's own CSS. Read it where it paints, or drop it`,
-      runtime.indexOf(name),
-      { details: { property: name } },
-    );
-  }
+  const declared = declaredTokens(blocks);
+  const context = { id, root, runtimePath, runtime, blocks, vocab, intrinsic, declared };
+  tokenRules.checkDefaultsAreSemantic(context, record);
+  tokenRules.checkConfigTokens(context, recordAt);
+  tokenRules.checkUnreadTokens(context, record);
 
   // The editor-dependent rules below need real editor content; a missing
   // editor already has its own `missing-file` finding, and running these
@@ -818,7 +534,14 @@ export function checkComponentDefaults(runtimePath, { root = process.cwd(), voca
   const editorPath = EDITOR_DIRS.map((d) => join(root, d, `${name}Editor.svelte`)).find(existsSync);
   const editor = editorPath ? readFileSync(editorPath, 'utf8') : '';
 
-  const blocks = extractGlobalRootBlocks(runtime);
-  checkDefaultsAreSemantic({ blocks, runtime, editor, root, runtimePath, record, vocabulary });
+  const context = {
+    blocks: extractGlobalRootBlocks(runtime),
+    runtime,
+    root,
+    runtimePath,
+    vocab: vocabulary ?? loadVocabulary({ root }),
+    intrinsic: intrinsicMatchers(editor),
+  };
+  tokenRules.checkDefaultsAreSemantic(context, record);
   return findings;
 }

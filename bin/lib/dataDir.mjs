@@ -2,7 +2,7 @@
 // `live-tokens.testing.ts` settings file, statically — no engine import, no
 // dynamic import of the consumer's own config. Shared by `contractRunner.mjs`
 // (which isolates a copy of this directory before spawning the test tools)
-// and `check-component.mjs`'s `config-token` rule (which reads
+// and the `config-token` rule in `bin/rules/tokens.mjs` (which reads
 // `component-configs/<id>/default.json` under it directly), so the two agree
 // on which tree a project's saved assignments live in.
 
@@ -97,4 +97,30 @@ export function resolveSourceDataDir(root, settingsPath) {
     // Missing or unparseable reads as absent, matching the plugin's own resolver.
   }
   return resolve(root, 'src/live-tokens/data');
+}
+
+/**
+ * `component-configs/<id>/default.json` under the source data directory, as
+ * `{ path, text, data }`, or null when there is none to read. A non-literal
+ * `dataDir` in `live-tokens.testing.ts` (a template literal, a computed value)
+ * is only resolvable at `--tests` time, when the settings module itself runs;
+ * `resolveSourceDataDir` throws rather than guess. A plain-Node rule has no
+ * settings module to run, so it reads that as no config instead of taking the
+ * whole static lint down with it. Unparseable JSON reads as no config too.
+ */
+export function readComponentConfig(root, id) {
+  let dataDir;
+  try {
+    dataDir = resolveSourceDataDir(root, settingsFilePath(root));
+  } catch {
+    return null;
+  }
+  const path = join(dataDir, 'component-configs', id, 'default.json');
+  if (!existsSync(path)) return null;
+  const text = readFileSync(path, 'utf8');
+  try {
+    return { path, text, data: JSON.parse(text) };
+  } catch {
+    return null;
+  }
 }

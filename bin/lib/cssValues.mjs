@@ -48,3 +48,12 @@ export function stripVarFallbacks(value) {
 export function blankStrings(css) {
   return css.replace(/(["'])(?:\\.|(?!\1)[^\\])*\1/g, (m) => m[0] + ' '.repeat(m.length - 2) + m[0]);
 }
+
+/** The token scale a CSS property draws its colour from. The role inside that
+ *  scale stays the user's choice. */
+export function colorScaleOfProperty(prop) {
+  if (prop === 'color') return 'text';
+  if (/^background/.test(prop)) return 'surface';
+  if (/^(border|outline)(-|$)/.test(prop)) return 'border';
+  return null;
+}

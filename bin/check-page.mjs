@@ -12,14 +12,13 @@
 
 import { existsSync, readFileSync, statSync } from 'node:fs';
 import { join, relative, resolve, basename } from 'node:path';
-import { scaleTokens } from './lib/catalogue.mjs';
 import { assembleRules, fixMap, isExcluded, lineOf } from './lib/findings.mjs';
-import { blankStrings, hasColorLiteral, hasDimensionLiteral, stripVarFallbacks } from './lib/cssValues.mjs';
-import { geometryScaleOfProperty, resolveGeometryLiteral } from './lib/geometry.mjs';
-import { isContractToken, loadVocabulary, walk } from './lib/tokenVocabulary.mjs';
+import { codeRegion, inlineStyleRegions, styleBlockDeclarations, styleRegions } from './lib/pageSource.mjs';
+import { loadVocabulary, walk } from './lib/tokenVocabulary.mjs';
 import { resolveTokensCssPath } from './migrate.mjs';
 import * as importsAndRoutes from './rules/importsAndRoutes.mjs';
 import * as testRuns from './rules/testRuns.mjs';
+import * as tokenRules from './rules/tokens.mjs';
 
 /** Every rule, with its default severity, where it is fixed, and how. Same
  *  three fields, same meanings, as `COMPONENT_RULES`. */
@@ -55,11 +54,6 @@ export const PAGE_RULES = assembleRules(
     'unknown-component': { severity: 'error', fix: 'page-component', repair: 'authored' },
     'unknown-prop': { severity: 'error', fix: 'page-component', repair: 'choice' },
     'unknown-prop-value': { severity: 'error', fix: 'page-component', repair: 'choice' },
-    'unknown-token': { severity: 'error', fix: 'page-token', repair: 'choice' },
-    'color-literal': { severity: 'error', fix: 'page-token', repair: 'choice' },
-    'raw-text-axis': { severity: 'error', fix: 'page-token', repair: 'choice' },
-    'dimension-literal': { severity: 'warn', fix: 'page-token', repair: 'auto' },
-    'hardcoded-columns': { severity: 'warn', fix: 'page-layout', repair: 'choice' },
     'control-size': { severity: 'warn', fix: 'page-component', repair: 'auto' },
     'multiple-primary': { severity: 'warn', fix: 'page-component', repair: 'authored' },
     'danger-without-dialog': { severity: 'warn', fix: 'page-component', repair: 'authored' },
@@ -67,6 +61,7 @@ export const PAGE_RULES = assembleRules(
     'property-override': { severity: 'warn', fix: 'page-component', repair: 'auto' },
   },
   importsAndRoutes.pageRules,
+  tokenRules.pageRules,
   testRuns.pageRules,
 );
 
@@ -77,97 +72,6 @@ export const NOT_PAGES = ['src/system', 'src/editor', 'src/lib', 'src/live-token
 
 export const COMPONENT_IMPORT =
   /(?:@motion-proto\/live-tokens\/components|[./][^'"]*\/system\/components)\/([A-Za-z0-9]+)\.svelte$/;
-
-const TEXT_AXES = ['font-size', 'font-family', 'font-weight', 'line-height', 'letter-spacing'];
-
-// The single-axis scales in tokens.css. A text style bundle carries its axis
-// as a suffix (--body-md-font-size, --code-font-family), so no bundle name
-// matches, and neither does a custom property the page declares itself. A
-// weight alone cannot move the scale or the fonts, so --font-weight-* is not one.
-const SINGLE_AXIS_TOKEN =
-  /^--(?:font-size|line-height|letter-spacing)-|^--font-(?:sans|serif|mono|display|editorial)$/;
-
-// The geometry the theme owns: spacing, stroke, radius, and shadow all have a
-// token scale, and `set-geometry` moves them. Sizing (a hero's height, a
-// column's minimum width, a max content width) is layout, has no scale, and
-// stays literal.
-const THEMED_GEOMETRY = /^(padding|margin|gap|row-gap|column-gap|border|outline|inset|top|right|bottom|left|box-shadow|text-shadow)(-|$)|-radius$/;
-
-// A local two-up or three-up is a layout. From four columns on, a hardcoded
-// count reads as a claim about the page grid, which `--columns-count` owns.
-const PAGE_GRID_COLUMNS = 4;
-
-// The two forms that keep a grid in step: the page grid itself, and a sub-grid
-// spanning fewer than every column.
-const COLUMN_FORMS = ['repeat(var(--columns-count), 1fr)', 'repeat(calc(var(--columns-count) - N), 1fr)'];
-
-/** The token scale a CSS property draws its colour from. The role inside that
- *  scale stays the user's choice. */
-function colorScaleOfProperty(prop) {
-  if (prop === 'color') return 'text';
-  if (/^background/.test(prop)) return 'surface';
-  if (/^(border|outline)(-|$)/.test(prop)) return 'border';
-  return null;
-}
-
-/** Blank out comments, url() payloads, and string contents so none of them can match a rule. */
-function neutralise(css) {
-  return blankStrings(
-    css
-      .replace(/\/\*[\s\S]*?\*\//g, (m) => ' '.repeat(m.length))
-      .replace(/url\((?:[^()]|\([^()]*\))*\)/g, (m) => ' '.repeat(m.length)),
-  );
-}
-
-/** `<style>` blocks with their absolute offset in the file; whole file for .css.
- *  `site` is what a repair would edit, which the finding carries. */
-function styleRegions(text, file) {
-  if (file.endsWith('.css')) return [{ text, offset: 0, site: 'declaration' }];
-  const out = [];
-  for (const m of text.matchAll(/<style[^>]*>([\s\S]*?)<\/style>/g)) {
-    out.push({ text: m[1], offset: m.index + m[0].indexOf(m[1]), site: 'declaration' });
-  }
-  return out;
-}
-
-/**
- * Inline styles in markup, as declaration lists the value rules can read: a
- * `style="..."` attribute verbatim, and a `style:prop="value"` directive
- * rewritten as `prop: value;`. A `{...}` expression is dynamic and skipped.
- * The directive keeps its source text as `raw`, since the rewritten
- * declaration is not text a patch would find on disk.
- */
-function inlineStyleRegions(code) {
-  const out = [];
-  for (const m of code.matchAll(/\sstyle=(["'])([^"']*)\1/g)) {
-    out.push({ text: `${m[2]};`, offset: m.index + m[0].indexOf(m[2]), site: 'attribute' });
-  }
-  for (const m of code.matchAll(/\sstyle:([a-z-]+)=(["'])([^"']*)\2/g)) {
-    out.push({ text: `${m[1]}: ${m[3]};`, offset: m.index + 1, site: 'directive', raw: m[0].slice(1) });
-  }
-  return out;
-}
-
-/** Everything outside `<style>`: script and markup. */
-function codeRegion(text, file) {
-  if (file.endsWith('.css')) return null;
-  return text.replace(/<style[^>]*>[\s\S]*?<\/style>/g, (m) => ' '.repeat(m.length));
-}
-
-/**
- * Declarations in a stylesheet, with at-rule preludes excluded. A breakpoint in
- * `@media (max-width: 768px)` is structural geometry, not a themeable value.
- * A property name is read from its start, so `--heading-2xl` is one custom
- * property and never the property `xl`.
- */
-function declarations(css) {
-  const body = css.replace(/@[a-z-]+[^;{]*(?=\{)/gi, (m) => ' '.repeat(m.length));
-  const out = [];
-  for (const m of body.matchAll(/(?<![\w-])((?:--)?[a-z][\w-]*)\s*:\s*([^;{}]+)[;}]/gi)) {
-    out.push({ prop: m[1].toLowerCase(), value: m[2].trim(), index: m.index, text: m[0].slice(0, -1).trimEnd() });
-  }
-  return out;
-}
 
 /**
  * The attributes of one component tag starting at `start` (the `<`), read with
@@ -315,29 +219,6 @@ function directiveDeletion(text, name, index) {
   // finding's line out from under `applyFixes`.
   if (from.includes('\n')) return null;
   return { from, to: '' };
-}
-
-/** A dimension-literal patch anchored at the declaration the finding names:
- *  its property through its value in a style block or a `style` attribute,
- *  or the whole `style:` directive. A value-only patch (`8px` → `var(...)`)
- *  applied at the first `8px` at or after the finding's line, which in
- *  `width: 8px; padding: 8px` was a property the rule never flags. No patch
- *  when the source under the declaration differs from the text the census
- *  read (a comment or a string the neutralised copy blanked), since a `from`
- *  built from the blanked copy would never match the file. */
-function declarationPatch(text, region, decl, rewritten) {
-  if (region.site === 'directive') {
-    const from = region.raw;
-    const quote = from.at(-1);
-    const open = from.indexOf(quote);
-    const inner = from.slice(open + 1, -1);
-    if (inner.trim() !== decl.value) return null;
-    return { from, to: from.slice(0, open + 1) + inner.replace(decl.value, rewritten) + quote };
-  }
-  const start = region.offset + decl.index;
-  const from = text.slice(start, start + decl.text.length);
-  if (from !== decl.text) return null;
-  return { from, to: from.slice(0, -decl.value.length) + rewritten };
 }
 
 // The shipped component that owns each native control's paint.
@@ -506,6 +387,8 @@ function checkFile(file, text, vocab, root) {
     findings.push({ rule, file: rel, line: lineOf(text, index), message, ...extra });
 
   const code = codeRegion(text, file);
+  const regions = styleRegions(text, file);
+  const inlineRegions = code === null ? [] : inlineStyleRegions(code);
   if (code !== null) {
     const imports = new Map();
     for (const m of code.matchAll(/import\s+(?:([^'"]*?)\s+from\s+)?['"]([^'"]+)['"]/g)) {
@@ -533,30 +416,8 @@ function checkFile(file, text, vocab, root) {
     importsAndRoutes.checkRoutes({ file, code }, add);
   }
 
-  // A page may also mint a custom property outside its <style> block — a
-  // `style:--x={...}` directive or an el.style.setProperty call — and those are
-  // just as declared as one written in CSS. Each name keeps the earliest site
-  // it was declared at, so property-override reports one finding per name.
-  const declaredSites = new Map();
-  const declareAt = (name, index) => {
-    if (!declaredSites.has(name) || index < declaredSites.get(name)) declaredSites.set(name, index);
-  };
-  const regions = styleRegions(text, file);
-  const styleBlockDeclarations = (regionList, at) => {
-    for (const region of regionList) {
-      const clean = neutralise(region.text);
-      for (const m of clean.matchAll(/(?:^|[;{])\s*(--[a-z0-9-]+)\s*:/gim)) {
-        at(m[1], region.offset + m.index, region.site, clean.slice(m.index));
-      }
-    }
-  };
-  styleBlockDeclarations(regions, declareAt);
-  for (const m of text.matchAll(/(?:style:|setProperty\(\s*['"`]|['"`])(--[a-z0-9-]+)/g)) {
-    declareAt(m[1], m.index);
-  }
-
-  // property-override needs a narrower set than declaredSites: the bare-quote
-  // alternative above exists only to suppress unknown-token on a name any
+  // property-override needs a narrower set than `pageDeclaredNames`: its
+  // bare-quote alternative exists only to suppress unknown-token on a name any
   // quoted string mentions, so it also matches a read like
   // getPropertyValue("--x"). A real declaration is a style-block rule, an
   // inline `style="--x: ..."` attribute, a `style:--x=` directive, or a
@@ -566,7 +427,7 @@ function checkFile(file, text, vocab, root) {
     if (!overrideSites.has(name) || index < overrideSites.get(name).index) overrideSites.set(name, { index, site, clean });
   };
   styleBlockDeclarations(regions, overrideAt);
-  if (code !== null) styleBlockDeclarations(inlineStyleRegions(code), overrideAt);
+  styleBlockDeclarations(inlineRegions, overrideAt);
   for (const m of text.matchAll(/(?:style:|setProperty\(\s*['"`])(--[a-z0-9-]+)/g)) {
     overrideAt(m[1], m.index, m[0].startsWith('style:') ? 'directive' : 'script');
   }
@@ -596,93 +457,7 @@ function checkFile(file, text, vocab, root) {
     );
   }
 
-  for (const region of [...regions, ...(code === null ? [] : inlineStyleRegions(code))]) {
-    const css = neutralise(region.text);
-    const at = (i) => region.offset + i;
-
-    for (const m of css.matchAll(/var\(\s*(--[a-z0-9-]+)/g)) {
-      const name = m[1];
-      if (declaredSites.has(name) || vocab.knows(name)) continue;
-      add(
-        'unknown-token',
-        at(m.index),
-        isContractToken(name)
-          ? `${name} has the shape of a design token but no longer exists. Check tokens.css for a rename`
-          : `${name} is not a design token, a semantic property, or declared in this file`,
-      );
-    }
-
-    for (const decl of declarations(css)) {
-      const { prop, value, index } = decl;
-      if (prop.startsWith('--')) continue;
-
-      // A `var()` fallback only renders when the token is missing, so a literal
-      // inside one is not the page's value.
-      const painted = stripVarFallbacks(value);
-      if (!TEXT_AXES.includes(prop) && hasColorLiteral(painted)) {
-        const scale = colorScaleOfProperty(prop);
-        add('color-literal', at(index), `${prop}: ${value}. Use a design token.`, {
-          details: { scale, candidates: scaleTokens(vocab, scale).map((t) => t.name) },
-        });
-        continue;
-      }
-
-      if (TEXT_AXES.includes(prop) || prop === 'font') {
-        const axis = [...painted.matchAll(/var\(\s*(--[a-z0-9-]+)/g)]
-          .map((m) => m[1])
-          .find((name) => SINGLE_AXIS_TOKEN.test(name));
-        if (axis) {
-          add(
-            'raw-text-axis',
-            at(index),
-            `${prop}: ${value}. ${axis} is one axis. Set every axis from one text style bundle (--heading-*, --body-*, --editorial-*, --code-*).`,
-          );
-          continue;
-        }
-
-        // Of the literals only absolute type values are a finding. `em`, `%`,
-        // and a unitless line-height are relative to the inherited type, so
-        // they ride whatever the theme sets rather than overriding it.
-        if (
-          !value.includes('var(') &&
-          !/^(inherit|initial|unset|normal)$/.test(value) &&
-          /\d(px|rem|pt)\b|^[a-z"']/i.test(value)
-        ) {
-          add(
-            'raw-text-axis',
-            at(index),
-            `${prop}: ${value}. Set type from a text style bundle (--heading-*, --body-*, --editorial-*, --code-*).`,
-          );
-          continue;
-        }
-      }
-
-      if (THEMED_GEOMETRY.test(prop) && hasDimensionLiteral(painted)) {
-        const scale = geometryScaleOfProperty(prop);
-        const resolved = resolveGeometryLiteral(value, scale, scaleTokens(vocab, scale));
-        const patch = resolved.patch ? declarationPatch(text, region, decl, resolved.patch.to) : null;
-        add(
-          'dimension-literal',
-          at(index),
-          `${prop}: ${value}. Use a --space-*, --radius-*, --border-width-*, or --shadow-* token.`,
-          {
-            details: { scale: resolved.scale, literals: resolved.literals, ...(patch ? { patch } : {}) },
-            ...(patch ? {} : { repair: 'choice' }),
-          },
-        );
-      }
-
-      const columns = value.match(/\brepeat\(\s*(\d+)\s*,\s*1fr\s*\)/);
-      if (columns && Number(columns[1]) >= PAGE_GRID_COLUMNS) {
-        add(
-          'hardcoded-columns',
-          at(index),
-          `${prop}: ${value}. Use repeat(var(--columns-count), 1fr) so the page grid stays in step.`,
-          { details: { columns: Number(columns[1]), candidates: COLUMN_FORMS } },
-        );
-      }
-    }
-  }
+  tokenRules.checkPageValues({ text, regions, inlineRegions, vocab }, add);
 
   return findings;
 }

@@ -20,6 +20,15 @@ export function lineOf(text, index) {
   return line;
 }
 
+/** The line a `"<key>":` sits on. The quote on both sides of the key makes
+ *  this exact by construction — `"--card-default-body"` cannot match inside
+ *  `"--card-default-body-padding"`, unlike a bare substring search. */
+export function findJsonKeyLine(text, key) {
+  const escaped = key.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const m = new RegExp(`"${escaped}"\\s*:`).exec(text);
+  return m ? lineOf(text, m.index) : 1;
+}
+
 export function readChecksConfig(root) {
   const path = join(root, 'live-tokens.config.json');
   if (!existsSync(path)) return {};
