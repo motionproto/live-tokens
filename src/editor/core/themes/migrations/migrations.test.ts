@@ -185,7 +185,7 @@ describe('migration runner — schemaVersion gating', () => {
     expect(migrated['--collapsiblesection-chromeless-expanded-border']).toBeUndefined();
     expect(migrated['--collapsiblesection-chromeless-expanded-surface']).toBeUndefined();
     expect(migrated['--collapsiblesection-chromeless-open-padding']).toBe('--space-4');
-    expect(migrated['--collapsiblesection-container-open-radius']).toBeUndefined();
+    expect(migrated['--collapsiblesection-container-expanded-radius']).toBeUndefined();
     expect(migrated['--collapsiblesection-container-open-surface']).toBe('--surface-canvas-low');
     expect(migrated['--collapsiblesection-container-open-padding']).toBe('--space-4');
   });
