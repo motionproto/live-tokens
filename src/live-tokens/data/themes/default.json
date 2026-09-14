@@ -1,7 +1,7 @@
 {
   "name": "Motion Proto",
   "createdAt": "2026-05-10T18:15:30.815Z",
-  "updatedAt": "2026-09-14T13:52:58.639Z",
+  "updatedAt": "2026-09-02T16:21:20.829Z",
   "schemaVersion": 5,
   "colorsAndType": {
     "name": "Motion Proto",
@@ -2868,7 +2868,7 @@
         "--collapsiblesection-container-frame-border": "--border-neutral",
         "--collapsiblesection-container-frame-border-width": "--border-width-1",
         "--collapsiblesection-container-frame-radius": "--radius-md",
-        "--collapsiblesection-container-default-surface": "--surface-neutral-lowest",
+        "--collapsiblesection-container-default-surface": "--surface-neutral",
         "--collapsiblesection-container-default-padding": "--space-4",
         "--collapsiblesection-container-default-label": "--text-primary",
         "--collapsiblesection-container-default-label-font-family": "--font-sans",
@@ -2877,7 +2877,7 @@
         "--collapsiblesection-container-default-label-line-height": "--line-height-normal",
         "--collapsiblesection-container-default-icon": "--text-primary",
         "--collapsiblesection-container-default-icon-size": "--icon-size-xs",
-        "--collapsiblesection-container-hover-surface": "--surface-neutral-low",
+        "--collapsiblesection-container-hover-surface": "--surface-neutral-high",
         "--collapsiblesection-container-hover-padding": "--space-4",
         "--collapsiblesection-container-hover-label": "--text-primary",
         "--collapsiblesection-container-hover-label-font-family": "--font-sans",
@@ -2886,7 +2886,7 @@
         "--collapsiblesection-container-hover-label-line-height": "--line-height-normal",
         "--collapsiblesection-container-hover-icon": "--text-primary",
         "--collapsiblesection-container-hover-icon-size": "--icon-size-xs",
-        "--collapsiblesection-container-open-surface": "--surface-neutral-lower",
+        "--collapsiblesection-container-open-surface": "--surface-neutral-higher",
         "--collapsiblesection-container-open-padding": "--space-4"
       }
     },

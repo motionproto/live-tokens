@@ -6,7 +6,7 @@
     useFor: 'secondary content that most readers skip.',
     notFor: 'content every reader needs (Card); moving between pages (SideNavigation).',
     props: {
-      variant: '`heading` uses a borderless H3 heading, `chromeless` sits inside other content, `hairline` draws a line under the header, `container` frames the whole section.',
+      variant: '`chromeless` sits inside other content, `hairline` draws a line under the header, `container` frames the whole section.',
     },
   } satisfies CatalogueEntry;
 </script>
@@ -18,7 +18,7 @@
       label: string;
       open?: boolean;
       href?: string | undefined;
-      variant?: 'chromeless' | 'heading' | 'hairline' | 'container';
+      variant?: 'chromeless' | 'hairline' | 'container';
       /** false → the section stops pinning body typography so the consumer fully owns slotted content's styling. */
       prose?: boolean;
       class?: string;
@@ -68,27 +68,25 @@
             <i class="fas fa-chevron-right toggle-icon"></i>
          </button>
          <a {href} class="section-link">
-            <svelte:element this={variant === 'heading' ? 'h3' : 'span'} class="section-label">{label}</svelte:element>
+            <span class="section-label">{label}</span>
          </a>
          {@render summary?.()}
       </div>
    {:else}
-      <div class="section-header section-header--toggle" class:open>
+      <div class="section-header" class:open>
          <div class="section-toggle">
             <button
                type="button"
                class="section-toggle-button"
                onclick={fireToggle}
-               aria-label={`${open ? 'Collapse' : 'Expand'} ${label}`}
+               aria-label={open ? 'Collapse section' : 'Expand section'}
                aria-expanded={open}
             >
                <i class="fas fa-chevron-right toggle-icon"></i>
             </button>
-            <svelte:element this={variant === 'heading' ? 'h3' : 'span'} class="section-label">{label}</svelte:element>
+            <span class="section-label">{label}</span>
          </div>
-         {#if summary}
-            <div class="section-summary">{@render summary()}</div>
-         {/if}
+         {@render summary?.()}
       </div>
    {/if}
    {#if open && children}
@@ -126,31 +124,6 @@
       /* Chromeless — open */
       --collapsiblesection-chromeless-open-padding: var(--space-4);
 
-      /* Heading — default */
-      --collapsiblesection-heading-default-surface: var(--tint-low);
-      --collapsiblesection-heading-default-padding: var(--space-8);
-      --collapsiblesection-heading-default-label: var(--text-primary);
-      --collapsiblesection-heading-default-label-font-family: var(--heading-md-font-family);
-      --collapsiblesection-heading-default-label-font-size: var(--heading-md-font-size);
-      --collapsiblesection-heading-default-label-font-weight: var(--heading-md-font-weight);
-      --collapsiblesection-heading-default-label-line-height: var(--heading-md-line-height);
-      --collapsiblesection-heading-default-label-letter-spacing: var(--heading-md-letter-spacing);
-      --collapsiblesection-heading-default-icon: var(--text-primary);
-      --collapsiblesection-heading-default-icon-size: var(--icon-size-xs);
-      /* Heading — hover */
-      --collapsiblesection-heading-hover-surface: var(--tint);
-      --collapsiblesection-heading-hover-padding: var(--space-8);
-      --collapsiblesection-heading-hover-label: var(--text-primary);
-      --collapsiblesection-heading-hover-label-font-family: var(--heading-md-font-family);
-      --collapsiblesection-heading-hover-label-font-size: var(--heading-md-font-size);
-      --collapsiblesection-heading-hover-label-font-weight: var(--heading-md-font-weight);
-      --collapsiblesection-heading-hover-label-line-height: var(--heading-md-line-height);
-      --collapsiblesection-heading-hover-label-letter-spacing: var(--heading-md-letter-spacing);
-      --collapsiblesection-heading-hover-icon: var(--text-primary);
-      --collapsiblesection-heading-hover-icon-size: var(--icon-size-xs);
-      /* Heading — open */
-      --collapsiblesection-heading-open-padding: var(--space-4);
-
       /* Hairline — default */
       --collapsiblesection-hairline-default-surface: var(--color-transparent);
       --collapsiblesection-hairline-default-hairline-color: var(--border-brand);
@@ -183,7 +156,7 @@
       --collapsiblesection-container-frame-border-width: var(--border-width-1);
       --collapsiblesection-container-frame-radius: var(--radius-md);
       /* Container — default header strip */
-      --collapsiblesection-container-default-surface: var(--surface-neutral-lowest);
+      --collapsiblesection-container-default-surface: var(--surface-neutral);
       --collapsiblesection-container-default-padding: var(--space-4);
       --collapsiblesection-container-default-label: var(--text-primary);
       --collapsiblesection-container-default-label-font-family: var(--font-sans);
@@ -193,7 +166,7 @@
       --collapsiblesection-container-default-icon: var(--text-primary);
       --collapsiblesection-container-default-icon-size: var(--icon-size-xs);
       /* Container — hover header strip */
-      --collapsiblesection-container-hover-surface: var(--surface-neutral-low);
+      --collapsiblesection-container-hover-surface: var(--surface-neutral-high);
       --collapsiblesection-container-hover-padding: var(--space-4);
       --collapsiblesection-container-hover-label: var(--text-primary);
       --collapsiblesection-container-hover-label-font-family: var(--font-sans);
@@ -203,7 +176,7 @@
       --collapsiblesection-container-hover-icon: var(--text-primary);
       --collapsiblesection-container-hover-icon-size: var(--icon-size-xs);
       /* Container — open content area */
-      --collapsiblesection-container-open-surface: var(--surface-neutral-lower);
+      --collapsiblesection-container-open-surface: var(--surface-neutral-higher);
       --collapsiblesection-container-open-padding: var(--space-4);
    }
 
@@ -213,7 +186,6 @@
    }
 
    .section-header {
-      position: relative;
       display: flex;
       align-items: center;
       gap: var(--space-12);
@@ -231,8 +203,7 @@
       display: flex;
       align-items: center;
       gap: var(--space-8);
-      flex-shrink: 1;
-      min-width: 0;
+      flex-shrink: 0;
    }
 
    /* Linked header: chevron is a sibling button next to the label link, not a
@@ -257,28 +228,6 @@
       cursor: pointer;
    }
 
-   /* Extend the native button over the label and header padding. Linked
-      headers keep their separate navigation and toggle targets. */
-   .section-header--toggle .section-toggle-button::after {
-      content: '';
-      position: absolute;
-      inset: 0;
-   }
-
-   .section-header--toggle .section-toggle-button:focus-visible {
-      outline: none;
-
-      &::after {
-         outline: var(--border-width-2) solid currentColor;
-         outline-offset: calc(var(--border-width-2) * -1);
-      }
-   }
-
-   /* Optional summary controls remain independent of the header toggle. */
-   .section-summary {
-      position: relative;
-   }
-
    .section-link {
       display: inline-flex;
       align-items: center;
@@ -290,17 +239,9 @@
 
    @mixin header-paint($variant, $state) {
       background: var(--collapsiblesection-#{$variant}-#{$state}-surface);
-      @if $variant == heading {
-         @include themed-padding(--collapsiblesection-#{$variant}-#{$state}-padding);
-      } @else {
-         @include themed-padding(--collapsiblesection-#{$variant}-#{$state}-padding, $h: 2);
-      }
+      @include themed-padding(--collapsiblesection-#{$variant}-#{$state}-padding, $h: 2);
 
       .section-label {
-         margin: 0;
-         @if $variant == heading {
-            letter-spacing: var(--collapsiblesection-heading-#{$state}-label-letter-spacing);
-         }
          color: var(--collapsiblesection-#{$variant}-#{$state}-label);
          font-family: var(--collapsiblesection-#{$variant}-#{$state}-label-font-family);
          font-size: var(--collapsiblesection-#{$variant}-#{$state}-label-font-size);
@@ -327,17 +268,6 @@
       &.force-hover > .section-header { @include header-paint(chromeless, hover); }
       > .section-content {
          @include themed-padding(--collapsiblesection-chromeless-open-padding, $h: 2);
-      }
-   }
-
-   .es-root.variant-heading {
-      > .section-header {
-         @include header-paint(heading, default);
-         &:hover { @include header-paint(heading, hover); }
-      }
-      &.force-hover > .section-header { @include header-paint(heading, hover); }
-      > .section-content {
-         @include themed-padding(--collapsiblesection-heading-open-padding, $h: 2);
       }
    }
 

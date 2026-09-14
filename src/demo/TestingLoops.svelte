@@ -4,6 +4,8 @@
   import Panel from '../system/components/Panel.svelte';
   import Table from '../system/components/Table.svelte';
   import Badge from '../system/components/Badge.svelte';
+  import Card from '../system/components/Card.svelte';
+  import Callout from '../system/components/Callout.svelte';
   import { portal } from '../system/internal/portal';
   import { navigate } from '../editor/core/routing/router';
 
@@ -72,9 +74,9 @@
       <h3>Skills build and repair</h3>
       <p>The package includes nine skills. Run <code>npx live-tokens setup-claude</code> to add them to your project.</p>
       <ul class="trio">
-        <li><h4>Theme skills</h4><p><span class="name">create-theme</span> passes color, type, and geometry tasks to <span class="name">set-colors</span>, <span class="name">set-type</span>, or <span class="name">set-geometry</span>.</p></li>
-        <li><h4>Build skills</h4><p><span class="name">create-page</span> builds a page from the component catalogue. It calls <span class="name">pick-component</span> to choose a component and <span class="name">create-component</span> to write a new one.</p></li>
-        <li><h4>Check skills</h4><p><span class="name">check-compliance</span> runs <code>npx live-tokens report</code> and lists the findings. <span class="name">fix-findings</span> repairs each finding and runs both checkers again until they pass.</p></li>
+        <li><Card title="Theme skills"><span class="name">create-theme</span> passes color, type, and geometry tasks to <span class="name">set-colors</span>, <span class="name">set-type</span>, or <span class="name">set-geometry</span>.</Card></li>
+        <li><Card title="Build skills"><span class="name">create-page</span> builds a page from the component catalogue. It calls <span class="name">pick-component</span> to choose a component and <span class="name">create-component</span> to write a new one.</Card></li>
+        <li><Card title="Check skills"><span class="name">check-compliance</span> runs <code>npx live-tokens report</code> and lists the findings. <span class="name">fix-findings</span> repairs each finding and runs both checkers again until they pass.</Card></li>
       </ul>
       <p>Skills make design decisions. Checkers verify the code and test the result.</p>
 
@@ -97,8 +99,10 @@
       <p>Add <code>--tests</code> to check the running app. The runner copies project data to a temporary directory, starts a development server, and runs three suites: one in Vitest and two in Playwright.</p>
 
       <figure>
-        <!-- svelte-ignore a11y_no_noninteractive_tabindex (Keyboard users need to scroll the diagram.) -->
-        <div class="figure-scroll" role="region" aria-label="Figure 1" tabindex="0">
+        <div class="figure-stage">
+          <Panel>
+            <!-- svelte-ignore a11y_no_noninteractive_tabindex (Keyboard users need to scroll the diagram.) -->
+            <div class="figure-scroll" role="region" aria-label="Figure 1" tabindex="0">
           <svg class="dg" width="1200" height="1133.3" viewBox="0 0 1200 1133.3" role="img" aria-label="Both checkers match every name against the vocabulary in the project's tokens.css. Either checker starts one test runner, which copies the project data and starts three runs: Vitest for registration and callbacks, Playwright for the component in the editor, and Playwright for the page at its route. The skill fixes the findings and runs both checkers again until every check passes.">
             <rect class="box" x="373.3" y="32" width="453.3" height="96" rx="4" />
             <text class="t" x="394.7" y="61.3">The token vocabulary</text>
@@ -186,10 +190,12 @@
             <path class="back" d="M24,270.7 H50.7" />
             <path class="back end" d="M800,1037.3 H1176 V270.7" />
             <path class="back" d="M1176,270.7 H1149.3" />
-            <text class="rule" x="17.3" y="653.3" text-anchor="middle" transform="rotate(-90 17.3 653.3)">run again</text>
+            <text class="rule" x="212" y="1026.7" text-anchor="middle">run again</text>
 
             <text class="rule" x="600" y="1112" text-anchor="middle">a missing result counts as a failure</text>
           </svg>
+            </div>
+          </Panel>
         </div>
         <figcaption><b>Figure 1. The testing loop.</b> Both checkers use the same runner. Each run starts with a fresh copy of the project data and preserves the editor’s state. The runner reports failures and missing results as findings.</figcaption>
       </figure>
@@ -215,8 +221,10 @@
       <p>Start with the component catalogue. If the page needs a new component, build and check that component first. Then assemble the page, run the checks, and review the layout.</p>
 
       <figure>
-        <!-- svelte-ignore a11y_no_noninteractive_tabindex (Keyboard users need to scroll the diagram.) -->
-        <div class="figure-scroll" role="region" aria-label="Figure 2" tabindex="0">
+        <div class="figure-stage">
+          <Panel>
+            <!-- svelte-ignore a11y_no_noninteractive_tabindex (Keyboard users need to scroll the diagram.) -->
+            <div class="figure-scroll" role="region" aria-label="Figure 2" tabindex="0">
           <svg class="dg" width="1200" height="1066.7" viewBox="0 0 1200 1066.7" role="img" aria-label="To create a page, read the project, plan the sections, and match each need to a component. When the catalogue lacks a component, write one and check it until exit 0. Assemble the page, then verify it with the static checks and a browser. Findings return to assembly until both checkers exit 0.">
             <rect class="box-lead" x="146.7" y="26.7" width="440" height="66.7" rx="4" />
             <text class="t" x="168" y="56">Create a page</text>
@@ -302,6 +310,8 @@
 
             <text class="rule" x="146.7" y="1048">accent: findings return to the step that fixes them</text>
           </svg>
+            </div>
+          </Panel>
         </div>
         <figcaption><b>Figure 2. The page workflow.</b> Follow the left path to build a page. Take the right branch to create and check a new component, then return to page assembly. Fix findings until the checks pass, then review the page yourself.</figcaption>
       </figure>
@@ -324,8 +334,10 @@
       <p>Tests verify the testing tools too. Each rule must detect a known defect, and each skill must describe commands and flags the CLI accepts.</p>
 
       <figure>
-        <!-- svelte-ignore a11y_no_noninteractive_tabindex (Keyboard users need to scroll the diagram.) -->
-        <div class="figure-scroll" role="region" aria-label="Figure 3" tabindex="0">
+        <div class="figure-stage">
+          <Panel>
+            <!-- svelte-ignore a11y_no_noninteractive_tabindex (Keyboard users need to scroll the diagram.) -->
+            <div class="figure-scroll" role="region" aria-label="Figure 3" tabindex="0">
           <svg class="dg" width="1200" height="400" viewBox="0 0 1200 400" role="img" aria-label="A skill states the contract in prose. A checker rule detects a breach. A finding carries the rule and its fix slug, and the slug points to the skill section with the repair steps. A gate guards each step: check:skills, the checker unit tests and defect fixtures, and the fix-slug table.">
             <text class="lbl" x="181.3" y="53.3" text-anchor="middle">check:skills</text>
             <text class="lbl" x="181.3" y="74.7" text-anchor="middle">check:cli-strings · check:skill-atlas</text>
@@ -362,6 +374,8 @@
             <path class="back" d="M1018.7,272 V349.3 H181.3 V274.7" />
             <text class="rule" x="600" y="338.7" text-anchor="middle">the fix slug points to the repair steps</text>
           </svg>
+            </div>
+          </Panel>
         </div>
         <figcaption><b>Figure 3. Rules and repairs.</b> Each finding includes a fix slug: an identifier that links to repair instructions in a skill. <span class="name">fix-findings</span> follows that link to make the repair.</figcaption>
       </figure>
@@ -375,7 +389,7 @@
       </dl>
 
       <div class="aside">
-        <p><strong>Skill instructions affect the result.</strong> The CLI supported <code>--carry-from</code> before the skills documented it. Two <span class="name">set-colors</span> runs then carried one theme’s fonts and geometry into the next. <code>check:skills</code> now catches missing flag documentation.</p>
+        <Callout variant="info" label="Skill instructions affect the result.">The CLI supported <code>--carry-from</code> before the skills documented it. Two <span class="name">set-colors</span> runs then carried one theme’s fonts and geometry into the next. <code>check:skills</code> now catches missing flag documentation.</Callout>
       </div>
     </div>
   </section>
@@ -386,7 +400,7 @@
       <p>Expand a group to read its rules. The <Badge variant="warning">warn</Badge> label marks a warning by default. Add <code>--strict</code> to treat it as an error.</p>
       <div class="reference-groups">
         <div class="rule-group">
-          <CollapsibleSection label="Page code · 17 rules" variant="heading" prose={false} open={openRules['0'] ?? false} ontoggle={() => openRules['0'] = !openRules['0']}>
+          <CollapsibleSection label="Page code · 17 rules" variant="hairline" prose={false} open={openRules['0'] ?? false} ontoggle={() => openRules['0'] = !openRules['0']}>
             <Table>
               <table aria-label="Page code · 17 rules">
                 <thead><tr><th scope="col">Rule</th><th scope="col">Description</th></tr></thead>
@@ -414,7 +428,7 @@
           </CollapsibleSection>
         </div>
         <div class="rule-group">
-          <CollapsibleSection label="Page browser tests · 5 rules" variant="heading" prose={false} open={openRules['1'] ?? false} ontoggle={() => openRules['1'] = !openRules['1']}>
+          <CollapsibleSection label="Page browser tests · 5 rules" variant="hairline" prose={false} open={openRules['1'] ?? false} ontoggle={() => openRules['1'] = !openRules['1']}>
             <Table>
               <table aria-label="Page browser tests · 5 rules">
                 <thead><tr><th scope="col">Rule</th><th scope="col">Description</th></tr></thead>
@@ -430,7 +444,7 @@
           </CollapsibleSection>
         </div>
         <div class="rule-group">
-          <CollapsibleSection label="Component code · 20 rules" variant="heading" prose={false} open={openRules['2'] ?? false} ontoggle={() => openRules['2'] = !openRules['2']}>
+          <CollapsibleSection label="Component code · 20 rules" variant="hairline" prose={false} open={openRules['2'] ?? false} ontoggle={() => openRules['2'] = !openRules['2']}>
             <Table>
               <table aria-label="Component code · 20 rules">
                 <thead><tr><th scope="col">Rule</th><th scope="col">Description</th></tr></thead>
@@ -461,7 +475,7 @@
           </CollapsibleSection>
         </div>
         <div class="rule-group">
-          <CollapsibleSection label="Component tests · 11 rules" variant="heading" prose={false} open={openRules['3'] ?? false} ontoggle={() => openRules['3'] = !openRules['3']}>
+          <CollapsibleSection label="Component tests · 11 rules" variant="hairline" prose={false} open={openRules['3'] ?? false} ontoggle={() => openRules['3'] = !openRules['3']}>
             <Table>
               <table aria-label="Component tests · 11 rules">
                 <thead><tr><th scope="col">Rule</th><th scope="col">Description</th></tr></thead>
@@ -483,7 +497,7 @@
           </CollapsibleSection>
         </div>
         <div class="rule-group">
-          <CollapsibleSection label="Test runner · 3 rules" variant="heading" prose={false} open={openRules['4'] ?? false} ontoggle={() => openRules['4'] = !openRules['4']}>
+          <CollapsibleSection label="Test runner · 3 rules" variant="hairline" prose={false} open={openRules['4'] ?? false} ontoggle={() => openRules['4'] = !openRules['4']}>
             <Table>
               <table aria-label="Test runner · 3 rules">
                 <thead><tr><th scope="col">Rule</th><th scope="col">Description</th></tr></thead>
@@ -617,15 +631,6 @@
     margin-top: var(--space-0);
   }
 
-  h4 {
-    font-family: var(--heading-sm-font-family);
-    font-size: var(--heading-sm-font-size);
-    font-weight: var(--heading-sm-font-weight);
-    line-height: var(--heading-sm-line-height);
-    letter-spacing: var(--heading-sm-letter-spacing);
-    margin: var(--space-0) var(--space-0) var(--space-12);
-  }
-
   p,
   li,
   dt,
@@ -645,10 +650,13 @@
     color: var(--text-secondary);
   }
 
-  strong,
-  dt {
+  strong {
     color: var(--text-primary);
     font-weight: var(--font-weight-semibold);
+  }
+
+  dt {
+    color: var(--text-primary);
   }
 
   code {
@@ -752,16 +760,9 @@
   }
 
   .trio li {
+    display: grid;
     grid-column: span 4;
     min-width: var(--space-0);
-    margin: var(--space-0);
-    padding: var(--space-24);
-    background: var(--surface-neutral-lower);
-    border: var(--border-width-1) solid var(--border-neutral-subtle);
-    border-radius: var(--radius-md);
-  }
-
-  .trio p {
     margin: var(--space-0);
   }
 
@@ -833,13 +834,7 @@
   }
 
   .aside {
-    background: var(--tint-low);
-    padding: var(--space-16) var(--space-24);
     margin-top: var(--space-32);
-  }
-
-  .aside p {
-    margin: var(--space-0);
   }
 
   figure {
@@ -848,12 +843,13 @@
     margin: var(--space-24) var(--space-0) var(--space-32);
   }
 
-  .figure-scroll {
+  .figure-stage {
     grid-column: 1 / -1;
+    min-width: var(--space-0);
+  }
+
+  .figure-scroll {
     overflow-x: auto;
-    background: var(--surface-neutral-lowest);
-    border: var(--border-width-1) solid var(--border-neutral-subtle);
-    border-radius: var(--radius-md);
   }
 
   figcaption {
@@ -959,7 +955,10 @@
     padding-top: var(--space-24);
     border-top: var(--border-width-1) solid var(--border-neutral-subtle);
     font-family: var(--code-font-family);
-    font-size: var(--body-md-font-size);
+    font-size: var(--code-font-size);
+    font-weight: var(--code-font-weight);
+    line-height: var(--code-line-height);
+    letter-spacing: var(--code-letter-spacing);
     color: var(--text-secondary);
   }
 
@@ -979,10 +978,6 @@
 
     .contents.contents-collapsed {
       width: auto;
-    }
-
-    .trio li {
-      padding: var(--space-16);
     }
   }
 

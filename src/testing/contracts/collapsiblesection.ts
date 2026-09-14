@@ -22,7 +22,6 @@ function headerPaints(v: string, s: 'default' | 'hover'): PaintMap {
       fontSize: `${p}-label-font-size`,
       fontWeight: `${p}-label-font-weight`,
       lineHeight: `${p}-label-line-height`,
-      ...(v === 'heading' ? { letterSpacing: `${p}-label-letter-spacing` } : {}),
     },
     icon: { color: `${p}-icon`, fontSize: `${p}-icon-size` },
   };
@@ -60,9 +59,6 @@ export const collapsibleSectionContract: ComponentContract = {
       state: 'Body',
       paints: { body: { backgroundColor: '--collapsiblesection-container-open-surface', paddingTop: '--collapsiblesection-container-open-padding' } },
     },
-    { variant: 'Heading', state: 'Header', paints: headerPaints('heading', 'default') },
-    { variant: 'Heading', state: 'Header', setup: clickHover(), paints: headerPaints('heading', 'hover') },
-    { variant: 'Heading', state: 'Body', paints: { body: { paddingTop: '--collapsiblesection-heading-open-padding' } } },
     { variant: 'Chromeless', state: 'Header', paints: headerPaints('chromeless', 'default') },
     { variant: 'Chromeless', state: 'Header', setup: clickHover(), paints: headerPaints('chromeless', 'hover') },
     { variant: 'Chromeless', state: 'Body', paints: { body: { paddingTop: '--collapsiblesection-chromeless-open-padding' } } },
@@ -101,16 +97,6 @@ export const collapsibleSectionContract: ComponentContract = {
     // clicking the real button here can't move `aria-expanded` (same
     // constraint documented on ToggleEditor in toggle.ts).
     cases: [
-      {
-        name: 'clicking the header padding focuses the toggle button',
-        action: { kind: 'click', part: 'header' },
-        expect: { kind: 'focused', part: 'toggleButton', value: true },
-      },
-      {
-        name: 'clicking the label focuses the toggle button',
-        action: { kind: 'click', part: 'label' },
-        expect: { kind: 'focused', part: 'toggleButton', value: true },
-      },
       {
         name: 'clicking the toggle button focuses it',
         action: { kind: 'click', part: 'toggleButton' },
