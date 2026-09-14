@@ -180,7 +180,7 @@ so no two waves run at once and no agent uses worktree isolation.
 | 1 Default fixing | Done in `d1a92e6` | | | |
 | 2 Rules split into modules | `wave-executor` | `test-verifier` | `wave-reviewer` | automatic |
 | 3 Release script audit | `census` inventories the 19 scripts, then `wave-executor` writes the table | none, since no code changes | `wave-reviewer` checks each row against its script | **the user** approves the dispositions |
-| 3b Approved script changes | `wave-executor` | `test-verifier` | `wave-reviewer` | automatic, skipped when every row is keep |
+| 3b Approved script changes | `wave-executor` | `test-verifier` | `wave-reviewer` | runs after `/check-fix-all`, once the user marks the Approved column |
 | 4 Guidance on every finding | `wave-executor` | `test-verifier` | `wave-reviewer` | automatic |
 | 5 Create skills run one loop | `wave-executor` | `test-verifier` | `wave-reviewer` | automatic |
 | 6 check-compliance checks and fixes | `wave-executor` | `test-verifier` | `wave-reviewer` | automatic |
@@ -193,9 +193,9 @@ so no two waves run at once and no agent uses worktree isolation.
 - `check-fix-wave.js` runs one wave: execute, verify, review, and the fix
   rounds below. It passes each agent name above as `agentType`. Run one wave
   on its own with `/check-fix-wave 4`.
-- `check-fix-run-a.js`, `check-fix-run-b.js` and `check-fix-run-c.js` call
-  it for each wave of their run in order. Each stops at the first wave that
-  stops.
+- `check-fix-all.js` calls it for Waves 2 through 8b in order, after a
+  preflight that stops on an unclean working tree. It stops at the first wave
+  that stops.
 
 **Ledger.** Every executor commits with the subject prefix `Check-fix W<n>:`,
 such as `Check-fix W2:`. `git log --grep "Check-fix W"` is the record the
@@ -215,23 +215,20 @@ reviewer reads to find a wave's diff.
    as its fix scope, then verify and review run again. A second BLOCK stops
    the run. The reviewer blocks when an oddity needs the user.
 
-**Runs.** A workflow cannot pause for input, so the user's approval in Wave 3
-falls between runs. Each run stays under 15 agents before fix loops.
+**The run.** `/check-fix-all` runs Waves 2 through 8b in one workflow. A
+workflow cannot pause for input, and no later wave depends on the user's
+approval of the Wave 3 audit, so Wave 3b runs afterwards with
+`/check-fix-wave 3b`.
 
-| Run | Waves | Agents before fix loops | Ends with |
-|---|---|---|---|
-| A | 2, 3 | 6 | the audit table, for the user to approve |
-| B | 3b, 4, 5 | 9 | create-page and create-component on one loop |
-| C | 6, 7, 8a, 8b | 13 | fix-findings deleted, the atlas and the page updated |
-
-- Start a run with `/check-fix-run-a`, `/check-fix-run-b` or
-  `/check-fix-run-c`. A stopped run resumes from its last finished agent.
-- Before each run, `git status --short` shows no change outside what the user
-  means to keep. An editor session writes into `src/live-tokens/data`, so
-  commit or restore that first.
-- `visual-qa` starts the dev server and opens Chrome. Launching run C
-  authorizes that. To avoid a browser, drop that stage and read the three
-  cards by hand before Wave 8a.
+- The preflight stops the run when `git status --short` prints anything. An
+  editor session writes into `src/live-tokens/data`, so commit or restore that
+  first.
+- A stopped run names its wave. Resume in any session with
+  `/check-fix-all from <wave>`, such as `/check-fix-all from 5`.
+- The run schedules about 26 agents before fix rounds, which shows the
+  advisory Large workflow notice.
+- `visual-qa` starts the dev server and opens Chrome in Wave 8a. Launching the
+  run authorizes that.
 
 ## Wave 1: default fixing, committed
 
@@ -320,6 +317,8 @@ for rows whose disposition is other than keep.
    than keep. A script that now calls the CLI passes `--no-fix`. When the
    Approved column is blank, stop and report that the table awaits approval.
 2. Mark each applied row in the table.
+3. Update the gates definition list in `src/demo/TestingLoops.svelte` for each
+   script this wave changes.
 
 **Verify.** `npx vitest run bin scripts/lib`, then each changed script by its
 npm name.
@@ -447,7 +446,7 @@ contradict its skill.
    - Figure 2 and walkthrough steps 4 and 6: one loop around one command
    - Figure 3: the fix slug becomes guidance, and `COMPONENT_RULE_FIX ·
      PAGE_RULE_FIX` becomes the guidance test
-   - the gates definition list, including any release script Wave 3b changed
+   - the gates definition list
 2. Run `node bin/cli.mjs check-page src/demo/TestingLoops.svelte --strict --no-fix`.
 
 **Done when** `grep -n "fix-findings\|fix slug\|RULE_FIX" src/demo/TestingLoops.svelte`
