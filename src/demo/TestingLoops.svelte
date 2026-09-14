@@ -1,6 +1,7 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import CollapsibleSection from '../system/components/CollapsibleSection.svelte';
+  import Panel from '../system/components/Panel.svelte';
   import { portal } from '../system/internal/portal';
   import { navigate } from '../editor/core/routing/router';
 
@@ -467,21 +468,25 @@
 
   <footer>Source: .claude/skills, bin/, src/testing, and scripts/ at v0.78.0.</footer>
   <div class="contents" class:contents-collapsed={!contentsOpen} use:portal>
-    <CollapsibleSection
-      label="Contents"
-      variant="container"
-      prose={false}
-      open={contentsOpen}
-      ontoggle={() => contentsOpen = !contentsOpen}
-    >
-      <nav aria-label="On this page">
-        <ol>
-          {#each chapters as chapter}
-            <li><a href="#{chapter.id}" onclick={(event) => jump(event, chapter.id)}>{chapter.title}</a></li>
-          {/each}
-        </ol>
-      </nav>
-    </CollapsibleSection>
+    <Panel>
+      <div class="contents-body">
+        <CollapsibleSection
+          label="Contents"
+          variant="chromeless"
+          prose={false}
+          open={contentsOpen}
+          ontoggle={() => contentsOpen = !contentsOpen}
+        >
+          <nav aria-label="On this page">
+            <ol>
+              {#each chapters as chapter}
+                <li><a href="#{chapter.id}" onclick={(event) => jump(event, chapter.id)}>{chapter.title}</a></li>
+              {/each}
+            </ol>
+          </nav>
+        </CollapsibleSection>
+      </div>
+    </Panel>
   </div>
 </div>
 
@@ -654,7 +659,7 @@
     margin: var(--space-0);
   }
 
-  /* The page positions the overlay; CollapsibleSection owns its appearance. */
+  /* Panel owns the frame and surface; the page positions the overlay. */
   .contents {
     position: fixed;
     top: var(--space-96);
@@ -664,12 +669,19 @@
     max-width: calc(100vw - var(--space-32));
     max-height: calc(100dvh - var(--space-96) - var(--space-24));
     overflow-y: auto;
+    border-radius: var(--panel-frame-radius);
+    backdrop-filter: blur(var(--blur-lg));
+  }
+
+  .contents-body {
+    width: 100%;
+    min-width: var(--space-0);
   }
 
   .contents ol {
     list-style: none;
     margin: var(--space-0);
-    padding: var(--space-8);
+    padding: var(--space-0);
   }
 
   .contents li {
@@ -678,7 +690,7 @@
 
   .contents a {
     display: block;
-    padding: var(--space-12);
+    padding-block: var(--space-12);
     color: var(--text-primary);
     text-decoration: none;
   }

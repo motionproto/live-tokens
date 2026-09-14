@@ -98,6 +98,16 @@ export const collapsibleSectionContract: ComponentContract = {
     // constraint documented on ToggleEditor in toggle.ts).
     cases: [
       {
+        name: 'clicking the header padding focuses the toggle button',
+        action: { kind: 'click', part: 'header' },
+        expect: { kind: 'focused', part: 'toggleButton', value: true },
+      },
+      {
+        name: 'clicking the label focuses the toggle button',
+        action: { kind: 'click', part: 'label' },
+        expect: { kind: 'focused', part: 'toggleButton', value: true },
+      },
+      {
         name: 'clicking the toggle button focuses it',
         action: { kind: 'click', part: 'toggleButton' },
         expect: { kind: 'focused', part: 'toggleButton', value: true },

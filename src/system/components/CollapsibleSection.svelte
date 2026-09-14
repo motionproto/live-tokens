@@ -73,20 +73,22 @@
          {@render summary?.()}
       </div>
    {:else}
-      <div class="section-header" class:open>
+      <div class="section-header section-header--toggle" class:open>
          <div class="section-toggle">
             <button
                type="button"
                class="section-toggle-button"
                onclick={fireToggle}
-               aria-label={open ? 'Collapse section' : 'Expand section'}
+               aria-label={`${open ? 'Collapse' : 'Expand'} ${label}`}
                aria-expanded={open}
             >
                <i class="fas fa-chevron-right toggle-icon"></i>
             </button>
             <span class="section-label">{label}</span>
          </div>
-         {@render summary?.()}
+         {#if summary}
+            <div class="section-summary">{@render summary()}</div>
+         {/if}
       </div>
    {/if}
    {#if open && children}
@@ -156,7 +158,7 @@
       --collapsiblesection-container-frame-border-width: var(--border-width-1);
       --collapsiblesection-container-frame-radius: var(--radius-md);
       /* Container — default header strip */
-      --collapsiblesection-container-default-surface: var(--surface-neutral);
+      --collapsiblesection-container-default-surface: var(--surface-neutral-lowest);
       --collapsiblesection-container-default-padding: var(--space-4);
       --collapsiblesection-container-default-label: var(--text-primary);
       --collapsiblesection-container-default-label-font-family: var(--font-sans);
@@ -166,7 +168,7 @@
       --collapsiblesection-container-default-icon: var(--text-primary);
       --collapsiblesection-container-default-icon-size: var(--icon-size-xs);
       /* Container — hover header strip */
-      --collapsiblesection-container-hover-surface: var(--surface-neutral-high);
+      --collapsiblesection-container-hover-surface: var(--surface-neutral-low);
       --collapsiblesection-container-hover-padding: var(--space-4);
       --collapsiblesection-container-hover-label: var(--text-primary);
       --collapsiblesection-container-hover-label-font-family: var(--font-sans);
@@ -176,7 +178,7 @@
       --collapsiblesection-container-hover-icon: var(--text-primary);
       --collapsiblesection-container-hover-icon-size: var(--icon-size-xs);
       /* Container — open content area */
-      --collapsiblesection-container-open-surface: var(--surface-neutral-higher);
+      --collapsiblesection-container-open-surface: var(--surface-neutral-lower);
       --collapsiblesection-container-open-padding: var(--space-4);
    }
 
@@ -186,6 +188,7 @@
    }
 
    .section-header {
+      position: relative;
       display: flex;
       align-items: center;
       gap: var(--space-12);
@@ -226,6 +229,28 @@
       color: inherit;
       font: inherit;
       cursor: pointer;
+   }
+
+   /* Extend the native button over the label and header padding. Linked
+      headers keep their separate navigation and toggle targets. */
+   .section-header--toggle .section-toggle-button::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+   }
+
+   .section-header--toggle .section-toggle-button:focus-visible {
+      outline: none;
+
+      &::after {
+         outline: var(--border-width-2) solid currentColor;
+         outline-offset: calc(var(--border-width-2) * -1);
+      }
+   }
+
+   /* Optional summary controls remain independent of the header toggle. */
+   .section-summary {
+      position: relative;
    }
 
    .section-link {
