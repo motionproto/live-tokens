@@ -93,7 +93,7 @@ Retired words:
 |---|---|
 | **component** | A runtime Svelte file, an editor Svelte file, and one registration. |
 | **catalogue entry** | The object the runtime file's `<script module>` block exports as `catalogue`, typed `CatalogueEntry`. |
-| **description** | The entry's first field: one sentence saying what the component is. |
+| **description** | The entry's first field: one sentence saying what the component is. In rendered UI copy, a description sits under a title. |
 | **useFor, notFor** | The entry's guidance fields: what to use the component for, and what to reach for instead. |
 | **props map** | The entry's optional `props` field, keyed by a prop the file declares; the text says what that prop's values mean. |
 | **prop** | A value a page passes to a component instance. |
@@ -104,7 +104,7 @@ Retired words:
 | **intrinsic** | A structural or display setting the editor exposes outside the token list: alignment, a hairline's position, a part's visibility. |
 | **linked** | Two semantic properties that share one value because the component's author declared them siblings. Linkage is authored in code. |
 | **label, title, text** | A prop: `label` names a control, `title` heads content, `text` is body copy. |
-| **description, hint, summary** | A description sits under a title, a hint under a field, a summary beside a header. |
+| **hint, summary** | A hint sits under a field, a summary beside a header. |
 | **open** | The one prop for an open state. |
 | **value** | The prop that holds a selection's id. |
 | **size** | A size prop's values are `default` and `small`. |

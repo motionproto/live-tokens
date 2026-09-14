@@ -161,8 +161,8 @@
   Tooltip, "section" for what Panel frames, and "a modal window" for
   Dialog.**
 - **`docs/terminology.md` and the create-component skill record the
-  component naming rules**: which word names a prop, a semantic property,
-  or a part, and the retired spellings each replaces.
+  component naming rules**: which word names a prop or a semantic property,
+  and the retired spellings each replaces.
 
 ### Fixed
 
