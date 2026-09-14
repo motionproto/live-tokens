@@ -2841,7 +2841,7 @@
         "--collapsiblesection-chromeless-hover-label-line-height": "--line-height-normal",
         "--collapsiblesection-chromeless-hover-icon": "--text-primary",
         "--collapsiblesection-chromeless-hover-icon-size": "--icon-size-xs",
-        "--collapsiblesection-chromeless-expanded-padding": "--space-4",
+        "--collapsiblesection-chromeless-open-padding": "--space-4",
         "--collapsiblesection-hairline-default-surface": "--color-transparent",
         "--collapsiblesection-hairline-default-hairline-color": "--border-brand",
         "--collapsiblesection-hairline-default-hairline-width": "--border-width-1",
@@ -2864,7 +2864,7 @@
         "--collapsiblesection-hairline-hover-label-line-height": "--line-height-normal",
         "--collapsiblesection-hairline-hover-icon": "--text-primary",
         "--collapsiblesection-hairline-hover-icon-size": "--icon-size-xs",
-        "--collapsiblesection-hairline-expanded-padding": "--space-4",
+        "--collapsiblesection-hairline-open-padding": "--space-4",
         "--collapsiblesection-container-frame-border": "--border-neutral",
         "--collapsiblesection-container-frame-border-width": "--border-width-1",
         "--collapsiblesection-container-frame-radius": "--radius-md",
@@ -2886,8 +2886,8 @@
         "--collapsiblesection-container-hover-label-line-height": "--line-height-normal",
         "--collapsiblesection-container-hover-icon": "--text-primary",
         "--collapsiblesection-container-hover-icon-size": "--icon-size-xs",
-        "--collapsiblesection-container-expanded-surface": "--surface-neutral-higher",
-        "--collapsiblesection-container-expanded-padding": "--space-4"
+        "--collapsiblesection-container-open-surface": "--surface-neutral-higher",
+        "--collapsiblesection-container-open-padding": "--space-4"
       }
     },
     "cornerbadge": {
@@ -3942,5 +3942,5 @@
       }
     }
   },
-  "componentSchemaVersion": 33
+  "componentSchemaVersion": 34
 }

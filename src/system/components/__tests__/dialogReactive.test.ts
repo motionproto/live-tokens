@@ -18,7 +18,7 @@ describe('Dialog live configuration bridge', () => {
     const component = mount(Dialog, {
       target,
       props: {
-        show: true,
+        open: true,
         inline: true,
         confirm: { label: 'Confirm', onClick: () => {} },
         cancel: { label: 'Cancel', onClick: () => {} },

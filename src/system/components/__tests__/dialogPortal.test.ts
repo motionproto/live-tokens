@@ -24,7 +24,7 @@ const backdrop = () => document.querySelector<HTMLElement>('.dialog-backdrop')!;
 
 describe('Dialog portal wiring', () => {
   it('portals the backdrop to <body> when not inline', () => {
-    const c = mount(Dialog, { target, props: { show: true, inline: false } });
+    const c = mount(Dialog, { target, props: { open: true, inline: false } });
     flushSync();
     expect(backdrop().parentElement).toBe(document.body);
     expect(target.contains(backdrop())).toBe(false);
@@ -32,7 +32,7 @@ describe('Dialog portal wiring', () => {
   });
 
   it('keeps the backdrop in flow when inline', () => {
-    const c = mount(Dialog, { target, props: { show: true, inline: true } });
+    const c = mount(Dialog, { target, props: { open: true, inline: true } });
     flushSync();
     expect(target.contains(backdrop())).toBe(true);
     expect(backdrop().classList.contains('inline')).toBe(true);

@@ -169,7 +169,7 @@ const PART_SPECS: readonly PartSpec[] = [
   },
   {
     sel: '.es-root.variant-container > .section-content',
-    fill: 'var(--collapsiblesection-container-expanded-surface)', stroke: 'transparent',
+    fill: 'var(--collapsiblesection-container-open-surface)', stroke: 'transparent',
     hatch: 'var(--collapsiblesection-container-frame-border)',
   },
   {

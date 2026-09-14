@@ -57,14 +57,14 @@ export const collapsibleSectionContract: ComponentContract = {
     {
       variant: 'Container',
       state: 'Body',
-      paints: { body: { backgroundColor: '--collapsiblesection-container-expanded-surface', paddingTop: '--collapsiblesection-container-expanded-padding' } },
+      paints: { body: { backgroundColor: '--collapsiblesection-container-open-surface', paddingTop: '--collapsiblesection-container-open-padding' } },
     },
     { variant: 'Chromeless', state: 'Header', paints: headerPaints('chromeless', 'default') },
     { variant: 'Chromeless', state: 'Header', setup: clickHover(), paints: headerPaints('chromeless', 'hover') },
-    { variant: 'Chromeless', state: 'Body', paints: { body: { paddingTop: '--collapsiblesection-chromeless-expanded-padding' } } },
+    { variant: 'Chromeless', state: 'Body', paints: { body: { paddingTop: '--collapsiblesection-chromeless-open-padding' } } },
     { variant: 'With Hairline', state: 'Header', paints: headerPaints('hairline', 'default') },
     { variant: 'With Hairline', state: 'Header', setup: clickHover(), paints: headerPaints('hairline', 'hover') },
-    { variant: 'With Hairline', state: 'Body', paints: { body: { paddingTop: '--collapsiblesection-hairline-expanded-padding' } } },
+    { variant: 'With Hairline', state: 'Body', paints: { body: { paddingTop: '--collapsiblesection-hairline-open-padding' } } },
   ],
   states: [{ state: 'Container' }, { state: 'Header' }, { state: 'Body' }],
   persistence: {
@@ -92,7 +92,7 @@ export const collapsibleSectionContract: ComponentContract = {
   interaction: {
     part: 'toggleButton',
     role: 'button',
-    // No activation case: CollapsibleSectionEditor's preview drives `expanded`
+    // No activation case: CollapsibleSectionEditor's preview drives `open`
     // off the active state tab and never wires `ontoggle` back to it, so
     // clicking the real button here can't move `aria-expanded` (same
     // constraint documented on ToggleEditor in toggle.ts).
@@ -113,8 +113,8 @@ export const collapsibleSectionContract: ComponentContract = {
         expect: { kind: 'callback', prop: 'ontoggle', args: [] },
       },
       {
-        name: 'expanded drives the chevron',
-        props: { label: 'Details', expanded: true },
+        name: 'open drives the chevron',
+        props: { label: 'Details', open: true },
         expect: { kind: 'attribute', part: 'toggleButton', name: 'aria-expanded', value: 'true' },
       },
       {
@@ -130,7 +130,7 @@ export const collapsibleSectionContract: ComponentContract = {
     parts: [
       { part: 'root', stroke: '--collapsiblesection-container-frame-border' },
       { part: 'header', fill: '--collapsiblesection-container-default-surface' },
-      { part: 'body', fill: '--collapsiblesection-container-expanded-surface' },
+      { part: 'body', fill: '--collapsiblesection-container-open-surface' },
     ],
   },
 };

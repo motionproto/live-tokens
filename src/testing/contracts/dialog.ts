@@ -119,13 +119,13 @@ export const dialogContract: ComponentContract = {
     cases: [
       {
         name: 'clicking close asks to close',
-        props: { show: true, inline: true, title: 'Confirm' },
+        props: { open: true, inline: true, title: 'Confirm' },
         action: { kind: 'click', part: 'closeButton' },
         expect: { kind: 'callback', prop: 'onclose', args: [] },
       },
       {
         name: 'title drives the heading',
-        props: { show: true, inline: true, title: 'Confirm' },
+        props: { open: true, inline: true, title: 'Confirm' },
         expect: { kind: 'text', part: 'title', value: 'Confirm' },
       },
     ],

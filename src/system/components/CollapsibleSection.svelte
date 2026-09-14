@@ -16,7 +16,7 @@
 
    interface Props {
       label: string;
-      expanded?: boolean;
+      open?: boolean;
       href?: string | undefined;
       variant?: 'chromeless' | 'hairline' | 'container';
       /** false → the section stops pinning body typography so the consumer fully owns slotted content's styling. */
@@ -30,7 +30,7 @@
 
    let {
       label,
-      expanded = false,
+      open = false,
       href = undefined,
       variant = 'container',
       prose = true,
@@ -57,13 +57,13 @@
            section can still be collapsed even when the label is a link. Both
            live inside the same `.section-header` flex row so paint (hover,
            background, indicator) continues to land on the row as a whole. -->
-      <div class="section-header section-header--linked" class:expanded>
+      <div class="section-header section-header--linked" class:open>
          <button
             type="button"
             class="section-toggle-button"
             onclick={fireToggle}
-            aria-label={expanded ? 'Collapse section' : 'Expand section'}
-            aria-expanded={expanded}
+            aria-label={open ? 'Collapse section' : 'Expand section'}
+            aria-expanded={open}
          >
             <i class="fas fa-chevron-right toggle-icon"></i>
          </button>
@@ -73,14 +73,14 @@
          {@render summary?.()}
       </div>
    {:else}
-      <div class="section-header" class:expanded>
+      <div class="section-header" class:open>
          <div class="section-toggle">
             <button
                type="button"
                class="section-toggle-button"
                onclick={fireToggle}
-               aria-label={expanded ? 'Collapse section' : 'Expand section'}
-               aria-expanded={expanded}
+               aria-label={open ? 'Collapse section' : 'Expand section'}
+               aria-expanded={open}
             >
                <i class="fas fa-chevron-right toggle-icon"></i>
             </button>
@@ -89,7 +89,7 @@
          {@render summary?.()}
       </div>
    {/if}
-   {#if expanded && children}
+   {#if open && children}
       <div class="section-content" class:prose>
          {@render children?.()}
       </div>
@@ -121,8 +121,8 @@
       --collapsiblesection-chromeless-hover-label-line-height: var(--line-height-normal);
       --collapsiblesection-chromeless-hover-icon: var(--text-primary);
       --collapsiblesection-chromeless-hover-icon-size: var(--icon-size-xs);
-      /* Chromeless — expanded */
-      --collapsiblesection-chromeless-expanded-padding: var(--space-4);
+      /* Chromeless — open */
+      --collapsiblesection-chromeless-open-padding: var(--space-4);
 
       /* Hairline — default */
       --collapsiblesection-hairline-default-surface: var(--color-transparent);
@@ -148,8 +148,8 @@
       --collapsiblesection-hairline-hover-label-line-height: var(--line-height-normal);
       --collapsiblesection-hairline-hover-icon: var(--text-primary);
       --collapsiblesection-hairline-hover-icon-size: var(--icon-size-xs);
-      /* Hairline — expanded */
-      --collapsiblesection-hairline-expanded-padding: var(--space-4);
+      /* Hairline — open */
+      --collapsiblesection-hairline-open-padding: var(--space-4);
 
       /* Container — frame (always-on outer chrome) */
       --collapsiblesection-container-frame-border: var(--border-neutral);
@@ -175,9 +175,9 @@
       --collapsiblesection-container-hover-label-line-height: var(--line-height-normal);
       --collapsiblesection-container-hover-icon: var(--text-primary);
       --collapsiblesection-container-hover-icon-size: var(--icon-size-xs);
-      /* Container — expanded content area */
-      --collapsiblesection-container-expanded-surface: var(--surface-neutral-higher);
-      --collapsiblesection-container-expanded-padding: var(--space-4);
+      /* Container — open content area */
+      --collapsiblesection-container-open-surface: var(--surface-neutral-higher);
+      --collapsiblesection-container-open-padding: var(--space-4);
    }
 
    .es-root {
@@ -194,7 +194,7 @@
       color: inherit;
       transition: all var(--duration-150);
 
-      &.expanded .toggle-icon {
+      &.open .toggle-icon {
          transform: rotate(90deg);
       }
    }
@@ -267,7 +267,7 @@
       }
       &.force-hover > .section-header { @include header-paint(chromeless, hover); }
       > .section-content {
-         @include themed-padding(--collapsiblesection-chromeless-expanded-padding, $h: 2);
+         @include themed-padding(--collapsiblesection-chromeless-open-padding, $h: 2);
       }
    }
 
@@ -285,7 +285,7 @@
          @include hairline-bottom(hover);
       }
       > .section-content {
-         @include themed-padding(--collapsiblesection-hairline-expanded-padding, $h: 2);
+         @include themed-padding(--collapsiblesection-hairline-open-padding, $h: 2);
       }
    }
 
@@ -300,8 +300,8 @@
       }
       &.force-hover > .section-header { @include header-paint(container, hover); }
       > .section-content {
-         background: var(--collapsiblesection-container-expanded-surface);
-         @include themed-padding(--collapsiblesection-container-expanded-padding, $h: 2);
+         background: var(--collapsiblesection-container-open-surface);
+         @include themed-padding(--collapsiblesection-container-open-padding, $h: 2);
       }
    }
 

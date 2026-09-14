@@ -150,7 +150,7 @@ describe('check-page component rules', () => {
       import Dialog from '@motion-proto/live-tokens/components/Dialog.svelte';
     </script>
     <Button variant="danger">Delete</Button>
-    <Dialog show={false} title="Delete?"><Button variant="secondary">Cancel</Button></Dialog>`);
+    <Dialog open={false} title="Delete?"><Button variant="secondary">Cancel</Button></Dialog>`);
     expect(rulesFor(root, bare).filter((r) => r === 'danger-without-dialog')).toHaveLength(1);
     expect(rulesFor(root, confirmed)).not.toContain('danger-without-dialog');
   });

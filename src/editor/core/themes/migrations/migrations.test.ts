@@ -106,7 +106,7 @@ describe('migration runner — schemaVersion gating', () => {
     expect(migrated['--collapsiblesection-container-default-surface']).toBe('--surface-canvas-high');
     expect(migrated['--collapsiblesection-container-hover-icon']).toBe('--text-primary');
     expect(migrated['--collapsiblesection-container-default-label-font-family']).toBe('--font-sans');
-    expect(migrated['--collapsiblesection-container-expanded-padding']).toBe('--space-4');
+    expect(migrated['--collapsiblesection-container-open-padding']).toBe('--space-4');
     // v3→v4 drops container active-border (frame owns chrome now); v6→v7
     // drops frame-surface (it only ever painted a confusing border ring).
     expect(migrated['--collapsiblesection-container-active-border']).toBeUndefined();
@@ -184,10 +184,10 @@ describe('migration runner — schemaVersion gating', () => {
     // Expanded panel cleanup
     expect(migrated['--collapsiblesection-chromeless-expanded-border']).toBeUndefined();
     expect(migrated['--collapsiblesection-chromeless-expanded-surface']).toBeUndefined();
-    expect(migrated['--collapsiblesection-chromeless-expanded-padding']).toBe('--space-4');
-    expect(migrated['--collapsiblesection-container-expanded-radius']).toBeUndefined();
-    expect(migrated['--collapsiblesection-container-expanded-surface']).toBe('--surface-canvas-low');
-    expect(migrated['--collapsiblesection-container-expanded-padding']).toBe('--space-4');
+    expect(migrated['--collapsiblesection-chromeless-open-padding']).toBe('--space-4');
+    expect(migrated['--collapsiblesection-container-open-radius']).toBeUndefined();
+    expect(migrated['--collapsiblesection-container-open-surface']).toBe('--surface-canvas-low');
+    expect(migrated['--collapsiblesection-container-open-padding']).toBe('--space-4');
   });
 
   it('component-config at version 4 → sectiondivider gradient stops strip end-to-end', () => {
@@ -518,7 +518,7 @@ describe('migration runner — schemaVersion gating', () => {
           '--collapsiblesection-container-frame-border': '--border-neutral' },
         { '--collapsiblesection-hairline-default-hairline-color': '--border-brand',
           '--collapsiblesection-hairline-hover-hairline-width': '--border-width-1',
-          '--collapsiblesection-hairline-expanded-padding': '--space-4',
+          '--collapsiblesection-hairline-open-padding': '--space-4',
           '--collapsiblesection-container-frame-border': '--border-neutral' }],
       ['sectiondivider',
         { '--sectiondivider-lg-hairline-thickness': '--border-width-1', '--sectiondivider-lg-hairline-color': '--border-brand-medium' },
@@ -631,6 +631,32 @@ describe('migration runner — schemaVersion gating', () => {
     const v32 = { '--card-default-title-text': '--text-primary' };
     const out = runMigrations('component-config', 32, v32, { component: 'card' });
     expect(out).toEqual(v32);
+  });
+
+  it('component-config v33 → v34: collapsiblesection\'s expanded state reads open', () => {
+    const v33 = {
+      '--collapsiblesection-chromeless-expanded-padding': '--space-4',
+      '--collapsiblesection-hairline-expanded-padding': '--space-4',
+      '--collapsiblesection-container-expanded-surface': '--surface-neutral-higher',
+      '--collapsiblesection-container-expanded-padding': '--space-4',
+      '--collapsiblesection-container-frame-border': '--border-neutral',
+    };
+    const expected = {
+      '--collapsiblesection-chromeless-open-padding': '--space-4',
+      '--collapsiblesection-hairline-open-padding': '--space-4',
+      '--collapsiblesection-container-open-surface': '--surface-neutral-higher',
+      '--collapsiblesection-container-open-padding': '--space-4',
+      '--collapsiblesection-container-frame-border': '--border-neutral',
+    };
+    const out = runMigrations('component-config', 33, v33, { component: 'collapsiblesection' });
+    expect(out).toEqual(expected);
+    expect(runMigrations('component-config', 33, out, { component: 'collapsiblesection' })).toEqual(expected);
+  });
+
+  it('component-config v33 → v34 fires only for collapsiblesection', () => {
+    const v33 = { '--dialog-body-padding': '--space-16' };
+    const out = runMigrations('component-config', 33, v33, { component: 'dialog' });
+    expect(out).toEqual(v33);
   });
 
   it('component-config at current version → no migrations run', () => {

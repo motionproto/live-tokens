@@ -219,7 +219,7 @@
               variant="chromeless"
               label={section.title}
               href={sectionHref(section)}
-              expanded={expandedSections[section.path] || false}
+              open={expandedSections[section.path] || false}
               ontoggle={() => toggleSection(section.path)}
             />
           </div>

@@ -131,7 +131,7 @@
       {/if}
     {/snippet}
     <Dialog
-      show
+      open
       inline
       title="Sample Dialog"
       confirm={{ label: 'Save', onClick: () => {} }}

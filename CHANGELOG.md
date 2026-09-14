@@ -107,6 +107,11 @@
   TabBar's `ontabChange` is `onchange`. InlineEditActions' `onSave` and
   `onCancel` are `onsave` and `oncancel`. A consumer passing the old prop
   name stops compiling; there is no runtime migration for a prop.
+- **`open` everywhere.** Dialog's `show` prop is `open`, still `$bindable`.
+  CollapsibleSection's `expanded` prop is `open`, and its four
+  `-expanded-` properties are `-open-`, renamed on load. A consumer passing
+  the old prop name stops compiling; there is no runtime migration for a
+  prop.
 
 ### Changed
 

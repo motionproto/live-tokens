@@ -33,7 +33,7 @@
   let cancelVarValue = $state(readCssVar('--dialog-cancel-variant'));
 
   interface Props {
-    show?: boolean;
+    open?: boolean;
     title?: string;
     width?: string;
     /** When true, the dialog renders inline within its parent rather than as a fixed-position overlay. Used by the editor preview. */
@@ -50,7 +50,7 @@
   }
 
   let {
-    show = $bindable(false),
+    open = $bindable(false),
     title = '',
     width = '500px',
     inline = false,
@@ -85,7 +85,7 @@
 
   // Focus the primary button when dialog opens (skip in inline mode so the editor doesn't steal focus).
   $effect(() => {
-    if (show && !inline) {
+    if (open && !inline) {
       tick().then(() => {
         if (confirm && confirmButtonRef && !confirm.disabled) {
           confirmButtonRef.focus();
@@ -110,12 +110,12 @@
     } else {
       onclose?.();
       dispatch('close');
-      show = false;
+      open = false;
     }
   }
 </script>
 
-{#if show}
+{#if open}
   <!-- The fixed backdrop portals to <body> to escape transformed/isolated
        ancestors; the inline preview variant stays in flow. -->
   <div class="dialog-backdrop" class:inline use:portal={!inline}>

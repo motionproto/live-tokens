@@ -92,7 +92,7 @@ describe('public components — smoke mount', () => {
     const target = fresh();
     const c = mount(Dialog, {
           target,
-          props: { show: true, inline: true, title: 'Dlg' },
+          props: { open: true, inline: true, title: 'Dlg' },
         });
     expect(target.textContent).toContain('Dlg');
     unmount(c);

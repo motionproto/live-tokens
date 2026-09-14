@@ -92,7 +92,7 @@ describe('prose gating — the prop wires the class the mixin keys on', () => {
     const on = fresh();
     const c1 = mount(CollapsibleSection, {
       target: on,
-      props: { label: 'S', expanded: true, children: para() },
+      props: { label: 'S', open: true, children: para() },
     });
     flushSync();
     expect(hasProse(on, '.section-content')).toBe(true);
@@ -101,7 +101,7 @@ describe('prose gating — the prop wires the class the mixin keys on', () => {
     const off = fresh();
     const c2 = mount(CollapsibleSection, {
       target: off,
-      props: { label: 'S', expanded: true, prose: false, children: para() },
+      props: { label: 'S', open: true, prose: false, children: para() },
     });
     flushSync();
     expect(hasProse(off, '.section-content')).toBe(false);

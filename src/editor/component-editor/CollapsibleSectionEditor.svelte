@@ -48,9 +48,8 @@
 
   // Body: revealed content area. Chromeless/hairline only own padding; container
   // also paints its own surface so the body can read distinct from the header.
-  // (CSS var name keeps the `expanded` slug for backward compatibility.)
   function bodyTokens(v: Variant): Token[] {
-    const p = `--collapsiblesection-${v}-expanded`;
+    const p = `--collapsiblesection-${v}-open`;
     const tokens: Token[] = [];
     if (v === 'container') tokens.push({ label: 'surface color', groupKey: 'surface', variable: `${p}-surface` });
     tokens.push({ label: 'padding', canBeLinked: true, groupKey: 'padding', variable: `${p}-padding` });
@@ -113,7 +112,7 @@
     ['--collapsiblesection-container-frame-border-width', 'container frame'],
     ['--collapsiblesection-container-frame-radius', 'container frame'],
     ...VARIANTS.flatMap((v) => [
-      [`--collapsiblesection-${v}-expanded-padding`, `${v} expanded`] as [string, string],
+      [`--collapsiblesection-${v}-open-padding`, `${v} open`] as [string, string],
     ]),
   ]);
 
@@ -153,14 +152,14 @@
         <CollapsibleSection
           variant={v}
           label="Click to expand"
-          expanded={isBody}
+          open={isBody}
           class={forceClass}
         >
           <p style="margin: 0; color: var(--text-secondary);">
             {#if isContainerPart}
               (Container) — outer chrome only; switch to Body to see the content area.
             {:else}
-              This content is revealed when the section is expanded. Any content can go here.
+              This content is revealed when the section is open. Any content can go here.
             {/if}
           </p>
         </CollapsibleSection>
