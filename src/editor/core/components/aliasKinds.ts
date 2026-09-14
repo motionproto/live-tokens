@@ -25,7 +25,7 @@ export type TokenKind =
 
 /** Suffix and prefix data mapped to kinds — the one source of truth for the
     editor's selector layout, the `adjust` CLI, and `check-component`'s naming
-    rule, so the three cannot drift. `bin/check-component.mjs` reads the
+    rule, so the three cannot drift. `bin/lib/componentSource.mjs` reads the
     `suffix:` arrays out of this file, which is why they are plain literals.
 
     Order matters: `-text` must run before `-border`/`-surface`, and every

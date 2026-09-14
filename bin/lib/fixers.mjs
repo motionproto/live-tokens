@@ -1,7 +1,7 @@
 // Applies the patches an `auto` finding already computed in its own
 // `details.patch`. This module owns none of the per-rule repair logic — that
-// lives beside each rule, in check-component.mjs, check-page.mjs, geometry.mjs,
-// and catalogue.mjs, since only the rule that found the fault knows its shape.
+// lives beside each rule, in bin/rules/, pageSource.mjs, geometry.mjs, and
+// catalogue.mjs, since only the rule that found the fault knows its shape.
 // This module only knows how to write one down safely.
 
 import { readFileSync, writeFileSync, existsSync } from 'node:fs';

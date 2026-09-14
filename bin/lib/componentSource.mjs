@@ -124,3 +124,29 @@ export function unreadTokens(source, tokens) {
     return !isRead(name) && !(side && isRead(name.slice(0, -side.length)));
   });
 }
+
+/**
+ * Every token the editor names in a row: `variable: '--x'`, the type-group
+ * `colorVariable` / `familyVariable` / ... keys, and the arrow form intrinsics
+ * use. A `${...}` hole stands for a variant segment. Per-side padding names are
+ * written by the padding selector rather than declared, so they resolve to
+ * their parent.
+ */
+export function editorTokenRefs(editor) {
+  const literals = new Set();
+  const patterns = [];
+  for (const m of editor.matchAll(/\b(?:variable|[a-zA-Z]+Variable)\s*:\s*(?:\([^)]*\)\s*=>\s*)?[`'"](--(?:\$\{[^}]*\}|[^`'"])+)[`'"]/g)) {
+    const name = stripSide(m[1]);
+    if (name.includes('${')) {
+      patterns.push([name, new RegExp(`^${name.replace(/[.*+?^()|[\]\\]/g, '\\$&').replace(/\$\{[^}]*\}/g, '[a-z0-9-]+')}$`)]);
+    } else {
+      literals.add(name);
+    }
+  }
+  return { literals, patterns };
+}
+
+function stripSide(token) {
+  const side = SIDE_SUFFIXES.find((x) => token.endsWith(x));
+  return side ? token.slice(0, -side.length) : token;
+}
