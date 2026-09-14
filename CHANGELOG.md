@@ -103,6 +103,10 @@
   and `--toggle-disabled-label-text` are `--toggle-label` and
   `--toggle-disabled-label`, renamed on load, matching every other
   component's bare-part color.
+- **A callback prop is `on` followed by the event name, all lowercase.**
+  TabBar's `ontabChange` is `onchange`. InlineEditActions' `onSave` and
+  `onCancel` are `onsave` and `oncancel`. A consumer passing the old prop
+  name stops compiling; there is no runtime migration for a prop.
 
 ### Changed
 

@@ -16,8 +16,8 @@
     * Reusable inline edit action buttons (confirm/cancel)
     * Used for inline editing throughout the app
     */
-      onSave: () => void | Promise<void>;
-      onCancel: () => void;
+      onsave: () => void | Promise<void>;
+      oncancel: () => void;
       disabled?: boolean;
       saveTitle?: string;
       cancelTitle?: string;
@@ -25,8 +25,8 @@
    }
 
    let {
-      onSave,
-      onCancel,
+      onsave,
+      oncancel,
       disabled = false,
       saveTitle = "Save",
       cancelTitle = "Cancel",
@@ -39,7 +39,7 @@
    <button
       class="save-btn"
       type="button"
-      onclick={onSave}
+      onclick={onsave}
       {disabled}
       title={saveTitle}
    >
@@ -48,7 +48,7 @@
    <button
       class="cancel-btn"
       type="button"
-      onclick={onCancel}
+      onclick={oncancel}
       disabled={disabled}
       title={cancelTitle}
    >

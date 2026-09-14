@@ -26,8 +26,8 @@
     selectedTab?: string;
     iconOnly?: boolean;
     class?: string;
-    /** Tab-change callback. Preferred over `on:tabChange` from 0.5.0 onward. */
-    ontabChange?: (id: string) => void;
+    /** Fires with the id of the tab the reader picked. */
+    onchange?: (id: string) => void;
   }
 
   let {
@@ -36,7 +36,7 @@
     selectedTab = '',
     iconOnly = false,
     class: className = '',
-    ontabChange
+    onchange
   }: Props = $props();
 
   // Per-instance override of the global hover-tint intrinsic; undefined leaves :root in charge.
@@ -51,7 +51,7 @@
 
   function selectTab(tab: Tab) {
     if (!tab.disabled) {
-      ontabChange?.(tab.id);
+      onchange?.(tab.id);
       dispatch('tabChange', tab.id);
     }
   }

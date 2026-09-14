@@ -68,8 +68,8 @@
         <div class="inline-edit-demo-row">
           <span style="color: var(--text-secondary);">Editing value...</span>
           <InlineEditActions
-            onSave={() => {}}
-            onCancel={() => {}}
+            onsave={() => {}}
+            oncancel={() => {}}
             class={forceClass}
           />
         </div>

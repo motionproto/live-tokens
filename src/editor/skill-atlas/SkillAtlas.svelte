@@ -108,7 +108,7 @@
   </header>
 
   <div class="tabs">
-    <TabBar {tabs} selectedTab={active} ontabChange={changeTab} />
+    <TabBar {tabs} selectedTab={active} onchange={changeTab} />
   </div>
 
   <div class="split">
@@ -130,7 +130,7 @@
         <span class="pane-note">{lines.length} lines</span>
       </div>
       <div class="doc-tabs">
-        <TabBar tabs={docTabs} selectedTab={doc} ontabChange={openDoc} />
+        <TabBar tabs={docTabs} selectedTab={doc} onchange={openDoc} />
       </div>
       <div class="pane-body" bind:this={sourcePane}>
         <SourcePane

@@ -112,7 +112,7 @@ describe('public components — smoke mount', () => {
     const target = fresh();
     const c = mount(InlineEditActions, {
           target,
-          props: { onSave: () => {}, onCancel: () => {} },
+          props: { onsave: () => {}, oncancel: () => {} },
         });
     expect(target.children.length).toBeGreaterThan(0);
     unmount(c);

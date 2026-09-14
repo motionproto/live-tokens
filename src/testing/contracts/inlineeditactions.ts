@@ -83,18 +83,18 @@ export const inlineEditActionsContract: ComponentContract = {
       {
         name: 'clicking save reports it',
         action: { kind: 'click', part: 'saveBtn' },
-        expect: { kind: 'callback', prop: 'onSave', args: [{ type: 'click' }] },
+        expect: { kind: 'callback', prop: 'onsave', args: [{ type: 'click' }] },
       },
       {
         name: 'clicking cancel reports it',
         action: { kind: 'click', part: 'cancelBtn' },
-        expect: { kind: 'callback', prop: 'onCancel', args: [{ type: 'click' }] },
+        expect: { kind: 'callback', prop: 'oncancel', args: [{ type: 'click' }] },
       },
       {
         name: 'disabled actions stay silent',
         props: { disabled: true },
         action: { kind: 'click', part: 'saveBtn' },
-        expect: { kind: 'no-callback', prop: 'onSave' },
+        expect: { kind: 'no-callback', prop: 'onsave' },
       },
     ],
   },

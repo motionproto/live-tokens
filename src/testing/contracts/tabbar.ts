@@ -138,7 +138,7 @@ export const tabBarContract: ComponentContract = {
         name: 'clicking a tab asks for it',
         props: { tabs: behaviorTabs, selectedTab: 'one' },
         action: { kind: 'click', part: 'secondTab' },
-        expect: { kind: 'callback', prop: 'ontabChange', args: ['two'] },
+        expect: { kind: 'callback', prop: 'onchange', args: ['two'] },
       },
       {
         name: 'clicking leaves the selection where the prop put it',
@@ -150,7 +150,7 @@ export const tabBarContract: ComponentContract = {
         name: 'a disabled tab stays silent',
         props: { tabs: [behaviorTabs[0], { ...behaviorTabs[1], disabled: true }], selectedTab: 'one' },
         action: { kind: 'click', part: 'secondTab' },
-        expect: { kind: 'no-callback', prop: 'ontabChange' },
+        expect: { kind: 'no-callback', prop: 'onchange' },
       },
     ],
   },
