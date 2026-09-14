@@ -160,6 +160,9 @@
 - **The catalogue reads "views" for what TabBar switches, "a note" for
   Tooltip, "section" for what Panel frames, and "a modal window" for
   Dialog.**
+- **`docs/terminology.md` and the create-component skill record the
+  component naming rules**: which word names a prop, a semantic property,
+  or a part, and the retired spellings each replaces.
 
 ### Fixed
 

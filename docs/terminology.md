@@ -103,6 +103,36 @@ Retired words:
 | **interaction state** | Default, hover, or active (pressed), a segment inside a property name such as `--button-outline-hover-surface`. Selected is a component state. A state is never a token. |
 | **intrinsic** | A structural or display setting the editor exposes outside the token list: alignment, a hairline's position, a part's visibility. |
 | **linked** | Two semantic properties that share one value because the component's author declared them siblings. Linkage is authored in code. |
+| **label, title, text** | A prop: `label` names a control, `title` heads content, `text` is body copy. |
+| **description, hint, summary** | A description sits under a title, a hint under a field, a summary beside a header. |
+| **open** | The one prop for an open state. |
+| **value** | The prop that holds a selection's id. |
+| **size** | A size prop's values are `default` and `small`. |
+| **callback prop** | `on` plus the event name, lowercase: `onchange`, `onclose`, `onsave`. |
+| **hairline properties** | `-hairline-color`, `-hairline-width`, `-hairline-inset`. |
+| **indicator** | The bar or stripe that marks the current item; `-indicator`, `-indicator-width`. |
+| **a text part's color** | Its bare name; `-font-*` hang off it. |
+| **fill** | `-surface`, in every component. |
+| **prefix** | The component id verbatim. |
+| **step name, role name** | A step name where only size differs, a role name where the value means something: Image's `banner`. |
+| **interaction intrinsic** | Named for what it does: `hoverTint`, `hover`, `zoom`. |
+| **bare, chromeless** | Card's `bare` drops the header; CollapsibleSection's `chromeless` drops the frame. |
+
+Retired words, each replaced by the standard term:
+
+| Retired | Use instead |
+|---|---|
+| `divider` (a property word, or a `set-geometry` op kind) | hairline |
+| `accent` (for an indicator) | indicator |
+| `thickness` | width |
+| `background` (as a suffix) | surface |
+| `active` (for selection) | selected |
+| `expanded`, `show` | open |
+| `compact`, `normal` (as size values) | small, default |
+| `selectedTab` | value |
+| `titleLabel` | title |
+| `primary` (as a Badge variant) | brand |
+| `--corner-badge-` | `--cornerbadge-` |
 
 ## Washes
 
