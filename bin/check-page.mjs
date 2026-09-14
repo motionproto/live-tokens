@@ -12,12 +12,13 @@
 
 import { existsSync, readFileSync, statSync } from 'node:fs';
 import { join, relative, resolve, basename } from 'node:path';
-import { deepImportRepair, scaleTokens } from './lib/catalogue.mjs';
+import { scaleTokens } from './lib/catalogue.mjs';
 import { assembleRules, fixMap, isExcluded, lineOf } from './lib/findings.mjs';
 import { blankStrings, hasColorLiteral, hasDimensionLiteral, stripVarFallbacks } from './lib/cssValues.mjs';
 import { geometryScaleOfProperty, resolveGeometryLiteral } from './lib/geometry.mjs';
 import { isContractToken, loadVocabulary, walk } from './lib/tokenVocabulary.mjs';
 import { resolveTokensCssPath } from './migrate.mjs';
+import * as importsAndRoutes from './rules/importsAndRoutes.mjs';
 import * as testRuns from './rules/testRuns.mjs';
 
 /** Every rule, with its default severity, where it is fixed, and how. Same
@@ -54,21 +55,18 @@ export const PAGE_RULES = assembleRules(
     'unknown-component': { severity: 'error', fix: 'page-component', repair: 'authored' },
     'unknown-prop': { severity: 'error', fix: 'page-component', repair: 'choice' },
     'unknown-prop-value': { severity: 'error', fix: 'page-component', repair: 'choice' },
-    'deep-import': { severity: 'error', fix: 'routing', repair: 'auto' },
     'unknown-token': { severity: 'error', fix: 'page-token', repair: 'choice' },
     'color-literal': { severity: 'error', fix: 'page-token', repair: 'choice' },
-    'reserved-route': { severity: 'error', fix: 'routing', repair: 'authored' },
-    'site-css-in-main': { severity: 'error', fix: 'routing', repair: 'authored' },
     'raw-text-axis': { severity: 'error', fix: 'page-token', repair: 'choice' },
     'dimension-literal': { severity: 'warn', fix: 'page-token', repair: 'auto' },
     'hardcoded-columns': { severity: 'warn', fix: 'page-layout', repair: 'choice' },
-    'missing-source': { severity: 'warn', fix: 'routing', repair: 'authored' },
     'control-size': { severity: 'warn', fix: 'page-component', repair: 'auto' },
     'multiple-primary': { severity: 'warn', fix: 'page-component', repair: 'authored' },
     'danger-without-dialog': { severity: 'warn', fix: 'page-component', repair: 'authored' },
     'native-control': { severity: 'warn', fix: 'page-component', repair: 'authored' },
     'property-override': { severity: 'warn', fix: 'page-component', repair: 'auto' },
   },
+  importsAndRoutes.pageRules,
   testRuns.pageRules,
 );
 
@@ -79,11 +77,6 @@ export const NOT_PAGES = ['src/system', 'src/editor', 'src/lib', 'src/live-token
 
 export const COMPONENT_IMPORT =
   /(?:@motion-proto\/live-tokens\/components|[./][^'"]*\/system\/components)\/([A-Za-z0-9]+)\.svelte$/;
-
-const DEEP_IMPORT_PATTERNS = [
-  /^@motion-proto\/live-tokens\/src\//,
-  /node_modules\/@motion-proto\/live-tokens/,
-];
 
 const TEXT_AXES = ['font-size', 'font-family', 'font-weight', 'line-height', 'letter-spacing'];
 
@@ -506,34 +499,6 @@ function componentTokenOwners(vocab) {
   return owners;
 }
 
-/** The object literal enclosing `index`, found by balancing braces outward. */
-function enclosingObject(text, index) {
-  let depth = 0;
-  let start = -1;
-  for (let i = index; i >= 0; i--) {
-    const c = text[i];
-    if (c === '}') depth++;
-    else if (c === '{') {
-      if (depth === 0) {
-        start = i;
-        break;
-      }
-      depth--;
-    }
-  }
-  if (start === -1) return null;
-  depth = 0;
-  for (let i = start; i < text.length; i++) {
-    const c = text[i];
-    if (c === '{') depth++;
-    else if (c === '}') {
-      depth--;
-      if (depth === 0) return text.slice(start, i + 1);
-    }
-  }
-  return null;
-}
-
 function checkFile(file, text, vocab, root) {
   const rel = relative(root, file);
   const findings = [];
@@ -545,11 +510,7 @@ function checkFile(file, text, vocab, root) {
     const imports = new Map();
     for (const m of code.matchAll(/import\s+(?:([^'"]*?)\s+from\s+)?['"]([^'"]+)['"]/g)) {
       const spec = m[2];
-      for (const pattern of DEEP_IMPORT_PATTERNS) {
-        if (pattern.test(spec)) {
-          add('deep-import', m.index, `deep import into package internals: ${spec}`, deepImportRepair(spec));
-        }
-      }
+      importsAndRoutes.checkPageImport({ index: m.index, specifier: spec }, add);
       const comp = spec.match(COMPONENT_IMPORT);
       if (!comp) continue;
       const entry = vocab.components.get(comp[1].toLowerCase());
@@ -569,26 +530,7 @@ function checkFile(file, text, vocab, root) {
     checkDestructiveActions(code, imports, add);
     checkNativeControls(code, add);
 
-    for (const m of code.matchAll(/['"](\/live-tokens[^'"]*)['"]\s*:/g)) {
-      add('reserved-route', m.index, `route '${m[1]}' is inside the reserved /live-tokens/* namespace`);
-    }
-
-    for (const m of code.matchAll(/\blazy\s*:/g)) {
-      const entry = enclosingObject(code, m.index);
-      if (entry && !/\bsource\s*:/.test(entry)) {
-        add('missing-source', m.index, `route entry has no 'source', so Page Source cannot open it`);
-      }
-    }
-
-    if (/^main\.(ts|js)$/.test(basename(file))) {
-      for (const m of code.matchAll(/import\s+['"]([^'"]*site\.css)['"]/g)) {
-        add(
-          'site-css-in-main',
-          m.index,
-          `site.css imported from main; import it from each page's <script> so it cannot leak into editor routes`,
-        );
-      }
-    }
+    importsAndRoutes.checkRoutes({ file, code }, add);
   }
 
   // A page may also mint a custom property outside its <style> block — a

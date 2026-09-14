@@ -23,7 +23,7 @@
 
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { extname, join, relative } from 'node:path';
-import { catalogueOf, deepImportRepair, scaleTokens } from './lib/catalogue.mjs';
+import { catalogueOf, scaleTokens } from './lib/catalogue.mjs';
 import { hasColorLiteral, hasDimensionLiteral, stripVarFallbacks } from './lib/cssValues.mjs';
 import { resolveSourceDataDir, settingsFilePath } from './lib/dataDir.mjs';
 import { assembleRules, fixMap, lineOf } from './lib/findings.mjs';
@@ -38,6 +38,7 @@ import {
   isContractToken,
   loadVocabulary,
 } from './lib/tokenVocabulary.mjs';
+import * as importsAndRoutes from './rules/importsAndRoutes.mjs';
 import * as testRuns from './rules/testRuns.mjs';
 
 /**
@@ -100,7 +101,6 @@ export const COMPONENT_RULES = assembleRules(
     'color-literal': { severity: 'error', fix: 'property-token', repair: 'choice' },
     'missing-component-const': { severity: 'error', fix: 'editor', repair: 'authored' },
     'missing-all-tokens': { severity: 'error', fix: 'editor', repair: 'authored' },
-    'deep-import': { severity: 'error', fix: 'editor', repair: 'auto' },
     'missing-registration': { severity: 'error', fix: 'registration', repair: 'authored' },
     'unknown-token-ref': { severity: 'error', fix: 'property-token', repair: 'choice' },
     'default-not-token': { severity: 'error', fix: 'property-token', repair: 'choice' },
@@ -108,6 +108,7 @@ export const COMPONENT_RULES = assembleRules(
     'dimension-literal': { severity: 'warn', fix: 'property-token', repair: 'auto' },
     'config-token': { severity: 'error', fix: 'property-token', repair: 'choice' },
   },
+  importsAndRoutes.componentRules,
   testRuns.componentRules,
 );
 
@@ -186,12 +187,6 @@ const STATE_TOKENS = ['hover', 'disabled', 'selected', 'focus', 'active', 'focus
 // selected, so a token naming both describes a state that never paints.
 const TERMINAL_CONFLICTS = ['hover', 'focus', 'focused', 'selected', 'on', 'active', 'checked'];
 
-// Deep imports into the package internals are not a supported API.
-const DEEP_IMPORT_PATTERNS = [
-  /^@motion-proto\/live-tokens\/src\//,
-  /node_modules\/@motion-proto\/live-tokens/,
-];
-
 function capitalize(id) {
   return id.charAt(0).toUpperCase() + id.slice(1);
 }
@@ -226,16 +221,6 @@ export function resolveComponentPaths(id, root = process.cwd()) {
     EDITOR_DIRS.map((d) => join(root, d, `${Id}Editor.svelte`)).find(existsSync) ??
     join(root, EDITOR_DIRS[0], `${Id}Editor.svelte`);
   return { Id, runtimePath: join(root, 'src/system/components', `${Id}.svelte`), editorPath };
-}
-
-function extractImports(source) {
-  const out = [];
-  const re = /import\s+(?:[^'"]*\s+from\s+)?['"]([^'"]+)['"]/g;
-  let m;
-  while ((m = re.exec(source)) !== null) {
-    out.push({ specifier: m[1], index: m.index + m[0].length - 1 - m[1].length });
-  }
-  return out;
 }
 
 /**
@@ -747,22 +732,7 @@ export function checkComponent(id, root = process.cwd(), { vocabulary } = {}) {
     }
   }
 
-  // Imports across runtime + editor: reject deep imports into the package.
-  for (const [path, text] of [[runtimePath, runtime], [editorPath, editor]]) {
-    for (const { specifier, index } of extractImports(text)) {
-      for (const pattern of DEEP_IMPORT_PATTERNS) {
-        if (pattern.test(specifier)) {
-          recordAt(
-            'deep-import',
-            `${relative(root, path)}: deep import not supported: ${specifier}`,
-            relative(root, path),
-            lineOf(text, index),
-            deepImportRepair(specifier),
-          );
-        }
-      }
-    }
-  }
+  importsAndRoutes.checkComponentImports(root, [[runtimePath, runtime], [editorPath, editor]], recordAt);
 
   // Registration: either a direct registerComponent({ id }) call or the id
   // passed through bootLiveTokens({ components: [{ id }] }) — the standard
@@ -794,21 +764,7 @@ export function checkComponent(id, root = process.cwd(), { vocabulary } = {}) {
       `no registration for '${id}' under src/. Expected registerComponent({ id: '${id}', ... }) or bootLiveTokens({ components: [{ id: '${id}', ... }] })`,
     );
   } else {
-    // Check the registration file's imports too.
-    const regSource = readFileSync(registrationFile, 'utf8');
-    for (const { specifier, index } of extractImports(regSource)) {
-      for (const pattern of DEEP_IMPORT_PATTERNS) {
-        if (pattern.test(specifier)) {
-          recordAt(
-            'deep-import',
-            `${relative(root, registrationFile)}: deep import not supported: ${specifier}`,
-            relative(root, registrationFile),
-            lineOf(regSource, index),
-            deepImportRepair(specifier),
-          );
-        }
-      }
-    }
+    importsAndRoutes.checkComponentImports(root, [[registrationFile, readFileSync(registrationFile, 'utf8')]], recordAt);
   }
 
   return done();
