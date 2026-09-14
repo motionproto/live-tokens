@@ -66,6 +66,18 @@ export function parseCheckFlags(argv) {
   return opts;
 }
 
+/**
+ * One checker's rule table, keyed in `order`, from the modules under
+ * `bin/rules/` that define its rules. An id on one side and not the other
+ * throws when the checker loads.
+ */
+export function assembleRules(order, ...tables) {
+  const defined = Object.assign({}, ...tables);
+  const stray = [...order.filter((id) => !defined[id]), ...Object.keys(defined).filter((id) => !order.includes(id))];
+  if (stray.length > 0) throw new Error(`rule order and rule modules disagree on: ${stray.join(', ')}`);
+  return Object.fromEntries(order.map((id) => [id, defined[id]]));
+}
+
 /** The slug half of a rule table, the shape the skills and the CLI read. */
 export function fixMap(rules) {
   return Object.fromEntries(Object.entries(rules).map(([id, rule]) => [id, rule.fix]));

@@ -26,7 +26,7 @@ import { extname, join, relative } from 'node:path';
 import { catalogueOf, deepImportRepair, scaleTokens } from './lib/catalogue.mjs';
 import { hasColorLiteral, hasDimensionLiteral, stripVarFallbacks } from './lib/cssValues.mjs';
 import { resolveSourceDataDir, settingsFilePath } from './lib/dataDir.mjs';
-import { fixMap, lineOf } from './lib/findings.mjs';
+import { assembleRules, fixMap, lineOf } from './lib/findings.mjs';
 import { resolveGeometryLiteral } from './lib/geometry.mjs';
 import {
   EDITOR_DIRS,
@@ -38,6 +38,7 @@ import {
   isContractToken,
   loadVocabulary,
 } from './lib/tokenVocabulary.mjs';
+import * as testRuns from './rules/testRuns.mjs';
 
 /**
  * Every rule, with its default severity, where it is fixed, and how.
@@ -48,46 +49,67 @@ import {
  * name the candidates but not pick one, `authored` when a person writes the
  * repair. A finding may lower its rule's `repair`; none raises it.
  */
-export const COMPONENT_RULES = {
-  'invalid-id': { severity: 'error', fix: 'runtime', repair: 'authored' },
-  'missing-file': { severity: 'error', fix: 'runtime', repair: 'authored' },
-  'missing-root-block': { severity: 'error', fix: 'runtime', repair: 'authored' },
-  'no-tokens': { severity: 'error', fix: 'runtime', repair: 'authored' },
-  'missing-description': { severity: 'warn', fix: 'runtime', repair: 'authored' },
-  'unread-token': { severity: 'warn', fix: 'runtime', repair: 'choice' },
-  'state-after-property': { severity: 'error', fix: 'property-name', repair: 'authored' },
-  'disabled-is-terminal': { severity: 'error', fix: 'property-name', repair: 'authored' },
-  'unknown-suffix': { severity: 'error', fix: 'property-name', repair: 'authored' },
-  'phantom-editor-token': { severity: 'error', fix: 'editor', repair: 'authored' },
-  'color-literal': { severity: 'error', fix: 'property-token', repair: 'choice' },
-  'missing-component-const': { severity: 'error', fix: 'editor', repair: 'authored' },
-  'missing-all-tokens': { severity: 'error', fix: 'editor', repair: 'authored' },
-  'deep-import': { severity: 'error', fix: 'editor', repair: 'auto' },
-  'missing-registration': { severity: 'error', fix: 'registration', repair: 'authored' },
-  'unknown-token-ref': { severity: 'error', fix: 'property-token', repair: 'choice' },
-  'default-not-token': { severity: 'error', fix: 'property-token', repair: 'choice' },
-  'phantom-link': { severity: 'warn', fix: 'editor', repair: 'authored' },
-  'dimension-literal': { severity: 'warn', fix: 'property-token', repair: 'auto' },
-  'config-token': { severity: 'error', fix: 'property-token', repair: 'choice' },
-  // `--tests` (bin/contractRunner.mjs). Fixed by design decision 8 so
-  // `fix-findings` can map them; every one is an error, including the setup
-  // rules, which `--tests` treats as never-silenceable (see cli.mjs). A failed
-  // obligation is always authored: the component has to start behaving.
-  'contract-registry': { severity: 'error', fix: 'registration', repair: 'authored' },
-  'contract-behavior': { severity: 'error', fix: 'runtime', repair: 'authored' },
-  'contract-render': { severity: 'error', fix: 'editor', repair: 'authored' },
-  'contract-alias': { severity: 'error', fix: 'editor', repair: 'authored' },
-  'contract-persist': { severity: 'error', fix: 'runtime-defaults', repair: 'authored' },
-  'contract-theme': { severity: 'error', fix: 'property-token', repair: 'authored' },
-  'contract-states': { severity: 'error', fix: 'editor', repair: 'authored' },
-  'contract-interaction': { severity: 'error', fix: 'editor', repair: 'authored' },
-  'contract-listed': { severity: 'error', fix: 'registration', repair: 'authored' },
-  'contract-sketch': { severity: 'error', fix: 'sketch', repair: 'authored' },
-  'contract-missing': { severity: 'error', fix: 'coverage', repair: 'authored' },
-  'tests-not-installed': { severity: 'error', fix: 'tooling', repair: 'authored' },
-  'tests-setup': { severity: 'error', fix: 'tooling', repair: 'authored' },
-  'tests-incomplete': { severity: 'error', fix: 'coverage', repair: 'authored' },
-};
+export const COMPONENT_RULES = assembleRules(
+  [
+    'invalid-id',
+    'missing-file',
+    'missing-root-block',
+    'no-tokens',
+    'missing-description',
+    'unread-token',
+    'state-after-property',
+    'disabled-is-terminal',
+    'unknown-suffix',
+    'phantom-editor-token',
+    'color-literal',
+    'missing-component-const',
+    'missing-all-tokens',
+    'deep-import',
+    'missing-registration',
+    'unknown-token-ref',
+    'default-not-token',
+    'phantom-link',
+    'dimension-literal',
+    'config-token',
+    'contract-registry',
+    'contract-behavior',
+    'contract-render',
+    'contract-alias',
+    'contract-persist',
+    'contract-theme',
+    'contract-states',
+    'contract-interaction',
+    'contract-listed',
+    'contract-sketch',
+    'contract-missing',
+    'tests-not-installed',
+    'tests-setup',
+    'tests-incomplete',
+  ],
+  {
+    'invalid-id': { severity: 'error', fix: 'runtime', repair: 'authored' },
+    'missing-file': { severity: 'error', fix: 'runtime', repair: 'authored' },
+    'missing-root-block': { severity: 'error', fix: 'runtime', repair: 'authored' },
+    'no-tokens': { severity: 'error', fix: 'runtime', repair: 'authored' },
+    'missing-description': { severity: 'warn', fix: 'runtime', repair: 'authored' },
+    'unread-token': { severity: 'warn', fix: 'runtime', repair: 'choice' },
+    'state-after-property': { severity: 'error', fix: 'property-name', repair: 'authored' },
+    'disabled-is-terminal': { severity: 'error', fix: 'property-name', repair: 'authored' },
+    'unknown-suffix': { severity: 'error', fix: 'property-name', repair: 'authored' },
+    'phantom-editor-token': { severity: 'error', fix: 'editor', repair: 'authored' },
+    'color-literal': { severity: 'error', fix: 'property-token', repair: 'choice' },
+    'missing-component-const': { severity: 'error', fix: 'editor', repair: 'authored' },
+    'missing-all-tokens': { severity: 'error', fix: 'editor', repair: 'authored' },
+    'deep-import': { severity: 'error', fix: 'editor', repair: 'auto' },
+    'missing-registration': { severity: 'error', fix: 'registration', repair: 'authored' },
+    'unknown-token-ref': { severity: 'error', fix: 'property-token', repair: 'choice' },
+    'default-not-token': { severity: 'error', fix: 'property-token', repair: 'choice' },
+    'phantom-link': { severity: 'warn', fix: 'editor', repair: 'authored' },
+    'dimension-literal': { severity: 'warn', fix: 'property-token', repair: 'auto' },
+    'config-token': { severity: 'error', fix: 'property-token', repair: 'choice' },
+  },
+  testRuns.componentRules,
+);
 
 export const COMPONENT_RULE_FIX = fixMap(COMPONENT_RULES);
 

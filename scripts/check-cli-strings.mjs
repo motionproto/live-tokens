@@ -18,6 +18,7 @@ const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const FILES = [
   ...readdirSync(join(ROOT, 'bin')).filter((f) => f.endsWith('.mjs')).map((f) => `bin/${f}`),
   ...readdirSync(join(ROOT, 'bin/lib')).filter((f) => f.endsWith('.mjs')).map((f) => `bin/lib/${f}`),
+  ...readdirSync(join(ROOT, 'bin/rules')).filter((f) => f.endsWith('.mjs')).map((f) => `bin/rules/${f}`),
   'src/editor/core/components/adjustAliases.ts',
   'src/editor/core/themes/buildColors.ts',
 ];

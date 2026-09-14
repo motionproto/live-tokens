@@ -13,45 +13,64 @@
 import { existsSync, readFileSync, statSync } from 'node:fs';
 import { join, relative, resolve, basename } from 'node:path';
 import { deepImportRepair, scaleTokens } from './lib/catalogue.mjs';
-import { fixMap, isExcluded, lineOf } from './lib/findings.mjs';
+import { assembleRules, fixMap, isExcluded, lineOf } from './lib/findings.mjs';
 import { blankStrings, hasColorLiteral, hasDimensionLiteral, stripVarFallbacks } from './lib/cssValues.mjs';
 import { geometryScaleOfProperty, resolveGeometryLiteral } from './lib/geometry.mjs';
 import { isContractToken, loadVocabulary, walk } from './lib/tokenVocabulary.mjs';
 import { resolveTokensCssPath } from './migrate.mjs';
+import * as testRuns from './rules/testRuns.mjs';
 
 /** Every rule, with its default severity, where it is fixed, and how. Same
  *  three fields, same meanings, as `COMPONENT_RULES`. */
-export const PAGE_RULES = {
-  'unknown-component': { severity: 'error', fix: 'page-component', repair: 'authored' },
-  'unknown-prop': { severity: 'error', fix: 'page-component', repair: 'choice' },
-  'unknown-prop-value': { severity: 'error', fix: 'page-component', repair: 'choice' },
-  'deep-import': { severity: 'error', fix: 'routing', repair: 'auto' },
-  'unknown-token': { severity: 'error', fix: 'page-token', repair: 'choice' },
-  'color-literal': { severity: 'error', fix: 'page-token', repair: 'choice' },
-  'reserved-route': { severity: 'error', fix: 'routing', repair: 'authored' },
-  'site-css-in-main': { severity: 'error', fix: 'routing', repair: 'authored' },
-  'raw-text-axis': { severity: 'error', fix: 'page-token', repair: 'choice' },
-  'dimension-literal': { severity: 'warn', fix: 'page-token', repair: 'auto' },
-  'hardcoded-columns': { severity: 'warn', fix: 'page-layout', repair: 'choice' },
-  'missing-source': { severity: 'warn', fix: 'routing', repair: 'authored' },
-  'control-size': { severity: 'warn', fix: 'page-component', repair: 'auto' },
-  'multiple-primary': { severity: 'warn', fix: 'page-component', repair: 'authored' },
-  'danger-without-dialog': { severity: 'warn', fix: 'page-component', repair: 'authored' },
-  'native-control': { severity: 'warn', fix: 'page-component', repair: 'authored' },
-  'property-override': { severity: 'warn', fix: 'page-component', repair: 'auto' },
-  // `--tests` (bin/contractRunner.mjs's `runPageTests`). Fixed by design
-  // decision 9, same reasoning as `check-component`'s own `contract-*` rules:
-  // every one is an error, including the setup rules, which `--tests` treats
-  // as never-silenceable (see cli.mjs).
-  'page-component-paint': { severity: 'error', fix: 'page-paint', repair: 'authored' },
-  'page-text-style': { severity: 'error', fix: 'page-paint', repair: 'authored' },
-  'page-contrast': { severity: 'error', fix: 'page-paint', repair: 'authored' },
-  'page-grid': { severity: 'error', fix: 'page-layout', repair: 'authored' },
-  'page-overflow': { severity: 'error', fix: 'page-layout', repair: 'authored' },
-  'tests-not-installed': { severity: 'error', fix: 'tooling', repair: 'authored' },
-  'tests-setup': { severity: 'error', fix: 'tooling', repair: 'authored' },
-  'tests-incomplete': { severity: 'error', fix: 'coverage', repair: 'authored' },
-};
+export const PAGE_RULES = assembleRules(
+  [
+    'unknown-component',
+    'unknown-prop',
+    'unknown-prop-value',
+    'deep-import',
+    'unknown-token',
+    'color-literal',
+    'reserved-route',
+    'site-css-in-main',
+    'raw-text-axis',
+    'dimension-literal',
+    'hardcoded-columns',
+    'missing-source',
+    'control-size',
+    'multiple-primary',
+    'danger-without-dialog',
+    'native-control',
+    'property-override',
+    'page-component-paint',
+    'page-text-style',
+    'page-contrast',
+    'page-grid',
+    'page-overflow',
+    'tests-not-installed',
+    'tests-setup',
+    'tests-incomplete',
+  ],
+  {
+    'unknown-component': { severity: 'error', fix: 'page-component', repair: 'authored' },
+    'unknown-prop': { severity: 'error', fix: 'page-component', repair: 'choice' },
+    'unknown-prop-value': { severity: 'error', fix: 'page-component', repair: 'choice' },
+    'deep-import': { severity: 'error', fix: 'routing', repair: 'auto' },
+    'unknown-token': { severity: 'error', fix: 'page-token', repair: 'choice' },
+    'color-literal': { severity: 'error', fix: 'page-token', repair: 'choice' },
+    'reserved-route': { severity: 'error', fix: 'routing', repair: 'authored' },
+    'site-css-in-main': { severity: 'error', fix: 'routing', repair: 'authored' },
+    'raw-text-axis': { severity: 'error', fix: 'page-token', repair: 'choice' },
+    'dimension-literal': { severity: 'warn', fix: 'page-token', repair: 'auto' },
+    'hardcoded-columns': { severity: 'warn', fix: 'page-layout', repair: 'choice' },
+    'missing-source': { severity: 'warn', fix: 'routing', repair: 'authored' },
+    'control-size': { severity: 'warn', fix: 'page-component', repair: 'auto' },
+    'multiple-primary': { severity: 'warn', fix: 'page-component', repair: 'authored' },
+    'danger-without-dialog': { severity: 'warn', fix: 'page-component', repair: 'authored' },
+    'native-control': { severity: 'warn', fix: 'page-component', repair: 'authored' },
+    'property-override': { severity: 'warn', fix: 'page-component', repair: 'auto' },
+  },
+  testRuns.pageRules,
+);
 
 export const PAGE_RULE_FIX = fixMap(PAGE_RULES);
 
