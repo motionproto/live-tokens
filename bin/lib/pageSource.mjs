@@ -112,3 +112,119 @@ export function declarationPatch(text, region, decl, rewritten) {
   if (from !== decl.text) return null;
   return { from, to: from.slice(0, -decl.value.length) + rewritten };
 }
+
+/**
+ * The attributes of one component tag starting at `start` (the `<`), read with
+ * `{}` depth and quotes tracked so an expression holding `>` does not end the
+ * tag early. Returns null when the tag spreads an object, which makes its prop
+ * set unknowable.
+ */
+export function tagAttributes(code, start) {
+  const tagEnd = (() => {
+    let depth = 0;
+    let quote = null;
+    for (let j = start; j < code.length; j++) {
+      const c = code[j];
+      if (quote) {
+        if (c === quote) quote = null;
+      } else if (c === '"' || c === "'") quote = c;
+      else if (c === '{') depth++;
+      else if (c === '}') depth--;
+      else if (c === '>' && depth === 0) return j;
+    }
+    return code.length;
+  })();
+  // The tag name carries no whitespace of its own, so the first whitespace
+  // character at or after `start` — space, tab, or a wrapped newline — is
+  // always the boundary right after it, never only a literal space on the
+  // same line.
+  let i = -1;
+  for (let k = start; k < tagEnd; k++) {
+    if (/\s/.test(code[k])) {
+      i = k;
+      break;
+    }
+  }
+  if (i === -1) return { attrs: [], end: tagEnd };
+  const attrs = [];
+  while (i < tagEnd) {
+    const c = code[i];
+    if (/\s/.test(c) || c === '/') {
+      i++;
+      continue;
+    }
+    if (c === '{') {
+      let depth = 0;
+      let j = i;
+      for (; j < tagEnd; j++) {
+        if (code[j] === '{') depth++;
+        else if (code[j] === '}' && --depth === 0) break;
+      }
+      const inner = code.slice(i + 1, j).trim();
+      if (inner.startsWith('...')) return null;
+      if (/^\w+$/.test(inner)) attrs.push({ name: inner, value: null, index: i, end: j + 1 });
+      i = j + 1;
+      continue;
+    }
+    const name = code.slice(i).match(/^[^\s=/>]+/)?.[0];
+    if (!name) break;
+    const at = i;
+    i += name.length;
+    // Horizontal whitespace around `=` reads as the same attribute — Svelte
+    // itself accepts `size = "small"` — but a newline on either side does
+    // not: that's a bare boolean attribute followed by unrelated markup.
+    let j = i;
+    while (j < tagEnd && /[^\S\n]/.test(code[j])) j++;
+    let value = null;
+    if (code[j] === '=') {
+      i = j + 1;
+      while (i < tagEnd && /[^\S\n]/.test(code[i])) i++;
+      const q = code[i];
+      if (q === '"' || q === "'") {
+        const close = code.indexOf(q, i + 1);
+        value = code.slice(i + 1, close === -1 ? tagEnd : close);
+        i = close === -1 ? tagEnd : close + 1;
+      } else if (q === '{') {
+        let depth = 0;
+        for (; i < tagEnd; i++) {
+          if (code[i] === '{') depth++;
+          else if (code[i] === '}' && --depth === 0) break;
+        }
+        i++;
+      } else {
+        const bare = code.slice(i).match(/^[^\s>]+/)?.[0] ?? '';
+        value = bare;
+        i += bare.length;
+      }
+    }
+    // `end` marks where this attribute's own text stops, so a fixer can delete
+    // exactly it without disturbing whatever follows in the tag.
+    attrs.push({ name, value, index: at, end: i });
+  }
+  return { attrs, end: tagEnd };
+}
+
+/**
+ * `{@html ...}` blanked, brace-balanced, so a tag textually present inside a
+ * raw HTML string is not mistaken for markup the page authored.
+ */
+export function blankHtmlExpressions(code) {
+  let out = code;
+  const re = /\{@html\b/g;
+  let m;
+  while ((m = re.exec(out)) !== null) {
+    const start = m.index;
+    let depth = 0;
+    let i = start;
+    for (; i < out.length; i++) {
+      if (out[i] === '{') depth++;
+      else if (out[i] === '}' && --depth === 0) {
+        i++;
+        break;
+      }
+    }
+    out = out.slice(0, start) + ' '.repeat(i - start) + out.slice(i);
+    re.lastIndex = start;
+  }
+  return out;
+}
