@@ -1,7 +1,7 @@
 /**
  * Component-config migration, disk-shape in and disk-shape out. Extracted
- * from `editorStore.ts` (Wave 1 of `docs/plans/theme-completeness.md`) so the
- * server (`normalizeTheme`) can run the same migration an embedded theme
+ * from `editorStore.ts` so the server (`normalizeTheme`) can run the same
+ * migration an embedded theme
  * config gets on the client, instead of reading it raw.
  */
 

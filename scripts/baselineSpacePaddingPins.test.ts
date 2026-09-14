@@ -1,9 +1,8 @@
 /**
- * Motion Proto's own five deliberate `--space-2` paddings (RJC 8,
- * docs/plans/theme-completeness.md Wave 5), pinned on the BASELINE
- * (`component-configs/<id>/default.json`), not on any preset: a preset shifts
- * them normally, and the baseline is what a component-default resync must not
- * move silently.
+ * Motion Proto's own five deliberate `--space-2` paddings, pinned on the
+ * BASELINE (`component-configs/<id>/default.json`), not on any preset: a
+ * preset shifts them normally, and the baseline is what a component-default
+ * resync must not move silently.
  *
  * `sync-component-defaults.mjs --check` only gates that the `.svelte` source
  * and this file agree with each other; it says nothing about whether

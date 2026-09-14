@@ -344,8 +344,8 @@ describe('a package-shipped theme on a fresh consumer', () => {
     expect(json.schemaVersion).toBe(THEME_SCHEMA_VERSION);
     expect(json.colorsAndType.name).toBe('Package Fixture Theme');
     // `--button-radius` isn't a real button alias, so the completeness fill
-    // (Wave 2, docs/plans/theme-completeness.md) keeps it as an orphan (RJC 3)
-    // rather than dropping it, while still filling in every real one.
+    // keeps it as an orphan rather than dropping it, while still filling in
+    // every real one.
     expect(json.componentConfigs.button.aliases['--button-radius']).toBe('99px');
     expect(json.componentConfigs.button.aliases['--button-primary-radius']).toBeDefined();
   });

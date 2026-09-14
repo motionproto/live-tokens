@@ -7,8 +7,7 @@ classes the layer already provides. Those classes are the system-wide
 transformation. This plan moves the shipped components onto them and leaves
 `PART_SPECS` holding only what a class cannot express.
 
-Three units, each ending green. Budget the whole plan at about two hours. If a
-unit runs past its own budget, stop and report rather than pressing on.
+Three units, each ending green.
 
 ## What the rows actually are
 

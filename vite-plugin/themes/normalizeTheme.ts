@@ -3,20 +3,20 @@
  * colors-and-type file and a config file per component by basename; v2
  * carries that data by value, so deleting a working file can never break a
  * saved theme; v3 spells the embedded layer `colorsAndType` instead of
- * `theme`, which now names the whole theme; v4 makes the theme complete
- * (`docs/plans/theme-completeness.md`, Wave 2) — every known component and
- * every alias key its `default.json` declares, by value.
+ * `theme`, which now names the whole theme; v4 makes the theme complete —
+ * every known component and every alias key its `default.json` declares, by
+ * value.
  *
  * Alongside the theme-shape migration, every embedded component config is run
  * through the same migration pipeline the client applies on load
  * (`migrateComponentConfig`), off the theme-level `componentSchemaVersion`
- * rather than any per-entry stamp (RJC 9 of `docs/plans/theme-completeness.md`:
- * a per-entry `schemaVersion` inside a theme is ignored and stripped). Without
- * this, an embedded config written before a token rename bakes its pre-rename
- * keys into `tokens.generated.css` forever, since nothing else ever migrates it.
+ * rather than any per-entry stamp (a per-entry `schemaVersion` inside a theme
+ * is ignored and stripped). Without this, an embedded config written before a
+ * token rename bakes its pre-rename keys into `tokens.generated.css` forever,
+ * since nothing else ever migrates it.
  *
- * Order: migrate, then fill, then stamp (RJC 6) — filling first would write a
- * file carrying both a stale key and its fresh replacement.
+ * Order: migrate, then fill, then stamp — filling first would write a file
+ * carrying both a stale key and its fresh replacement.
  *
  * Pure: every disk (or bundle) lookup arrives through `ThemeResolvers`, and
  * unresolvable refs come back in `dropped` rather than being logged here — the
@@ -39,7 +39,7 @@ type Json = Record<string, unknown>;
 export interface ThemeResolvers {
   readColorsAndType(name: string): unknown;
   readComponentConfig(comp: string, name: string): unknown;
-  /** Every component this install has, for the completeness fill (Wave 2).
+  /** Every component this install has, for the completeness fill.
    *  Installed components are a property of the running install, not of a
    *  theme or a bundle, so the disk and bundle resolvers share one answer. */
   listComponentNames(): string[];
@@ -61,21 +61,20 @@ export interface EncapsulatedTheme {
   colorsAndType: Json | null;
   /** Component id → its config, by value, one entry per component this
    *  install has and every alias key that component's `default.json`
-   *  declares (Wave 2 of `docs/plans/theme-completeness.md`): `normalizeTheme`
-   *  fills any gap from the local default on every read, and the fill is
-   *  persisted on the next write. A config for a component this install does
-   *  not have, or an alias key its current default no longer declares,
-   *  survives untouched (RJC 3) but is never a *gap* in the completeness
-   *  sense — see `NormalizedTheme.filled`. */
+   *  declares: `normalizeTheme` fills any gap from the local default on every
+   *  read, and the fill is persisted on the next write. A config for a
+   *  component this install does not have, or an alias key its current
+   *  default no longer declares, survives untouched but is never a *gap* in
+   *  the completeness sense — see `NormalizedTheme.filled`. */
   componentConfigs: Record<string, Json>;
   /** Migration stamp for every embedded component config in this theme, one
-   *  field for all of them (RJC 9): `CURRENT_COMPONENT_SCHEMA_VERSION` is a
+   *  field for all of them: `CURRENT_COMPONENT_SCHEMA_VERSION` is a
    *  single global counter over every component migration, so a per-entry
    *  stamp would buy no isolation and the theme is rewritten wholesale anyway. */
   componentSchemaVersion: number;
   /** The sketchstyle this theme paints, by value. Absent means the theme is
    *  crisp: presence is the on state, so there is no separate flag that can
-   *  disagree with the dials beside it (RJC 1). */
+   *  disagree with the dials beside it. */
   sketchSettings?: SketchStyleSettings;
 }
 
@@ -86,8 +85,8 @@ export interface NormalizedTheme {
   dropped: string[];
   /** The input was below the current schema version and got upgraded. */
   migrated: boolean;
-  /** What the completeness fill (Wave 2) had to add, reported and never acted
-   *  on silently (RJC 3). Kept in the file, but orphans are skipped by the
+  /** What the completeness fill had to add, reported and never acted
+   *  on silently. Kept in the file, but orphans are skipped by the
    *  bake. */
   filled: ThemeFillReport;
 }
@@ -131,9 +130,9 @@ function asString(value: unknown, fallback: string): string {
  * v1 and v2 spelled the embedded layer `theme` — v1 as a file name, v2 by
  * value. `colorsAndType` is the spelling a v3 (or later) file already carries.
  *
- * Landmine (Wave 2, docs/plans/theme-completeness.md): the caller must gate
- * this on the *input's* version being below 3, never on it being below the
- * current version. A v3 file already has `colorsAndType`, and rerunning this
+ * Landmine: the caller must gate this on the *input's* version being below
+ * 3, never on it being below the current version. A v3 file already has
+ * `colorsAndType`, and rerunning this
  * against it destructures `{ theme, ...rest }` with `theme` absent, then
  * overwrites the real `colorsAndType` with `undefined`. Gating on "below
  * current" made every v3 file "migrated" the moment `THEME_SCHEMA_VERSION`
@@ -171,7 +170,7 @@ function routeKnownConfigKeys(
 
 /**
  * Run one component config through `migrateComponentConfig`, off the theme's
- * `componentSchemaVersion` (never a per-entry stamp — RJC 9, stripped here).
+ * `componentSchemaVersion` (never a per-entry stamp, which is stripped here).
  * A config with no `aliases` bag (a legacy/synthetic fixture, or metadata-only
  * entry) has nothing to migrate and passes through unchanged.
  */
@@ -240,15 +239,14 @@ export function normalizeTheme(
     componentConfigs[comp] = migrateEmbeddedComponentConfig(comp, resolvedConfig, componentSchemaVersion);
   }
 
-  // Completeness fill (Wave 2, docs/plans/theme-completeness.md), after
-  // migration (RJC 6): every component this install has, and every alias key
-  // its default declares, ends up in the theme by value. Reads
-  // `readComponentConfig(comp, 'default')` — the derivation product of
+  // Completeness fill, after migration: every component this install has,
+  // and every alias key its default declares, ends up in the theme by value.
+  // Reads `readComponentConfig(comp, 'default')` — the derivation product of
   // `:global(:root)` — never the Default theme, which `normalizeTheme` runs
-  // ahead of at boot (RJC 11). Never deletes: a component absent from
+  // ahead of at boot. Never deletes: a component absent from
   // `listComponentNames()` (this install does not have it) or an alias key
-  // absent from the current default (an orphan, RJC 3) is left exactly as the
-  // input carried it.
+  // absent from the current default (an orphan) is left exactly as the input
+  // carried it.
   const filled: NormalizedTheme['filled'] = { components: [], aliases: 0, orphans: 0 };
   for (const comp of resolvers.listComponentNames()) {
     const base = asObject(resolvers.readComponentConfig(comp, 'default'));
@@ -278,7 +276,7 @@ export function normalizeTheme(
   // Reconciled the way a saved sketchstyle is: a sketchstyle stored before a dial
   // existed picks that dial's default up, a retired key is dropped. A theme
   // with no sketchSettings keeps none. Absent is the off state, not a value to
-  // fill (RJC 3).
+  // fill.
   //
   // `sketchStyle` was the key through 0.67. The field holds a sketchstyle's
   // settings rather than a sketchstyle, so it is named for what it holds now.

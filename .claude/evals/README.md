@@ -48,9 +48,8 @@ first real run.
 
 The two component and page outcome cases each carry a deterministic
 `tool_used` grader beside the rubric: the gate counts as closed only if a
-`Bash` call ran the checker with `--strict` against the new id or file. That is
-the mechanical half of goal G4 in `docs/design-system-compliance-briefing.md`;
-the rubric grades the iteration.
+`Bash` call ran the checker with `--strict` against the new id or file. The grader
+confirms the agent ran the gate; the rubric grades the iteration.
 
 The three outcome cases write into the tree. `outcome-theme-from-request` writes
 to the live data tree; restore it with the commands in `CLAUDE.md`. The other

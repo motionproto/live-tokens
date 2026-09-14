@@ -5,11 +5,10 @@
 //   node scripts/seed-preset-theme.mjs <slug> [--force]
 //
 // Refuses when `themes/<slug>.json` already exists, unless `--force`. There is
-// no sweep-all mode (RJC 7, docs/plans/theme-completeness.md Wave 5): once a
-// preset is seeded the file is the record of the whole theme, and nothing ever
-// re-derives it from a moving baseline again. `npm run check:preset-themes`
-// guards the committed files instead of a regeneration re-running the
-// arithmetic.
+// no sweep-all mode: once a preset is seeded the file is the record of the
+// whole theme, and nothing ever re-derives it from a moving baseline again.
+// `npm run check:preset-themes` guards the committed files instead of a
+// regeneration re-running the arithmetic.
 
 import { existsSync, readFileSync, readdirSync, statSync, writeFileSync } from 'node:fs';
 import { dirname, join, relative, resolve } from 'node:path';
@@ -33,13 +32,13 @@ const ENGINE_SOURCES = [
 ].map((p) => join(ROOT, p));
 
 // Source of truth: vite-plugin/themes/normalizeTheme.ts. This copy cannot
-// import TS, so `check:preset-themes` (Wave 5) is what catches a drift.
+// import TS, so `check:preset-themes` is what catches a drift.
 const THEME_SCHEMA_VERSION = 5;
 
-/** Shape personality per preset, from the plan's addendum 2 table. Global ops
+/** Shape personality per preset. Global ops
  *  come first and targeted `set` ops last, so a targeted corner wins over the
- *  sweep that would otherwise have moved it. This table is seeding input only
- *  (RJC 7): it shapes a preset once, at the moment it is first seeded, and is
+ *  sweep that would otherwise have moved it. This table is seeding input only:
+ *  it shapes a preset once, at the moment it is first seeded, and is
  *  never replayed against an already-shipped file. */
 const PRESETS = [
   {

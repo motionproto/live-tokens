@@ -144,8 +144,8 @@ function withoutLiveMarkers<T extends { _fileName?: string; _source?: unknown }>
 /**
  * The content as it stands: the live colors and type plus the live config of
  * every component this install has, all by value. A theme is a complete
- * document (`docs/plans/theme-completeness.md`), so the capture carries every
- * component, not just the ones off their default.
+ * document, so the capture carries every component, not just the ones off
+ * their default.
  *
  * Everything comes from the live read doors, so a capture takes the buffers
  * over the open theme's own copies. The colors and type are normalised on the
@@ -164,7 +164,7 @@ async function captureThemeContent(): Promise<Pick<Theme, 'colorsAndType' | 'com
     const config = configs[i];
     if (config) componentConfigs[c.name] = withoutLiveMarkers(config);
   });
-  // Sketchstyle has no server door of its own (RJC 8): the live buffer, not a
+  // Sketchstyle has no server door of its own: the live buffer, not a
   // fetch, is the source of truth for what the dials currently say.
   return { colorsAndType: withoutLiveMarkers(liveColorsAndType), componentConfigs, sketchSettings: liveSketchSettings() };
 }

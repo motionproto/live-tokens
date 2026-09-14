@@ -154,8 +154,8 @@ They look like consumer data sitting in the tarball, so this gets questioned
 periodically. They are load-bearing, and shipping them is what keeps a
 consumer's install clean.
 
-Seven of the eight preset themes are seeded, not generated
-(`docs/plans/theme-completeness.md` Wave 5): `npm run seed:preset-theme <slug>`
+Seven of the eight preset themes are seeded, not generated:
+`npm run seed:preset-theme <slug>`
 builds one new preset from the derived component defaults, the preset's shape
 ops, and its colors-and-type file, and refuses to touch a preset that already
 exists unless passed `--force`. There is no sweep-all mode. Sketches is the

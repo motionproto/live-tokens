@@ -114,7 +114,7 @@ const COLORS_AND_TYPE = {
   editorConfigs: {},
   cssVariables: { '--radius-md': '4px' },
 };
-// Wave 2 of docs/plans/theme-completeness.md: `normalizeTheme` fills a
+// `normalizeTheme` fills a
 // component entry's missing alias keys from the install's real default on
 // every read, so a fixture with a single overridden alias would come back
 // carrying the other ~100 button keys too. Building it against the real
@@ -262,10 +262,9 @@ describe('boot migration', () => {
     expect(warnings.join('\n')).toContain('panel/deleted-config');
     // `card` (pinned to 'default') and `panel` (its named config gone) both
     // start with no embedded entry from the pointer-resolution pass, but the
-    // completeness fill (Wave 2, docs/plans/theme-completeness.md) fills
-    // every installed component in from its local default afterward — the
-    // same local `default.json` boot just materialised, not a second
-    // derivation of it.
+    // completeness fill fills every installed component in from its local
+    // default afterward — the same local `default.json` boot just
+    // materialised, not a second derivation of it.
     expect(migrated.componentConfigs.button.aliases).toEqual(BUTTON_CONFIG.aliases);
     expect(migrated.componentConfigs.card.aliases).toEqual(readJson(path.join(configsDir, 'card', 'default.json')).aliases);
     expect(migrated.componentConfigs.panel.aliases).toEqual(
@@ -307,10 +306,9 @@ describe('boot migration', () => {
     expect(rewritten.schemaVersion).toBe(THEME_SCHEMA_VERSION);
     expect(rewritten.colorsAndType).toEqual(COLORS_AND_TYPE);
     // A v3 file no longer passes through untouched at v4: the completeness
-    // fill (Wave 2, docs/plans/theme-completeness.md) gives an empty
-    // `componentConfigs` every installed component, filled from its local
-    // default, and the boot rewrite persists it (`migrated` is true the
-    // moment the schema version differs).
+    // fill gives an empty `componentConfigs` every installed component,
+    // filled from its local default, and the boot rewrite persists it
+    // (`migrated` is true the moment the schema version differs).
     expect(Object.keys(rewritten.componentConfigs).sort()).toEqual(fs.readdirSync(configsDir).sort());
     expect(rewritten.componentConfigs.button.aliases).toEqual(BUTTON_DEFAULT_ALIASES);
   });
@@ -486,9 +484,9 @@ describe('read doors', () => {
     expect(written.componentConfigs.button.aliases).toEqual(BUTTON_CONFIG.aliases);
   });
 
-  // Wave 1 of docs/plans/sketch-in-the-theme.md, invariant 1: `sketchSettings`
-  // must be named on `EncapsulatedTheme`'s whitelist, or a PUT normalizes it
-  // away and the next GET reads back a theme with no sketchstyle at all.
+  // `sketchSettings` must be named on `EncapsulatedTheme`'s whitelist, or a
+  // PUT normalizes it away and the next GET reads back a theme with no
+  // sketchstyle at all.
   it('PUT a theme carrying a sketchstyle, and GET it back with the dials intact', async () => {
     seedPointerTheme();
     boot();
@@ -577,10 +575,10 @@ describe('the live layer doors', () => {
     expect(button.json._fileName).toBe('sample');
 
     // `sample.json` pointed `card` at its own default (a v1 delta encoding), so
-    // it carried no embedded entry — but Wave 2's completeness fill
-    // (docs/plans/theme-completeness.md) fills it in from the local default,
-    // by value, the moment the theme is read. It resolves as `'theme'` too,
-    // with the same values a bare default would have given it.
+    // it carried no embedded entry — but the completeness fill fills it in
+    // from the local default, by value, the moment the theme is read. It
+    // resolves as `'theme'` too, with the same values a bare default would
+    // have given it.
     const card = await request('GET', `${API}/component-configs/card/active`);
     expect(card.json._source).toBe('theme');
     expect(card.json.aliases).toEqual(readJson(path.join(configsDir, 'card', 'default.json')).aliases);
@@ -601,9 +599,9 @@ describe('the live layer doors', () => {
     const { json } = await request('GET', `${API}/component-configs`);
     const byName = Object.fromEntries(json.components.map((c: any) => [c.name, c.source]));
     expect(byName.button).toBe('theme');
-    // `card` was on `sample.json`'s default pointer, but the completeness fill
-    // (Wave 2, docs/plans/theme-completeness.md) embeds it in the theme by
-    // value on read, so it now resolves as `'theme'` too.
+    // `card` was on `sample.json`'s default pointer, but the completeness
+    // fill embeds it in the theme by value on read, so it now resolves as
+    // `'theme'` too.
     expect(byName.card).toBe('theme');
   });
 
@@ -710,8 +708,8 @@ describe('apply', () => {
     expect(json.colorsAndType._source).toBe('theme');
     expect(json.componentConfigs.button._source).toBe('theme');
     // `sample.json` pointed `card` at its default; the completeness fill
-    // (Wave 2, docs/plans/theme-completeness.md) embeds it in the theme by
-    // value on read, so it resolves as `'theme'` rather than `'default'`.
+    // embeds it in the theme by value on read, so it resolves as `'theme'`
+    // rather than `'default'`.
     expect(json.componentConfigs.card._source).toBe('theme');
     expect(readJson(path.join(themesDir, '_active.json')).activeFile).toBe('sample');
   });
@@ -842,10 +840,9 @@ describe('export and import', () => {
     expect(fs.readdirSync(colorsAndTypeDir).length).toBe(colorsAndTypeFilesBefore);
   });
 
-  // Wave 1 of docs/plans/sketch-in-the-theme.md, invariant 4: `ThemeBundle.manifest`
-  // is a whole `Theme` and import runs it back through `normalizeTheme`, so a
-  // bundle exported with a sketchstyle must land with one, at no extra cost
-  // past the whitelist fix this wave makes.
+  // `ThemeBundle.manifest` is a whole `Theme` and import runs it back through
+  // `normalizeTheme`, so a bundle exported with a sketchstyle must land with
+  // one, at no extra cost past the whitelist fix.
   it('carries a sketchstyle through export and back in through import', async () => {
     seedPointerTheme();
     boot();
@@ -893,11 +890,10 @@ describe('export and import', () => {
     expect(written.componentConfigs.button.aliases).toEqual(BUTTON_CONFIG.aliases);
     // `card` (pinned to the v1 'default' pointer) and `panel` (its named ref
     // unresolved) both start with no embedded entry from the
-    // pointer-resolution pass. The completeness fill (Wave 2,
-    // docs/plans/theme-completeness.md) fills every installed component in
-    // from the *local* default afterward: 'default' always meant this
-    // install's own default, never something the bundle carries, so the fill
-    // must not leave an imported theme silently incomplete (RJC 10).
+    // pointer-resolution pass. The completeness fill fills every installed
+    // component in from the *local* default afterward: 'default' always
+    // meant this install's own default, never something the bundle carries,
+    // so the fill must not leave an imported theme silently incomplete.
     expect(Object.keys(written.componentConfigs).sort()).toEqual(fs.readdirSync(configsDir).sort());
     expect(written.componentConfigs.card.aliases).toEqual(
       readJson(path.join(configsDir, 'card', 'default.json')).aliases,
@@ -934,7 +930,7 @@ describe('export and import', () => {
     // The one component the bundle embedded keeps its own values.
     expect(written.componentConfigs.button.aliases).toEqual(BUTTON_CONFIG.aliases);
     // Every other installed component is filled in from the local default:
-    // a v3 bundle predates completeness (Wave 2), and import must not leave
+    // a v3 bundle predates completeness, and import must not leave
     // it silently incomplete.
     expect(Object.keys(written.componentConfigs).sort()).toEqual(fs.readdirSync(configsDir).sort());
   });
@@ -1054,13 +1050,13 @@ describe('adopting the whole theme', () => {
   });
 });
 
-// Wave 1 of docs/plans/theme-completeness.md: `normalizeTheme` migrates an
-// embedded component config wherever a theme is read, so the bake — which
-// reads `productionTheme.componentConfigs` straight off that normalized
-// result — sees post-rename keys even for a theme written before the rename.
-// This closes a real bug: pre-Wave-1, `aliasValuesEqual(undefined, staleValue)`
-// is `false`, so a stale key read raw looked like a real override and baked
-// verbatim into `tokens.generated.css` forever.
+// `normalizeTheme` migrates an embedded component config wherever a theme is
+// read, so the bake — which reads `productionTheme.componentConfigs` straight
+// off that normalized result — sees post-rename keys even for a theme written
+// before the rename. This closes a real bug: previously,
+// `aliasValuesEqual(undefined, staleValue)` is `false`, so a stale key read
+// raw looked like a real override and baked verbatim into
+// `tokens.generated.css` forever.
 describe('component-config migration and orphan handling reach the bake', () => {
   const generatedCss = () => fs.readFileSync(path.join(tmp, 'tokens.generated.css'), 'utf-8');
 
@@ -1102,7 +1098,7 @@ describe('component-config migration and orphan handling reach the bake', () => 
         component: 'card',
         aliases: {
           // Not declared by card/default.json under any name a migration
-          // would recognise — a component-config edge case RJC 3 says the
+          // would recognise — a component-config edge case the
           // *file* must still carry, but the bake must never emit.
           '--card-removed-thing': '--surface-accent',
           // A real, current override — must still bake.

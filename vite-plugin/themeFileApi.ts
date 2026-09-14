@@ -57,10 +57,9 @@ const PKG_VERSION: string = (() => {
 /** Bundle envelope kind per schema version. `manifest-bundle` is what every
  *  release through 0.47.1 exported, always v1; every release since writes
  *  `theme-bundle`. `3` stays alongside the current version so import keeps
- *  accepting bundles exported before the Wave 2 completeness bump
- *  (`docs/plans/theme-completeness.md`) — `normalizeTheme` fills them on the
- *  way in. A crossed pair — a kind that never named that version — stays
- *  rejected. */
+ *  accepting bundles exported before the completeness bump —
+ *  `normalizeTheme` fills them on the way in. A crossed pair — a kind that
+ *  never named that version — stays rejected. */
 const BUNDLE_KIND_BY_VERSION: Record<number, string> = {
   1: 'manifest-bundle',
   3: 'theme-bundle',
@@ -504,8 +503,8 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
         for (const [varName, semanticValue] of Object.entries((prodCfg.aliases ?? {}) as Record<string, AliasDiskValue>)) {
           // A key the current default no longer declares is orphaned — a
           // removed/renamed token a migration hasn't (or can't) rewrite, or a
-          // component this install no longer ships. It stays in the theme file
-          // (RJC 3, docs/plans/theme-completeness.md) but never reaches CSS.
+          // component this install no longer ships. It stays in the theme
+          // file but never reaches CSS.
           if (!(varName in defaultAliases)) continue;
           if (!aliasValuesEqual(defaultAliases[varName], semanticValue)) {
             overrides.push([varName, semanticValue]);
@@ -710,8 +709,7 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
    * `:global(:root)` block. Writes only if missing, stale (source mtime >
    * default mtime), or behind the current component-config schema, so a
    * migration retired above every stored `schemaVersion` still reaches this
-   * file (Wave 1, docs/plans/theme-completeness.md). Preserves createdAt on
-   * regeneration.
+   * file. Preserves createdAt on regeneration.
    */
   function generateDefaultConfig(comp: string, sourcePath: string): void {
     if (!fs.existsSync(sourcePath)) return;
@@ -746,9 +744,9 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
       existingAliases !== undefined &&
       JSON.stringify(existingAliases) === JSON.stringify(aliases);
     // `derives from :global(:root)`, which is always current, so the stamp is
-    // never migrated here — only ever brought up to date (Wave 1,
-    // docs/plans/theme-completeness.md). `updatedAt` still tracks the aliases
-    // alone: a schema-stamp-only rewrite is not a content change.
+    // never migrated here — only ever brought up to date. `updatedAt` still
+    // tracks the aliases alone: a schema-stamp-only rewrite is not a content
+    // change.
     const schemaStampCurrent = existingSchemaVersion === CURRENT_COMPONENT_SCHEMA_VERSION;
     const defaultConfig = {
       name: 'default',
@@ -986,8 +984,8 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
     const componentConfigs: Record<string, any> = {};
     for (const comp of listComponentNames()) {
       const cfg = readComponentConfig(comp, 'default');
-      // Standalone `default.json` carries its own schema stamp (Wave 1); a
-      // theme's is one field for the whole file (RJC 9), so the per-entry
+      // Standalone `default.json` carries its own schema stamp; a
+      // theme's is one field for the whole file, so the per-entry
       // stamp is stripped rather than embedded twice.
       if (cfg) {
         const { schemaVersion: _standaloneStamp, ...rest } = cfg as Record<string, unknown>;
@@ -1880,17 +1878,16 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
       // spelled "no override" that way (normalizeTheme.ts's pointer-
       // resolution loop treats it identically), so it always meant *this
       // install's* default, not something the bundle carries. The
-      // completeness fill (Wave 2 of docs/plans/theme-completeness.md) relies
-      // on that fall-through: without it, `readComponentConfig(comp,
-      // 'default')` answers undefined for every component (no bundle ever
-      // carries a `<comp>/default` entry), the fill loop no-ops 25 times, and
-      // an incomplete bundle stays incomplete forever — exactly the drift RJC
-      // 10 exists to prevent.
+      // completeness fill relies on that fall-through: without it,
+      // `readComponentConfig(comp, 'default')` answers undefined for every
+      // component (no bundle ever carries a `<comp>/default` entry), the
+      // fill loop no-ops 25 times, and an incomplete bundle stays incomplete
+      // forever.
       readComponentConfig: (comp, name) =>
         bundle.componentConfigs?.[`${comp}/${name}`] ??
         (name === 'default' ? readComponentConfig(comp, 'default') : undefined),
       // Installed components are a property of this install, not of the
-      // bundle being imported, so the completeness fill (Wave 2) uses the
+      // bundle being imported, so the completeness fill uses the
       // same list the disk resolver does.
       listComponentNames,
       normalizeColorsAndType: (colorsAndType) => normalizeColorsAndType(colorsAndType as any),

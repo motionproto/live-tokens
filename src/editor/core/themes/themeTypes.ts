@@ -3,8 +3,7 @@ import type { GradientValue } from './parsers/gradient';
 import type { Oklch } from '../palettes/oklch';
 import type { HarmonyAxis } from '../palettes/colorHarmony';
 import type { SketchStyleSettings } from '../sketch/sketchStyles';
-/** Single source of truth for the theme schema version
- *  (docs/plans/theme-completeness.md, Wave 2 step 5). It lives here, on the
+/** Single source of truth for the theme schema version. It lives here, on the
  *  shipped side: `vite-plugin/` is build tooling and is not in the tarball, so
  *  anything under `src/` that reaches into it resolves in this repo and
  *  nowhere else. `normalizeTheme.ts` re-exports this. */
@@ -160,8 +159,8 @@ export type LiveSource = 'working' | 'theme';
 /**
  * Where a live colors-and-type read resolved from. Unlike `LiveSource`, this
  * keeps a third value: colors-and-type resolution is unchanged by the theme
- * completeness work (docs/plans/theme-completeness.md Wave 4), so `default`
- * still answers the one case completeness can't reach — the open theme's
+ * completeness work, so `default` still answers the one case completeness
+ * can't reach — the open theme's
  * file itself is unreadable (a stale pointer, or deleted mid-session), so
  * there is no document to resolve `working` or `theme` against.
  */
@@ -258,24 +257,23 @@ export interface Theme {
   updatedAt: string;
   /** Migration stamp. 1 was the pointer form (colors-and-type + config
    *  basenames); 2 encapsulated it under a `theme` key; 3 spells that key
-   *  `colorsAndType`; 4 makes the theme complete (`docs/plans/
-   *  theme-completeness.md`, Wave 2) — every known component and every alias
-   *  key its `default.json` declares, by value. The server rewrites older
-   *  files at boot. */
+   *  `colorsAndType`; 4 makes the theme complete — every known component and
+   *  every alias key its `default.json` declares, by value. The server
+   *  rewrites older files at boot. */
   schemaVersion: typeof THEME_SCHEMA_VERSION;
   /** Full colors-and-type content. */
   colorsAndType: ColorsAndType;
   /** Component id → its config, by value, one entry per component this
    *  install has and every alias key that component's `default.json`
    *  declares. `normalizeTheme` migrates each embedded config to the current
-   *  component schema and then fills any gap from the local default, on every
-   *  read (Waves 1 and 2 of `docs/plans/theme-completeness.md`); both the
-   *  migration and the fill are persisted on the next write, so a theme is a
-   *  whole-theme document rather than a diff against a moving baseline.
+   *  component schema and then fills any gap from the local default, on
+   *  every read; both the migration and the fill are persisted on the next
+   *  write, so a theme is a whole-theme document rather than a diff against
+   *  a moving baseline.
    *  `component-configs/<id>/default.json` is the derivation product of that
    *  component's `:global(:root)`, not a resolution layer this map defers to
    *  — a config for a component this install does not have, or an alias key
-   *  its current default no longer declares, is kept exactly as read (RJC 3)
+   *  its current default no longer declares, is kept exactly as read
    *  rather than dropped. */
   componentConfigs: Record<string, ComponentConfig>;
   /** Migration stamp for every embedded component config in this theme, one
@@ -286,7 +284,7 @@ export interface Theme {
   componentSchemaVersion: number;
   /** The sketchstyle this theme paints, by value. Absent means the theme is
    *  crisp: presence is the on state, so there is no separate flag that can
-   *  disagree with the dials beside it (RJC 1). */
+   *  disagree with the dials beside it. */
   sketchSettings?: SketchStyleSettings;
   /** Server-attached file-name marker. Same role as `ColorsAndType._fileName`. */
   _fileName?: string;
@@ -307,7 +305,7 @@ export interface ThemeBundle {
   /** Tracks the enclosed theme's schema. Import still accepts 1, where the
    *  envelope carried a pointer theme plus separately inlined colors and type
    *  and `${component}/${configName}`-keyed configs, and 3, from before the
-   *  Wave 2 completeness bump — `normalizeTheme` fills either on the way in. */
+   *  completeness bump — `normalizeTheme` fills either on the way in. */
   schemaVersion: typeof THEME_SCHEMA_VERSION;
   /** Sender's `@motion-proto/live-tokens` package version. Receiver can
    *  compare to its own to warn about compatibility drift. */

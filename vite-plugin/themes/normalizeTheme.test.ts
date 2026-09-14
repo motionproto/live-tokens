@@ -44,7 +44,7 @@ function resolvers(overrides: Partial<ThemeResolvers> = {}): ThemeResolvers {
   return {
     readColorsAndType: (name) => COLORS_AND_TYPE[name] ?? null,
     readComponentConfig: (comp, name) => CONFIGS[`${comp}/${name}`] ?? null,
-    // Empty by default so the completeness fill (Wave 2) is a no-op for every
+    // Empty by default so the completeness fill is a no-op for every
     // test that isn't specifically exercising it — see the
     // `normalizeTheme completeness fill` describe block below, which
     // overrides this.
@@ -137,7 +137,7 @@ describe('normalizeTheme v2 → v4', () => {
   });
 });
 
-describe('normalizeTheme v3 (below current, since Wave 2 bumped to v4)', () => {
+describe('normalizeTheme v3 (below the current v4)', () => {
   const v3 = {
     name: 'Encapsulated',
     createdAt: '2026-03-03T00:00:00.000Z',
@@ -170,9 +170,8 @@ describe('normalizeTheme v3 (below current, since Wave 2 bumped to v4)', () => {
   });
 });
 
-// Wave 2 step 2 of docs/plans/theme-completeness.md: the one genuinely
-// dangerous edit in the plan. `migrateEmbeddedKey` must gate on the *input's*
-// version being below 3, never on it being below the current version — else
+// `migrateEmbeddedKey` must gate on the *input's* version being below 3,
+// never on it being below the current version — else
 // bumping `THEME_SCHEMA_VERSION` to 4 makes every v3 file "migrated", the
 // v1/v2 rename runs again with no `theme` key to rename, and it overwrites the
 // real `colorsAndType` with `undefined`, which then resolves to the default
@@ -201,9 +200,8 @@ describe('normalizeTheme v3 → v4 bump does not run the v1/v2 key rename (step 
   });
 });
 
-// Wave 1 of docs/plans/theme-completeness.md: an embedded component config is
-// migrated wherever a theme is read, off the theme-level
-// `componentSchemaVersion` (never a per-entry stamp — RJC 9).
+// An embedded component config is migrated wherever a theme is read, off the
+// theme-level `componentSchemaVersion` (never a per-entry stamp).
 describe('normalizeTheme component-config migration', () => {
   const v3WithStaleAlias = {
     name: 'Progress',
@@ -228,7 +226,7 @@ describe('normalizeTheme component-config migration', () => {
     expect(theme.componentSchemaVersion).toBe(CURRENT_COMPONENT_SCHEMA_VERSION);
   });
 
-  it('ignores and strips a per-entry schemaVersion inside a theme (RJC 9)', () => {
+  it('ignores and strips a per-entry schemaVersion inside a theme', () => {
     const withEntryStamp = {
       ...v3WithStaleAlias,
       componentConfigs: {
@@ -268,8 +266,8 @@ describe('normalizeTheme component-config migration', () => {
   });
 });
 
-// Reviewer should-fix on Wave 1 (docs/plans/theme-completeness.md): the client
-// always follows `migrateComponentConfig` with `splitAliasesAndConfig`, which
+// The client always follows `migrateComponentConfig` with
+// `splitAliasesAndConfig`, which
 // routes `KNOWN_COMPONENT_CONFIG_KEYS` matches back into `config`. The server
 // has no such follow-up of its own and must do the same routing, in disk
 // shape, or a KNOWN key ends up persisted in the wrong bucket.
@@ -357,11 +355,11 @@ describe('normalizeTheme routes KNOWN_COMPONENT_CONFIG_KEYS back into config', (
   });
 });
 
-// Wave 2 of docs/plans/theme-completeness.md: every theme that passes through
-// normalizeTheme comes out carrying every known component (RJC 2) and every
-// alias key its default declares, filled from `readComponentConfig(comp,
-// 'default')` — the local default, never the Default theme (RJC 11) — and
-// never at the cost of dropping anything the input already carried (RJC 3).
+// Every theme that passes through normalizeTheme comes out carrying every
+// known component and every alias key its default declares, filled from
+// `readComponentConfig(comp, 'default')` — the local default, never the
+// Default theme — and never at the cost of dropping anything the input
+// already carried.
 describe('normalizeTheme completeness fill', () => {
   const gapped = {
     name: 'Gapped',
@@ -404,7 +402,7 @@ describe('normalizeTheme completeness fill', () => {
     expect(second.filled).toEqual({ components: [], aliases: 0, orphans: 0 });
   });
 
-  it('keeps a config for an unknown component and an orphaned alias key, both untouched (RJC 3)', () => {
+  it('keeps a config for an unknown component and an orphaned alias key, both untouched', () => {
     const survivors = {
       ...gapped,
       componentConfigs: {
@@ -451,10 +449,9 @@ describe('normalizeTheme completeness fill', () => {
   });
 });
 
-// Wave 1 of docs/plans/sketch-in-the-theme.md: a theme carries its sketchstyle
-// by value, resolved the same way a saved sketchstyle is (RJC 3). Presence
-// is the on state (RJC 1). Nothing here ever fills a sketchstyle in for a
-// theme that has none.
+// A theme carries its sketchstyle by value, resolved the same way a saved
+// sketchstyle is. Presence is the on state. Nothing here ever fills a
+// sketchstyle in for a theme that has none.
 describe('normalizeTheme sketchSettings field', () => {
   const withSketch = {
     name: 'Sketchy',
@@ -540,8 +537,8 @@ describe('normalizeTheme sketchSettings field', () => {
   });
 });
 
-// Wave 2 step 2 of docs/plans/theme-completeness.md: for each shipped preset
-// plus `default`, the fill's round-trip identity is pinned against the real
+// For each shipped preset plus `default`, the fill's round-trip identity is
+// pinned against the real
 // package data in `vite-plugin/themes/presetThemes.test.ts`, which has the
 // fixtures this needs (the 7 presets, `default`, and every component's real
 // `default.json`).

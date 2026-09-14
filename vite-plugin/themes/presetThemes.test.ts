@@ -4,7 +4,7 @@
  * a complete document (every component, every alias key), and the tarball
  * ships each one by name. Distinctness across presets, and the other
  * committed-file invariants `scripts/check-preset-themes.mjs` asserts, live
- * there instead of here (Wave 5, docs/plans/theme-completeness.md).
+ * there instead of here.
  */
 import { describe, expect, it } from 'vitest';
 import fs from 'fs';
@@ -40,8 +40,8 @@ const defaultConfigOf = (comp: string) =>
   readJson(path.join(DATA, 'component-configs', comp, 'default.json'));
 
 /** The install's real component list — what `listComponentNames` answers in
- *  production — so the completeness fill (Wave 2 of
- *  `docs/plans/theme-completeness.md`) sees the same universe a boot would. */
+ *  production — so the completeness fill sees the same universe a boot
+ *  would. */
 const KNOWN_COMPONENTS = fs.readdirSync(path.join(DATA, 'component-configs')).sort();
 
 const stackOf = (colorsAndType: any, variable: string) =>
@@ -81,10 +81,9 @@ const fillingResolvers: ThemeResolvers = {
 };
 
 describe.each(PRESETS)('shipped preset theme "%s"', (slug) => {
-  // Invariant 1 (docs/plans/theme-completeness.md): the CSS a component
-  // resolves to before and after normalization is the same. Wave 3
-  // regenerated every preset complete and current on disk, so normalizing one
-  // is a no-op: nothing to migrate, nothing to fill.
+  // The CSS a component resolves to before and after normalization is the
+  // same: every preset is regenerated complete and current on disk, so
+  // normalizing one is a no-op: nothing to migrate, nothing to fill.
   it('is already complete and current: normalizing it changes nothing', () => {
     const raw = themeOf(slug);
     const { theme, dropped, migrated, filled } = normalizeTheme(raw, fillingResolvers);
@@ -92,7 +91,7 @@ describe.each(PRESETS)('shipped preset theme "%s"', (slug) => {
     expect(dropped).toEqual([]);
     expect(raw.schemaVersion).toBe(THEME_SCHEMA_VERSION);
     expect(theme.schemaVersion).toBe(THEME_SCHEMA_VERSION);
-    // Wave 1's migration TTL only fires if this is stamped: unstamped reads as
+    // The migration TTL only fires if this is stamped: unstamped reads as
     // 0 and replays every component migration on every load, forever.
     expect(raw.componentSchemaVersion).toBe(CURRENT_COMPONENT_SCHEMA_VERSION);
     expect(theme.componentSchemaVersion).toBe(CURRENT_COMPONENT_SCHEMA_VERSION);
@@ -178,9 +177,9 @@ describe.each(SEEDED_PRESETS)('seeded preset theme "%s"', (slug) => {
 });
 
 describe('themes/default.json', () => {
-  // RJC 3 / verified (Part 0): the Default theme already materialises every
+  // The Default theme already materialises every
   // component by value, so completeness fills nothing for it — the one
-  // shipped theme where round-trip identity (invariant 1) is a plain no-op.
+  // shipped theme where round-trip identity is a plain no-op.
   it('is already complete: the fill changes nothing but the schema stamps', () => {
     const raw = themeOf('default');
     const { theme, dropped, filled } = normalizeTheme(raw, fillingResolvers);
@@ -211,7 +210,6 @@ describe('override bag stays inside the token contract', () => {
 });
 
 // Distinctness across presets (card radius + button padding, and the font
-// pairing) moved to `scripts/check-preset-themes.mjs` (Wave 5 of
-// docs/plans/theme-completeness.md): it asserts on these same committed files,
-// and CI and `prepublishOnly` both run it, so the rule now has one home
-// instead of living here too.
+// pairing) moved to `scripts/check-preset-themes.mjs`: it asserts on these
+// same committed files, and CI and `prepublishOnly` both run it, so the rule
+// now has one home instead of living here too.

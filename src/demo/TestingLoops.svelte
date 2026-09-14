@@ -1,20 +1,30 @@
 <script lang="ts">
-  import Button from '../system/components/Button.svelte';
+  import { onMount } from 'svelte';
   import CollapsibleSection from '../system/components/CollapsibleSection.svelte';
+  import { portal } from '../system/internal/portal';
   import { navigate } from '../editor/core/routing/router';
 
   const chapters = [
-    { id: 'tokens', title: 'Design tokens and semantic properties' },
+    { id: 'tokens', title: 'A shared design system' },
     { id: 'skills', title: 'Skills and checkers' },
-    { id: 'test-runs', title: 'Three test runs' },
-    { id: 'walkthrough', title: 'A page with a new component' },
-    { id: 'gates', title: 'Gates on rules and skills' },
+    { id: 'test-runs', title: 'Three test suites' },
+    { id: 'walkthrough', title: 'Build and check a page' },
+    { id: 'gates', title: 'Checks for rules and skills' },
     { id: 'reference', title: 'Rule reference' },
   ];
 
+  let contentsOpen = $state(false);
+
+  onMount(() => {
+    contentsOpen = window.matchMedia('(min-width: 1024px)').matches;
+  });
+
+  let openRules = $state<Record<string, boolean>>({});
+
   function jump(event: MouseEvent, id: string) {
     event.preventDefault();
-    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    if (window.matchMedia('(max-width: 1023px)').matches) contentsOpen = false;
+    document.getElementById(id)?.scrollIntoView({ behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth', block: 'start' });
   }
 </script>
 
@@ -34,107 +44,58 @@
 <div class="loops">
   <header class="masthead">
     <div class="chapter-body">
-      <div class="masthead-top">
-        <h1>Testing Loops</h1>
-        <Button variant="primary" onclick={() => navigate('/demo')} icon="fas fa-arrow-left" iconPosition="left">
-          Back to Demo
-        </Button>
+      <a class="back-link" href="/demo" onclick={(event) => { event.preventDefault(); navigate('/demo'); }}>
+        <span aria-hidden="true">←</span> Back to demo
+      </a>
+      <div class="hero-copy">
+        <h1>Testing loops</h1>
+        <p class="standfirst">Build, check, fix, repeat.</p>
+        <p class="introduction">Skills build pages and components. Checkers find problems and point to the repair steps. The skill applies each fix and runs the checks again until they pass.</p>
       </div>
-      <p class="standfirst">Every skill ends by running a checker. Each finding names a rule, a file, a line, and a fix. The skill applies the fix and runs the checker again until it exits 0.</p>
-      <nav class="contents" aria-label="Contents">
-        <ol>
-          {#each chapters as chapter}
-            <li>
-              <a href="#{chapter.id}" onclick={(event) => jump(event, chapter.id)}>{chapter.title}</a>
-            </li>
-          {/each}
-        </ol>
-      </nav>
     </div>
   </header>
 
   <section class="chapter" id="tokens" aria-labelledby="tokens-title">
     <div class="chapter-body">
-      <h2 id="tokens-title">Design tokens and semantic properties</h2>
-      <p>Every visual value passes through two names before it paints.</p>
-      <p>A <strong>design token</strong> names a value: <code>--space-16</code>, <code>--radius-md</code>, <code>--surface-neutral</code>. A theme sets the design tokens.</p>
-      <p>A <strong>semantic property</strong> names a role inside one component and points at a design token: <code>--card-padding: var(--space-16)</code>. The component's CSS reads the semantic property, and the editor changes the token it points at. Because the property always points at a token, a theme change reaches the component.</p>
-      <p>Page CSS reads design tokens directly.</p>
-
-      <figure>
-        <div class="figure-scroll">
-          <svg class="dg" width="1200" height="466.7" viewBox="0 0 1200 466.7" role="img" aria-label="A design token fills a semantic property. The property feeds a component rule, and the browser paints it. Page CSS reads the design token directly. The rule that catches each break sits under each step.">
-            <text class="lbl" x="186.7" y="69.3" text-anchor="middle">a theme sets the value</text>
-            <text class="lbl" x="600" y="69.3" text-anchor="middle">the editor sets the assignment</text>
-            <text class="lbl" x="1013.3" y="69.3" text-anchor="middle">the browser paints</text>
-
-            <rect class="box" x="32" y="101.3" width="309.3" height="101.3" rx="4" />
-            <text class="t" x="53.3" y="133.3">Design token</text>
-            <text class="m" x="53.3" y="158.7">--space-16: 16px</text>
-            <text class="s" x="53.3" y="182.7">tokens.css</text>
-
-            <rect class="box" x="421.3" y="101.3" width="357.3" height="101.3" rx="4" />
-            <text class="t" x="442.7" y="133.3">Semantic property</text>
-            <text class="m" x="442.7" y="158.7">--card-padding: var(--space-16)</text>
-            <text class="s" x="442.7" y="182.7">Card.svelte :global(:root)</text>
-
-            <rect class="box" x="858.7" y="101.3" width="309.3" height="101.3" rx="4" />
-            <text class="t" x="880" y="133.3">Painted rule</text>
-            <text class="m" x="880" y="158.7">padding: var(--card-padding)</text>
-            <text class="s" x="880" y="182.7">.card</text>
-
-            <path class="flow" d="M341.3,152 H410.7" />
-            <text class="lbl" x="376" y="90.7" text-anchor="middle">fills</text>
-            <path class="flow" d="M778.7,152 H848" />
-            <text class="lbl" x="813.3" y="90.7" text-anchor="middle">feeds</text>
-
-            <text class="rule" x="186.7" y="232" text-anchor="middle">unknown-token</text>
-            <text class="rule" x="600" y="232" text-anchor="middle">default-not-token · unknown-suffix</text>
-            <text class="rule" x="1013.3" y="232" text-anchor="middle">contract-theme</text>
-
-            <path class="flow" d="M106.7,202.7 V370.7 H410.7" />
-            <text class="lbl" x="273.3" y="360" text-anchor="middle">page CSS reads it</text>
-
-            <rect class="box" x="421.3" y="325.3" width="357.3" height="90.7" rx="4" />
-            <text class="t" x="442.7" y="356">Page CSS</text>
-            <text class="m" x="442.7" y="381.3">gap: var(--space-16)</text>
-            <text class="s" x="442.7" y="404">Pricing.svelte</text>
-
-            <text class="rule" x="600" y="442.7" text-anchor="middle">color-literal · dimension-literal</text>
-          </svg>
-        </div>
-        <figcaption><b>Figure 1.</b> Each step has a rule that catches a break. A literal color or size in page CSS trips <code>color-literal</code> or <code>dimension-literal</code>. A component default without a design token trips <code>default-not-token</code>. A component that keeps its old paint after a theme change trips <code>contract-theme</code>.</figcaption>
-      </figure>
+      <h2 id="tokens-title">A shared design system</h2>
+      <p>Live tokens lets you edit design tokens and components in the browser. Tokens define shared values for color, type, spacing, and shape. Pages and components use those values to keep the design consistent.</p>
+      <p>The checks verify that your code uses the design system and that the result works in the browser. They cover token use, component behavior, and page layout.</p>
     </div>
   </section>
 
   <section class="chapter" id="skills" aria-labelledby="skills-title">
     <div class="chapter-body">
       <h2 id="skills-title">Skills and checkers</h2>
-      <h3>Nine skills</h3>
-      <p>The package bundles nine skills. <code>npx live-tokens setup-claude</code> copies them into a project.</p>
+      <h3>Skills build and repair</h3>
+      <p>The package includes nine skills. Run <code>npx live-tokens setup-claude</code> to add them to your project.</p>
       <ul class="trio">
-        <li><h4>Theme skills</h4><p><span class="name">create-theme</span> splits a request into color, type, and geometry, and passes each part to <span class="name">set-colors</span>, <span class="name">set-type</span>, or <span class="name">set-geometry</span>.</p></li>
-        <li><h4>Build skills</h4><p><span class="name">create-page</span> builds a page from shipped components. It calls <span class="name">pick-component</span> to choose between similar components and <span class="name">create-component</span> to write a new one.</p></li>
-        <li><h4>Check skills</h4><p><span class="name">check-compliance</span> runs <code>npx live-tokens report</code> and lists the findings. <span class="name">fix-findings</span> repairs them and reruns the checkers until both exit 0.</p></li>
+        <li><h4>Theme skills</h4><p><span class="name">create-theme</span> passes color, type, and geometry tasks to <span class="name">set-colors</span>, <span class="name">set-type</span>, or <span class="name">set-geometry</span>.</p></li>
+        <li><h4>Build skills</h4><p><span class="name">create-page</span> builds a page from the component catalogue. It calls <span class="name">pick-component</span> to choose a component and <span class="name">create-component</span> to write a new one.</p></li>
+        <li><h4>Check skills</h4><p><span class="name">check-compliance</span> runs <code>npx live-tokens report</code> and lists the findings. <span class="name">fix-findings</span> repairs each finding and runs both checkers again until they pass.</p></li>
       </ul>
-      <p>Skills make design decisions, such as which component fits a task. Checkers verify that the files follow the rules.</p>
+      <p>Skills make design decisions. Checkers verify the code and test the result.</p>
 
-      <h3>Two checkers</h3>
-      <p><code>check-page</code> checks a page. <code>check-component</code> checks a component's runtime file, editor file, and registration. <code>report</code> runs both across the project.</p>
-      <p>Every finding has a rule id, file, line, fix slug, and repair level. <code>--fix</code> applies <code>auto</code> findings. A <code>choice</code> finding needs a decision. An <code>authored</code> finding needs new code. Skills read the <code>--json</code> output, repair, and rerun.</p>
-      <p>Each checker starts by loading the project's vocabulary: the names in <code>tokens.css</code> and the semantic properties its components declare. Any other name produces a finding.</p>
-      <p><code>live-tokens.config.json</code> sets each rule's severity. <code>--strict</code> turns warnings into errors for one run. <code>--tests</code> adds the test runs below.</p>
+      <h3>Checkers report problems</h3>
+      <p><code>check-page</code> checks page code. <code>check-component</code> checks a component's code, editor controls, and registration. Use <code>report</code> to run both across the project.</p>
+      <p>Each finding identifies the rule, file, line, and repair steps. Its repair level tells the skill what to do:</p>
+      <dl class="defs repair-levels">
+        <div><dt><code>auto</code></dt><dd>Apply the repair with <code>--fix</code>.</dd></div>
+        <div><dt><code>choice</code></dt><dd>Choose a repair based on the design or task.</dd></div>
+        <div><dt><code>authored</code></dt><dd>Write code to resolve the finding.</dd></div>
+      </dl>
+      <p>The checkers read the token names in <code>tokens.css</code> and the properties each component declares. They report references to unknown names. Skills read these findings with <code>--json</code>, apply the fixes, and run the checks again.</p>
+      <p>Set rule severity in <code>live-tokens.config.json</code>. Add <code>--strict</code> to treat warnings as errors, or <code>--tests</code> to run the test suites below. A checker exits with code <code>0</code> when it passes.</p>
     </div>
   </section>
 
   <section class="chapter" id="test-runs" aria-labelledby="test-runs-title">
     <div class="chapter-body">
-      <h2 id="test-runs-title">Three test runs</h2>
-      <p><code>--tests</code> checks a running app. The runner copies the project data to a temporary directory, starts a dev server and a browser, and runs three suites.</p>
+      <h2 id="test-runs-title">Three test suites</h2>
+      <p>Add <code>--tests</code> to check the running app. The runner copies project data to a temporary directory, starts a development server, and runs three suites: one in Vitest and two in Playwright.</p>
 
       <figure>
-        <div class="figure-scroll">
+        <!-- svelte-ignore a11y_no_noninteractive_tabindex (Keyboard users need to scroll the diagram.) -->
+        <div class="figure-scroll" role="region" aria-label="Figure 1" tabindex="0">
           <svg class="dg" width="1200" height="1133.3" viewBox="0 0 1200 1133.3" role="img" aria-label="Both checkers match every name against the vocabulary in the project's tokens.css. Either checker starts one test runner, which copies the project data and starts three runs: Vitest for registration and callbacks, Playwright for the component in the editor, and Playwright for the page at its route. The skill fixes the findings and runs both checkers again until every check passes.">
             <rect class="box" x="373.3" y="32" width="453.3" height="96" rx="4" />
             <text class="t" x="394.7" y="61.3">The token vocabulary</text>
@@ -227,30 +188,32 @@
             <text class="rule" x="600" y="1112" text-anchor="middle">a missing result counts as a failure</text>
           </svg>
         </div>
-        <figcaption><b>Figure 2.</b> Both checkers use one test runner. Each run works on a fresh copy of the project data, so every run starts from the same baseline and the editor keeps its state. Results return as findings. A missing result counts as a failure.</figcaption>
+        <figcaption><b>Figure 1. The testing loop.</b> Both checkers use the same runner. Each run starts with a fresh copy of the project data and preserves the editor’s state. The runner reports failures and missing results as findings.</figcaption>
       </figure>
 
-      <h3>Vitest: wiring</h3>
-      <p>Two suites run without a browser. The registry suite checks that each component has a registration, declares every editable property, and seeds each property in its default config. The behavior suite mounts each component, fires DOM events, and checks that callback props receive the right arguments.</p>
+      <h3>Vitest checks component setup</h3>
+      <p>Vitest runs registry and behavior checks without a browser. The registry checks confirm that each component has a registration and a default value for every editable property. The behavior checks trigger DOM events and verify the arguments each callback receives.</p>
 
-      <h3>Playwright: component in the editor</h3>
-      <p>Each component has a contract in <code>src/testing/contracts/</code> that lists its parts, states, and theme expectations. One suite runs every contract through eight checks. The component appears in the editor, declares its parts and aliases, resolves every alias, renders each state, responds to pointer and keyboard, keeps an edit through save and reload, repaints on a theme change, and draws every part in Sketch mode.</p>
-      <p>The theme check tests the last step in figure 1. It previews a theme and checks that each property changes or holds as the contract says. Then it cancels the preview and checks that every value returns. A component that paints a literal fails.</p>
+      <h3>Playwright checks components in the editor</h3>
+      <p>Each component has a test contract in <code>src/testing/contracts/</code>. It defines the component’s parts, states, and expected response to a theme change. Playwright uses it to check editor controls, rendering, pointer and keyboard input, save and reload, themes, and Sketch mode.</p>
+      <p>The theme check previews a theme and verifies the expected values. It then cancels the preview and checks that the original values return.</p>
 
-      <h3>Playwright: page at its route</h3>
-      <p>The page suite opens each page at its route, at every viewport in the testing settings, and applies five rules: component paint, text style, contrast, page grid, and overflow. A rule outside its range reports the reason. At 390px, for example, the grid rule reports that the grid needs 768px.</p>
+      <h3>Playwright checks pages in the browser</h3>
+      <p>Playwright opens each page at every viewport in the testing settings. It checks component appearance, text styles, contrast, grid alignment, and overflow. When a rule does not apply, the report explains why. For example, the grid rule applies at widths of 768px and above.</p>
 
-      <h3>Coverage</h3>
-      <p>The runner maps each result to a rule by the test's position in the suite, so a test keeps its rule through a rename. A component and rule pair with no result produces a <code>tests-incomplete</code> finding. <code>tests-not-installed</code>, <code>tests-setup</code>, and <code>tests-incomplete</code> always report, whatever the config says.</p>
+      <h3>Every expected result must arrive</h3>
+      <p>The runner matches results to rules by test position, so renaming a test preserves the match. A missing result produces a <code>tests-incomplete</code> finding. Setup failures, missing test tools, and incomplete runs always produce findings, regardless of rule settings.</p>
     </div>
   </section>
 
   <section class="chapter" id="walkthrough" aria-labelledby="walkthrough-title">
     <div class="chapter-body">
-      <h2 id="walkthrough-title">A page with a new component</h2>
+      <h2 id="walkthrough-title">Build and check a page</h2>
+      <p>Start with the component catalogue. If the page needs a new component, build and check that component first. Then assemble the page, run the checks, and review the layout.</p>
 
       <figure>
-        <div class="figure-scroll">
+        <!-- svelte-ignore a11y_no_noninteractive_tabindex (Keyboard users need to scroll the diagram.) -->
+        <div class="figure-scroll" role="region" aria-label="Figure 2" tabindex="0">
           <svg class="dg" width="1200" height="1066.7" viewBox="0 0 1200 1066.7" role="img" aria-label="To create a page, read the project, plan the sections, and match each need to a component. When the catalogue lacks a component, write one and check it until exit 0. Assemble the page, then verify it with the static checks and a browser. Findings return to assembly until both checkers exit 0.">
             <rect class="box-lead" x="146.7" y="26.7" width="440" height="66.7" rx="4" />
             <text class="t" x="168" y="56">Create a page</text>
@@ -337,28 +300,29 @@
             <text class="rule" x="146.7" y="1048">accent: findings return to the step that fixes them</text>
           </svg>
         </div>
-        <figcaption><b>Figure 3.</b> The page path runs down the left. When the catalogue lacks a component, the path branches right, builds and checks the component, and rejoins at assembly. Both loops end at exit 0. A person reads the page last.</figcaption>
+        <figcaption><b>Figure 2. The page workflow.</b> Follow the left path to build a page. Take the right branch to create and check a new component, then return to page assembly. Fix findings until the checks pass, then review the page yourself.</figcaption>
       </figure>
 
       <ol class="steps">
         <li><strong>Read the project.</strong> Read the route table, <code>--columns-count</code>, and the catalogue from <code>npx live-tokens components</code>.</li>
         <li><strong>Plan sections, then columns.</strong> Give each purpose its own section. Take column spans from the layout that fits the reader's task.</li>
-        <li><strong>Choose components.</strong> Start with shipped components. pick-component decides between similar ones. create-component writes a missing one.</li>
-        <li><strong>Check the new component.</strong> Run <code>check-component &lt;id&gt; --tests --strict</code> until it exits 0.</li>
+        <li><strong>Choose components.</strong> Start with the catalogue. Use <span class="name">pick-component</span> to choose between similar components and <span class="name">create-component</span> to add one.</li>
+        <li><strong>Check the new component.</strong> Run <code>check-component &lt;id&gt; --tests --strict</code>. Fix each finding and repeat until the checks pass.</li>
         <li><strong>Assemble the page.</strong> Use components at their defaults, design tokens in page CSS, one text style per element, and a route with a <code>source</code>.</li>
-        <li><strong>Verify.</strong> Run <code>report</code>, then <code>check-page &lt;file&gt; --tests --strict</code>. fix-findings repairs the findings. Repeat until exit 0.</li>
-        <li><strong>Review by eye.</strong> Check for one <code>h1</code>, sequential heading levels, readable line lengths, and the primary action last. A person judges the layout.</li>
+        <li><strong>Verify.</strong> Run <code>report</code>, then <code>check-page &lt;file&gt; --tests --strict</code>. Use <span class="name">fix-findings</span> to make repairs. Repeat until both checks pass.</li>
+        <li><strong>Review by eye.</strong> Check the heading hierarchy, line lengths, spacing, and placement of the primary action. Confirm that the page reads clearly and supports the reader’s task.</li>
       </ol>
     </div>
   </section>
 
   <section class="chapter" id="gates" aria-labelledby="gates-title">
     <div class="chapter-body">
-      <h2 id="gates-title">Gates on rules and skills</h2>
-      <p>Each rule must fail on a known defect. Each skill must name only commands and flags the CLI accepts. Gates enforce both.</p>
+      <h2 id="gates-title">Checks for rules and skills</h2>
+      <p>Tests verify the testing tools too. Each rule must detect a known defect, and each skill must describe commands and flags the CLI accepts.</p>
 
       <figure>
-        <div class="figure-scroll">
+        <!-- svelte-ignore a11y_no_noninteractive_tabindex (Keyboard users need to scroll the diagram.) -->
+        <div class="figure-scroll" role="region" aria-label="Figure 3" tabindex="0">
           <svg class="dg" width="1200" height="400" viewBox="0 0 1200 400" role="img" aria-label="A skill states the contract in prose. A checker rule detects a breach. A finding carries the rule and its fix slug, and the slug points to the skill section with the repair steps. A gate guards each step: check:skills, the checker unit tests and defect fixtures, and the fix-slug table.">
             <text class="lbl" x="181.3" y="53.3" text-anchor="middle">check:skills</text>
             <text class="lbl" x="181.3" y="74.7" text-anchor="middle">check:cli-strings · check:skill-atlas</text>
@@ -396,19 +360,19 @@
             <text class="rule" x="600" y="338.7" text-anchor="middle">the fix slug points to the repair steps</text>
           </svg>
         </div>
-        <figcaption><b>Figure 4.</b> Each finding carries a fix slug. fix-findings maps the slug to the skill section with the repair steps.</figcaption>
+        <figcaption><b>Figure 3. Rules and repairs.</b> Each finding includes a fix slug: an identifier that links to repair instructions in a skill. <span class="name">fix-findings</span> follows that link to make the repair.</figcaption>
       </figure>
 
       <dl class="defs">
-        <div><dt>Defect fixtures</dt><dd><code>tests/e2e/contract-defects</code> and <code>page-defects</code> break each rule once and confirm that the rule fails. Only development builds include them.</dd></div>
+        <div><dt>Defect fixtures</dt><dd><code>tests/e2e/contract-defects</code> and <code>page-defects</code> introduce known defects and confirm that each rule catches them. Development builds include these test cases.</dd></div>
         <div><dt>Checker unit tests</dt><dd><code>bin/check-page.test.ts</code> and <code>bin/check-component.test.ts</code> test the static rules.</dd></div>
-        <div><dt>check:skills</dt><dd>Lints skill prose: names, length, references, verbs, and flags. A skill that documents a verb names all its flags, and every verb appears in some skill.</dd></div>
-        <div><dt>check:skill-atlas and check:skill-sources</dt><dd>Keep the Skill Atlas line citations in sync with each SKILL.md.</dd></div>
-        <div><dt>Smoke runs</dt><dd>Install the packed tarball into temporary projects and run both test paths end to end.</dd></div>
+        <div><dt>check:skills</dt><dd>Checks skill names, length, references, commands, and flags. Every CLI command must appear in a skill, along with all its flags.</dd></div>
+        <div><dt>check:skill-atlas and check:skill-sources</dt><dd>Keep the Skill Atlas citations and skill sources in sync with each <code>SKILL.md</code>.</dd></div>
+        <div><dt>Smoke runs</dt><dd>Install the package in temporary projects and run the component and page tests from start to finish.</dd></div>
       </dl>
 
       <div class="aside">
-        <p>A model uses only the flags its skill names. <code>--carry-from</code> shipped in the CLI but appeared in no skill, so two set-colors runs carried the first theme's fonts and geometry into the second. check:skills now catches a flag missing from its skill.</p>
+        <p><strong>Skill instructions affect the result.</strong> The CLI supported <code>--carry-from</code> before the skills documented it. Two <span class="name">set-colors</span> runs then carried one theme’s fonts and geometry into the next. <code>check:skills</code> now catches missing flag documentation.</p>
       </div>
     </div>
   </section>
@@ -416,41 +380,41 @@
   <section class="chapter" id="reference" aria-labelledby="reference-title">
     <div class="chapter-body">
       <h2 id="reference-title">Rule reference</h2>
-      <p>A <span class="warn">warn</span> tag means the rule reports a warning by default. <code>--strict</code> makes it an error.</p>
+      <p>Expand a group to read its rules. The <span class="warn">warn</span> label marks a warning by default. Add <code>--strict</code> to treat it as an error.</p>
 
-      <CollapsibleSection label="check-page, static (17)">
+      <CollapsibleSection label="Page code · 17 rules" prose={false} open={openRules['0'] ?? false} ontoggle={() => openRules['0'] = !openRules['0']}>
         <ul class="rules">
           <li><span class="id">unknown-component</span><span>An import names a component outside the catalogue.</span></li>
           <li><span class="id">unknown-prop</span><span>A component receives a prop it does not declare.</span></li>
           <li><span class="id">unknown-prop-value</span><span>A prop receives a value outside the set the component accepts.</span></li>
           <li><span class="id">deep-import</span><span>An import reaches into package internals. Import from a public entry point.</span></li>
-          <li><span class="id">unknown-token</span><span>A <code>var()</code> names something outside the vocabulary.</span></li>
-          <li><span class="id">color-literal</span><span>A literal color stands where a design token belongs.</span></li>
-          <li><span class="id">reserved-route</span><span>A route sits inside the reserved <code>/live-tokens/*</code> namespace.</span></li>
+          <li><span class="id">unknown-token</span><span>A <code>var()</code> reference uses an unknown token name.</span></li>
+          <li><span class="id">color-literal</span><span>A color value uses a literal instead of a design token.</span></li>
+          <li><span class="id">reserved-route</span><span>A route uses the reserved <code>/live-tokens/*</code> namespace.</span></li>
           <li><span class="id">site-css-in-main</span><span><code>main.ts</code> imports <code>site.css</code>, which leaks it into the editor routes.</span></li>
-          <li><span class="id">raw-text-axis</span><span>A font size, family, weight, line height, or letter spacing sits outside a text style.</span></li>
-          <li><span class="id">dimension-literal<span class="warn">warn</span></span><span>A spacing, stroke, or radius value is a raw dimension.</span></li>
-          <li><span class="id">hardcoded-columns<span class="warn">warn</span></span><span>A grid hardcodes four or more columns. Read <code>--columns-count</code>.</span></li>
+          <li><span class="id">raw-text-axis</span><span>A font size, family, weight, line height, or letter spacing uses a value outside a text style.</span></li>
+          <li><span class="id">dimension-literal<span class="warn">warn</span></span><span>A spacing, stroke, or radius value uses a literal instead of a token.</span></li>
+          <li><span class="id">hardcoded-columns<span class="warn">warn</span></span><span>A grid hardcodes four or more columns. Use <code>--columns-count</code>.</span></li>
           <li><span class="id">missing-source<span class="warn">warn</span></span><span>A route has no <code>source</code>, so Page Source cannot open it.</span></li>
           <li><span class="id">control-size<span class="warn">warn</span></span><span>The page sets <code>size</code> on a shipped component.</span></li>
-          <li><span class="id">multiple-primary<span class="warn">warn</span></span><span>The page holds more than one primary Button.</span></li>
+          <li><span class="id">multiple-primary<span class="warn">warn</span></span><span>The page uses more than one primary Button.</span></li>
           <li><span class="id">danger-without-dialog<span class="warn">warn</span></span><span>A danger Button has no Dialog to confirm it.</span></li>
           <li><span class="id">native-control<span class="warn">warn</span></span><span>A bare <code>&lt;button&gt;</code>, <code>&lt;input&gt;</code>, <code>&lt;select&gt;</code>, or <code>&lt;textarea&gt;</code> replaces a shipped control.</span></li>
           <li><span class="id">property-override<span class="warn">warn</span></span><span>The page redeclares a component's semantic property for one instance.</span></li>
         </ul>
       </CollapsibleSection>
 
-      <CollapsibleSection label="page-*, browser (5)">
+      <CollapsibleSection label="Page browser tests · 5 rules" prose={false} open={openRules['1'] ?? false} ontoggle={() => openRules['1'] = !openRules['1']}>
         <ul class="rules">
-          <li><span class="id">page-component-paint</span><span>Each contract part of a shipped component paints its semantic property's value.</span></li>
-          <li><span class="id">page-text-style</span><span>Each run of text outside a component matches a shipped text style on every axis.</span></li>
+          <li><span class="id">page-component-paint</span><span>Each component part renders the value of its semantic property.</span></li>
+          <li><span class="id">page-text-style</span><span>Text outside components matches a complete text style from the design system.</span></li>
           <li><span class="id">page-contrast</span><span>Every text and surface pair meets WCAG AA.</span></li>
           <li><span class="id">page-grid</span><span>Section edges align to column lines at 768px and wider.</span></li>
           <li><span class="id">page-overflow</span><span>Content stays inside its container, and the page scrolls only vertically.</span></li>
         </ul>
       </CollapsibleSection>
 
-      <CollapsibleSection label="check-component, static (20)">
+      <CollapsibleSection label="Component code · 20 rules" prose={false} open={openRules['2'] ?? false} ontoggle={() => openRules['2'] = !openRules['2']}>
         <ul class="rules">
           <li><span class="id">invalid-id</span><span>The id contains characters other than lowercase letters and digits.</span></li>
           <li><span class="id">missing-file</span><span>The runtime or editor file is missing.</span></li>
@@ -458,40 +422,40 @@
           <li><span class="id">no-tokens</span><span>The <code>:global(:root)</code> block declares no <code>--&lt;id&gt;-*</code> property.</span></li>
           <li><span class="id">missing-description<span class="warn">warn</span></span><span>The runtime's <code>catalogue</code> export lacks a required field.</span></li>
           <li><span class="id">unread-token<span class="warn">warn</span></span><span>The runtime declares a property and never reads it.</span></li>
-          <li><span class="id">state-after-property</span><span>A state follows the property in a name. Write <code>-hover-surface</code>.</span></li>
-          <li><span class="id">disabled-is-terminal</span><span>A name pairs <code>disabled</code> with another state. That pair never paints.</span></li>
-          <li><span class="id">unknown-suffix</span><span>A property name ends in a suffix the editor has no picker for.</span></li>
+          <li><span class="id">state-after-property</span><span>A property name places the state after the property. Use <code>-hover-surface</code>.</span></li>
+          <li><span class="id">disabled-is-terminal</span><span>A property name combines <code>disabled</code> with another state. The component cannot render that combination.</span></li>
+          <li><span class="id">unknown-suffix</span><span>A property name uses a suffix the editor cannot edit.</span></li>
           <li><span class="id">phantom-editor-token</span><span>An editor row names a property the runtime never declares.</span></li>
           <li><span class="id">color-literal</span><span>A default is a literal color.</span></li>
           <li><span class="id">missing-component-const</span><span>The editor lacks <code>const component = '&lt;id&gt;'</code>.</span></li>
           <li><span class="id">missing-all-tokens</span><span>The editor does not export <code>allTokens</code>.</span></li>
           <li><span class="id">deep-import</span><span>A component file imports from package internals.</span></li>
           <li><span class="id">missing-registration</span><span>Nothing under <code>src/</code> registers the id.</span></li>
-          <li><span class="id">unknown-token-ref</span><span>A default reads a name outside the vocabulary.</span></li>
+          <li><span class="id">unknown-token-ref</span><span>A default references an unknown token name.</span></li>
           <li><span class="id">default-not-token</span><span>A default lacks both a design token and a declared intrinsic.</span></li>
           <li><span class="id">phantom-link<span class="warn">warn</span></span><span>A font helper spans several slots without a derivation, which links their fonts.</span></li>
           <li><span class="id">dimension-literal<span class="warn">warn</span></span><span>A default uses a raw dimension where a space, radius, or border-width token belongs.</span></li>
-          <li><span class="id">config-token</span><span>A saved default config names something outside the vocabulary.</span></li>
+          <li><span class="id">config-token</span><span>A default config references an unknown token name.</span></li>
         </ul>
       </CollapsibleSection>
 
-      <CollapsibleSection label="contract-*, Vitest and browser (11)">
+      <CollapsibleSection label="Component tests · 11 rules" prose={false} open={openRules['3'] ?? false} ontoggle={() => openRules['3'] = !openRules['3']}>
         <ul class="rules">
-          <li><span class="id">contract-registry</span><span>Vitest. The registration is valid, declared, and seeded.</span></li>
+          <li><span class="id">contract-registry</span><span>Vitest. The component has a valid registration, property declarations, and default values.</span></li>
           <li><span class="id">contract-behavior</span><span>Vitest. Callback props receive the arguments each case expects.</span></li>
           <li><span class="id">contract-listed</span><span>Playwright. The component appears in its registry group.</span></li>
           <li><span class="id">contract-alias</span><span>Playwright. The component declares every part and alias, each alias resolves, and each edit reaches the document root.</span></li>
-          <li><span class="id">contract-states</span><span>Playwright. The preview renders the state being edited.</span></li>
-          <li><span class="id">contract-interaction</span><span>Playwright. The component answers the pointer and the keyboard.</span></li>
+          <li><span class="id">contract-states</span><span>Playwright. The preview renders the state the editor selects.</span></li>
+          <li><span class="id">contract-interaction</span><span>Playwright. The component responds to pointer and keyboard input.</span></li>
           <li><span class="id">contract-persist</span><span>Playwright. An edit survives save and reload, and Reset restores the saved config.</span></li>
-          <li><span class="id">contract-theme</span><span>Playwright. A theme preview repaints the component, and Cancel restores every value.</span></li>
-          <li><span class="id">contract-sketch</span><span>Playwright. Sketch mode draws every painted part.</span></li>
-          <li><span class="id">contract-render</span><span>Playwright. The runtime preview paints each property on its part.</span></li>
+          <li><span class="id">contract-theme</span><span>Playwright. A theme preview updates the component, and Cancel restores the original values.</span></li>
+          <li><span class="id">contract-sketch</span><span>Playwright. Sketch mode draws every visible part.</span></li>
+          <li><span class="id">contract-render</span><span>Playwright. The runtime preview applies each property to the correct part.</span></li>
           <li><span class="id">contract-missing</span><span>A component in the run has no contract.</span></li>
         </ul>
       </CollapsibleSection>
 
-      <CollapsibleSection label="tests-*, always on (3)">
+      <CollapsibleSection label="Test runner · 3 rules" prose={false} open={openRules['4'] ?? false} ontoggle={() => openRules['4'] = !openRules['4']}>
         <ul class="rules">
           <li><span class="id">tests-not-installed</span><span><code>@playwright/test</code>, <code>vitest</code>, or <code>happy-dom</code> is missing.</span></li>
           <li><span class="id">tests-setup</span><span>The harness failed to start, or a tool crashed before it wrote a report.</span></li>
@@ -502,6 +466,23 @@
   </section>
 
   <footer>Source: .claude/skills, bin/, src/testing, and scripts/ at v0.78.0.</footer>
+  <div class="contents" class:contents-collapsed={!contentsOpen} use:portal>
+    <CollapsibleSection
+      label="Contents"
+      variant="container"
+      prose={false}
+      open={contentsOpen}
+      ontoggle={() => contentsOpen = !contentsOpen}
+    >
+      <nav aria-label="On this page">
+        <ol>
+          {#each chapters as chapter}
+            <li><a href="#{chapter.id}" onclick={(event) => jump(event, chapter.id)}>{chapter.title}</a></li>
+          {/each}
+        </ol>
+      </nav>
+    </CollapsibleSection>
+  </div>
 </div>
 
 <style>
@@ -512,15 +493,13 @@
     overflow: hidden;
   }
 
-  /* The page grid: every section and text run sits on its column lines, so
-     no width here is a literal. */
   .loops {
     display: grid;
     grid-template-columns: repeat(var(--columns-count), minmax(var(--space-0), 1fr));
     column-gap: var(--columns-gutter);
     max-width: var(--columns-max-width);
     margin-inline: auto;
-    padding: var(--space-48) var(--space-32) var(--space-96);
+    padding: var(--space-32) var(--space-32) var(--space-64);
     color: var(--text-primary);
   }
 
@@ -533,75 +512,66 @@
   }
 
   .masthead {
-    padding-block: var(--space-24) var(--space-64);
+    padding-bottom: var(--space-64);
+    row-gap: var(--space-40);
   }
 
   .chapter {
-    padding-block: var(--space-64);
+    padding-block: var(--space-48);
     border-top: var(--border-width-1) solid var(--border-neutral-subtle);
-    scroll-margin-top: var(--space-16);
+    scroll-margin-top: var(--space-32);
   }
 
-  /* The body's children join the section's grid, so a figure can span the
-     full width while the text beside it keeps to the reading columns. */
+  /* Prose uses seven columns; diagrams and skill groups use the full grid. */
   .chapter-body {
     display: contents;
   }
 
-
   .chapter-body > * {
-    grid-column: 1 / 7;
-  }
-
-  .chapter-body > .masthead-top {
-    grid-column: 1 / -1;
+    grid-column: 1 / 8;
+    min-width: var(--space-0);
   }
 
   .chapter-body > .trio,
+  .chapter-body > figure,
+  .chapter-body > h2 {
+    grid-column: 1 / -1;
+  }
+
   .chapter-body > .defs,
   .chapter-body > :global(.es-root) {
     grid-column: 1 / 10;
   }
 
-  .chapter-body > .standfirst {
+  .chapter-body > .repair-levels {
     grid-column: 1 / 8;
   }
 
-  .chapter-body > .contents {
-    grid-column: 1 / 9;
-  }
-
-  .chapter-body > figure {
-    grid-column: 1 / -1;
-  }
-
-
-
   h1 {
+    font-family: var(--heading-xl-font-family);
+    font-size: var(--heading-xl-font-size);
+    font-weight: var(--heading-xl-font-weight);
+    line-height: var(--heading-xl-line-height);
+    letter-spacing: var(--heading-xl-letter-spacing);
+    margin: var(--space-0) var(--space-0) var(--space-24);
+  }
+
+  h2 {
     font-family: var(--heading-lg-font-family);
     font-size: var(--heading-lg-font-size);
     font-weight: var(--heading-lg-font-weight);
     line-height: var(--heading-lg-line-height);
     letter-spacing: var(--heading-lg-letter-spacing);
-    margin: var(--space-0);
+    margin: var(--space-0) var(--space-0) var(--space-24);
   }
 
-  h2 {
+  h3 {
     font-family: var(--heading-md-font-family);
     font-size: var(--heading-md-font-size);
     font-weight: var(--heading-md-font-weight);
     line-height: var(--heading-md-line-height);
     letter-spacing: var(--heading-md-letter-spacing);
-    margin: var(--space-0) var(--space-0) var(--space-24);
-  }
-
-  h3 {
-    font-family: var(--heading-sm-font-family);
-    font-size: var(--heading-sm-font-size);
-    font-weight: var(--heading-sm-font-weight);
-    line-height: var(--heading-sm-line-height);
-    letter-spacing: var(--heading-sm-letter-spacing);
-    margin: var(--space-48) var(--space-0) var(--space-12);
+    margin: var(--space-32) var(--space-0) var(--space-12);
   }
 
   h2 + h3 {
@@ -609,12 +579,12 @@
   }
 
   h4 {
-    font-family: var(--body-md-font-family);
-    font-size: var(--body-md-font-size);
-    font-weight: var(--font-weight-semibold);
-    line-height: var(--body-md-line-height);
-    letter-spacing: var(--body-md-letter-spacing);
-    margin: var(--space-0) var(--space-0) var(--space-8);
+    font-family: var(--heading-sm-font-family);
+    font-size: var(--heading-sm-font-size);
+    font-weight: var(--heading-sm-font-weight);
+    line-height: var(--heading-sm-line-height);
+    letter-spacing: var(--heading-sm-letter-spacing);
+    margin: var(--space-0) var(--space-0) var(--space-12);
   }
 
   p,
@@ -622,6 +592,7 @@
   dt,
   dd,
   figcaption,
+  .back-link,
   .contents a {
     font-family: var(--body-md-font-family);
     font-size: var(--body-md-font-size);
@@ -632,19 +603,21 @@
 
   p {
     margin: var(--space-0) var(--space-0) var(--space-16);
+    color: var(--text-secondary);
   }
 
   strong,
   dt {
+    color: var(--text-primary);
     font-weight: var(--font-weight-semibold);
   }
 
-  /* Inline-block keeps a command in one chip: it moves to the next line
-     whole, and wraps inside only when it outruns the line. */
   code {
-    display: inline-block;
     font-family: var(--code-font-family);
-    font-size: var(--body-md-font-size);
+    font-size: var(--code-font-size);
+    font-weight: var(--code-font-weight);
+    line-height: var(--code-line-height);
+    letter-spacing: var(--code-letter-spacing);
     background: var(--tint-low);
     padding-inline: var(--space-4);
     border-radius: var(--radius-sm);
@@ -652,60 +625,80 @@
   }
 
   .name {
-    white-space: nowrap;
+    color: var(--text-primary);
+    overflow-wrap: anywhere;
   }
 
-  .masthead-top {
-    display: flex;
+  .back-link {
+    justify-self: start;
+    scroll-margin-top: var(--space-64);
+    display: inline-flex;
     align-items: center;
-    /* Beside the title: the editor overlay pins top-right and would cover a
-       button parked at the far edge. */
-    gap: var(--space-24);
-    flex-wrap: wrap;
-    margin-bottom: var(--space-24);
+    gap: var(--space-8);
+    padding-block: var(--space-8);
+    color: var(--text-secondary);
+    text-decoration: none;
   }
 
   .standfirst {
-    font-family: var(--editorial-lg-font-family);
-    font-size: var(--editorial-lg-font-size);
-    font-weight: var(--editorial-lg-font-weight);
-    line-height: var(--editorial-lg-line-height);
-    letter-spacing: var(--editorial-lg-letter-spacing);
-    color: var(--text-secondary);
+    font-family: var(--heading-md-font-family);
+    font-size: var(--heading-md-font-size);
+    font-weight: var(--heading-md-font-weight);
+    line-height: var(--heading-md-line-height);
+    letter-spacing: var(--heading-md-letter-spacing);
+    color: var(--text-primary);
+    margin-bottom: var(--space-12);
+  }
+
+  .introduction {
     margin: var(--space-0);
   }
 
+  /* The page positions the overlay; CollapsibleSection owns its appearance. */
   .contents {
-    margin-top: var(--space-48);
-    display: grid;
-    grid-template-columns: subgrid;
-    border-top: var(--border-width-1) solid var(--border-neutral-subtle);
+    position: fixed;
+    top: var(--space-96);
+    right: var(--space-24);
+    z-index: 10;
+    width: calc(var(--space-96) * 3 + var(--space-24));
+    max-width: calc(100vw - var(--space-32));
+    max-height: calc(100dvh - var(--space-96) - var(--space-24));
+    overflow-y: auto;
   }
 
   .contents ol {
-    display: contents;
+    list-style: none;
+    margin: var(--space-0);
+    padding: var(--space-8);
   }
 
   .contents li {
-    list-style: none;
-    grid-column: span 4;
-    border-bottom: var(--border-width-1) solid var(--border-neutral-subtle);
+    margin: var(--space-0);
   }
 
   .contents a {
     display: block;
-    padding-block: var(--space-12);
+    padding: var(--space-12);
     color: var(--text-primary);
     text-decoration: none;
   }
 
-  .contents a:hover {
+  .contents a:hover,
+  .back-link:hover {
     color: var(--text-accent);
+    text-decoration: underline;
+    text-underline-offset: var(--space-4);
+  }
+
+  a:focus-visible,
+  .figure-scroll:focus-visible {
+    outline: var(--border-width-2) solid var(--border-accent);
+    outline-offset: var(--space-4);
   }
 
   .trio {
     list-style: none;
-    margin: var(--space-24) var(--space-0) var(--space-32);
+    margin: var(--space-16) var(--space-0) var(--space-24);
     padding: var(--space-0);
     display: grid;
     grid-template-columns: subgrid;
@@ -713,16 +706,17 @@
   }
 
   .trio li {
-    grid-column: span 3;
-    padding: var(--space-20);
-    background: var(--tint-low);
-    border-top: var(--border-width-2) solid var(--border-accent);
-    border-radius: var(--radius-sm);
+    grid-column: span 4;
+    min-width: var(--space-0);
+    margin: var(--space-0);
+    padding: var(--space-24);
+    background: var(--surface-neutral-lower);
+    border: var(--border-width-1) solid var(--border-neutral-subtle);
+    border-radius: var(--radius-md);
   }
 
   .trio p {
     margin: var(--space-0);
-    color: var(--text-secondary);
   }
 
   .steps {
@@ -750,7 +744,7 @@
   }
 
   .defs {
-    margin: var(--space-24) var(--space-0);
+    margin: var(--space-8) var(--space-0) var(--space-24);
     display: grid;
     grid-template-columns: subgrid;
   }
@@ -764,11 +758,12 @@
   }
 
   .defs dt {
-    grid-column: 1 / 4;
+    grid-column: 1 / 3;
+    overflow-wrap: anywhere;
   }
 
   .defs dd {
-    grid-column: 4 / -1;
+    grid-column: 3 / -1;
     margin: var(--space-0);
     color: var(--text-secondary);
   }
@@ -833,16 +828,19 @@
   figure {
     display: grid;
     grid-template-columns: subgrid;
-    margin: var(--space-40) var(--space-0) var(--space-48);
+    margin: var(--space-24) var(--space-0) var(--space-32);
   }
 
   .figure-scroll {
     grid-column: 1 / -1;
     overflow-x: auto;
+    background: var(--surface-neutral-lowest);
+    border: var(--border-width-1) solid var(--border-neutral-subtle);
+    border-radius: var(--radius-md);
   }
 
   figcaption {
-    grid-column: 1 / 7;
+    grid-column: 1 / 8;
     margin-top: var(--space-16);
     color: var(--text-secondary);
   }
@@ -857,9 +855,7 @@
   .dg {
     display: block;
     color: var(--text-primary);
-    background: var(--surface-neutral-lowest);
-    border: var(--border-width-1) solid var(--border-neutral-subtle);
-    border-radius: var(--radius-md);
+    margin-inline: auto;
   }
 
   .dg :global(.box) {
@@ -950,33 +946,54 @@
     color: var(--text-secondary);
   }
 
-  /* Home's one-column point: twelve gutters leave a phone no room. A media
-     query cannot read a custom property, so this width stays literal. */
-  @media (max-width: 767px) {
-    .loops {
-      grid-template-columns: minmax(var(--space-0), 1fr);
-      padding-inline: var(--space-16);
-    }
-
+  @media (max-width: 1023px) {
     .chapter-body > *,
-    .chapter-body > .masthead-top,
-    .chapter-body > .trio,
     .chapter-body > .defs,
+    .chapter-body > .repair-levels,
     .chapter-body > :global(.es-root),
-    .chapter-body > .standfirst,
-    .chapter-body > .contents,
-    .chapter-body > figure,
-    figcaption,
-    .defs dt,
-    .defs dd,
-    footer {
+    figcaption {
       grid-column: 1 / -1;
     }
 
+    .contents {
+      top: var(--space-64);
+      right: var(--space-16);
+    }
 
-    .contents li,
+    .contents.contents-collapsed {
+      width: auto;
+    }
+
     .trio li {
-      grid-column: auto;
+      padding: var(--space-16);
+    }
+  }
+
+  /* Media queries cannot read the grid tokens. */
+  @media (max-width: 767px) {
+    .loops {
+      grid-template-columns: minmax(var(--space-0), 1fr);
+      /* Leave room for the fixed editor toolbar above the back link. */
+      padding: var(--space-64) var(--space-20) var(--space-48);
+    }
+
+    .masthead {
+      row-gap: var(--space-24);
+      padding-bottom: var(--space-32);
+    }
+
+    .chapter {
+      padding-block: var(--space-32);
+    }
+
+    .trio li,
+    .defs dt,
+    .defs dd {
+      grid-column: 1 / -1;
+    }
+
+    .defs dd {
+      margin-top: var(--space-8);
     }
 
     .rules {
@@ -986,6 +1003,10 @@
     .rules li > span:last-child {
       padding-top: var(--space-0);
       border-top: none;
+    }
+
+    .rules .id {
+      overflow-wrap: anywhere;
     }
   }
 </style>

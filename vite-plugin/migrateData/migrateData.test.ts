@@ -47,8 +47,8 @@ function legacyTree() {
 
   // Already-current fixtures (schema version, and every component this fixture
   // tree has — button and card): a heal over an already-encapsulated theme
-  // must not count it as "migrated" on the strength of the Wave 2 completeness
-  // bump alone (docs/plans/theme-completeness.md).
+  // must not count it as "migrated" on the strength of the completeness bump
+  // alone.
   writeJson(path.join(d.themesDir, 'default.json'), {
     name: 'Default',
     schemaVersion: THEME_SCHEMA_VERSION,
@@ -130,8 +130,8 @@ describe('migrateData', () => {
     expect(recovered.colorsAndType.cssVariables['--surface-default']).toBe('#010203');
     expect(recovered.componentConfigs.button.aliases['--button-radius']).toBe('--radius-xl');
     // `card`'s production pointer names its own default: a recovered theme is
-    // a complete document (docs/plans/theme-completeness.md, Wave 3), so it is
-    // still embedded, byte-equal to the default it points at.
+    // a complete document, so it is still embedded, byte-equal to the
+    // default it points at.
     expect(recovered.componentConfigs.card).toEqual(CARD_DEFAULT);
     expect(readJson(path.join(root, DATA, 'themes', '_production.json')).productionFile).toBe('recovered-production');
   });
@@ -338,7 +338,7 @@ describe('migrateData', () => {
   });
 });
 
-// Sketch in the theme, Wave 6: `sketch-presets/` (0.57.0 through 0.62.0) is
+// `sketch-presets/` (0.57.0 through 0.62.0) is
 // `sketch-styles/` now. A plain rename, riding the same pipeline as the
 // pre-0.48 layout swap above but independent of it: a tree with no retired
 // pointers still carries it if the old directory is there.

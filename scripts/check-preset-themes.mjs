@@ -2,10 +2,9 @@
 // Publish/CI gate: assert the eight shipped preset themes on disk are
 // complete, current, and distinct. Reads the COMMITTED files only and never
 // re-derives them — a check that recomputes from the baseline is coupled to
-// the baseline by construction and cannot guard against the baseline moving
-// (Correction 5 / RJC 7, docs/plans/theme-completeness.md Wave 5).
+// the baseline by construction and cannot guard against the baseline moving.
 //
-// The baseline's own five deliberate `--space-2` paddings (RJC 8) are NOT
+// The baseline's own five deliberate `--space-2` paddings are NOT
 // checked here: they live on `component-configs/*/default.json`, not on any
 // preset, and are pinned by a plain vitest test beside the component-default
 // suite instead.
@@ -132,7 +131,7 @@ for (const slug of [...PRESETS, 'default']) {
   }
 }
 
-// Distinctness (moved from presetThemes.test.ts, Wave 5 step 3): each preset
+// Distinctness (moved from presetThemes.test.ts): each preset
 // reads as its own look rather than landing on the same spot as another.
 function duplicates(label) {
   const seen = new Map();
