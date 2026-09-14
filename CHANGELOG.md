@@ -166,6 +166,11 @@
 
 ### Fixed
 
+- **The overlay's collapsed pill no longer covers the pinned variant strip on
+  the components page.** While the pill rests in the top band the overlay
+  publishes its right inset as `--lt-pill-inset`, and the pinned preview header
+  wraps its tabs clear of it. The contract harness's tab clicks are forced
+  clicks again, so chrome over a tab fails the run.
 - **The component inventory discovers a runtime nested below a
   `componentDirs` entry**, not only one directly inside it. `componentInventory`
   now walks each directory recursively, the way the discovery it replaced did.

@@ -5,11 +5,11 @@ Building the shipped component validation suite
 watching for. Each entry below was measured against running code during a wave
 review, not inferred from reading.
 
-Fourteen of the seventeen recorded here are fixed, including the theme
+Fifteen of the seventeen recorded here are fixed, including the theme
 re-migration that rewrote a theme's own values on every load, six test-side
-defects that could hide a failure, and every product defect a user could see
-save the pill overlap below. The three below stayed open because each needs a
-change the fixing wave could not reach.
+defects that could hide a failure, and every product defect a user could see,
+the overlay's pill over the pinned variant strip included. The two below stayed
+open because each needs a change the fixing wave could not reach.
 
 ## Open
 
@@ -29,31 +29,6 @@ therefore still runs at 1280x900.
 default. The suite passing at 1280x720 is the proof.
 
 **Found by:** Wave 1, and re-measured when the cap landed.
-
-### The overlay's collapsed pill covers the pinned variant strip at 1280 wide
-
-`LiveTokensRouter` mounts `LiveEditorOverlay` on every route, the components
-editor included. Its collapsed pill sits at `position: fixed; top: 12px;
-right: 12px`, 252 by 44, at `z-index: 2000`. `.tabs-preview` pins the preview
-header with its `.variant-tabs` strip at `top: 0`, `z-index: 2`. Once the
-band is pinned, any tab under the pill's footprint is unreachable: a click
-there opens the overlay. CornerBadge's ten variant tabs reached that
-footprint at 1280 wide when `Brand` replaced `Primary` and the strip fit on
-one line; its last three tabs sit under the pill.
-
-`selectTab` in `src/testing/component-render.contract.ts` dispatches `click`
-on the tab itself. The forced click it replaced landed at the tab's centre
-and hit the pill, which left the components route. The tab handlers are
-`onclick`, so the dispatched event reaches them, and `force: true` had
-already skipped actionability, so the suite proves the same paint. A user at
-that width still meets the overlap.
-
-**Fix:** keep the pinned strip clear of the pill's footprint, then restore
-`click({ force: true })` in `selectTab`. `check-component cornerbadge
---tests` passing with the forced click is the proof.
-
-**Found by:** Wave 12 of the component terminology plan, when the strip
-first fit one line.
 
 ### A portalled part cannot be tested for Sketch paint
 

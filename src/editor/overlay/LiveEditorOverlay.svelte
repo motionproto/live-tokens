@@ -526,6 +526,7 @@
   onDestroy(() => {
     window.removeEventListener('lt-overlay-toggle', handleToggleRequest);
     window.removeEventListener('resize', onViewportResize);
+    document.documentElement.style.removeProperty(PILL_INSET_VAR);
     clearTimeout(maskTimer);
     clearTimeout(snapTimer);
     clearTimeout(settleTimer);
@@ -546,6 +547,20 @@
       // the pill are value changes on one axis, and animate.
       ? `position: fixed; top: 0; right: ${dockSide === 'left' ? Math.max(0, viewport.width - dockedWidth) : 0}px; width: ${dockedWidth}px; height: 100vh;`
       : `position: fixed; top: ${floating.y}px; left: ${floating.x}px; width: ${floating.width}px; height: ${floating.height}px;`);
+
+  // A pill resting in the top band sits over any header pinned there, such as
+  // the components page's variant strip. Publish its right-edge inset so pinned
+  // chrome can wrap clear of it; a pill anywhere else, or no pill, clears it.
+  const PILL_INSET_VAR = '--lt-pill-inset';
+  run(() => {
+    const shown = enabled && !onEditorPath && !open;
+    const inTopBand = collapsed.top < COLLAPSED_HEIGHT * 2;
+    if (shown && inTopBand) {
+      document.documentElement.style.setProperty(PILL_INSET_VAR, `${collapsed.right + COLLAPSED_WIDTH}px`);
+    } else {
+      document.documentElement.style.removeProperty(PILL_INSET_VAR);
+    }
+  });
 </script>
 
 {#if enabled && !onEditorPath}

@@ -621,6 +621,9 @@
     align-items: center;
     gap: var(--ui-space-24);
     flex-wrap: wrap;
+    /* The overlay's collapsed pill publishes its inset while it rests in the
+       top band; once this header pins under it, the tabs wrap clear. */
+    padding-right: var(--lt-pill-inset, 0px);
   }
 
   .preview-actions {

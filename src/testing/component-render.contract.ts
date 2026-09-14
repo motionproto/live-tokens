@@ -466,11 +466,10 @@ async function probeCurrentView(
   }, { allAliases: componentAliases, forced: forcedVariables, proven: provenVariables });
 }
 
-/** A tab strip pins with the preview band, where the overlay's fixed pill can
- *  sit over a tab; a forced click still lands at the tab's centre and hits the
- *  pill, so the click is dispatched on the tab itself. */
+/** A forced click skips actionability but still lands at the tab's centre, so
+ *  chrome sitting over a tab hits the chrome and fails the run. */
 async function selectTab(tab: Locator): Promise<void> {
-  await tab.dispatchEvent('click');
+  await tab.click({ force: true });
 }
 
 async function selectComponent(page: Page, component: string): Promise<void> {
