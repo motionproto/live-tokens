@@ -20,7 +20,7 @@
     /** `bare` drops the header. The frame and body keep every token the default
         variant uses, so padding, stroke and fill stay editable. */
     variant?: 'default' | 'bare';
-    size?: 'default' | 'compact';
+    size?: 'default' | 'small';
     /** false → the card stops pinning body typography so the consumer fully owns slotted content's styling. */
     prose?: boolean;
     /** true → the body drops its inset so slotted media runs to the card's edge.
@@ -69,7 +69,7 @@
 <div
   class="card {className}"
   class:bare={variant === 'bare'}
-  class:compact={size === 'compact'}
+  class:small={size === 'small'}
   style:--card-color={iconColor}
   style:--card-hover-border-enabled={hoverBorder}
   style:--card-hover-shadow-enabled={hoverShadow}
@@ -182,8 +182,8 @@
     margin-left: auto;
   }
 
-  .card.compact .card-header,
-  .card.compact .card-body {
+  .card.small .card-header,
+  .card.small .card-body {
     padding: var(--space-8) var(--space-12);
   }
 
@@ -192,7 +192,7 @@
     color: var(--card-color, var(--card-default-title));
   }
 
-  .card.compact .card-icon {
+  .card.small .card-icon {
     font-size: var(--icon-size-md);
   }
 
@@ -208,7 +208,7 @@
     text-overflow: ellipsis;
   }
 
-  .card.compact .card-title {
+  .card.small .card-title {
     font-size: var(--font-size-md);
   }
 
@@ -223,11 +223,11 @@
     @include slot-prose;
   }
 
-  .card.compact .card-body {
+  .card.small .card-body {
     font-size: var(--font-size-sm);
   }
 
-  /* Last, and at the same weight as the compact override, so a flush card is
+  /* Last, and at the same weight as the small override, so a flush card is
      flush at either size. Full-bleed media has to reach the border the card
      already clips it against. */
   .card-body.flush {

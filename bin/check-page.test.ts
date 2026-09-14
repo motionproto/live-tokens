@@ -102,7 +102,7 @@ describe('check-page component rules', () => {
       import Card from '@motion-proto/live-tokens/components/Card.svelte';
       import Badge from '@motion-proto/live-tokens/components/Badge.svelte';
     </script>
-    <Card size="compact"><Badge size="small">New</Badge></Card>`);
+    <Card size="small"><Badge size="small">New</Badge></Card>`);
     const own = page(root, 'Own.svelte', `<script>
       import Gauge from '../system/components/Gauge.svelte';
     </script>

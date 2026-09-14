@@ -20,7 +20,7 @@
       title: string;
       description: string;
       variant?: 'info' | 'warning' | 'danger' | 'success';
-      size?: 'normal' | 'compact';
+      size?: 'default' | 'small';
       icon?: string;
       dismissible?: boolean;
       emphasis?: boolean;
@@ -34,7 +34,7 @@
       title,
       description,
       variant = 'info',
-      size = 'normal',
+      size = 'default',
       icon = '',
       dismissible = false,
       emphasis = false,
@@ -62,7 +62,7 @@
    }
 </script>
 
-<div class="notification" class:info={variant === 'info'} class:warning={variant === 'warning'} class:danger={variant === 'danger'} class:success={variant === 'success'} class:emphasis={emphasis} class:compact={size === 'compact'}>
+<div class="notification" class:info={variant === 'info'} class:warning={variant === 'warning'} class:danger={variant === 'danger'} class:success={variant === 'success'} class:emphasis={emphasis} class:small={size === 'small'}>
    <div class="notification-header" class:has-action={actions.header}>
       <i class={displayIcon}></i>
       <span class="notification-title">{title}</span>
@@ -220,7 +220,7 @@
          border-left-width: 0.375rem;
       }
 
-      &.compact {
+      &.small {
          font-size: var(--font-size-sm);
 
          .notification-description,

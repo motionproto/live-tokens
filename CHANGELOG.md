@@ -112,6 +112,10 @@
   `-expanded-` properties are `-open-`, renamed on load. A consumer passing
   the old prop name stops compiling; there is no runtime migration for a
   prop.
+- **Size values are `default` and `small`.** Card's `size="compact"` is
+  `size="small"`. Notification's `size="normal"` is `size="default"` and
+  `size="compact"` is `size="small"`. A consumer passing the old value
+  stops compiling; there is no runtime migration for a prop.
 
 ### Changed
 

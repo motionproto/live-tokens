@@ -67,7 +67,7 @@
     ></button>
   {/if}
 
-  <Card title={node.title} size="compact" prose={false}>
+  <Card title={node.title} size="small" prose={false}>
     {#snippet aside()}
       <div class="meta">
         <Tooltip text={kindMeaning} position="bottom" open={meaningOpen}>
@@ -138,7 +138,7 @@
 
   /* The package Card clips its title to one line; a node title is the step
      itself, so it has to read whole. */
-  .shell :global(.card.compact .card-title) {
+  .shell :global(.card.small .card-title) {
     font-weight: var(--font-weight-bold);
     line-height: var(--line-height-tight);
     white-space: normal;
@@ -148,12 +148,12 @@
   /* The package Card clips to its corners and its backdrop blur makes it a
      stacking context, which would both clip the kind tooltip and keep the
      chips under the hit overlay. The header takes the rounding instead. */
-  .shell :global(.card.compact) {
+  .shell :global(.card.small) {
     overflow: visible;
     backdrop-filter: none;
   }
 
-  .shell :global(.card.compact .card-header) {
+  .shell :global(.card.small .card-header) {
     align-items: flex-start;
     border-radius: calc(var(--card-default-radius) - var(--card-default-border-width))
       calc(var(--card-default-radius) - var(--card-default-border-width)) 0 0;
