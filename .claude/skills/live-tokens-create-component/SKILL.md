@@ -53,7 +53,7 @@ A component has three kinds of division. Keep them apart in the props, the names
 | Kind | Meaning | Example |
 |---|---|---|
 | Part | Regions present at once | Dialog's overlay, header, body, footer |
-| Variant | Alternative presentations the page chooses | Badge's primary, danger |
+| Variant | Alternative presentations the page chooses | Badge's brand, danger |
 | State | A runtime condition | Toggle's on, hover, disabled |
 
 States have two axes. A component state is one of a set that excludes the others: default, selected (or on), disabled. An interaction state layers on a component state: default, hover, and later focus or active. `disabled` is terminal: no other state layers on it, in the names or in the editor.
