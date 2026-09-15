@@ -482,7 +482,7 @@
   <header>
     <span class="eyebrow">@motion-proto/live-tokens</span>
     <h1>The Compliance Loop</h1>
-    <p class="standfirst">The design system is stated three times: as prose a model reads, as a static rule with an id, and as a test against a rendered page. Every skill ends in a checker run, every finding carries the address of the paragraph that fixes it, and the exit code decides when the work is done.</p>
+    <p class="standfirst">The design system is stated three times: as prose a model reads, as a static rule with an id, and as a test against a rendered page. Every skill ends in a checker run, every finding carries the guidance that repairs it, and the exit code decides when the work is done.</p>
     <div class="meta">
       <span>8 skills</span>
       <span>2 static checkers</span>
@@ -572,7 +572,7 @@
   <section>
     <span class="eyebrow">bin/</span>
     <h2>Two checkers, static and rendered</h2>
-    <p>Both checkers emit findings in one shape: a stable <code>rule</code> id, a file, a line, a <code>fix</code> slug, a <code>repair</code> level, and the <code>exception</code> entry that records a decision to keep the finding. That shape is what makes the loop mechanical, because a skill can parse <code>--json</code>, repair, and re-run against the exit code.</p>
+    <p>Both checkers emit findings in one shape: a stable <code>rule</code> id, a file, a line, its <code>guidance</code>, a <code>repair</code> level, and the <code>exception</code> entry that records a decision to keep the finding. That shape is what makes the loop mechanical, because a skill can parse <code>--json</code>, repair, and re-run against the exit code.</p>
 
     <h3>The static half</h3>
     <p><code>check-page</code> reads a page source. <code>check-component</code> reads a runtime file, its editor, and its registration. Severity is a project decision: <code>live-tokens.config.json</code> sets it per rule, and <code>--off</code>, <code>--warn</code>, <code>--error</code>, and <code>--strict</code> move it for one run. <code>report</code> aggregates both and adds signals no rule covers, such as a token a component declares and never reads, a component with no registration, and a pending <span class="mono">tokens.css</span> migration.</p>
@@ -852,7 +852,7 @@
 
     <figure>
       <button class="fig-open" type="button" aria-label="Enlarge figure 2, the page and component paths">
-      <svg class="dg" viewBox="0 0 900 800" role="img" aria-label="Creating a page: read the project, name the sections, match each need to a component. When nothing in the catalogue fits, author a component and check it until exit 0. Assemble the page, then verify it statically and in a browser, with findings returning to the assembly step until both checkers exit 0.">
+      <svg class="dg" viewBox="0 0 900 800" role="img" aria-label="Creating a page: read the project, name the sections, match each need to a component. When nothing in the catalogue fits, author a component and check it until exit 0. Assemble the page, then verify it with one command that applies the automatic repairs and runs the page in a browser, with findings returning to the assembly step until the command exits 0.">
         <rect class="box-lead" x="110" y="20" width="330" height="50" rx="3" />
         <text class="t" x="126" y="42">Create a page</text>
         <text class="m" x="126" y="60">live-tokens-create-page</text>
@@ -920,9 +920,9 @@
 
         <rect class="box" x="110" y="580" width="330" height="112" rx="3" />
         <text class="t" x="126" y="602">Verify</text>
-        <text class="m" x="126" y="621">npx live-tokens report</text>
-        <text class="s" x="126" y="638">static findings, classified and counted</text>
-        <text class="m" x="126" y="657">check-page &lt;file&gt; --tests --strict</text>
+        <text class="m" x="126" y="621">check-page &lt;file&gt; --tests --strict --json</text>
+        <text class="s" x="126" y="638">applies auto repairs, returns what remains</text>
+        <text class="s" x="126" y="657">each finding with its guidance</text>
         <text class="s" x="126" y="674">paint, text style, contrast, grid, overflow</text>
         <text class="s" x="126" y="688">at each viewport the settings name</text>
 
@@ -949,8 +949,8 @@
       <li><strong>Author the component as three files and a contract.</strong> A runtime file whose <code>:global(:root)</code> block declares one semantic property per editable value, each assigned a token; an editor file exporting the schema; a registration; and a <span class="mono">ComponentContract</span> that names the component's parts. Without the contract, <code>--tests</code> reports <span class="mono">contract-missing</span>.</li>
       <li><strong>Check the component alone.</strong> <code>npx live-tokens check-component &lt;id&gt; --tests --strict</code> runs that one id through the static rules, the registry contract under Vitest, and the eight editor obligations under Playwright. Repeat until exit 0 with complete coverage.</li>
       <li><strong>Assemble.</strong> Components at their shipped defaults, page CSS in design tokens, one text style per element, one primary action, one space step per position, and a route whose <code>source</code> entry is what makes Page Source work.</li>
-      <li><strong>Verify the page.</strong> <code>report</code> for the static picture, then <code>check-page &lt;file&gt; --tests --strict</code>, which opens the page's own route in a browser and proves what only a rendered page can.</li>
-      <li><strong>Loop.</strong> Repair the findings by rule, largest error group first. Re-run both. Then <code>--strict</code>, which promotes every warning to an error.</li>
+      <li><strong>Verify the page.</strong> <code>check-page &lt;file&gt; --tests --strict --json</code> applies every <code>auto</code> repair, opens the page's own route in a browser to prove what only a rendered page can, and returns the findings that remain.</li>
+      <li><strong>Loop.</strong> Make each remaining repair from its guidance, and run the command again until it exits 0. <code>--strict</code> already promotes every warning to an error.</li>
       <li><strong>Read the page yourself.</strong> One <span class="mono">h1</span>, no skipped heading levels, copy at 45 to 90 characters, containers aligned at the bottom, the primary action last. The checkers cannot see a layout.</li>
     </ol>
   </section>
@@ -962,7 +962,7 @@
 
     <figure>
       <button class="fig-open" type="button" aria-label="Enlarge figure 3, how the rules prove themselves">
-      <svg class="dg" viewBox="0 0 900 300" role="img" aria-label="A skill states the contract in prose, a checker rule detects a breach, a finding carries the rule and its fix slug, and the slug names the skill section that fixes it. Each link is pinned by its own gate: check:skills, the checker unit tests and defect fixtures, and the fix-slug table.">
+      <svg class="dg" viewBox="0 0 900 300" role="img" aria-label="A skill states the contract in prose, a checker rule detects a breach, and a finding carries the rule and its guidance, which tells the skill how to repair it. Each link is pinned by its own gate: check:skills, the checker unit tests and defect fixtures, and the guidance test.">
         <text class="lbl" x="136" y="40" text-anchor="middle">check:skills, 25 rules</text>
         <text class="lbl" x="136" y="56" text-anchor="middle">check:cli-strings · check:skill-atlas</text>
         <line class="lead" x1="136" y1="70" x2="136" y2="116" />
@@ -971,8 +971,8 @@
         <text class="lbl" x="450" y="56" text-anchor="middle">tests/e2e/contract-defects · page-defects</text>
         <line class="lead" x1="450" y1="70" x2="450" y2="116" />
 
-        <text class="lbl" x="764" y="40" text-anchor="middle">COMPONENT_RULE_FIX</text>
-        <text class="lbl" x="764" y="56" text-anchor="middle">one slug per rule</text>
+        <text class="lbl" x="764" y="40" text-anchor="middle">the guidance test</text>
+        <text class="lbl" x="764" y="56" text-anchor="middle">guidance on every rule</text>
         <line class="lead" x1="764" y1="70" x2="764" y2="116" />
 
         <rect class="box" x="30" y="120" width="212" height="84" rx="3" />
@@ -987,7 +987,7 @@
 
         <rect class="box" x="658" y="120" width="212" height="84" rx="3" />
         <text class="t" x="674" y="146">The finding</text>
-        <text class="m" x="674" y="165">rule · file · line · fix</text>
+        <text class="m" x="674" y="165">rule · file · line · guidance</text>
         <text class="s" x="674" y="183">fed back to the skill</text>
 
         <path class="flow" d="M242,162 H336" />
@@ -996,11 +996,11 @@
         <text class="lbl" x="603" y="154" text-anchor="middle">on failure</text>
 
         <path class="back" d="M764,204 V262 H136 V206" />
-        <text class="rule" x="450" y="254" text-anchor="middle">the fix slug names the section that fixes it</text>
+        <text class="rule" x="450" y="254" text-anchor="middle">the guidance tells the skill how to repair it</text>
       </svg>
         <span class="fig-badge" aria-hidden="true"><svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.2"><path d="M4 1H1v3M6 9h3V6"/></svg>Enlarge</span>
       </button>
-      <figcaption><b>Figure 3.</b> The loop closes on a slug. A rule does not need its own paragraph in a skill, because the finding carries the name of the section that fixes it, and adding a rule that reuses an existing slug costs no skill edit. Two skills once enumerated every rule id in their own tables, with nothing holding the two in agreement.</figcaption>
+      <figcaption><b>Figure 3.</b> The loop closes on guidance. A rule needs no paragraph in a skill, because the finding carries its own repair, and adding a rule costs no skill edit. A test in each checker's suite fails when any rule lacks guidance. Two skills once enumerated every rule id in their own tables, with nothing holding the two in agreement.</figcaption>
     </figure>
 
     <h3>The gates</h3>
@@ -1062,7 +1062,7 @@
     <span class="eyebrow">why it holds</span>
     <h2>One loop, three statements of the same contract</h2>
     <p>The prose tells the model what to build. The static rule catches the shape. The rendered test catches the cascade, which is the only place a design system actually fails: a component that stops repainting when the theme moves, a run of text that drifts off the shipped styles, a pair that misses AA, a section that leaves the grid.</p>
-    <p>The finding is what makes it a loop. It is an address: a rule, a file, a line, and the name of the paragraph that fixes it. The model runs the command, reads the address, edits, and runs again, until the exit code is 0 and the only work left is the work a person has to look at.</p>
+    <p>The finding is what makes it a loop. It names a rule, a file, a line, and the guidance that repairs it. The model runs the command, reads the guidance, edits, and runs again, until the exit code is 0 and the only work left is the work a person has to look at.</p>
   </section>
 
   <footer>Drawn from .claude/skills, bin/, src/testing, and scripts/ at v0.78.0.</footer>
