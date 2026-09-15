@@ -1,6 +1,6 @@
 ---
 name: live-tokens-check-compliance
-description: Check an existing @motion-proto/live-tokens project against the design system and fix it until check-page and check-component both exit 0. Checks for correct use of components, properties, and tokens. Reads the whole project from one run of npx live-tokens report, runs the token migrations, then runs both checkers, which apply every auto repair and return each remaining finding with its own guidance, repair level, and details. Use when the user asks to check, audit, or review the project. Use when the user asks to fix the project. Edits the files the checkers name. Updates tokens.css only through the migration command.
+description: Check an existing @motion-proto/live-tokens project against the design system and fix it until check-page and check-component both exit 0. Checks for correct use of components, properties, and tokens. Reads the whole project from one run of npx live-tokens report, runs the token migrations, then runs both checkers, which apply every auto repair and return each remaining finding with its own guidance, repair level, and details. Use when the user asks to check, audit, or review the project. Use when the user asks to fix the project or to make check:design pass. Edits the files the checkers name. Updates tokens.css only through the migration command.
 ---
 
 # Checking and fixing a project's adherence to live-tokens
