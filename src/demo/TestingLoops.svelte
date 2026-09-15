@@ -54,7 +54,7 @@
       </a>
       <div class="hero-copy">
         <h1>Testing loops</h1>
-        <p class="introduction">Live tokens checks the work that skills produce. Skills build pages and components, then run CLI commands to check the code and test the result in a browser. Each problem comes back as a finding that names its fix. The CLI makes the routine fixes. The skill makes the fixes that need judgment, then runs the checks again until they pass.</p>
+        <p class="introduction">Live tokens checks the work that skills produce. Skills build pages and components, then run CLI commands to check the code and test the result in a browser. Each problem comes back as a finding that carries guidance for its repair. The CLI makes the routine fixes. The skill makes the fixes that need judgment, then runs the checks again until they pass.</p>
       </div>
     </div>
   </header>
@@ -71,17 +71,17 @@
     <div class="chapter-body">
       <h2 id="skills-title">Skills and checkers</h2>
       <h3>Skills build and repair</h3>
-      <p>The package includes nine skills. Run <code>npx live-tokens setup-claude</code> to add them to your project.</p>
+      <p>The package includes eight skills. Run <code>npx live-tokens setup-claude</code> to add them to your project.</p>
       <ul class="trio">
         <li><Card title="Theme skills"><span class="name">create-theme</span> passes color, type, and geometry tasks to <span class="name">set-colors</span>, <span class="name">set-type</span>, and <span class="name">set-geometry</span>.</Card></li>
         <li><Card title="Build skills"><span class="name">create-page</span> builds a page from the component catalogue. It calls <span class="name">pick-component</span> to choose a component and <span class="name">create-component</span> to write a new one.</Card></li>
-        <li><Card title="Check skills"><span class="name">check-compliance</span> runs <code>npx live-tokens report</code> and lists the findings. <span class="name">fix-findings</span> repairs each finding and runs both checkers again until they pass.</Card></li>
+        <li><Card title="Check skills"><span class="name">check-compliance</span> reads <code>npx live-tokens report</code>, runs the token migrations, and runs both checkers on the project. It repairs each remaining finding from its guidance and runs the checkers again until they pass.</Card></li>
       </ul>
       <p>Skills make design decisions. Checkers verify the code and test the result.</p>
 
       <h3>Checkers report problems</h3>
       <p><code>check-page</code> checks page code. <code>check-component</code> checks a component's code, editor controls, and registration. Use <code>report</code> to list findings from both across the project. It always exits <code>0</code>.</p>
-      <p>Each finding identifies the rule, file, line, and fix. Its repair level tells the skill what to do:</p>
+      <p>Each finding identifies the rule, file, and line, and carries guidance for the repair. Its repair level tells the skill what to do:</p>
       <dl class="defs repair-levels">
         <div><dt><code>auto</code></dt><dd>The checker applies the repair itself.</dd></div>
         <div><dt><code>choice</code></dt><dd>Choose a repair based on the design or task.</dd></div>
@@ -165,7 +165,7 @@
             <rect class="box" x="373.3" y="568" width="453.3" height="85.3" rx="4" />
             <text class="t" x="394.7" y="597.4">Findings</text>
             <text class="s" x="394.7" y="621.4">each with a rule, file, line,</text>
-            <text class="s" x="394.7" y="642.7">and fix slug</text>
+            <text class="s" x="394.7" y="642.7">and guidance</text>
 
             <path class="flow" d="M600,653.4 V685.4" />
 
@@ -212,7 +212,7 @@
           <Panel>
             <!-- svelte-ignore a11y_no_noninteractive_tabindex (Keyboard users need to scroll the diagram.) -->
             <div class="figure-scroll" role="region" aria-label="Figure 2" tabindex="0">
-          <svg class="dg" width="1200" height="1066.7" viewBox="0 0 1200 1066.7" role="img" aria-label="To create a page, read the project, plan the sections, and match each need to a component. When the catalogue lacks a component, write one and check it until it passes. Assemble the page, then verify it with the static checks and a browser. Findings return to assembly until the checks pass.">
+          <svg class="dg" width="1200" height="1066.7" viewBox="0 0 1200 1066.7" role="img" aria-label="To create a page, read the project, plan the sections, and match each need to a component. When the catalogue lacks a component, write one and check it until it passes. Assemble the page, then verify it with one check-page command that applies the automatic repairs and tests the page in a browser. Each remaining finding returns to assembly with its guidance until the command exits 0.">
             <rect class="box-lead" x="146.7" y="26.7" width="440" height="66.7" rx="4" />
             <text class="t" x="168" y="56">Create a page</text>
             <text class="m" x="168" y="80">live-tokens-create-page</text>
@@ -280,14 +280,14 @@
 
             <rect class="box" x="146.7" y="773.3" width="440" height="149.3" rx="4" />
             <text class="t" x="168" y="802.7">Verify</text>
-            <text class="m" x="168" y="828">npx live-tokens report</text>
-            <text class="s" x="168" y="850.7">static findings by rule</text>
-            <text class="m" x="168" y="876">check-page &lt;file&gt; --tests --strict</text>
+            <text class="m" x="168" y="828">check-page &lt;file&gt; --tests --strict</text>
+            <text class="s" x="168" y="850.7">applies auto repairs, returns each finding</text>
+            <text class="s" x="168" y="874.7">with its guidance</text>
             <text class="s" x="168" y="898.7">paint, text style, contrast, grid, overflow</text>
             <text class="s" x="168" y="917.3">at each viewport in the settings</text>
 
             <path class="back" d="M146.7,848 H104 V682.7 H144" />
-            <text class="rule" x="93.3" y="765.3" text-anchor="middle" transform="rotate(-90 93.3 765.3)">fix-findings</text>
+            <text class="rule" x="93.3" y="765.3" text-anchor="middle" transform="rotate(-90 93.3 765.3)">run again</text>
 
             <path class="flow" d="M366.7,922.7 V957.3" />
             <text class="lbl" x="382.7" y="946.7">checks pass</text>
@@ -300,16 +300,16 @@
             </div>
           </Panel>
         </div>
-        <figcaption><b>Figure 2. The page workflow.</b> Follow the left path to build a page. Take the right branch to create and check a new component, then return to page assembly. Fix findings until the checks pass, then review the page yourself.</figcaption>
+        <figcaption><b>Figure 2. The page workflow.</b> Follow the left path to build a page. Take the right branch to create and check a new component, then return to page assembly. Make each repair from its guidance and run the check again until it passes, then review the page yourself.</figcaption>
       </figure>
 
       <ol class="steps">
         <li><strong>Read the project.</strong> Read the route table, <code>--columns-count</code>, and the catalogue from <code>npx live-tokens components</code>.</li>
         <li><strong>Plan sections, then columns.</strong> Give each purpose its own section. Take column spans from the layout that fits the reader's task.</li>
         <li><strong>Choose components.</strong> Start with the catalogue. Use <span class="name">pick-component</span> to choose between similar components and <span class="name">create-component</span> to add one.</li>
-        <li><strong>Check the new component.</strong> Run <code>report</code>, then <code>check-component &lt;id&gt; --tests --strict</code>. Fix each finding and repeat until the checks pass.</li>
+        <li><strong>Check the new component.</strong> Run <code>check-component &lt;id&gt; --tests --strict --json</code>. It applies every <code>auto</code> repair and returns the findings that remain. Make each repair from its guidance and run the command again until it exits <code>0</code>.</li>
         <li><strong>Assemble the page.</strong> Use components at their defaults, design tokens in page CSS, one text style per element, and a route with a <code>source</code>.</li>
-        <li><strong>Verify.</strong> Run <code>report</code> and repair its findings with <span class="name">fix-findings</span>. Then run <code>check-page &lt;file&gt; --tests --strict</code>. Repeat until the checks pass.</li>
+        <li><strong>Verify.</strong> Run <code>check-page &lt;file&gt; --tests --strict --json</code>. It applies every <code>auto</code> repair, tests the page in a browser, and returns the findings that remain. Make each repair from its guidance and run the command again until it exits <code>0</code>.</li>
         <li><strong>Review by eye.</strong> Check the heading hierarchy, line lengths, alignment, and placement of the primary action. Confirm that the page reads clearly and supports the reader’s task.</li>
       </ol>
     </div>
@@ -325,7 +325,7 @@
           <Panel>
             <!-- svelte-ignore a11y_no_noninteractive_tabindex (Keyboard users need to scroll the diagram.) -->
             <div class="figure-scroll" role="region" aria-label="Figure 3" tabindex="0">
-          <svg class="dg" width="1200" height="400" viewBox="0 0 1200 400" role="img" aria-label="A skill states the contract in prose. A checker rule detects a breach. A finding carries the rule and its fix slug, and the slug points to the skill section with the repair steps. A gate guards each step: check:skills, the checker unit tests and defect fixtures, and the fix-slug table.">
+          <svg class="dg" width="1200" height="400" viewBox="0 0 1200 400" role="img" aria-label="A skill states the contract in prose. A checker rule detects a breach. A finding carries the rule and its guidance, and the skill makes the repair from that guidance. A gate guards each step: check:skills, the checker unit tests and defect fixtures, and the guidance test.">
             <text class="lbl" x="181.3" y="53.3" text-anchor="middle">check:skills</text>
             <text class="lbl" x="181.3" y="74.7" text-anchor="middle">check:skill-atlas · check:skill-sources</text>
             <line class="lead" x1="181.3" y1="93.3" x2="181.3" y2="154.7" />
@@ -334,8 +334,8 @@
             <text class="lbl" x="600" y="74.7" text-anchor="middle">tests/e2e/contract-defects · page-defects</text>
             <line class="lead" x1="600" y1="93.3" x2="600" y2="154.7" />
 
-            <text class="lbl" x="1018.7" y="53.3" text-anchor="middle">COMPONENT_RULE_FIX · PAGE_RULE_FIX</text>
-            <text class="lbl" x="1018.7" y="74.7" text-anchor="middle">one slug per rule</text>
+            <text class="lbl" x="1018.7" y="53.3" text-anchor="middle">gives every rule non-empty guidance</text>
+            <text class="lbl" x="1018.7" y="74.7" text-anchor="middle">one test per rule table</text>
             <line class="lead" x1="1018.7" y1="93.3" x2="1018.7" y2="154.7" />
 
             <rect class="box" x="40" y="160" width="282.7" height="112" rx="4" />
@@ -345,13 +345,13 @@
 
             <rect class="box" x="458.7" y="160" width="282.7" height="112" rx="4" />
             <text class="t" x="480" y="194.7">The rule</text>
-            <text class="s" x="480" y="220">one id, one severity</text>
-            <text class="s" x="480" y="244">per project or per run</text>
+            <text class="s" x="480" y="220">one id and its guidance</text>
+            <text class="s" x="480" y="244">severity per project or run</text>
 
             <rect class="box" x="877.3" y="160" width="282.7" height="112" rx="4" />
             <text class="t" x="898.7" y="194.7">The finding</text>
-            <text class="m" x="898.7" y="220">rule · file · line · fix</text>
-            <text class="s" x="898.7" y="244">goes to fix-findings</text>
+            <text class="m" x="898.7" y="220">rule · line · guidance</text>
+            <text class="s" x="898.7" y="244">returns to the skill</text>
 
             <path class="flow" d="M322.7,216 H448" />
             <text class="lbl" x="385.3" y="205.3" text-anchor="middle">becomes</text>
@@ -359,17 +359,18 @@
             <text class="lbl" x="804" y="205.3" text-anchor="middle">on failure</text>
 
             <path class="back" d="M1018.7,272 V349.3 H181.3 V274.7" />
-            <text class="rule" x="600" y="338.7" text-anchor="middle">the fix slug points to the repair steps</text>
+            <text class="rule" x="600" y="338.7" text-anchor="middle">the skill makes the repair from the guidance</text>
           </svg>
             </div>
           </Panel>
         </div>
-        <figcaption><b>Figure 3. Rules and repairs.</b> Each finding includes a fix slug: an identifier that links to repair instructions in a skill. <span class="name">fix-findings</span> follows that link to make the repair.</figcaption>
+        <figcaption><b>Figure 3. Rules and repairs.</b> Each rule carries guidance for its repair, and every finding includes it. The skill that ran the check makes the repair from that guidance.</figcaption>
       </figure>
 
       <dl class="defs">
         <div><dt>Defect fixtures</dt><dd><code>tests/e2e/contract-defects</code> and <code>page-defects</code> introduce known defects and confirm that the browser test rules catch them.</dd></div>
         <div><dt>Checker unit tests</dt><dd><code>bin/check-page.test.ts</code> and <code>bin/check-component.test.ts</code> test the static rules.</dd></div>
+        <div><dt>Guidance test</dt><dd>One test in each checker test file fails when a rule lacks guidance.</dd></div>
         <div><dt>check:skills</dt><dd>Checks skill names, length, references, commands, and flags. Every CLI command except <code>create</code> and <code>setup-claude</code> must appear in a skill, along with all its flags.</dd></div>
         <div><dt>check:skill-atlas and check:skill-sources</dt><dd>Keep the Skill Atlas citations and skill sources in sync with each <code>SKILL.md</code>.</dd></div>
         <div><dt>Smoke runs</dt><dd>Install the package in temporary projects, build them, and run the component and page tests.</dd></div>
