@@ -168,6 +168,16 @@
   component naming rules**: which word names a prop or a semantic property,
   and the retired spellings each replaces.
 
+### Removed
+
+- **`live-tokens-fix-findings` is gone.** `live-tokens-check-compliance`
+  now checks and fixes the whole project: it reads the report, runs the
+  token migrations, runs both checkers, repairs each remaining finding from
+  its `guidance`, and adds `check:design` to the build. "Make check:design
+  pass" and "fix the project" now reach it. `npx live-tokens setup-claude
+  --force` deletes a project's old copy, because it prunes every
+  `live-tokens-` skill a release no longer ships.
+
 ### Fixed
 
 - **The overlay's collapsed pill no longer covers the pinned variant strip on
