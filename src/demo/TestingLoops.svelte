@@ -522,7 +522,7 @@
         >
           <nav aria-label="On this page">
             <ol>
-              {#each chapters as chapter}
+              {#each chapters as chapter (chapter.id)}
                 <li><a href="#{chapter.id}" onclick={(event) => jump(event, chapter.id)}>{chapter.title}</a></li>
               {/each}
             </ol>
