@@ -5,8 +5,10 @@
 ### Added
 
 - **Every finding carries its own repair.** `report --json` and both
-  checkers' `--json` now put `fix`, `repair`, and `exception` on every
+  checkers' `--json` now put `guidance`, `repair`, and `exception` on every
   finding, alongside `rule`, `severity`, `file`, `line`, and `message`.
+  `guidance` is the rule's repair instruction in plain sentences, such as the
+  design token each color role takes for a `color-literal`.
   `repair` is `auto` (code can apply the patch), `choice` (a role or a tie
   needs the user, and `details` lists the candidates), or `authored` (the
   user's own words are the fix). `exception` is the narrower
