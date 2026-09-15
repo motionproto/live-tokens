@@ -460,8 +460,8 @@ prints nothing, and `check:skills` passes.
   `check:cli-strings`
 - `node scripts/check-production-is-default.mjs`
 
-**Done when** `git grep -n "fix-findings"` matches only `CHANGELOG.md` and
-`docs/plans/`.
+**Done when** `git grep -n "fix-findings" -- ':!CHANGELOG.md' ':!docs/plans/' ':!src/demo/TestingLoops.svelte'`
+prints nothing. Wave 8b removes the matches in `src/demo/TestingLoops.svelte`.
 
 ## Wave 8a: Skill Atlas cards
 
