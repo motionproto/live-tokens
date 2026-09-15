@@ -14,7 +14,7 @@ Create a component whose structure and behavior serve the user's purpose. Give e
 3. Write the runtime file: the catalogue export and the `:global(:root)` block. A structural choice is an intrinsic. Every component joins the sketch layer, and a fixed overlay portals to `<body>`.
 4. Write the editor file: the schema, the preview props, and the markup. Variants that share a value are linked.
 5. Register the component in the module `src/main.ts` and `live-tokens.testing.ts` both name, and write its contract in the module `contractsModule` names.
-6. Run **live-tokens-check-compliance**, then `npx live-tokens check-component <id> --tests --strict --json` until exit 0 with complete applicable coverage, then the Svelte check and the build.
+6. Run `npx live-tokens check-component <id> --tests --strict --json` until it exits 0 with complete applicable coverage, then the Svelte check and the build.
 7. Reply with the files, the id, the props, and each check's result. Then place the component on a page with **live-tokens-create-page**.
 
 ## Design model
@@ -226,23 +226,10 @@ A fixed overlay portals to `<body>`: read `references/fixed-overlays.md`. A cont
 
 ## Verification
 
-1. Run **live-tokens-check-compliance** and address its findings with **live-tokens-fix-findings**. Then run `npx live-tokens check-component <id> --tests --strict --json`, which applies every `auto` repair before the rendered run and lists each fix beside the findings that remain. Inside the live-tokens repository, run `node bin/cli.mjs check-component <id> --tests --strict --json`. Each finding carries a rule id and a line; `--off=<rule>` silences a rule for one run, and `--no-fix` reports without editing. `--tests` runs the registry contract and, for a component with a contract in the module `contractsModule` names, the component contract suites; its JSON reports coverage by rule. A `tests-not-installed` finding names the missing package; install `@playwright/test`, `vitest`, and `happy-dom` as devDependencies, then `npx playwright install chromium`. Fix every finding and rerun until exit 0 with complete applicable coverage and no disabled checks.
-2. Run the project's Svelte check and its build.
-3. Reply with the files, the component id, the props, and the results of steps 1 and 2, naming any check the environment prevented.
-
-Every finding carries a `fix` slug naming the section that fixes it.
-
-| `fix` | Section |
-|---|---|
-| `property-name` | Property design, the name |
-| `property-token` | Property design, the assigned token |
-| `runtime` | Runtime component |
-| `runtime-defaults` | Runtime component, the `:global(:root)` defaults |
-| `editor` | Component editor |
-| `registration` | Registration |
-| `sketch` | Sketch mode and overlays |
-| `tooling` | The message names the missing tool or the broken path; fix it and rerun |
-| `coverage` | Add the missing contract, or complete the run the message names |
+1. Run `npx live-tokens check-component <id> --tests --strict --json`. Inside the live-tokens repository, run `node bin/cli.mjs check-component <id> --tests --strict --json`. It applies every `auto` repair, runs the registry contract and, for a component with a contract in the module `contractsModule` names, the component contract suites, and returns the fixes it applied, the findings that remain, and coverage by rule. `--off=<rule>` silences a rule for one run, and `--no-fix` reports without editing.
+2. Each remaining finding carries a rule id, a line, and its `guidance`. Make each repair from its guidance, and run the command again until it exits 0 with complete applicable coverage and no disabled checks.
+3. Run the project's Svelte check and its build.
+4. Reply with the files, the component id, the props, and the result of each check, naming any check the environment prevented.
 
 `--tests` covers every line a reviewer once checked by eye: the component's listing, its controls and preview, persistence and reset, theme projection, linked properties, and Sketch mode.
 

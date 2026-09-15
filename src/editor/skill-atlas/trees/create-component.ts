@@ -2,7 +2,7 @@ import type { SkillTree } from '../types';
 
 export const createComponent: SkillTree = {
   "id": "live-tokens-create-component",
-  "digest": "sha256:90138f77309b5090",
+  "digest": "sha256:64a50a8081b1f789",
   "title": "create-component",
   "tagline": "Create a LiveTokens Component",
   "nodes": [
@@ -195,38 +195,33 @@ export const createComponent: SkillTree = {
     {
       "id": "cc-checks",
       "row": 6,
-      "kind": "chipset",
-      "title": "Run the checks",
-      "desc": "Get a report from check-compliance, then run check-component --tests until it passes with the contract's suites covered.",
-      "lines": [17, 17],
-      "anchor": "Run **live-tokens-check-compliance**, then `npx live-tokens ",
-      "chips": [
-        {
-          "label": "Compliance and tests",
-          "lines": [229, 229],
-          "anchor": "Run **live-tokens-check-compliance** and address its finding"
-        },
-        {
-          "label": "Svelte check and build",
-          "lines": [230, 230],
-          "anchor": "Run the project's Svelte check and its build."
-        },
-        {
-          "label": "Component tests",
-          "lines": [17, 17],
-          "anchor": "Run **live-tokens-check-compliance**, then `npx live-tokens "
-        },
-        {
-          "label": "Rule table",
-          "lines": [235, 245],
-          "anchor": "| `fix` | Section |",
-          "anchorEnd": "| `coverage` | Add the missing contract, or complete the run"
-        }
-      ]
+      "kind": "cli",
+      "title": "Run check-component",
+      "desc": "check-component <id> --tests --strict --json applies every auto repair, runs the contract suites, and returns the fixes beside the remaining findings and coverage by rule.",
+      "lines": [229, 229],
+      "anchor": "Run `npx live-tokens check-component <id> --tests --strict -"
+    },
+    {
+      "id": "cc-repair",
+      "row": 7,
+      "kind": "gate",
+      "title": "Repair from guidance",
+      "desc": "Each remaining finding carries its guidance. Make each repair, then run check-component again until coverage is complete.",
+      "lines": [230, 230],
+      "anchor": "Each remaining finding carries a rule id, a line, and its `g"
+    },
+    {
+      "id": "cc-build",
+      "row": 8,
+      "kind": "step",
+      "title": "Run the Svelte check and the build",
+      "desc": "Both run once check-component exits 0.",
+      "lines": [231, 231],
+      "anchor": "Run the project's Svelte check and its build."
     },
     {
       "id": "cc-reply",
-      "row": 7,
+      "row": 9,
       "kind": "step",
       "title": "Reply with the result",
       "desc": "The files, the id, the props, and each check's result.",
@@ -235,11 +230,11 @@ export const createComponent: SkillTree = {
     },
     {
       "id": "cc-page",
-      "row": 8,
+      "row": 10,
       "kind": "hand",
       "title": "live-tokens-create-page",
       "desc": "The component is done. Placing it on a page is the next skill.",
-      "lines": [249, 249],
+      "lines": [236, 236],
       "anchor": "Then place the component on a page with **live-tokens-create"
     }
   ],
@@ -270,6 +265,22 @@ export const createComponent: SkillTree = {
     },
     {
       "from": "cc-checks",
+      "to": "cc-repair",
+      "label": "findings"
+    },
+    {
+      "from": "cc-repair",
+      "to": "cc-checks",
+      "label": "rerun",
+      "back": true
+    },
+    {
+      "from": "cc-checks",
+      "to": "cc-build",
+      "label": "exit 0"
+    },
+    {
+      "from": "cc-build",
       "to": "cc-reply"
     },
     {
