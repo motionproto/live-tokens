@@ -488,4 +488,5 @@ contradict its skill.
 2. Run `node bin/cli.mjs check-page src/demo/TestingLoops.svelte --strict --no-fix`.
 
 **Done when** `grep -n "fix-findings\|fix slug\|RULE_FIX" src/demo/TestingLoops.svelte`
-prints nothing and the page check exits 0.
+prints nothing, `git grep -n "fix-findings" -- ':!CHANGELOG.md' ':!docs/plans/'`
+prints nothing, and the page check exits 0.
