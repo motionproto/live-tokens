@@ -12,7 +12,7 @@
 
 import { existsSync, readFileSync, statSync } from 'node:fs';
 import { join, relative, resolve, basename } from 'node:path';
-import { assembleRules, fixMap, isExcluded, lineOf } from './lib/findings.mjs';
+import { assembleRules, isExcluded, lineOf } from './lib/findings.mjs';
 import { codeRegion, inlineStyleRegions, styleRegions } from './lib/pageSource.mjs';
 import { loadVocabulary, walk } from './lib/tokenVocabulary.mjs';
 import { resolveTokensCssPath } from './migrate.mjs';
@@ -21,7 +21,7 @@ import * as importsAndRoutes from './rules/importsAndRoutes.mjs';
 import * as testRuns from './rules/testRuns.mjs';
 import * as tokenRules from './rules/tokens.mjs';
 
-/** Every rule, with its default severity, where it is fixed, and how. Same
+/** Every rule, with its default severity, its repair, and its guidance. Same
  *  three fields, same meanings, as `COMPONENT_RULES`. */
 export const PAGE_RULES = assembleRules(
   [
@@ -56,8 +56,6 @@ export const PAGE_RULES = assembleRules(
   tokenRules.pageRules,
   testRuns.pageRules,
 );
-
-export const PAGE_RULE_FIX = fixMap(PAGE_RULES);
 
 // Directories that hold the system, not pages built on it.
 export const NOT_PAGES = ['src/system', 'src/editor', 'src/lib', 'src/live-tokens'];

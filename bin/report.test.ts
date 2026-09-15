@@ -5,6 +5,8 @@ import { join } from 'node:path';
 // @ts-expect-error — plain .mjs module, no types
 import { buildReport, formatReport } from './lib/report.mjs';
 // @ts-expect-error — plain .mjs module, no types
+import { PAGE_RULES } from './check-page.mjs';
+// @ts-expect-error — plain .mjs module, no types
 import { loadVocabulary } from './lib/tokenVocabulary.mjs';
 
 const roots: string[] = [];
@@ -127,10 +129,11 @@ describe('the finding contract both checkers meet', () => {
     expect(all.length).toBeGreaterThan(4);
     for (const f of all) {
       expect(Object.keys(f)).toEqual(
-        expect.arrayContaining(['rule', 'severity', 'file', 'line', 'message', 'fix', 'repair', 'exception']),
+        expect.arrayContaining(['rule', 'severity', 'file', 'line', 'message', 'guidance', 'repair', 'exception']),
       );
       expect(['auto', 'choice', 'authored']).toContain(f.repair);
-      expect(typeof f.fix).toBe('string');
+      expect(f.guidance.length).toBeGreaterThan(0);
+      expect(f).not.toHaveProperty('fix');
     }
   });
 
@@ -143,7 +146,7 @@ describe('the finding contract both checkers meet', () => {
       file: 'src/pages/Home.svelte',
       line: 5,
       message: 'padding: 12px. Use a --space-*, --radius-*, --border-width-*, or --shadow-* token.',
-      fix: 'page-token',
+      guidance: PAGE_RULES['dimension-literal'].guidance,
       repair: 'auto',
       exception: { checks: { exclude: ['src/pages/Home.svelte'] } },
       details: {

@@ -24,7 +24,7 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { join, relative } from 'node:path';
 import { declaredTokens, intrinsicMatchers } from './lib/componentSource.mjs';
-import { assembleRules, fixMap, lineOf } from './lib/findings.mjs';
+import { assembleRules, lineOf } from './lib/findings.mjs';
 import {
   EDITOR_DIRS,
   PKG_ROOT,
@@ -41,14 +41,12 @@ import * as tokenRules from './rules/tokens.mjs';
 export { unreadTokens } from './lib/componentSource.mjs';
 
 /**
- * Every rule, with its default severity, where it is fixed, and how.
+ * Every rule, with its default severity, its repair, and the guidance every
+ * finding of it carries.
  *
- * `fix` is a stable slug the skills resolve to one of their own headings, so
- * adding a rule to a module under `bin/rules/` costs no skill edit as long as it
- * reuses a slug. `repair`
- * is the ceiling: `auto` when code can rewrite the site, `choice` when code can
- * name the candidates but not pick one, `authored` when a person writes the
- * repair. A finding may lower its rule's `repair`; none raises it.
+ * `repair` is the ceiling: `auto` when code can rewrite the site, `choice` when
+ * code can name the candidates but not pick one, `authored` when a person
+ * writes the repair. A finding may lower its rule's `repair`; none raises it.
  */
 export const COMPONENT_RULES = assembleRules(
   [
@@ -92,8 +90,6 @@ export const COMPONENT_RULES = assembleRules(
   importsAndRoutes.componentRules,
   testRuns.componentRules,
 );
-
-export const COMPONENT_RULE_FIX = fixMap(COMPONENT_RULES);
 
 function capitalize(id) {
   return id.charAt(0).toUpperCase() + id.slice(1);

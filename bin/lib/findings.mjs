@@ -87,11 +87,6 @@ export function assembleRules(order, ...tables) {
   return Object.fromEntries(order.map((id) => [id, defined[id]]));
 }
 
-/** The slug half of a rule table, the shape the skills and the CLI read. */
-export function fixMap(rules) {
-  return Object.fromEntries(Object.entries(rules).map(([id, rule]) => [id, rule.fix]));
-}
-
 /**
  * The config entry that records a deliberate decision to keep a finding.
  *
@@ -121,12 +116,13 @@ export function resolveRuleSeverity(ruleId, rules, opts = {}, config = {}) {
 
 /**
  * Resolve each finding's severity and drop the ones turned off, then attach
- * what a repair needs: where it is fixed (`fix`), how (`repair`), and the
- * config entry that records a decision to keep it (`exception`).
+ * what a repair needs: how to make it (`guidance`), how far code can take it
+ * (`repair`), and the config entry that records a decision to keep it
+ * (`exception`).
  *
- * `rules` maps rule id to `{ severity, fix, repair }`. A rule's `repair` is the
- * ceiling: a finding that arrives carrying its own has already lowered it,
- * because its context is more ambiguous than the rule's.
+ * `rules` maps rule id to `{ severity, repair, guidance }`. A rule's `repair`
+ * is the ceiling: a finding that arrives carrying its own has already lowered
+ * it, because its context is more ambiguous than the rule's.
  */
 export function applySeverity(findings, rules, opts = {}, config = {}, { exclude = false } = {}) {
   return findings
@@ -136,7 +132,7 @@ export function applySeverity(findings, rules, opts = {}, config = {}, { exclude
       return {
         ...f,
         severity,
-        ...(rule?.fix ? { fix: rule.fix } : {}),
+        ...(rule?.guidance ? { guidance: rule.guidance } : {}),
         repair: f.repair ?? rule?.repair ?? 'authored',
         exception: exceptionFor(f, severity, exclude),
       };

@@ -87,7 +87,7 @@ describe('check-component phantom-link guard', () => {
 });
 
 // @ts-expect-error — plain .mjs module, no types
-import { COMPONENT_RULE_FIX, COMPONENT_RULES, checkComponentDefaults, discoverComponents } from './check-component.mjs';
+import { COMPONENT_RULES, checkComponentDefaults, discoverComponents } from './check-component.mjs';
 // @ts-expect-error — plain .mjs module, no types
 import { applySeverity, countBySeverity, dedupeAliasFindings } from './lib/findings.mjs';
 
@@ -794,7 +794,6 @@ describe('contractRunner: mapping a Playwright report', () => {
     ]);
     const { findings } = mapPlaywrightResults(report, { root, sourceDataDir: join(root, 'data'), knownIds: new Set(['widget']) });
     expect(findings[0].rule).toBe('contract-states');
-    expect(COMPONENT_RULE_FIX['contract-states']).toBe('editor');
   });
 
   it('the harness no longer names contract-preview anywhere it can throw', () => {
@@ -1211,7 +1210,7 @@ describe('contractRunner: hard failures never get silenced', () => {
 
 describe('coverage honors --off: disabled, not a silent pass', () => {
   it('resolveRuleSeverity answers the same question applySeverity does, for a rule with no finding to attach it to', () => {
-    const rules = { 'contract-alias': { severity: 'error', fix: 'editor', repair: 'authored' } };
+    const rules = { 'contract-alias': { severity: 'error', repair: 'authored' } };
     expect(resolveRuleSeverity('contract-alias', rules, { off: ['contract-alias'] })).toBe('off');
     expect(resolveRuleSeverity('contract-alias', rules, {})).toBe('error');
   });
@@ -1540,11 +1539,7 @@ describe('contractRunner: runContractTests, end to end', () => {
   }, 60_000);
 });
 
-describe('the rule-to-fix registry', () => {
-  it('names a fix slug for every rule, and no rule that does not exist', () => {
-    expect(Object.keys(COMPONENT_RULE_FIX).sort()).toEqual(Object.keys(COMPONENT_RULES).sort());
-  });
-
+describe('the component rule table', () => {
   it('names a severity and a repair for every rule', () => {
     for (const [id, rule] of Object.entries(COMPONENT_RULES) as [string, { severity: string; repair: string }][]) {
       expect(['off', 'warn', 'error'], id).toContain(rule.severity);
@@ -1552,13 +1547,11 @@ describe('the rule-to-fix registry', () => {
     }
   });
 
-  it('resolves every slug the skills document', () => {
-    const documented = new Set([
-      'property-name', 'property-token', 'runtime', 'runtime-defaults',
-      'editor', 'registration', 'sketch', 'tooling', 'coverage',
-    ]);
-    const used = new Set(Object.values(COMPONENT_RULE_FIX));
-    expect([...used].filter((s) => !documented.has(s))).toEqual([]);
+  it('gives every rule non-empty guidance', () => {
+    const missing = Object.entries(COMPONENT_RULES as Record<string, { guidance?: unknown }>)
+      .filter(([, rule]) => typeof rule.guidance !== 'string' || rule.guidance.trim() === '')
+      .map(([id]) => id);
+    expect(missing).toEqual([]);
   });
 });
 

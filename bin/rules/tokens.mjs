@@ -8,21 +8,97 @@ import { geometryScaleOfProperty, resolveGeometryLiteral } from '../lib/geometry
 import { declarationPatch, declarations, neutralise, pageDeclaredNames } from '../lib/pageSource.mjs';
 import { isContractToken } from '../lib/tokenVocabulary.mjs';
 
+export const COLOR_BY_ROLE =
+  'Pick the color token by the role the color plays, and the theme moves every role together. ' +
+  'Text on a surface takes --text-primary through --text-disabled, the neutral text scale, or --text-<family> for a family color. ' +
+  'Light text on a dark chip takes --text-inverted, which carries no AA guarantee. ' +
+  'A surface fill takes --surface-<family>-<level>, where the role names the family: neutral for chrome, brand for emphasis, danger for status. ' +
+  'A stroke takes --border-<family>-<level>, with levels from faint to strong. ' +
+  'A translucent layer that dims what is behind it, such as the layer behind a modal, takes --scrim-low, --scrim, or --scrim-high. ' +
+  'A translucent wash on a surface, such as a hover state, takes --tint-low, --tint, or --tint-high. ' +
+  "Any other translucent color takes the role's token at an opacity, color-mix(in srgb, var(--surface-brand) 80%, transparent), the form the editor reads. " +
+  'A fully transparent color takes --color-transparent. ' +
+  'A gradient takes a --gradient-* token, or one composed from surface tokens. ' +
+  "`npx live-tokens tokens --scale <name>` prints a scale's names and values, with --json for data.";
+
+export const GEOMETRY_BY_SCALE =
+  'Pick the geometry token from its scale. ' +
+  'Spacing takes the nearest --space-<px> step, and `npx live-tokens tokens --scale space` prints the steps. ' +
+  'A stroke width, an outline included, takes --border-width-1, --border-width-2, or --border-width-4. ' +
+  'A corner takes --radius-sm through --radius-4xl, or --radius-full. ' +
+  'A shadow takes --shadow-sm through --shadow-xl in place of the whole value. ' +
+  'Part of a calc() takes the token inside the calc, such as calc(var(--space-64) * -2 + var(--space-8)). ' +
+  'A duration or easing takes --duration-* or --ease-*, and a blur() takes --blur-*. No rule reports those three, so fix them while in the file.';
+
+const COMPONENT_DEFAULT = 'In a component, make the :global(:root) default read the token, composed when needed.';
+
+const INTRINSIC = "Declare a structural keyword, such as start, in the editor's `intrinsics`.";
+
+const shared = {
+  'color-literal': {
+    severity: 'error',
+    repair: 'choice',
+    guidance: `Replace the literal with a design token. \`details.candidates\` lists the tokens on the scale the property reads. ${COLOR_BY_ROLE} ${COMPONENT_DEFAULT}`,
+  },
+  'dimension-literal': {
+    severity: 'warn',
+    repair: 'auto',
+    guidance:
+      'A run without --no-fix replaces each literal that has one nearest step. ' +
+      'A literal left over has no single nearest step, so pick by the visual weight the candidates in `details` show. ' +
+      `A size, such as a hero's height, is layout. Leave it. ${GEOMETRY_BY_SCALE} ${COMPONENT_DEFAULT}`,
+  },
+};
+
 export const pageRules = {
-  'unknown-token': { severity: 'error', fix: 'page-token', repair: 'choice' },
-  'color-literal': { severity: 'error', fix: 'page-token', repair: 'choice' },
-  'raw-text-axis': { severity: 'error', fix: 'page-token', repair: 'choice' },
-  'dimension-literal': { severity: 'warn', fix: 'page-token', repair: 'auto' },
-  'hardcoded-columns': { severity: 'warn', fix: 'page-layout', repair: 'choice' },
+  'unknown-token': {
+    severity: 'error',
+    repair: 'choice',
+    guidance:
+      'Search tokens.css for the stem. When the name has the shape of a design token and no longer exists, `npx live-tokens migrate --check` lists the migration that adds the current name.',
+  },
+  'raw-text-axis': {
+    severity: 'error',
+    repair: 'choice',
+    guidance:
+      'Set every axis from one text style bundle, -font-family through -letter-spacing. The text styles are heading, body, editorial, and code, and `npx live-tokens tokens --scale heading` prints one of them. Rewrite a font: shorthand the same way.',
+  },
+  'hardcoded-columns': {
+    severity: 'warn',
+    repair: 'choice',
+    guidance:
+      'Use repeat(var(--columns-count), 1fr) for the page grid, and repeat(calc(var(--columns-count) - 2), 1fr) for a sub-grid that spans fewer columns. `details.candidates` holds both forms.',
+  },
+  ...shared,
 };
 
 export const componentRules = {
-  'unread-token': { severity: 'warn', fix: 'runtime', repair: 'choice' },
-  'color-literal': { severity: 'error', fix: 'property-token', repair: 'choice' },
-  'unknown-token-ref': { severity: 'error', fix: 'property-token', repair: 'choice' },
-  'default-not-token': { severity: 'error', fix: 'property-token', repair: 'choice' },
-  'dimension-literal': { severity: 'warn', fix: 'property-token', repair: 'auto' },
-  'config-token': { severity: 'error', fix: 'property-token', repair: 'choice' },
+  'unread-token': {
+    severity: 'warn',
+    repair: 'choice',
+    guidance:
+      "The message names the property the runtime declares in :global(:root) and never reads. Wire it into the runtime's CSS where it paints, as the Runtime component section of live-tokens-create-component wires a property, or delete the declaration when nothing should paint with it.",
+  },
+  'unknown-token-ref': {
+    severity: 'error',
+    repair: 'choice',
+    guidance:
+      "Point the default at a design token or one of the component's own semantic properties. A state is a segment of a property name, so replace a reference that starts with a state by the token that state should paint. When the name has the shape of a design token and no longer exists, search tokens.css for the rename, and `npx live-tokens migrate --check` lists the migration that adds it. " +
+      COMPONENT_DEFAULT,
+  },
+  'default-not-token': {
+    severity: 'error',
+    repair: 'choice',
+    guidance: `Make the :global(:root) default read a design token, composed when needed. ${INTRINSIC}`,
+  },
+  'config-token': {
+    severity: 'error',
+    repair: 'choice',
+    guidance:
+      "The message names the alias in component-configs/<id>/default.json that names something outside the vocabulary, or a bare literal on a property the editor declares no intrinsic for. Point the alias at a design token or one of the component's own semantic properties, or declare the intrinsic in the editor. " +
+      `${COLOR_BY_ROLE} ${GEOMETRY_BY_SCALE}`,
+  },
+  ...shared,
 };
 
 /**

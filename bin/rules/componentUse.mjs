@@ -1,14 +1,53 @@
 import { blankHtmlExpressions, styleBlockDeclarations, tagAttributes } from '../lib/pageSource.mjs';
 
 export const pageRules = {
-  'unknown-component': { severity: 'error', fix: 'page-component', repair: 'authored' },
-  'unknown-prop': { severity: 'error', fix: 'page-component', repair: 'choice' },
-  'unknown-prop-value': { severity: 'error', fix: 'page-component', repair: 'choice' },
-  'control-size': { severity: 'warn', fix: 'page-component', repair: 'auto' },
-  'multiple-primary': { severity: 'warn', fix: 'page-component', repair: 'authored' },
-  'danger-without-dialog': { severity: 'warn', fix: 'page-component', repair: 'authored' },
-  'native-control': { severity: 'warn', fix: 'page-component', repair: 'authored' },
-  'property-override': { severity: 'warn', fix: 'page-component', repair: 'auto' },
+  'unknown-component': {
+    severity: 'error',
+    repair: 'authored',
+    guidance:
+      'Read the live-tokens-pick-component skill for the shipped component that fits. When none fits, author one with live-tokens-create-component.',
+  },
+  'unknown-prop': {
+    severity: 'error',
+    repair: 'choice',
+    guidance:
+      '`npx live-tokens components <id>` prints the declared props and their values, and `details.accepts` lists the props. Map the prop to one of them, or delete it.',
+  },
+  'unknown-prop-value': {
+    severity: 'error',
+    repair: 'choice',
+    guidance: 'Use a value from the union the message lists, which `details.accepts` also holds.',
+  },
+  'control-size': {
+    severity: 'warn',
+    repair: 'auto',
+    guidance:
+      "A run without --no-fix deletes each attribute it can bound whole. Delete the rest by hand. The shipped default is the page's size. When that default is wrong for the project, retune the component in /live-tokens/components.",
+  },
+  'multiple-primary': {
+    severity: 'warn',
+    repair: 'authored',
+    guidance:
+      'Keep the action that completes the main task primary. A Button with no variant counts as primary. Use secondary for supporting or related actions, and outline for unrelated or informational actions.',
+  },
+  'danger-without-dialog': {
+    severity: 'warn',
+    repair: 'authored',
+    guidance:
+      "Open a Dialog from the danger Button or IconButton, and run the action from the Dialog's confirm. The rule fires once per page, when the page imports no Dialog. For other actions, assign emphasis by the action's relationship to the main task.",
+  },
+  'native-control': {
+    severity: 'warn',
+    repair: 'authored',
+    guidance:
+      'Replace the native element with the shipped component the message names: Button or IconButton, Input, or MenuSelect.',
+  },
+  'property-override': {
+    severity: 'warn',
+    repair: 'auto',
+    guidance:
+      "A run without --no-fix deletes the declaration or the style: directive. A setProperty call is code around the value, so rewrite it by hand. Retune the component's semantic property for the whole project at /live-tokens/components.",
+  },
 };
 
 export const COMPONENT_IMPORT =

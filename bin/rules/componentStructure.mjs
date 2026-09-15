@@ -4,20 +4,82 @@ import { catalogueOf } from '../lib/catalogue.mjs';
 import { STATE_TOKENS, editorTokenRefs, readKnownSuffixes, tokenSuffix } from '../lib/componentSource.mjs';
 import { PKG_ROOT, builtInIds } from '../lib/tokenVocabulary.mjs';
 
+const RUNTIME = 'Wire the component as the recipe in live-tokens-create-component wires it.';
+
+const PROPERTY_NAME =
+  'Rename the semantic property to the name a shipped component uses for the same role. The vocabulary and the state model are in live-tokens-create-component.';
+
+const EDITOR =
+  'Fix the editor schema, states, or preview props by the Component editor section of live-tokens-create-component.';
+
 export const componentRules = {
-  'invalid-id': { severity: 'error', fix: 'runtime', repair: 'authored' },
-  'missing-file': { severity: 'error', fix: 'runtime', repair: 'authored' },
-  'missing-root-block': { severity: 'error', fix: 'runtime', repair: 'authored' },
-  'no-tokens': { severity: 'error', fix: 'runtime', repair: 'authored' },
-  'missing-description': { severity: 'warn', fix: 'runtime', repair: 'authored' },
-  'state-after-property': { severity: 'error', fix: 'property-name', repair: 'authored' },
-  'disabled-is-terminal': { severity: 'error', fix: 'property-name', repair: 'authored' },
-  'unknown-suffix': { severity: 'error', fix: 'property-name', repair: 'authored' },
-  'phantom-editor-token': { severity: 'error', fix: 'editor', repair: 'authored' },
-  'missing-component-const': { severity: 'error', fix: 'editor', repair: 'authored' },
-  'missing-all-tokens': { severity: 'error', fix: 'editor', repair: 'authored' },
-  'missing-registration': { severity: 'error', fix: 'registration', repair: 'authored' },
-  'phantom-link': { severity: 'warn', fix: 'editor', repair: 'authored' },
+  'invalid-id': {
+    severity: 'error',
+    repair: 'authored',
+    guidance: `Give the component an id of lowercase letters and digits with no dashes, and use it in the runtime, the editor, and the registration. ${RUNTIME}`,
+  },
+  'missing-file': {
+    severity: 'error',
+    repair: 'authored',
+    guidance: `Create the runtime or editor file the message names. ${RUNTIME}`,
+  },
+  'missing-root-block': {
+    severity: 'error',
+    repair: 'authored',
+    guidance: `Declare the semantic properties in a :global(:root) block in the runtime's <style>. ${RUNTIME}`,
+  },
+  'no-tokens': {
+    severity: 'error',
+    repair: 'authored',
+    guidance: `Declare the component's --<id>-* semantic properties in its :global(:root) block. ${RUNTIME}`,
+  },
+  'missing-description': {
+    severity: 'warn',
+    repair: 'authored',
+    guidance:
+      "Add the catalogue export to the runtime's <script module> block, with description, useFor, and notFor as string literals. The message names the field that is missing or malformed, and `npx live-tokens components <id>` prints the entry once it is there.",
+  },
+  'state-after-property': {
+    severity: 'error',
+    repair: 'authored',
+    guidance: `Move the state ahead of the property suffix, such as -hover-surface. ${PROPERTY_NAME}`,
+  },
+  'disabled-is-terminal': {
+    severity: 'error',
+    repair: 'authored',
+    guidance: `Disabled is terminal, so a name that joins disabled with another state never paints. Delete the semantic property, or rename it. ${PROPERTY_NAME}`,
+  },
+  'unknown-suffix': {
+    severity: 'error',
+    repair: 'authored',
+    guidance: `End the name in a suffix check-component accepts. references/token-naming.md in live-tokens-create-component lists every suffix, and the suffix selects the editor control. ${PROPERTY_NAME}`,
+  },
+  'phantom-editor-token': {
+    severity: 'error',
+    repair: 'authored',
+    guidance: `The editor names a semantic property the runtime never declares. Point the row at a declared property, or declare the property in the runtime's :global(:root) block. ${EDITOR}`,
+  },
+  'missing-component-const': {
+    severity: 'error',
+    repair: 'authored',
+    guidance: `Declare const component = '<id>' in the editor's <script module> block. ${EDITOR}`,
+  },
+  'missing-all-tokens': {
+    severity: 'error',
+    repair: 'authored',
+    guidance: `Export allTokens from the editor's <script module> block. ${EDITOR}`,
+  },
+  'missing-registration': {
+    severity: 'error',
+    repair: 'authored',
+    guidance:
+      'Register the component in the shared module the Registration section of live-tokens-create-component wires up, importable by the app and by check-component --tests. The call is registerComponent({ id }) or an entry in bootLiveTokens({ components }).',
+  },
+  'phantom-link': {
+    severity: 'warn',
+    repair: 'authored',
+    guidance: `Pass { component, variants } to buildTypeGroupTokens or buildTypeGroupFontTokens, so each slot keeps its own font keys. ${EDITOR}`,
+  },
 };
 
 /** True when `id` is one of the package's own components. */

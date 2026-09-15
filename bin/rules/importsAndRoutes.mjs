@@ -2,15 +2,37 @@ import { basename, relative } from 'node:path';
 import { deepImportRepair } from '../lib/catalogue.mjs';
 import { lineOf } from '../lib/findings.mjs';
 
+const shared = {
+  'deep-import': {
+    severity: 'error',
+    repair: 'auto',
+    guidance:
+      'A run without --no-fix rewrites a /src/system/components/<Name>.svelte specifier to the public /components/<Name>.svelte. Import any other deep specifier from a public subpath, which `details.exports` lists.',
+  },
+};
+
 export const pageRules = {
-  'deep-import': { severity: 'error', fix: 'routing', repair: 'auto' },
-  'reserved-route': { severity: 'error', fix: 'routing', repair: 'authored' },
-  'site-css-in-main': { severity: 'error', fix: 'routing', repair: 'authored' },
-  'missing-source': { severity: 'warn', fix: 'routing', repair: 'authored' },
+  'reserved-route': {
+    severity: 'error',
+    repair: 'authored',
+    guidance: 'Move the route out of /live-tokens/*.',
+  },
+  'site-css-in-main': {
+    severity: 'error',
+    repair: 'authored',
+    guidance:
+      "Delete the import from main.ts, and add it to each page's <script>. Page CSS then stays off the editor routes.",
+  },
+  'missing-source': {
+    severity: 'warn',
+    repair: 'authored',
+    guidance: "Add source: 'src/...' to the route entry.",
+  },
+  ...shared,
 };
 
 export const componentRules = {
-  'deep-import': { severity: 'error', fix: 'editor', repair: 'auto' },
+  ...shared,
 };
 
 // Deep imports into the package internals are not a supported API.

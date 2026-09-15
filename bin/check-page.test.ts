@@ -3,7 +3,7 @@ import { mkdtempSync, mkdirSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 // @ts-expect-error — plain .mjs module, no types
-import { PAGE_RULES, PAGE_RULE_FIX, checkPages, discoverPages } from './check-page.mjs';
+import { PAGE_RULES, checkPages, discoverPages } from './check-page.mjs';
 // @ts-expect-error — plain .mjs module, no types
 import { applySeverity, countBySeverity, parseCheckFlags } from './lib/findings.mjs';
 // @ts-expect-error — plain .mjs module, no types
@@ -634,18 +634,19 @@ describe("this repo's own pages", () => {
   });
 });
 
-describe('the rule-to-fix registry', () => {
-  it('names a fix slug and a repair for every rule, and no rule that does not exist', () => {
-    expect(Object.keys(PAGE_RULE_FIX).sort()).toEqual(Object.keys(PAGE_RULES).sort());
+describe('the page rule table', () => {
+  it('names a severity and a repair for every rule', () => {
     for (const [id, rule] of Object.entries(PAGE_RULES) as [string, { severity: string; repair: string }][]) {
       expect(['off', 'warn', 'error'], id).toContain(rule.severity);
       expect(['auto', 'choice', 'authored'], id).toContain(rule.repair);
     }
   });
 
-  it('resolves every slug the skills document', () => {
-    const documented = new Set(['page-token', 'page-component', 'page-layout', 'page-paint', 'routing', 'tooling', 'coverage']);
-    expect([...new Set(Object.values(PAGE_RULE_FIX))].filter((s) => !documented.has(s as string))).toEqual([]);
+  it('gives every rule non-empty guidance', () => {
+    const missing = Object.entries(PAGE_RULES as Record<string, { guidance?: unknown }>)
+      .filter(([, rule]) => typeof rule.guidance !== 'string' || rule.guidance.trim() === '')
+      .map(([id]) => id);
+    expect(missing).toEqual([]);
   });
 });
 
