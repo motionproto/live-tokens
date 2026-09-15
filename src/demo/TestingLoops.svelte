@@ -14,7 +14,6 @@
     { id: 'skills', title: 'Skills and checkers' },
     { id: 'test-runs', title: 'Testing pages and components' },
     { id: 'walkthrough', title: 'Build and check a page' },
-    { id: 'gates', title: 'Checks for rules and skills' },
     { id: 'reference', title: 'Rule reference' },
   ];
 
@@ -315,70 +314,6 @@
     </div>
   </section>
 
-  <section class="chapter" id="gates" aria-labelledby="gates-title">
-    <div class="chapter-body">
-      <h2 id="gates-title">Checks for rules and skills</h2>
-      <p>Tests verify the testing tools too. Rules must detect known defects, and each skill must describe commands and flags the CLI accepts.</p>
-
-      <figure>
-        <div class="figure-stage">
-          <Panel>
-            <!-- svelte-ignore a11y_no_noninteractive_tabindex (Keyboard users need to scroll the diagram.) -->
-            <div class="figure-scroll" role="region" aria-label="Figure 3" tabindex="0">
-          <svg class="dg" width="1200" height="400" viewBox="0 0 1200 400" role="img" aria-label="A skill states the contract in prose. A checker rule detects a breach. A finding carries the rule and its guidance, and the skill makes the repair from that guidance. A gate guards each step: check:skills, the checker unit tests and defect fixtures, and the guidance test.">
-            <text class="lbl" x="181.3" y="53.3" text-anchor="middle">check:skills</text>
-            <text class="lbl" x="181.3" y="74.7" text-anchor="middle">check:skill-atlas · check:skill-sources</text>
-            <line class="lead" x1="181.3" y1="93.3" x2="181.3" y2="154.7" />
-
-            <text class="lbl" x="600" y="53.3" text-anchor="middle">bin/check-page.test.ts</text>
-            <text class="lbl" x="600" y="74.7" text-anchor="middle">tests/e2e/contract-defects · page-defects</text>
-            <line class="lead" x1="600" y1="93.3" x2="600" y2="154.7" />
-
-            <text class="lbl" x="1018.7" y="53.3" text-anchor="middle">gives every rule non-empty guidance</text>
-            <text class="lbl" x="1018.7" y="74.7" text-anchor="middle">one test per rule table</text>
-            <line class="lead" x1="1018.7" y1="93.3" x2="1018.7" y2="154.7" />
-
-            <rect class="box" x="40" y="160" width="282.7" height="112" rx="4" />
-            <text class="t" x="61.3" y="194.7">SKILL.md</text>
-            <text class="s" x="61.3" y="220">the contract in prose</text>
-            <text class="s" x="61.3" y="244">the model reads this</text>
-
-            <rect class="box" x="458.7" y="160" width="282.7" height="112" rx="4" />
-            <text class="t" x="480" y="194.7">The rule</text>
-            <text class="s" x="480" y="220">one id and its guidance</text>
-            <text class="s" x="480" y="244">severity per project or run</text>
-
-            <rect class="box" x="877.3" y="160" width="282.7" height="112" rx="4" />
-            <text class="t" x="898.7" y="194.7">The finding</text>
-            <text class="m" x="898.7" y="220">rule · line · guidance</text>
-            <text class="s" x="898.7" y="244">returns to the skill</text>
-
-            <path class="flow" d="M322.7,216 H448" />
-            <text class="lbl" x="385.3" y="205.3" text-anchor="middle">becomes</text>
-            <path class="flow" d="M741.3,216 H866.7" />
-            <text class="lbl" x="804" y="205.3" text-anchor="middle">on failure</text>
-
-            <path class="back" d="M1018.7,272 V349.3 H181.3 V274.7" />
-            <text class="rule" x="600" y="338.7" text-anchor="middle">the skill makes the repair from the guidance</text>
-          </svg>
-            </div>
-          </Panel>
-        </div>
-        <figcaption><b>Figure 3. Rules and repairs.</b> Each rule carries guidance for its repair, and every finding includes it. The skill that ran the check makes the repair from that guidance.</figcaption>
-      </figure>
-
-      <dl class="defs">
-        <div><dt>Defect fixtures</dt><dd><code>tests/e2e/contract-defects</code> and <code>page-defects</code> introduce known defects and confirm that the browser test rules catch them.</dd></div>
-        <div><dt>Checker unit tests</dt><dd><code>bin/check-page.test.ts</code> and <code>bin/check-component.test.ts</code> test the static rules.</dd></div>
-        <div><dt>Guidance test</dt><dd>One test in each checker test file fails when a rule lacks guidance.</dd></div>
-        <div><dt>check:skills</dt><dd>Checks skill names, length, references, commands, and flags. Every CLI command except <code>create</code> and <code>setup-claude</code> must appear in a skill, along with all its flags.</dd></div>
-        <div><dt>check:skill-atlas and check:skill-sources</dt><dd>Keep the Skill Atlas citations and skill sources in sync with each <code>SKILL.md</code>.</dd></div>
-        <div><dt>Smoke runs</dt><dd>Install the package in temporary projects, build them, and run the component and page tests.</dd></div>
-      </dl>
-
-    </div>
-  </section>
-
   <section class="chapter" id="reference" aria-labelledby="reference-title">
     <div class="chapter-body">
       <h2 id="reference-title">Rule reference</h2>
@@ -551,7 +486,7 @@
     column-gap: var(--columns-gutter);
     max-width: var(--columns-max-width);
     margin-inline: auto;
-    padding: var(--space-32) var(--space-32) var(--space-64);
+    padding: var(--space-48) var(--space-32) var(--space-64);
     color: var(--text-primary);
   }
 
@@ -573,29 +508,33 @@
     scroll-margin-top: var(--space-32);
   }
 
-  /* Prose uses seven columns; diagrams and skill groups use the full grid. */
+  /* Text starts on column 2, matching the demo page's inset. Diagrams and
+     skill groups break out to the full grid; the diagrams draw at 1200px. */
   .chapter-body {
     display: contents;
   }
 
   .chapter-body > * {
-    grid-column: 1 / 8;
+    grid-column: 2 / 9;
     min-width: var(--space-0);
   }
 
-  .chapter-body > .trio,
-  .chapter-body > figure,
   .chapter-body > h2 {
+    grid-column: 2 / -2;
+  }
+
+  .chapter-body > .trio,
+  .chapter-body > figure {
     grid-column: 1 / -1;
   }
 
   .chapter-body > .defs,
   .chapter-body > .reference-groups {
-    grid-column: 1 / 10;
+    grid-column: 2 / 11;
   }
 
   .chapter-body > .repair-levels {
-    grid-column: 1 / 8;
+    grid-column: 2 / 9;
   }
 
   h1 {
@@ -837,7 +776,7 @@
   }
 
   figcaption {
-    grid-column: 1 / 8;
+    grid-column: 2 / 9;
     margin-top: var(--space-16);
     color: var(--text-secondary);
   }
@@ -920,11 +859,6 @@
     stroke-width: var(--border-width-3);
   }
 
-  .dg :global(.lead) {
-    stroke: var(--border-neutral-subtle);
-    stroke-width: var(--border-width-1);
-    stroke-dasharray: var(--border-width-3) var(--border-width-4);
-  }
 
   .markers :global(.head) {
     fill: var(--text-secondary);
@@ -935,7 +869,7 @@
   }
 
   footer {
-    grid-column: 1 / -1;
+    grid-column: 2 / -2;
     padding-top: var(--space-24);
     border-top: var(--border-width-1) solid var(--border-neutral-subtle);
     font-family: var(--code-font-family);
@@ -948,6 +882,8 @@
 
   @media (max-width: 1023px) {
     .chapter-body > *,
+    .chapter-body > h2,
+    footer,
     .chapter-body > .defs,
     .chapter-body > .repair-levels,
     .chapter-body > .reference-groups,
