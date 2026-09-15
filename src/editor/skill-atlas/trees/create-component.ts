@@ -211,26 +211,17 @@ export const createComponent: SkillTree = {
       "anchor": "Each remaining finding carries a rule id, a line, and its `g"
     },
     {
-      "id": "cc-build",
+      "id": "cc-reply",
       "row": 8,
       "kind": "step",
-      "title": "Run the Svelte check and the build",
-      "desc": "Both run once check-component exits 0.",
-      "lines": [231, 231],
-      "anchor": "Run the project's Svelte check and its build."
-    },
-    {
-      "id": "cc-reply",
-      "row": 9,
-      "kind": "step",
       "title": "Reply with the result",
-      "desc": "The files, the id, the props, and each check's result.",
+      "desc": "The files, the id, the props, and the result of check-component, the Svelte check, and the build.",
       "lines": [18, 18],
       "anchor": "Reply with the files, the id, the props, and each check's re"
     },
     {
       "id": "cc-page",
-      "row": 10,
+      "row": 9,
       "kind": "hand",
       "title": "live-tokens-create-page",
       "desc": "The component is done. Placing it on a page is the next skill.",
@@ -276,12 +267,8 @@ export const createComponent: SkillTree = {
     },
     {
       "from": "cc-checks",
-      "to": "cc-build",
+      "to": "cc-reply",
       "label": "exit 0"
-    },
-    {
-      "from": "cc-build",
-      "to": "cc-reply"
     },
     {
       "from": "cc-reply",
