@@ -420,19 +420,19 @@ Ask for something the catalogue lacks: "author a Rating component", "make my Chi
 
 The skill covers the recipe: the runtime `.svelte` file with its `:global(:root)` token block, the editor `.svelte` file exporting `allTokens` and its variant groups, the `registerComponent()` call, and the catalogue entry that keeps `live-tokens-pick-component` current. It carries the naming scheme, the token suffix vocabulary, the state model (component states such as selected and disabled are separate from interaction states such as hover), and the public-imports rule, and points at the shipped `Toggle` in `node_modules` as the worked example. Linked siblings, intrinsics, and the fixed-overlay portal rule sit in reference files the skill reads only when a component needs them.
 
-### `live-tokens-check-compliance`
-
-Ask how things stand, or ask for the code to catch up: "check this project against the design system and fix it", "audit the pricing page", "make check:design pass", "fix the design-system warnings", "replace the hex and pixel values with tokens", "review this before I upgrade".
-
-The skill runs `npx live-tokens report --json`, which is the project as facts: pending `tokens.css` migrations, the tokens each component declares and reads, which page renders which component, and both checkers' findings by rule under the project's severities and under `--strict`. It then runs `npx live-tokens migrate` and both checkers, which apply every `auto` repair themselves and return each remaining finding with its own `guidance`. The skill groups what remains by rule, largest error group first, makes each repair from its guidance, and re-runs until both checkers exit 0. It reports what `--strict` adds, clears the warnings when the request covers them, and adds `check:design` to the build with `--no-fix`. The reply names the fixes the checkers applied, the changes by rule with any visible shift, and each finding left with its reason. It never silences a rule to pass and never adds a token to `tokens.css` to match a value a page happened to use. A finding the user chooses to keep goes into the config entry its `exception` field names.
-
 Verify the result:
 
 ```bash
 npx @motion-proto/live-tokens check-component <id>
 ```
 
-The validator checks the file layout, the `:global(:root)` block, the token-suffix vocabulary, the state-before-property rule, the public-imports rule, the `registerComponent({ id })` call, and that every default resolves to a theme token rather than a literal. Exit code 0 means the static contract is met. A project scaffolded by `create` runs it, with `check-page`, as `npm run check:design` before every `vite build`, so a component or page that opts out of the theme cannot ship by accident.
+The validator checks the file layout, the `:global(:root)` block, the token-suffix vocabulary, the state-before-property rule, the public-imports rule, the `registerComponent({ id })` call, and that every default resolves to a design token rather than a literal. Exit code 0 means the static contract is met. A project scaffolded by `create` runs it, with `check-page`, as `npm run check:design` before every `vite build`, so a component or page that opts out of the theme cannot ship by accident.
+
+### `live-tokens-check-compliance`
+
+Ask how things stand, or ask for the code to catch up: "check this project against the design system and fix it", "audit the pricing page", "make check:design pass", "fix the design-system warnings", "replace the hex and pixel values with tokens", "review this before I upgrade".
+
+The skill runs `npx live-tokens report --json`, which is the project as facts: pending `tokens.css` migrations, the tokens each component declares and reads, which page renders which component, and both checkers' findings by rule under the project's severities and under `--strict`. It then runs `npx live-tokens migrate` and both checkers, which apply every `auto` repair themselves and return each remaining finding with its own `guidance`. The skill groups what remains by rule, largest error group first, makes each repair from its guidance, and re-runs until both checkers exit 0. It reports what `--strict` adds, clears the warnings when the request covers them, and adds `check:design` to the build with `--no-fix`. The reply names the fixes the checkers applied, the changes by rule with any visible shift, and each finding left with its reason. It never silences a rule to pass and never adds a token to `tokens.css` to match a value a page happened to use. A finding the user chooses to keep goes into the config entry its `exception` field names.
 
 ## From edit to production
 
