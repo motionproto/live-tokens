@@ -1,5 +1,24 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+- **The checkers bring `tokens.css` up to the installed package.** Before
+  either checker reads the design tokens, it applies every pending additive
+  migration and lists it in `fix.applied` under `tokens-migration`. A pending
+  breaking migration is a `tokens-breaking-migration` finding with
+  `repair: 'choice'`, and `npx live-tokens migrate` still applies it.
+  `--no-fix` reports both and writes nothing.
+- **check-compliance runs only the checkers.** It no longer runs
+  `npx live-tokens report` or `npx live-tokens migrate` first. `report` stays
+  a CLI command.
+
+### Fixed
+
+- **`migrate`'s usage text names the breaking migrations it applies.** It
+  said additive only, and it has always applied both.
+
 ## 0.79.0 — Checks fix what they find
 
 ### Added

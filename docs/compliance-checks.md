@@ -2,25 +2,27 @@
 
 Every rule and check behind the counts in `docs/compliance-loop.html`, drawn from `bin/`, `src/testing/`, and `scripts/` at v0.78.0. Rules marked (warn) default to a warning; every other rule defaults to an error.
 
-## check-page, static (17)
+## check-page, static (19)
 
-1. `unknown-component`: an import names a component the catalogue does not hold.
-2. `unknown-prop`: a component receives a prop it does not declare.
-3. `unknown-prop-value`: a prop receives a value outside the set the component accepts.
-4. `deep-import`: an import reaches into package internals.
-5. `unknown-token`: a `var()` names something that is neither a design token, a semantic property, nor declared in the file.
-6. `color-literal`: a CSS value paints a literal colour where a design token belongs.
-7. `reserved-route`: a route sits inside `/live-tokens/*`.
-8. `site-css-in-main`: `main.ts` imports `site.css`.
-9. `raw-text-axis`: one type axis is set on its own, or with an absolute literal like `16px`, instead of from a text style bundle.
-10. `dimension-literal` (warn): spacing, stroke, or radius is written as a raw dimension.
-11. `hardcoded-columns` (warn): a grid spells out `repeat(N, 1fr)` with four or more columns.
-12. `missing-source` (warn): a route entry has no `source`.
-13. `control-size` (warn): the page sets `size` on a shipped component.
-14. `multiple-primary` (warn): the page holds more than one primary Button.
-15. `danger-without-dialog` (warn): a danger Button appears with no Dialog imported.
-16. `native-control` (warn): a bare button, input, select, or textarea is used. Hidden inputs are allowed.
-17. `property-override` (warn): the page redeclares a component's semantic property.
+1. `tokens-migration`: `tokens.css` lacks design tokens an additive migration adds. A run without `--no-fix` applies it.
+2. `tokens-breaking-migration`: a breaking migration that renames, removes, or rewrites design tokens is pending in `tokens.css`.
+3. `unknown-component`: an import names a component the catalogue does not hold.
+4. `unknown-prop`: a component receives a prop it does not declare.
+5. `unknown-prop-value`: a prop receives a value outside the set the component accepts.
+6. `deep-import`: an import reaches into package internals.
+7. `unknown-token`: a `var()` names something that is neither a design token, a semantic property, nor declared in the file.
+8. `color-literal`: a CSS value paints a literal colour where a design token belongs.
+9. `reserved-route`: a route sits inside `/live-tokens/*`.
+10. `site-css-in-main`: `main.ts` imports `site.css`.
+11. `raw-text-axis`: one type axis is set on its own, or with an absolute literal like `16px`, instead of from a text style bundle.
+12. `dimension-literal` (warn): spacing, stroke, or radius is written as a raw dimension.
+13. `hardcoded-columns` (warn): a grid spells out `repeat(N, 1fr)` with four or more columns.
+14. `missing-source` (warn): a route entry has no `source`.
+15. `control-size` (warn): the page sets `size` on a shipped component.
+16. `multiple-primary` (warn): the page holds more than one primary Button.
+17. `danger-without-dialog` (warn): a danger Button appears with no Dialog imported.
+18. `native-control` (warn): a bare button, input, select, or textarea is used. Hidden inputs are allowed.
+19. `property-override` (warn): the page redeclares a component's semantic property.
 
 ## page-\*, rendered (5)
 
@@ -32,28 +34,30 @@ These run at each screen size in the testing settings, by default 1280×900 and 
 4. `page-grid`: the page draws a `--columns-count` grid, and section edges sit on column lines within 1px. It reports "inapplicable" below 768px.
 5. `page-overflow`: nothing scrolls sideways, no box overflows its width, and no component extends past the element that clips it.
 
-## check-component, static (20)
+## check-component, static (22)
 
-1. `invalid-id`: the id holds anything other than lowercase letters and digits.
-2. `missing-file`: the runtime or editor file is absent.
-3. `missing-root-block`: the runtime has no `:global(:root)` block.
-4. `no-tokens`: that block declares no `--<id>-*` property.
-5. `missing-description` (warn): the runtime file's `catalogue` export is absent, or `description`, `useFor`, or `notFor` in it is not a plain string literal.
-6. `unread-token` (warn): the runtime declares a property in `:global(:root)` and reads it nowhere in its own CSS.
-7. `state-after-property`: a state follows the property in a name (`-surface-hover`).
-8. `disabled-is-terminal`: a name pairs `disabled` with a state that never paints.
-9. `unknown-suffix`: a name ends in a suffix the editor has no picker for.
-10. `phantom-editor-token`: an editor row names a property the runtime never declares.
-11. `color-literal`: a default is a literal colour.
-12. `missing-component-const`: the editor lacks `const component = '<id>'`.
-13. `missing-all-tokens`: the editor does not export `allTokens`.
-14. `deep-import`: the runtime, editor, or registration imports package internals.
-15. `missing-registration`: nothing under `src/` registers the id.
-16. `unknown-token-ref`: a default reads a name that is neither a design token nor one of the component's own properties.
-17. `default-not-token`: a default has no token behind it and no declared intrinsic.
-18. `phantom-link` (warn): a type-group font helper links every slot's fonts into one.
-19. `dimension-literal` (warn): a default pins a raw dimension.
-20. `config-token`: an alias in `component-configs/<id>/default.json` names something the vocabulary lacks, or a literal stands on a property with no intrinsic.
+1. `tokens-migration`: `tokens.css` lacks design tokens an additive migration adds. A run without `--no-fix` applies it.
+2. `tokens-breaking-migration`: a breaking migration that renames, removes, or rewrites design tokens is pending in `tokens.css`.
+3. `invalid-id`: the id holds anything other than lowercase letters and digits.
+4. `missing-file`: the runtime or editor file is absent.
+5. `missing-root-block`: the runtime has no `:global(:root)` block.
+6. `no-tokens`: that block declares no `--<id>-*` property.
+7. `missing-description` (warn): the runtime file's `catalogue` export is absent, or `description`, `useFor`, or `notFor` in it is not a plain string literal.
+8. `unread-token` (warn): the runtime declares a property in `:global(:root)` and reads it nowhere in its own CSS.
+9. `state-after-property`: a state follows the property in a name (`-surface-hover`).
+10. `disabled-is-terminal`: a name pairs `disabled` with a state that never paints.
+11. `unknown-suffix`: a name ends in a suffix the editor has no picker for.
+12. `phantom-editor-token`: an editor row names a property the runtime never declares.
+13. `color-literal`: a default is a literal colour.
+14. `missing-component-const`: the editor lacks `const component = '<id>'`.
+15. `missing-all-tokens`: the editor does not export `allTokens`.
+16. `deep-import`: the runtime, editor, or registration imports package internals.
+17. `missing-registration`: nothing under `src/` registers the id.
+18. `unknown-token-ref`: a default reads a name that is neither a design token nor one of the component's own properties.
+19. `default-not-token`: a default has no token behind it and no declared intrinsic.
+20. `phantom-link` (warn): a type-group font helper links every slot's fonts into one.
+21. `dimension-literal` (warn): a default pins a raw dimension.
+22. `config-token`: an alias in `component-configs/<id>/default.json` names something the vocabulary lacks, or a literal stands on a property with no intrinsic.
 
 ## contract-\*, rendered (11)
 

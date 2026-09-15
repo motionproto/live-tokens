@@ -33,8 +33,10 @@ import {
   formatFindings,
   parseCheckFlags,
   readChecksConfig,
+  resolveRuleSeverity,
   toJson,
 } from './lib/findings.mjs';
+import { checkTokensCssMigrations } from './rules/tokens.mjs';
 import {
   runMigrate,
   formatMigrateResult,
@@ -102,7 +104,8 @@ check-component and check-page also accept:
                               [...] } drops paths from discovery entirely)
   --no-fix                    Report every finding and edit nothing, for a
                               build or CI. Without it, both checkers first
-                              apply every finding whose repair is auto (a
+                              apply every additive tokens.css migration and
+                              every finding whose repair is auto (a
                               deep import into a component, a raw dimension
                               with one nearest design token, a shipped
                               component's size prop, a semantic property
@@ -150,7 +153,8 @@ check-component and check-page also accept:
                               without writing.
   migrate [--check] [--write] [--tokens <path>]
                               Reconcile the project with the installed package:
-                              applies additive tokens.css migrations, moves a
+                              applies every tokens.css migration, breaking
+                              ones included, moves a
                               pre-0.48 data tree onto the current directory
                               names, heals what the retired pointer files named,
                               and reports source references to the
@@ -226,6 +230,14 @@ function shiftNote(f) {
   return `  shift ${shifts.join(', ')}`;
 }
 
+async function migrateTokensCss(rules, opts) {
+  const root = process.cwd();
+  const config = readChecksConfig(root);
+  const apply = !opts.noFix && resolveRuleSeverity('tokens-migration', rules, opts, config) !== 'off';
+  const { applied, findings } = await checkTokensCssMigrations({ root, apply });
+  return { applied: applySeverity(applied, rules, opts, config), findings };
+}
+
 /** Resolves severities and exclusions first, so a silenced rule or an excluded
  *  file is never edited. */
 function applyStaticFixes(findings, rules, opts, { exclude } = {}) {
@@ -236,7 +248,11 @@ function applyStaticFixes(findings, rules, opts, { exclude } = {}) {
 function formatFixes({ applied, skipped }) {
   const lines = [];
   for (const f of applied) {
-    lines.push(`  fixed    ${f.file}:${f.line}  ${f.details.patch.from} → ${f.details.patch.to || '(removed)'}  [${f.rule}]${shiftNote(f)}`);
+    lines.push(
+      f.details.patch
+        ? `  fixed    ${f.file}:${f.line}  ${f.details.patch.from} → ${f.details.patch.to || '(removed)'}  [${f.rule}]${shiftNote(f)}`
+        : `  fixed    ${f.file}  ${f.details.migrations.map((m) => m.id).join(', ')}  [${f.rule}]`,
+    );
   }
   for (const f of skipped) lines.push(`  skipped  ${f.file}:${f.line}  ${f.details.patch.from}  [${f.rule}]`);
   if (lines.length === 0) return '';
@@ -291,24 +307,26 @@ if (command === 'check-component') {
     console.log('✓ check-component: no component authored under src/system/components yet.');
     process.exit(0);
   }
+  const migration = await migrateTokensCss(COMPONENT_RULES, opts);
   let results = ids.map((id) => [id, checkComponent(id)]);
   const label = ids.length === 1 ? `check-component ${ids[0]}${opts.tests ? ' --tests' : ''}` : `check-component${opts.tests ? ' --tests' : ''}`;
   let fix;
   if (!opts.noFix) {
     fix = applyStaticFixes(results.flatMap(([, r]) => r.findings), COMPONENT_RULES, opts);
     if (fix.applied.length > 0) results = ids.map((id) => [id, checkComponent(id)]);
+    fix.applied.unshift(...migration.applied);
   }
-  if (!opts.tests && ids.length === 1 && !opts.json && !opts.strict && opts.off.length + opts.warn.length + opts.error.length === 0) {
+  if (!opts.tests && migration.findings.length === 0 && ids.length === 1 && !opts.json && !opts.strict && opts.off.length + opts.warn.length + opts.error.length === 0) {
     const [id, result] = results[0];
     console.log([fix ? formatFixes(fix) : '', formatReport(id, result)].filter(Boolean).join('\n'));
     process.exit(result.errors.length === 0 ? 0 : 1);
   }
   if (!opts.tests) {
-    reportChecks(label, results.flatMap(([, r]) => r.findings), ids.length, COMPONENT_RULES, opts, { fix });
+    reportChecks(label, [...migration.findings, ...results.flatMap(([, r]) => r.findings)], ids.length, COMPONENT_RULES, opts, { fix });
   }
   const { hasHardFailure, runContractTests } = await import('./contractRunner.mjs');
   const testOutcome = await runContractTests(opts.rest[0], { root: process.cwd() });
-  const findings = dedupeAliasFindings([...results.flatMap(([, r]) => r.findings), ...testOutcome.findings]);
+  const findings = dedupeAliasFindings([...migration.findings, ...results.flatMap(([, r]) => r.findings), ...testOutcome.findings]);
   reportChecks(label, findings, Math.max(ids.length, 1), COMPONENT_RULES, opts, {
     fix,
     coverage: testOutcome.coverage,
@@ -319,12 +337,15 @@ if (command === 'check-component') {
 if (command === 'check-page') {
   const opts = parseCheckFlags(rest);
   const targets = opts.rest.length > 0 ? opts.rest : discoverPages(process.cwd());
+  const migration = await migrateTokensCss(PAGE_RULES, opts);
   let { findings, checked } = checkPages(targets, { root: process.cwd() });
   let fix;
   if (!opts.noFix) {
     fix = applyStaticFixes(findings, PAGE_RULES, opts, { exclude: true });
     if (fix.applied.length > 0) ({ findings, checked } = checkPages(targets, { root: process.cwd() }));
+    fix.applied.unshift(...migration.applied);
   }
+  findings = [...migration.findings, ...findings];
   if (!opts.tests) {
     reportChecks('check-page', findings, checked, PAGE_RULES, opts, { exclude: true, fix });
   }

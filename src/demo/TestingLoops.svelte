@@ -75,7 +75,7 @@
       <ul class="trio">
         <li><Card title="Theme skills"><span class="name">create-theme</span> passes color, type, and geometry tasks to <span class="name">set-colors</span>, <span class="name">set-type</span>, and <span class="name">set-geometry</span>.</Card></li>
         <li><Card title="Build skills"><span class="name">create-page</span> builds a page from the component catalogue. It calls <span class="name">pick-component</span> to choose a component and <span class="name">create-component</span> to write a new one.</Card></li>
-        <li><Card title="Check skills"><span class="name">check-compliance</span> reads <code>npx live-tokens report</code>, runs the token migrations, and runs both checkers on the project. It repairs each remaining finding from its guidance and runs the checkers again until they pass.</Card></li>
+        <li><Card title="Check skills"><span class="name">check-compliance</span> runs both checkers on the project, which bring tokens.css up to the installed package and apply every automatic repair. It repairs each remaining finding from its guidance and runs the checkers again until they pass.</Card></li>
       </ul>
       <p>Skills make design decisions. Checkers verify the code and test the result.</p>
 
@@ -385,11 +385,13 @@
       <p>Expand a group to read its rules. The <Badge variant="warning">warn</Badge> label marks a warning by default. Add <code>--strict</code> to treat it as an error.</p>
       <div class="reference-groups">
         <div class="rule-group">
-          <CollapsibleSection label="Page code · 17 rules" variant="hairline" prose={false} open={openRules['0'] ?? false} ontoggle={() => openRules['0'] = !openRules['0']}>
+          <CollapsibleSection label="Page code · 19 rules" variant="hairline" prose={false} open={openRules['0'] ?? false} ontoggle={() => openRules['0'] = !openRules['0']}>
             <Table>
-              <table aria-label="Page code · 17 rules">
+              <table aria-label="Page code · 19 rules">
                 <thead><tr><th scope="col">Rule</th><th scope="col">Description</th></tr></thead>
                 <tbody>
+                  <tr><td>tokens-migration</td><td>An additive migration would add design tokens <code>tokens.css</code> lacks. A run without <code>--no-fix</code> applies it.</td></tr>
+                  <tr><td>tokens-breaking-migration</td><td>A breaking migration that renames, removes, or rewrites design tokens in <code>tokens.css</code> is pending.</td></tr>
                   <tr><td>unknown-component</td><td>An import names a component outside the catalogue.</td></tr>
                   <tr><td>unknown-prop</td><td>A component receives a prop it does not declare.</td></tr>
                   <tr><td>unknown-prop-value</td><td>A prop receives a value outside the set the component accepts.</td></tr>
@@ -429,11 +431,13 @@
           </CollapsibleSection>
         </div>
         <div class="rule-group">
-          <CollapsibleSection label="Component code · 20 rules" variant="hairline" prose={false} open={openRules['2'] ?? false} ontoggle={() => openRules['2'] = !openRules['2']}>
+          <CollapsibleSection label="Component code · 22 rules" variant="hairline" prose={false} open={openRules['2'] ?? false} ontoggle={() => openRules['2'] = !openRules['2']}>
             <Table>
-              <table aria-label="Component code · 20 rules">
+              <table aria-label="Component code · 22 rules">
                 <thead><tr><th scope="col">Rule</th><th scope="col">Description</th></tr></thead>
                 <tbody>
+                  <tr><td>tokens-migration</td><td>An additive migration would add design tokens <code>tokens.css</code> lacks. A run without <code>--no-fix</code> applies it.</td></tr>
+                  <tr><td>tokens-breaking-migration</td><td>A breaking migration that renames, removes, or rewrites design tokens in <code>tokens.css</code> is pending.</td></tr>
                   <tr><td>invalid-id</td><td>The id contains characters other than lowercase letters and digits.</td></tr>
                   <tr><td>missing-file</td><td>The runtime or editor file is missing.</td></tr>
                   <tr><td>missing-root-block</td><td>The runtime has no <code>:global(:root)</code> block.</td></tr>

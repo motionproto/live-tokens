@@ -36,6 +36,7 @@ const RETIRED_FLAGS = new Set(['--carry-from']);
 const UNSKILLED_VERBS = new Map([
   ['create', 'scaffolds the project, so it runs before setup-claude has put a skill in it'],
   ['setup-claude', 'installs the skills, so no skill can be what runs it'],
+  ['report', 'prints the project as facts for a person; check-compliance reads the checkers, which return the fixes and judgment calls themselves'],
 ]);
 
 const PICKER = 'live-tokens-pick-component';

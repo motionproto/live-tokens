@@ -18,6 +18,7 @@ if (command === 'set-colors') {
 if (command === 'set-geometry') {
 if (command === 'set-type') {
 if (command === 'save-theme') {
+if (command === 'report') {
 if (command !== 'setup-claude') {
 
 const USAGE = \`Usage: npx @motion-proto/live-tokens <command> [options]

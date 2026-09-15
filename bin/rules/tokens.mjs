@@ -1,9 +1,11 @@
+import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { relative } from 'node:path';
+import { loadBuiltEngine, resolveTokensCssPath } from '../migrate.mjs';
 import { scaleTokens } from '../lib/catalogue.mjs';
 import { COLOR_SCALES, GEOMETRY_SCALES, STATE_TOKENS, readKindRules, tokenScale, unreadTokens } from '../lib/componentSource.mjs';
 import { colorScaleOfProperty, hasColorLiteral, hasDimensionLiteral, stripVarFallbacks } from '../lib/cssValues.mjs';
 import { readComponentConfig } from '../lib/dataDir.mjs';
-import { findJsonKeyLine } from '../lib/findings.mjs';
+import { findJsonKeyLine, isExcluded } from '../lib/findings.mjs';
 import { geometryScaleOfProperty, resolveGeometryLiteral } from '../lib/geometry.mjs';
 import { declarationPatch, declarations, neutralise, pageDeclaredNames } from '../lib/pageSource.mjs';
 import { isContractToken } from '../lib/tokenVocabulary.mjs';
@@ -35,6 +37,18 @@ const COMPONENT_DEFAULT = 'In a component, make the :global(:root) default read 
 const INTRINSIC = "Declare a structural keyword, such as start, in the editor's `intrinsics`.";
 
 const shared = {
+  'tokens-migration': {
+    severity: 'error',
+    repair: 'auto',
+    guidance:
+      'A run without --no-fix applies these migrations to tokens.css. Each one adds design tokens the installed package reads and changes no existing token. `details.migrations` names them.',
+  },
+  'tokens-breaking-migration': {
+    severity: 'error',
+    repair: 'choice',
+    guidance:
+      'Each migration in `details.migrations` renames, removes, or rewrites design tokens in tokens.css. Read the plan with `npx live-tokens migrate --check`, apply it with `npx live-tokens migrate`, and move any page or component that reads an old name to the new one. To keep tokens.css as it is, record the `exception`.',
+  },
   'color-literal': {
     severity: 'error',
     repair: 'choice',
@@ -360,4 +374,53 @@ function checkDeclaration(decl, { text, region, vocab, at }, add) {
       { details: { columns: Number(columns[1]), candidates: COLUMN_FORMS } },
     );
   }
+}
+
+/**
+ * Runs before either checker reads the vocabulary, so a tokens.css behind the
+ * installed package never surfaces as unknown tokens. `engine` is a test seam.
+ */
+export async function checkTokensCssMigrations({ root = process.cwd(), apply, engine } = {}) {
+  const result = { applied: [], findings: [] };
+  const loaded = engine ?? (await loadBuiltEngine());
+  if (!loaded) return result;
+  const { TOKENS_CSS_MIGRATIONS, readLiveTokensConfig, runAdditiveTokensCssMigrations, runTokensCssMigrations } = loaded;
+  const tokensPath = resolveTokensCssPath(null, readLiveTokensConfig().tokensCssPath, root);
+  if (!tokensPath || !existsSync(tokensPath)) return result;
+  const file = relative(root, tokensPath);
+  if (isExcluded(file, root)) return result;
+
+  const migration = (id) => TOKENS_CSS_MIGRATIONS.find((m) => m.id === id);
+  const listed = (ids) => ids.map((id) => ({ id, description: migration(id).description }));
+
+  let css = readFileSync(tokensPath, 'utf8');
+  const additive = runAdditiveTokensCssMigrations(css);
+  if (additive.changed) {
+    const finding = {
+      rule: 'tokens-migration',
+      file,
+      line: 1,
+      message: `${file} lacks design tokens the installed package reads: ${additive.applied.join(', ')}`,
+      details: { migrations: listed(additive.applied) },
+    };
+    if (apply) {
+      writeFileSync(tokensPath, additive.css);
+      css = additive.css;
+      result.applied.push(finding);
+    } else {
+      result.findings.push(finding);
+    }
+  }
+
+  const breaking = runTokensCssMigrations(css).applied.filter((id) => migration(id).kind === 'breaking');
+  if (breaking.length > 0) {
+    result.findings.push({
+      rule: 'tokens-breaking-migration',
+      file,
+      line: 1,
+      message: `${file} has breaking migrations pending: ${breaking.join(', ')}`,
+      details: { migrations: listed(breaking) },
+    });
+  }
+  return result;
 }

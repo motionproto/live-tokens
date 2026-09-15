@@ -564,7 +564,7 @@
       <li><strong>create-theme</strong> reads one request, derives one design direction, and routes a color intent, a type intent, and a geometry intent to <strong>set-colors</strong>, <strong>set-type</strong>, and <strong>set-geometry</strong>. Each of those three changes one dimension and nothing else.</li>
       <li><strong>create-page</strong> assembles a page from shipped components at their defaults. It calls <strong>pick-component</strong> when two components could fit, and <strong>create-component</strong> when the catalogue lacks one.</li>
       <li><strong>create-component</strong> delivers a runtime file, an editor file, a registration, and a contract together.</li>
-      <li><strong>check-compliance</strong> reads one <code>npx live-tokens report --json</code> run and runs the token migrations. It then runs both checkers, which apply every <code>auto</code> finding themselves, edits the files the checkers name for what remains, groups the work by rule, and re-runs until both checkers exit 0.</li>
+      <li><strong>check-compliance</strong> runs both checkers, which apply every pending additive <code>tokens.css</code> migration and every <code>auto</code> finding themselves. It edits the files the checkers name for what remains, groups the work by rule, and re-runs until both checkers exit 0.</li>
     </ul>
     <p>The skills carry what a checker cannot decide: which layout suits a reading task, which component in a confusable family, which separator is the smallest one that separates. The checkers carry what prose cannot enforce: whether the file actually does it.</p>
   </section>
@@ -596,8 +596,10 @@
       <div class="ledger-head" aria-hidden="true"><span>Rule family</span><span>Count</span><span>Proves</span></div>
 
       <details class="drawer">
-        <summary><span>check-page, static</span><span class="count">17</span><span class="gist">Catalogue components, declared props, tokens in every value, a route with a source</span></summary>
+        <summary><span>check-page, static</span><span class="count">19</span><span class="gist">Catalogue components, declared props, tokens in every value, a route with a source</span></summary>
         <ul class="ruleset">
+          <li><span class="id">tokens-migration</span><span class="what">An additive migration would add design tokens <code>tokens.css</code> lacks. A run without <code>--no-fix</code> applies it.</span></li>
+          <li><span class="id">tokens-breaking-migration</span><span class="what">A breaking migration that renames, removes, or rewrites design tokens in <code>tokens.css</code> is pending.</span></li>
           <li><span class="id">unknown-component</span><span class="what">An import names a component the catalogue does not hold.</span></li>
           <li><span class="id">unknown-prop</span><span class="what">A component receives a prop it does not declare.</span></li>
           <li><span class="id">unknown-prop-value</span><span class="what">A prop receives a value outside the set the component accepts.</span></li>
@@ -631,8 +633,10 @@
       </details>
 
       <details class="drawer">
-        <summary><span>check-component, static</span><span class="count">20</span><span class="gist">Property names, token-backed defaults, editor schema, registration, public imports only</span></summary>
+        <summary><span>check-component, static</span><span class="count">22</span><span class="gist">Property names, token-backed defaults, editor schema, registration, public imports only</span></summary>
         <ul class="ruleset">
+          <li><span class="id">tokens-migration</span><span class="what">An additive migration would add design tokens <code>tokens.css</code> lacks. A run without <code>--no-fix</code> applies it.</span></li>
+          <li><span class="id">tokens-breaking-migration</span><span class="what">A breaking migration that renames, removes, or rewrites design tokens in <code>tokens.css</code> is pending.</span></li>
           <li><span class="id">invalid-id</span><span class="what">The id holds anything other than lowercase letters and digits.</span></li>
           <li><span class="id">missing-file</span><span class="what">The runtime or editor file is absent from its expected path.</span></li>
           <li><span class="id">missing-root-block</span><span class="what">The runtime has no <code>:global(:root)</code> block.</span></li>

@@ -25,6 +25,8 @@ import * as tokenRules from './rules/tokens.mjs';
  *  three fields, same meanings, as `COMPONENT_RULES`. */
 export const PAGE_RULES = assembleRules(
   [
+    'tokens-migration',
+    'tokens-breaking-migration',
     'unknown-component',
     'unknown-prop',
     'unknown-prop-value',

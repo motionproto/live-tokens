@@ -37,6 +37,11 @@ async function loadEngine() {
   return import(ENGINE);
 }
 
+/** Null only before build:plugin, which is this repo's own `npm test` in CI; a published package always ships the engine. */
+export async function loadBuiltEngine() {
+  return existsSync(ENGINE) ? import(ENGINE) : null;
+}
+
 /** --tokens <path> > live-tokens.config.json tokensCssPath > default scan. */
 export function resolveTokensCssPath(explicit, configPath, root = process.cwd()) {
   if (explicit) return resolve(root, explicit);

@@ -50,6 +50,8 @@ export { unreadTokens } from './lib/componentSource.mjs';
  */
 export const COMPONENT_RULES = assembleRules(
   [
+    'tokens-migration',
+    'tokens-breaking-migration',
     'invalid-id',
     'missing-file',
     'missing-root-block',

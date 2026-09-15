@@ -541,11 +541,13 @@ describe('fixing through the CLI', () => {
   const rel = 'src/pages/Detail.svelte';
   const literal = `<style>.a { padding: 8px; }</style>`;
   const fixed = `<style>.a { padding: var(--space-8); }</style>`;
+  // SPACE_TOKENS is a partial tokens.css, which the migration pass would otherwise bring up to the package.
+  const noMigrations = '--off=tokens-migration,tokens-breaking-migration';
 
   it('applies a fix, reports it, and exits 0', () => {
     const root = pageRoot(SPACE_TOKENS);
     writeFileSync(join(root, rel), literal);
-    const out = execFileSync('node', [cli, 'check-page', rel], { cwd: root }).toString();
+    const out = execFileSync('node', [cli, 'check-page', rel, noMigrations], { cwd: root }).toString();
     expect(out).toContain('1 fix(es) applied');
     expect(out).toContain('padding: 8px → padding: var(--space-8)  [dimension-literal]  shift 0px');
     expect(readFileSync(join(root, rel), 'utf8')).toBe(fixed);
@@ -554,7 +556,7 @@ describe('fixing through the CLI', () => {
   it('reports the finding and edits nothing under --no-fix', () => {
     const root = pageRoot(SPACE_TOKENS);
     writeFileSync(join(root, rel), literal);
-    const report = JSON.parse(execFileSync('node', [cli, 'check-page', rel, '--no-fix', '--json'], { cwd: root }).toString());
+    const report = JSON.parse(execFileSync('node', [cli, 'check-page', rel, noMigrations, '--no-fix', '--json'], { cwd: root }).toString());
     expect(report.fix).toBeUndefined();
     expect(report.findings.map((f: { rule: string }) => f.rule)).toContain('dimension-literal');
     expect(readFileSync(join(root, rel), 'utf8')).toBe(literal);
@@ -563,7 +565,7 @@ describe('fixing through the CLI', () => {
   it('applies the fixes before --tests and returns them beside the remaining findings', () => {
     const root = pageRoot(SPACE_TOKENS);
     writeFileSync(join(root, rel), literal);
-    const run = spawnSync('node', [cli, 'check-page', rel, '--tests', '--json'], { cwd: root, encoding: 'utf8' });
+    const run = spawnSync('node', [cli, 'check-page', rel, noMigrations, '--tests', '--json'], { cwd: root, encoding: 'utf8' });
     expect(run.status).toBe(1);
     const report = JSON.parse(run.stdout);
     expect(report.fix.applied.map((f: { rule: string }) => f.rule)).toEqual(['dimension-literal']);
