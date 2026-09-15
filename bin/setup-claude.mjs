@@ -29,7 +29,6 @@ const SAMPLE_PROMPTS = {
   'live-tokens-set-colors': 'give me a cooler palette, same fonts',
   'live-tokens-set-type': 'pair some fonts for this theme',
   'live-tokens-set-geometry': 'make the buttons pill shaped',
-  'live-tokens-fix-findings': 'make check:design pass',
   'live-tokens-check-compliance': 'check this project against the design system and fix it',
 };
 

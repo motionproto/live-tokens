@@ -7,9 +7,8 @@ import { pickComponent } from './trees/pick-component';
 import { createPage } from './trees/create-page';
 import { createComponent } from './trees/create-component';
 import { checkCompliance } from './trees/check-compliance';
-import { fixFindings } from './trees/fix-findings';
 
-// Tab order: the theme route and its three set skills, the page path, then the audit pair.
+// Tab order: the theme route and its three set skills, the page path, then the audit.
 export const skillTrees: Record<string, SkillTree> = {
   'create-theme': createTheme,
   'set-colors': setColors,
@@ -19,5 +18,4 @@ export const skillTrees: Record<string, SkillTree> = {
   'create-page': createPage,
   'create-component': createComponent,
   'check-compliance': checkCompliance,
-  'fix-findings': fixFindings,
 };
