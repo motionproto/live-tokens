@@ -2,7 +2,7 @@ import type { SkillTree } from '../types';
 
 export const createPage: SkillTree = {
   "id": "live-tokens-create-page",
-  "digest": "sha256:707ec5d1b5b009d7",
+  "digest": "sha256:0d78d225ef7199e2",
   "title": "create-page",
   "tagline": "Create a Page Using Live Tokens",
   "nodes": [
@@ -210,43 +210,52 @@ export const createPage: SkillTree = {
     {
       "id": "cp-check",
       "row": 8,
-      "kind": "step",
-      "title": "Run both checkers",
-      "desc": "live-tokens-check-compliance reads the source. check-page --tests --strict proves the rendered page at its route. Both reports go to live-tokens-fix-findings until the page is clean.",
-      "lines": [20, 20],
-      "anchor": "Run **live-tokens-check-compliance** and `npx live-tokens ch"
+      "kind": "cli",
+      "title": "Run check-page",
+      "desc": "check-page --tests --strict --json applies every auto repair, proves the rendered page at its own route, and returns the fixes beside the remaining findings.",
+      "lines": [168, 168],
+      "anchor": "Run `npx live-tokens check-page <file> --tests --strict --js"
+    },
+    {
+      "id": "cp-repair",
+      "row": 9,
+      "kind": "gate",
+      "title": "Repair from guidance",
+      "desc": "Each remaining finding carries its guidance. Make each repair, then run check-page again.",
+      "lines": [170, 170],
+      "anchor": "Each remaining finding carries a rule id, a line, and its `g"
     },
     {
       "id": "cp-verify",
-      "row": 9,
+      "row": 10,
       "kind": "chipset",
       "title": "Check the page in the browser",
       "desc": "The checkers cannot see a layout. Open the page at its width and check each line.",
-      "lines": [170, 186],
+      "lines": [172, 188],
       "anchor": "The checkers cannot see a layout. Open the page at the width",
       "anchorEnd": "`references/interaction-sources.md` names the sources for th",
       "chips": [
         {
           "label": "Structure",
-          "lines": [172, 176],
+          "lines": [174, 178],
           "anchor": "The first section holds what the user came for.",
           "anchorEnd": "The containers in a section align at the bottom."
         },
         {
           "label": "Actions",
-          "lines": [177, 180],
+          "lines": [179, 182],
           "anchor": "The actions sit where the eye goes last, with the one primar",
           "anchorEnd": "An action that runs longer than a moment shows progress in a"
         },
         {
           "label": "Fields",
-          "lines": [181, 182],
+          "lines": [183, 184],
           "anchor": "Every field has a default, and Reset restores it.",
           "anchorEnd": "Secondary settings sit in a `CollapsibleSection`. Every cont"
         },
         {
           "label": "Words and access",
-          "lines": [183, 184],
+          "lines": [185, 186],
           "anchor": "Labels use the user's words, such as \"Export slices\".",
           "anchorEnd": "Every `img` has `alt` text. Focus order follows the reading "
         }
@@ -254,19 +263,19 @@ export const createPage: SkillTree = {
     },
     {
       "id": "cp-read",
-      "row": 10,
+      "row": 11,
       "kind": "step",
       "title": "Read the page twice",
       "desc": "From a distance only the sections show. Up close, every border and bar earns its place or goes.",
-      "lines": [188, 188],
+      "lines": [190, 190],
       "anchor": "Then read the page from a distance: the sections and their e"
     },
     {
       "id": "cp-reply",
-      "row": 11,
+      "row": 12,
       "kind": "done",
       "title": "Reply with the result",
-      "desc": "The sections and the layout each took, the components placed, the route, and the compliance result.",
+      "desc": "The sections and the layout each took, the components placed, the route, and the check-page result.",
       "lines": [21, 21],
       "anchor": "Reply with the sections and the layout each took, the compon"
     }
@@ -306,7 +315,19 @@ export const createPage: SkillTree = {
     },
     {
       "from": "cp-check",
-      "to": "cp-verify"
+      "to": "cp-repair",
+      "label": "findings"
+    },
+    {
+      "from": "cp-repair",
+      "to": "cp-check",
+      "label": "rerun",
+      "back": true
+    },
+    {
+      "from": "cp-check",
+      "to": "cp-verify",
+      "label": "exit 0"
     },
     {
       "from": "cp-verify",

@@ -17,8 +17,8 @@ Assemble the page from the shipped components at their defaults and the theme's 
 6. Write the page CSS in design tokens.
 7. Set the hierarchy: one text style per element, the shipped size on every control, one primary action, and one space step per position.
 8. Add the route, with a lazy import and the source path.
-9. Run **live-tokens-check-compliance** and `npx live-tokens check-page <file> --tests --strict`, then check the rendered page.
-10. Reply with the sections and the layout each took, the components placed, the route, and the compliance result.
+9. Run `npx live-tokens check-page <file> --tests --strict --json` until it exits 0, then check the rendered page.
+10. Reply with the sections and the layout each took, the components placed, the route, and the check-page result.
 
 ## Layout
 
@@ -165,7 +165,9 @@ const pages = {
 
 ## Verify
 
-Run **live-tokens-check-compliance**, address its findings with **live-tokens-fix-findings**, then run `npx live-tokens check-page <file> --tests --strict`, which applies every `auto` repair before the rendered run and lists each fix beside the findings that remain. The Playwright suite runs against the page's own route and proves what only a rendered page can: the cascade leaves every component painting from its semantic properties, every run of text sits in one shipped text style, every text and surface pair meets AA, sections sit on the page grid, and nothing overflows. Each finding carries a rule id and a line; `--off=<rule>` silences a rule for one run, and `--no-fix` reports without editing. The two reports carry every finding by rule, and **live-tokens-fix-findings** takes the fix list. Repeat until the page is clean.
+Run `npx live-tokens check-page <file> --tests --strict --json`. It applies every `auto` repair, runs the Playwright suite against the page's own route, and returns the fixes it applied and the findings that remain. The suite proves what only a rendered page can: the cascade leaves every component painting from its semantic properties, every run of text sits in one shipped text style, every text and surface pair meets AA, sections sit on the page grid, and nothing overflows. `--off=<rule>` silences a rule for one run, and `--no-fix` reports without editing.
+
+Each remaining finding carries a rule id, a line, and its `guidance`. Make each remaining repair from its guidance, and run the command again until it exits 0.
 
 The checkers cannot see a layout. Open the page at the width it is built for and check each line below.
 
