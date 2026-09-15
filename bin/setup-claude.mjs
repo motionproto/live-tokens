@@ -30,7 +30,7 @@ const SAMPLE_PROMPTS = {
   'live-tokens-set-type': 'pair some fonts for this theme',
   'live-tokens-set-geometry': 'make the buttons pill shaped',
   'live-tokens-fix-findings': 'make check:design pass',
-  'live-tokens-check-compliance': 'check this project against the design system',
+  'live-tokens-check-compliance': 'check this project against the design system and fix it',
 };
 
 function directoriesIn(dir) {
