@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.79.0 — Checks fix what they find
 
 ### Added
 
@@ -55,6 +55,10 @@
 
 ### Changed (breaking)
 
+- **`check-page` and `check-component` edit files by default.** `--fix` is
+  gone; every run applies the `auto` patches. A build or CI script that runs
+  either checker must pass `--no-fix` to stay report-only, as the template's
+  `check:design` does.
 - **`behavior` is a required `ComponentContract` field.** A consumer's
   `tests/contracts.ts` stops compiling until each contract declares a
   behavior or marks it inapplicable with a reason. `references/contract-tests.md`
