@@ -338,7 +338,7 @@ Once installed in a project, the same commands are available as `npx live-tokens
 
 ## Claude Code skills
 
-The package bundles nine Claude Code skills. They encode the conventions this README cannot carry in full: which component fits a need, how a page is wired, how one request becomes a whole look, what a valid theme looks like in OKLCH, how two typefaces sit together, how geometry moves along the token scales, how a project is checked against all of that, and how an existing page or component is brought back into line. Each triggers from an ordinary request, so there are no slash commands to learn.
+The package bundles eight Claude Code skills. They encode the conventions this README cannot carry in full: which component fits a need, how a page is wired, how one request becomes a whole look, what a valid theme looks like in OKLCH, how two typefaces sit together, how geometry moves along the token scales, how a project is checked against all of that, and how an existing page or component is brought back into line. Each triggers from an ordinary request, so there are no slash commands to learn.
 
 ### Install
 
@@ -422,15 +422,9 @@ The skill covers the recipe: the runtime `.svelte` file with its `:global(:root)
 
 ### `live-tokens-check-compliance`
 
-Ask how things stand: "check this project against the design system", "audit the pricing page", "what would it take to make the build pass?", "review this before I upgrade".
+Ask how things stand, or ask for the code to catch up: "check this project against the design system and fix it", "audit the pricing page", "make check:design pass", "fix the design-system warnings", "replace the hex and pixel values with tokens", "review this before I upgrade".
 
-The skill runs `npx live-tokens report --json`, which is the project as facts: pending `tokens.css` migrations, the tokens each component declares and reads, which page renders which component, and both checkers' findings by rule under the project's severities and under `--strict`. It presents the report, says what each rule holds, marks each recommended fix as mechanical or a judgement call, names any visible shift, and flags a finding that looks deliberate together with the config entry that would record the decision. It edits nothing and ends by handing the list to `live-tokens-fix-findings`.
-
-### `live-tokens-fix-findings`
-
-Ask for the existing code to catch up: "make check:design pass", "fix the design-system warnings", "replace the hex and pixel values with tokens", "why is check-page failing on the pricing page?".
-
-The two checkers report a stable rule id per finding. The skill runs them with `--json`, groups the findings by rule, and carries one fix recipe per rule: a colour literal becomes the token for its role rather than the nearest hue, a spacing literal moves to the nearest `--space-*` step with the shift named, a raw `font-size` becomes a whole text style, a prop the component does not declare is mapped or dropped, and `site.css` moves out of `main.ts` into each page. It re-runs after every rule and stops at exit 0, then reports what changed, what it left and why, and what `--strict` would add. It never silences a rule to pass and never adds a token to `tokens.css` to match a value a page happened to use.
+The skill runs `npx live-tokens report --json`, which is the project as facts: pending `tokens.css` migrations, the tokens each component declares and reads, which page renders which component, and both checkers' findings by rule under the project's severities and under `--strict`. It then runs `npx live-tokens migrate` and both checkers, which apply every `auto` repair themselves and return each remaining finding with its own `guidance`. The skill groups what remains by rule, largest error group first, makes each repair from its guidance, and re-runs until both checkers exit 0. It reports what `--strict` adds, clears the warnings when the request covers them, and adds `check:design` to the build with `--no-fix`. The reply names the fixes the checkers applied, the changes by rule with any visible shift, and each finding left with its reason. It never silences a rule to pass and never adds a token to `tokens.css` to match a value a page happened to use. A finding the user chooses to keep goes into the config entry its `exception` field names.
 
 Verify the result:
 

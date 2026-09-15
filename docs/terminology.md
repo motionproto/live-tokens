@@ -1,7 +1,7 @@
 # Terminology
 
 The shared vocabulary of this design system: the words the components, the
-editor, the CLI, the docs, and the nine bundled skills in `.claude/skills/`
+editor, the CLI, the docs, and the eight bundled skills in `.claude/skills/`
 use for one concept each. A sentence that names one of these concepts uses
 the word below and no synonym. This document defines the words. The code and
 each `SKILL.md` define the work.

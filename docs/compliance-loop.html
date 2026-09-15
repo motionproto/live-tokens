@@ -484,7 +484,7 @@
     <h1>The Compliance Loop</h1>
     <p class="standfirst">The design system is stated three times: as prose a model reads, as a static rule with an id, and as a test against a rendered page. Every skill ends in a checker run, every finding carries the address of the paragraph that fixes it, and the exit code decides when the work is done.</p>
     <div class="meta">
-      <span>9 skills</span>
+      <span>8 skills</span>
       <span>2 static checkers</span>
       <span>3 test runs</span>
       <span>26 component contracts</span>
@@ -558,14 +558,13 @@
 
   <section>
     <span class="eyebrow">.claude/skills</span>
-    <h2>Nine skills, bundled with the package</h2>
+    <h2>Eight skills, bundled with the package</h2>
     <p>The skills ship inside the npm tarball and <code>live-tokens setup-claude</code> installs them into a consumer project. They divide into authoring and verification.</p>
     <ul class="plain">
       <li><strong>create-theme</strong> reads one request, derives one design direction, and routes a color intent, a type intent, and a geometry intent to <strong>set-colors</strong>, <strong>set-type</strong>, and <strong>set-geometry</strong>. Each of those three changes one dimension and nothing else.</li>
       <li><strong>create-page</strong> assembles a page from shipped components at their defaults. It calls <strong>pick-component</strong> when two components could fit, and <strong>create-component</strong> when the catalogue lacks one.</li>
       <li><strong>create-component</strong> delivers a runtime file, an editor file, a registration, and a contract together.</li>
-      <li><strong>check-compliance</strong> reads one <code>npx live-tokens report --json</code> run, presents every finding with the repair level it carries, <code>auto</code>, <code>choice</code>, or <code>authored</code>, and hands the fix list to <strong>fix-findings</strong>. It edits no file.</li>
-      <li><strong>fix-findings</strong> runs both checkers, which apply every <code>auto</code> finding themselves, then edits the files the checkers name for what remains, groups the work by rule, and re-runs until both checkers exit 0.</li>
+      <li><strong>check-compliance</strong> reads one <code>npx live-tokens report --json</code> run and runs the token migrations. It then runs both checkers, which apply every <code>auto</code> finding themselves, edits the files the checkers name for what remains, groups the work by rule, and re-runs until both checkers exit 0.</li>
     </ul>
     <p>The skills carry what a checker cannot decide: which layout suits a reading task, which component in a confusable family, which separator is the smallest one that separates. The checkers carry what prose cannot enforce: whether the file actually does it.</p>
   </section>
@@ -928,7 +927,7 @@
         <text class="s" x="126" y="688">at each viewport the settings name</text>
 
         <path class="back" d="M110,636 H78 V512 H108" />
-        <text class="rule" x="70" y="574" text-anchor="middle" transform="rotate(-90 70 574)">fix-findings</text>
+        <text class="rule" x="70" y="574" text-anchor="middle" transform="rotate(-90 70 574)">findings</text>
 
         <path class="flow" d="M275,692 V718" />
         <text class="lbl" x="287" y="710">exit 0</text>
@@ -951,7 +950,7 @@
       <li><strong>Check the component alone.</strong> <code>npx live-tokens check-component &lt;id&gt; --tests --strict</code> runs that one id through the static rules, the registry contract under Vitest, and the eight editor obligations under Playwright. Repeat until exit 0 with complete coverage.</li>
       <li><strong>Assemble.</strong> Components at their shipped defaults, page CSS in design tokens, one text style per element, one primary action, one space step per position, and a route whose <code>source</code> entry is what makes Page Source work.</li>
       <li><strong>Verify the page.</strong> <code>report</code> for the static picture, then <code>check-page &lt;file&gt; --tests --strict</code>, which opens the page's own route in a browser and proves what only a rendered page can.</li>
-      <li><strong>Loop.</strong> Findings go to fix-findings by rule, largest error group first. Re-run both. Then <code>--strict</code>, which promotes every warning to an error.</li>
+      <li><strong>Loop.</strong> Repair the findings by rule, largest error group first. Re-run both. Then <code>--strict</code>, which promotes every warning to an error.</li>
       <li><strong>Read the page yourself.</strong> One <span class="mono">h1</span>, no skipped heading levels, copy at 45 to 90 characters, containers aligned at the bottom, the primary action last. The checkers cannot see a layout.</li>
     </ol>
   </section>
@@ -989,7 +988,7 @@
         <rect class="box" x="658" y="120" width="212" height="84" rx="3" />
         <text class="t" x="674" y="146">The finding</text>
         <text class="m" x="674" y="165">rule · file · line · fix</text>
-        <text class="s" x="674" y="183">fed to fix-findings</text>
+        <text class="s" x="674" y="183">fed back to the skill</text>
 
         <path class="flow" d="M242,162 H336" />
         <text class="lbl" x="289" y="154" text-anchor="middle">in prose</text>
