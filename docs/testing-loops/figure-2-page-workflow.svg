@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="1066.7" viewBox="0 0 1200 1066.7">
+  <rect class="background" width="1200" height="1066.7" fill="#040c13" />
+
+    <rect class="box-lead" fill="#162027" stroke="#006f6d" stroke-width="2px" x="146.7" y="26.7" width="440" height="66.7" rx="4" />
+    <text class="t" font-family="'Manrope', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif, sans-serif" font-size="18px" font-weight="600" fill="#ffffff" x="168" y="56">Create a page</text>
+    <text class="m" font-family="'fira-code', ui-monospace, 'SF Mono', Menlo, Consolas, monospace, monospace" font-size="16px" fill="#dfe7ee" x="168" y="80">live-tokens-create-page</text>
+
+    <path class="flow" fill="none" stroke="#dfe7ee" stroke-width="2px" d="M366.7,93.3 V128" />
+
+    <rect class="box" fill="#162027" stroke="#3a4146" stroke-width="1px" x="146.7" y="128" width="440" height="85.3" rx="4" />
+    <text class="t" font-family="'Manrope', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif, sans-serif" font-size="18px" font-weight="600" fill="#ffffff" x="168" y="157.3">Read the project</text>
+    <text class="s" font-family="'Manrope', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif, sans-serif" font-size="16px" fill="#dfe7ee" x="168" y="181.3">routes, --columns-count, the catalogue</text>
+    <text class="m" font-family="'fira-code', ui-monospace, 'SF Mono', Menlo, Consolas, monospace, monospace" font-size="16px" fill="#dfe7ee" x="168" y="202.7">npx live-tokens components</text>
+
+    <path class="flow" fill="none" stroke="#dfe7ee" stroke-width="2px" d="M366.7,213.3 V248" />
+
+    <rect class="box" fill="#162027" stroke="#3a4146" stroke-width="1px" x="146.7" y="248" width="440" height="85.3" rx="4" />
+    <text class="t" font-family="'Manrope', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif, sans-serif" font-size="18px" font-weight="600" fill="#ffffff" x="168" y="277.3">Sections, then columns</text>
+    <text class="s" font-family="'Manrope', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif, sans-serif" font-size="16px" fill="#dfe7ee" x="168" y="301.3">one section per purpose</text>
+    <text class="s" font-family="'Manrope', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif, sans-serif" font-size="16px" fill="#dfe7ee" x="168" y="322.7">column spans from the layout table</text>
+
+    <path class="flow" fill="none" stroke="#dfe7ee" stroke-width="2px" d="M366.7,333.3 V368" />
+
+    <rect class="box" fill="#162027" stroke="#3a4146" stroke-width="1px" x="146.7" y="368" width="440" height="69.3" rx="4" />
+    <text class="t" font-family="'Manrope', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif, sans-serif" font-size="18px" font-weight="600" fill="#ffffff" x="168" y="397.3">Match each need to a component</text>
+    <text class="s" font-family="'Manrope', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif, sans-serif" font-size="16px" fill="#dfe7ee" x="168" y="421.3">shipped components first</text>
+
+    <path class="flow" fill="none" stroke="#dfe7ee" stroke-width="2px" d="M366.7,437.3 V626.7" />
+    <text class="lbl" font-family="'Manrope', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif, sans-serif" font-size="16px" fill="#dfe7ee" x="382.7" y="538.7">a shipped component fits</text>
+
+    <path class="flow" fill="none" stroke="#dfe7ee" stroke-width="2px" d="M586.7,402.7 H653.3 V350.7 H746.7" />
+    <text class="lbl" font-family="'Manrope', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif, sans-serif" font-size="16px" fill="#dfe7ee" x="662.7" y="426.7">no clear fit</text>
+
+    <line class="rail" stroke="#3a4146" stroke-width="3px" x1="714.7" y1="304" x2="714.7" y2="616" />
+    <text class="lbl" font-family="'Manrope', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif, sans-serif" font-size="16px" fill="#dfe7ee" x="714.7" y="285.3">close calls and gaps</text>
+
+    <rect class="box" fill="#162027" stroke="#3a4146" stroke-width="1px" x="746.7" y="317.3" width="400" height="66.7" rx="4" />
+    <text class="t" font-family="'Manrope', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif, sans-serif" font-size="18px" font-weight="600" fill="#ffffff" x="768" y="346.7">pick-component</text>
+    <text class="s" font-family="'Manrope', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif, sans-serif" font-size="16px" fill="#dfe7ee" x="768" y="370.7">decision tests for similar components</text>
+
+    <path class="flow" fill="none" stroke="#dfe7ee" stroke-width="2px" d="M946.7,384 V418.7" />
+    <text class="lbl" font-family="'Manrope', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif, sans-serif" font-size="16px" fill="#dfe7ee" x="962.7" y="408">no component fits</text>
+
+    <rect class="box" fill="#162027" stroke="#3a4146" stroke-width="1px" x="746.7" y="418.7" width="400" height="101.3" rx="4" />
+    <text class="t" font-family="'Manrope', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif, sans-serif" font-size="18px" font-weight="600" fill="#ffffff" x="768" y="448">create-component</text>
+    <text class="s" font-family="'Manrope', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif, sans-serif" font-size="16px" fill="#dfe7ee" x="768" y="472">runtime + editor + registration + contract</text>
+    <text class="s" font-family="'Manrope', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif, sans-serif" font-size="16px" fill="#dfe7ee" x="768" y="496">one semantic property per editable value</text>
+
+    <path class="flow" fill="none" stroke="#dfe7ee" stroke-width="2px" d="M946.7,520 V552" />
+
+    <rect class="box" fill="#162027" stroke="#3a4146" stroke-width="1px" x="746.7" y="552" width="400" height="64" rx="4" />
+    <text class="m" font-family="'fira-code', ui-monospace, 'SF Mono', Menlo, Consolas, monospace, monospace" font-size="16px" fill="#dfe7ee" x="768" y="580">check-component &lt;id&gt; --tests --strict</text>
+    <text class="s" font-family="'Manrope', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif, sans-serif" font-size="16px" fill="#dfe7ee" x="768" y="604">static, Vitest, and browser checks</text>
+
+    <path class="back" fill="none" stroke="#62efea" stroke-width="2px" d="M1146.7,584 H1168 V469.3 H1149.3" />
+    <text class="rule" font-family="'fira-code', ui-monospace, 'SF Mono', Menlo, Consolas, monospace, monospace" font-size="16px" fill="#62efea" x="1154.7" y="526.7" text-anchor="middle" transform="rotate(-90 1154.7 526.7)">run again</text>
+
+    <path class="flow" fill="none" stroke="#dfe7ee" stroke-width="2px" d="M946.7,616 V682.7 H586.7" />
+    <text class="lbl" font-family="'Manrope', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif, sans-serif" font-size="16px" fill="#dfe7ee" x="766.7" y="672" text-anchor="middle">joins the catalogue</text>
+
+    <rect class="box" fill="#162027" stroke="#3a4146" stroke-width="1px" x="146.7" y="626.7" width="440" height="112" rx="4" />
+    <text class="t" font-family="'Manrope', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif, sans-serif" font-size="18px" font-weight="600" fill="#ffffff" x="168" y="656">Assemble the page</text>
+    <text class="s" font-family="'Manrope', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif, sans-serif" font-size="16px" fill="#dfe7ee" x="168" y="680">components at their defaults</text>
+    <text class="s" font-family="'Manrope', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif, sans-serif" font-size="16px" fill="#dfe7ee" x="168" y="701.3">page CSS in design tokens</text>
+    <text class="s" font-family="'Manrope', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif, sans-serif" font-size="16px" fill="#dfe7ee" x="168" y="722.7">one text style per element, a route with a source</text>
+
+    <path class="flow" fill="none" stroke="#dfe7ee" stroke-width="2px" d="M366.7,738.7 V773.3" />
+
+    <rect class="box" fill="#162027" stroke="#3a4146" stroke-width="1px" x="146.7" y="773.3" width="440" height="149.3" rx="4" />
+    <text class="t" font-family="'Manrope', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif, sans-serif" font-size="18px" font-weight="600" fill="#ffffff" x="168" y="802.7">Verify</text>
+    <text class="m" font-family="'fira-code', ui-monospace, 'SF Mono', Menlo, Consolas, monospace, monospace" font-size="16px" fill="#dfe7ee" x="168" y="828">check-page &lt;file&gt; --tests --strict</text>
+    <text class="s" font-family="'Manrope', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif, sans-serif" font-size="16px" fill="#dfe7ee" x="168" y="850.7">applies auto repairs, returns each finding</text>
+    <text class="s" font-family="'Manrope', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif, sans-serif" font-size="16px" fill="#dfe7ee" x="168" y="874.7">with its guidance</text>
+    <text class="s" font-family="'Manrope', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif, sans-serif" font-size="16px" fill="#dfe7ee" x="168" y="898.7">paint, text style, contrast, grid, overflow</text>
+    <text class="s" font-family="'Manrope', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif, sans-serif" font-size="16px" fill="#dfe7ee" x="168" y="917.3">at each viewport in the settings</text>
+
+    <path class="back" fill="none" stroke="#62efea" stroke-width="2px" d="M146.7,848 H104 V682.7 H144" />
+    <text class="rule" font-family="'fira-code', ui-monospace, 'SF Mono', Menlo, Consolas, monospace, monospace" font-size="16px" fill="#62efea" x="93.3" y="765.3" text-anchor="middle" transform="rotate(-90 93.3 765.3)">run again</text>
+
+    <path class="flow" fill="none" stroke="#dfe7ee" stroke-width="2px" d="M366.7,922.7 V957.3" />
+    <text class="lbl" font-family="'Manrope', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif, sans-serif" font-size="16px" fill="#dfe7ee" x="382.7" y="946.7">checks pass</text>
+
+    <rect class="box-lead" fill="#162027" stroke="#006f6d" stroke-width="2px" x="146.7" y="957.3" width="440" height="61.3" rx="4" />
+    <text class="t" font-family="'Manrope', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif, sans-serif" font-size="18px" font-weight="600" fill="#ffffff" x="168" y="994.7">Read the page yourself</text>
+
+    <text class="rule" font-family="'fira-code', ui-monospace, 'SF Mono', Menlo, Consolas, monospace, monospace" font-size="16px" fill="#62efea" x="146.7" y="1048">accent arrows: findings return to the step that fixes them</text>
+  <g id="arrowheads">
+    <polygon fill="#dfe7ee" points="371.6,115.4 366.7,129.4 361.8,115.4" />
+    <polygon fill="#dfe7ee" points="371.6,235.4 366.7,249.4 361.8,235.4" />
+    <polygon fill="#dfe7ee" points="371.6,355.4 366.7,369.4 361.8,355.4" />
+    <polygon fill="#dfe7ee" points="371.6,614.1 366.7,628.1 361.8,614.1" />
+    <polygon fill="#dfe7ee" points="734.1,345.8 748.1,350.7 734.1,355.6" />
+    <polygon fill="#dfe7ee" points="951.6,406.1 946.7,420.1 941.8,406.1" />
+    <polygon fill="#dfe7ee" points="951.6,539.4 946.7,553.4 941.8,539.4" />
+    <polygon fill="#62efea" points="1161.9,474.2 1147.9,469.3 1161.9,464.4" />
+    <polygon fill="#dfe7ee" points="599.3,687.6 585.3,682.7 599.3,677.8" />
+    <polygon fill="#dfe7ee" points="371.6,760.7 366.7,774.7 361.8,760.7" />
+    <polygon fill="#62efea" points="131.4,677.8 145.4,682.7 131.4,687.6" />
+    <polygon fill="#dfe7ee" points="371.6,944.7 366.7,958.7 361.8,944.7" />
+  </g>
+</svg>

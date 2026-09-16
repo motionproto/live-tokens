@@ -10,7 +10,7 @@
   import { navigate } from '../editor/core/routing/router';
 
   const chapters = [
-    { id: 'tokens', title: 'A shared design system' },
+    { id: 'tokens', title: 'Adding CLI verification ' },
     { id: 'skills', title: 'Skills and checkers' },
     { id: 'test-runs', title: 'Testing pages and components' },
     { id: 'walkthrough', title: 'Build and check a page' },
@@ -52,8 +52,8 @@
         <span aria-hidden="true">←</span> Back to demo
       </a>
       <div class="hero-copy">
-        <h1>Testing loops</h1>
-        <p class="introduction">Live tokens checks the work that skills produce. Skills build pages and components, then run CLI commands to check the code and test the result in a browser. Each problem comes back as a finding that carries guidance for its repair. The CLI makes the routine fixes. The skill makes the fixes that need judgment, then runs the checks again until they pass.</p>
+        <h1>Adding CLI verification</h1>
+        <p class="introduction"> Live tokens use a Live tokens checks the work that skills produce. Skills build pages and components, then run CLI commands to check the code and test the result in a browser. Each problem comes back as a finding that carries guidance for its repair. The CLI makes the routine fixes. The skill makes the fixes that need judgment, then runs the checks again until they pass.</p>
       </div>
     </div>
   </header>
