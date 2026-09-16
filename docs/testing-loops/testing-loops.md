@@ -41,20 +41,18 @@ The package includes eight skills, and one setup command copies them into your p
 - **Check skills**: *check-compliance* checks the code of every page and component in the project against the design system. The checks bring the project's tokens up to date and make the routine repairs. The skill repairs the rest.
 - **Theme skills**: *set-colors*, *set-type*, and *set-geometry* apply their changes through the CLI, which checks each change first. It holds colors to WCAG AA contrast, confirms that each font is available, reports missing weights, and rejects geometry it cannot apply. *create-theme* runs all three and saves the result as a theme.
 
-### Checkers report problems
+### Checkers Fix or Report Problems
 
 The page checker confirms that a page uses components from the catalogue, passes only the props each component declares, and takes its colors, spacing, and type from design tokens. The component checker confirms that each editable value is a named property that reads a design token, and that the component's editor controls and registration match it.
 
 Each problem goes back to the skill as a finding. A finding names the rule, file, and line, and carries guidance for the repair. Its repair level tells the skill what to do:
 
 <!-- definitions -->
-- Automatic: The checker makes the repair itself.
+- Automatic: The checker made the repair itself.
 - Choice: The skill chooses a repair that suits the design or task.
 - Authored: The skill writes code to resolve the finding.
 
-The checkers know every design token and every property each component declares, so they catch a reference to any name that does not exist. The skill makes its repairs and runs the checks again.
-
-A project can raise or lower the severity of each rule. A strict run treats warnings as errors, and a test run adds the test suites described below.
+The checkers have every design token and every property each component declares, so they catch a reference to any name that does not exist. The skill makes its repairs and runs the checks again.
 
 ## Testing pages and components {#test-runs}
 
