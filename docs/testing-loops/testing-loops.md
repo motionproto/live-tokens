@@ -11,14 +11,15 @@ Markup:
 - An image is a figure. Its alt text is the diagram's screen-reader description, and the paragraph under it with the bold lead is the caption. Edit the diagram itself in its SVG file.
 -->
 
+**RELOAD TEST — Claude wrote this line at 17:13. Tell me whether Typora shows it, and I'll remove it.**
+
 [← Back to demo](/demo)
 
 <!-- contents -->
-1. [Adding CLI verification ](#tokens)
-2. [Skills and checkers](#skills)
-3. [Testing pages and components](#test-runs)
-4. [Build and check a page](#walkthrough)
-5. [Rule reference](#reference)
+1. [Skills and CLI Checks](#skills)
+2. [Testing pages and components](#test-runs)
+3. [Build and check a page](#walkthrough)
+4. [Rule reference](#reference)
 
 # Validating Skill Output
 
@@ -32,34 +33,34 @@ The first step enforces design token usage. Then generations are checked against
 
 The CLI checks verify that the skill output uses the design system and works correctly in the browser. They cover token use, component behavior, and page layout. Skills make design decisions and the CLI verifies the code.
 
-The package includes eight skills. Run `npx live-tokens setup-claude` to add them to your project.
+The package includes eight skills, and one setup command copies them into your project.
 
 <!-- cards -->
 
-- **Build skills**: *create-page* builds a page from the component catalogue. It calls *pick-component* to choose a component and *create-component* to write a new one.
-- **Check skills**: *check-compliance* runs both checkers on the project, which bring tokens.css up to the installed package and apply every automatic repair. It repairs each remaining finding from its guidance and runs the checkers again until they pass.
-- **Theme skills**: *create-theme* passes color, type, and geometry tasks to *set-colors*, *set-type*, and *set-geometry*.
+- **Build skills**: *create-page* and *create-component* finish by testing their result in a browser. They repair each problem the tests find and test again until everything passes. *pick-component* only recommends a component and changes no file.
+- **Check skills**: *check-compliance* checks the code of every page and component in the project against the design system. The checks bring the project's tokens up to date and make the routine repairs. The skill repairs the rest.
+- **Theme skills**: *set-colors*, *set-type*, and *set-geometry* apply their changes through the CLI, which checks each change first. It holds colors to WCAG AA contrast, confirms that each font is available, reports missing weights, and rejects geometry it cannot apply. *create-theme* runs all three and saves the result as a theme.
 
 ### Checkers report problems
 
-`check-page` checks page code. `check-component` checks a component's code, editor controls, and registration. Use `report` to list findings from both across the project. It always exits `0`.
+The page checker confirms that a page uses components from the catalogue, passes only the props each component declares, and takes its colors, spacing, and type from design tokens. The component checker confirms that each editable value is a named property that reads a design token, and that the component's editor controls and registration match it.
 
-Each finding identifies the rule, file, and line, and carries guidance for the repair. Its repair level tells the skill what to do:
+Each problem goes back to the skill as a finding. A finding names the rule, file, and line, and carries guidance for the repair. Its repair level tells the skill what to do:
 
 <!-- definitions -->
-- `auto`: The checker applies the repair itself.
-- `choice`: Choose a repair based on the design or task.
-- `authored`: Write code to resolve the finding.
+- Automatic: The checker makes the repair itself.
+- Choice: The skill chooses a repair that suits the design or task.
+- Authored: The skill writes code to resolve the finding.
 
-The checkers read the token names in `tokens.css` and the properties each component declares. They report references to unknown names. Skills read these findings with `--json`, apply the fixes, and run the checks again.
+The checkers know every design token and every property each component declares, so they catch a reference to any name that does not exist. The skill makes its repairs and runs the checks again.
 
-Set rule severity in `live-tokens.config.json`. Add `--strict` to treat warnings as errors, or `--tests` to run the test suites below. A checker exits with code `0` when it passes.
+A project can raise or lower the severity of each rule. A strict run treats warnings as errors, and a test run adds the test suites described below.
 
 ## Testing pages and components {#test-runs}
 
-When a skill creates a component or a page, it calls CLI commands to validate the result. Each command checks the code against the design tokens. With `--tests`, `check-component` also runs Vitest on the component’s registration and callbacks, and Playwright on the component in the editor. `check-page` runs Playwright on the page in the browser.
+When a skill creates a component or a page, the checker reviews the code against the design system and then tests the result. For a component, Vitest checks its registration and callbacks, and Playwright checks the component in the editor. For a page, Playwright checks the page in the browser.
 
-![With --tests, each checker starts its own test run on a temporary copy of the project data. check-component runs Vitest for registration and callbacks, and Playwright for the component in the editor. check-page runs Playwright for the page at its route. The skill fixes the findings and runs the checks again until every check passes.](figure-1-testing-loop.svg)
+![Each checker starts its own test run on a temporary copy of the project data. The component checker runs Vitest for registration and callbacks, and Playwright for the component in the editor. The page checker runs Playwright for the page at its route. The skill fixes the findings and runs the checks again until every check passes.](figure-1-testing-loop.svg)
 
 **Figure 1. The testing loop.** Each checker starts its own test run. Each run works on a copy of the project data, so the project’s own data stays untouched. The runner reports failures and missing results as findings.
 
@@ -75,7 +76,7 @@ The theme check previews a theme and verifies the expected values. It then cance
 
 ### Playwright checks pages in the browser
 
-Playwright opens each page at every viewport in the testing settings. It checks component appearance, text styles, contrast, grid alignment, and overflow. When a rule does not apply, the report explains why. For example, the grid rule applies at widths of 768px and above.
+Playwright opens each page at every viewport in the testing settings. It checks component appearance, text styles, contrast, grid alignment, and overflow. When a rule does not apply, the run records why. For example, the grid rule applies at widths of 768px and above.
 
 ### Every expected result must arrive
 
@@ -85,27 +86,27 @@ The runner matches each test result to its rule. A missing result fails the run.
 
 Start with the component catalogue. If the page needs a new component, build and check that component first. Then assemble the page, run the checks, and review the layout.
 
-![To create a page, read the project, plan the sections, and match each need to a component. When the catalogue lacks a component, write one and check it until it passes. Assemble the page, then verify it with one check-page command that applies the automatic repairs and tests the page in a browser. Each remaining finding returns to assembly with its guidance until the command exits 0.](figure-2-page-workflow.svg)
+![To create a page, read the project, plan the sections, and match each need to a component. When the catalogue lacks a component, write one and check it until it passes. Assemble the page, then verify it with the page checker, which makes the automatic repairs and tests the page in a browser. Each remaining finding returns to assembly with its guidance until every check passes.](figure-2-page-workflow.svg)
 
 **Figure 2. The page workflow.** Follow the left path to build a page. Take the right branch to create and check a new component, then return to page assembly. Make each repair from its guidance and run the check again until it passes, then review the page yourself.
 
-1. **Read the project.** Read the route table, `--columns-count`, and the catalogue from `npx live-tokens components`.
+1. **Read the project.** Read the route table, the column count, and the component catalogue.
 2. **Plan sections, then columns.** Give each purpose its own section. Take column spans from the layout that fits the reader's task.
 3. **Choose components.** Start with the catalogue. Use *pick-component* to choose between similar components and *create-component* to add one.
-4. **Check the new component.** Run `check-component <id> --tests --strict --json`. It applies every `auto` repair and returns the findings that remain. Make each repair from its guidance and run the command again until it exits `0`.
-5. **Assemble the page.** Use components at their defaults, design tokens in page CSS, one text style per element, and a route with a `source`.
-6. **Verify.** Run `check-page <file> --tests --strict --json`. It applies every `auto` repair, tests the page in a browser, and returns the findings that remain. Make each repair from its guidance and run the command again until it exits `0`.
+4. **Check the new component.** Run the component checker with its tests. It makes the automatic repairs and returns the findings that remain. Repair each one from its guidance and check again until everything passes.
+5. **Assemble the page.** Use components at their defaults, design tokens in page CSS, one text style per element, and a route that names its source file.
+6. **Verify.** Run the page checker with its tests. It makes the automatic repairs, tests the page in a browser, and returns the findings that remain. Repair each one from its guidance and check again until everything passes.
 7. **Review by eye.** Check the heading hierarchy, line lengths, alignment, and placement of the primary action. Confirm that the page reads clearly and supports the reader’s task.
 
 ## Rule reference {#reference}
 
-Expand a group to read its rules. The [warn] label marks a warning by default. Add `--strict` to treat it as an error.
+Expand a group to read its rules. The [warn] label marks a warning by default. A strict run treats it as an error.
 
 #### Page code · 19 rules
 
 | Rule | Description |
 | --- | --- |
-| tokens-migration | An additive migration would add design tokens `tokens.css` lacks. A run without `--no-fix` applies it. |
+| tokens-migration | An additive migration would add design tokens `tokens.css` lacks. The checker applies it automatically. |
 | tokens-breaking-migration | A breaking migration that renames, removes, or rewrites design tokens in `tokens.css` is pending. |
 | unknown-component | An import names a component outside the catalogue. |
 | unknown-prop | A component receives a prop it does not declare. |
@@ -139,7 +140,7 @@ Expand a group to read its rules. The [warn] label marks a warning by default. A
 
 | Rule | Description |
 | --- | --- |
-| tokens-migration | An additive migration would add design tokens `tokens.css` lacks. A run without `--no-fix` applies it. |
+| tokens-migration | An additive migration would add design tokens `tokens.css` lacks. The checker applies it automatically. |
 | tokens-breaking-migration | A breaking migration that renames, removes, or rewrites design tokens in `tokens.css` is pending. |
 | invalid-id | The id contains characters other than lowercase letters and digits. |
 | missing-file | The runtime or editor file is missing. |
@@ -199,4 +200,4 @@ Expand a group to read its rules. The [warn] label marks a warning by default. A
 
 ---
 
-Source: .claude/skills, bin/, src/testing, and scripts/ at v0.78.0.
+Source: .claude/skills, bin/, src/testing, and scripts/ at v0.79.0.
