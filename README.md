@@ -426,13 +426,13 @@ Verify the result:
 npx @motion-proto/live-tokens check-component <id>
 ```
 
-The validator checks the file layout, the `:global(:root)` block, the token-suffix vocabulary, the state-before-property rule, the public-imports rule, the `registerComponent({ id })` call, and that every default resolves to a design token rather than a literal. Exit code 0 means the static contract is met. A project scaffolded by `create` runs it, with `check-page`, as `npm run check:design` before every `vite build`, so a component or page that opts out of the theme cannot ship by accident.
+The validator checks the file layout, the `:global(:root)` block, the token-suffix vocabulary, the state-before-property rule, the public-imports rule, the `registerComponent({ id })` call, and that every default resolves to a design token rather than a literal. Exit code 0 means the static contract is met. `themeFileApi` runs it, with `check-page`, at the start of every `vite build`, so a component or page that opts out of the theme cannot ship by accident. An error stops the build, and warnings print. `themeFileApi({ checks: false })` turns the checks off.
 
 ### `live-tokens-check-compliance`
 
-Ask how things stand, or ask for the code to catch up: "check this project against the design system and fix it", "audit the pricing page", "make check:design pass", "fix the design-system warnings", "replace the hex and pixel values with tokens", "review this before I upgrade".
+Ask how things stand, or ask for the code to catch up: "check this project against the design system and fix it", "audit the pricing page", "make the build's design checks pass", "fix the design-system warnings", "replace the hex and pixel values with tokens", "review this before I upgrade".
 
-The skill runs both checkers, which apply every pending additive `tokens.css` migration and every `auto` repair themselves and return each remaining finding with its own `guidance`. The skill groups what remains by rule, largest error group first, makes each repair from its guidance, and re-runs until both checkers exit 0. It reports what `--strict` adds, clears the warnings when the request covers them, and adds `check:design` to the build with `--no-fix`. The reply names the fixes the checkers applied, the changes by rule with any visible shift, and each finding left with its reason. It never silences a rule to pass and never adds a token to `tokens.css` to match a value a page happened to use. A finding the user chooses to keep goes into the config entry its `exception` field names.
+The skill runs both checkers, which apply every pending additive `tokens.css` migration and every `auto` repair themselves and return each remaining finding with its own `guidance`. The skill groups what remains by rule, largest error group first, makes each repair from its guidance, and re-runs until both checkers exit 0. It reports what `--strict` adds and clears the warnings when the request covers them. The reply names the fixes the checkers applied, the changes by rule with any visible shift, and each finding left with its reason. It never silences a rule to pass and never adds a token to `tokens.css` to match a value a page happened to use. A finding the user chooses to keep goes into the config entry its `exception` field names.
 
 ## From edit to production
 

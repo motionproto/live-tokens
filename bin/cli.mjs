@@ -12,7 +12,7 @@
 //   set-geometry <ops>       Apply radius/padding/gap/border-width ops to the open buffer.
 //   set-type <pairing>       Bind Google Fonts families to the theme's font stacks.
 //   save-theme <name>        Compose the live state into themes/<slug>.json and open it.
-//   migrate [...]            Reconcile tokens.css, the data tree, and route references.
+//   migrate [...]            Reconcile tokens.css, the data tree, route references, and the build script.
 
 import { writeSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
@@ -44,6 +44,7 @@ import {
   formatMigrateDataResult,
 } from './migrate.mjs';
 import { runMigrateRoutes, formatRouteResult } from './migrate-routes.mjs';
+import { runMigrateBuildScript, formatBuildScriptResult } from './migrate-build-script.mjs';
 import { runCreate, formatCreateResult } from './create.mjs';
 import { runSetupClaude, formatSetupResult } from './setup-claude.mjs';
 import { runSetColors, formatSetColorsResult } from './set-colors.mjs';
@@ -163,6 +164,9 @@ check-component and check-page also accept:
                               unambiguous route references (never /docs). --check
                               prints both plans without writing (exit 1 when
                               either is pending; route findings are advisory).
+                              Also removes the check:design script live-tokens
+                              added to the build, since vite build now runs the
+                              design checks through themeFileApi.
 `;
 
 // A large body written through console.log is cut at the pipe buffer when the
@@ -478,6 +482,12 @@ if (command === 'migrate') {
     const routes = runMigrateRoutes({ root: process.cwd(), apply: write && !check });
     const routeOut = formatRouteResult(routes, { check });
     if (routeOut) console.log('\n' + routeOut);
+
+    // Build-script pass: removes the check:design step that themeFileApi now
+    // runs during vite build. Advisory under --check, like the data heal.
+    const buildScript = runMigrateBuildScript({ root: process.cwd(), apply: !check });
+    const buildScriptOut = formatBuildScriptResult(buildScript);
+    if (buildScriptOut) console.log('\n' + buildScriptOut);
 
     // Route findings are advisory; token migrations and the data heal gate the
     // exit code.

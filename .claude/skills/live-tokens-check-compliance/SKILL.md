@@ -1,6 +1,6 @@
 ---
 name: live-tokens-check-compliance
-description: Check an existing @motion-proto/live-tokens project against the design system and fix it until check-page and check-component both exit 0. Checks for correct use of components, properties, and tokens. Runs both checkers, which bring tokens.css up to the installed package, apply every auto repair, and return each remaining finding with its own guidance, repair level, and details. Use when the user asks to check, audit, or review the project. Use when the user asks to fix the project or to make check:design pass. Edits the files the checkers name. Changes tokens.css only through its migrations.
+description: Check an existing @motion-proto/live-tokens project against the design system and fix it until check-page and check-component both exit 0. Checks for correct use of components, properties, and tokens. Runs both checkers, which bring tokens.css up to the installed package, apply every auto repair, and return each remaining finding with its own guidance, repair level, and details. Use when the user asks to check, audit, or review the project. Use when the user asks to fix the project or to make the build's design checks pass. Edits the files the checkers name. Changes tokens.css only through its migrations.
 ---
 
 # Checking and fixing a project's adherence to live-tokens
@@ -21,9 +21,8 @@ Both checkers are static. They read the project's source, never open a browser, 
 4. Make every repair in the group from its `guidance`, within Scope below.
 5. Run both checkers again. When repairable findings remain in scope, return to step 3. When no token fits a remaining finding, leave it and continue to the reply with its reason.
 6. When the errors are clear, run both checkers with `--strict`. Report what `--strict` adds. Clear warnings within the existing request. Otherwise ask whether to clear the warnings now.
-7. When the repair scope includes warnings, return to step 3 with `--strict`. When strict checks pass or the user defers warnings, set up the build script.
-8. Add `check:design` to the build, per Build script below.
-9. Reply with:
+7. When the repair scope includes warnings, return to step 3 with `--strict`. When strict checks pass or the user defers warnings, continue to the reply.
+8. Reply with:
     - the fixes the checkers applied, each with its count and any visible shift
     - the remaining changes by rule, each with its count and any visible shift
     - the findings left, each with its reason and any config entry the user chose
@@ -57,7 +56,3 @@ Every finding's `repair` says what moving it costs.
 - When the nearest token differs from the literal, use the token and name the shift in the reply, such as `14px` to `--space-16`.
 - Apply a `tokens-breaking-migration` finding with `npx live-tokens migrate`, after `npx live-tokens migrate --check` prints the plan. `--tokens <path>` names a tokens.css in an unusual place, and `--write` also rewrites the route references the plan lists. Name each renamed design token in the reply.
 - Any finding, at any repair level, can stay as a deliberate exception when the user chooses to keep it. Record that decision in the config entry its `exception` field names, and prefer the narrower entry. When the user has chosen to lower a rule's severity, record it in `live-tokens.config.json` under `"checks": { "rules": { "<rule>": "warn" } }`. `--off=<rule>` silences a rule for one run only.
-
-## Build script
-
-When `package.json` has no `check:design` script, add `"check:design": "live-tokens check-page --no-fix && live-tokens check-component --no-fix"`. `--no-fix` keeps the build from editing files. When both checkers exit 0, prepend `npm run check:design &&` to the existing build command. Preserve its other build steps.

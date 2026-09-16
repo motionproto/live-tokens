@@ -5,10 +5,9 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "npm run check:design && vite build",
+    "build": "vite build",
     "preview": "vite preview",
     "check": "svelte-check --tsconfig ./tsconfig.json",
-    "check:design": "live-tokens check-page --no-fix && live-tokens check-component --no-fix",
     "test:design": "live-tokens check-component --tests && live-tokens check-page --tests",
     "postinstall": "live-tokens setup-claude --force || exit 0"
   },

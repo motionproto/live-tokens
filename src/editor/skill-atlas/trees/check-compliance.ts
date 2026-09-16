@@ -2,7 +2,7 @@ import type { SkillTree } from '../types';
 
 export const checkCompliance: SkillTree = {
   "id": "live-tokens-check-compliance",
-  "digest": "sha256:7b27443ae70ac467",
+  "digest": "sha256:d6a1cdc3c9aead66",
   "title": "check-compliance",
   "tagline": "Check and Fix a Project's Use of Live Tokens",
   "nodes": [
@@ -36,21 +36,12 @@ export const checkCompliance: SkillTree = {
       "anchorEnd": "Make every repair in the group from its `guidance`, within S"
     },
     {
-      "id": "cc2-build",
-      "row": 3,
-      "kind": "step",
-      "title": "Gate the build",
-      "desc": "check:design runs both checkers with --no-fix before the build.",
-      "lines": [63, 63],
-      "anchor": "When `package.json` has no `check:design` script, add `\"chec"
-    },
-    {
       "id": "cc2-reply",
-      "row": 4,
+      "row": 3,
       "kind": "done",
       "title": "Reply with the results",
       "desc": "The fixes, the judgment calls made, the findings left with their reasons, and both exit codes.",
-      "lines": [26, 30],
+      "lines": [25, 29],
       "anchor": "Reply with:",
       "anchorEnd": "both checker commands with their exit codes"
     }
@@ -67,7 +58,7 @@ export const checkCompliance: SkillTree = {
     },
     {
       "from": "cc2-check",
-      "to": "cc2-build",
+      "to": "cc2-reply",
       "label": "fixed"
     },
     {
@@ -75,10 +66,6 @@ export const checkCompliance: SkillTree = {
       "to": "cc2-check",
       "label": "rerun",
       "back": true
-    },
-    {
-      "from": "cc2-build",
-      "to": "cc2-reply"
     }
   ]
 };

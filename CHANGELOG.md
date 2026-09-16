@@ -2,7 +2,24 @@
 
 ## Unreleased
 
+### Added
+
+- **`vite build` runs the design checks.** `themeFileApi` runs both static
+  checkers at the start of the build, under the project's severities and
+  without repairs. An error stops the build, and warnings print.
+  `themeFileApi({ checks: false })` turns the checks off. The dev server
+  runs no checks.
+
 ### Changed
+
+- **The template's build is `vite build`.** Its `check:design` script is
+  gone, since the plugin runs the same checks.
+- **check-compliance leaves the build alone.** It no longer adds
+  `check:design` to `package.json`.
+- **`migrate` removes the `check:design` build step.** It removes the script
+  and its place in `build` when both hold what live-tokens wrote and the Vite
+  config uses `themeFileApi` with its checks on. It reports any other
+  `check:design` and leaves it in place.
 
 - **The checkers bring `tokens.css` up to the installed package.** Before
   either checker reads the design tokens, it applies every pending additive

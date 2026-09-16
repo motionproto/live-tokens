@@ -1,4 +1,4 @@
-import type { Plugin } from 'vite';
+import type { Logger, Plugin } from 'vite';
 import fs from 'fs';
 import path from 'path';
 import { extractGlobalRootBody } from '../src/editor/core/themes/parsers/globalRootBlock';
@@ -33,6 +33,7 @@ import { nextAvailableName as allocNextAvailableName } from './files/nameAllocat
 import { resolveDataDirs, testDataDir, testPackageDataDir } from './files/dataPaths';
 import { detectLegacyLayout, type LegacyLayout } from './files/legacyLayout';
 import { validateTokensCss, runAdditiveTokensCssMigrations } from './tokensCssMigrations';
+import { checkBeforeBuild } from './buildChecks';
 import { fileURLToPath } from 'node:url';
 
 // Read live-tokens' own package.json by walking up from this file. Works the
@@ -126,6 +127,9 @@ export interface ThemeFileApiOptions {
   // never writes tokensCssPath (a pre-1.0 invariant). Breaking migrations
   // (rename/remove) are never auto-applied — run `npx live-tokens migrate`.
   autoMigrate?: boolean;
+  // default: true. `vite build` first runs both static design checkers under
+  // the project's severities, and an error stops the build.
+  checks?: boolean;
 }
 
 export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
@@ -2185,6 +2189,9 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
   const isEditorOwnedJson = (file: string): boolean =>
     file.endsWith('.json') && path.resolve(file).startsWith(dataDirs.dataDir + path.sep);
 
+  let buildLogger: Logger | null = null;
+  let buildChecked = false;
+
   return {
     name: 'theme-file-api',
     config() {
@@ -2200,6 +2207,16 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
         },
         server: { watch: { ignored: [isEditorOwnedJson] } },
       };
+    },
+    configResolved(config) {
+      buildLogger = config.command === 'build' && opts.checks !== false ? config.logger : null;
+    },
+    async buildStart() {
+      // A build with several environments calls buildStart once for each.
+      if (!buildLogger || buildChecked) return;
+      buildChecked = true;
+      const failure = await checkBeforeBuild({ root: process.cwd(), logger: buildLogger });
+      if (failure) this.error(failure);
     },
     configureServer(server) {
       // Before every writer: the pre-0.48 layout has to be recognised while the
