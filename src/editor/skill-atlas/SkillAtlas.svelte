@@ -1,19 +1,20 @@
 <script lang="ts">
-  import { tick } from 'svelte';
+  import { onMount, tick } from 'svelte';
   import { navigate } from '../core/routing/router';
   import Button from '../../system/components/Button.svelte';
   import TabBar from '../../system/components/TabBar.svelte';
   import SourcePane from './SourcePane.svelte';
   import TreeCanvas from './TreeCanvas.svelte';
+  import { linkHash, linkTargets, resolveLink } from './atlasLink';
   import { SKILL_DOC, skillDocs } from './skillSources';
   import { skillTrees } from './skillTrees';
   import type { LineRange, Selection } from './types';
 
-  // `/skills#set-type` opens that skill, so a link can hand someone one tree
-  // rather than the atlas front door.
-  const linked = window.location.hash.slice(1);
-  let active = $state(linked in skillTrees ? linked : Object.keys(skillTrees)[0]);
-  let selection: Selection | null = $state(null);
+  // `#set-type` opens that skill and `#set-type/write-the-font-pairing/voice`
+  // also selects that block, so a link can hand someone one step of one tree.
+  const linked = resolveLink(window.location.hash, skillTrees);
+  let active = $state(linked?.skill ?? Object.keys(skillTrees)[0]);
+  let selection: Selection | null = $state(linked?.target ?? null);
   /** Which of the skill's documents the source pane shows. */
   let doc: string = $state(SKILL_DOC);
 
@@ -43,27 +44,21 @@
 
   function selectTarget(key: string, label: string, range: LineRange) {
     selection = { key, label, lines: range };
+    shareSelection();
     // Every range cites SKILL.md, so a step selected while a reference is open
     // would otherwise highlight nothing.
     doc = SKILL_DOC;
     scrollSourceTo(range[0]);
   }
 
-  /** Every target a line could belong to, node and chip alike. */
-  function targets(): Selection[] {
-    return tree.nodes.flatMap((node) => [
-      ...(node.lines ? [{ key: node.id, label: node.title, lines: node.lines }] : []),
-      ...(node.chips ?? []).map((chip, i) => ({
-        key: `${node.id}:${i}`,
-        label: chip.label,
-        lines: chip.lines,
-      })),
-    ]);
+  function shareSelection() {
+    const target = linkTargets(tree).find((t) => t.key === selection?.key) ?? null;
+    history.replaceState(null, '', `${window.location.pathname}${linkHash(active, target)}`);
   }
 
   /** Reverse lookup: the narrowest target whose range covers this line wins. */
   function selectFromLine(lineNumber: number) {
-    const covering = targets()
+    const covering = linkTargets(tree)
       .filter(({ lines: [from, to] }) => lineNumber >= from && lineNumber <= to)
       .sort((a, b) => a.lines[1] - a.lines[0] - (b.lines[1] - b.lines[0]));
 
@@ -71,8 +66,13 @@
     if (!best) return;
 
     selection = best;
+    shareSelection();
+    scrollTreeTo(best.key);
+  }
+
+  function scrollTreeTo(key: string) {
     treePane
-      ?.querySelector(`[data-node="${best.key.split(':')[0]}"]`)
+      ?.querySelector(`[data-node="${key.split(':')[0]}"]`)
       ?.scrollIntoView({ block: 'center', behavior: 'smooth' });
   }
 
@@ -88,10 +88,33 @@
     active = id;
     selection = null;
     doc = SKILL_DOC;
-    history.replaceState(null, '', `${window.location.pathname}#${id}`);
+    shareSelection();
     treePane?.scrollTo({ top: 0 });
     sourcePane?.scrollTo({ top: 0 });
   }
+
+  function openLink(hash: string) {
+    const link = resolveLink(hash, skillTrees);
+    if (!link) return;
+    active = link.skill;
+    selection = link.target;
+    doc = SKILL_DOC;
+    if (!link.target) return;
+    const { key, lines: [from] } = link.target;
+    // The cards and source rows of a newly opened tab exist only after render.
+    tick().then(() => {
+      scrollTreeTo(key);
+      scrollSourceTo(from);
+    });
+  }
+
+  onMount(() => {
+    openLink(window.location.hash);
+    // A link pasted into this tab changes only the hash, so the page never reloads.
+    const onHash = () => openLink(window.location.hash);
+    window.addEventListener('hashchange', onHash);
+    return () => window.removeEventListener('hashchange', onHash);
+  });
 
   let treePane: HTMLElement | undefined = $state();
   let sourcePane: HTMLElement | undefined = $state();
