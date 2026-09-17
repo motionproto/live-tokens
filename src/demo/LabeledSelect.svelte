@@ -9,6 +9,9 @@
     value: string;
     /** Trigger text when `value` matches no item. Defaults to the label. */
     placeholder?: string;
+    /** Label beside the trigger instead of above it. */
+    inline?: boolean;
+    size?: 'default' | 'small';
     disabled?: boolean;
     error?: string;
     onchange: (value: string) => void;
@@ -19,6 +22,8 @@
     items,
     value,
     placeholder = label,
+    inline = false,
+    size = 'default',
     disabled = false,
     error = '',
     onchange,
@@ -128,7 +133,7 @@
   }
 </script>
 
-<div class="labeled-select" bind:this={wrapperEl}>
+<div class="labeled-select" class:inline class:small={size === 'small'} bind:this={wrapperEl}>
   <span class="labeled-select-label" id={labelId}>{label}</span>
 
   <div class="labeled-select-trigger">
@@ -136,6 +141,7 @@
       bind:buttonRef
       class="labeled-select-button"
       fullWidth
+      {size}
       variant="secondary"
       disabled={disabled || items.length === 0}
       icon={open ? 'fas fa-chevron-up' : 'fas fa-chevron-down'}
@@ -149,7 +155,7 @@
          reflows on selection. Real Buttons, so the metrics stay exact. -->
     {#each ghostLabels as ghost (ghost)}
       <div class="labeled-select-ghost" aria-hidden="true" inert>
-        <Button class="labeled-select-button" variant="secondary" icon="fas fa-chevron-down" iconPosition="right">
+        <Button class="labeled-select-button" {size} variant="secondary" icon="fas fa-chevron-down" iconPosition="right">
           {ghost}
         </Button>
       </div>
@@ -176,12 +182,23 @@
     gap: var(--space-4);
   }
 
+  .labeled-select.inline {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-8);
+  }
+
   .labeled-select-label {
     font-family: var(--font-mono);
     font-size: var(--font-size-md);
     font-weight: var(--font-weight-semibold);
     line-height: var(--line-height-normal);
     color: var(--text-secondary);
+  }
+
+  .labeled-select.small .labeled-select-label {
+    font-size: var(--font-size-sm);
   }
 
   .labeled-select-trigger {

@@ -6,6 +6,8 @@
   import { portal } from '../system/internal/portal';
   import { navigate } from '../editor/core/routing/router';
 
+  let { homeHref = '/demo' }: { homeHref?: string } = $props();
+
   const chapters = [
     { id: 'skills', title: 'LiveTokens skills' },
     { id: 'checkers', title: 'CLI Check' },
@@ -42,7 +44,7 @@
 <div class="loops">
   <header class="masthead">
     <div class="chapter-body">
-      <a class="back-link" href="/demo" onclick={(event) => { event.preventDefault(); navigate('/demo'); }}>
+      <a class="back-link" href={homeHref} onclick={(event) => { event.preventDefault(); navigate(homeHref); }}>
         <span aria-hidden="true">←</span> Back to demo
       </a>
       <h1>Validating Skill Output</h1>

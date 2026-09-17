@@ -1,4 +1,5 @@
 <script lang="ts">
+  import '../app/site.css';
   import SectionHero from './sections/SectionHero.svelte';
   import SectionKit from './sections/SectionKit.svelte';
   import SectionLayers from './sections/SectionLayers.svelte';
@@ -6,15 +7,31 @@
   import SectionClaude from './sections/SectionClaude.svelte';
   import SectionOffering from './sections/SectionOffering.svelte';
   import SectionFooter from './sections/SectionFooter.svelte';
+  import DemoBar from './DemoBar.svelte';
+
+  let {
+    onThemePick,
+    onSketchPick,
+  }: {
+    onThemePick?: (fileName: string) => void;
+    onSketchPick?: (id: string | null) => void;
+  } = $props();
+
+  // The pickers drive the editor's API, which the package only serves in dev.
+  const isDev = import.meta.env.DEV;
 </script>
 
-<div class="kit">
+{#if isDev}
+  <DemoBar {onThemePick} {onSketchPick} />
+{/if}
+
+<div class="kit" class:has-bar={isDev}>
   <SectionHero />
   <SectionKit />
   <SectionLayers />
   <SectionOffering />
   <SectionGetStarted />
-    <SectionClaude />
+  <SectionClaude />
   <SectionFooter />
 </div>
 
@@ -28,6 +45,11 @@
     margin: 0 auto;
     padding: var(--space-48) var(--space-32);
     min-height: 100vh;
+  }
+
+  /* Clears the fixed DemoBar: its padding plus one control's height. */
+  .kit.has-bar {
+    padding-top: calc(var(--space-48) + var(--space-64));
   }
 
   /* Per-section gap overrides (added on top of .kit row-gap). */
@@ -62,7 +84,8 @@
   }
 
   @media (max-width: 600px) {
-    .kit {
+    .kit,
+    .kit.has-bar {
       padding: var(--space-32) var(--space-16);
       row-gap: var(--space-48);
     }

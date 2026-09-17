@@ -4,13 +4,8 @@
   import SegmentedControl from '../../system/components/SegmentedControl.svelte';
   import Panel from '../../system/components/Panel.svelte';
   import Section from '../Section.svelte';
-  import ThemeSelect from '../../app/ThemeSelect.svelte';
-  import SketchSelect from '../../app/SketchSelect.svelte';
 
   let { prose = true }: { prose?: boolean } = $props();
-
-  // Both selects drive the editor's API, which the package only serves in dev.
-  const isDev = import.meta.env.DEV;
 
   type Override = 'shape' | 'color';
 
@@ -177,13 +172,6 @@
           </div>
         </div>
       </Panel>
-
-      {#if isDev}
-        <div class="swap-pickers">
-          <ThemeSelect />
-          <SketchSelect />
-        </div>
-      {/if}
     </div>
   </div>
 </Section>
@@ -351,14 +339,6 @@
   /* Two cells of one width, shrink-wrapped to the left. `width: max-content`
      leaves the fr tracks an indefinite parent to resolve against, so both take
      the wider select's size instead of splitting the block. */
-  .swap-pickers {
-    margin-top: var(--space-24);
-    width: max-content;
-    display: grid;
-    grid-template-columns: repeat(2, minmax(max-content, 1fr));
-    column-gap: var(--space-12);
-  }
-
   .stage {
     display: flex;
     flex-direction: column;

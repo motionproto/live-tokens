@@ -9,8 +9,8 @@
   import { navigate } from '../editor/core/routing/router';
   import { DEFAULT_COMPONENTS_PATH } from '../editor/core/routing/ownedRoutes';
   import { overlayOpen } from '../editor/overlay/overlayState';
-  import ThemeSelect from './ThemeSelect.svelte';
-  import SketchSelect from './SketchSelect.svelte';
+  import ThemeSelect from '../demo/ThemeSelect.svelte';
+  import SketchSelect from '../demo/SketchSelect.svelte';
 
   const isDev = import.meta.env.DEV;
 </script>

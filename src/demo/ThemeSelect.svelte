@@ -3,6 +3,9 @@
   import LabeledSelect from './LabeledSelect.svelte';
   import { listThemes, applyTheme } from '../editor/core/themes/themeService';
   import { openThemeSlug } from '../editor/core/store/editorConfigStore';
+  import { carrySketch } from './sketchCarry';
+
+  let { inline = false, size = 'default', onpick }: { inline?: boolean; size?: 'default' | 'small'; onpick?: (fileName: string) => void } = $props();
 
   let themes = $state<{ value: string; label: string }[]>([]);
   let busy = $state(false);
@@ -24,7 +27,9 @@
     busy = true;
     error = '';
     try {
+      carrySketch();
       await applyTheme(fileName);
+      onpick?.(fileName);
     } catch (reason) {
       error = reason instanceof Error ? reason.message : 'Could not change theme';
     } finally {
@@ -36,6 +41,8 @@
 <!-- The open theme drives the selection, so applies from the Themes panel or
      another tab show up here too. -->
 <LabeledSelect
+  {inline}
+  {size}
   label="Theme"
   items={themes}
   value={$openThemeSlug}

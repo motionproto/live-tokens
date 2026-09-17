@@ -2,8 +2,7 @@
   "checks": {
     "exclude": [
       "src/demo",
-      "src/app/Home.svelte",
-      "src/app/LabeledSelect.svelte"
+      "src/app/Home.svelte"
     ]
   }
 }

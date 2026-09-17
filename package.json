@@ -23,6 +23,8 @@
     "src/editor",
     "src/system",
     "src/app/site.css",
+    "src/demo",
+    "!src/demo/FloatingTagsPlayground.svelte",
     "src/live-tokens/data/tokens.generated.css",
     "src/live-tokens/data/colors-and-type/default.json",
     "src/live-tokens/data/colors-and-type/autumn.json",
@@ -107,6 +109,20 @@
       "types": "./src/editor/skill-atlas/SkillAtlas.svelte.d.ts",
       "svelte": "./src/editor/skill-atlas/SkillAtlas.svelte",
       "default": "./src/editor/skill-atlas/SkillAtlas.svelte"
+    },
+    "./demo": {
+      "types": "./src/demo/Demo.svelte.d.ts",
+      "svelte": "./src/demo/Demo.svelte",
+      "default": "./src/demo/Demo.svelte"
+    },
+    "./demo/testing-loops": {
+      "types": "./src/demo/TestingLoops.svelte.d.ts",
+      "svelte": "./src/demo/TestingLoops.svelte",
+      "default": "./src/demo/TestingLoops.svelte"
+    },
+    "./demo/sketch-carry": {
+      "types": "./src/demo/sketchCarry.ts",
+      "default": "./src/demo/sketchCarry.ts"
     },
     "./backdrop": {
       "svelte": "./src/system/backdrop/index.ts",

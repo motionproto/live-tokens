@@ -1,5 +1,30 @@
 # Changelog
 
+## Unreleased — The demo ships from the package
+
+### Added
+
+- **The demo page and Testing Loops ship as exports.** Mount
+  `@motion-proto/live-tokens/demo` and `@motion-proto/live-tokens/demo/testing-loops`
+  as `lazy` routes. The demo takes `onThemePick(fileName)` and
+  `onSketchPick(id | null)`, called after the Theme or Sketch select applies a
+  pick. Testing Loops takes `homeHref` for its back link, which defaults to
+  `/demo`.
+- **The Theme select keeps the sketchstyle on screen.** Picking a theme no
+  longer replaces a sketchstyle the visitor picked. The carry runs in every
+  document that calls `installSketchCarry()` from
+  `@motion-proto/live-tokens/demo/sketch-carry`, and the editor frame needs it
+  too, so call it from the app entry.
+
+### Changed
+
+- **The demo's Theme and Sketch selects sit in a bar at the top of the page.**
+  The bar stays fixed while the page scrolls, and it shows only where the
+  editor runs. They left the "Swap tokens with a click" section. On a phone
+  they sit above the hero and scroll with the page.
+- **The Sketch select reads Custom for adjusted dials.** Dials moved off every
+  named sketchstyle show the Custom placeholder.
+
 ## 0.81.0 — Skill Atlas links name a block
 
 ### Added
