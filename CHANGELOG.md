@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased — The demo ships from the package
+## 0.82.0 — The demo ships from the package
 
 ### Added
 
