@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.80.0 — The build runs the design checks
 
 ### Added
 
