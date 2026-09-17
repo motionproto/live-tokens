@@ -12,6 +12,10 @@
 
 ### Changed
 
+- **A CollapsibleSection header toggles from its label.** Without `href`, the
+  chevron and the label share one button, so a click anywhere on the header
+  opens or closes the section. The label is the button's accessible name, in
+  place of "Expand section" or "Collapse section".
 - **The template's build is `vite build`.** Its `check:design` script is
   gone, since the plugin runs the same checks.
 - **check-compliance leaves the build alone.** It no longer adds

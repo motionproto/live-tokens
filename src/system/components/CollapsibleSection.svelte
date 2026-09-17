@@ -74,18 +74,15 @@
       </div>
    {:else}
       <div class="section-header" class:open>
-         <div class="section-toggle">
-            <button
-               type="button"
-               class="section-toggle-button"
-               onclick={fireToggle}
-               aria-label={open ? 'Collapse section' : 'Expand section'}
-               aria-expanded={open}
-            >
-               <i class="fas fa-chevron-right toggle-icon"></i>
-            </button>
+         <button
+            type="button"
+            class="section-toggle-button section-toggle"
+            onclick={fireToggle}
+            aria-expanded={open}
+         >
+            <i class="fas fa-chevron-right toggle-icon" aria-hidden="true"></i>
             <span class="section-label">{label}</span>
-         </div>
+         </button>
          {@render summary?.()}
       </div>
    {/if}
@@ -199,11 +196,14 @@
       }
    }
 
-   .section-toggle {
-      display: flex;
-      align-items: center;
+   /* The whole unlinked header toggles, so the button carries the label and
+      fills the row; a summary snippet still sits beside it. */
+   .section-toggle-button.section-toggle {
       gap: var(--space-8);
-      flex-shrink: 0;
+      flex: 1 1 auto;
+      min-width: 0;
+      justify-content: flex-start;
+      text-align: start;
    }
 
    /* Linked header: chevron is a sibling button next to the label link, not a

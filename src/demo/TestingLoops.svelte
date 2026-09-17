@@ -1,33 +1,27 @@
 <script lang="ts">
-  import { onMount } from 'svelte';
   import CollapsibleSection from '../system/components/CollapsibleSection.svelte';
   import Panel from '../system/components/Panel.svelte';
   import Table from '../system/components/Table.svelte';
-  import Badge from '../system/components/Badge.svelte';
   import Card from '../system/components/Card.svelte';
-  import Callout from '../system/components/Callout.svelte';
   import { portal } from '../system/internal/portal';
   import { navigate } from '../editor/core/routing/router';
 
   const chapters = [
-    { id: 'tokens', title: 'Adding CLI verification ' },
-    { id: 'skills', title: 'Skills and checkers' },
+    { id: 'skills', title: 'LiveTokens skills' },
+    { id: 'checkers', title: 'CLI Check' },
     { id: 'test-runs', title: 'Testing pages and components' },
     { id: 'walkthrough', title: 'Build and check a page' },
     { id: 'reference', title: 'Rule reference' },
   ];
 
+  // Closed by default: open, the fixed panel covers the full-width figures.
   let contentsOpen = $state(false);
-
-  onMount(() => {
-    contentsOpen = window.matchMedia('(min-width: 1024px)').matches;
-  });
 
   let openRules = $state<Record<string, boolean>>({});
 
   function jump(event: MouseEvent, id: string) {
     event.preventDefault();
-    if (window.matchMedia('(max-width: 1023px)').matches) contentsOpen = false;
+    contentsOpen = false;
     document.getElementById(id)?.scrollIntoView({ behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth', block: 'start' });
   }
 </script>
@@ -36,10 +30,10 @@
      single document-unique id. -->
 <svg class="markers" aria-hidden="true">
   <defs>
-    <marker id="loops-arw" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+    <marker id="loops-arw" viewBox="0 0 10 10" refX="5.9" refY="5" markerWidth="5.7" markerHeight="5.7" orient="auto-start-reverse">
       <polygon class="head" points="0,1.5 10,5 0,8.5" />
     </marker>
-    <marker id="loops-arw-back" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+    <marker id="loops-arw-back" viewBox="0 0 10 10" refX="5.9" refY="5" markerWidth="5.7" markerHeight="5.7" orient="auto-start-reverse">
       <polygon class="head-back" points="0,1.5 10,5 0,8.5" />
     </marker>
   </defs>
@@ -51,265 +45,175 @@
       <a class="back-link" href="/demo" onclick={(event) => { event.preventDefault(); navigate('/demo'); }}>
         <span aria-hidden="true">←</span> Back to demo
       </a>
-      <div class="hero-copy">
-        <h1>Adding CLI verification</h1>
-        <p class="introduction"> Live tokens use a Live tokens checks the work that skills produce. Skills build pages and components, then run CLI commands to check the code and test the result in a browser. Each problem comes back as a finding that carries guidance for its repair. The CLI makes the routine fixes. The skill makes the fixes that need judgment, then runs the checks again until they pass.</p>
+      <h1>Validating Skill Output</h1>
+      <div class="introduction">
+        <p>LiveTokens includes Claude skills that create pages and components. The results of these skills are checked with CLI commands to validate the output against the design system. This creates an inner feedback loop that mirrors the testing you would have in a build process: a deterministic layer with a pass/fail result rather than an interpretive LLM response.</p>
       </div>
     </div>
   </header>
 
-  <section class="chapter" id="tokens" aria-labelledby="tokens-title">
+  <section class="chapter" id="skills" aria-labelledby="skills-title">
     <div class="chapter-body">
-      <h2 id="tokens-title">A shared design system</h2>
-      <p>Live tokens lets you edit design tokens and components in the browser. Tokens define shared values for color, type, spacing, and shape. Pages and components use those values to keep the design consistent.</p>
-      <p>The checks verify that your code uses the design system and that the result works in the browser. They cover token use, component behavior, and page layout.</p>
+      <h2 id="skills-title">LiveTokens skills</h2>
+      <div class="text-columns skills-overview">
+        <div>
+          <p>The CLI checks verify that skill output uses the design system and works correctly in the browser. They cover token use, component behavior, and page layout. Skills make design decisions and the CLI verifies the code.</p>
+          <p>The package includes eight skills, and one setup command copies them into your project.</p>
+        </div>
+        <ul class="skill-stack">
+          <li><Card variant="bare" prose={false}><h3>Build skills</h3><p>Build pages and create new components.</p></Card></li>
+          <li><Card variant="bare" prose={false}><h3>Check skills</h3><p>Check the code of every page and component.</p></Card></li>
+          <li><Card variant="bare" prose={false}><h3>Theme skills</h3><p>Create and customize themes for LiveTokens.</p></Card></li>
+        </ul>
+      </div>
     </div>
   </section>
 
-  <section class="chapter" id="skills" aria-labelledby="skills-title">
+  <section class="chapter" id="checkers" aria-labelledby="checkers-title">
     <div class="chapter-body">
-      <h2 id="skills-title">Skills and checkers</h2>
-      <h3>Skills build and repair</h3>
-      <p>The package includes eight skills. Run <code>npx live-tokens setup-claude</code> to add them to your project.</p>
-      <ul class="trio">
-        <li><Card title="Theme skills"><span class="name">create-theme</span> passes color, type, and geometry tasks to <span class="name">set-colors</span>, <span class="name">set-type</span>, and <span class="name">set-geometry</span>.</Card></li>
-        <li><Card title="Build skills"><span class="name">create-page</span> builds a page from the component catalogue. It calls <span class="name">pick-component</span> to choose a component and <span class="name">create-component</span> to write a new one.</Card></li>
-        <li><Card title="Check skills"><span class="name">check-compliance</span> runs both checkers on the project, which bring tokens.css up to the installed package and apply every automatic repair. It repairs each remaining finding from its guidance and runs the checkers again until they pass.</Card></li>
-      </ul>
-      <p>Skills make design decisions. Checkers verify the code and test the result.</p>
-
-      <h3>Checkers report problems</h3>
-      <p><code>check-page</code> checks page code. <code>check-component</code> checks a component's code, editor controls, and registration. Use <code>report</code> to list findings from both across the project. It always exits <code>0</code>.</p>
-      <p>Each finding identifies the rule, file, and line, and carries guidance for the repair. Its repair level tells the skill what to do:</p>
-      <dl class="defs repair-levels">
-        <div><dt><code>auto</code></dt><dd>The checker applies the repair itself.</dd></div>
-        <div><dt><code>choice</code></dt><dd>Choose a repair based on the design or task.</dd></div>
-        <div><dt><code>authored</code></dt><dd>Write code to resolve the finding.</dd></div>
-      </dl>
-      <p>The checkers read the token names in <code>tokens.css</code> and the properties each component declares. They report references to unknown names. Skills read these findings with <code>--json</code>, apply the fixes, and run the checks again.</p>
-      <p>Set rule severity in <code>live-tokens.config.json</code>. Add <code>--strict</code> to treat warnings as errors, or <code>--tests</code> to run the test suites below. A checker exits with code <code>0</code> when it passes.</p>
+      <h2 id="checkers-title">CLI Check</h2>
+      <div class="text-columns checker-details">
+        <div>
+          <p>The page checker confirms that pages use catalogue components, valid props, and design tokens.</p>
+          <p>The component checker confirms that every property uses design tokens and that the component appears in the catalogue and the editor.</p>
+          <p>Both checkers flag unknown token and property names. Each finding names the rule broken and explains the fix. The table lists what each repair level means.</p>
+          <p>The skill makes its fixes and runs the checks again.</p>
+        </div>
+        <Table>
+          <table aria-label="Repair levels">
+            <thead><tr><th scope="col">Repair level</th><th scope="col">Description</th></tr></thead>
+            <tbody>
+              <tr><td>Automatic</td><td>The checker fixed the problem.</td></tr>
+              <tr><td>Choice</td><td>The skill picks a fix.</td></tr>
+              <tr><td>Authored</td><td>The skill writes the fix.</td></tr>
+            </tbody>
+          </table>
+        </Table>
+      </div>
     </div>
   </section>
 
   <section class="chapter" id="test-runs" aria-labelledby="test-runs-title">
     <div class="chapter-body">
       <h2 id="test-runs-title">Testing pages and components</h2>
-      <p>When a skill creates a component or a page, it calls CLI commands to validate the result. Each command checks the code against the design tokens. With <code>--tests</code>, <code>check-component</code> also runs Vitest on the component’s registration and callbacks, and Playwright on the component in the editor. <code>check-page</code> runs Playwright on the page in the browser.</p>
+      <p>When a skill creates a component or a page, the checker reviews the code against the design system, then tests the result. For a component, Vitest checks its registration and callbacks, and Playwright checks its rendering, input handling, and themes. For a page, Playwright checks layout, contrast, and typography.</p>
 
       <figure>
+        <figcaption><b>Figure 1. The testing loop.</b></figcaption>
         <div class="figure-stage">
-          <Panel>
             <!-- svelte-ignore a11y_no_noninteractive_tabindex (Keyboard users need to scroll the diagram.) -->
             <div class="figure-scroll" role="region" aria-label="Figure 1" tabindex="0">
-          <svg class="dg" width="1200" height="818.7" viewBox="0 0 1200 818.7" role="img" aria-label="With --tests, each checker starts its own test run on a temporary copy of the project data. check-component runs Vitest for registration and callbacks, and Playwright for the component in the editor. check-page runs Playwright for the page at its route. The skill fixes the findings and runs the checks again until every check passes.">
-            <rect class="box-lead" x="56" y="32" width="600" height="146.7" rx="4" />
-            <text class="t" x="77.3" y="61.4">check-component</text>
-            <text class="s" x="77.3" y="90.7">one name per editable value</text>
-            <text class="s" x="77.3" y="114.7">each name points at a design token</text>
-            <text class="s" x="77.3" y="138.7">each editor row names a declared property</text>
-            <text class="s" x="77.3" y="162.7">a valid id and a registration</text>
-
-            <rect class="box-lead" x="704" y="32" width="440" height="146.7" rx="4" />
-            <text class="t" x="725.3" y="61.4">check-page</text>
-            <text class="s" x="725.3" y="90.7">components from the catalogue</text>
-            <text class="s" x="725.3" y="114.7">only the props they declare</text>
-            <text class="s" x="725.3" y="138.7">colors and sizes from design tokens</text>
-            <text class="s" x="725.3" y="162.7">a route with a source</text>
-
-            <path class="flow" d="M356,178.7 V226.7" />
-            <text class="m" x="370.7" y="208">--tests</text>
-            <path class="flow" d="M924,178.7 V226.7" />
-            <text class="m" x="938.7" y="208">--tests</text>
-
-            <rect class="box" x="56" y="226.7" width="600" height="85.3" rx="4" />
-            <text class="t" x="77.3" y="256">Test run</text>
-            <text class="s" x="77.3" y="280">a temporary copy of the project data</text>
-            <text class="s" x="77.3" y="301.4">its own dev server and browser</text>
-
-            <rect class="box" x="704" y="226.7" width="440" height="85.3" rx="4" />
-            <text class="t" x="725.3" y="256">Test run</text>
-            <text class="s" x="725.3" y="280">a temporary copy of the project data</text>
-            <text class="s" x="725.3" y="301.4">its own dev server and browser</text>
-
-            <path class="flow end" d="M356,312 V344" />
-            <path class="flow end" d="M201,344 H511" />
-            <path class="flow" d="M201,344 V376" />
-            <path class="flow" d="M511,344 V376" />
-            <path class="flow" d="M924,312 V376" />
-
-            <rect class="box" x="56" y="376" width="290" height="128" rx="4" />
-            <text class="t" x="77.3" y="405.4">Vitest</text>
-            <text class="s" x="77.3" y="432">no browser</text>
-            <text class="s" x="77.3" y="456">registration, declarations,</text>
-            <text class="s" x="77.3" y="480">seeds, and callback props</text>
-
-            <rect class="box" x="366" y="376" width="290" height="128" rx="4" />
-            <text class="t" x="387.3" y="405.4">Playwright</text>
-            <text class="s" x="387.3" y="432">the component in the editor</text>
-            <text class="s" x="387.3" y="456">checks include save,</text>
-            <text class="s" x="387.3" y="480">reload, and theme change</text>
-
-            <rect class="box" x="704" y="376" width="440" height="128" rx="4" />
-            <text class="t" x="725.3" y="405.4">Playwright</text>
-            <text class="s" x="725.3" y="432">opens the page at its route</text>
-            <text class="s" x="725.3" y="456">five checks at each viewport</text>
-            <text class="s" x="725.3" y="480">paint, text, contrast, grid, overflow</text>
-
-            <path class="flow end" d="M201,504 V536" />
-            <path class="flow end" d="M511,504 V536" />
-            <path class="flow end" d="M924,504 V536" />
-            <path class="flow end" d="M201,536 H924" />
-            <path class="flow" d="M600,536 V568" />
-
-            <rect class="box" x="373.3" y="568" width="453.3" height="85.3" rx="4" />
-            <text class="t" x="394.7" y="597.4">Findings</text>
-            <text class="s" x="394.7" y="621.4">each with a rule, file, line,</text>
-            <text class="s" x="394.7" y="642.7">and guidance</text>
-
-            <path class="flow" d="M600,653.4 V685.4" />
-
-            <rect class="box-lead" x="400" y="685.4" width="400" height="69.3" rx="4" />
-            <text class="t" x="600" y="714.7" text-anchor="middle">Fix, then run the checks again</text>
-            <text class="s" x="600" y="738.7" text-anchor="middle">until every check passes</text>
-
-            <path class="back end" d="M400,720 H24 V105.4" />
-            <path class="back" d="M24,105.4 H53.3" />
-            <path class="back end" d="M800,720 H1176 V105.4" />
-            <path class="back" d="M1176,105.4 H1146.7" />
-            <text class="rule" x="17.3" y="412.7" text-anchor="middle" transform="rotate(-90 17.3 412.7)">run again</text>
-
-            <text class="rule" x="600" y="794.7" text-anchor="middle">a missing result counts as a failure</text>
+          <svg class="dg" viewBox="20 12 1160 866" role="img" aria-label="The skill builds a page or component and runs the checks. The CLI checker checks the code, makes the routine repairs, tests the result, and reports the findings. The skill repairs each finding and runs the checks again until every check passes.">
+            <rect class="lane-checker" x="20" y="12" width="1160" height="866" rx="8" />
+            <path class="lane-skill" d="M28,12 H600 V878 H28 A8,8 0 0 1 20,870 V20 A8,8 0 0 1 28,12 Z" />
+            <path class="lane-shade" d="M600,12 H1172 A8,8 0 0 1 1180,20 V870 A8,8 0 0 1 1172,878 H600 Z" />
+            <text class="lane-title" x="80" y="52">Claude Skill</text>
+            <text class="lane-title" x="660" y="52">CLI checker</text>
+            <path class="flow" d="M540,148 L876,148 Q890,148 890,162 L890,225" />
+            <path class="flow" d="M890,320 L890,353" />
+            <path class="flow" d="M890,448 L890,481" />
+            <path class="flow" d="M890,600 L890,633" />
+            <path class="flow" d="M660,684 L547,684" />
+            <path class="flow" d="M890,728 L890,781" />
+            <path class="back" d="M310,640 L310,290 Q310,276 324,276 L653,276" />
+            <rect class="box-lead" x="80" y="104" width="460" height="88" rx="4" />
+            <text class="t" x="101.3" y="138">Build a page or component</text>
+            <text class="s" x="101.3" y="166">from the catalogue and design tokens</text>
+            <rect class="box" x="660" y="232" width="460" height="88" rx="4" />
+            <text class="t" x="681.3" y="266">Check the code</text>
+            <text class="tag" x="1098.7" y="266" text-anchor="end">Static check</text>
+            <text class="s" x="681.3" y="294">design tokens, components, and props</text>
+            <rect class="box" x="660" y="360" width="460" height="88" rx="4" />
+            <text class="t" x="681.3" y="394">Make the routine repairs</text>
+            <text class="s" x="681.3" y="422">fixes with one right answer</text>
+            <rect class="box" x="660" y="488" width="460" height="112" rx="4" />
+            <text class="t" x="681.3" y="522">Test the result</text>
+            <text class="tag" x="1098.7" y="522" text-anchor="end">Vitest · Playwright</text>
+            <text class="s" x="681.3" y="550">Test component interactions, rendering, and themes.</text>
+            <text class="s" x="681.3" y="574">Check page layout, contrast, and typography.</text>
+            <rect class="box" x="660" y="640" width="460" height="88" rx="4" />
+            <text class="t" x="681.3" y="674">Report the findings</text>
+            <text class="s" x="681.3" y="702">each with guidance for its repair</text>
+            <rect class="box" x="80" y="640" width="460" height="88" rx="4" />
+            <text class="t" x="101.3" y="674">Repair each finding</text>
+            <text class="s" x="101.3" y="702">make the choice or write the code</text>
+            <rect class="box-lead" x="660" y="788" width="460" height="72" rx="4" />
+            <text class="t" x="890" y="830" text-anchor="middle">Every check passes</text>
+            <text class="lbl" x="715" y="136" text-anchor="middle">run the checks</text>
+            <text class="lbl" x="600" y="672" text-anchor="middle">findings</text>
+            <text class="lbl" x="906" y="759">none remain</text>
+            <text class="rule" x="479" y="262" text-anchor="middle">check again</text>
           </svg>
             </div>
-          </Panel>
         </div>
-        <figcaption><b>Figure 1. The testing loop.</b> Each checker starts its own test run. Each run works on a copy of the project data, so the project’s own data stays untouched. The runner reports failures and missing results as findings.</figcaption>
       </figure>
 
-      <h3>Vitest checks component setup</h3>
-      <p>Vitest runs registry and behavior checks without a browser. The registry checks confirm that each component has a registration and a default value for every editable property. The behavior checks trigger DOM events and verify the arguments each callback receives.</p>
-
-      <h3>Playwright checks components in the editor</h3>
-      <p>Each component has a test contract. It defines the component’s parts, states, and expected response to a theme change. Playwright uses it to check editor controls, rendering, pointer and keyboard input, save and reload, themes, and Sketch mode.</p>
-      <p>The theme check previews a theme and verifies the expected values. It then cancels the preview and checks that the original values return.</p>
-
-      <h3>Playwright checks pages in the browser</h3>
-      <p>Playwright opens each page at every viewport in the testing settings. It checks component appearance, text styles, contrast, grid alignment, and overflow. When a rule does not apply, the report explains why. For example, the grid rule applies at widths of 768px and above.</p>
-
-      <h3>Every expected result must arrive</h3>
-      <p>The runner matches each test result to its rule. A missing result fails the run. So do setup failures and missing test tools, regardless of rule settings.</p>
     </div>
   </section>
 
   <section class="chapter" id="walkthrough" aria-labelledby="walkthrough-title">
     <div class="chapter-body">
       <h2 id="walkthrough-title">Build and check a page</h2>
-      <p>Start with the component catalogue. If the page needs a new component, build and check that component first. Then assemble the page, run the checks, and review the layout.</p>
+      <p><span class="name">create-page</span> builds each page from tested components. When the catalogue lacks a component, the skill creates one and checks it before the page uses it.</p>
 
-      <figure>
+      <figure class="workflow-diagram">
+        <figcaption><b>Figure 2. The page workflow.</b></figcaption>
         <div class="figure-stage">
-          <Panel>
             <!-- svelte-ignore a11y_no_noninteractive_tabindex (Keyboard users need to scroll the diagram.) -->
             <div class="figure-scroll" role="region" aria-label="Figure 2" tabindex="0">
-          <svg class="dg" width="1200" height="1066.7" viewBox="0 0 1200 1066.7" role="img" aria-label="To create a page, read the project, plan the sections, and match each need to a component. When the catalogue lacks a component, write one and check it until it passes. Assemble the page, then verify it with one check-page command that applies the automatic repairs and tests the page in a browser. Each remaining finding returns to assembly with its guidance until the command exits 0.">
-            <rect class="box-lead" x="146.7" y="26.7" width="440" height="66.7" rx="4" />
-            <text class="t" x="168" y="56">Create a page</text>
-            <text class="m" x="168" y="80">live-tokens-create-page</text>
-
-            <path class="flow" d="M366.7,93.3 V128" />
-
-            <rect class="box" x="146.7" y="128" width="440" height="85.3" rx="4" />
-            <text class="t" x="168" y="157.3">Read the project</text>
-            <text class="s" x="168" y="181.3">routes, --columns-count, the catalogue</text>
-            <text class="m" x="168" y="202.7">npx live-tokens components</text>
-
-            <path class="flow" d="M366.7,213.3 V248" />
-
-            <rect class="box" x="146.7" y="248" width="440" height="85.3" rx="4" />
-            <text class="t" x="168" y="277.3">Sections, then columns</text>
-            <text class="s" x="168" y="301.3">one section per purpose</text>
-            <text class="s" x="168" y="322.7">column spans from the layout table</text>
-
-            <path class="flow" d="M366.7,333.3 V368" />
-
-            <rect class="box" x="146.7" y="368" width="440" height="69.3" rx="4" />
-            <text class="t" x="168" y="397.3">Match each need to a component</text>
-            <text class="s" x="168" y="421.3">shipped components first</text>
-
-            <path class="flow" d="M366.7,437.3 V626.7" />
-            <text class="lbl" x="382.7" y="538.7">a shipped component fits</text>
-
-            <path class="flow" d="M586.7,402.7 H653.3 V350.7 H746.7" />
-            <text class="lbl" x="662.7" y="426.7">no clear fit</text>
-
-            <line class="rail" x1="714.7" y1="304" x2="714.7" y2="616" />
-            <text class="lbl" x="714.7" y="285.3">close calls and gaps</text>
-
-            <rect class="box" x="746.7" y="317.3" width="400" height="66.7" rx="4" />
-            <text class="t" x="768" y="346.7">pick-component</text>
-            <text class="s" x="768" y="370.7">decision tests for similar components</text>
-
-            <path class="flow" d="M946.7,384 V418.7" />
-            <text class="lbl" x="962.7" y="408">no component fits</text>
-
-            <rect class="box" x="746.7" y="418.7" width="400" height="101.3" rx="4" />
-            <text class="t" x="768" y="448">create-component</text>
-            <text class="s" x="768" y="472">runtime + editor + registration + contract</text>
-            <text class="s" x="768" y="496">one semantic property per editable value</text>
-
-            <path class="flow" d="M946.7,520 V552" />
-
-            <rect class="box" x="746.7" y="552" width="400" height="64" rx="4" />
-            <text class="m" x="768" y="580">check-component &lt;id&gt; --tests --strict</text>
-            <text class="s" x="768" y="604">static, Vitest, and browser checks</text>
-
-            <path class="back" d="M1146.7,584 H1168 V469.3 H1149.3" />
-            <text class="rule" x="1154.7" y="526.7" text-anchor="middle" transform="rotate(-90 1154.7 526.7)">run again</text>
-
-            <path class="flow" d="M946.7,616 V682.7 H586.7" />
-            <text class="lbl" x="766.7" y="672" text-anchor="middle">joins the catalogue</text>
-
-            <rect class="box" x="146.7" y="626.7" width="440" height="112" rx="4" />
-            <text class="t" x="168" y="656">Assemble the page</text>
-            <text class="s" x="168" y="680">components at their defaults</text>
-            <text class="s" x="168" y="701.3">page CSS in design tokens</text>
-            <text class="s" x="168" y="722.7">one text style per element, a route with a source</text>
-
-            <path class="flow" d="M366.7,738.7 V773.3" />
-
-            <rect class="box" x="146.7" y="773.3" width="440" height="149.3" rx="4" />
-            <text class="t" x="168" y="802.7">Verify</text>
-            <text class="m" x="168" y="828">check-page &lt;file&gt; --tests --strict</text>
-            <text class="s" x="168" y="850.7">applies auto repairs, returns each finding</text>
-            <text class="s" x="168" y="874.7">with its guidance</text>
-            <text class="s" x="168" y="898.7">paint, text style, contrast, grid, overflow</text>
-            <text class="s" x="168" y="917.3">at each viewport in the settings</text>
-
-            <path class="back" d="M146.7,848 H104 V682.7 H144" />
-            <text class="rule" x="93.3" y="765.3" text-anchor="middle" transform="rotate(-90 93.3 765.3)">run again</text>
-
-            <path class="flow" d="M366.7,922.7 V957.3" />
-            <text class="lbl" x="382.7" y="946.7">checks pass</text>
-
-            <rect class="box-lead" x="146.7" y="957.3" width="440" height="61.3" rx="4" />
-            <text class="t" x="168" y="994.7">Read the page yourself</text>
-
-            <text class="rule" x="146.7" y="1048">accent arrows: findings return to the step that fixes them</text>
+          <svg class="dg" viewBox="20 12 1160 916" role="img" aria-label="Read the project, plan the sections, and choose components. When no component fits, create one and check it until every check passes, and it joins the catalogue. Assemble the page and check it. Repair each finding until every check passes, then review the page.">
+            <rect class="lane-checker" x="20" y="12" width="1160" height="916" rx="8" />
+            <path class="lane-skill" d="M28,12 H600 V928 H28 A8,8 0 0 1 20,920 V20 A8,8 0 0 1 28,12 Z" />
+            <path class="lane-shade" d="M600,12 H1172 A8,8 0 0 1 1180,20 V920 A8,8 0 0 1 1172,928 H600 Z" />
+            <text class="lane-title" x="80" y="52">Page</text>
+            <text class="lane-title" x="660" y="52">New component</text>
+            <path class="flow" d="M310,192 L310,225" />
+            <path class="flow" d="M310,320 L310,353" />
+            <path class="flow" d="M310,448 L310,545" />
+            <path class="flow" d="M540,404 L653,404" />
+            <path class="flow" d="M890,472 L890,570 Q890,584 876,584 L547,584" />
+            <path class="flow" d="M310,640 L310,673" />
+            <path class="back" d="M540,724 L556,724 Q570,724 570,710 L570,629 Q570,620 561,620 L547,620" />
+            <path class="flow" d="M310,768 L310,813" />
+            <rect class="box-lead" x="80" y="104" width="460" height="88" rx="4" />
+            <text class="t" x="101.3" y="138">Read the project</text>
+            <text class="s" x="101.3" y="166">routes, grid, and the component catalogue</text>
+            <rect class="box" x="80" y="232" width="460" height="88" rx="4" />
+            <text class="t" x="101.3" y="266">Plan the sections</text>
+            <text class="s" x="101.3" y="294">one section per purpose</text>
+            <rect class="box" x="80" y="360" width="460" height="88" rx="4" />
+            <text class="t" x="101.3" y="394">Choose components</text>
+            <text class="s" x="101.3" y="422">from the catalogue first</text>
+            <rect class="box" x="660" y="360" width="460" height="112" rx="4" />
+            <text class="t" x="681.3" y="394">Create the component</text>
+            <text class="s" x="681.3" y="422">check it and repair it</text>
+            <text class="s" x="681.3" y="446">until every check passes</text>
+            <rect class="box" x="80" y="552" width="460" height="88" rx="4" />
+            <text class="t" x="101.3" y="586">Assemble the page</text>
+            <text class="s" x="101.3" y="614">components, tokens, and text styles</text>
+            <rect class="box" x="80" y="680" width="460" height="88" rx="4" />
+            <text class="t" x="101.3" y="714">Check the page</text>
+            <text class="s" x="101.3" y="742">review the code and test it in the browser</text>
+            <rect class="box-lead" x="80" y="820" width="460" height="88" rx="4" />
+            <text class="t" x="101.3" y="854">Review the page</text>
+            <text class="s" x="101.3" y="882">read it the way a visitor would</text>
+            <text class="lbl" x="326" y="499">a shipped component fits</text>
+            <text class="lbl" x="600" y="392" text-anchor="middle">none fits</text>
+            <text class="lbl" x="715" y="572" text-anchor="middle">joins the catalogue</text>
+            <text class="rule" x="584" y="677">repair</text>
+            <text class="lbl" x="326" y="793">every check passes</text>
           </svg>
             </div>
-          </Panel>
         </div>
-        <figcaption><b>Figure 2. The page workflow.</b> Follow the left path to build a page. Take the right branch to create and check a new component, then return to page assembly. Make each repair from its guidance and run the check again until it passes, then review the page yourself.</figcaption>
       </figure>
 
       <ol class="steps">
-        <li><strong>Read the project.</strong> Read the route table, <code>--columns-count</code>, and the catalogue from <code>npx live-tokens components</code>.</li>
-        <li><strong>Plan sections, then columns.</strong> Give each purpose its own section. Take column spans from the layout that fits the reader's task.</li>
-        <li><strong>Choose components.</strong> Start with the catalogue. Use <span class="name">pick-component</span> to choose between similar components and <span class="name">create-component</span> to add one.</li>
-        <li><strong>Check the new component.</strong> Run <code>check-component &lt;id&gt; --tests --strict --json</code>. It applies every <code>auto</code> repair and returns the findings that remain. Make each repair from its guidance and run the command again until it exits <code>0</code>.</li>
-        <li><strong>Assemble the page.</strong> Use components at their defaults, design tokens in page CSS, one text style per element, and a route with a <code>source</code>.</li>
-        <li><strong>Verify.</strong> Run <code>check-page &lt;file&gt; --tests --strict --json</code>. It applies every <code>auto</code> repair, tests the page in a browser, and returns the findings that remain. Make each repair from its guidance and run the command again until it exits <code>0</code>.</li>
-        <li><strong>Review by eye.</strong> Check the heading hierarchy, line lengths, alignment, and placement of the primary action. Confirm that the page reads clearly and supports the reader’s task.</li>
+        <li><strong>Read the project.</strong> Read the routes, the grid, and the component catalogue.</li>
+        <li><strong>Plan the sections.</strong> Give each purpose its own section.</li>
+        <li><strong>Choose components.</strong> Start with the catalogue. When no component fits, create one, then check and repair it until every check passes.</li>
+        <li><strong>Assemble the page.</strong> Build it from components, design tokens, and text styles.</li>
+        <li><strong>Check the page.</strong> The checker reviews the code and tests the page in the browser. Repair each finding and check again until every check passes.</li>
+        <li><strong>Review the page.</strong> Read it the way a visitor would, and confirm that it supports the reader’s task.</li>
       </ol>
     </div>
   </section>
@@ -317,7 +221,7 @@
   <section class="chapter" id="reference" aria-labelledby="reference-title">
     <div class="chapter-body">
       <h2 id="reference-title">Rule reference</h2>
-      <p>Expand a group to read its rules. The <Badge variant="warning">warn</Badge> label marks a warning by default. Add <code>--strict</code> to treat it as an error.</p>
+      <p>Expand a group to read its rules. The skills treat every rule as an error and repair each finding before they finish.</p>
       <div class="reference-groups">
         <div class="rule-group">
           <CollapsibleSection label="Page code · 19 rules" variant="hairline" prose={false} open={openRules['0'] ?? false} ontoggle={() => openRules['0'] = !openRules['0']}>
@@ -325,7 +229,7 @@
               <table aria-label="Page code · 19 rules">
                 <thead><tr><th scope="col">Rule</th><th scope="col">Description</th></tr></thead>
                 <tbody>
-                  <tr><td>tokens-migration</td><td>An additive migration would add design tokens <code>tokens.css</code> lacks. A run without <code>--no-fix</code> applies it.</td></tr>
+                  <tr><td>tokens-migration</td><td>An additive migration would add design tokens <code>tokens.css</code> lacks. The checker applies it during a repair run.</td></tr>
                   <tr><td>tokens-breaking-migration</td><td>A breaking migration that renames, removes, or rewrites design tokens in <code>tokens.css</code> is pending.</td></tr>
                   <tr><td>unknown-component</td><td>An import names a component outside the catalogue.</td></tr>
                   <tr><td>unknown-prop</td><td>A component receives a prop it does not declare.</td></tr>
@@ -335,15 +239,15 @@
                   <tr><td>color-literal</td><td>A color value uses a literal instead of a design token.</td></tr>
                   <tr><td>reserved-route</td><td>A route uses the reserved <code>/live-tokens/*</code> namespace.</td></tr>
                   <tr><td>site-css-in-main</td><td><code>main.ts</code> imports <code>site.css</code>, which leaks it into the editor routes.</td></tr>
-                  <tr><td>raw-text-axis</td><td>A font size, family, weight, line height, or letter spacing uses a value outside a text style.</td></tr>
-                  <tr><td><div class="rule-name"><span>dimension-literal</span><Badge variant="warning">warn</Badge></div></td><td>A spacing, stroke, radius, or shadow value uses a literal instead of a token.</td></tr>
-                  <tr><td><div class="rule-name"><span>hardcoded-columns</span><Badge variant="warning">warn</Badge></div></td><td>A grid uses <code>repeat(N, 1fr)</code> with four or more columns. Use <code>--columns-count</code>.</td></tr>
-                  <tr><td><div class="rule-name"><span>missing-source</span><Badge variant="warning">warn</Badge></div></td><td>A route has no <code>source</code>, so Page Source cannot open it.</td></tr>
-                  <tr><td><div class="rule-name"><span>control-size</span><Badge variant="warning">warn</Badge></div></td><td>The page sets <code>size</code> on a shipped component.</td></tr>
-                  <tr><td><div class="rule-name"><span>multiple-primary</span><Badge variant="warning">warn</Badge></div></td><td>The page uses more than one primary Button.</td></tr>
-                  <tr><td><div class="rule-name"><span>danger-without-dialog</span><Badge variant="warning">warn</Badge></div></td><td>The page has a danger Button or IconButton and no Dialog.</td></tr>
-                  <tr><td><div class="rule-name"><span>native-control</span><Badge variant="warning">warn</Badge></div></td><td>A bare <code>&lt;button&gt;</code>, <code>&lt;input&gt;</code>, <code>&lt;select&gt;</code>, or <code>&lt;textarea&gt;</code> replaces a shipped control.</td></tr>
-                  <tr><td><div class="rule-name"><span>property-override</span><Badge variant="warning">warn</Badge></div></td><td>The page redeclares a component's semantic property for one instance.</td></tr>
+                  <tr><td>raw-text-axis</td><td>A font size, family, line height, or letter spacing uses a literal or a single-axis token instead of a text style.</td></tr>
+                  <tr><td>dimension-literal</td><td>A spacing, inset, stroke, radius, or shadow value uses a non-zero px or rem literal instead of a token.</td></tr>
+                  <tr><td>hardcoded-columns</td><td>A grid uses <code>repeat(N, 1fr)</code> with four or more columns. Use <code>--columns-count</code>.</td></tr>
+                  <tr><td>missing-source</td><td>A route has no <code>source</code>, so Page Source cannot open it.</td></tr>
+                  <tr><td>control-size</td><td>The page sets <code>size</code> on a shipped component.</td></tr>
+                  <tr><td>multiple-primary</td><td>The page uses more than one primary Button.</td></tr>
+                  <tr><td>danger-without-dialog</td><td>The page has a danger Button or IconButton and no Dialog.</td></tr>
+                  <tr><td>native-control</td><td>A bare <code>&lt;button&gt;</code>, <code>&lt;input&gt;</code>, <code>&lt;select&gt;</code>, or <code>&lt;textarea&gt;</code> replaces a shipped control.</td></tr>
+                  <tr><td>property-override</td><td>The page redeclares a component's semantic property for one instance.</td></tr>
                 </tbody>
               </table>
             </Table>
@@ -371,14 +275,14 @@
               <table aria-label="Component code · 22 rules">
                 <thead><tr><th scope="col">Rule</th><th scope="col">Description</th></tr></thead>
                 <tbody>
-                  <tr><td>tokens-migration</td><td>An additive migration would add design tokens <code>tokens.css</code> lacks. A run without <code>--no-fix</code> applies it.</td></tr>
+                  <tr><td>tokens-migration</td><td>An additive migration would add design tokens <code>tokens.css</code> lacks. The checker applies it during a repair run.</td></tr>
                   <tr><td>tokens-breaking-migration</td><td>A breaking migration that renames, removes, or rewrites design tokens in <code>tokens.css</code> is pending.</td></tr>
-                  <tr><td>invalid-id</td><td>The id contains characters other than lowercase letters and digits.</td></tr>
+                  <tr><td>invalid-id</td><td>The id contains characters other than lowercase letters and digits, or starts with a digit.</td></tr>
                   <tr><td>missing-file</td><td>The runtime or editor file is missing.</td></tr>
                   <tr><td>missing-root-block</td><td>The runtime has no <code>:global(:root)</code> block.</td></tr>
                   <tr><td>no-tokens</td><td>The <code>:global(:root)</code> block declares no <code>--&lt;id&gt;-*</code> property.</td></tr>
-                  <tr><td><div class="rule-name"><span>missing-description</span><Badge variant="warning">warn</Badge></div></td><td>The runtime's <code>catalogue</code> export is missing or lacks a required field.</td></tr>
-                  <tr><td><div class="rule-name"><span>unread-token</span><Badge variant="warning">warn</Badge></div></td><td>The runtime declares a property and never reads it.</td></tr>
+                  <tr><td>missing-description</td><td>The runtime's <code>catalogue</code> export is missing or lacks a required field.</td></tr>
+                  <tr><td>unread-token</td><td>The runtime declares a property and never reads it.</td></tr>
                   <tr><td>state-after-property</td><td>A property name places the state after the property. Use <code>-hover-surface</code>.</td></tr>
                   <tr><td>disabled-is-terminal</td><td>A property name combines <code>disabled</code> with another state. The component cannot render that combination.</td></tr>
                   <tr><td>unknown-suffix</td><td>A property name uses a suffix the editor cannot edit.</td></tr>
@@ -390,9 +294,9 @@
                   <tr><td>missing-registration</td><td>Nothing under <code>src/</code> registers the id.</td></tr>
                   <tr><td>unknown-token-ref</td><td>A default references an unknown token name.</td></tr>
                   <tr><td>default-not-token</td><td>A default lacks both a design token and a declared intrinsic.</td></tr>
-                  <tr><td><div class="rule-name"><span>phantom-link</span><Badge variant="warning">warn</Badge></div></td><td>A font helper spans several slots without a derivation, which links their fonts.</td></tr>
-                  <tr><td><div class="rule-name"><span>dimension-literal</span><Badge variant="warning">warn</Badge></div></td><td>A default uses a raw dimension where a space, radius, or border-width token belongs.</td></tr>
-                  <tr><td>config-token</td><td>A default config references an unknown token name.</td></tr>
+                  <tr><td>phantom-link</td><td>A font helper spans several slots without a derivation, which links their fonts.</td></tr>
+                  <tr><td>dimension-literal</td><td>A default uses a non-zero px or rem literal instead of a design token.</td></tr>
+                  <tr><td>config-token</td><td>A default config references an unknown token name, or aliases a literal the editor does not declare as intrinsic.</td></tr>
                 </tbody>
               </table>
             </Table>
@@ -427,7 +331,7 @@
                 <thead><tr><th scope="col">Rule</th><th scope="col">Description</th></tr></thead>
                 <tbody>
                   <tr><td>tests-not-installed</td><td><code>@playwright/test</code>, <code>vitest</code>, or <code>happy-dom</code> is missing, or Playwright’s Chromium is not installed.</td></tr>
-                  <tr><td>tests-setup</td><td>The run could not start, found nothing to check, or a tool crashed before it wrote a report.</td></tr>
+                  <tr><td>tests-setup</td><td>The run could not start, found nothing to check, found no route for the page, or a tool crashed before it wrote a report.</td></tr>
                   <tr><td>tests-incomplete</td><td>A run timed out, collected no tests, or left a component and rule pair without a result.</td></tr>
                 </tbody>
               </table>
@@ -448,7 +352,7 @@
     the visual items; keep only the judgment items in the skill. Revisit after
     the intro paragraph is settled.
 -->
-  <footer>Source: .claude/skills, bin/, src/testing, and scripts/ at v0.78.0.</footer>
+  <footer>Source: .claude/skills, bin/, src/testing, and scripts/ at v0.79.0.</footer>
   <div class="contents" class:contents-collapsed={!contentsOpen} use:portal>
     <Panel>
       <div class="contents-body">
@@ -500,41 +404,55 @@
 
   .masthead {
     padding-bottom: var(--space-48);
-    row-gap: var(--space-40);
   }
 
   .chapter {
-    padding-block: var(--space-48);
+    padding-block: var(--space-40);
     scroll-margin-top: var(--space-32);
   }
 
-  /* Text starts on column 2, matching the demo page's inset. Diagrams and
-     skill groups break out to the full grid; the diagrams draw at 1200px. */
+  /* Prose follows the demo inset. Paired topics and diagrams share the
+     wider ten-column span; standalone paragraphs match the left column of
+     that span. */
   .chapter-body {
     display: contents;
   }
 
   .chapter-body > * {
-    grid-column: 2 / 9;
+    grid-column: 2 / 7;
     min-width: var(--space-0);
   }
 
   .chapter-body > h2 {
     grid-column: 2 / -2;
+    padding-top: var(--space-24);
+    border-top: var(--border-width-1) solid var(--border-neutral-subtle);
   }
 
-  .chapter-body > .trio,
+  .chapter-body > h1,
+  .chapter-body > .text-columns,
+  .chapter-body > .steps,
   .chapter-body > figure {
-    grid-column: 1 / -1;
+    grid-column: 2 / -2;
   }
 
-  .chapter-body > .defs,
   .chapter-body > .reference-groups {
     grid-column: 2 / 11;
   }
 
-  .chapter-body > .repair-levels {
-    grid-column: 2 / 9;
+  .text-columns {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(var(--space-0), 1fr));
+    column-gap: var(--columns-gutter);
+    row-gap: var(--space-32);
+  }
+
+  .text-columns > * {
+    min-width: var(--space-0);
+  }
+
+  .text-columns p:last-child {
+    margin-bottom: var(--space-0);
   }
 
   h1 {
@@ -543,7 +461,7 @@
     font-weight: var(--heading-xl-font-weight);
     line-height: var(--heading-xl-line-height);
     letter-spacing: var(--heading-xl-letter-spacing);
-    margin: var(--space-0) var(--space-0) var(--space-128);
+    margin: var(--space-0) var(--space-0) var(--space-40);
   }
 
   h2 {
@@ -555,24 +473,16 @@
     margin: var(--space-0) var(--space-0) var(--space-24);
   }
 
-  h3 {
-    font-family: var(--heading-md-font-family);
-    font-size: var(--heading-md-font-size);
-    font-weight: var(--heading-md-font-weight);
-    line-height: var(--heading-md-line-height);
-    letter-spacing: var(--heading-md-letter-spacing);
-    margin: var(--space-32) var(--space-0) var(--space-12);
-  }
-
-  h2 + h3 {
-    margin-top: var(--space-0);
-  }
-
   p,
   li,
-  dt,
-  dd,
-  figcaption,
+  figcaption {
+    font-family: var(--editorial-md-font-family);
+    font-size: var(--editorial-md-font-size);
+    font-weight: var(--editorial-md-font-weight);
+    line-height: var(--editorial-md-line-height);
+    letter-spacing: var(--editorial-md-letter-spacing);
+  }
+
   .back-link,
   .contents a {
     font-family: var(--body-md-font-family);
@@ -583,7 +493,7 @@
   }
 
   p {
-    margin: var(--space-0) var(--space-0) var(--space-16);
+    margin: var(--space-0) var(--space-0) var(--space-20);
     color: var(--text-secondary);
   }
 
@@ -592,9 +502,6 @@
     font-weight: var(--font-weight-semibold);
   }
 
-  dt {
-    color: var(--text-primary);
-  }
 
   code {
     font-family: var(--code-font-family);
@@ -620,12 +527,21 @@
     align-items: center;
     gap: var(--space-8);
     padding-block: var(--space-8);
+    margin-bottom: var(--space-48);
     color: var(--text-secondary);
     text-decoration: none;
   }
 
-  .introduction {
-    margin: var(--space-0);
+  .introduction p {
+    font-family: var(--editorial-lg-font-family);
+    font-size: var(--editorial-lg-font-size);
+    font-weight: var(--editorial-lg-font-weight);
+    line-height: var(--editorial-lg-line-height);
+    letter-spacing: var(--editorial-lg-letter-spacing);
+  }
+
+  .introduction p:last-child {
+    margin-bottom: var(--space-0);
   }
 
   /* Panel owns the frame and surface; the page positions the overlay. */
@@ -640,6 +556,10 @@
     overflow-y: auto;
     border-radius: var(--panel-frame-radius);
     backdrop-filter: blur(var(--blur-lg));
+  }
+
+  .contents.contents-collapsed {
+    width: auto;
   }
 
   .contents-body {
@@ -677,23 +597,32 @@
     outline-offset: var(--space-4);
   }
 
-  .trio {
+  .skill-stack {
     list-style: none;
-    margin: var(--space-16) var(--space-0) var(--space-24);
+    margin: var(--space-0);
     padding: var(--space-0);
     display: grid;
-    grid-template-columns: subgrid;
-    row-gap: var(--space-16);
+    gap: var(--space-16);
   }
 
-  .trio li {
+  .skill-stack li {
     display: grid;
-    grid-column: span 4;
     min-width: var(--space-0);
     margin: var(--space-0);
   }
 
+  .skill-stack h3 {
+    font-family: var(--heading-sm-font-family);
+    font-size: var(--heading-sm-font-size);
+    font-weight: var(--heading-sm-font-weight);
+    line-height: var(--heading-sm-line-height);
+    letter-spacing: var(--heading-sm-letter-spacing);
+    margin: var(--space-0) var(--space-0) var(--space-8);
+    color: var(--text-primary);
+  }
+
   .steps {
+    display: none;
     list-style: none;
     counter-reset: step;
     margin: var(--space-24) var(--space-0) var(--space-0);
@@ -717,31 +646,6 @@
     color: var(--text-secondary);
   }
 
-  .defs {
-    margin: var(--space-8) var(--space-0) var(--space-24);
-    display: grid;
-    grid-template-columns: subgrid;
-  }
-
-  .defs > div {
-    grid-column: 1 / -1;
-    display: grid;
-    grid-template-columns: subgrid;
-    padding-block: var(--space-12);
-    border-top: var(--border-width-1) solid var(--border-neutral-subtle);
-  }
-
-  .defs dt {
-    grid-column: 1 / 3;
-    overflow-wrap: anywhere;
-  }
-
-  .defs dd {
-    grid-column: 3 / -1;
-    margin: var(--space-0);
-    color: var(--text-secondary);
-  }
-
   .reference-groups {
     display: grid;
     grid-template-columns: minmax(var(--space-0), 1fr);
@@ -753,12 +657,6 @@
     min-width: var(--space-0);
   }
 
-  .rule-name {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: var(--space-8);
-  }
 
   figure {
     display: grid;
@@ -775,9 +673,10 @@
     overflow-x: auto;
   }
 
+  /* Inside the figure's subgrid, so 1 / 7 lines up with the text column. */
   figcaption {
-    grid-column: 2 / 9;
-    margin-top: var(--space-16);
+    grid-column: 1 / 7;
+    margin-bottom: var(--space-16);
     color: var(--text-secondary);
   }
 
@@ -786,23 +685,58 @@
     font-weight: var(--font-weight-semibold);
   }
 
-  /* Each diagram draws at its intrinsic size, so its medium text never scales
-     down; a narrower frame scrolls. */
+  /* The diagram scales to the document width. Below the floor its labels would
+     shrink past legibility, so a narrow frame scrolls instead. */
   .dg {
     display: block;
+    width: 100%;
+    height: auto;
+    min-width: calc(var(--space-96) * 7);
     color: var(--text-primary);
-    margin-inline: auto;
   }
 
-  .dg :global(.box) {
-    fill: var(--surface-neutral-lower);
+  .dg :global(.lane-checker) {
+    fill: none;
     stroke: var(--border-neutral-subtle);
     stroke-width: var(--border-width-1);
   }
 
+  .dg :global(.lane-skill) {
+    fill: var(--tint-low);
+  }
+
+  /* No faint scrim token exists, so thin the lowest one to a light wash. */
+  .dg :global(.lane-shade) {
+    fill: color-mix(in srgb, var(--scrim-low) 40%, transparent);
+  }
+
+  .dg :global(.lane-title) {
+    font-family: var(--heading-md-font-family);
+    font-weight: var(--heading-md-font-weight);
+    font-size: var(--heading-md-font-size);
+    line-height: var(--heading-md-line-height);
+    letter-spacing: var(--heading-md-letter-spacing);
+    fill: var(--text-primary);
+  }
+
+  .dg :global(.tag) {
+    font-family: var(--body-sm-font-family);
+    font-size: var(--body-sm-font-size);
+    font-weight: var(--body-sm-font-weight);
+    line-height: var(--body-sm-line-height);
+    letter-spacing: var(--body-sm-letter-spacing);
+    fill: var(--text-tertiary);
+  }
+
+  .dg :global(.box) {
+    fill: var(--tint-low);
+    stroke: var(--border-neutral-medium);
+    stroke-width: var(--border-width-1);
+  }
+
   .dg :global(.box-lead) {
-    fill: var(--surface-neutral-lower);
-    stroke: var(--border-accent);
+    fill: var(--tint-low);
+    stroke: var(--border-accent-medium);
     stroke-width: var(--border-width-2);
   }
 
@@ -810,6 +744,8 @@
     font-family: var(--heading-sm-font-family);
     font-weight: var(--heading-sm-font-weight);
     font-size: var(--heading-sm-font-size);
+    line-height: var(--heading-sm-line-height);
+    letter-spacing: var(--heading-sm-letter-spacing);
     fill: var(--text-primary);
   }
 
@@ -817,48 +753,38 @@
   .dg :global(.lbl) {
     font-family: var(--body-md-font-family);
     font-size: var(--body-md-font-size);
-    fill: var(--text-secondary);
-  }
-
-  .dg :global(.m) {
-    font-family: var(--code-font-family);
-    font-size: var(--body-md-font-size);
+    font-weight: var(--body-md-font-weight);
+    line-height: var(--body-md-line-height);
+    letter-spacing: var(--body-md-letter-spacing);
     fill: var(--text-secondary);
   }
 
   .dg :global(.rule) {
     font-family: var(--code-font-family);
-    font-size: var(--body-md-font-size);
+    font-size: var(--code-font-size);
+    font-weight: var(--code-font-weight);
+    line-height: var(--code-line-height);
+    letter-spacing: var(--code-letter-spacing);
     fill: var(--text-accent);
   }
 
-  .dg :global(.flow) {
+  .dg :global(.flow),
+  .dg :global(.back) {
     fill: none;
+    stroke-width: var(--border-width-3);
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .dg :global(.flow) {
     stroke: var(--text-secondary);
-    stroke-width: var(--border-width-2);
     marker-end: url(#loops-arw);
   }
 
-  .dg :global(.flow.end) {
-    marker-end: none;
-  }
-
   .dg :global(.back) {
-    fill: none;
     stroke: var(--text-accent);
-    stroke-width: var(--border-width-2);
     marker-end: url(#loops-arw-back);
   }
-
-  .dg :global(.back.end) {
-    marker-end: none;
-  }
-
-  .dg :global(.rail) {
-    stroke: var(--border-neutral-subtle);
-    stroke-width: var(--border-width-3);
-  }
-
 
   .markers :global(.head) {
     fill: var(--text-secondary);
@@ -880,29 +806,48 @@
     color: var(--text-secondary);
   }
 
+  @media (max-width: 1279px) {
+    .chapter-body > * {
+      grid-column: 2 / -2;
+    }
+
+    figcaption {
+      grid-column: 1 / -1;
+    }
+  }
+
   @media (max-width: 1023px) {
     .chapter-body > *,
     .chapter-body > h2,
+    .chapter-body > .text-columns,
+    .chapter-body > .steps,
+    .chapter-body > figure,
     footer,
-    .chapter-body > .defs,
-    .chapter-body > .repair-levels,
     .chapter-body > .reference-groups,
     figcaption {
       grid-column: 1 / -1;
+    }
+
+    .text-columns {
+      grid-template-columns: minmax(var(--space-0), 1fr);
     }
 
     .contents {
       top: var(--space-64);
       right: var(--space-16);
     }
-
-    .contents.contents-collapsed {
-      width: auto;
-    }
   }
 
   /* Media queries cannot read the grid tokens. */
-  @media (max-width: 767px) {
+  @media (width < 768px) {
+    .workflow-diagram {
+      display: none;
+    }
+
+    .steps {
+      display: block;
+    }
+
     .loops {
       grid-template-columns: minmax(var(--space-0), 1fr);
       /* Leave room for the fixed editor toolbar above the back link. */
@@ -910,26 +855,19 @@
     }
 
     h1 {
-      margin-bottom: var(--space-64);
+      margin-bottom: var(--space-32);
+    }
+
+    .back-link {
+      margin-bottom: var(--space-24);
     }
 
     .masthead {
-      row-gap: var(--space-24);
       padding-bottom: var(--space-32);
     }
 
     .chapter {
       padding-block: var(--space-32);
-    }
-
-    .trio li,
-    .defs dt,
-    .defs dd {
-      grid-column: 1 / -1;
-    }
-
-    .defs dd {
-      margin-top: var(--space-8);
     }
 
   }
