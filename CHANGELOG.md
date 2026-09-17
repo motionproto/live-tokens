@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.81.0 — Skill Atlas links name a block
+
+### Added
+
+- **A Skill Atlas link opens one block.** Clicking a card or badge writes its
+  link to the address bar, named after the card title and the badge label:
+  `#set-type/write-the-font-pairing/voice`. Opening the link selects that
+  block and scrolls both panes to it. `#set-type` still opens the skill, and
+  a link to a block that no longer exists opens its skill.
+
 ## 0.80.0 — The build runs the design checks
 
 ### Added
