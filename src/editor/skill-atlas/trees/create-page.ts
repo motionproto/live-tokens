@@ -2,7 +2,7 @@ import type { SkillTree } from '../types';
 
 export const createPage: SkillTree = {
   "id": "live-tokens-create-page",
-  "digest": "sha256:1918707e9f0d1f83",
+  "digest": "sha256:aeaa30af2fa019ac",
   "title": "create-page",
   "tagline": "Create a Page Using Live Tokens",
   "nodes": [
@@ -88,38 +88,34 @@ export const createPage: SkillTree = {
       "row": 4,
       "kind": "chipset",
       "title": "Choose containers by purpose",
-      "desc": "Each purpose has its container. Panel is a stage, Card is titled content.",
+      "desc": "Panel is a stage, Card is titled content; a component's own constraints come from `components <id>`.",
       "lines": [15, 15],
-      "anchor": "Give each section its container from the Containers by purpo",
+      "anchor": "Give each section its container. `npx live-tokens components",
       "chips": [
         {
           "label": "Stage",
-          "lines": [75, 76],
-          "anchor": "`Panel` is a stage: a canvas, a player, a preview. `minHeigh",
-          "anchorEnd": "An empty stage shows a heading that names the condition and "
+          "lines": [81, 81],
+          "anchor": "An empty stage shows a heading that names the condition and "
         },
         {
           "label": "Card",
-          "lines": [77, 78],
-          "anchor": "`Card` is a titled block of content. Its `title` prop is the",
-          "anchorEnd": "A container in a tool UI labels itself: `Card variant=\"bare\""
+          "lines": [82, 82],
+          "anchor": "A container in a tool UI labels itself: `Card variant=\"bare\""
         },
         {
           "label": "Form",
-          "lines": [79, 80],
-          "anchor": "A form puts the essential fields first and the secondary fie",
-          "anchorEnd": "A row of fields is a flex row with `gap: var(--space-20)`. E"
+          "lines": [83, 83],
+          "anchor": "A row of fields is a flex row with `gap: var(--space-20)`; e"
         },
         {
           "label": "Buttons",
-          "lines": [81, 82],
-          "anchor": "A toolbar is a flex row of Buttons on the section's bottom e",
-          "anchorEnd": "A vertical stack of Buttons sets `fullWidth` on each Button."
+          "lines": [84, 84],
+          "anchor": "A toolbar is a flex row of Buttons on the section's bottom e"
         },
         {
           "label": "Picker",
-          "lines": [83, 83],
-          "anchor": "`MenuSelect` renders its list open. For a picker, toggle it "
+          "lines": [85, 85],
+          "anchor": "For a `MenuSelect` picker, toggle it from a Button with a tr"
         }
       ]
     },
@@ -134,7 +130,7 @@ export const createPage: SkillTree = {
       "chips": [
         {
           "label": "Components",
-          "lines": [85, 92],
+          "lines": [73, 80],
           "anchor": "## Components",
           "anchorEnd": "Text inside a `Card` or a `CollapsibleSection` takes the con"
         },
@@ -162,25 +158,25 @@ export const createPage: SkillTree = {
       "chips": [
         {
           "label": "Tokens",
-          "lines": [94, 99],
+          "lines": [96, 101],
           "anchor": "## Tokens",
           "anchorEnd": "A value that comes from data, such as a sheet's padding in p"
         },
         {
           "label": "Type",
-          "lines": [103, 118],
+          "lines": [105, 120],
           "anchor": "### Type",
           "anchorEnd": "Use the semantic element for each place: one `h1`, an `h2` f"
         },
         {
           "label": "Size and emphasis",
-          "lines": [120, 128],
+          "lines": [122, 130],
           "anchor": "### Size",
           "anchorEnd": "In a row of actions the primary sits last, on the right. Up "
         },
         {
           "label": "Spacing",
-          "lines": [130, 144],
+          "lines": [132, 146],
           "anchor": "### Spacing",
           "anchorEnd": "Every section after the first opens with a hairline: `paddin"
         }
@@ -197,12 +193,12 @@ export const createPage: SkillTree = {
       "chips": [
         {
           "label": "LiveTokensRouter",
-          "lines": [150, 150],
+          "lines": [152, 152],
           "anchor": "`<LiveTokensRouter pages={...}>`: add a `pages` entry with `"
         },
         {
           "label": "LiveEditorOverlay",
-          "lines": [151, 151],
+          "lines": [153, 153],
           "anchor": "Manual `<LiveEditorOverlay>`: dispatch with `$derived.by(() "
         }
       ]
@@ -213,7 +209,7 @@ export const createPage: SkillTree = {
       "kind": "cli",
       "title": "Run check-page",
       "desc": "check-page --tests --strict --json applies every auto repair, proves the rendered page at its own route, and returns the fixes beside the remaining findings.",
-      "lines": [168, 168],
+      "lines": [170, 170],
       "anchor": "Run `npx live-tokens check-page <file> --tests --strict --js"
     },
     {
@@ -222,7 +218,7 @@ export const createPage: SkillTree = {
       "kind": "gate",
       "title": "Repair from guidance",
       "desc": "Each remaining finding carries its guidance. Make each repair, then run check-page again.",
-      "lines": [170, 170],
+      "lines": [172, 172],
       "anchor": "Each remaining finding carries a rule id, a line, and its `g"
     },
     {
@@ -231,31 +227,31 @@ export const createPage: SkillTree = {
       "kind": "chipset",
       "title": "Check the page in the browser",
       "desc": "The checkers cannot see a layout. Open the page at its width and check each line.",
-      "lines": [172, 188],
+      "lines": [174, 190],
       "anchor": "The checkers cannot see a layout. Open the page at the width",
       "anchorEnd": "`references/interaction-sources.md` names the sources for th",
       "chips": [
         {
           "label": "Structure",
-          "lines": [174, 178],
+          "lines": [176, 180],
           "anchor": "The first section holds what the user came for.",
           "anchorEnd": "The containers in a section align at the bottom."
         },
         {
           "label": "Actions",
-          "lines": [179, 182],
+          "lines": [181, 184],
           "anchor": "The actions sit where the eye goes last, with the one primar",
           "anchorEnd": "An action that runs longer than a moment shows progress in a"
         },
         {
           "label": "Fields",
-          "lines": [183, 184],
+          "lines": [185, 186],
           "anchor": "Every field has a default, and Reset restores it.",
           "anchorEnd": "Secondary settings sit in a `CollapsibleSection`. Every cont"
         },
         {
           "label": "Words and access",
-          "lines": [185, 186],
+          "lines": [187, 188],
           "anchor": "Labels use the user's words, such as \"Export slices\".",
           "anchorEnd": "Every `img` has `alt` text. Focus order follows the reading "
         }
@@ -267,7 +263,7 @@ export const createPage: SkillTree = {
       "kind": "step",
       "title": "Read the page twice",
       "desc": "From a distance only the sections show. Up close, every border and bar earns its place or goes.",
-      "lines": [190, 190],
+      "lines": [192, 192],
       "anchor": "Then read the page from a distance: the sections and their e"
     },
     {

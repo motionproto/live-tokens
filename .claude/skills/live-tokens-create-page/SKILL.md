@@ -12,7 +12,7 @@ Assemble the page from the shipped components at their defaults and the theme's 
 1. Read the project first: the existing pages and where they live, how `App.svelte` wires routes, `--columns-count` in `tokens.css`, and the catalogue from `npx live-tokens components`.
 2. Read the page top to bottom and name each section by its purpose. Take each section's column spans from the Page layouts table.
 3. Build the page grid and place each section on it. Separate the sections with the smallest difference that separates them.
-4. Give each section its container from the Containers by purpose list.
+4. Give each section its container. `npx live-tokens components <id>` prints a component's constraints.
 5. Match a shipped component to each need. When two could fit, read **live-tokens-pick-component**. When nothing in the catalogue fits, read **live-tokens-create-component**.
 6. Write the page CSS in design tokens.
 7. Set the hierarchy: one text style per element, the shipped size on every control, one primary action, and one space step per position.
@@ -70,26 +70,28 @@ Show related items side by side when the width permits. A line of copy runs 45 t
 
 `references/layout-sources.md` names the sources for these laws.
 
-## Containers by purpose
-
-- `Panel` is a stage: a canvas, a player, a preview. `minHeight` holds its height while what it shows changes.
-- An empty stage shows a heading that names the condition and one `secondary` Button that fills it. An error goes in a `Callout variant="danger"`.
-- `Card` is a titled block of content. Its `title` prop is the title, and the card's own tokens type it.
-- A container in a tool UI labels itself: `Card variant="bare"` with the label in the body as `--body-sm-*` in `--text-secondary`.
-- A form puts the essential fields first and the secondary fields in a `CollapsibleSection`. Its actions sit on the bottom edge.
-- A row of fields is a flex row with `gap: var(--space-20)`. Each field's wrapper takes `flex: 1`.
-- A toolbar is a flex row of Buttons on the section's bottom edge, with no container around it. Group the Buttons left and right with `justify-content: space-between`, the primary last. A `danger` Button sits apart from the group it could be mistaken for.
-- A vertical stack of Buttons sets `fullWidth` on each Button. A row omits it.
-- `MenuSelect` renders its list open. For a picker, toggle it from a Button with a trailing chevron (`icon="fa-solid fa-chevron-down" iconPosition="right"`) and position the list under the Button at `top: 100%` with a `--space-*` margin.
-
 ## Components
 
 - Use a shipped component when one fits. Import it from `@motion-proto/live-tokens/components/<Name>.svelte`.
-- `npx live-tokens components <id>` prints the declared props, the values each union accepts, and the catalogue entry. `--json` prints the same as data. `--family <name>` filters the list to one picker family. The list includes the project's own components.
+- `npx live-tokens components <id>` prints a component's declared props, the values each union accepts, and its catalogue entry, including its constraints and its alternatives. `--json` prints the same as data. `--family <name>` filters the list to one picker family. The list includes the project's own components.
 - Pass only the props a component declares.
 - A shipped component fills its parent. To size one, size the element the page wraps it in.
 - A native element with no chrome of its own needs no component: an `<input type="file">` behind a Button, a `<canvas>`, an `<img>` inside a stage.
 - Text inside a `Card` or a `CollapsibleSection` takes the container's type on nested `p`, `ul`, `ol`, and `li`. When the page owns that type, as full-bleed media does, pass `prose={false}`.
+- An empty stage shows a heading that names the condition and one `secondary` Button that fills it. An error goes in a `Callout variant="danger"`.
+- A container in a tool UI labels itself: `Card variant="bare"` with the label in the body as `--body-sm-*` in `--text-secondary`.
+- A row of fields is a flex row with `gap: var(--space-20)`; each field's wrapper takes `flex: 1`.
+- A toolbar is a flex row of Buttons on the section's bottom edge, with no container around it. Group the Buttons left and right with `justify-content: space-between`. A vertical stack of Buttons sets `fullWidth` on each Button; a row omits it.
+- For a `MenuSelect` picker, toggle it from a Button with a trailing chevron (`icon="fa-solid fa-chevron-down" iconPosition="right"`) and position the list under the Button at `top: 100%` with a `--space-*` margin.
+
+## Rules the checker enforces
+
+`check-page` fixes what it can and reports the rest by rule id.
+
+- `multiple-primary`
+- `danger-without-dialog`
+- `control-size`
+- `native-control`
 
 ## Tokens
 
@@ -123,7 +125,7 @@ Omit `size` on every control and container. The shipped default is the page's si
 
 ### Emphasis
 
-One `primary` Button per page: the action that completes the page's main task. An action that supports that task is `secondary`. An action unrelated to the task, or informational, is `outline`. An action that destroys saved work is `danger`.
+`npx live-tokens components button` names each `variant` and the role it carries.
 
 In a row of actions the primary sits last, on the right. Up to four actions are individual Buttons. Five or more collapse into a `MenuSelect` behind one Button.
 
