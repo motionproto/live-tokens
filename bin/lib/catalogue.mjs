@@ -89,6 +89,31 @@ function skipSeparators(text, i) {
   return i;
 }
 
+// The comma that ends the expression starting at `i`. A key or a literal
+// inside an expression the reader cannot read must stay unread with it.
+function expressionEnd(text, i) {
+  let depth = 0;
+  for (; i < text.length; i++) {
+    const ch = text[i];
+    if (ch === "'" || ch === '"' || ch === '`') {
+      const quote = ch;
+      i++;
+      while (i < text.length && text[i] !== quote) i += text[i] === '\\' ? 2 : 1;
+    } else if ('([{'.includes(ch)) depth++;
+    else if (')]}'.includes(ch)) depth--;
+    else if (ch === ',' && depth === 0) return i;
+  }
+  return text.length;
+}
+
+function readWholeExpression(text, i) {
+  const end = expressionEnd(text, i);
+  const expression = text.slice(i, end);
+  const result = readValue(expression, 0);
+  const literal = result && !expression.slice(result.end).trim();
+  return { value: literal ? result.value : undefined, end };
+}
+
 /**
  * One literal value starting at `text[i]`: a quoted string, a `[...]` array of
  * values, or a `{...}` object of `key: value` pairs — the subset `catalogueOf`
@@ -113,13 +138,9 @@ function readValue(text, i) {
     const items = [];
     let j = 0;
     while (j < balanced.content.length) {
-      const item = readValue(balanced.content, j);
-      if (!item) {
-        j++;
-        continue;
-      }
-      items.push(item.value);
-      j = item.end;
+      const item = readWholeExpression(balanced.content, j);
+      if (item.value !== undefined) items.push(item.value);
+      j = item.end + 1;
     }
     return { value: items, end: balanced.end };
   }
@@ -131,20 +152,17 @@ function readValue(text, i) {
   return null;
 }
 
-/** `key: value` pairs read by depth: each value is consumed whole (a string
- *  literal in one match, a bracketed group by its own balance) before the
- *  scan resumes, so a key inside a nested value's own text is never read as
- *  one of `body`'s own fields. */
+/** `key: value` pairs read by depth: the scan resumes after each value's
+ *  whole expression, read or unread, so a key inside a value's own text is
+ *  never read as one of `body`'s own fields. */
 function readObject(body) {
   const fields = {};
   const keyRe = /([A-Za-z_$][A-Za-z0-9_$]*)\s*:/g;
   let m;
   while ((m = keyRe.exec(body))) {
-    const result = readValue(body, keyRe.lastIndex);
-    if (result) {
-      if (!(m[1] in fields)) fields[m[1]] = result.value;
-      keyRe.lastIndex = result.end;
-    }
+    const result = readWholeExpression(body, keyRe.lastIndex);
+    if (result.value !== undefined && !(m[1] in fields)) fields[m[1]] = result.value;
+    keyRe.lastIndex = result.end;
   }
   return fields;
 }

@@ -253,6 +253,15 @@ describe('catalogueOf, the literal-subset reader', () => {
     }`);
     expect(catalogue.useFor).toBeUndefined();
   });
+
+  it('reads no field out of the text of a non-literal value', () => {
+    const catalogue = gauge(`{
+      description: \`a \${kind} family: "leak"\`,
+      useFor: 'a reading' + ' alternatives: { dial: "leak" }',
+      constraints: [rule('leaked item'), 'A kept rule.'],
+    }`);
+    expect(catalogue).toEqual({ constraints: ['A kept rule.'] });
+  });
 });
 
 describe('describeTokens', () => {
