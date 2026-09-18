@@ -46,6 +46,9 @@ component in the editor and confirm everything works.
 
 - A runtime component whose editable properties default to your theme tokens.
 - An editor entry that appears under **Custom** in the `/live-tokens/components` view.
+- A catalogue entry in the runtime file that says what the component is for and
+  what to use instead. `npx live-tokens components` prints it, and the skills
+  read it when they choose a component for a page.
 - The naming and wiring handled for you, so the component fits the system.
 
 Advanced authors who want to write a component by hand can read the naming and

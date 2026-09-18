@@ -366,7 +366,7 @@ A project created with `create` runs the forced form from `postinstall` and giti
 
 Ask "TabBar or SegmentedControl?", "how do I let someone pick one of four options?", or "what is the difference between a Callout and a Notification?".
 
-The skill holds the catalogue grouped by job (action, input, selection, containers, messaging, display) and a decision table for each confusable family: `SegmentedControl` vs `TabBar` vs `RadioButton` vs `MenuSelect`, `Card` vs `CollapsibleSection` vs `Dialog`, `Callout` vs `Notification` vs `Tooltip` vs `Badge`, `Button` vs `IconButton`, and the on/off case. It answers the question and writes nothing. Read it before authoring anything new.
+The skill names seven families of need: action, single selection, text entry, on and off, container, messaging, and display. For the family a need falls into, it runs `npx live-tokens components --family <name> --json` and reads each candidate's catalogue entry: the condition that makes it the right component, the condition that makes each sibling right instead, and its rules of use. The entries hold the decision, so a component you author joins the same query. It answers the question and writes nothing. Read it before authoring anything new.
 
 ### `live-tokens-create-page`
 
