@@ -1,7 +1,7 @@
 export const meta = {
-  name: 'check-fix-wave',
-  description: 'Run one wave of docs/plans/check-and-fix-unification.md: execute, verify, review, with one fix round each',
-  whenToUse: 'Pass the wave id, such as 2, 3b, or 8a. The check-fix-run-a, -b and -c workflows call this in order.',
+  name: 'plan-wave',
+  description: 'Run one wave of a docs/plans plan: execute, verify, review, with one fix round each',
+  whenToUse: 'Pass the plan and the wave id, such as "contract 1" or "check-fix 3b". plan-all calls this in order.',
   phases: [
     { title: 'Prepare' },
     { title: 'Execute' },
@@ -9,8 +9,6 @@ export const meta = {
     { title: 'Review' },
   ],
 }
-
-const PLAN = 'docs/plans/check-and-fix-unification.md'
 
 const EXEC = {
   type: 'object',
@@ -106,7 +104,7 @@ const EXECUTOR_CONTRACT =
   'skipped (true only when the wave has nothing to do), oddities (judgment calls you flagged and did not resolve), ' +
   'and resumePoint (the exact next step, or "done").'
 
-const WAVES = {
+const CHECK_FIX_WAVES = {
   '2': { executor: 'wave-executor', verify: true },
   '3': {
     executor: 'wave-executor',
@@ -154,22 +152,72 @@ const WAVES = {
   '8b': { executor: 'svelte:svelte-file-editor', verify: true },
 }
 
-const wave = args && typeof args === 'object' ? String(args.wave) : String(args)
-const cfg = WAVES[wave]
-if (!cfg) throw new Error(`Unknown wave "${wave}". Pass one of: ${Object.keys(WAVES).join(', ')}`)
+const CONTRACT_WAVES = {
+  '0': {
+    executor: 'wave-executor',
+    verify: false,
+    reviewModel: 'sonnet',
+    extra: () =>
+      'A refusal from `claude plugin eval` is an outcome to record in the README with its date. It leaves gates "pass".',
+  },
+  '1': { executor: 'wave-executor', verify: true },
+  '2': { executor: 'wave-executor', verify: true },
+  '3': { executor: 'wave-executor', verify: true, reviewModel: 'sonnet' },
+  '4': { executor: 'wave-executor', verify: false, reviewModel: 'sonnet' },
+}
 
-const prefix = `Check-fix W${wave}:`
+// executeModel and escalateModel override the agent definition's model. A plan without them runs each agent as defined.
+const PLANS = {
+  'check-fix': {
+    file: 'docs/plans/check-and-fix-unification.md',
+    prefix: 'Check-fix',
+    waves: CHECK_FIX_WAVES,
+  },
+  contract: {
+    file: 'docs/plans/component-contract.md',
+    prefix: 'Contract',
+    waves: CONTRACT_WAVES,
+    executeModel: 'sonnet',
+    escalateModel: 'fable',
+  },
+}
+
+const [planArg, waveArg] =
+  args && typeof args === 'object' ? [args.plan, args.wave] : String(args ?? '').trim().split(/\s+/)
+const plan = PLANS[planArg]
+if (!plan) throw new Error(`Unknown plan "${planArg}". Pass one of: ${Object.keys(PLANS).join(', ')}`)
+const wave = String(waveArg)
+const cfg = plan.waves[wave]
+if (!cfg) throw new Error(`Unknown wave "${wave}" of ${planArg}. Pass one of: ${Object.keys(plan.waves).join(', ')}`)
+
+const PLAN = plan.file
+const prefix = `${plan.prefix} W${wave}:`
 const heading = `## Wave ${wave}:`
 const oddities = []
+let escalated = false
 
 function stop(stage, detail) {
-  return { wave, status: 'stopped', stage, detail, oddities }
+  return { plan: planArg, wave, status: 'stopped', stage, detail, escalated, oddities }
 }
 
 async function execute(prompt, label) {
-  const result = await agent(prompt, { agentType: cfg.executor, schema: EXEC, label, phase: 'Execute' })
+  const model = escalated ? plan.escalateModel : plan.executeModel
+  const result = await agent(prompt, {
+    agentType: cfg.executor,
+    schema: EXEC,
+    label: model ? `${label} (${model})` : label,
+    phase: 'Execute',
+    ...(model ? { model } : {}),
+  })
   if (result) oddities.push(...result.oddities)
   return result
+}
+
+function escalate(reason) {
+  if (!plan.escalateModel || escalated) return false
+  escalated = true
+  log(`Wave ${wave}: ${reason}. The remaining execute and review steps run on ${plan.escalateModel}.`)
+  return true
 }
 
 let prepared
@@ -190,9 +238,16 @@ const basePrompt =
   EXECUTOR_CONTRACT
 
 let exec = await execute(basePrompt, `W${wave} execute`)
+if ((!exec || exec.gates === 'fail') && escalate('the first executor stopped short')) {
+  exec = await execute(
+    `${basePrompt} An earlier executor stopped at: ${exec ? exec.resumePoint : 'no report'}. Read ` +
+      `git log --grep "${prefix}" and git status, keep the finished units, and continue from there.`,
+    `W${wave} resume`,
+  )
+}
 if (!exec) return stop('execute', 'the executor returned nothing')
 if (exec.gates === 'fail') return stop('execute', exec.resumePoint)
-if (exec.skipped) return { wave, status: 'skipped', oddities }
+if (exec.skipped) return { plan: planArg, wave, status: 'skipped', oddities }
 
 const fixPrompt = (scope) =>
   `Wave ${wave} of ${PLAN} needs a fix before it passes. Fix only the scope below, commit with the subject prefix ` +
@@ -213,6 +268,7 @@ while (true) {
       const failures = verified ? verified.failures : ['the verifier returned nothing']
       if (verifyFixes >= 1) return stop('verify', failures)
       verifyFixes += 1
+      escalate('verify failed')
       exec = await execute(fixPrompt({ failures }), `W${wave} fix verify`)
       if (!exec || exec.gates === 'fail') return stop('execute', exec ? exec.resumePoint : 'the executor returned nothing')
       continue
@@ -223,12 +279,21 @@ while (true) {
     `Review Wave ${wave} of ${PLAN}, the section headed "${heading}". Find its commits with ` +
       `git log --grep "${prefix}". The executor flagged these oddities: ${JSON.stringify(oddities)}. BLOCK when an ` +
       `oddity needs the user's decision.`,
-    { agentType: 'wave-reviewer', schema: REVIEW, label: `W${wave} review`, phase: 'Review' },
+    {
+      agentType: 'wave-reviewer',
+      schema: REVIEW,
+      label: `W${wave} review`,
+      phase: 'Review',
+      ...(cfg.reviewModel && !escalated ? { model: cfg.reviewModel } : {}),
+    },
   )
-  if (review && review.verdict === 'APPROVE') return { wave, status: 'approved', review: review.findings, oddities }
+  if (review && review.verdict === 'APPROVE') {
+    return { plan: planArg, wave, status: 'approved', escalated, review: review.findings, oddities }
+  }
   const findings = review ? review.findings : [{ severity: 'high', file: PLAN, detail: 'the reviewer returned nothing' }]
   if (reviewFixes >= 1) return stop('review', findings)
   reviewFixes += 1
+  escalate('the reviewer blocked')
   exec = await execute(fixPrompt({ findings }), `W${wave} fix review`)
   if (!exec || exec.gates === 'fail') return stop('execute', exec ? exec.resumePoint : 'the executor returned nothing')
 }

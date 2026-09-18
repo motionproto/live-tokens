@@ -180,7 +180,7 @@ so no two waves run at once and no agent uses worktree isolation.
 | 1 Default fixing | Done in `d1a92e6` | | | |
 | 2 Rules split into modules | `wave-executor` | `test-verifier` | `wave-reviewer` | automatic |
 | 3 Release script audit | `census` inventories the 19 scripts, then `wave-executor` writes the table | none, since no code changes | `wave-reviewer` checks each row against its script | **the user** approves the dispositions |
-| 3b Approved script changes | `wave-executor` | `test-verifier` | `wave-reviewer` | runs after `/check-fix-all`, once the user marks the Approved column |
+| 3b Approved script changes | `wave-executor` | `test-verifier` | `wave-reviewer` | runs after `/plan-all check-fix`, once the user marks the Approved column |
 | 4 Guidance on every finding | `wave-executor` | `test-verifier` | `wave-reviewer` | automatic |
 | 5 Create skills run one loop | `wave-executor` | `test-verifier` | `wave-reviewer` | automatic |
 | 6 check-compliance checks and fixes | `wave-executor` | `test-verifier` | `wave-reviewer` | automatic |
@@ -190,10 +190,10 @@ so no two waves run at once and no agent uses worktree isolation.
 
 **Saved workflows.** `.claude/workflows/` holds the runs as slash commands.
 
-- `check-fix-wave.js` runs one wave: execute, verify, review, and the fix
+- `plan-wave.js` runs one wave of the plan it is given: execute, verify, review, and the fix
   rounds below. It passes each agent name above as `agentType`. Run one wave
-  on its own with `/check-fix-wave 4`.
-- `check-fix-all.js` calls it for Waves 2 through 8b in order, after a
+  on its own with `/plan-wave check-fix 4`.
+- `plan-all.js` calls it for Waves 2 through 8b in order, after a
   preflight that stops on an unclean working tree. It stops at the first wave
   that stops.
 
@@ -215,16 +215,16 @@ reviewer reads to find a wave's diff.
    as its fix scope, then verify and review run again. A second BLOCK stops
    the run. The reviewer blocks when an oddity needs the user.
 
-**The run.** `/check-fix-all` runs Waves 2 through 8b in one workflow. A
+**The run.** `/plan-all check-fix` runs Waves 2 through 8b in one workflow. A
 workflow cannot pause for input, and no later wave depends on the user's
 approval of the Wave 3 audit, so Wave 3b runs afterwards with
-`/check-fix-wave 3b`.
+`/plan-wave check-fix 3b`.
 
 - The preflight stops the run when `git status --short` prints anything. An
   editor session writes into `src/live-tokens/data`, so commit or restore that
   first.
 - A stopped run names its wave. Resume in any session with
-  `/check-fix-all from <wave>`, such as `/check-fix-all from 5`.
+  `/plan-all check-fix from <wave>`, such as `/plan-all check-fix from 5`.
 - The run schedules about 26 agents before fix rounds, which shows the
   advisory Large workflow notice.
 - `visual-qa` starts the dev server and opens Chrome in Wave 8a. Launching the
