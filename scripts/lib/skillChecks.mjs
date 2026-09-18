@@ -78,14 +78,26 @@ const SUFFIX_SOURCES = [
 
 // `skills` maps a skill's directory name to its files keyed by the path within
 // it, `SKILL.md` and `references/*.md`; the other three are the sources those
-// files are checked against.
-export function checkSkills({ skills, cli, setupClaude = '', aliasKinds = '' }) {
+// files are checked against. `catalogueFamilies` is the `CatalogueFamily`
+// union (bin/lib/catalogue.mjs's `CATALOGUE_FAMILIES`), `shippedFamilies` is
+// each shipped runtime's `{ id, family }`, and `ruleIds` is every page and
+// component rule id.
+export function checkSkills({
+  skills,
+  cli,
+  setupClaude = '',
+  aliasKinds = '',
+  catalogueFamilies = [],
+  shippedFamilies = [],
+  ruleIds = [],
+}) {
   const errors = [];
   const skillDirs = Object.keys(skills).sort();
   const fileAt = (path) => {
     const cut = path.indexOf('/');
     return skills[path.slice(0, cut)]?.[path.slice(cut + 1)];
   };
+  const ruleSet = new Set(ruleIds);
 
   const cliVerbs = dispatchedVerbs(cli);
   const cliFlags = usageFlags(cli);
@@ -192,6 +204,21 @@ export function checkSkills({ skills, cli, setupClaude = '', aliasKinds = '' }) 
     for (const [, count] of text.matchAll(/^#+ .*\b(\w+)-step\b/gim)) {
       errors.push(`${skill}: a heading promises "${count}-step"; counts drift, so name the recipe instead`);
     }
+
+    // Invariant 3: a "Rules the checker enforces" list cites rule ids rather
+    // than reword their guidance, so every id it names has to be real.
+    if (ruleSet.size > 0) {
+      const heading = '## Rules the checker enforces';
+      const start = text.indexOf(heading);
+      if (start !== -1) {
+        const rest = text.slice(start + heading.length);
+        const next = rest.search(/\n## /);
+        const section = next === -1 ? rest : rest.slice(0, next);
+        for (const id of new Set([...section.matchAll(/^- `([a-z][a-z-]*)`\s*$/gm)].map((m) => m[1]))) {
+          if (!ruleSet.has(id)) errors.push(`${skill}: "Rules the checker enforces" names \`${id}\`, which is not a page or component rule id`);
+        }
+      }
+    }
   }
 
   for (const verb of cliVerbs) {
@@ -209,6 +236,29 @@ export function checkSkills({ skills, cli, setupClaude = '', aliasKinds = '' }) 
 
   for (const skill of samplePrompts) {
     if (!skillDirs.includes(skill)) errors.push(`bin/setup-claude.mjs: SAMPLE_PROMPTS names "${skill}", which is not bundled`);
+  }
+
+  // Invariant 2: the picker and the catalogue agree on the family union. Every
+  // `--family <name>` the picker runs is a real family, every real family has
+  // its own section running one, and no shipped entry declares one outside it.
+  if (catalogueFamilies.length > 0) {
+    const familySet = new Set(catalogueFamilies);
+    const pickerText = skills[PICKER]?.['SKILL.md'];
+    if (pickerText === undefined) {
+      errors.push(`${PICKER}: SKILL.md is missing, so the family cross-check has nothing to read`);
+    } else {
+      const pickerFamilies = new Set([...pickerText.matchAll(/--family\s+([a-z][a-z-]*)/g)].map((m) => m[1]));
+      for (const family of pickerFamilies) {
+        if (!familySet.has(family)) errors.push(`${PICKER}: runs \`components --family ${family}\`, which is outside CatalogueFamily`);
+      }
+      for (const family of catalogueFamilies) {
+        if (!pickerFamilies.has(family)) errors.push(`${PICKER}: no family section runs \`components --family ${family}\``);
+      }
+    }
+
+    for (const { id, family } of shippedFamilies) {
+      if (!familySet.has(family)) errors.push(`${id}: catalogue family "${family}" is outside CatalogueFamily`);
+    }
   }
 
   const directions = fileAt(DIRECTIONS);

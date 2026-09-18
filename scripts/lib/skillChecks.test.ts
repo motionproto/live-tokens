@@ -8,7 +8,13 @@ type Repo = {
   cli: string;
   setupClaude: string;
   aliasKinds: string;
+  catalogueFamilies: string[];
+  shippedFamilies: { id: string; family: string }[];
+  ruleIds: string[];
 };
+
+const FAMILIES = ['action', 'single-selection', 'text-entry', 'on-off', 'container', 'messaging', 'display'];
+const RULE_IDS = ['multiple-primary', 'danger-without-dialog', 'control-size', 'native-control'];
 
 const CLI = `
 if (command === 'create') {
@@ -75,6 +81,12 @@ function repo(edit: (r: Repo) => void = () => {}): Repo {
     cli: CLI,
     setupClaude: SETUP_CLAUDE,
     aliasKinds: ALIAS_KINDS,
+    catalogueFamilies: FAMILIES,
+    shippedFamilies: [
+      { id: 'button', family: 'action' },
+      { id: 'card', family: 'container' },
+    ],
+    ruleIds: RULE_IDS,
     skills: {
       'live-tokens-create-page': {
         'SKILL.md': `---
@@ -154,12 +166,33 @@ name: live-tokens-pick-component
 description: Choose the component that already does the job.
 ---
 
-## Catalogue
+## Action family
 
-\`Button\` fires an action. \`Card\` groups a title and a body.
+Run npx live-tokens components --family action --json.
 
-Ask what the page needs before reaching for a new component, and run
-npx live-tokens components <id> --json for the props one takes.
+## Single-selection family
+
+Run npx live-tokens components --family single-selection --json.
+
+## Text entry
+
+Run npx live-tokens components --family text-entry --json.
+
+## On and off
+
+Run npx live-tokens components --family on-off --json.
+
+## Container family
+
+Run npx live-tokens components --family container --json.
+
+## Messaging family
+
+Run npx live-tokens components --family messaging --json.
+
+## Display family
+
+Run npx live-tokens components --family display --json.
 `,
       },
     },
@@ -517,15 +550,81 @@ describe('the suffix vocabulary', () => {
   });
 });
 
+describe('the picker and the catalogue family union', () => {
+  it('rejects a --family value the union does not have', () => {
+    const problems = checkSkills(
+      repo(edited('live-tokens-pick-component', '--family display --json', '--family cards --json')),
+    );
+
+    expect(problems).toEqual([
+      'live-tokens-pick-component: runs `components --family cards`, which is outside CatalogueFamily',
+      'live-tokens-pick-component: no family section runs `components --family display`',
+    ]);
+  });
+
+  it('rejects a family with no section running its command', () => {
+    const problems = checkSkills(
+      repo((r) => {
+        r.skills['live-tokens-pick-component']['SKILL.md'] = r.skills['live-tokens-pick-component']['SKILL.md'].replace(
+          '## Display family\n\nRun npx live-tokens components --family display --json.\n',
+          '',
+        );
+      }),
+    );
+
+    expect(problems).toEqual(['live-tokens-pick-component: no family section runs `components --family display`']);
+  });
+
+  it('rejects a shipped entry whose family the union does not have', () => {
+    const problems = checkSkills(
+      repo((r) => {
+        r.shippedFamilies = [...r.shippedFamilies, { id: 'statcard', family: 'figures' }];
+      }),
+    );
+
+    expect(problems).toEqual(['statcard: catalogue family "figures" is outside CatalogueFamily']);
+  });
+
+  it('skips the cross-check when no families are given', () => {
+    const problems = checkSkills(
+      repo((r) => {
+        r.catalogueFamilies = [];
+        r.shippedFamilies = [{ id: 'statcard', family: 'figures' }];
+      }),
+    );
+
+    expect(problems).toEqual([]);
+  });
+});
+
+describe('a "Rules the checker enforces" list', () => {
+  const withRulesHeading = (rules: string) => (r: Repo) => {
+    r.skills['live-tokens-create-page']['SKILL.md'] += `\n## Rules the checker enforces\n\n${rules}\n`;
+  };
+
+  it('accepts ids the rule tables carry', () => {
+    const problems = checkSkills(repo(withRulesHeading('- `multiple-primary`\n- `native-control`')));
+
+    expect(problems).toEqual([]);
+  });
+
+  it('rejects an id no rule table carries', () => {
+    const problems = checkSkills(repo(withRulesHeading('- `not-a-real-rule`')));
+
+    expect(problems).toEqual([
+      'live-tokens-create-page: "Rules the checker enforces" names `not-a-real-rule`, which is not a page or component rule id',
+    ]);
+  });
+});
+
 // The module's comment claims the tests prove each rule bites, and six of
 // twenty-seven did: MAX_SKILL_LINES could go to 99999 with the whole suite
-// green. Every `errors.push` is one rule and has a case above, so a
-// twenty-sixth arrives with its own case
-// or this fails.
+// green. Every `errors.push` is one rule and has a case above, so a new one
+// arrives with its own case or this fails.
 describe('the rules this file pins', () => {
   it('is every rule the module carries', () => {
     const source = readFileSync(new URL('./skillChecks.mjs', import.meta.url), 'utf8');
 
-    expect(source.match(/errors\.push\(/g)).toHaveLength(25);
+    expect(source.match(/errors\.push\(/g)).toHaveLength(30);
   });
 });
