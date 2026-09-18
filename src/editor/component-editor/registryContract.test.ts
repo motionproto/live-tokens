@@ -12,6 +12,7 @@
 import { describe, it, expect } from 'vitest';
 import { getComponentRegistryEntries } from './registry';
 import { checkRegistryEntry } from './contract';
+import type { CatalogueFamily } from './scaffolding/types';
 // @ts-expect-error — plain .mjs module, no types
 import { CATALOGUE_FAMILIES } from '../../../bin/lib/catalogue.mjs';
 // @ts-expect-error — plain .mjs module, no types
@@ -65,6 +66,22 @@ describe('a built-in entry imports its catalogue, never copies it', () => {
       for (const key of Object.keys(entry.catalogue.props ?? {})) expect(declared).toContain(key);
     });
   });
+});
+
+// `npm run check` holds this record to the union, member for member, and the
+// assertion holds the list to the record.
+const UNION_MEMBERS: Record<CatalogueFamily, true> = {
+  action: true,
+  'single-selection': true,
+  'text-entry': true,
+  'on-off': true,
+  container: true,
+  messaging: true,
+  display: true,
+};
+
+it('CATALOGUE_FAMILIES lists exactly the CatalogueFamily union', () => {
+  expect([...CATALOGUE_FAMILIES].sort()).toEqual(Object.keys(UNION_MEMBERS).sort());
 });
 
 // Invariant 1: every declared name in a catalogue entry is verified.
