@@ -8,6 +8,7 @@
     alternatives: {
       imagelightbox: 'the detail is the point, and the reader opens it to see more.',
     },
+    constraints: ['Page CSS paints decoration.'],
     props: {
       variant:
         "`default` keeps the picture's own proportions, `banner` gives it a tall frame, `medium` and `compact` shorter ones.",

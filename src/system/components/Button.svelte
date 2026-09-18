@@ -12,6 +12,7 @@
     constraints: [
       { rule: 'multiple-primary', text: 'One primary Button per page.' },
       { rule: 'danger-without-dialog', text: 'A danger Button opens a Dialog to confirm before it runs.' },
+      'A link to another page is an anchor.',
     ],
     props: {
       variant: 'one primary per page; secondary for the rest; outline for a tertiary action; danger for a destructive one.',

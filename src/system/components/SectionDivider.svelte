@@ -6,7 +6,7 @@
     family: 'display',
     useFor: 'naming the section that follows it.',
     alternatives: {
-      sidenavigation: 'the choice moves the reader to another page.',
+      sidenavigation: 'the titles are links that move the reader between pages.',
       card: 'the title belongs to one item inside a container.',
     },
     props: {
