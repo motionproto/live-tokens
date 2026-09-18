@@ -161,10 +161,10 @@ names the registry contract (`component-editor/contract.ts`) and the browser
 contract (`src/testing/componentContract.ts`).
 
 **6. The eval baseline.** Wave 0 authors the case and tries to run it. If the
-runner still refuses, the wave records that. **Reserved for the user:**
-whether to hold Wave 1 until a baseline exists. Wave 0 therefore runs on its
-own, and the user starts Waves 1 to 3 after reading its outcome. Wave 2
-rewrites the picker, so a baseline taken after Wave 2 measures nothing.
+runner still refuses, the wave records that and the plan proceeds. **Decided
+2026-09-18:** Wave 1 does not wait for a baseline, and the run needs no one
+present. Wave 0 still runs first, because Wave 2 rewrites the picker and a
+baseline taken after it measures nothing.
 
 **7. No `--fields` flag. Decided in review, 2026-09-18.** The list form drops
 `tokens`, which takes it from 179 KB to 22 KB, and `--family` cuts that to one
@@ -227,7 +227,7 @@ in one working tree, since Waves 1 to 3 all touch the skills and regenerate
 
 | Wave | Execute | Verify | Review | Gate |
 |---|---|---|---|---|
-| 0 Eval baseline | `wave-executor` | none | `wave-reviewer` reads the case against the README's documented layout | **the user** reads the outcome and starts Wave 1 |
+| 0 Eval baseline | `wave-executor` | none | `wave-reviewer` reads the case against the README's documented layout | automatic; a refused run is recorded |
 | 1 The entry decides | `wave-executor` | `test-verifier` | `wave-reviewer` | automatic |
 | 2 Skills hold procedure | `wave-executor` | `test-verifier` | `wave-reviewer` | automatic |
 | 3 Guidance corrections | `wave-executor` | `test-verifier` | `wave-reviewer` | automatic |
@@ -248,8 +248,7 @@ clean-tree preflight.
 
 | Command | Runs | Then |
 |---|---|---|
-| `/plan-wave contract 0` | Wave 0 | The user reads the README's record and decides decision 6 |
-| `/plan-all contract` | Waves 1, 2, 3 | Resume a stopped run with `/plan-all contract from <wave>` |
+| `/plan-all contract` | Waves 0, 1, 2, 3 | Resume a stopped run with `/plan-all contract from <wave>` |
 | `/plan-wave contract 4` | Wave 4 | Only once the README holds a Wave 0 score; the user reads the result |
 
 **Ledger.** Every executor commits with the subject prefix `Contract W<n>:`.
@@ -440,7 +439,7 @@ points, each against the 0.82.0 tree.
 | `alternatives` keys were "ids" while the Done-when printed names | Keys are lowercase ids throughout |
 | Invariant 2 matched headings to union members, and "On and off" maps to `on-off` by no rule | The check reads each section's `--family` value |
 | The union would be parsed out of `types.ts` by regex for two readers | The seven names get one home both read |
-| The workflow table ran Wave 0 to 3 automatically while decision 6 reserved the hold for the user | Wave 0 runs alone; `/plan-all contract` starts at Wave 1 |
+| The workflow table ran Wave 0 to 3 automatically while decision 6 reserved the hold for the user | The user decided on 2026-09-18 that Wave 1 does not wait; `/plan-all contract` runs Waves 0 to 3 |
 | Dropping `tokens` from `components --json` is a consumer-visible change the CHANGELOG step omitted | Step 9 records it |
 | Two copied workflow scripts would have duplicated 200 lines of control flow | `plan-wave.js` and `plan-all.js` take the plan as data |
 

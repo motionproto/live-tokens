@@ -11,7 +11,7 @@ const PLANS = {
     after: 'Approve the Release script audit table, then run /plan-wave check-fix 3b.',
   },
   contract: {
-    order: ['1', '2', '3'],
+    order: ['0', '1', '2', '3'],
     after: 'Once the README holds a Wave 0 baseline, run /plan-wave contract 4.',
   },
 }
