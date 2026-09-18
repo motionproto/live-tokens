@@ -37,7 +37,7 @@ export const componentRules = {
     severity: 'warn',
     repair: 'authored',
     guidance:
-      "Add the catalogue export to the runtime's <script module> block, with description, family, and useFor as string literals, and alternatives as an object of sibling component id to the condition that makes the sibling right instead. The message names the field that is missing or malformed, and `npx live-tokens components <id>` prints the entry once it is there.",
+      "Add the catalogue export to the runtime's <script module> block, with description, family, and useFor as string literals, and alternatives as an object of sibling component id to the condition that makes the sibling right instead. A component with no sibling takes `alternatives: {}`. The message names the field that is missing or malformed, and `npx live-tokens components <id>` prints the entry once it is there.",
   },
   'state-after-property': {
     severity: 'error',

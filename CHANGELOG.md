@@ -18,10 +18,11 @@
 
 - **`CatalogueEntry` drops `notFor` for `alternatives`.** `alternatives` is a
   required `Record<string, string>` keyed by a sibling component id, naming
-  the condition that makes that sibling right instead. `family` is also
-  required. A runtime's `catalogue` export, and any consumer's, must supply
-  both; `missing-description` reports either as missing, a `family` outside
-  the seven, or an `alternatives` key that names no component.
+  the condition that makes that sibling right instead. A component with no
+  sibling declares `alternatives: {}`. `family` is also required. A runtime's
+  `catalogue` export, and any consumer's, must supply both;
+  `missing-description` reports either as missing, a `family` outside the
+  seven, or an `alternatives` key that names no component.
 - **`components` and `components --json` drop `tokens` from the list form.**
   The id form (`components <id>`) is unchanged. The list dropped from ~179 KB
   to ~22 KB across the 26 shipped components.

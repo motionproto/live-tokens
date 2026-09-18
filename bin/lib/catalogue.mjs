@@ -216,7 +216,8 @@ export function catalogueOf(source) {
   if (typeof fields.family === 'string') catalogue.family = fields.family;
   if (typeof fields.useFor === 'string') catalogue.useFor = fields.useFor;
   const alternatives = stringEntries(fields.alternatives);
-  if (alternatives && Object.keys(alternatives).length) catalogue.alternatives = alternatives;
+  // A component with no sibling declares `alternatives: {}`, and the type accepts it.
+  if (alternatives) catalogue.alternatives = alternatives;
   const constraints = constraintEntries(fields.constraints);
   if (constraints && constraints.length) catalogue.constraints = constraints;
   const props = stringEntries(fields.props);

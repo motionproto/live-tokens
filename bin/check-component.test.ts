@@ -1669,6 +1669,18 @@ describe('missing-description', () => {
     );
   });
 
+  it('accepts an empty alternatives object and reports an absent one', () => {
+    const root = fixtureRoot();
+    const runtime = widget(root, '--widget-surface: var(--surface-neutral);');
+    const source = readFileSync(runtime, 'utf8');
+    prependModule(runtime, `export const catalogue = { description: 'A dial.', family: 'display', useFor: 'testing.', alternatives: {} };`);
+    expect(rules(root)).not.toContain('missing-description');
+
+    writeFileSync(runtime, source);
+    prependModule(runtime, `export const catalogue = { description: 'A dial.', family: 'display', useFor: 'testing.' };`);
+    expect(findingMessage(root)).toBe('src/system/components/Widget.svelte: catalogue has no alternatives');
+  });
+
   it('fires when an alternatives key names no component', () => {
     const root = fixtureRoot();
     const runtime = widget(root, '--widget-surface: var(--surface-neutral);');

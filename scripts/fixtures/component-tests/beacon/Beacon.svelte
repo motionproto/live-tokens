@@ -7,9 +7,7 @@
     family: 'on-off',
     useFor:
       "mirroring Toggle.svelte's shape (parts, states, interaction) so the gate exercises a real, richly-stated component without inventing a new pattern for check-component --tests to prove.",
-    alternatives: {
-      toggle: 'the project ships it for real; Beacon exists only for the consumer acceptance gate.',
-    },
+    alternatives: {},
   } satisfies CatalogueEntry;
 </script>
 
