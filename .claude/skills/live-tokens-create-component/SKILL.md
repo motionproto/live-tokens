@@ -101,7 +101,7 @@ Name a role as the shipped component that paints the same thing names it. A fill
 
 ## Runtime component
 
-Create `src/system/components/StatCard.svelte`. `check-component` finds a runtime there only. A component in another directory is listed by `components` and `report` when that directory is named in `"componentDirs"` in `live-tokens.config.json`, and `check-component` does not check it. Use Svelte 5 props and snippets, semantic HTML, and the behavior the task requires.
+Create `src/system/components/StatCard.svelte`. A component in another directory is listed by `components` and `report`, and checked by `check-component <id>`, when that directory is named in `"componentDirs"` in `live-tokens.config.json`. Use Svelte 5 props and snippets, semantic HTML, and the behavior the task requires.
 
 Open the file with a `<script module lang="ts">` block that exports a `catalogue` entry in the shape every shipped component carries. `npx live-tokens components` prints it beside the id, and `components <id>` prints it with the props. Each field is `key: <string literal>`, in single, double, or backtick quotes; no `${}` interpolation, no concatenation, no identifier reference. Each `alternatives` key names a sibling by its component id (`table`, never `Table`); `registryContract.test.ts` fails when the id is not registered. An optional `constraints` array states a rule of use, as a plain sentence or, when a checker rule enforces it, `{ rule, text }` with the rule's id. An optional `props` map adds one line per prop whose values carry a choice, such as `variant`; each key names a prop the file declares, and the text says what the values mean.
 
