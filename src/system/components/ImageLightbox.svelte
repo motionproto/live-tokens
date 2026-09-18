@@ -3,8 +3,11 @@
 
   export const catalogue = {
     description: 'A picture that opens to a full view on click.',
+    family: 'display',
     useFor: 'a screenshot, artwork, or chart whose detail is the point, and for a gallery of them.',
-    notFor: 'decoration or a picture the reader takes in at a glance (Image).',
+    alternatives: {
+      image: 'the reader takes the picture in at a glance, with no detail to open.',
+    },
   } satisfies CatalogueEntry;
 </script>
 

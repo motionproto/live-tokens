@@ -3,8 +3,12 @@
 
   export const catalogue = {
     description: 'A read-out of progress against a labelled track.',
+    family: 'display',
     useFor: 'reporting how far a task has run.',
-    notFor: 'a number the reader sets (Slider); a standing status label (Badge).',
+    alternatives: {
+      slider: 'the reader sets the number.',
+      badge: 'the label stands on its own, with no progress to report.',
+    },
   } satisfies CatalogueEntry;
 </script>
 

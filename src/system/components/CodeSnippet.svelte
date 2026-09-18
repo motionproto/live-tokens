@@ -3,8 +3,13 @@
 
   export const catalogue = {
     description: 'A command or value with a copy button.',
+    family: 'display',
     useFor: 'text the reader is meant to run or paste somewhere else.',
-    notFor: 'prose the reader only reads (a paragraph in its Card or Panel); a value the reader edits (Input).',
+    alternatives: {
+      card: 'the text is prose the reader only reads, inside its own titled block.',
+      panel: 'the text is prose the reader only reads, inside a section of the page.',
+      input: 'the reader edits the value.',
+    },
   } satisfies CatalogueEntry;
 </script>
 

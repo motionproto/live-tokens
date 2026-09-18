@@ -3,8 +3,12 @@
 
   export const catalogue = {
     description: 'A titled break between the sections of a page.',
+    family: 'display',
     useFor: 'naming the section that follows it.',
-    notFor: 'moving between pages (SideNavigation); a title inside a container (Card).',
+    alternatives: {
+      sidenavigation: 'the choice moves the reader to another page.',
+      card: 'the title belongs to one item inside a container.',
+    },
     props: {
       variant: '`sm` titles a section, `md` titles a page, and `lg` is the largest size.',
       eyebrow: 'an opt-in label above the title.',

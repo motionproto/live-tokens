@@ -1,6 +1,6 @@
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { extname, join, relative } from 'node:path';
-import { catalogueOf } from '../lib/catalogue.mjs';
+import { CATALOGUE_FAMILIES, catalogueOf } from '../lib/catalogue.mjs';
 import { STATE_TOKENS, editorTokenRefs, readKnownSuffixes, tokenSuffix } from '../lib/componentSource.mjs';
 import { PKG_ROOT, builtInIds } from '../lib/tokenVocabulary.mjs';
 
@@ -37,7 +37,7 @@ export const componentRules = {
     severity: 'warn',
     repair: 'authored',
     guidance:
-      "Add the catalogue export to the runtime's <script module> block, with description, useFor, and notFor as string literals. The message names the field that is missing or malformed, and `npx live-tokens components <id>` prints the entry once it is there.",
+      "Add the catalogue export to the runtime's <script module> block, with description, family, and useFor as string literals, and alternatives as an object of sibling component id to the condition that makes the sibling right instead. The message names the field that is missing or malformed, and `npx live-tokens components <id>` prints the entry once it is there.",
   },
   'state-after-property': {
     severity: 'error',
@@ -111,19 +111,33 @@ export function checkFiles({ root, runtimePath, editorPath }, record) {
   return { editorMissing, runtimeMissing };
 }
 
-export function checkRuntime({ id, Id, root, runtimePath, runtime, blocks, intrinsic }, record) {
+export function checkRuntime({ id, Id, root, runtimePath, runtime, blocks, intrinsic, vocab }, record) {
   // Runtime: the file exports the `catalogue` that says what the component
   // is for. Without it the component is pickable but unexplained.
   const catalogue = catalogueOf(runtime);
   if (!catalogue) {
     record(
       'missing-description',
-      `${relative(root, runtimePath)}: has no catalogue export. Say what ${Id} is for, and what it is not for`,
+      `${relative(root, runtimePath)}: has no catalogue export. Say what ${Id} is for, its family, and its alternatives`,
     );
   } else {
-    for (const requiredField of ['description', 'useFor', 'notFor']) {
+    for (const requiredField of ['description', 'family', 'useFor', 'alternatives']) {
       if (!catalogue[requiredField]) {
         record('missing-description', `${relative(root, runtimePath)}: catalogue has no ${requiredField}`);
+      }
+    }
+    if (catalogue.family && !CATALOGUE_FAMILIES.includes(catalogue.family)) {
+      record(
+        'missing-description',
+        `${relative(root, runtimePath)}: catalogue family "${catalogue.family}" is not one of ${CATALOGUE_FAMILIES.join(', ')}`,
+      );
+    }
+    for (const alt of Object.keys(catalogue.alternatives ?? {})) {
+      if (!vocab.components.has(alt)) {
+        record(
+          'missing-description',
+          `${relative(root, runtimePath)}: catalogue alternatives names "${alt}", which is not a component id`,
+        );
       }
     }
   }

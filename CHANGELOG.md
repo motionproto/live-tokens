@@ -1,5 +1,31 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+- **`components --family <name>`.** Filters the list to one of the seven
+  picker families: `action`, `single-selection`, `text-entry`, `on-off`,
+  `container`, `messaging`, `display`. An unrecognized name fails and names
+  the seven.
+- **`CatalogueEntry` carries `family` and `constraints`.** `family` is one of
+  the seven picker families. `constraints` is an optional array of a plain
+  string or a `{ rule, text }` pair naming the checker rule that enforces it.
+  `components <id>` prints `Family:`, one `Instead:` line per alternative, and
+  one `Rule:` line per constraint.
+
+### Changed (breaking)
+
+- **`CatalogueEntry` drops `notFor` for `alternatives`.** `alternatives` is a
+  required `Record<string, string>` keyed by a sibling component id, naming
+  the condition that makes that sibling right instead. `family` is also
+  required. A runtime's `catalogue` export, and any consumer's, must supply
+  both; `missing-description` reports either as missing, a `family` outside
+  the seven, or an `alternatives` key that names no component.
+- **`components` and `components --json` drop `tokens` from the list form.**
+  The id form (`components <id>`) is unchanged. The list dropped from ~179 KB
+  to ~22 KB across the 26 shipped components.
+
 ## 0.82.0 — The demo ships from the package
 
 ### Added

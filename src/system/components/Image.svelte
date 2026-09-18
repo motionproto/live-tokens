@@ -3,8 +3,11 @@
 
   export const catalogue = {
     description: 'A framed picture in the page flow.',
+    family: 'display',
     useFor: 'any picture the page shows.',
-    notFor: 'a picture whose detail the reader must open (ImageLightbox); decoration that page CSS paints.',
+    alternatives: {
+      imagelightbox: 'the detail is the point, and the reader opens it to see more.',
+    },
     props: {
       variant:
         "`default` keeps the picture's own proportions, `banner` gives it a tall frame, `medium` and `compact` shorter ones.",

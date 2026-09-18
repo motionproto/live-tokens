@@ -2,7 +2,7 @@ import type { SkillTree } from '../types';
 
 export const createPage: SkillTree = {
   "id": "live-tokens-create-page",
-  "digest": "sha256:0d78d225ef7199e2",
+  "digest": "sha256:1918707e9f0d1f83",
   "title": "create-page",
   "tagline": "Create a Page Using Live Tokens",
   "nodes": [

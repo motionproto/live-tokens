@@ -47,9 +47,25 @@ function literalValue(raw) {
   return inner.replace(/\s+/g, ' ').trim();
 }
 
-// Brace matching skips over quoted literals so a `}` inside a description
-// (or a description containing a stray brace) never closes the object early.
-function findBalanced(text, openIndex) {
+/** The seven picker families a `catalogue.family` can name, in the order the
+ *  live-tokens-pick-component skill sections them. The one home both the CLI
+ *  (`components --family`) and `check:skills` read, so neither re-derives the
+ *  union by parsing `types.ts`. */
+export const CATALOGUE_FAMILIES = [
+  'action',
+  'single-selection',
+  'text-entry',
+  'on-off',
+  'container',
+  'messaging',
+  'display',
+];
+
+// Brace/bracket matching skips over quoted literals so a closer inside a
+// description (or a description containing a stray brace) never closes the
+// group early. Shared by object literals (`{`/`}`) and array literals
+// (`[`/`]`).
+function findBalanced(text, openIndex, open = '{', close = '}') {
   let depth = 0;
   for (let i = openIndex; i < text.length; i++) {
     const ch = text[i];
@@ -59,8 +75,8 @@ function findBalanced(text, openIndex) {
       while (i < text.length && text[i] !== quote) i += text[i] === '\\' ? 2 : 1;
       continue;
     }
-    if (ch === '{') depth++;
-    else if (ch === '}') {
+    if (ch === open) depth++;
+    else if (ch === close) {
       depth--;
       if (depth === 0) return { content: text.slice(openIndex + 1, i), end: i + 1 };
     }
@@ -68,26 +84,104 @@ function findBalanced(text, openIndex) {
   return null;
 }
 
-function parseFieldObject(body) {
+function skipSeparators(text, i) {
+  while (i < text.length && /[\s,]/.test(text[i])) i++;
+  return i;
+}
+
+/**
+ * One literal value starting at `text[i]`: a quoted string, a `[...]` array of
+ * values, or a `{...}` object of `key: value` pairs — the subset `catalogueOf`
+ * reads, recursively, so a key nested inside `alternatives`, `props`, or a
+ * `{ rule, text }` constraint is read at its own depth and never mistaken for
+ * a top-level field. An identifier, a template with `${}`, a concatenation,
+ * or any other expression is outside the subset and reads as absent (`null`),
+ * the same tolerance `catalogueOf` always gave a non-literal field.
+ */
+function readValue(text, i) {
+  i = skipSeparators(text, i);
+  const ch = text[i];
+  if (ch === "'" || ch === '"' || ch === '`') {
+    const m = STRING_LITERAL.exec(text.slice(i));
+    if (!m || m.index !== 0) return null;
+    const value = literalValue(m[0]);
+    return value === undefined ? null : { value, end: i + m[0].length };
+  }
+  if (ch === '[') {
+    const balanced = findBalanced(text, i, '[', ']');
+    if (!balanced) return null;
+    const items = [];
+    let j = 0;
+    while (j < balanced.content.length) {
+      const item = readValue(balanced.content, j);
+      if (!item) {
+        j++;
+        continue;
+      }
+      items.push(item.value);
+      j = item.end;
+    }
+    return { value: items, end: balanced.end };
+  }
+  if (ch === '{') {
+    const balanced = findBalanced(text, i, '{', '}');
+    if (!balanced) return null;
+    return { value: readObject(balanced.content), end: balanced.end };
+  }
+  return null;
+}
+
+/** `key: value` pairs read by depth: each value is consumed whole (a string
+ *  literal in one match, a bracketed group by its own balance) before the
+ *  scan resumes, so a key inside a nested value's own text is never read as
+ *  one of `body`'s own fields. */
+function readObject(body) {
   const fields = {};
-  const re = new RegExp(`([A-Za-z_$][A-Za-z0-9_$]*)\\s*:\\s*(${STRING_LITERAL.source})`, 'g');
+  const keyRe = /([A-Za-z_$][A-Za-z0-9_$]*)\s*:/g;
   let m;
-  while ((m = re.exec(body))) {
-    if (m[1] in fields) continue;
-    const value = literalValue(m[2]);
-    if (value !== undefined) fields[m[1]] = value;
+  while ((m = keyRe.exec(body))) {
+    const result = readValue(body, keyRe.lastIndex);
+    if (result) {
+      if (!(m[1] in fields)) fields[m[1]] = result.value;
+      keyRe.lastIndex = result.end;
+    }
   }
   return fields;
 }
 
+function isPlainObject(v) {
+  return v !== null && typeof v === 'object' && !Array.isArray(v);
+}
+
+/** An object's own string-valued entries; a non-string value is dropped, key
+ *  by key, the same tolerance a top-level field gets. */
+function stringEntries(v) {
+  if (!isPlainObject(v)) return undefined;
+  const out = {};
+  for (const [key, value] of Object.entries(v)) if (typeof value === 'string') out[key] = value;
+  return out;
+}
+
+/** `constraints` entries: a plain string, or a `{ rule, text }` object with
+ *  both as strings. Anything else is dropped from the array. */
+function constraintEntries(v) {
+  if (!Array.isArray(v)) return undefined;
+  const out = [];
+  for (const item of v) {
+    if (typeof item === 'string') out.push(item);
+    else if (isPlainObject(item) && typeof item.rule === 'string' && typeof item.text === 'string') {
+      out.push({ rule: item.rule, text: item.text });
+    }
+  }
+  return out;
+}
+
 /**
- * Bounded, non-evaluating parse of the runtime file's `catalogue` export:
- * `key: <string literal>` pairs inside the `<script module>` block's
- * `export const catalogue = { ... }`, the same way `builtInIds` and
- * `componentProps` read the rest of the vocabulary without importing the
- * module. A field given as an identifier, a template with `${}`, or a
- * concatenation is not a string literal, so it is silently absent rather
- * than evaluated. Returns `null` when the file has no such export.
+ * Bounded, non-evaluating parse of the runtime file's `catalogue` export
+ * inside the `<script module>` block's `export const catalogue = { ... }`,
+ * the same way `builtInIds` and `componentProps` read the rest of the
+ * vocabulary without importing the module. Returns `null` when the file has
+ * no such export.
  */
 export function catalogueOf(source) {
   const moduleBlock = source.match(/<script\s+module[^>]*>([\s\S]*?)<\/script>/);
@@ -98,26 +192,17 @@ export function catalogueOf(source) {
   const balanced = findBalanced(moduleBlock[1], openIndex);
   if (!balanced) return null;
 
-  let body = balanced.content;
-  let props;
-  const propsMatch = /\bprops\s*:\s*\{/.exec(body);
-  if (propsMatch) {
-    const propsOpen = propsMatch.index + propsMatch[0].length - 1;
-    const propsBalanced = findBalanced(body, propsOpen);
-    if (propsBalanced) {
-      const parsedProps = parseFieldObject(propsBalanced.content);
-      if (Object.keys(parsedProps).length) props = parsedProps;
-      body = body.slice(0, propsMatch.index) + body.slice(propsBalanced.end);
-    }
-  }
-
-  const fields = parseFieldObject(body);
-  const catalogue = {
-    description: fields.description,
-    useFor: fields.useFor,
-    notFor: fields.notFor,
-  };
-  if (props) catalogue.props = props;
+  const fields = readObject(balanced.content);
+  const catalogue = {};
+  if (typeof fields.description === 'string') catalogue.description = fields.description;
+  if (typeof fields.family === 'string') catalogue.family = fields.family;
+  if (typeof fields.useFor === 'string') catalogue.useFor = fields.useFor;
+  const alternatives = stringEntries(fields.alternatives);
+  if (alternatives && Object.keys(alternatives).length) catalogue.alternatives = alternatives;
+  const constraints = constraintEntries(fields.constraints);
+  if (constraints && constraints.length) catalogue.constraints = constraints;
+  const props = stringEntries(fields.props);
+  if (props && Object.keys(props).length) catalogue.props = props;
   return catalogue;
 }
 
@@ -190,6 +275,13 @@ export function describeComponents(vocab, { root = process.cwd() } = {}) {
   return out.sort((a, b) => a.origin.localeCompare(b.origin) || a.id.localeCompare(b.id));
 }
 
+/** A component list with each entry's `tokens` array dropped — the list
+ *  form's payload, which drops from ~179 KB to ~22 KB across the 26 shipped
+ *  components. The id form keeps `tokens`, unchanged. */
+export function withoutTokens(list) {
+  return list.map(({ tokens, ...rest }) => rest);
+}
+
 export function describeTokens(vocab, { root = process.cwd() } = {}) {
   return {
     tokensCss: vocab.tokensCssPath ? relative(root, vocab.tokensCssPath) : null,
@@ -203,11 +295,15 @@ export function describeTokens(vocab, { root = process.cwd() } = {}) {
 
 function describeLines(c) {
   if (!c.catalogue) return [];
-  const { description, useFor, notFor, props } = c.catalogue;
+  const { description, family, useFor, alternatives, constraints, props } = c.catalogue;
   const lines = [];
   if (description) lines.push(description);
+  if (family) lines.push(`Family: ${family}`);
   if (useFor) lines.push(`Use for: ${useFor}`);
-  if (notFor) lines.push(`Not for: ${notFor}`);
+  for (const [id, condition] of Object.entries(alternatives ?? {})) lines.push(`Instead: ${id}, when ${condition}`);
+  for (const constraint of constraints ?? []) {
+    lines.push(typeof constraint === 'string' ? `Rule: ${constraint}` : `Rule: ${constraint.text} [${constraint.rule}]`);
+  }
   for (const [prop, text] of Object.entries(props ?? {})) lines.push(`${prop}: ${text}`);
   return lines;
 }

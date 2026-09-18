@@ -85,7 +85,7 @@ Show related items side by side when the width permits. A line of copy runs 45 t
 ## Components
 
 - Use a shipped component when one fits. Import it from `@motion-proto/live-tokens/components/<Name>.svelte`.
-- `npx live-tokens components <id>` prints the declared props, the values each union accepts, and the catalogue entry. `--json` prints the same as data. The list includes the project's own components.
+- `npx live-tokens components <id>` prints the declared props, the values each union accepts, and the catalogue entry. `--json` prints the same as data. `--family <name>` filters the list to one picker family. The list includes the project's own components.
 - Pass only the props a component declares.
 - A shipped component fills its parent. To size one, size the element the page wraps it in.
 - A native element with no chrome of its own needs no component: an `<input type="file">` behind a Button, a `<canvas>`, an `<img>` inside a stage.

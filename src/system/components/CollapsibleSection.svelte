@@ -3,8 +3,13 @@
 
   export const catalogue = {
     description: 'A section the reader opens and closes.',
+    family: 'container',
     useFor: 'secondary content that most readers skip.',
-    notFor: 'content every reader needs (Card); moving between pages (SideNavigation).',
+    alternatives: {
+      card: 'every reader needs the content, so it stays open.',
+      sidenavigation: 'the choice moves the reader to another page.',
+    },
+    constraints: ['Holds the secondary fields of a form, with the form actions on the bottom edge.'],
     props: {
       variant: '`chromeless` sits inside other content, `hairline` draws a line under the header, `container` frames the whole section.',
     },

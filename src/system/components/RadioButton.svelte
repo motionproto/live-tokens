@@ -3,8 +3,12 @@
 
   export const catalogue = {
     description: 'A form row that selects one option.',
+    family: 'single-selection',
     useFor: 'a choice the reader reviews as text before committing to a larger form.',
-    notFor: 'an inline switch between views (SegmentedControl); a setting that takes effect at once (Toggle).',
+    alternatives: {
+      segmentedcontrol: 'the choice switches between views of the same data, inline.',
+      toggle: 'the setting takes effect the moment it flips.',
+    },
   } satisfies CatalogueEntry;
 </script>
 

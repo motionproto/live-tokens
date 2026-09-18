@@ -3,8 +3,11 @@
 
   export const catalogue = {
     description: 'A themed frame around the rows and cells the page writes.',
+    family: 'display',
     useFor: 'records the reader scans and compares.',
-    notFor: 'a set of things the reader acts on (Card).',
+    alternatives: {
+      card: 'the reader acts on each item; one Card per item.',
+    },
   } satisfies CatalogueEntry;
 </script>
 

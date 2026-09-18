@@ -3,8 +3,12 @@
 
   export const catalogue = {
     description: 'A number the reader picks by position on a track.',
+    family: 'text-entry',
     useFor: 'a volume, a price range, or a percentage, where the position carries the meaning.',
-    notFor: 'an exact number the reader would rather type (Input); an on/off setting (Toggle).',
+    alternatives: {
+      input: 'the reader knows the exact number and would rather type it.',
+      toggle: 'the setting is on or off, and takes effect at once.',
+    },
     props: {
       variant: '`single` picks one number; `range` picks a low and a high.',
     },

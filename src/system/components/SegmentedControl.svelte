@@ -3,8 +3,12 @@
 
   export const catalogue = {
     description: 'An inline switch between named alternatives.',
+    family: 'single-selection',
     useFor: 'two to four short labels that pick one view of the same data.',
-    notFor: "swapping the page's content area (TabBar); labels long enough to wrap (RadioButton).",
+    alternatives: {
+      tabbar: "the choice swaps the page's content area below it.",
+      radiobutton: 'a label would wrap.',
+    },
   } satisfies CatalogueEntry;
 </script>
 

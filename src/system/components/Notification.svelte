@@ -3,8 +3,12 @@
 
   export const catalogue = {
     description: 'Feedback about something that just happened.',
+    family: 'messaging',
     useFor: 'the outcome of an action or a system event, which the reader can dismiss.',
-    notFor: 'standing content in a section (Callout); a decision that blocks the page (Dialog).',
+    alternatives: {
+      callout: 'the reader must know it about the content around it, and it stays present.',
+      dialog: 'the page cannot continue until the reader decides.',
+    },
     props: {
       variant: '`info` notes, `success` confirms, `warning` cautions, `danger` flags harm.',
     },

@@ -21,7 +21,14 @@ import process from 'node:process';
 import { COMPONENT_RULES, checkComponent, discoverComponents, formatReport } from './check-component.mjs';
 import { PAGE_RULES, checkPages, discoverPages } from './check-page.mjs';
 import { resolvePageTestTargets } from './lib/pageRoutes.mjs';
-import { describeComponents, describeTokens, formatComponents, formatTokens } from './lib/catalogue.mjs';
+import {
+  CATALOGUE_FAMILIES,
+  describeComponents,
+  describeTokens,
+  formatComponents,
+  formatTokens,
+  withoutTokens,
+} from './lib/catalogue.mjs';
 import { applyFixes } from './lib/fixers.mjs';
 import { buildReport, formatReport as formatProjectReport } from './lib/report.mjs';
 import { loadVocabulary } from './lib/tokenVocabulary.mjs';
@@ -58,11 +65,17 @@ Commands:
   create <dir> [--force]      Scaffold a new Svelte + Vite app wired up with
                               live-tokens (editor, components, design tokens)
   setup-claude [--force]      Install bundled Claude Code skills into ./.claude/skills/
-  components [id] [--json]    List every component the project has, shipped and
+  components [id] [--family <name>] [--json]
+                              List every component the project has, shipped and
                               its own (src/system/components plus any
-                              "componentDirs" in live-tokens.config.json). With
-                              an id, that component's props, variants, tokens,
-                              and defaults
+                              "componentDirs" in live-tokens.config.json), each
+                              with its catalogue entry (description, family,
+                              useFor, alternatives, constraints). The list form
+                              omits tokens. --family <name> filters the list to
+                              one of the seven picker families: action,
+                              single-selection, text-entry, on-off, container,
+                              messaging, display. With an id, that component's
+                              props, variants, tokens, and defaults
   tokens [--scale <name>] [--json]
                               List every design token the project's tokens.css
                               declares, by scale, with its value
@@ -265,10 +278,21 @@ function formatFixes({ applied, skipped }) {
 
 if (command === 'components') {
   const opts = parseCheckFlags(rest);
+  const familyAt = opts.rest.indexOf('--family');
+  const family = familyAt >= 0 ? opts.rest[familyAt + 1] : undefined;
+  if (family !== undefined && !CATALOGUE_FAMILIES.includes(family)) {
+    fail(`No such family "${family}". Families: ${CATALOGUE_FAMILIES.join(', ')}.`);
+  }
+  const positional = familyAt >= 0 ? [...opts.rest.slice(0, familyAt), ...opts.rest.slice(familyAt + 2)] : opts.rest;
+  const id = positional[0];
   const list = describeComponents(loadVocabulary());
-  const id = opts.rest[0];
-  if (id && !list.some((c) => c.id === id)) fail(formatComponents(list, { id }));
-  writeOut(opts.json ? JSON.stringify(id ? list.find((c) => c.id === id) : list, null, 2) : formatComponents(list, { id }));
+  if (id) {
+    if (!list.some((c) => c.id === id)) fail(formatComponents(list, { id }));
+    writeOut(opts.json ? JSON.stringify(list.find((c) => c.id === id), null, 2) : formatComponents(list, { id }));
+    process.exit(0);
+  }
+  const filtered = family !== undefined ? list.filter((c) => c.catalogue?.family === family) : list;
+  writeOut(opts.json ? JSON.stringify(withoutTokens(filtered), null, 2) : formatComponents(filtered, {}));
   process.exit(0);
 }
 

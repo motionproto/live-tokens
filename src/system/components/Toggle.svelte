@@ -3,8 +3,12 @@
 
   export const catalogue = {
     description: 'An on/off switch that names the setting it controls.',
+    family: 'on-off',
     useFor: 'a setting that takes effect the moment it flips.',
-    notFor: 'a choice between two named alternatives (SegmentedControl); a yes/no answer inside a form (RadioButton).',
+    alternatives: {
+      segmentedcontrol: 'the two states have names of their own that the reader compares.',
+      radiobutton: 'the reader answers yes or no inside a larger form.',
+    },
   } satisfies CatalogueEntry;
 </script>
 

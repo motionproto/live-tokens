@@ -3,8 +3,13 @@
 
   export const catalogue = {
     description: "A frame around one section of the page's content.",
+    family: 'container',
     useFor: 'a stage, a list, a form, or a block of copy that forms one section.',
-    notFor: 'one item in a set (Card); a modal window (Dialog).',
+    alternatives: {
+      card: 'the block is one item, or each item in a set.',
+      dialog: 'the page cannot continue until the reader decides.',
+    },
+    constraints: ['A stage: a canvas, a player, a preview.'],
     props: {
       minHeight: 'holds the height while the content changes.',
     },

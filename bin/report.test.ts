@@ -24,7 +24,7 @@ function project(): string {
   writeFileSync(
     join(root, 'src/system/components/Widget.svelte'),
     `<script module lang="ts">
-  export const catalogue = { description: 'A dial.', useFor: 'testing.', notFor: 'anything real.' };
+  export const catalogue = { description: 'A dial.', family: 'display', useFor: 'testing.', alternatives: { toggle: 'the setting is on or off.' } };
 </script>
 <script lang="ts">
   interface Props { label?: string }

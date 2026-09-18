@@ -3,7 +3,7 @@ import { mkdtempSync, mkdirSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 // @ts-expect-error — plain .mjs module, no types
-import { describeComponents, describeTokens, formatComponents, formatTokens } from './lib/catalogue.mjs';
+import { describeComponents, describeTokens, formatComponents, formatTokens, withoutTokens } from './lib/catalogue.mjs';
 // @ts-expect-error — plain .mjs module, no types
 import { loadVocabulary } from './lib/tokenVocabulary.mjs';
 
@@ -27,8 +27,9 @@ function project(): string {
     `<script module lang="ts">
   export const catalogue = {
     description: 'A dial for one bounded number.',
+    family: 'text-entry',
     useFor: 'a value the reader sets by turning a ring.',
-    notFor: 'free text.',
+    alternatives: { input: 'the reader would rather type the exact value.' },
     props: { variant: '\`round\` is a full circle, \`flat\` is a half circle.' },
   };
 </script>
@@ -53,8 +54,9 @@ function project(): string {
     `<script module lang="ts">
   export const catalogue = {
     description: 'A number chosen by turning a ring.',
+    family: 'display',
     useFor: 'a bounded number whose position on the ring carries the meaning.',
-    notFor: 'an exact number the reader would rather type (Input).',
+    alternatives: { input: 'the reader would rather type an exact number.' },
   };
 </script>
 <script lang="ts">
@@ -110,8 +112,9 @@ describe('describeComponents', () => {
     const widget = describeComponents(loadVocabulary({ root }), { root }).find((c: { id: string }) => c.id === 'widget');
     expect(widget.catalogue).toEqual({
       description: 'A dial for one bounded number.',
+      family: 'text-entry',
       useFor: 'a value the reader sets by turning a ring.',
-      notFor: 'free text.',
+      alternatives: { input: 'the reader would rather type the exact value.' },
       props: { variant: '`round` is a full circle, `flat` is a half circle.' },
     });
     expect(widget.variants).toEqual(['round', 'flat']);
@@ -123,17 +126,20 @@ describe('describeComponents', () => {
     ]);
   });
 
-  it('prints the catalogue as description, Use for, Not for, then one line per guidance-bearing prop', () => {
+  it('prints the catalogue as description, Family, Use for, one Instead per alternative, then one line per guidance-bearing prop', () => {
     const root = project();
     const widget = describeComponents(loadVocabulary({ root }), { root }).find((c: { id: string }) => c.id === 'widget');
     const dial = describeComponents(loadVocabulary({ root }), { root }).find((c: { id: string }) => c.id === 'dial');
-    expect(formatComponents([widget], { id: 'widget' }).split('\n').slice(1, 5)).toEqual([
+    expect(formatComponents([widget], { id: 'widget' }).split('\n').slice(1, 6)).toEqual([
       '  A dial for one bounded number.',
+      '  Family: text-entry',
       '  Use for: a value the reader sets by turning a ring.',
-      '  Not for: free text.',
+      '  Instead: input, when the reader would rather type the exact value.',
       '  variant: `round` is a full circle, `flat` is a half circle.',
     ]);
-    expect(formatComponents([dial], { id: 'dial' })).toContain('  Not for: an exact number the reader would rather type (Input).');
+    expect(formatComponents([dial], { id: 'dial' })).toContain(
+      '  Instead: input, when the reader would rather type an exact number.',
+    );
   });
 
   it('prints only the catalogue fields the file has', () => {
@@ -141,7 +147,8 @@ describe('describeComponents', () => {
     const knob = describeComponents(loadVocabulary({ root }), { root }).find((c: { id: string }) => c.id === 'knob');
     const out = formatComponents([knob], { id: 'knob' });
     expect(out.split('\n').slice(1, 3)).toEqual(['  A knob.', '  Use for: a value turned by hand.']);
-    expect(out).not.toContain('Not for:');
+    expect(out).not.toContain('Family:');
+    expect(out).not.toContain('Instead:');
     expect(out).not.toContain('undefined');
   });
 
@@ -151,6 +158,100 @@ describe('describeComponents', () => {
     expect(list[0].origin).toBe('custom');
     expect(formatComponents(list, { id: 'nope' })).toContain('No component "nope"');
     expect(formatComponents(list, { id: 'widget' })).toContain('variant: round | flat');
+  });
+
+  it('exposes family so a caller can filter to one of two families in a fixture', () => {
+    const root = project();
+    const custom = describeComponents(loadVocabulary({ root }), { root }).filter(
+      (c: { origin: string }) => c.origin === 'custom',
+    );
+    expect(
+      custom.filter((c: { catalogue?: { family?: string } }) => c.catalogue?.family === 'text-entry').map((c: { id: string }) => c.id),
+    ).toEqual(['widget']);
+    expect(
+      custom.filter((c: { catalogue?: { family?: string } }) => c.catalogue?.family === 'display').map((c: { id: string }) => c.id),
+    ).toEqual(['dial']);
+  });
+
+  it('withoutTokens drops each entry\'s tokens array and nothing else', () => {
+    const root = project();
+    const list = describeComponents(loadVocabulary({ root }), { root });
+    const summary = withoutTokens(list);
+    for (const c of summary) expect(c).not.toHaveProperty('tokens');
+    const widget = summary.find((c: { id: string }) => c.id === 'widget');
+    expect(widget.catalogue.description).toBe('A dial for one bounded number.');
+    expect(list.find((c: { id: string }) => c.id === 'widget').tokens.length).toBeGreaterThan(0);
+  });
+});
+
+describe('catalogueOf, the literal-subset reader', () => {
+  function widgetWithCatalogue(body: string): string {
+    return `<script module lang="ts">
+  export const catalogue = ${body};
+</script>
+<script lang="ts">
+  let { value = 0 } = $props();
+</script>
+<style>:global(:root) { --gauge-surface: var(--surface-neutral); }</style>`;
+  }
+
+  function gaugeProject(body: string): string {
+    const root = mkdtempSync(join(tmpdir(), 'lt-catalogue-parse-'));
+    roots.push(root);
+    mkdirSync(join(root, 'src/system/components'), { recursive: true });
+    writeFileSync(join(root, 'src/system/components/Gauge.svelte'), widgetWithCatalogue(body));
+    return root;
+  }
+
+  function gauge(body: string) {
+    const root = gaugeProject(body);
+    return describeComponents(loadVocabulary({ root }), { root }).find((c: { id: string }) => c.id === 'gauge')
+      .catalogue;
+  }
+
+  it('reads an array value', () => {
+    const catalogue = gauge(`{
+      description: 'A gauge.',
+      constraints: ['a plain string constraint'],
+    }`);
+    expect(catalogue.constraints).toEqual(['a plain string constraint']);
+  });
+
+  it('reads a nested object', () => {
+    const catalogue = gauge(`{
+      description: 'A gauge.',
+      alternatives: { dial: 'the reader turns a ring instead.' },
+    }`);
+    expect(catalogue.alternatives).toEqual({ dial: 'the reader turns a ring instead.' });
+  });
+
+  it('reads a { rule, text } constraint entry, dropping one missing text', () => {
+    const catalogue = gauge(`{
+      description: 'A gauge.',
+      constraints: [
+        { rule: 'unknown-component', text: 'a rule-backed constraint' },
+        { rule: 'incomplete-entry' },
+      ],
+    }`);
+    expect(catalogue.constraints).toEqual([{ rule: 'unknown-component', text: 'a rule-backed constraint' }]);
+  });
+
+  it('reads a nested key that shares a top-level field\'s name at its own depth', () => {
+    const catalogue = gauge(`{
+      description: 'A gauge.',
+      alternatives: { dial: 'the reader turns a ring instead.' },
+      props: { description: 'the current reading, as text.' },
+    }`);
+    expect(catalogue.description).toBe('A gauge.');
+    expect(catalogue.props).toEqual({ description: 'the current reading, as text.' });
+  });
+
+  it('leaves a non-literal value absent', () => {
+    const catalogue = gauge(`{
+      description: 'A gauge.',
+      useFor: someVariable,
+    }`);
+    expect(catalogue.useFor).toBeUndefined();
   });
 });
 

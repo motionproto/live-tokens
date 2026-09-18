@@ -3,8 +3,12 @@
 
   export const catalogue = {
     description: 'A text field with its label, hint, and error line.',
+    family: 'text-entry',
     useFor: 'an answer the page cannot list, such as a name, an amount, or a search string.',
-    notFor: 'a choice from a set the page can write down (MenuSelect); an on/off setting (Toggle).',
+    alternatives: {
+      menuselect: 'the answer comes from a predefined list of options.',
+      toggle: 'the setting is on or off, and takes effect at once.',
+    },
     props: {
       type: '`number` for an amount, `search` for a query, `password` for a secret; `text` otherwise.',
     },

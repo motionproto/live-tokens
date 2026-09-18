@@ -3,8 +3,12 @@
 
   export const catalogue = {
     description: 'Tabs that swap the content below them.',
+    family: 'single-selection',
     useFor: 'two to seven views the reader moves between inside one page.',
-    notFor: 'one switch among others in a row (SegmentedControl); navigation that changes the URL (SideNavigation).',
+    alternatives: {
+      segmentedcontrol: 'the switch sits among other controls in a row.',
+      sidenavigation: 'the choice changes the URL.',
+    },
   } satisfies CatalogueEntry;
 </script>
 

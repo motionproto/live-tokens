@@ -23,7 +23,12 @@ const FILES = [
   'src/editor/core/themes/buildColors.ts',
 ];
 
-const RETIRED_TERMS = /--family\b|\btheme tokens?\b|\bcomponent tokens?\b|\bpackage defaults?\b|\btoken famil(?:y|ies)\b/i;
+// `--family` was retired here as the dead equals-form alias `tokens
+// --family=<x>` once took for `tokens --scale <name>` (cli-skill-alignment.md).
+// `components --family <name>` (the picker family, an unrelated axis) is a
+// live flag reusing the name on a different verb, not a resurrection of that
+// alias, so the term itself is no longer retired.
+const RETIRED_TERMS = /\btheme tokens?\b|\bcomponent tokens?\b|\bpackage defaults?\b|\btoken famil(?:y|ies)\b/i;
 const DOMAIN_VOCAB = /\b(?:ladder|rung|rungs|unsaved)\b/i;
 
 function stringLiterals(source) {

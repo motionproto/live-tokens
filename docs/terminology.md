@@ -94,7 +94,8 @@ Retired words:
 | **component** | A runtime Svelte file, an editor Svelte file, and one registration. |
 | **catalogue entry** | The object the runtime file's `<script module>` block exports as `catalogue`, typed `CatalogueEntry`. |
 | **description** | The entry's first field: one sentence saying what the component is. In rendered UI copy, a description sits under a title. |
-| **useFor, notFor** | The entry's guidance fields: what to use the component for, and what to reach for instead. |
+| **useFor** | The entry's field naming the condition that makes the component the right choice. |
+| **alternatives** | The entry's field, keyed by a sibling component id, naming the condition that makes that sibling right instead. |
 | **props map** | The entry's optional `props` field, keyed by a prop the file declares; the text says what that prop's values mean. |
 | **prop** | A value a page passes to a component instance. |
 | **variant** | The prop whose values pick one of the component's named styles; each value owns a full set of semantic properties. |

@@ -9,7 +9,7 @@ When more than one shipped component could fit, find the family below that names
 
 ## Catalogue
 
-Before choosing, run `npx live-tokens components`. The list holds every component the project has, shipped and custom, with each one's variants and catalogue entry. The family tests below name the shipped set only. Weigh a custom component by the same tests.
+Before choosing, run `npx live-tokens components`. The list holds every component the project has, shipped and custom, with each one's variants and catalogue entry: its `family`, its `useFor` condition, and its `alternatives`. `--family <name>` filters the list to one of the seven families below. The family tests below name the shipped set only. Weigh a custom component by the same tests.
 
 ## Action family
 

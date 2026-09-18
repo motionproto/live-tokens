@@ -12,6 +12,12 @@
 import { describe, it, expect } from 'vitest';
 import { getComponentRegistryEntries } from './registry';
 import { checkRegistryEntry } from './contract';
+// @ts-expect-error — plain .mjs module, no types
+import { CATALOGUE_FAMILIES } from '../../../bin/lib/catalogue.mjs';
+// @ts-expect-error — plain .mjs module, no types
+import { PAGE_RULES } from '../../../bin/check-page.mjs';
+// @ts-expect-error — plain .mjs module, no types
+import { COMPONENT_RULES } from '../../../bin/check-component.mjs';
 
 const entries = getComponentRegistryEntries();
 
@@ -58,6 +64,25 @@ describe('a built-in entry imports its catalogue, never copies it', () => {
       const declared = declaredProps(runtimeSources[`/${entry.sourceFile}`]);
       for (const key of Object.keys(entry.catalogue.props ?? {})) expect(declared).toContain(key);
     });
+  });
+});
+
+// Invariant 1: every declared name in a catalogue entry is verified.
+describe.each(entries.map((e) => [e.id, e] as const))('%s catalogue', (_id, entry) => {
+  it('family is in the closed union', () => {
+    expect(CATALOGUE_FAMILIES).toContain(entry.catalogue.family);
+  });
+
+  it('every alternatives key names a registered component id', () => {
+    const ids = new Set(entries.map((e) => e.id));
+    for (const key of Object.keys(entry.catalogue.alternatives ?? {})) expect(ids.has(key)).toBe(true);
+  });
+
+  it('every constraints[].rule names a page or component rule id', () => {
+    for (const constraint of entry.catalogue.constraints ?? []) {
+      if (typeof constraint === 'string') continue;
+      expect(constraint.rule in PAGE_RULES || constraint.rule in COMPONENT_RULES).toBe(true);
+    }
   });
 });
 

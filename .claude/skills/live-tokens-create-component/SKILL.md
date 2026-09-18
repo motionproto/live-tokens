@@ -41,7 +41,7 @@ Prop names follow the shipped components. `label` names a control, `title` heads
 Before writing a file:
 
 1. Read the project's `package.json`, `live-tokens.config.json`, and `src/main.ts`.
-2. Run `npx live-tokens components`. The list holds every component the project has, with its variants and catalogue entry. `npx live-tokens components <id>` prints one component's props.
+2. Run `npx live-tokens components`. The list holds every component the project has, with its variants and catalogue entry. `--family <name>` filters it to one picker family. `npx live-tokens components <id>` prints one component's props.
 3. Run `npx live-tokens tokens --scale <name>` for each token scale the component will use. Those names are the tokens a property can reference.
 4. Read a shipped runtime and editor pair: `Toggle` for interaction states, `Badge` for variants and linked values, `Card` for text and container parts.
 5. Read `references/token-naming.md` for the suffixes that select editor controls.
@@ -111,8 +111,12 @@ Open the file with a `<script module lang="ts">` block that exports a `catalogue
 
   export const catalogue = {
     description: 'A figure with its label.',
+    family: 'display',
     useFor: 'one number the reader takes in at a glance.',
-    notFor: 'a set of records (Table); a titled block of content (Card).',
+    alternatives: {
+      table: 'the reader scans and compares many records.',
+      card: 'the figure belongs to a titled block of content.',
+    },
   } satisfies CatalogueEntry;
 </script>
 ```

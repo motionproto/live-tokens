@@ -3,8 +3,12 @@
 
   export const catalogue = {
     description: 'The confirm-and-cancel pair that ends an inline edit.',
+    family: 'action',
     useFor: 'the two actions that close an in-place rename or value edit.',
-    notFor: 'the actions of a form or a dialog (Button); a lone action on a row (IconButton).',
+    alternatives: {
+      button: 'the actions belong to a form or a Dialog, not an inline edit.',
+      iconbutton: 'the row needs one lone action, not a confirm-and-cancel pair.',
+    },
   } satisfies CatalogueEntry;
 </script>
 

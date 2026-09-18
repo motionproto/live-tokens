@@ -3,8 +3,12 @@
 
   export const catalogue = {
     description: 'A short note that appears on an element on hover or focus.',
+    family: 'messaging',
     useFor: 'a definition or a shortcut the reader can do without.',
-    notFor: 'content the reader must not miss (Callout); feedback after an action (Notification).',
+    alternatives: {
+      callout: 'the reader must not miss the content.',
+      notification: 'the message is feedback about something that just happened.',
+    },
   } satisfies CatalogueEntry;
 </script>
 

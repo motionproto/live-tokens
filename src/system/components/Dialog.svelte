@@ -3,8 +3,12 @@
 
   export const catalogue = {
     description: 'A modal window that blocks the page.',
+    family: 'container',
     useFor: 'a decision the page cannot continue without, such as a destructive confirmation or a sign-in.',
-    notFor: 'a routine form (Panel); a message that asks nothing of the reader (Notification).',
+    alternatives: {
+      panel: 'the form is routine, and the page can continue around it.',
+      notification: 'the message asks nothing of the reader.',
+    },
   } satisfies CatalogueEntry;
 </script>
 

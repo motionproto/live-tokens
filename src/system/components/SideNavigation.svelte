@@ -3,8 +3,12 @@
 
   export const catalogue = {
     description: 'The rail that moves between the pages of a site.',
+    family: 'display',
     useFor: 'navigation that follows the current path.',
-    notFor: 'switching views inside one page (TabBar); a menu of actions (MenuSelect).',
+    alternatives: {
+      tabbar: 'the switch stays inside one page, with no URL change.',
+      menuselect: 'the list holds actions, not pages.',
+    },
   } satisfies CatalogueEntry;
 </script>
 

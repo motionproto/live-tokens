@@ -3,8 +3,15 @@
 
   export const catalogue = {
     description: 'A labelled action.',
+    family: 'action',
     useFor: 'an action that needs a word to be unambiguous.',
-    notFor: 'an icon-only action (IconButton); a link to another page.',
+    alternatives: {
+      iconbutton: 'the glyph alone is plain, and space is short.',
+    },
+    constraints: [
+      { rule: 'multiple-primary', text: 'One primary Button per page.' },
+      { rule: 'danger-without-dialog', text: 'A danger Button opens a Dialog to confirm before it runs.' },
+    ],
     props: {
       variant: 'one primary per page; secondary for the rest; outline for a tertiary action; danger for a destructive one.',
     },
