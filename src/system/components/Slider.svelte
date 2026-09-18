@@ -8,6 +8,7 @@
     alternatives: {
       input: 'the reader knows the exact number and would rather type it.',
       toggle: 'the setting is on or off, and takes effect at once.',
+      progressbar: 'the number is a read-out of progress.',
     },
     props: {
       variant: '`single` picks one number; `range` picks a low and a high.',

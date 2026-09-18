@@ -7,6 +7,7 @@
     useFor: 'an action that needs a word to be unambiguous.',
     alternatives: {
       iconbutton: 'the glyph alone is plain, and space is short.',
+      inlineeditactions: 'the actions confirm or cancel an inline edit.',
     },
     constraints: [
       { rule: 'multiple-primary', text: 'One primary Button per page.' },

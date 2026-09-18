@@ -9,6 +9,7 @@
       panel: "the block is a stage, a list, a form, or copy that forms one section of the page's content.",
       collapsiblesection: 'the content is secondary, and most readers skip it until they open it.',
       dialog: 'the page cannot continue until the reader decides.',
+      table: 'the reader scans and compares the records.',
     },
     constraints: ["The title prop is the Card's title, and the card's own tokens type it."],
     props: {

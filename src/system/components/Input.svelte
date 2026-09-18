@@ -8,6 +8,7 @@
     alternatives: {
       menuselect: 'the answer comes from a predefined list of options.',
       toggle: 'the setting is on or off, and takes effect at once.',
+      slider: 'the position on a track carries the meaning of the number.',
     },
     props: {
       type: '`number` for an amount, `search` for a query, `password` for a secret; `text` otherwise.',
