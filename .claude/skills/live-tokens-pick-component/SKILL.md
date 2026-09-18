@@ -28,7 +28,7 @@ The need is one option chosen from a set.
 
 ## Text entry
 
-The need is an answer the reader supplies: a name, an amount, a search string.
+The need is a value the reader supplies.
 
 `npx live-tokens components --family text-entry --json`
 

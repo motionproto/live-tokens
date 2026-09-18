@@ -81,7 +81,7 @@ Show related items side by side when the width permits. A line of copy runs 45 t
 - An empty stage shows a heading that names the condition and one `secondary` Button that fills it. An error goes in a `Callout variant="danger"`.
 - A container in a tool UI labels itself: `Card variant="bare"` with the label in the body as `--body-sm-*` in `--text-secondary`.
 - A row of fields is a flex row with `gap: var(--space-20)`; each field's wrapper takes `flex: 1`.
-- A toolbar is a flex row of Buttons on the section's bottom edge, with no container around it. Group the Buttons left and right with `justify-content: space-between`. A vertical stack of Buttons sets `fullWidth` on each Button; a row omits it.
+- A toolbar is a flex row of Buttons on the section's bottom edge, with no container around it. Group the Buttons left and right with `justify-content: space-between`. A `danger` Button sits apart from the group it could be mistaken for. A vertical stack of Buttons sets `fullWidth` on each Button; a row omits it.
 - For a `MenuSelect` picker, toggle it from a Button with a trailing chevron (`icon="fa-solid fa-chevron-down" iconPosition="right"`) and position the list under the Button at `top: 100%` with a `--space-*` margin.
 
 ## Rules the checker enforces
@@ -121,7 +121,7 @@ Use the semantic element for each place: one `h1`, an `h2` for each section, `h3
 
 ### Size
 
-Omit `size` on every control and container. The shipped default is the page's size.
+Omit `size` on every control and container. `check-page` reports a `size` attribute on a shipped component as `control-size`.
 
 ### Emphasis
 
@@ -180,7 +180,7 @@ The checkers cannot see a layout. Open the page at the width it is built for and
 - The containers in a section align at the bottom.
 - The actions sit where the eye goes last, with the one primary at the end.
 - Every row of actions holds an action that leaves without committing.
-- An action that destroys saved work confirms in a `Dialog`.
+- Every action that destroys saved work meets the Button constraint `danger-without-dialog`.
 - An action that runs longer than a moment shows progress in a `ProgressBar` or a `Notification`.
 - Every field has a default, and Reset restores it.
 - Secondary settings sit in a `CollapsibleSection`. Every control is in view.
