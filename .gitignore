@@ -18,6 +18,7 @@ test-results/
 
 # Disposable working files (briefs, test scripts, one-off outputs)
 scratch/
+.claude/evals/results/
 
 # Staged by the shipped-theme fallback tests; a killed run leaves it behind
 src/live-tokens/data/themes/package-fixture-look.json

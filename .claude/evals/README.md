@@ -34,8 +34,14 @@ failure is a gap in the description, not in the model.
 ## Running
 
 ```
-claude plugin eval .claude
+claude plugin eval .claude --no-publish
 ```
+
+`.claude/.claude-plugin/plugin.json` makes `.claude` a plugin named
+`live-tokens`, so the runner loads the eight skills and scores them. The
+package ships `.claude/skills` only, so the manifest stays in the repository.
+Without `--no-publish` the runner uploads its HTML report to claude.ai as a
+private artifact. Results land in `.claude/evals/results/`, which git ignores.
 
 The runner adds a no-plugin baseline arm on its own, so the score separates
 what the skills contribute from what the model would have done anyway.
@@ -56,6 +62,18 @@ Bash-granting run cannot proceed. The run also reported that no plugin
 resolved, so the case ran against baseline Claude Code, not the skills:
 `.claude` has no `.claude-plugin/plugin.json`. Both are machine and repository
 setup, not the case files; case-file correctness is still unverified.
+
+**The first scored run was on 2026-09-19**, at package 0.82.0 with the
+manifest in place: `trigger-confusable-pair`, one run per arm. The plugin
+resolved and the picker skill fired. The skill arm scored 0.00 and the
+baseline 1.00, and the score measures the case, which has two defects. Each
+run starts in an empty directory with no shell, so the picker cannot run
+`live-tokens components` and says so; every case that reaches the picker
+needs a scaffolded project and `Bash`. The `llm` judge reads only the final
+answer, so it passed a baseline that answered from general knowledge, which
+the rubric fails; whether a skill fired needs a `tool_used: Skill` grader.
+`outcome-pick-component` still cannot run on this machine: the `~/.docker`
+refusal above applies to every case that grants `Bash`.
 
 The two component and page outcome cases each carry a deterministic
 `tool_used` grader beside the rubric: the gate counts as closed only if a

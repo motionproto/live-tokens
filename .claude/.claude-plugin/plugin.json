@@ -1,0 +1,5 @@
+{
+  "name": "live-tokens",
+  "description": "The live-tokens skills, loaded as a plugin so `claude plugin eval .claude` can score them against a no-plugin baseline.",
+  "version": "0.0.0"
+}
