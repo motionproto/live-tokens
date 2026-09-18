@@ -14,9 +14,9 @@ to keep a later edit from reopening it.
 |---|---|---|
 | Visibility of system status | Page | Verify: an action that runs longer than a moment shows progress in a `ProgressBar` or a `Notification`. |
 | Match between system and the real world | Page | Verify: labels use the user's words. |
-| User control and freedom | Page | Verify: every row of actions holds an action that leaves without committing. Emphasis: an unrelated or informational action is `outline`. |
+| User control and freedom | Page | Verify: every row of actions holds an action that leaves without committing. Emphasis: `multiple-primary`. |
 | Consistency and standards | Page | One size, one primary action, one text style per element. The components carry the rest. |
-| Error prevention | Page | Verify: an action that destroys saved work confirms in a `Dialog`; the checker's `danger-without-dialog`. Verify: every field has a default and Reset restores it. |
+| Error prevention | Page | Verify: `danger-without-dialog`. Verify: every field has a default and Reset restores it. |
 | Recognition rather than recall | Component | `MenuSelect` lists the options; `Input` carries its label and hint; `Tooltip` defines in place. |
 | Flexibility and efficiency of use | Product | Shortcuts and customisation are product decisions. |
 | Aesthetic and minimalist design | Page | Layout: each element serves a purpose no other element serves. Verify: secondary settings sit in a `CollapsibleSection`. |
@@ -40,7 +40,7 @@ control. Undo, version history, and autosave are the product's.
 | Discoverability | Page | Verify: every control is in view. |
 | Explorable interfaces | Page | Verify: every row of actions holds an action that leaves without committing. |
 | Fitts's law | Component | The shipped default is the large target; SKILL.md's one-size rule keeps it. A toolbar sits on the section's bottom edge. |
-| Protect users' work | Page | Verify: an action that destroys saved work confirms in a `Dialog`. |
+| Protect users' work | Page | Verify: `danger-without-dialog`. |
 | Readability | Component | live-tokens-set-colors gates every text pair at WCAG AA. |
 | Simplicity | Page | Verify: secondary settings sit in a `CollapsibleSection`; no capability is removed for the sake of simplicity. |
 | Visible navigation | Component | `SideNavigation` follows the current path. |

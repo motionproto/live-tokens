@@ -46,7 +46,7 @@ The need is a block of content held apart from the rest of the page.
 
 ## Messaging family
 
-The need is a message about the system, the content around it, or one element.
+The need is a message the page shows the reader.
 
 `npx live-tokens components --family messaging --json`
 
