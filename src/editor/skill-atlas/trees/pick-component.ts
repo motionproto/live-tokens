@@ -2,7 +2,7 @@ import type { SkillTree } from '../types';
 
 export const pickComponent: SkillTree = {
   "id": "live-tokens-pick-component",
-  "digest": "sha256:60024da1512e8db0",
+  "digest": "sha256:2ee3e0d779e81f0b",
   "title": "pick-component",
   "tagline": "Select a component from the catalogue",
   "nodes": [
@@ -26,177 +26,126 @@ export const pickComponent: SkillTree = {
       "chips": [
         {
           "label": "Action family",
-          "lines": [14, 14],
+          "lines": [17, 17],
           "anchor": "## Action family"
         },
         {
           "label": "Single-selection family",
-          "lines": [20, 20],
+          "lines": [23, 23],
           "anchor": "## Single-selection family"
         },
         {
           "label": "Text entry",
-          "lines": [34, 34],
+          "lines": [29, 29],
           "anchor": "## Text entry"
         },
         {
           "label": "On and off",
-          "lines": [43, 43],
+          "lines": [35, 35],
           "anchor": "## On and off"
         },
         {
           "label": "Container family",
-          "lines": [55, 55],
+          "lines": [41, 41],
           "anchor": "## Container family"
         },
         {
           "label": "Messaging family",
-          "lines": [68, 68],
+          "lines": [47, 47],
           "anchor": "## Messaging family"
         },
         {
           "label": "Display family",
-          "lines": [82, 82],
+          "lines": [53, 53],
           "anchor": "## Display family"
         }
       ]
     },
     {
-      "id": "pk-act",
+      "id": "pk-cli",
       "row": 2,
-      "kind": "chipset",
-      "title": "Action family",
-      "desc": "Does the action need a word, a glyph, or a confirm and cancel pair.",
-      "lines": [14, 18],
-      "anchor": "## Action family",
-      "anchorEnd": "The pair that confirms or cancels an inline edit: `InlineEdi"
+      "kind": "cli",
+      "title": "Run the family's command",
+      "desc": "`components --family <name> --json` lists that family's candidates. Weigh a custom component the same way.",
+      "lines": [13, 13],
+      "anchor": "Run that family's command. Weigh a custom component by the s"
     },
     {
-      "id": "pk-sel",
-      "row": 2,
-      "kind": "chipset",
-      "title": "Single-selection family",
-      "desc": "How many options there are and what does the selection change.",
-      "lines": [20, 32],
-      "anchor": "## Single-selection family",
-      "anchorEnd": "The URL changes: `SideNavigation`. Sections inside one page:"
-    },
-    {
-      "id": "pk-text",
-      "row": 2,
-      "kind": "chipset",
-      "title": "Text entry",
-      "desc": "If the options are known, use a list or select. Anything else is an input field.",
-      "lines": [34, 41],
-      "anchor": "## Text entry",
-      "anchorEnd": "A number where the position on a track carries the meaning ("
-    },
-    {
-      "id": "pk-bin",
-      "row": 2,
-      "kind": "chipset",
-      "title": "On and off",
-      "desc": "If two states have names of their own use segmented control or radio buttons.",
-      "lines": [43, 53],
-      "anchor": "## On and off",
-      "anchorEnd": "When the two states share the feature's one name, use `Toggl"
-    },
-    {
-      "id": "pk-con",
-      "row": 2,
-      "kind": "chipset",
-      "title": "Container family",
-      "desc": "Is the block: an item, a section, collapsed content, or a decision.",
-      "lines": [55, 66],
-      "anchor": "## Container family",
-      "anchorEnd": "A set of items is one `Card` per item. A routine form goes i"
-    },
-    {
-      "id": "pk-msg",
-      "row": 2,
-      "kind": "chipset",
-      "title": "Messaging family",
-      "desc": "What is the message about? What triggers it? Is it dismissable?",
-      "lines": [68, 80],
-      "anchor": "## Messaging family",
-      "anchorEnd": "`Badge` and `CornerBadge` differ in position only."
-    },
-    {
-      "id": "pk-disp",
-      "row": 2,
-      "kind": "chipset",
-      "title": "Display family",
-      "desc": "Does the user view it, or interact with it?",
-      "lines": [82, 90],
-      "anchor": "## Display family",
-      "anchorEnd": "A titled break between the sections of one page: `SectionDiv"
+      "id": "pk-read",
+      "row": 3,
+      "kind": "step",
+      "title": "Read the catalogue entries",
+      "desc": "Weigh each candidate's useFor, alternatives, and constraints against the requirement.",
+      "lines": [14, 15],
+      "anchor": "Read each candidate's `useFor`, `alternatives`, and `constra",
+      "anchorEnd": "Choose the candidate whose condition the requirement meets. "
     },
     {
       "id": "pk-fits",
-      "row": 3,
+      "row": 4,
       "kind": "decide",
       "title": "Is there a match in the catalogue",
       "desc": "Use a component from the catalogue if one fits, otherwise build a new one.",
-      "lines": [92, 96],
+      "lines": [59, 63],
       "anchor": "## Nothing fits",
       "anchorEnd": "`npx live-tokens components <id>` prints one component's cat",
       "chips": [
         {
           "label": "shipped component",
-          "lines": [12, 12],
-          "anchor": "Before choosing, run `npx live-tokens components`. The list "
+          "lines": [13, 13],
+          "anchor": "Run that family's command. Weigh a custom component by the s"
         },
         {
           "label": "custom component",
-          "lines": [12, 12],
-          "anchor": "Before choosing, run `npx live-tokens components`. The list "
+          "lines": [13, 13],
+          "anchor": "Run that family's command. Weigh a custom component by the s"
         },
         {
           "label": "native element",
-          "lines": [94, 94],
+          "lines": [61, 61],
           "anchor": "A native element with no chrome of its own needs no componen"
         },
         {
           "label": "nothing in the catalogue fits",
-          "lines": [94, 94],
+          "lines": [61, 61],
           "anchor": "A native element with no chrome of its own needs no componen"
         }
       ]
     },
     {
       "id": "pk-inspect",
-      "row": 4,
+      "row": 5,
       "kind": "cli",
       "title": "Check the component",
       "desc": "See the component's props and usage before placing it.",
-      "lines": [96, 96],
+      "lines": [63, 63],
       "anchor": "`npx live-tokens components <id>` prints one component's cat"
     },
     {
       "id": "pk-native",
-      "row": 4,
+      "row": 5,
       "kind": "step",
       "title": "Use a native element",
       "desc": "An element with no chrome of its own needs no component.",
-      "lines": [94, 94],
+      "lines": [61, 61],
       "anchor": "A native element with no chrome of its own needs no componen"
     },
     {
       "id": "pk-make",
-      "row": 4,
+      "row": 5,
       "kind": "hand",
       "title": "Create a component",
       "desc": "A piece with chrome that nothing in the catalogue fits goes to live-tokens-create-component.",
-      "lines": [94, 94],
+      "lines": [61, 61],
       "anchor": "A native element with no chrome of its own needs no componen"
     },
     {
       "id": "pk-page",
-      "row": 5,
+      "row": 6,
       "kind": "hand",
       "title": "Return the selected component",
       "desc": "The named component returns to live-tokens-create-page, which owns size, emphasis, and placement.",
-      "lines": [94, 94],
+      "lines": [61, 61],
       "anchor": "A native element with no chrome of its own needs no componen"
     }
   ],
@@ -206,39 +155,47 @@ export const pickComponent: SkillTree = {
       "from": "pk-trig"
     },
     {
-      "to": "pk-act",
+      "to": "pk-cli",
       "from": "pk-fam",
       "label": "Action family"
     },
     {
-      "to": "pk-sel",
+      "to": "pk-cli",
       "from": "pk-fam",
       "label": "Single-selection family"
     },
     {
-      "to": "pk-text",
+      "to": "pk-cli",
       "from": "pk-fam",
       "label": "Text entry"
     },
     {
-      "to": "pk-bin",
+      "to": "pk-cli",
       "from": "pk-fam",
       "label": "On and off"
     },
     {
-      "to": "pk-con",
+      "to": "pk-cli",
       "from": "pk-fam",
       "label": "Container family"
     },
     {
-      "to": "pk-msg",
+      "to": "pk-cli",
       "from": "pk-fam",
       "label": "Messaging family"
     },
     {
-      "to": "pk-disp",
+      "to": "pk-cli",
       "from": "pk-fam",
       "label": "Display family"
+    },
+    {
+      "to": "pk-read",
+      "from": "pk-cli"
+    },
+    {
+      "to": "pk-fits",
+      "from": "pk-read"
     },
     {
       "to": "pk-inspect",
@@ -267,34 +224,6 @@ export const pickComponent: SkillTree = {
     {
       "to": "pk-page",
       "from": "pk-native"
-    },
-    {
-      "to": "pk-fits",
-      "from": "pk-act"
-    },
-    {
-      "to": "pk-fits",
-      "from": "pk-sel"
-    },
-    {
-      "to": "pk-fits",
-      "from": "pk-text"
-    },
-    {
-      "to": "pk-fits",
-      "from": "pk-bin"
-    },
-    {
-      "to": "pk-fits",
-      "from": "pk-con"
-    },
-    {
-      "to": "pk-fits",
-      "from": "pk-msg"
-    },
-    {
-      "to": "pk-fits",
-      "from": "pk-disp"
     }
   ]
 };
