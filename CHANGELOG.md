@@ -24,8 +24,8 @@
   `missing-description` reports either as missing, a `family` outside the
   seven, or an `alternatives` key that names no component.
 - **`components` and `components --json` drop `tokens` from the list form.**
-  The id form (`components <id>`) is unchanged. The list dropped from ~179 KB
-  to ~22 KB across the 26 shipped components.
+  The id form (`components <id>`) is unchanged. The `--json` list drops from
+  ~179 KB to ~37 KB across the 26 shipped components.
 
 ## 0.82.0 — The demo ships from the package
 

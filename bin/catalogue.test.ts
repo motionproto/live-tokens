@@ -2,6 +2,7 @@ import { describe, it, expect, afterEach } from 'vitest';
 import { mkdtempSync, mkdirSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import { execFileSync, spawnSync } from 'node:child_process';
 // @ts-expect-error — plain .mjs module, no types
 import { describeComponents, describeTokens, formatComponents, formatTokens, withoutTokens } from './lib/catalogue.mjs';
 // @ts-expect-error — plain .mjs module, no types
@@ -171,6 +172,20 @@ describe('describeComponents', () => {
     expect(
       custom.filter((c: { catalogue?: { family?: string } }) => c.catalogue?.family === 'display').map((c: { id: string }) => c.id),
     ).toEqual(['dial']);
+  });
+
+  it('components --family filters the --json list, omits tokens, and rejects a name outside the seven', () => {
+    const root = project();
+    const cli = join(process.cwd(), 'bin/cli.mjs');
+    const list = JSON.parse(execFileSync('node', [cli, 'components', '--family', 'display', '--json'], { cwd: root }).toString());
+    expect(list.filter((c: { origin: string }) => c.origin === 'custom').map((c: { id: string }) => c.id)).toEqual(['dial']);
+    for (const c of list) {
+      expect(c.catalogue.family).toBe('display');
+      expect(c).not.toHaveProperty('tokens');
+    }
+    const bad = spawnSync('node', [cli, 'components', '--family', 'nope'], { cwd: root });
+    expect(bad.status).not.toBe(0);
+    expect(bad.stderr.toString() + bad.stdout.toString()).toContain('single-selection');
   });
 
   it('withoutTokens drops each entry\'s tokens array and nothing else', () => {

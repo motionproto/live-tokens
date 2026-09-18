@@ -9,7 +9,7 @@
       card: 'every reader needs the content, so it stays open.',
       sidenavigation: 'the choice moves the reader to another page.',
     },
-    constraints: ['Holds the secondary fields of a form, with the form actions on the bottom edge.'],
+    constraints: ["In a form, CollapsibleSection holds the secondary fields, and the form's actions stay outside it on the form's bottom edge."],
     props: {
       variant: '`chromeless` sits inside other content, `hairline` draws a line under the header, `container` frames the whole section.',
     },

@@ -294,9 +294,7 @@ export function describeComponents(vocab, { root = process.cwd() } = {}) {
   return out.sort((a, b) => a.origin.localeCompare(b.origin) || a.id.localeCompare(b.id));
 }
 
-/** A component list with each entry's `tokens` array dropped — the list
- *  form's payload, which drops from ~179 KB to ~22 KB across the 26 shipped
- *  components. The id form keeps `tokens`, unchanged. */
+/** The list form's payload. `tokens` is most of a full listing's bytes, and the id form keeps it. */
 export function withoutTokens(list) {
   return list.map(({ tokens, ...rest }) => rest);
 }
