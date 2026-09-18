@@ -280,8 +280,9 @@ if (command === 'components') {
   const opts = parseCheckFlags(rest);
   const familyAt = opts.rest.indexOf('--family');
   const family = familyAt >= 0 ? opts.rest[familyAt + 1] : undefined;
-  if (family !== undefined && !CATALOGUE_FAMILIES.includes(family)) {
-    fail(`No such family "${family}". Families: ${CATALOGUE_FAMILIES.join(', ')}.`);
+  if (familyAt >= 0 && !CATALOGUE_FAMILIES.includes(family)) {
+    const problem = family === undefined ? '--family takes a name' : `No such family "${family}"`;
+    fail(`${problem}. Families: ${CATALOGUE_FAMILIES.join(', ')}.`);
   }
   const positional = familyAt >= 0 ? [...opts.rest.slice(0, familyAt), ...opts.rest.slice(familyAt + 2)] : opts.rest;
   const id = positional[0];
