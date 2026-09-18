@@ -10,7 +10,7 @@
       collapsiblesection: 'the content is secondary, and most readers skip it until they open it.',
       dialog: 'the page cannot continue until the reader decides.',
     },
-    constraints: ["A titled block of content; its title prop is the title, typed by the card's own tokens."],
+    constraints: ["The title prop is the Card's title, and the card's own tokens type it."],
     props: {
       variant: '`bare` drops the header for content that carries its own title.',
     },

@@ -9,7 +9,7 @@
       card: 'the block is one item, or each item in a set.',
       dialog: 'the page cannot continue until the reader decides.',
     },
-    constraints: ['A stage: a canvas, a player, a preview.'],
+    constraints: ['Panel frames a stage such as a canvas, a player, or a preview.'],
     props: {
       minHeight: 'holds the height while the content changes.',
     },

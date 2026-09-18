@@ -6,8 +6,8 @@
     family: 'action',
     useFor: 'the two actions that close an in-place rename or value edit.',
     alternatives: {
-      button: 'the actions belong to a form or a Dialog, not an inline edit.',
-      iconbutton: 'the row needs one lone action, not a confirm-and-cancel pair.',
+      button: 'the actions belong to a form or a Dialog.',
+      iconbutton: 'the row needs one lone action.',
     },
   } satisfies CatalogueEntry;
 </script>

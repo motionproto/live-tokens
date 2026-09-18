@@ -7,7 +7,7 @@
     useFor: 'navigation that follows the current path.',
     alternatives: {
       tabbar: 'the switch stays inside one page, with no URL change.',
-      menuselect: 'the list holds actions, not pages.',
+      menuselect: 'the list holds actions.',
     },
   } satisfies CatalogueEntry;
 </script>

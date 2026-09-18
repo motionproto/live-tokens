@@ -6,7 +6,7 @@
     family: 'messaging',
     useFor: 'a count or status marker that sits on the thing it describes.',
     alternatives: {
-      badge: 'the label sits in the text flow, not on a parent.',
+      badge: 'the label sits in the text flow.',
       notification: 'the message is feedback about something that just happened.',
     },
     props: {
