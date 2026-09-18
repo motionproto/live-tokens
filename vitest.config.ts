@@ -9,6 +9,6 @@ export default createVitestConfig(viteConfig, {
   // Playwright owns the real-browser specifications. Keeping this explicit
   // prevents Vitest's default **/*.spec.ts glob from importing them into
   // happy-dom and failing before either runner reaches its assertions.
-  exclude: ['tests/e2e/**', '**/node_modules/**', '**/.git/**'],
+  exclude: ['tests/e2e/**', 'scratch/**', '**/node_modules/**', '**/.git/**'],
   setupFiles: ['./vitest.setup.ts'],
 })
