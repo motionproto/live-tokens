@@ -1,5 +1,6 @@
 ---
 type: llm
+focus: trace
 ---
 
 The session already has a theme open.

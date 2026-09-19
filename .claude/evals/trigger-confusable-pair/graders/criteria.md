@@ -1,5 +1,6 @@
 ---
 type: llm
+focus: trace
 ---
 
 PASS when **live-tokens-pick-component** fires and the answer distinguishes

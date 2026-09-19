@@ -34,8 +34,16 @@ failure is a gap in the description, not in the model.
 ## Running
 
 ```
-claude plugin eval .claude --no-publish
+claude plugin eval .claude --no-publish --scaffold --allow-tools Bash
 ```
+
+`--scaffold` runs each case's `fixture.sh`. Every run starts in an empty
+workspace that cannot read this repository, so `_scaffold/project.sh` copies
+in the least of the package that `npx live-tokens components` reads: `bin`,
+the runtime components, and the registry. A case opts in with a `case.yaml`
+that names `fixture.sh`. The two cases that reach the picker have one. The
+three outcome cases that write pages, components, and themes need a full
+project from the `create` template and have none yet.
 
 `.claude/.claude-plugin/plugin.json` makes `.claude` a plugin named
 `live-tokens`, so the runner loads the eight skills and scores them. The
@@ -74,6 +82,17 @@ answer, so it passed a baseline that answered from general knowledge, which
 the rubric fails; whether a skill fired needs a `tool_used: Skill` grader.
 `outcome-pick-component` still cannot run on this machine: the `~/.docker`
 refusal above applies to every case that grants `Bash`.
+
+**Both defects were fixed the same day.** `trigger-confusable-pair` has the
+scaffold, and its second run, without `Bash`, scored 1.00 with the skills and
+0.50 without: the picker fired and read the catalogue entries from the seeded
+package. Each positive trigger case now has a `skill-fired` grader
+(`tool_used: Skill`, `arm: both`, so the baseline scores it and fails it), and
+`trigger-single-token` has `no-skill-fired` with `max: 0`. Every trigger
+rubric reads the trace (`focus: trace`). The judge still passes a baseline
+that reads the component files on its own, so `skill-fired` is the grader
+that separates the arms. Docker Desktop owns the links in `~/.docker`, so a
+case that grants `Bash` runs on a machine without it.
 
 The two component and page outcome cases each carry a deterministic
 `tool_used` grader beside the rubric: the gate counts as closed only if a

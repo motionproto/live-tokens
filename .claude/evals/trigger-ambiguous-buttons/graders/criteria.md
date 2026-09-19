@@ -1,5 +1,6 @@
 ---
 type: llm
+focus: trace
 ---
 
 No skill is the clear owner: this could be colour, type, geometry, or the

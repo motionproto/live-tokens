@@ -1,5 +1,6 @@
 ---
 type: llm
+focus: trace
 ---
 
 PASS when **no live-tokens skill fires** and the model points at the editor.
