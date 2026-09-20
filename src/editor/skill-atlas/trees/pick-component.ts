@@ -10,8 +10,8 @@ export const pickComponent: SkillTree = {
       "id": "pk-trig",
       "row": 0,
       "kind": "trigger",
-      "title": "Check the catalogue",
-      "desc": "Recommends the shipped component that fits a UX need. The catalogue lists every registered component, shipped and custom, with its usage.",
+      "title": "Pick a component",
+      "desc": "Recommends the component that fits a UX need, from the shipped components and the project's own.",
       "lines": [3, 3],
       "anchor": "description: Recommend which shipped @motion-proto/live-toke"
     },
@@ -20,7 +20,7 @@ export const pickComponent: SkillTree = {
       "row": 1,
       "kind": "cli",
       "title": "List the catalogue",
-      "desc": "`components --json` lists every component's catalogue entry, shipped and the project's own.",
+      "desc": "`components --json` returns every component's catalogue entry.",
       "lines": [12, 12],
       "anchor": "Run `npx live-tokens components --json`. The list carries th"
     },
@@ -28,31 +28,47 @@ export const pickComponent: SkillTree = {
       "id": "pk-read",
       "row": 2,
       "kind": "step",
-      "title": "Read the catalogue entries",
-      "desc": "Weigh each candidate's whenToUse, whenNotToUse, and constraints against the requirement. Drop a candidate whose whenNotToUse condition is met, following a use into its own entry.",
-      "lines": [13, 16],
-      "anchor": "Read each plausible candidate's `whenToUse`, `whenNotToUse`,",
-      "anchorEnd": "Choose the surviving candidate whose `whenToUse` condition t"
+      "title": "Read the candidates' entries",
+      "desc": "whenToUse is the condition that makes a component right. whenNotToUse lists the conditions that rule it out. constraints are its rules of use.",
+      "lines": [13, 13],
+      "anchor": "Read each plausible candidate's `whenToUse`, `whenNotToUse`,"
+    },
+    {
+      "id": "pk-drop",
+      "row": 3,
+      "kind": "decide",
+      "title": "Drop what the requirement rules out",
+      "desc": "A candidate goes when one of its whenNotToUse conditions matches the requirement. A row that names a use points at the component to weigh next.",
+      "lines": [14, 15],
+      "anchor": "Drop a candidate whose `whenNotToUse` names a condition the ",
+      "anchorEnd": "When a dropped row names a `use`, weigh that component the s",
+      "chips": [
+        {
+          "label": "a dropped row names a use",
+          "lines": [15, 15],
+          "anchor": "When a dropped row names a `use`, weigh that component the s"
+        },
+        {
+          "label": "surviving candidate",
+          "lines": [16, 16],
+          "anchor": "Choose the surviving candidate whose `whenToUse` condition t"
+        }
+      ]
     },
     {
       "id": "pk-fits",
-      "row": 3,
+      "row": 4,
       "kind": "decide",
-      "title": "Is there a match in the catalogue",
-      "desc": "Use a component from the catalogue if one fits, otherwise build a new one.",
-      "lines": [19, 23],
-      "anchor": "## Nothing fits",
-      "anchorEnd": "`npx live-tokens components <id>` prints one component's cat",
+      "title": "Choose the candidate that fits",
+      "desc": "The survivor whose whenToUse matches the requirement is the answer. With no survivor, the piece is a native element or a new component.",
+      "lines": [16, 17],
+      "anchor": "Choose the surviving candidate whose `whenToUse` condition t",
+      "anchorEnd": "When no candidate fits, follow \"Nothing fits\".",
       "chips": [
         {
-          "label": "shipped component",
-          "lines": [12, 12],
-          "anchor": "Run `npx live-tokens components --json`. The list carries th"
-        },
-        {
-          "label": "project's own component",
-          "lines": [12, 12],
-          "anchor": "Run `npx live-tokens components --json`. The list carries th"
+          "label": "whenToUse condition the requirement meets",
+          "lines": [16, 16],
+          "anchor": "Choose the surviving candidate whose `whenToUse` condition t"
         },
         {
           "label": "native element",
@@ -68,16 +84,16 @@ export const pickComponent: SkillTree = {
     },
     {
       "id": "pk-inspect",
-      "row": 4,
+      "row": 5,
       "kind": "cli",
       "title": "Check the component",
-      "desc": "See the component's props and usage before placing it.",
+      "desc": "`components <id>` prints the chosen component's props and the values each accepts.",
       "lines": [23, 23],
       "anchor": "`npx live-tokens components <id>` prints one component's cat"
     },
     {
       "id": "pk-native",
-      "row": 4,
+      "row": 5,
       "kind": "step",
       "title": "Use a native element",
       "desc": "An element with no chrome of its own needs no component.",
@@ -86,7 +102,7 @@ export const pickComponent: SkillTree = {
     },
     {
       "id": "pk-make",
-      "row": 4,
+      "row": 5,
       "kind": "hand",
       "title": "Create a component",
       "desc": "A piece with chrome that nothing in the catalogue fits goes to live-tokens-create-component.",
@@ -95,7 +111,7 @@ export const pickComponent: SkillTree = {
     },
     {
       "id": "pk-page",
-      "row": 5,
+      "row": 6,
       "kind": "hand",
       "title": "Return the selected component",
       "desc": "The named component returns to live-tokens-create-page, which owns size, emphasis, and placement.",
@@ -113,18 +129,24 @@ export const pickComponent: SkillTree = {
       "from": "pk-cli"
     },
     {
-      "to": "pk-fits",
+      "to": "pk-drop",
       "from": "pk-read"
     },
     {
-      "to": "pk-inspect",
-      "from": "pk-fits",
-      "label": "shipped component"
+      "to": "pk-read",
+      "from": "pk-drop",
+      "label": "a dropped row names a use",
+      "back": true
+    },
+    {
+      "to": "pk-fits",
+      "from": "pk-drop",
+      "label": "surviving candidate"
     },
     {
       "to": "pk-inspect",
       "from": "pk-fits",
-      "label": "project's own component"
+      "label": "whenToUse condition the requirement meets"
     },
     {
       "to": "pk-native",
