@@ -271,14 +271,14 @@ test('a typed value the field does not hold fails contract-interaction', async (
 const lightboxParts = {
   root: '.image-lightbox-wrapper',
   thumb: '.image-lightbox-thumb',
-  overlay: { selector: '.image-lightbox-overlay', portal: true },
+  closeButton: { selector: '.image-lightbox-close', portal: true },
 };
 
 test('a portaled part behind its setup step resolves', async ({ page }) => {
   const contract = withDefect(bareContract('imagelightbox', lightboxParts, 'root'), (draft) => {
     draft.properties = [{
       setup: [{ kind: 'click', part: 'thumb' }],
-      paints: { overlay: { backgroundColor: '--imagelightbox-scrim-surface' } },
+      paints: { closeButton: { backgroundColor: '--imagelightbox-chrome-surface' } },
     }];
   });
   const harness = await open(page, contract);
@@ -287,11 +287,11 @@ test('a portaled part behind its setup step resolves', async ({ page }) => {
 
 test('a portaled part with no setup step fails contract-render', async ({ page }) => {
   const defect = withDefect(bareContract('imagelightbox', lightboxParts, 'root'), (draft) => {
-    draft.properties = [{ paints: { overlay: { backgroundColor: '--imagelightbox-scrim-surface' } } }];
+    draft.properties = [{ paints: { closeButton: { backgroundColor: '--imagelightbox-chrome-surface' } } }];
   });
   const harness = await open(page, defect);
   const violation = await expectViolation('contract-render', () => harness.assertProperties());
-  expect(violation.message).toContain('overlay');
+  expect(violation.message).toContain('closeButton');
 });
 
 test('a pseudo-element paint mapped to the wrong token fails contract-render', async ({ page }) => {
