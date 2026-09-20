@@ -9,7 +9,7 @@
   import UIPaddingSelector from '../../ui/UIPaddingSelector.svelte';
   import UILetterSpacingSelector from '../../ui/UILetterSpacingSelector.svelte';
   import UIEasingSelector from '../../ui/UIEasingSelector.svelte';
-  import { BLUR, BORDER_WIDTH, DOT_SIZE, DURATION, RADIUS, SCALE, SHADOW, TRACK_HEIGHT, HAIRLINE_INSET } from '../../ui/variantScales';
+  import { BLUR, BORDER_WIDTH, DOT_SIZE, DURATION, RADIUS, SCALE, SCRIM_OPACITY, SHADOW, TRACK_HEIGHT, HAIRLINE_INSET } from '../../ui/variantScales';
   import {
     editorState,
     getComponentPropertySiblings,
@@ -80,6 +80,7 @@
     'easing',
     'blur',
     'scale',
+    'opacity',
     'shadow',
     'text-color',
     'surface',
@@ -160,6 +161,7 @@
     'easing': { component: UIEasingSelector },
     'blur': { component: UIVariantSelector, extra: () => ({ ...BLUR }) },
     'scale': { component: UIVariantSelector, extra: () => ({ ...SCALE }) },
+    'opacity': { component: UIVariantSelector, extra: () => ({ ...SCRIM_OPACITY }) },
     'shadow': { component: UIVariantSelector, extra: () => ({ ...SHADOW }) },
     'surface': { component: UIPaletteSelector, extra: paletteExtra },
     'border': { component: UIPaletteSelector, extra: paletteExtra },
@@ -190,6 +192,7 @@
       'easing',
       'blur',
       'scale',
+      'opacity',
       'shadow',
       'surface',
       'border-width',

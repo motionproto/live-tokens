@@ -11,6 +11,7 @@ export type TokenKind =
   | 'length'
   | 'blur'
   | 'scale'
+  | 'opacity'
   | 'shadow'
   | 'font-family'
   | 'font-weight'
@@ -59,6 +60,9 @@ export const KIND_RULES: ReadonlyArray<{
   { kind: 'dot-size',       suffix: ['-dot-size'] },
   { kind: 'blur',           suffix: ['-blur'], prefix: ['--blur-'] },
   { kind: 'scale',          suffix: ['-scale'], prefix: ['--scale-'] },
+  // A strength from 0 to 1 that the component mixes into a colour where it
+  // paints. A palette picker here writes a colour into a number.
+  { kind: 'opacity',        suffix: ['-opacity'], prefix: ['--scrim-opacity'] },
   { kind: 'shadow',         suffix: ['-shadow'], prefix: ['--shadow-'] },
   { kind: 'padding',        suffix: ['-padding', '-margin'] },
   { kind: 'gap',            suffix: ['-gap'] },
@@ -73,7 +77,7 @@ export const KIND_RULES: ReadonlyArray<{
   // Fills. A tint is a wash over a surface, so it takes the surface picker: the
   // full palette with an alpha, not just the tint stops it defaults to.
   { kind: 'surface',        suffix: ['-surface', '-fill', '-indicator',
-                                     '-thumb', '-color', '-tint', '-opacity'],
+                                     '-thumb', '-color', '-tint'],
                             prefix: ['--surface-', '--tint', '--color-'] },
 ];
 
