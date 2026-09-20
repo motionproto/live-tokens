@@ -3170,7 +3170,7 @@
         "--imagelightbox-tile-border": "--color-transparent",
         "--imagelightbox-tile-border-width": "--border-width-1",
         "--imagelightbox-tile-shadow": "--shadow-md",
-        "--imagelightbox-overlay-surface": "color-mix(in srgb, var(--color-neutral-950) 76%, transparent)",
+        "--imagelightbox-scrim-surface": "color-mix(in srgb, var(--color-neutral-950) 76%, transparent)",
         "--imagelightbox-chrome-surface": "--surface-neutral-low",
         "--imagelightbox-chrome-border": "--border-brand",
         "--imagelightbox-chrome-border-width": "--border-width-2",
@@ -4024,5 +4024,5 @@
       }
     }
   },
-  "componentSchemaVersion": 35
+  "componentSchemaVersion": 36
 }

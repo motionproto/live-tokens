@@ -49,6 +49,22 @@
         without a ground the page shows through the art's own gaps while a `box`
         shadow still casts from the rectangle around them. */
     surface?: string | undefined;
+    /** A line around the tile, for this instance, as any CSS colour. Overrides
+        `--imagelightbox-tile-border`. It paints nothing on its own: the width
+        is a second token, so pass `borderWidth` with it wherever the theme
+        leaves that at zero. */
+    border?: string | undefined;
+    /** The width of that line, as any CSS length. Overrides
+        `--imagelightbox-tile-border-width`. */
+    borderWidth?: string | undefined;
+    /** The scrim behind the open image, for this instance, as any CSS fill.
+        Overrides `--imagelightbox-scrim-surface`. The modal portals to
+        <body>, out of reach of a wrapper around the tile, so a page that wants
+        its own scrim has to say so here. */
+    scrim?: string | undefined;
+    /** How much of `scrim` covers the page, 0 to 1. Needs `scrim`: it is
+        mixed with it, and on its own there is no colour to mix. */
+    scrimOpacity?: number | undefined;
     /** When true, shows a bottom toolbar (zoom in/out + percent) and a top-right close button, and enables wheel/drag zoom inside the open modal. When false, click anywhere closes. */
     extended?: boolean;
     /** Maximum zoom, as a multiple of the image's natural resolution: `1` = 100%
@@ -82,10 +98,24 @@
     fit = 'contain',
     shadow = 'box',
     surface = undefined,
+    border = undefined,
+    borderWidth = undefined,
+    scrim = undefined,
+    scrimOpacity = undefined,
     extended = false,
     maxZoom = undefined,
     capNatural = false,
   }: Props = $props();
+
+  // An opacity is mixed into the colour, so the two arrive as one fill. Without
+  // a colour there is nothing to mix, and the theme's scrim stands.
+  const scrimFill = $derived(
+    scrim == null
+      ? undefined
+      : scrimOpacity == null
+        ? scrim
+        : `color-mix(in srgb, ${scrim} ${scrimOpacity * 100}%, transparent)`,
+  );
 
   const items = $derived(
     images && images.length
@@ -613,6 +643,8 @@
     class:shadow-content={shadow === 'content'}
     style:--imagelightbox-tile-object-fit={fit}
     style:--imagelightbox-tile-surface={surface}
+    style:--imagelightbox-tile-border={border}
+    style:--imagelightbox-tile-border-width={borderWidth}
     type="button"
     aria-label={cover?.alt ? `Expand image: ${cover.alt}` : 'Expand image'}
     aria-haspopup="dialog"
@@ -635,6 +667,7 @@
     <div
       bind:this={overlayEl}
       class="image-lightbox-overlay"
+      style:--imagelightbox-scrim-surface={scrimFill}
       class:active={open}
       aria-hidden="true"
       onclick={closeLightbox}
@@ -758,7 +791,7 @@
     --imagelightbox-tile-object-fit:       contain;
 
     /* overlay */
-    --imagelightbox-overlay-surface:       color-mix(in srgb, var(--color-neutral-950) 76%, transparent);
+    --imagelightbox-scrim-surface:         var(--scrim-high);
 
     /* chrome (toolbar + close button) */
     --imagelightbox-chrome-surface:        var(--surface-neutral-low);
@@ -884,7 +917,7 @@
   .image-lightbox-overlay {
     position: fixed;
     inset: 0;
-    background: var(--imagelightbox-overlay-surface);
+    background: var(--imagelightbox-scrim-surface);
     backdrop-filter: blur(var(--blur-md));
     z-index: var(--z-overlay);
     opacity: 0;

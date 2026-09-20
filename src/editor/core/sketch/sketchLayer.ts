@@ -186,7 +186,7 @@ const PART_SPECS: readonly PartSpec[] = [
   { sel: '.image-lightbox-thumb', stem: 'imagelightbox-tile', positioned: true, clips: true },
   // A fixed full-viewport scrim behind the open modal; no border of its own.
   {
-    sel: '.image-lightbox-overlay', fill: 'var(--imagelightbox-overlay-surface)',
+    sel: '.image-lightbox-overlay', fill: 'var(--imagelightbox-scrim-surface)',
     stroke: 'transparent', positioned: true, unmasked: true,
   },
   // Close and the two nav chevrons all carry this class; each is fixed and

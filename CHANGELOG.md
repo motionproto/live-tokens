@@ -4,13 +4,23 @@
 
 ### Added
 
-- **`ImageLightbox` takes a `surface`.** Any CSS fill, written into
+- **`ImageLightbox` takes per-instance tile and scrim props.** Any CSS fill, written into
   `--imagelightbox-tile-surface` for that one tile, the way `fit` writes
   `--imagelightbox-tile-object-fit`. A theme's value still governs every tile
   that passes nothing, and the default stays transparent. Art with transparency
   wants a ground: without one the page shows through the art's own gaps while a
   `box` shadow still casts from the rectangle around them. The open stage is
   unaffected — it sits on the scrim and paints no tile fill.
+
+  `border` and `borderWidth` do the same for `--imagelightbox-tile-border` and
+  `--imagelightbox-tile-border-width`. Both are needed where a theme leaves the
+  width at zero, since a colour alone paints nothing.
+
+  `scrim` and `scrimOpacity` set the layer behind the open image, writing
+  `--imagelightbox-scrim-surface`. An opacity is mixed into the colour, so
+  `scrimOpacity` needs `scrim` to have something to mix. This is the one
+  reachable way to set it per page: the modal portals to `<body>`, out of reach
+  of any wrapper around the tile.
 
 - **`CatalogueEntry` carries `constraints`.** `constraints` is an optional
   `string[]` of rules of use, one sentence each. `components <id>` prints one
@@ -21,6 +31,13 @@
   skills cut the turns and the time. `#measured-value` links to it.
 
 ### Changed (breaking)
+
+- **`--imagelightbox-overlay-surface` is `--imagelightbox-scrim-surface`, and it
+  reads `--scrim-high`.** Dialog already called the layer that dims the page a
+  scrim and read the `--scrim-*` scale; ImageLightbox called it an overlay and
+  mixed its own colour, so a theme could not move both with one value. The
+  editor row reads "scrim color". Migration `2026-09-20-imagelightbox-scrim`
+  renames the key; the shipped presets carry the new one.
 
 - **`CatalogueEntry` requires `description`, `whenToUse`, and `whenNotToUse`.**
   `notFor` is gone. `whenToUse` is a required string: the condition that makes

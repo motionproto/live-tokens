@@ -79,6 +79,7 @@ import { componentMigration_2026_09_13_selectedState } from './2026-09-13-select
 import { componentMigration_2026_09_13_hairline } from './2026-09-13-hairline';
 import { componentMigration_2026_09_13_indicator } from './2026-09-13-indicator';
 import { componentMigration_2026_09_13_sectiondividerSurface } from './2026-09-13-sectiondivider-surface';
+import { componentMigration_2026_09_20_imagelightboxScrim } from './2026-09-20-imagelightbox-scrim';
 import { componentMigration_2026_09_13_cornerbadgePrefix } from './2026-09-13-cornerbadge-prefix';
 import { componentMigration_2026_09_13_toggleLabel } from './2026-09-13-toggle-label';
 import { componentMigration_2026_09_13_collapsiblesectionOpen } from './2026-09-13-collapsiblesection-open';
@@ -132,6 +133,7 @@ export const MIGRATIONS: Migration[] = [
   componentMigration_2026_09_13_toggleLabel,
   componentMigration_2026_09_13_collapsiblesectionOpen,
   componentMigration_2026_09_13_badgeBrand,
+  componentMigration_2026_09_20_imagelightboxScrim,
 ];
 
 function countFor(kind: 'colors-and-type' | 'component-config'): number {

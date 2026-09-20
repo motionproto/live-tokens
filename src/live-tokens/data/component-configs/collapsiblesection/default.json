@@ -70,5 +70,5 @@
     "--collapsiblesection-container-open-surface": "--surface-neutral-higher",
     "--collapsiblesection-container-open-padding": "--space-4"
   },
-  "schemaVersion": 35
+  "schemaVersion": 36
 }

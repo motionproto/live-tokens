@@ -15,7 +15,7 @@
       { label: 'tile shadow',                       variable: '--imagelightbox-tile-shadow' },
     ],
     overlay: [
-      { label: 'backdrop color', groupKey: 'surface', variable: '--imagelightbox-overlay-surface' },
+      { label: 'scrim color', groupKey: 'surface', variable: '--imagelightbox-scrim-surface' },
     ],
     chrome: [
       { label: 'surface color',       groupKey: 'surface', variable: '--imagelightbox-chrome-surface' },

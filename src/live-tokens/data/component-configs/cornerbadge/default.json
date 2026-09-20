@@ -45,5 +45,5 @@
     "--cornerbadge-info-border": "--border-info",
     "--cornerbadge-info-text": "--text-info"
   },
-  "schemaVersion": 35
+  "schemaVersion": 36
 }

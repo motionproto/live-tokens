@@ -27,7 +27,7 @@ export const imageLightboxContract: ComponentContract = {
           borderRadius: '--imagelightbox-tile-radius',
           boxShadow: '--imagelightbox-tile-shadow',
         },
-        overlay: { backgroundColor: '--imagelightbox-overlay-surface' },
+        overlay: { backgroundColor: '--imagelightbox-scrim-surface' },
         closeButton: {
           backgroundColor: '--imagelightbox-chrome-surface',
           borderTopColor: '--imagelightbox-chrome-border',
