@@ -18,7 +18,6 @@ export const dialogContract: ComponentContract = {
   properties: [
     {
       paints: {
-        backdrop: { backgroundColor: '--dialog-scrim-surface' },
         root: {
           backgroundColor: '--dialog-surface',
           borderTopColor: '--dialog-border',
@@ -68,6 +67,8 @@ export const dialogContract: ComponentContract = {
   ],
   uncovered: {
     '--dialog-blur': 'consumed via backdrop-filter: blur(), which no probe covers',
+    '--dialog-scrim-color': 'composed into the fill through color-mix(), so no computed style reports the token verbatim',
+    '--dialog-scrim-opacity': 'composed into the fill through color-mix(), so no computed style reports the token verbatim',
   },
   persistence: {
     cases: [

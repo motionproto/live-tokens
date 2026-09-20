@@ -267,10 +267,18 @@
   --surface-danger-highest: oklch(0.6696 0.1423 24.72);
 
   /* Scrims — translucent layers that dim what sits behind them. A scrim is not
-     a tint: it darkens the content underneath, it does not shade a surface. */
-  --scrim-low: rgba(20, 3, 0, 0.38);
-  --scrim: rgba(20, 3, 0, 0.51);
-  --scrim-high: rgba(20, 3, 0, 0.64);
+     a tint: it darkens the content underneath, it does not shade a surface.
+     Colour and strength are separate, so a theme can hold one and move the
+     other: set --scrim-color to a light value for a scrim that pales the page
+     instead of darkening it. The three stops stay, composed from the two, for
+     anywhere that wants one value. */
+  --scrim-color: rgb(20, 3, 0);
+  --scrim-opacity-low: 0.38;
+  --scrim-opacity: 0.51;
+  --scrim-opacity-high: 0.64;
+  --scrim-low: color-mix(in srgb, var(--scrim-color) calc(var(--scrim-opacity-low) * 100%), transparent);
+  --scrim: color-mix(in srgb, var(--scrim-color) calc(var(--scrim-opacity) * 100%), transparent);
+  --scrim-high: color-mix(in srgb, var(--scrim-color) calc(var(--scrim-opacity-high) * 100%), transparent);
 
   /* Tints — translucent washes that shade the surface they sit on, for a hover
      or an active row. The theme aliases these to the text color, so a tint

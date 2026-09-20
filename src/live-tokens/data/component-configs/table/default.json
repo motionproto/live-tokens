@@ -31,5 +31,5 @@
     "--table-default-column-hairline-color": "--border-neutral-faint",
     "--table-default-column-hairline-width": "--border-width-1"
   },
-  "schemaVersion": 36
+  "schemaVersion": 37
 }

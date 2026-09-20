@@ -1,7 +1,7 @@
 {
   "name": "Motion Proto",
   "createdAt": "2026-05-10T18:15:30.815Z",
-  "updatedAt": "2026-09-20T14:59:13.463Z",
+  "updatedAt": "2026-09-20T17:01:47.451Z",
   "schemaVersion": 5,
   "colorsAndType": {
     "name": "Motion Proto",
@@ -2942,9 +2942,10 @@
       "name": "default",
       "component": "dialog",
       "createdAt": "2026-05-10T20:05:24.719Z",
-      "updatedAt": "2026-09-01T15:48:42.282Z",
+      "updatedAt": "2026-09-20T17:00:30.029Z",
       "aliases": {
-        "--dialog-scrim-surface": "--scrim-high",
+        "--dialog-scrim-color": "--scrim-color",
+        "--dialog-scrim-opacity": "--scrim-opacity-high",
         "--dialog-surface": "--surface-neutral-lowest",
         "--dialog-border": "--border-neutral-strong",
         "--dialog-border-width": "--border-width-2",
@@ -3081,14 +3082,15 @@
       "name": "default",
       "component": "imagelightbox",
       "createdAt": "2026-05-26T02:03:38.863Z",
-      "updatedAt": "2026-09-20T14:58:02.911Z",
+      "updatedAt": "2026-09-20T17:00:14.643Z",
       "aliases": {
         "--imagelightbox-tile-surface": "--color-transparent",
         "--imagelightbox-tile-radius": "--radius-2xl",
         "--imagelightbox-tile-border": "--color-transparent",
         "--imagelightbox-tile-border-width": "--border-width-0",
         "--imagelightbox-tile-shadow": "--shadow-md",
-        "--imagelightbox-scrim-surface": "--scrim-high",
+        "--imagelightbox-scrim-color": "--scrim-color",
+        "--imagelightbox-scrim-opacity": "--scrim-opacity-high",
         "--imagelightbox-chrome-surface": "--surface-neutral-low",
         "--imagelightbox-chrome-border": "--border-brand",
         "--imagelightbox-chrome-border-width": "--border-width-1",
@@ -3942,5 +3944,5 @@
       }
     }
   },
-  "componentSchemaVersion": 36
+  "componentSchemaVersion": 37
 }

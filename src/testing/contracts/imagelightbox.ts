@@ -27,7 +27,6 @@ export const imageLightboxContract: ComponentContract = {
           borderRadius: '--imagelightbox-tile-radius',
           boxShadow: '--imagelightbox-tile-shadow',
         },
-        overlay: { backgroundColor: '--imagelightbox-scrim-surface' },
         closeButton: {
           backgroundColor: '--imagelightbox-chrome-surface',
           borderTopColor: '--imagelightbox-chrome-border',
@@ -47,6 +46,10 @@ export const imageLightboxContract: ComponentContract = {
     },
   ],
   states: [{ state: 'tile' }, { state: 'overlay' }, { state: 'chrome' }],
+  uncovered: {
+    '--imagelightbox-scrim-color': 'composed into the fill through color-mix(), so no computed style reports the token verbatim',
+    '--imagelightbox-scrim-opacity': 'composed into the fill through color-mix(), so no computed style reports the token verbatim',
+  },
   persistence: {
     cases: [
       {

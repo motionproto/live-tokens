@@ -16,7 +16,8 @@
   // Button styling lives in Button.svelte — the dialog only owns its own chrome.
   const frameStates: Record<string, Token[]> = {
     scrim: [
-      { label: 'scrim color', groupKey: 'surface', variable: '--dialog-scrim-surface' },
+      { label: 'scrim color', groupKey: 'surface', variable: '--dialog-scrim-color' },
+      { label: 'scrim opacity', variable: '--dialog-scrim-opacity' },
     ],
     dialog: [
       { label: 'surface color', variable: '--dialog-surface' },
