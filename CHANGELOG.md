@@ -1,5 +1,36 @@
 # Changelog
 
+## 0.84.0 — A scrim's colour and strength are separate tokens
+
+### Added
+
+- **`--scrim-color` and `--scrim-opacity-low`, `--scrim-opacity`,
+  `--scrim-opacity-high`.** A theme holds one and moves the other: a light
+  `--scrim-color` gives a scrim that pales the page. The three `--scrim-*` stops
+  remain, composed from the two. The additive tokens-css migration
+  `2026-09-20-scrim-color-and-opacity` inserts the four names into an existing
+  `tokens.css`, and the dev plugin applies it on its own. The stops already in
+  that file keep their values; to have them follow `--scrim-color`, write each
+  as `color-mix(in srgb, var(--scrim-color) calc(var(--scrim-opacity) * 100%), transparent)`
+  with its own opacity stop.
+
+- **The editor picks an opacity from its stops.** A property whose name ends in
+  `-opacity` takes a picker of the three scrim strengths, low, medium, and high.
+  The suffix used to fall under the fill rule, which offered a palette and wrote
+  a colour into a number.
+
+### Changed (breaking)
+
+- **`--dialog-scrim-surface` and `--imagelightbox-scrim-surface` each split into
+  `-scrim-color` and `-scrim-opacity`.** Each screen mixes the pair where it
+  paints. ImageLightbox's `scrim` prop writes the colour and `scrimOpacity`
+  writes the strength, and the opacity now stands on its own. Migration
+  `2026-09-20-scrim-color-and-opacity` splits the old key in a saved component
+  config: a `--scrim-*` stop becomes that stop's opacity with `--scrim-color`,
+  and a hand-written fill becomes the colour at full strength. A project whose
+  `tokens.css` gave the scrim stops their own colour sets `--scrim-color` to it,
+  since Dialog and ImageLightbox now read that token.
+
 ## 0.83.0 — The catalogue entry names what rules a component out
 
 ### Added
