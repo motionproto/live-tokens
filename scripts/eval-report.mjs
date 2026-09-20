@@ -6,7 +6,7 @@ import { existsSync, readFileSync } from 'node:fs';
 function graderBody(caseName, graderName) {
   const file = `.claude/evals/${caseName}/graders/${graderName}.md`;
   if (!existsSync(file)) return '';
-  return readFileSync(file, 'utf8').replace(/^---[\s\S]*?---\s*/, '').replace(/\s+/g, ' ').trim();
+  return readFileSync(file, 'utf8').replace(/^---[\s\S]*?---\s*/, '').split(/\n\s*\n/)[0].replace(/\s+/g, ' ').trim();
 }
 
 function answeredLine(graderName, evidence) {
@@ -25,15 +25,18 @@ for (const c of result.cases) {
   for (const [arm, runs] of Object.entries(c.arms)) {
     const failures = new Map();
     for (const [i, run] of runs.entries()) {
-      if (run.error) { lines.push(`  ${arm} run ${i + 1}: did not finish, so it scores 0. ${run.error}`); continue; }
+      if (run.error) {
+        lines.push(`  ${arm} run ${i + 1}: did not finish and scored ${run.score.toFixed(2)}. ${run.error}`);
+        if (run.graders.length === 0) continue;
+      }
       for (const g of run.graders) {
         if (g.passed) continue;
-        const seen = failures.get(g.name) ?? { runs: [], explanation: (graderBody(c.name, g.name) || g.explanation || '') + answeredLine(g.name, g.evidence) };
+        const seen = failures.get(g.name) ?? { runs: [], explanation: [graderBody(c.name, g.name), g.explanation].filter(Boolean).join(' Runner: ') + answeredLine(g.name, g.evidence) };
         seen.runs.push(i + 1);
         failures.set(g.name, seen);
       }
     }
-    if (failures.size === 0) { lines.push(`  ${arm}: every grader passed in every run that finished`); continue; }
+    if (failures.size === 0) { lines.push(`  ${arm}: every grader passed`); continue; }
     for (const [name, f] of failures) lines.push(`  ${arm}: ${name} failed in run ${f.runs.join(', ')} of ${runs.length}. ${f.explanation ?? ''}`.trimEnd());
   }
 }
