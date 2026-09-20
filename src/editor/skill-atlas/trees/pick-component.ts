@@ -20,7 +20,7 @@ export const pickComponent: SkillTree = {
       "row": 1,
       "kind": "cli",
       "title": "List the catalogue",
-      "desc": "`components --json` returns every component's catalogue entry.",
+      "desc": "The components command, with its JSON flag, returns every component's catalogue entry.",
       "lines": [12, 12],
       "anchor": "Run `npx live-tokens components --json`. The list carries th"
     },
@@ -87,7 +87,7 @@ export const pickComponent: SkillTree = {
       "row": 5,
       "kind": "cli",
       "title": "Check the component",
-      "desc": "`components <id>` prints the chosen component's props and the values each accepts.",
+      "desc": "The components command, given the id, prints the chosen component's props and the values each accepts.",
       "lines": [23, 23],
       "anchor": "`npx live-tokens components <id>` prints one component's cat"
     },

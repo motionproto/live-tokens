@@ -88,7 +88,7 @@ export const createPage: SkillTree = {
       "row": 4,
       "kind": "chipset",
       "title": "Choose containers by purpose",
-      "desc": "Panel is a stage, Card is titled content; a component's own constraints come from `components <id>`.",
+      "desc": "Panel is a stage, Card is titled content; a component's own constraints come from the components command.",
       "lines": [15, 15],
       "anchor": "Give each section its container. `npx live-tokens components",
       "chips": [
