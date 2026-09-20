@@ -32,18 +32,18 @@ describe('parallel answers', () => {
 
 describe('answers already on the card', () => {
   const nodes = [
-    { id: 'act', row: 1, kind: 'chipset' as const, title: 'Action family', chips: [{ label: 'Button', lines: [1, 1] as [number, number] }] },
+    { id: 'project', row: 1, kind: 'chipset' as const, title: 'Read the project', chips: [{ label: 'Config', lines: [1, 1] as [number, number] }] },
     { id: 'order', row: 1, kind: 'decide' as const, title: 'Repair order' },
   ];
   it('leaves the wire unlabelled when its answer is a chip of the source card', () => {
     const edges = [
-      { from: 'act', to: 'fits', label: 'Button' },
-      { from: 'act', to: 'fits', label: 'Toggle' },
+      { from: 'project', to: 'fits', label: 'Config' },
+      { from: 'project', to: 'fits', label: 'Catalogue' },
       { from: 'order', to: 'recipe', label: 'warnings' },
     ];
     expect(withoutChipAnswers(edges, nodes)).toEqual([
-      { from: 'act', to: 'fits', answers: ['Button'] },
-      { from: 'act', to: 'fits', label: 'Toggle' },
+      { from: 'project', to: 'fits', answers: ['Config'] },
+      { from: 'project', to: 'fits', label: 'Catalogue' },
       { from: 'order', to: 'recipe', label: 'warnings' },
     ]);
   });

@@ -22,8 +22,8 @@ FAIL on any of:
 - Row 11 (a multiple selection) answered with `MenuSelect` or any other
   single-selection component.
 - Row 9 answered with a danger `Button` alone, with no `Dialog`.
-- A row's component is right but its family is wrong in a way that changes
-  the props given (for example `SegmentedControl` for row 3, where the
+- A row names a component that one of its own `whenNotToUse` rows rules out
+  for that requirement (for example `SegmentedControl` for row 3, where the
   content area is meant to swap).
 
 Score the run as the fraction of the twelve rows that pass, and report which
