@@ -366,7 +366,7 @@ A project created with `create` runs the forced form from `postinstall` and giti
 
 Ask "TabBar or SegmentedControl?", "how do I let someone pick one of four options?", or "what is the difference between a Callout and a Notification?".
 
-The skill runs `npx live-tokens components --json` and reads each candidate's catalogue entry: the condition that makes it the right component, the condition that makes each sibling right instead, and its rules of use. The entries hold the decision, so a component you author joins the same query. It answers the question and writes nothing. Read it before authoring anything new.
+The skill runs `npx live-tokens components --json` and reads each candidate's catalogue entry: the condition that makes it the right component, the conditions that rule it out with the component to use in its place, and its rules of use. The entries hold the decision, so a component you author joins the same query. It answers the question and writes nothing. Read it before authoring anything new.
 
 ### `live-tokens-create-page`
 

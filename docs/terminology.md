@@ -196,10 +196,8 @@ reads. Each survives only in its remaining sense: nothing, and sketch mode's
 randomness.
 
 Words that carry an unrelated everyday sense keep it. "A brief popover" is an
-adjective. "Two faces look alike" is a verb. "Semantic intent" in
-pick-component names what a control communicates to a user, which is a
-different axis from a layer-2 intent. Rename by hand and read each hit, since a
-scripted sweep mangles these.
+adjective. "Two faces look alike" is a verb. Rename by hand and read each hit,
+since a scripted sweep mangles these.
 
 ### Naming against the CLI
 

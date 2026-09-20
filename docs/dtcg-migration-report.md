@@ -194,7 +194,7 @@ His rule: "Keep DTCG canonical, treat everything downstream as derived."
 | DTCG tokens | `tokens.css` (primitives and semantic scales), theme JSON (generator inputs), component `:global(:root)` blocks (component tier) | The format, and a component tier held inside `.svelte` files |
 | Style Dictionary build | `regenerateTokensCss` and `editorRenderer` | CSS is the only output |
 | Tailwind `@theme` | None | Could be an extra output |
-| DESIGN.md | `catalogue` entries (`description`, `whenToUse`, `whenNotToUse`, `constraints`, `props`), nine skills, the pick-component decision tests, and checker rules | The intent exists, but only as Svelte module scripts and Claude Code skills |
+| DESIGN.md | `catalogue` entries (`description`, `whenToUse`, `whenNotToUse`, `constraints`, `props`), nine skills, and checker rules | The intent exists, but only as Svelte module scripts and Claude Code skills |
 | Code Connect | None | Out of scope |
 
 The article lists two problems in real codebases: hand-written CSS drifting away from the token files, and semantic intent kept in prose instead of references. Live-tokens already solves both. It generates the CSS, and its checkers require semantic properties.
@@ -254,7 +254,7 @@ We can generate it today, with no refactor, from sources that already exist:
 | `colors`, `typography`, `rounded`, `spacing` | Resolved theme values |
 | `components` | Component aliases, mapped onto the eight standard names where they fit |
 | Components prose | `catalogue` entries, which `describeComponents` already reads from the `.svelte` text without running it (`components --json`) |
-| Do's and Don'ts | Checker rules and pick-component decision tests, such as "one primary per page" |
+| Do's and Don'ts | Checker rules and catalogue `constraints`, such as "one primary per page" |
 | Overview | The design direction that create-theme derives |
 
 The editor would regenerate DESIGN.md on save and promote, so it never drifts. Running `design.md lint` becomes a test gate.
