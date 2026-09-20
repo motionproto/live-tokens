@@ -4,11 +4,11 @@
   export const catalogue = {
     description: 'A standing message that sits inside a section.',
     family: 'messaging',
-    useFor: 'something the reader must know about the content around it.',
-    alternatives: {
-      notification: 'the message is feedback about something that just happened, and the reader can dismiss it.',
-      tooltip: 'the note hangs off one element, shown on hover or focus.',
-    },
+    whenToUse: 'something the reader must know about the content around it.',
+    whenNotToUse: [
+      { when: 'the message is feedback about something that just happened, and the reader can dismiss it.', use: 'notification' },
+      { when: 'the note hangs off one element, shown on hover or focus.', use: 'tooltip' },
+    ],
     props: {
       variant: '`info` notes, `success` confirms, `warning` cautions, `danger` flags harm.',
     },

@@ -4,12 +4,12 @@
   export const catalogue = {
     description: 'A command or value with a copy button.',
     family: 'display',
-    useFor: 'text the reader is meant to run or paste somewhere else.',
-    alternatives: {
-      card: 'the text is prose the reader only reads, inside its own titled block.',
-      panel: 'the text is prose the reader only reads, inside a section of the page.',
-      input: 'the reader edits the value.',
-    },
+    whenToUse: 'text the reader is meant to run or paste somewhere else.',
+    whenNotToUse: [
+      { when: 'the text is prose the reader only reads, inside its own titled block.', use: 'card' },
+      { when: 'the text is prose the reader only reads, inside a section of the page.', use: 'panel' },
+      { when: 'the reader edits the value.', use: 'input' },
+    ],
   } satisfies CatalogueEntry;
 </script>
 

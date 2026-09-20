@@ -4,11 +4,11 @@
   export const catalogue = {
     description: 'An action that an icon alone carries.',
     family: 'action',
-    useFor: 'an action whose meaning is plain from the glyph, such as close, edit, or delete.',
-    alternatives: {
-      button: 'the action needs a word to be unambiguous.',
-      inlineeditactions: 'the pair confirms or cancels an inline edit.',
-    },
+    whenToUse: 'an action whose meaning is plain from the glyph, such as close, edit, or delete.',
+    whenNotToUse: [
+      { when: 'the action needs a word to be unambiguous.', use: 'button' },
+      { when: 'the pair confirms or cancels an inline edit.', use: 'inlineeditactions' },
+    ],
     props: {
       variant: 'one primary per page; secondary for the rest; outline for a tertiary action; danger for a destructive one.',
     },

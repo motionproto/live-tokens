@@ -4,11 +4,11 @@
   export const catalogue = {
     description: 'A short standing label on an element.',
     family: 'messaging',
-    useFor: 'status the reader takes at a glance, such as "Beta", "New", or a version.',
-    alternatives: {
-      cornerbadge: "the marker sits on the thing it describes, in the parent's corner.",
-      notification: 'the message is feedback about something that just happened.',
-    },
+    whenToUse: 'status the reader takes at a glance, such as "Beta", "New", or a version.',
+    whenNotToUse: [
+      { when: "the marker sits on the thing it describes, in the parent's corner.", use: 'cornerbadge' },
+      { when: 'the message is feedback about something that just happened.', use: 'notification' },
+    ],
     props: {
       variant: '`brand`, `accent`, `special`, `alternate`, `canvas`, and `neutral` paint a color family; `success`, `warning`, `danger`, and `info` carry a status.',
     },

@@ -70,7 +70,7 @@ Commands:
                               its own (src/system/components plus any
                               "componentDirs" in live-tokens.config.json), each
                               with its catalogue entry (description, family,
-                              useFor, alternatives, constraints). The list form
+                              whenToUse, whenNotToUse, constraints). The list form
                               omits tokens. --family <name> filters the list to
                               one of the seven picker families: action,
                               single-selection, text-entry, on-off, container,

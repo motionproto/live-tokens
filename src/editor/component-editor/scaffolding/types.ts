@@ -21,10 +21,10 @@ export type CatalogueEntry = {
   /** The picker family. One per component. */
   family: CatalogueFamily;
   /** The condition that makes this component the right one. */
-  useFor: string;
-  /** Sibling component id (`table`, never `Table`) -> the condition that
-      makes the sibling right instead. */
-  alternatives: Record<string, string>;
+  whenToUse: string;
+  /** Each row rules the component out. `use` is the component id
+      (`table`, never `Table`) that fits instead. */
+  whenNotToUse: Array<{ when: string; use?: string }>;
   /** Rules of use. An entry with `rule` names the checker rule that enforces it. */
   constraints?: Array<string | { rule: string; text: string }>;
   /** Keyed by prop name; the value explains that prop's values. */

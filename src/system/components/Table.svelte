@@ -4,10 +4,10 @@
   export const catalogue = {
     description: 'A themed frame around the rows and cells the page writes.',
     family: 'display',
-    useFor: 'records the reader scans and compares.',
-    alternatives: {
-      card: 'the reader acts on each item; one Card per item.',
-    },
+    whenToUse: 'records the reader scans and compares.',
+    whenNotToUse: [
+      { when: 'the reader acts on each item; one Card per item.', use: 'card' },
+    ],
   } satisfies CatalogueEntry;
 </script>
 

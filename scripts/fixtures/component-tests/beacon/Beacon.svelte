@@ -5,9 +5,9 @@
     description:
       "The consumer acceptance gate's own custom component: an on/off status light with a label, built the same way live-tokens-create-component asks a consumer to build one.",
     family: 'on-off',
-    useFor:
+    whenToUse:
       "mirroring Toggle.svelte's shape (parts, states, interaction) so the gate exercises a real, richly-stated component without inventing a new pattern for check-component --tests to prove.",
-    alternatives: {},
+    whenNotToUse: [],
   } satisfies CatalogueEntry;
 </script>
 

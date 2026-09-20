@@ -4,11 +4,11 @@
   export const catalogue = {
     description: 'An inline switch between named alternatives.',
     family: 'single-selection',
-    useFor: 'two to four short labels that pick one view of the same data.',
-    alternatives: {
-      tabbar: "the choice swaps the page's content area below it.",
-      radiobutton: 'a label would wrap.',
-    },
+    whenToUse: 'two to four short labels that pick one view of the same data.',
+    whenNotToUse: [
+      { when: "the choice swaps the page's content area below it.", use: 'tabbar' },
+      { when: 'a label would wrap.', use: 'radiobutton' },
+    ],
   } satisfies CatalogueEntry;
 </script>
 

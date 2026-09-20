@@ -4,13 +4,13 @@
   export const catalogue = {
     description: 'One item with a title.',
     family: 'container',
-    useFor: 'an item on its own, or each item in a set: a product, a record, a plan the reader may act on.',
-    alternatives: {
-      panel: "the block is a stage, a list, a form, or copy that forms one section of the page's content.",
-      collapsiblesection: 'the content is secondary, and most readers skip it until they open it.',
-      dialog: 'the page cannot continue until the reader decides.',
-      table: 'the reader scans and compares the records.',
-    },
+    whenToUse: 'an item on its own, or each item in a set: a product, a record, a plan the reader may act on.',
+    whenNotToUse: [
+      { when: "the block is a stage, a list, a form, or copy that forms one section of the page's content.", use: 'panel' },
+      { when: 'the content is secondary, and most readers skip it until they open it.', use: 'collapsiblesection' },
+      { when: 'the page cannot continue until the reader decides.', use: 'dialog' },
+      { when: 'the reader scans and compares the records.', use: 'table' },
+    ],
     constraints: ["The title prop is the Card's title, and the card's own tokens type it."],
     props: {
       variant: '`bare` drops the header for content that carries its own title.',

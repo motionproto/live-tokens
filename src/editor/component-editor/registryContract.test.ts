@@ -90,9 +90,9 @@ describe.each(entries.map((e) => [e.id, e] as const))('%s catalogue', (_id, entr
     expect(CATALOGUE_FAMILIES).toContain(entry.catalogue.family);
   });
 
-  it('every alternatives key names a registered component id', () => {
+  it('every whenNotToUse[].use names a registered component id', () => {
     const ids = new Set(entries.map((e) => e.id));
-    for (const key of Object.keys(entry.catalogue.alternatives ?? {})) expect(ids.has(key)).toBe(true);
+    for (const row of entry.catalogue.whenNotToUse ?? []) if (row.use) expect(ids.has(row.use)).toBe(true);
   });
 
   it('every constraints[].rule names a page or component rule id', () => {

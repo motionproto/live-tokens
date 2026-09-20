@@ -4,11 +4,11 @@
   export const catalogue = {
     description: 'A badge that sits on a corner of its parent.',
     family: 'messaging',
-    useFor: 'a count or status marker that sits on the thing it describes.',
-    alternatives: {
-      badge: 'the label sits in the text flow.',
-      notification: 'the message is feedback about something that just happened.',
-    },
+    whenToUse: 'a count or status marker that sits on the thing it describes.',
+    whenNotToUse: [
+      { when: 'the label sits in the text flow.', use: 'badge' },
+      { when: 'the message is feedback about something that just happened.', use: 'notification' },
+    ],
     props: {
       variant: '`brand`, `accent`, `special`, `alternate`, `canvas`, and `neutral` paint a color family; `success`, `warning`, `danger`, and `info` carry a status.',
       anchor: 'the corner the badge sits on; `bottom-right` unless named.',

@@ -4,11 +4,11 @@
   export const catalogue = {
     description: "A frame around one section of the page's content.",
     family: 'container',
-    useFor: 'a stage, a list, a form, or a block of copy that forms one section.',
-    alternatives: {
-      card: 'the block is one item, or each item in a set.',
-      dialog: 'the page cannot continue until the reader decides.',
-    },
+    whenToUse: 'a stage, a list, a form, or a block of copy that forms one section.',
+    whenNotToUse: [
+      { when: 'the block is one item, or each item in a set.', use: 'card' },
+      { when: 'the page cannot continue until the reader decides.', use: 'dialog' },
+    ],
     props: {
       minHeight: 'holds the height while the content changes.',
     },

@@ -4,11 +4,11 @@
   export const catalogue = {
     description: 'Tabs that swap the content below them.',
     family: 'single-selection',
-    useFor: 'two to seven views the reader moves between inside one page.',
-    alternatives: {
-      segmentedcontrol: 'the switch sits among other controls in a row.',
-      sidenavigation: 'the choice changes the URL.',
-    },
+    whenToUse: 'two to seven views the reader moves between inside one page.',
+    whenNotToUse: [
+      { when: 'the switch sits among other controls in a row.', use: 'segmentedcontrol' },
+      { when: 'the choice changes the URL.', use: 'sidenavigation' },
+    ],
   } satisfies CatalogueEntry;
 </script>
 

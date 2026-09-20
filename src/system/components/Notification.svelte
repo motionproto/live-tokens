@@ -4,11 +4,11 @@
   export const catalogue = {
     description: 'Feedback about something that just happened.',
     family: 'messaging',
-    useFor: 'the outcome of an action or a system event, which the reader can dismiss.',
-    alternatives: {
-      callout: 'the reader must know it about the content around it, and it stays present.',
-      dialog: 'the page cannot continue until the reader decides.',
-    },
+    whenToUse: 'the outcome of an action or a system event, which the reader can dismiss.',
+    whenNotToUse: [
+      { when: 'the reader must know it about the content around it, and it stays present.', use: 'callout' },
+      { when: 'the page cannot continue until the reader decides.', use: 'dialog' },
+    ],
     props: {
       variant: '`info` notes, `success` confirms, `warning` cautions, `danger` flags harm.',
     },

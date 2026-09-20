@@ -117,7 +117,7 @@ function readWholeExpression(text, i) {
 /**
  * One literal value starting at `text[i]`: a quoted string, a `[...]` array of
  * values, or a `{...}` object of `key: value` pairs — the subset `catalogueOf`
- * reads, recursively, so a key nested inside `alternatives`, `props`, or a
+ * reads, recursively, so a key nested inside a `whenNotToUse` row, `props`, or a
  * `{ rule, text }` constraint is read at its own depth and never mistaken for
  * a top-level field. An identifier, a template with `${}`, a concatenation,
  * or any other expression is outside the subset and reads as absent (`null`),
@@ -180,6 +180,20 @@ function stringEntries(v) {
   return out;
 }
 
+/** `whenNotToUse` entries: a `{ when, use? }` object with `when` a string and
+ *  `use`, if present, a string. A row whose `when` is not a string literal is
+ *  dropped from the array. */
+function whenNotToUseEntries(v) {
+  if (!Array.isArray(v)) return undefined;
+  const out = [];
+  for (const item of v) {
+    if (isPlainObject(item) && typeof item.when === 'string') {
+      out.push(typeof item.use === 'string' ? { when: item.when, use: item.use } : { when: item.when });
+    }
+  }
+  return out;
+}
+
 /** `constraints` entries: a plain string, or a `{ rule, text }` object with
  *  both as strings. Anything else is dropped from the array. */
 function constraintEntries(v) {
@@ -214,10 +228,9 @@ export function catalogueOf(source) {
   const catalogue = {};
   if (typeof fields.description === 'string') catalogue.description = fields.description;
   if (typeof fields.family === 'string') catalogue.family = fields.family;
-  if (typeof fields.useFor === 'string') catalogue.useFor = fields.useFor;
-  const alternatives = stringEntries(fields.alternatives);
-  // A component with no sibling declares `alternatives: {}`, and the type accepts it.
-  if (alternatives) catalogue.alternatives = alternatives;
+  if (typeof fields.whenToUse === 'string') catalogue.whenToUse = fields.whenToUse;
+  const whenNotToUse = whenNotToUseEntries(fields.whenNotToUse);
+  if (whenNotToUse) catalogue.whenNotToUse = whenNotToUse;
   const constraints = constraintEntries(fields.constraints);
   if (constraints && constraints.length) catalogue.constraints = constraints;
   const props = stringEntries(fields.props);
@@ -312,12 +325,12 @@ export function describeTokens(vocab, { root = process.cwd() } = {}) {
 
 function describeLines(c) {
   if (!c.catalogue) return [];
-  const { description, family, useFor, alternatives, constraints, props } = c.catalogue;
+  const { description, family, whenToUse, whenNotToUse, constraints, props } = c.catalogue;
   const lines = [];
   if (description) lines.push(description);
   if (family) lines.push(`Family: ${family}`);
-  if (useFor) lines.push(`Use for: ${useFor}`);
-  for (const [id, condition] of Object.entries(alternatives ?? {})) lines.push(`Instead: ${id}, when ${condition}`);
+  if (whenToUse) lines.push(`When to use: ${whenToUse}`);
+  for (const row of whenNotToUse ?? []) lines.push(row.use ? `Not for: ${row.when} Use ${row.use}.` : `Not for: ${row.when}`);
   for (const constraint of constraints ?? []) {
     lines.push(typeof constraint === 'string' ? `Rule: ${constraint}` : `Rule: ${constraint.text} [${constraint.rule}]`);
   }

@@ -4,10 +4,10 @@
   export const catalogue = {
     description: 'A framed picture in the page flow.',
     family: 'display',
-    useFor: 'any picture the page shows.',
-    alternatives: {
-      imagelightbox: 'the detail is the point, and the reader opens it to see more.',
-    },
+    whenToUse: 'any picture the page shows.',
+    whenNotToUse: [
+      { when: 'the detail is the point, and the reader opens it to see more.', use: 'imagelightbox' },
+    ],
     constraints: ['Page CSS paints decoration.'],
     props: {
       variant:

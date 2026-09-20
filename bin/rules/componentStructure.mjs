@@ -37,7 +37,7 @@ export const componentRules = {
     severity: 'warn',
     repair: 'authored',
     guidance:
-      "Add the catalogue export to the runtime's <script module> block, with description, family, and useFor as string literals, and alternatives as an object of sibling component id to the condition that makes the sibling right instead. A component with no sibling takes `alternatives: {}`. An optional constraints array states a rule of use, as a plain sentence or, when a checker rule enforces it, `{ rule, text }` with the rule's id. The message names the field that is missing or malformed, and `npx live-tokens components <id>` prints the entry once it is there.",
+      "Add the catalogue export to the runtime's <script module> block, with description, family, and whenToUse as string literals, and whenNotToUse as an array of { when, use? } rows: `when` names the condition that rules this component out, and `use` names the sibling component id that fits instead. A row with no sibling to name takes no `use`. A component with no disqualifying condition takes `whenNotToUse: []`. An optional constraints array states a rule of use, as a plain sentence or, when a checker rule enforces it, `{ rule, text }` with the rule's id. The message names the field that is missing or malformed, and `npx live-tokens components <id>` prints the entry once it is there.",
   },
   'state-after-property': {
     severity: 'error',
@@ -118,10 +118,10 @@ export function checkRuntime({ id, Id, root, runtimePath, runtime, blocks, intri
   if (!catalogue) {
     record(
       'missing-description',
-      `${relative(root, runtimePath)}: has no catalogue export. Say what ${Id} is for, its family, and its alternatives`,
+      `${relative(root, runtimePath)}: has no catalogue export. Say what ${Id} is for, its family, and when not to use it`,
     );
   } else {
-    for (const requiredField of ['description', 'family', 'useFor', 'alternatives']) {
+    for (const requiredField of ['description', 'family', 'whenToUse', 'whenNotToUse']) {
       if (!catalogue[requiredField]) {
         record('missing-description', `${relative(root, runtimePath)}: catalogue has no ${requiredField}`);
       }
@@ -132,11 +132,11 @@ export function checkRuntime({ id, Id, root, runtimePath, runtime, blocks, intri
         `${relative(root, runtimePath)}: catalogue family "${catalogue.family}" is not one of ${CATALOGUE_FAMILIES.join(', ')}`,
       );
     }
-    for (const alt of Object.keys(catalogue.alternatives ?? {})) {
-      if (!vocab.components.has(alt)) {
+    for (const row of catalogue.whenNotToUse ?? []) {
+      if (row.use && !vocab.components.has(row.use)) {
         record(
           'missing-description',
-          `${relative(root, runtimePath)}: catalogue alternatives names "${alt}", which is not a component id`,
+          `${relative(root, runtimePath)}: catalogue whenNotToUse names "${row.use}", which is not a component id`,
         );
       }
     }

@@ -252,7 +252,7 @@ describe('shipped components', () => {
  */
 const CLEAN = {
   runtime: `<script module lang="ts">
-  export const catalogue = { description: 'A dial.', family: 'display', useFor: 'one value on a scale.', alternatives: { toggle: 'the setting is on or off, and takes effect at once.' } };
+  export const catalogue = { description: 'A dial.', family: 'display', whenToUse: 'one value on a scale.', whenNotToUse: [{ when: 'the setting is on or off, and takes effect at once.', use: 'toggle' }] };
 </script>
 <script lang="ts">
   import { editorState } from '@motion-proto/live-tokens';
@@ -1614,7 +1614,7 @@ describe('missing-description', () => {
     const root = fixtureRoot();
     widget(root, '--widget-surface: var(--surface-neutral);');
     expect(rules(root)).toContain('missing-description');
-    expect(findingMessage(root)).toContain('has no catalogue export. Say what Widget is for, its family, and its alternatives');
+    expect(findingMessage(root)).toContain('has no catalogue export. Say what Widget is for, its family, and when not to use it');
   });
 
   it('stays quiet once a catalogue export supplies all four required fields', () => {
@@ -1622,7 +1622,7 @@ describe('missing-description', () => {
     const runtime = widget(root, '--widget-surface: var(--surface-neutral);');
     prependModule(
       runtime,
-      `export const catalogue = { description: 'A dial.', family: 'display', useFor: 'testing.', alternatives: { toggle: 'the setting is on or off.' } };`,
+      `export const catalogue = { description: 'A dial.', family: 'display', whenToUse: 'testing.', whenNotToUse: [{ when: 'the setting is on or off.', use: 'toggle' }] };`,
     );
     expect(rules(root)).not.toContain('missing-description');
   });
@@ -1632,9 +1632,9 @@ describe('missing-description', () => {
     const runtime = widget(root, '--widget-surface: var(--surface-neutral);');
     prependModule(
       runtime,
-      `export const catalogue = { description: 'A dial.', family: 'display', alternatives: { toggle: 'the setting is on or off.' } };`,
+      `export const catalogue = { description: 'A dial.', family: 'display', whenNotToUse: [{ when: 'the setting is on or off.', use: 'toggle' }] };`,
     );
-    expect(findingMessage(root)).toBe('src/system/components/Widget.svelte: catalogue has no useFor');
+    expect(findingMessage(root)).toBe('src/system/components/Widget.svelte: catalogue has no whenToUse');
   });
 
   it('fires when a field is given as an identifier rather than a string literal', () => {
@@ -1642,9 +1642,9 @@ describe('missing-description', () => {
     const runtime = widget(root, '--widget-surface: var(--surface-neutral);');
     prependModule(
       runtime,
-      `const reason = 'testing.';\nexport const catalogue = { description: 'A dial.', family: 'display', useFor: reason, alternatives: { toggle: 'the setting is on or off.' } };`,
+      `const reason = 'testing.';\nexport const catalogue = { description: 'A dial.', family: 'display', whenToUse: reason, whenNotToUse: [{ when: 'the setting is on or off.', use: 'toggle' }] };`,
     );
-    expect(findingMessage(root)).toBe('src/system/components/Widget.svelte: catalogue has no useFor');
+    expect(findingMessage(root)).toBe('src/system/components/Widget.svelte: catalogue has no whenToUse');
   });
 
   it('parses a backtick literal spanning lines', () => {
@@ -1652,7 +1652,7 @@ describe('missing-description', () => {
     const runtime = widget(root, '--widget-surface: var(--surface-neutral);');
     prependModule(
       runtime,
-      "export const catalogue = {\n  description: 'A dial.',\n  family: 'display',\n  useFor: `a bounded number\n  whose position carries the meaning.`,\n  alternatives: { toggle: 'the setting is on or off.' },\n};",
+      "export const catalogue = {\n  description: 'A dial.',\n  family: 'display',\n  whenToUse: `a bounded number\n  whose position carries the meaning.`,\n  whenNotToUse: [{ when: 'the setting is on or off.', use: 'toggle' }],\n};",
     );
     expect(rules(root)).not.toContain('missing-description');
   });
@@ -1662,34 +1662,34 @@ describe('missing-description', () => {
     const runtime = widget(root, '--widget-surface: var(--surface-neutral);');
     prependModule(
       runtime,
-      `export const catalogue = { description: 'A dial.', family: 'gizmo', useFor: 'testing.', alternatives: { toggle: 'the setting is on or off.' } };`,
+      `export const catalogue = { description: 'A dial.', family: 'gizmo', whenToUse: 'testing.', whenNotToUse: [{ when: 'the setting is on or off.', use: 'toggle' }] };`,
     );
     expect(findingMessage(root)).toBe(
       'src/system/components/Widget.svelte: catalogue family "gizmo" is not one of action, single-selection, text-entry, on-off, container, messaging, display',
     );
   });
 
-  it('accepts an empty alternatives object and reports an absent one', () => {
+  it('accepts an empty whenNotToUse array and reports an absent one', () => {
     const root = fixtureRoot();
     const runtime = widget(root, '--widget-surface: var(--surface-neutral);');
     const source = readFileSync(runtime, 'utf8');
-    prependModule(runtime, `export const catalogue = { description: 'A dial.', family: 'display', useFor: 'testing.', alternatives: {} };`);
+    prependModule(runtime, `export const catalogue = { description: 'A dial.', family: 'display', whenToUse: 'testing.', whenNotToUse: [] };`);
     expect(rules(root)).not.toContain('missing-description');
 
     writeFileSync(runtime, source);
-    prependModule(runtime, `export const catalogue = { description: 'A dial.', family: 'display', useFor: 'testing.' };`);
-    expect(findingMessage(root)).toBe('src/system/components/Widget.svelte: catalogue has no alternatives');
+    prependModule(runtime, `export const catalogue = { description: 'A dial.', family: 'display', whenToUse: 'testing.' };`);
+    expect(findingMessage(root)).toBe('src/system/components/Widget.svelte: catalogue has no whenNotToUse');
   });
 
-  it('fires when an alternatives key names no component', () => {
+  it('fires when a whenNotToUse row names no component', () => {
     const root = fixtureRoot();
     const runtime = widget(root, '--widget-surface: var(--surface-neutral);');
     prependModule(
       runtime,
-      `export const catalogue = { description: 'A dial.', family: 'display', useFor: 'testing.', alternatives: { notacomponent: 'never matches anything registered.' } };`,
+      `export const catalogue = { description: 'A dial.', family: 'display', whenToUse: 'testing.', whenNotToUse: [{ when: 'never matches anything registered.', use: 'notacomponent' }] };`,
     );
     expect(findingMessage(root)).toBe(
-      'src/system/components/Widget.svelte: catalogue alternatives names "notacomponent", which is not a component id',
+      'src/system/components/Widget.svelte: catalogue whenNotToUse names "notacomponent", which is not a component id',
     );
   });
 });

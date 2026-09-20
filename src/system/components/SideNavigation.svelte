@@ -4,11 +4,11 @@
   export const catalogue = {
     description: 'The rail that moves between the pages of a site.',
     family: 'display',
-    useFor: 'navigation that follows the current path.',
-    alternatives: {
-      tabbar: 'the switch stays inside one page, with no URL change.',
-      menuselect: 'the list holds actions.',
-    },
+    whenToUse: 'navigation that follows the current path.',
+    whenNotToUse: [
+      { when: 'the switch stays inside one page, with no URL change.', use: 'tabbar' },
+      { when: 'the list holds actions.', use: 'menuselect' },
+    ],
   } satisfies CatalogueEntry;
 </script>
 

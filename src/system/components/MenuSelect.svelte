@@ -4,13 +4,13 @@
   export const catalogue = {
     description: 'A list of options with one checked.',
     family: 'single-selection',
-    useFor: 'single selection from a set too long to sit in a row, dropped from a Button.',
-    alternatives: {
-      segmentedcontrol: 'the set is two to four options that fit inline.',
-      radiobutton: 'the reader reads every option as text inside a larger form.',
-    },
+    whenToUse: 'single selection from a set too long to sit in a row, dropped from a Button.',
+    whenNotToUse: [
+      { when: 'the choice allows more than one value.' },
+      { when: 'the set is two to four options that fit inline.', use: 'segmentedcontrol' },
+      { when: 'the reader reads every option as text inside a larger form.', use: 'radiobutton' },
+    ],
     constraints: [
-      'Selects one value from the list.',
       'The Button that opens it is the control on the page; MenuSelect renders its list open.',
     ],
     props: {

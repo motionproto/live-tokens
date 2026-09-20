@@ -4,11 +4,11 @@
   export const catalogue = {
     description: 'The confirm-and-cancel pair that ends an inline edit.',
     family: 'action',
-    useFor: 'the two actions that close an in-place rename or value edit.',
-    alternatives: {
-      button: 'the actions belong to a form or a Dialog.',
-      iconbutton: 'the row needs one lone action.',
-    },
+    whenToUse: 'the two actions that close an in-place rename or value edit.',
+    whenNotToUse: [
+      { when: 'the actions belong to a form or a Dialog.', use: 'button' },
+      { when: 'the row needs one lone action.', use: 'iconbutton' },
+    ],
   } satisfies CatalogueEntry;
 </script>
 

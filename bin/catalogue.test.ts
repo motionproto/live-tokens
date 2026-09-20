@@ -29,8 +29,8 @@ function project(): string {
   export const catalogue = {
     description: 'A dial for one bounded number.',
     family: 'text-entry',
-    useFor: 'a value the reader sets by turning a ring.',
-    alternatives: { input: 'the reader would rather type the exact value.' },
+    whenToUse: 'a value the reader sets by turning a ring.',
+    whenNotToUse: [{ when: 'the reader would rather type the exact value.', use: 'input' }],
     props: { variant: '\`round\` is a full circle, \`flat\` is a half circle.' },
   };
 </script>
@@ -56,8 +56,8 @@ function project(): string {
   export const catalogue = {
     description: 'A number chosen by turning a ring.',
     family: 'display',
-    useFor: 'a bounded number whose position on the ring carries the meaning.',
-    alternatives: { input: 'the reader would rather type an exact number.' },
+    whenToUse: 'a bounded number whose position on the ring carries the meaning.',
+    whenNotToUse: [{ when: 'the reader would rather type an exact number.', use: 'input' }],
   };
 </script>
 <script lang="ts">
@@ -80,7 +80,7 @@ function project(): string {
     `<script module lang="ts">
   export const catalogue = {
     description: 'A knob.',
-    useFor: 'a value turned by hand.',
+    whenToUse: 'a value turned by hand.',
   };
 </script>
 <script lang="ts">
@@ -114,8 +114,8 @@ describe('describeComponents', () => {
     expect(widget.catalogue).toEqual({
       description: 'A dial for one bounded number.',
       family: 'text-entry',
-      useFor: 'a value the reader sets by turning a ring.',
-      alternatives: { input: 'the reader would rather type the exact value.' },
+      whenToUse: 'a value the reader sets by turning a ring.',
+      whenNotToUse: [{ when: 'the reader would rather type the exact value.', use: 'input' }],
       props: { variant: '`round` is a full circle, `flat` is a half circle.' },
     });
     expect(widget.variants).toEqual(['round', 'flat']);
@@ -127,19 +127,19 @@ describe('describeComponents', () => {
     ]);
   });
 
-  it('prints the catalogue as description, Family, Use for, one Instead per alternative, then one line per guidance-bearing prop', () => {
+  it('prints the catalogue as description, Family, When to use, one Not for per row, then one line per guidance-bearing prop', () => {
     const root = project();
     const widget = describeComponents(loadVocabulary({ root }), { root }).find((c: { id: string }) => c.id === 'widget');
     const dial = describeComponents(loadVocabulary({ root }), { root }).find((c: { id: string }) => c.id === 'dial');
     expect(formatComponents([widget], { id: 'widget' }).split('\n').slice(1, 6)).toEqual([
       '  A dial for one bounded number.',
       '  Family: text-entry',
-      '  Use for: a value the reader sets by turning a ring.',
-      '  Instead: input, when the reader would rather type the exact value.',
+      '  When to use: a value the reader sets by turning a ring.',
+      '  Not for: the reader would rather type the exact value. Use input.',
       '  variant: `round` is a full circle, `flat` is a half circle.',
     ]);
     expect(formatComponents([dial], { id: 'dial' })).toContain(
-      '  Instead: input, when the reader would rather type an exact number.',
+      '  Not for: the reader would rather type an exact number. Use input.',
     );
   });
 
@@ -147,9 +147,9 @@ describe('describeComponents', () => {
     const root = project();
     const knob = describeComponents(loadVocabulary({ root }), { root }).find((c: { id: string }) => c.id === 'knob');
     const out = formatComponents([knob], { id: 'knob' });
-    expect(out.split('\n').slice(1, 3)).toEqual(['  A knob.', '  Use for: a value turned by hand.']);
+    expect(out.split('\n').slice(1, 3)).toEqual(['  A knob.', '  When to use: a value turned by hand.']);
     expect(out).not.toContain('Family:');
-    expect(out).not.toContain('Instead:');
+    expect(out).not.toContain('Not for:');
     expect(out).not.toContain('undefined');
   });
 
@@ -235,9 +235,23 @@ describe('catalogueOf, the literal-subset reader', () => {
   it('reads a nested object', () => {
     const catalogue = gauge(`{
       description: 'A gauge.',
-      alternatives: { dial: 'the reader turns a ring instead.' },
+      props: { value: 'the current reading, as text.' },
     }`);
-    expect(catalogue.alternatives).toEqual({ dial: 'the reader turns a ring instead.' });
+    expect(catalogue.props).toEqual({ value: 'the current reading, as text.' });
+  });
+
+  it('reads an array of objects', () => {
+    const catalogue = gauge(`{
+      description: 'A gauge.',
+      whenNotToUse: [
+        { when: 'the reader turns a ring instead.', use: 'dial' },
+        { when: 'the reading is not bounded.' },
+      ],
+    }`);
+    expect(catalogue.whenNotToUse).toEqual([
+      { when: 'the reader turns a ring instead.', use: 'dial' },
+      { when: 'the reading is not bounded.' },
+    ]);
   });
 
   it('reads a { rule, text } constraint entry, dropping one missing text', () => {
@@ -254,7 +268,7 @@ describe('catalogueOf, the literal-subset reader', () => {
   it('reads a nested key that shares a top-level field\'s name at its own depth', () => {
     const catalogue = gauge(`{
       description: 'A gauge.',
-      alternatives: { dial: 'the reader turns a ring instead.' },
+      whenNotToUse: [{ when: 'the reader turns a ring instead.', use: 'dial' }],
       props: { description: 'the current reading, as text.' },
     }`);
     expect(catalogue.description).toBe('A gauge.');
@@ -264,15 +278,15 @@ describe('catalogueOf, the literal-subset reader', () => {
   it('leaves a non-literal value absent', () => {
     const catalogue = gauge(`{
       description: 'A gauge.',
-      useFor: someVariable,
+      whenToUse: someVariable,
     }`);
-    expect(catalogue.useFor).toBeUndefined();
+    expect(catalogue.whenToUse).toBeUndefined();
   });
 
   it('reads no field out of the text of a non-literal value', () => {
     const catalogue = gauge(`{
       description: \`a \${kind} family: "leak"\`,
-      useFor: 'a reading' + ' alternatives: { dial: "leak" }',
+      whenToUse: 'a reading' + ' whenNotToUse: [{ when: "leak" }]',
       constraints: [rule('leaked item'), 'A kept rule.'],
     }`);
     expect(catalogue).toEqual({ constraints: ['A kept rule.'] });

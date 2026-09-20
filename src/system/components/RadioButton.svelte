@@ -4,11 +4,11 @@
   export const catalogue = {
     description: 'A form row that selects one option.',
     family: 'single-selection',
-    useFor: 'a choice the reader reviews as text before committing to a larger form.',
-    alternatives: {
-      segmentedcontrol: 'the choice switches between views of the same data, inline.',
-      toggle: 'the setting takes effect the moment it flips.',
-    },
+    whenToUse: 'a choice the reader reviews as text before committing to a larger form.',
+    whenNotToUse: [
+      { when: 'the choice switches between views of the same data, inline.', use: 'segmentedcontrol' },
+      { when: 'the setting takes effect the moment it flips.', use: 'toggle' },
+    ],
   } satisfies CatalogueEntry;
 </script>
 

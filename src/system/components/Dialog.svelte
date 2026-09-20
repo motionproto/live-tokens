@@ -4,11 +4,11 @@
   export const catalogue = {
     description: 'A modal window that blocks the page.',
     family: 'container',
-    useFor: 'a decision the page cannot continue without, such as a destructive confirmation or a sign-in.',
-    alternatives: {
-      panel: 'the form is routine, and the page can continue around it.',
-      notification: 'the message asks nothing of the reader.',
-    },
+    whenToUse: 'a decision the page cannot continue without, such as a destructive confirmation or a sign-in.',
+    whenNotToUse: [
+      { when: 'the form is routine, and the page can continue around it.', use: 'panel' },
+      { when: 'the message asks nothing of the reader.', use: 'notification' },
+    ],
   } satisfies CatalogueEntry;
 </script>
 

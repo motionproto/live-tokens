@@ -4,11 +4,11 @@
   export const catalogue = {
     description: 'A section the reader opens and closes.',
     family: 'container',
-    useFor: 'secondary content that most readers skip.',
-    alternatives: {
-      card: 'every reader needs the content, so it stays open.',
-      sidenavigation: 'the choice moves the reader to another page.',
-    },
+    whenToUse: 'secondary content that most readers skip.',
+    whenNotToUse: [
+      { when: 'every reader needs the content, so it stays open.', use: 'card' },
+      { when: 'the choice moves the reader to another page.', use: 'sidenavigation' },
+    ],
     constraints: ["In a form, CollapsibleSection holds the secondary fields, and the form's actions stay outside it on the form's bottom edge."],
     props: {
       variant: '`chromeless` sits inside other content, `hairline` draws a line under the header, `container` frames the whole section.',

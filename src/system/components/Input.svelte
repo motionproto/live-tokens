@@ -4,12 +4,12 @@
   export const catalogue = {
     description: 'A text field with its label, hint, and error line.',
     family: 'text-entry',
-    useFor: 'an answer the page cannot list, such as a name, an amount, or a search string.',
-    alternatives: {
-      menuselect: 'the answer comes from a predefined list of options.',
-      toggle: 'the setting is on or off, and takes effect at once.',
-      slider: 'the position on a track carries the meaning of the number.',
-    },
+    whenToUse: 'an answer the page cannot list, such as a name, an amount, or a search string.',
+    whenNotToUse: [
+      { when: 'the answer comes from a predefined list of options.', use: 'menuselect' },
+      { when: 'the setting is on or off, and takes effect at once.', use: 'toggle' },
+      { when: 'the position on a track carries the meaning of the number.', use: 'slider' },
+    ],
     props: {
       type: '`number` for an amount, `search` for a query, `password` for a secret; `text` otherwise.',
     },

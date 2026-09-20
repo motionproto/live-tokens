@@ -4,12 +4,12 @@
   export const catalogue = {
     description: 'A number the reader picks by position on a track.',
     family: 'text-entry',
-    useFor: 'a volume, a price range, or a percentage, where the position carries the meaning.',
-    alternatives: {
-      input: 'the reader knows the exact number and would rather type it.',
-      toggle: 'the setting is on or off, and takes effect at once.',
-      progressbar: 'the number is a read-out of progress.',
-    },
+    whenToUse: 'a volume, a price range, or a percentage, where the position carries the meaning.',
+    whenNotToUse: [
+      { when: 'the reader knows the exact number and would rather type it.', use: 'input' },
+      { when: 'the setting is on or off, and takes effect at once.', use: 'toggle' },
+      { when: 'the number is a read-out of progress.', use: 'progressbar' },
+    ],
     props: {
       variant: '`single` picks one number; `range` picks a low and a high.',
     },
