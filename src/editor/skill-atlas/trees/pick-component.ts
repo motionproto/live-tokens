@@ -2,7 +2,7 @@ import type { SkillTree } from '../types';
 
 export const pickComponent: SkillTree = {
   "id": "live-tokens-pick-component",
-  "digest": "sha256:e08f7b83dcfaf591",
+  "digest": "sha256:8cfb6d6569bab9a6",
   "title": "pick-component",
   "tagline": "Select a component from the catalogue",
   "nodes": [
@@ -26,37 +26,37 @@ export const pickComponent: SkillTree = {
       "chips": [
         {
           "label": "Action family",
-          "lines": [19, 19],
+          "lines": [20, 20],
           "anchor": "## Action family"
         },
         {
           "label": "Single-selection family",
-          "lines": [25, 25],
+          "lines": [26, 26],
           "anchor": "## Single-selection family"
         },
         {
           "label": "Text entry",
-          "lines": [31, 31],
+          "lines": [32, 32],
           "anchor": "## Text entry"
         },
         {
           "label": "On and off",
-          "lines": [37, 37],
+          "lines": [38, 38],
           "anchor": "## On and off"
         },
         {
           "label": "Container family",
-          "lines": [43, 43],
+          "lines": [44, 44],
           "anchor": "## Container family"
         },
         {
           "label": "Messaging family",
-          "lines": [49, 49],
+          "lines": [50, 50],
           "anchor": "## Messaging family"
         },
         {
           "label": "Display family",
-          "lines": [55, 55],
+          "lines": [56, 56],
           "anchor": "## Display family"
         }
       ]
@@ -75,10 +75,10 @@ export const pickComponent: SkillTree = {
       "row": 3,
       "kind": "step",
       "title": "Read the catalogue entries",
-      "desc": "Weigh each candidate's useFor, alternatives, and constraints against the requirement. Follow a matching alternative to its own entry, in any family.",
+      "desc": "Weigh each candidate's whenToUse, whenNotToUse, and constraints against the requirement. Drop a candidate whose whenNotToUse condition is met, following a use into its own entry, in any family.",
       "lines": [14, 16],
-      "anchor": "Read each candidate's `useFor`, `alternatives`, and `constra",
-      "anchorEnd": "When the requirement meets a condition under a candidate's `"
+      "anchor": "Read each candidate's `whenToUse`, `whenNotToUse`, and `cons",
+      "anchorEnd": "When a dropped row names a `use`, run `npx live-tokens compo"
     },
     {
       "id": "pk-fits",
@@ -86,7 +86,7 @@ export const pickComponent: SkillTree = {
       "kind": "decide",
       "title": "Is there a match in the catalogue",
       "desc": "Use a component from the catalogue if one fits, otherwise build a new one.",
-      "lines": [61, 65],
+      "lines": [62, 66],
       "anchor": "## Nothing fits",
       "anchorEnd": "`npx live-tokens components <id>` prints one component's cat",
       "chips": [
@@ -102,12 +102,12 @@ export const pickComponent: SkillTree = {
         },
         {
           "label": "native element",
-          "lines": [63, 63],
+          "lines": [64, 64],
           "anchor": "A native element with no chrome of its own needs no componen"
         },
         {
           "label": "nothing in the catalogue fits",
-          "lines": [63, 63],
+          "lines": [64, 64],
           "anchor": "A native element with no chrome of its own needs no componen"
         }
       ]
@@ -118,7 +118,7 @@ export const pickComponent: SkillTree = {
       "kind": "cli",
       "title": "Check the component",
       "desc": "See the component's props and usage before placing it.",
-      "lines": [65, 65],
+      "lines": [66, 66],
       "anchor": "`npx live-tokens components <id>` prints one component's cat"
     },
     {
@@ -127,7 +127,7 @@ export const pickComponent: SkillTree = {
       "kind": "step",
       "title": "Use a native element",
       "desc": "An element with no chrome of its own needs no component.",
-      "lines": [63, 63],
+      "lines": [64, 64],
       "anchor": "A native element with no chrome of its own needs no componen"
     },
     {
@@ -136,7 +136,7 @@ export const pickComponent: SkillTree = {
       "kind": "hand",
       "title": "Create a component",
       "desc": "A piece with chrome that nothing in the catalogue fits goes to live-tokens-create-component.",
-      "lines": [63, 63],
+      "lines": [64, 64],
       "anchor": "A native element with no chrome of its own needs no componen"
     },
     {
@@ -145,7 +145,7 @@ export const pickComponent: SkillTree = {
       "kind": "hand",
       "title": "Return the selected component",
       "desc": "The named component returns to live-tokens-create-page, which owns size, emphasis, and placement.",
-      "lines": [63, 63],
+      "lines": [64, 64],
       "anchor": "A native element with no chrome of its own needs no componen"
     }
   ],

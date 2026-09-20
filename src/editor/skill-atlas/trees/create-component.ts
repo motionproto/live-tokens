@@ -2,7 +2,7 @@ import type { SkillTree } from '../types';
 
 export const createComponent: SkillTree = {
   "id": "live-tokens-create-component",
-  "digest": "sha256:430e64201271576e",
+  "digest": "sha256:ba4d770b7120c4e4",
   "title": "create-component",
   "tagline": "Create a LiveTokens Component",
   "nodes": [

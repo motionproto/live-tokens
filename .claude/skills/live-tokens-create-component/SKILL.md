@@ -103,7 +103,7 @@ Name a role as the shipped component that paints the same thing names it. A fill
 
 Create `src/system/components/StatCard.svelte`. A component in another directory is listed by `components` and `report`, and checked by `check-component <id>`, when that directory is named in `"componentDirs"` in `live-tokens.config.json`. Use Svelte 5 props and snippets, semantic HTML, and the behavior the task requires.
 
-Open the file with a `<script module lang="ts">` block that exports a `catalogue` entry in the shape every shipped component carries. `npx live-tokens components` prints it beside the id, and `components <id>` prints it with the props. Every value is a literal: a string in single, double, or backtick quotes, an object of strings, or an array. No `${}` interpolation, no concatenation, no identifier reference. `family` is one of `action`, `single-selection`, `text-entry`, `on-off`, `container`, `messaging`, and `display`; choose the family where the picker should find this component. Each `alternatives` key names a sibling by its component id (`table`, never `Table`); `registryContract.test.ts` fails when the id is not registered. An optional `constraints` array states a rule of use, as a plain sentence or, when a checker rule enforces it, `{ rule, text }` with the rule's id. An optional `props` map adds one line per prop whose values carry a choice, such as `variant`; each key names a prop the file declares, and the text says what the values mean.
+Open the file with a `<script module lang="ts">` block that exports a `catalogue` entry in the shape every shipped component carries. `npx live-tokens components` prints it beside the id, and `components <id>` prints it with the props. Every value is a literal: a string in single, double, or backtick quotes, an object of strings, or an array. No `${}` interpolation, no concatenation, no identifier reference. `family` is one of `action`, `single-selection`, `text-entry`, `on-off`, `container`, `messaging`, and `display`; choose the family where the picker should find this component. Each `whenNotToUse` row is `{ when, use? }`: `when` states the condition that rules this component out, and `use`, where a sibling covers it, names that sibling by its component id (`table`, never `Table`); `registryContract.test.ts` fails when the id is not registered. An optional `constraints` array states a rule of use, as a plain sentence or, when a checker rule enforces it, `{ rule, text }` with the rule's id. An optional `props` map adds one line per prop whose values carry a choice, such as `variant`; each key names a prop the file declares, and the text says what the values mean.
 
 ```svelte
 <script module lang="ts">
@@ -112,11 +112,11 @@ Open the file with a `<script module lang="ts">` block that exports a `catalogue
   export const catalogue = {
     description: 'A figure with its label.',
     family: 'display',
-    useFor: 'one number the reader takes in at a glance.',
-    alternatives: {
-      table: 'the reader scans and compares many records.',
-      card: 'the figure belongs to a titled block of content.',
-    },
+    whenToUse: 'one number the reader takes in at a glance.',
+    whenNotToUse: [
+      { when: 'the reader scans and compares many records.', use: 'table' },
+      { when: 'the figure belongs to a titled block of content.', use: 'card' },
+    ],
     constraints: ['The label names the figure in the words the page uses for it.'],
   } satisfies CatalogueEntry;
 </script>

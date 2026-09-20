@@ -11,10 +11,11 @@ When more than one shipped component could fit, find the family below that names
 
 1. Name the family the need falls into, from the seven below.
 2. Run that family's command. Weigh a custom component by the same reading.
-3. Read each candidate's `useFor`, `alternatives`, and `constraints`.
-4. Choose the candidate whose condition the requirement meets.
-5. When the requirement meets a condition under a candidate's `alternatives`, run `npx live-tokens components <that id>` and weigh that component the same way. It can sit in another family.
-6. When no candidate and no alternative fits, follow "Nothing fits".
+3. Read each candidate's `whenToUse`, `whenNotToUse`, and `constraints`.
+4. Drop a candidate whose `whenNotToUse` names a condition the requirement meets.
+5. When a dropped row names a `use`, run `npx live-tokens components <that id>` and weigh that component the same way. It can sit in another family.
+6. Choose the surviving candidate whose `whenToUse` condition the requirement meets.
+7. When no candidate fits, follow "Nothing fits".
 
 ## Action family
 

@@ -95,8 +95,8 @@ Retired words:
 | **catalogue entry** | The object the runtime file's `<script module>` block exports as `catalogue`, typed `CatalogueEntry`. |
 | **description** | The entry's first field: one sentence saying what the component is. In rendered UI copy, a description sits under a title. |
 | **family** | The entry's field naming the component's picker family, one of the seven `CatalogueFamily` values; `components --family <name>` filters on it. |
-| **useFor** | The entry's field naming the condition that makes the component the right choice. |
-| **alternatives** | The entry's field, keyed by a sibling component id, naming the condition that makes that sibling right instead. |
+| **whenToUse** | The entry's field naming the condition that makes the component the right choice. |
+| **whenNotToUse** | The entry's field: an array of `{ when, use? }` rows, each naming a condition that rules the component out and, where a sibling fits instead, that sibling's component id. |
 | **constraints** | The entry's optional field: a rule of use, as a plain sentence or, when a checker rule enforces it, `{ rule, text }` with the rule's id. |
 | **props map** | The entry's optional `props` field, keyed by a prop the file declares; the text says what that prop's values mean. |
 | **prop** | A value a page passes to a component instance. |
