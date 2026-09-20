@@ -163,6 +163,12 @@ const CONTRACT_WAVES = {
   '1': { executor: 'wave-executor', verify: true },
   '2': { executor: 'wave-executor', verify: true },
   '3': { executor: 'wave-executor', verify: true, reviewModel: 'sonnet' },
+  '3b': {
+    executor: 'wave-executor',
+    verify: true,
+    extra: () =>
+      'Read "Revision of 2026-09-20" first: decisions 8 and 9, the invariants as this wave leaves them, and its Ground truth list of sites.',
+  },
   '4': { executor: 'wave-executor', verify: false, reviewModel: 'sonnet' },
 }
 

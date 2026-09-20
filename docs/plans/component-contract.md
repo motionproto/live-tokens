@@ -1,9 +1,15 @@
 # The catalogue entry carries the decision
 
-Plan of 2026-09-15. Nothing below is applied. The analysis behind it is
+Plan of 2026-09-15. The analysis behind it is
 `component-contract-assessment.md`; where this plan differs from that
 document, this plan is current. Reviewed against 0.82.0 on 2026-09-18; the
 changes that review made are listed under "Review of 2026-09-18".
+
+**Status, 2026-09-20.** Waves 0 to 3 are executed on local main and
+unreleased. Wave 4 waits on `eval-outcome-scaffold.md`. Wave 3b, under
+"Revision of 2026-09-20", is approved and not yet applied. The Target model
+and Waves 1 to 3 describe the entry as it shipped; the revision holds the
+shape Wave 3b moves it to.
 
 An agent that builds a page has to choose the shipped component a requirement
 calls for, configure it from its declared props, and stay inside the rules of
@@ -219,6 +225,15 @@ family. No skill step needs a narrower answer, and the draft offered
   teach.
 - Releasing. `CHANGELOG.md` entries stay under Unreleased.
 
+- Slot declarations. A component that takes a snippet says nothing about
+  what belongs in it. When an eval failure asks for composition facts, the
+  shape is a slot list in the contract test, which owns what the component is
+  made of: a role, whether it is required, and the content it accepts.
+- A recorded intentional exception. `live-tokens-check-compliance` fixes until
+  both checkers exit 0, and a consumer's deliberate deviation has no way to
+  say so. It belongs to `check-and-fix-unification.md` and waits for a
+  consumer who meets it.
+
 ## Agents and workflow runs
 
 Each wave runs in three steps: execute, verify, review. The waves run in order
@@ -231,6 +246,7 @@ in one working tree, since Waves 1 to 3 all touch the skills and regenerate
 | 1 The entry decides | `wave-executor` | `test-verifier` | `wave-reviewer` | automatic |
 | 2 Skills hold procedure | `wave-executor` | `test-verifier` | `wave-reviewer` | automatic |
 | 3 Guidance corrections | `wave-executor` | `test-verifier` | `wave-reviewer` | automatic |
+| 3b The entry names the prohibition | `wave-executor` | `test-verifier` | `wave-reviewer` | automatic; the user approved decision 8 on 2026-09-20 |
 | 4 Eval after | `wave-executor` | none | `wave-reviewer` compares the two runs | **the user** reads the result |
 
 **Models.** Execution starts on Sonnet. `plan-wave.js` passes
@@ -249,6 +265,7 @@ clean-tree preflight.
 | Command | Runs | Then |
 |---|---|---|
 | `/plan-all contract` | Waves 0, 1, 2, 3 | Resume a stopped run with `/plan-all contract from <wave>` |
+| `/plan-wave contract 3b` | Wave 3b | Wave 4 follows once the eval scaffold runs |
 | `/plan-wave contract 4` | Wave 4 | Only once the README holds a Wave 0 score; the user reads the result |
 
 **Ledger.** Every executor commits with the subject prefix `Contract W<n>:`.
@@ -447,3 +464,117 @@ Open after review: a consumer's `notFor` prose has no mechanical conversion,
 so `missing-description` keeps its `authored` repair level and the consumer rewrites the entry by hand. The line refs
 in Ground truth were measured at 0.79.0 and the executor re-reads each.
 
+## Revision of 2026-09-20
+
+`alternatives` lost the prohibition that `notFor` stated. The key reads as a
+list of things to consider also, and only the CLI's `Instead:` label and
+`docs/terminology.md` say that a matching condition rules the component out.
+It also has no place for a prohibition that names no replacement, so
+MenuSelect's "Selects one value from the list" sits in `constraints`.
+
+**Prior art, read on 2026-09-20.**
+
+| Source | Finding |
+|---|---|
+| Custom Elements Manifest, Storybook manifests, shadcn `registry-item.json`, Spectrum component schemas, Primer `*.docs.json` | Each stops at `description` or `summary`. None has a field for use guidance |
+| GOV.UK, Carbon | The headings "When to use" and "When not to use this component" |
+| USWDS, VA.gov | "When to consider something else", each bullet a condition followed by the substitute: "If users need to see most or all of the information on a page. Use well-formatted text instead." |
+| Polaris, Atlassian, Carbon | "Related" is a link list with no condition |
+| Cristian Morales, giorris.dev | `usage.antiPatterns[]` of `{ scenario, reason, alternative }`, the one machine-readable pairing found |
+| Josef Richter, `agentic-design-system-spec/v2` | `usage: { use_when, avoid_when, alternatives }`. `alternatives` stands apart from the prohibition and reads "Use a composed artifact whose semantic boundary matches the task"; `relationships` is empty; `non_goals` repeats `avoid_when` word for word |
+| DESIGN.md, `google-labs-code/design.md`, alpha | `components` maps a name to eight style properties. It has no props, behaviour, or use guidance, so it stays an export target |
+
+**8. `whenToUse` and `whenNotToUse` replace `useFor` and `alternatives`.
+Decided 2026-09-20.** The user chose these names over `useWhen` and
+`avoidWhen`.
+
+```ts
+export type CatalogueEntry = {
+  description: string;
+  family: CatalogueFamily;
+  /** The condition that makes this component the right one. */
+  whenToUse: string;
+  /** Each row rules the component out. `use` is the component id (`table`, never `Table`) that fits instead. */
+  whenNotToUse: Array<{ when: string; use?: string }>;
+  constraints?: Array<string | { rule: string; text: string }>;
+  props?: Record<string, string>;
+};
+```
+
+The names are the GOV.UK and Carbon headings. The row is the USWDS bullet as
+data. `use` stays a verified id, which is what Wave 1 gained, and it is
+optional so a prohibition with no replacement has a home. A `reason` key is
+left out: invariant 5 holds each row to one condition.
+
+**9. Each holder names what it must not define. Decided 2026-09-20.**
+
+| Holder | Owns | Must not define |
+|---|---|---|
+| The runtime file: `Props` and `catalogue` | What the component is, its family, when to use it, when not to, its rules of use | Parts, states, role, keyboard pattern, variant lists, a rule's `guidance` wording |
+| The contract test | Parts, states, `interaction.role`, `behavior` | Use guidance, prop meanings |
+| The rule modules | Every enforced constraint and its one `guidance` wording | Which component a need calls for |
+
+**Invariants as Wave 3b leaves them.** Invariant 1 reads "each
+`whenNotToUse[].use` is a registered id". Invariant 5 reads "one condition per
+`whenToUse` and per `when`".
+
+### Ground truth, 2026-09-20
+
+`useFor` or `alternatives` appears in the 26 shipped runtimes and in:
+`scaffolding/types.ts`, `bin/lib/catalogue.mjs` (`describeLines` at 319-320),
+`bin/cli.mjs`, `bin/rules/componentStructure.mjs`, `registryContract.test.ts`,
+`contract.test.ts`, `bin/catalogue.test.ts`, `bin/check-component.test.ts`,
+`bin/report.test.ts`, the two Beacon fixtures, the three skills
+`live-tokens-pick-component`, `live-tokens-create-component`, and
+`live-tokens-create-page` with its `references/interaction-sources.md`,
+`skillSources.generated.ts`, the atlas tree `trees/pick-component.ts`,
+`docs/terminology.md`, `docs/compliance-checks.md`, and
+`docs/dtcg-migration-report.md`. Two `temp/` worksheets use the words and stay
+as they are.
+
+Six constraints carry no rule id. One is a prohibition with no replacement:
+`menuselect`, "Selects one value from the list." The other five state a rule
+of use and stay.
+
+## Wave 3b: the entry names the prohibition
+
+1. In `scaffolding/types.ts`, change `CatalogueEntry` to the shape of
+   decision 8.
+2. Convert the 26 shipped entries. `useFor` becomes `whenToUse` with its text
+   unchanged. Each `alternatives` pair becomes `{ when, use }` with the
+   condition unchanged. MenuSelect's one-value constraint becomes a row with
+   no `use`, worded as the condition that rules it out. Convert every other
+   site Ground truth lists in the same step, and run both skill syncs.
+3. `catalogueOf` keeps `whenToUse` and `whenNotToUse` and drops a row whose
+   `when` is not a string literal. The recursive reader already reads an
+   array of objects.
+4. `describeLines` prints `When to use:` and one `Not for:` line per row:
+   `Not for: <when> Use <id>.`, or `Not for: <when>` for a row with no `use`.
+5. `missing-description` reports a missing `whenToUse` or `whenNotToUse` and a
+   `use` that is not a component id. Its guidance names the four required
+   fields. `check:cli-strings` passes.
+6. `registryContract.test.ts` asserts invariant 1 over `whenNotToUse[].use`.
+7. The picker's Procedure reads each candidate's `whenToUse`, `whenNotToUse`,
+   and `constraints`, drops a candidate whose `when` the requirement meets,
+   and follows `use` into another family when it names one. Re-point the
+   atlas tree by hand where the anchor text is gone.
+8. `docs/terminology.md` replaces the `useFor` and `alternatives` lines.
+9. The Target model above takes the new type and the table of decision 9 in
+   place of the "Three holders" bullet.
+10. `CHANGELOG.md`, Unreleased, under the existing breaking entry:
+    `CatalogueEntry` requires `whenToUse` and `whenNotToUse`; `notFor`,
+    `useFor`, and `alternatives` are gone. One entry, since none of the three
+    shapes has been released.
+
+**Reserved for review.** A `when` that reads as the sibling's virtue where it
+should read as this component's disqualifier. The reviewer reads each row as
+"do not use <this component> when <when>" and blocks on one that fails to
+parse. A constraint moved into `whenNotToUse` that is a rule of use.
+
+**Done when** `git grep -n -w "useFor" -- src bin scripts template .claude
+docs/terminology.md docs/compliance-checks.md` prints nothing, the same grep
+for `alternatives` prints only SegmentedControl's `description` ("named
+alternatives") and the "text alternatives" row of `interaction-sources.md`
+with its generated copy, `node bin/cli.mjs components segmentedcontrol` prints two `Not for:`
+lines, `npm run check` passes, `npx vitest run bin
+src/editor/component-editor` passes, and the four skill gates pass.
