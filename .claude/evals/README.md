@@ -91,8 +91,7 @@ package. Each positive trigger case now has a `skill-fired` grader
 `trigger-single-token` has `no-skill-fired` with `max: 0`. Every trigger
 rubric reads the trace (`focus: trace`). The judge still passes a baseline
 that reads the component files on its own, so `skill-fired` is the grader
-that separates the arms. Docker Desktop owns the links in `~/.docker`, so a
-case that grants `Bash` runs on a machine without it.
+that separates the arms.
 
 The two component and page outcome cases each carry a deterministic
 `tool_used` grader beside the rubric: the gate counts as closed only if a
@@ -109,3 +108,18 @@ the picker skill; each grader ends with the restore step. Run one at a time
 with `--case`, and pass `--allow-tools Bash Write Edit` or the agent cannot
 reach the gate. `outcome-pick-component` only reads: its `allowed_tools` omit
 Write and Edit, and it needs only `--allow-tools Bash`.
+
+## Running a case that grants `Bash`
+
+`npm run eval -- --case outcome-pick-component` runs `scripts/eval.sh`, which
+wraps `claude plugin eval .claude --no-publish --scaffold --trust-plugin
+--allow-tools Bash` and passes every other flag through.
+
+The runner refuses a `Bash` grant while `~/.docker` holds a symbolic link, and
+Docker Desktop keeps its CLI plugin links there. The conflict is between the
+runner and this machine's Docker install; nothing in the package touches
+Docker. The script quits Docker Desktop, moves the folders that hold links to
+`~/.docker-eval-aside`, runs the eval, and on any exit moves them back and
+relaunches Docker Desktop if it was running. It stops before it quits Docker
+when a container is running, and it stops when `~/.docker-eval-aside` already
+exists, since that means an earlier run did not restore.
