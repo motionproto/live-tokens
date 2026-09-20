@@ -8,6 +8,10 @@
   `string[]` of rules of use, one sentence each. `components <id>` prints one
   `Not for:` line per `whenNotToUse` row and one `Rule:` line per constraint.
 
+- **Skill Atlas: a "Measured value" tab.** It reports an eval of twelve component
+  choices, run with the skills and without. Both arms chose correctly; the
+  skills cut the turns and the time. `#measured-value` links to it.
+
 ### Changed (breaking)
 
 - **`CatalogueEntry` requires `description`, `whenToUse`, and `whenNotToUse`.**

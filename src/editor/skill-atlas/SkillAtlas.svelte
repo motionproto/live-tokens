@@ -3,6 +3,7 @@
   import { navigate } from '../core/routing/router';
   import Button from '../../system/components/Button.svelte';
   import TabBar from '../../system/components/TabBar.svelte';
+  import SkillValue from './SkillValue.svelte';
   import SourcePane from './SourcePane.svelte';
   import TreeCanvas from './TreeCanvas.svelte';
   import { linkHash, linkTargets, resolveLink } from './atlasLink';
@@ -12,23 +13,35 @@
 
   // `#set-type` opens that skill and `#set-type/write-the-font-pairing/voice`
   // also selects that block, so a link can hand someone one step of one tree.
+  const VALUE_TAB = 'measured-value';
+  const firstSkill = Object.keys(skillTrees)[0];
+
+  function isValueHash(hash: string) {
+    return hash === `#${VALUE_TAB}`;
+  }
+
   const linked = resolveLink(window.location.hash, skillTrees);
-  let active = $state(linked?.skill ?? Object.keys(skillTrees)[0]);
+  let active = $state(
+    isValueHash(window.location.hash) ? VALUE_TAB : (linked?.skill ?? firstSkill),
+  );
   let selection: Selection | null = $state(linked?.target ?? null);
   /** Which of the skill's documents the source pane shows. */
   let doc: string = $state(SKILL_DOC);
 
-  let tree = $derived(skillTrees[active]);
-  let docs = $derived(skillDocs[active]);
+  // The value tab has no tree; the panes it hides keep reading a real skill.
+  let skill = $derived(active === VALUE_TAB ? firstSkill : active);
+  let tree = $derived(skillTrees[skill]);
+  let docs = $derived(skillDocs[skill]);
   let lines = $derived(docs[doc] ?? docs[SKILL_DOC]);
   let siblings = $derived(Object.keys(docs).filter((name) => name !== SKILL_DOC));
 
-  let tabs = $derived(
-    Object.entries(skillTrees).map(([id, t]) => ({
+  let tabs = $derived([
+    ...Object.entries(skillTrees).map(([id, t]) => ({
       id,
       label: `${t.title}\n${skillDocs[id][SKILL_DOC].length} lines`,
     })),
-  );
+    { id: VALUE_TAB, label: 'Measured value\n1 eval' },
+  ]);
 
   let docTabs = $derived(
     Object.keys(docs).map((name) => ({
@@ -52,6 +65,10 @@
   }
 
   function shareSelection() {
+    if (active === VALUE_TAB) {
+      history.replaceState(null, '', `${window.location.pathname}#${VALUE_TAB}`);
+      return;
+    }
     const target = linkTargets(tree).find((t) => t.key === selection?.key) ?? null;
     history.replaceState(null, '', `${window.location.pathname}${linkHash(active, target)}`);
   }
@@ -94,6 +111,12 @@
   }
 
   function openLink(hash: string) {
+    if (isValueHash(hash)) {
+      active = VALUE_TAB;
+      selection = null;
+      doc = SKILL_DOC;
+      return;
+    }
     const link = resolveLink(hash, skillTrees);
     if (!link) return;
     active = link.skill;
@@ -134,38 +157,42 @@
     <TabBar {tabs} value={active} onchange={changeTab} />
   </div>
 
-  <div class="split">
-    <section class="pane" aria-label="{tree.id} decision tree">
-      <div class="pane-head">
-        <span class="pane-title">{tree.id}</span>
-        <span class="pane-note">{tree.nodes.length} steps</span>
-      </div>
-      <div class="pane-body" bind:this={treePane}>
-        <h2 class="tagline">{tree.tagline}</h2>
+  {#if active === VALUE_TAB}
+    <SkillValue />
+  {:else}
+    <div class="split">
+      <section class="pane" aria-label="{tree.id} decision tree">
+        <div class="pane-head">
+          <span class="pane-title">{tree.id}</span>
+          <span class="pane-note">{tree.nodes.length} steps</span>
+        </div>
+        <div class="pane-body" bind:this={treePane}>
+          <h2 class="tagline">{tree.tagline}</h2>
 
-        <TreeCanvas {tree} selected={selection?.key ?? null} onselect={selectTarget} onopen={openDoc} />
-      </div>
-    </section>
+          <TreeCanvas {tree} selected={selection?.key ?? null} onselect={selectTarget} onopen={openDoc} />
+        </div>
+      </section>
 
-    <section class="pane pane-source" aria-label="{tree.id} source">
-      <div class="pane-head">
-        <span class="pane-title">{tree.id}/{doc}</span>
-        <span class="pane-note">{lines.length} lines</span>
-      </div>
-      <div class="doc-tabs">
-        <TabBar tabs={docTabs} value={doc} onchange={openDoc} />
-      </div>
-      <div class="pane-body" bind:this={sourcePane}>
-        <SourcePane
-          {lines}
-          {siblings}
-          highlight={doc === SKILL_DOC ? (selection?.lines ?? null) : null}
-          onpick={selectFromLine}
-          onopen={openDoc}
-        />
-      </div>
-    </section>
-  </div>
+      <section class="pane pane-source" aria-label="{tree.id} source">
+        <div class="pane-head">
+          <span class="pane-title">{tree.id}/{doc}</span>
+          <span class="pane-note">{lines.length} lines</span>
+        </div>
+        <div class="doc-tabs">
+          <TabBar tabs={docTabs} value={doc} onchange={openDoc} />
+        </div>
+        <div class="pane-body" bind:this={sourcePane}>
+          <SourcePane
+            {lines}
+            {siblings}
+            highlight={doc === SKILL_DOC ? (selection?.lines ?? null) : null}
+            onpick={selectFromLine}
+            onopen={openDoc}
+          />
+        </div>
+      </section>
+    </div>
+  {/if}
 </div>
 
 <style>
