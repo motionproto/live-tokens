@@ -1,6 +1,8 @@
 # The outcome evals run in a real project
 
-Plan of 2026-09-19. Nothing below is applied. It follows from
+Plan of 2026-09-19. **Shelved 2026-09-20, nothing applied.** The user wants no
+eval in CI and no API credit spent on one, and this machine cannot grant
+`Bash` to the runner, so the outcome cases have no place to run. It follows from
 `component-contract.md`, whose Wave 4 cannot score until an outcome case runs.
 
 Three eval cases ask a skill to build something and then run a checker:
@@ -69,10 +71,7 @@ workspace, so `node_modules` is copied with `cp -R`, or with `cp -c` clones
 where the filesystem supports them.
 
 **4. `Bash`-granting cases run in CI.** A `workflow_dispatch` job on a GitHub
-runner has no Docker Desktop. **Decided 2026-09-20:** the job may spend API
-credit. The repository secret `ANTHROPIC_API_KEY` carries the key, the name
-the CLI reads from its environment. The repository held no secret on that
-date, so the user sets it.
+runner has no Docker Desktop. **Rejected by the user, 2026-09-20.**
 
 ## Invariants
 
@@ -137,34 +136,15 @@ an empty directory, yields a project where `npx live-tokens components` lists
    `npm run build:eval-project`, and runs `claude plugin eval .claude
    --no-publish --scaffold --trust-plugin --allow-tools Bash Write Edit`
    with `--max-cost-usd` set from an input.
-2. The job reads the key from the `ANTHROPIC_API_KEY` secret and fails in its
-   first step, with one line naming the secret, when it is empty.
-3. Upload `.claude/evals/results/` as a build artifact.
-4. Document the dispatch command in `.claude/evals/README.md`:
-   `gh workflow run evals.yml -f cases=<glob> -f runs=<n> -f max_cost_usd=<n>`.
+2. Upload `.claude/evals/results/` as a build artifact.
+3. Record the first CI scores in the README's case table.
 
-The executor pushes nothing and dispatches nothing.
-
-**Done when** `.github/workflows/evals.yml` parses, triggers on
-`workflow_dispatch` alone, and names every input the README documents.
-
-## Wave 4: the first CI run
-
-The main session runs this wave with the user, since it pushes `main` and
-spends credit.
-
-1. The user sets the secret: `gh secret set ANTHROPIC_API_KEY`.
-2. Push `main`. `verify.yml` runs on the push; no tag moves, so nothing
-   publishes.
-3. Dispatch `outcome-pick-component` with `runs=3`.
-4. Record the scores of both arms in the README's case table, with the date
-   and the package version. That row is the score Wave 4 of
-   `component-contract.md` waits for.
+**Reserved for the user.** Decision 4's credit and secret.
 
 **Done when** a dispatched run scores `outcome-pick-component` in both arms.
 
 ## Run
 
 `/plan-wave` needs an `eval-scaffold` entry in `.claude/workflows/plan-wave.js`
-beside `contract`, with the same Sonnet-first models. `/plan-all
-eval-scaffold` runs Waves 1 to 3 unattended. Wave 4 runs in the main session.
+beside `contract`, with the same Sonnet-first models. Waves 1 and 2 run
+unattended. Wave 3 waits on decision 4.

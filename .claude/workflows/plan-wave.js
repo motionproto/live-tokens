@@ -172,18 +172,6 @@ const CONTRACT_WAVES = {
   '4': { executor: 'wave-executor', verify: false, reviewModel: 'sonnet' },
 }
 
-const EVAL_SCAFFOLD_WAVES = {
-  '1': { executor: 'wave-executor', verify: true, reviewModel: 'sonnet' },
-  '2': { executor: 'wave-executor', verify: true },
-  '3': {
-    executor: 'wave-executor',
-    verify: false,
-    reviewModel: 'sonnet',
-    extra: () =>
-      'Push nothing and dispatch nothing. Check the `claude plugin eval` flags against `claude plugin eval --help` before writing them into the job.',
-  },
-}
-
 // executeModel and escalateModel override the agent definition's model. A plan without them runs each agent as defined.
 const PLANS = {
   'check-fix': {
@@ -195,13 +183,6 @@ const PLANS = {
     file: 'docs/plans/component-contract.md',
     prefix: 'Contract',
     waves: CONTRACT_WAVES,
-    executeModel: 'sonnet',
-    escalateModel: 'fable',
-  },
-  'eval-scaffold': {
-    file: 'docs/plans/eval-outcome-scaffold.md',
-    prefix: 'Eval-scaffold',
-    waves: EVAL_SCAFFOLD_WAVES,
     executeModel: 'sonnet',
     escalateModel: 'fable',
   },

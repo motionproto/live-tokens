@@ -14,10 +14,6 @@ const PLANS = {
     order: ['0', '1', '2', '3'],
     after: 'Once the README holds a Wave 0 baseline, run /plan-wave contract 4.',
   },
-  'eval-scaffold': {
-    order: ['1', '2', '3'],
-    after: 'Wave 4 runs in the main session: set the secret, push main, dispatch evals.yml.',
-  },
 }
 
 const CLEAN = {

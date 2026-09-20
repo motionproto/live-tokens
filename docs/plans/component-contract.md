@@ -6,8 +6,8 @@ document, this plan is current. Reviewed against 0.82.0 on 2026-09-18; the
 changes that review made are listed under "Review of 2026-09-18".
 
 **Status, 2026-09-20.** Waves 0 to 3 are executed on local main and
-unreleased. Wave 4 waits on `eval-outcome-scaffold.md`. Wave 3b, under
-"Revision of 2026-09-20", is approved and not yet applied. The Target model
+unreleased, Wave 3b included. Wave 4 is dropped: the user wants no eval in
+CI, and `eval-outcome-scaffold.md` is shelved. The Target model
 and Waves 1 to 3 describe the entry as it shipped; the revision holds the
 shape Wave 3b moves it to.
 
