@@ -54,6 +54,6 @@ fi
 cd "$REPO"
 mkdir -p scratch
 status=0
-claude plugin eval .claude --no-publish --scaffold --trust-plugin --json scratch/eval-last.json --allow-tools Bash "$@" || status=$?
+claude plugin eval .claude --no-publish --scaffold --trust-plugin --json scratch/eval-last.json --allow-tools Bash Write Edit "$@" || status=$?
 if [ -s scratch/eval-last.json ]; then echo; node scripts/eval-report.mjs scratch/eval-last.json; fi
 exit $status

@@ -114,7 +114,9 @@ Write and Edit, and it needs only `--allow-tools Bash`.
 
 `npm run eval -- --case outcome-pick-component` runs `scripts/eval.sh`, which
 wraps `claude plugin eval .claude --no-publish --scaffold --trust-plugin
---allow-tools Bash` and passes every other flag through.
+--allow-tools Bash Write Edit` and passes every other flag through. A case
+that builds something copies in a consumer project, so run
+`npm run build:eval-project` first; it rebuilds only when the package changed.
 
 The runner refuses a `Bash` grant while `~/.docker` holds a symbolic link, and
 Docker Desktop keeps its CLI plugin links there. The conflict is between the

@@ -19,35 +19,14 @@ set -euo pipefail
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$REPO_ROOT"
 
-PKG_NAME="$(node -p "require('./package.json').name")"
-PKG_VERSION="$(node -p "require('./package.json').version")"
-
-echo "→ npm pack ($PKG_NAME@$PKG_VERSION)…"
-TARBALL_NAME="$(npm pack --silent)"
-TARBALL_PATH="$REPO_ROOT/$TARBALL_NAME"
+source "$REPO_ROOT/scripts/lib/consumer-project.sh"
 
 WORK="$(mktemp -d -t lt-create-smoke-XXXXXX)"
+TARBALL_PATH=""
 trap 'rm -f "$TARBALL_PATH"; rm -rf "$WORK"' EXIT
-
-echo "→ Extracting tarball…"
-tar -xzf "$TARBALL_PATH" -C "$WORK"
-PKG_DIR="$WORK/package"
 APP_DIR="$WORK/app"
 
-echo "→ Scaffolding via shipped bin…"
-node "$PKG_DIR/bin/cli.mjs" create "$APP_DIR"
-
-echo "→ Repointing dependency at the tarball…"
-node -e "
-  const fs = require('fs');
-  const p = '$APP_DIR/package.json';
-  const j = JSON.parse(fs.readFileSync(p, 'utf8'));
-  j.dependencies['$PKG_NAME'] = 'file:$TARBALL_PATH';
-  fs.writeFileSync(p, JSON.stringify(j, null, 2));
-"
-
-echo "→ Installing + building generated app…"
-(cd "$APP_DIR" && npm install --silent --no-audit --no-fund --loglevel=error)
+make_consumer_project "$REPO_ROOT" "$WORK" "$APP_DIR"
 
 echo "→ Verifying the test tooling resolved…"
 for pkg in @playwright/test vitest happy-dom; do
