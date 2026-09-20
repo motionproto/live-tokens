@@ -109,10 +109,12 @@ declare `label` or `title` as optional with an empty default.
 
 ## Target model
 
-- **Three holders.** The runtime file owns what the component is and how to
-  decide (`Props` and `catalogue`). The contract test owns what it is made of
-  and does (`parts`, `states`, `interaction.role`, `behavior`). The rule
-  modules own every enforced constraint with one `guidance` wording.
+| Holder | Owns | Must not define |
+|---|---|---|
+| The runtime file: `Props` and `catalogue` | What the component is, its family, when to use it, when not to, its rules of use | Parts, states, role, keyboard pattern, variant lists, a rule's `guidance` wording |
+| The contract test | Parts, states, `interaction.role`, `behavior` | Use guidance, prop meanings |
+| The rule modules | Every enforced constraint and its one `guidance` wording | Which component a need calls for |
+
 - **One reader.** `components <id>` joins the three. `components --family
   <name>` returns the candidates for one need. Skills, the editor, and any
   later exporter consult this and nothing else.
@@ -127,17 +129,13 @@ export type CatalogueFamily =
   | 'container' | 'messaging' | 'display';
 
 export type CatalogueEntry = {
-  /** One sentence: what the component is. */
   description: string;
-  /** The picker family. One per component. */
   family: CatalogueFamily;
   /** The condition that makes this component the right one. */
-  useFor: string;
-  /** Sibling component id (`table`, never `Table`) -> the condition that makes the sibling right instead. */
-  alternatives: Record<string, string>;
-  /** Rules of use. An entry with `rule` names the checker rule that enforces it. */
+  whenToUse: string;
+  /** Each row rules the component out. `use` is the component id (`table`, never `Table`) that fits instead. */
+  whenNotToUse: Array<{ when: string; use?: string }>;
   constraints?: Array<string | { rule: string; text: string }>;
-  /** Keyed by prop name; the value explains that prop's values. */
   props?: Record<string, string>;
 };
 ```
