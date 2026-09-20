@@ -278,7 +278,7 @@ test('a portaled part behind its setup step resolves', async ({ page }) => {
   const contract = withDefect(bareContract('imagelightbox', lightboxParts, 'root'), (draft) => {
     draft.properties = [{
       setup: [{ kind: 'click', part: 'thumb' }],
-      paints: { overlay: { backgroundColor: '--imagelightbox-overlay-surface' } },
+      paints: { overlay: { backgroundColor: '--imagelightbox-scrim-surface' } },
     }];
   });
   const harness = await open(page, contract);
@@ -287,7 +287,7 @@ test('a portaled part behind its setup step resolves', async ({ page }) => {
 
 test('a portaled part with no setup step fails contract-render', async ({ page }) => {
   const defect = withDefect(bareContract('imagelightbox', lightboxParts, 'root'), (draft) => {
-    draft.properties = [{ paints: { overlay: { backgroundColor: '--imagelightbox-overlay-surface' } } }];
+    draft.properties = [{ paints: { overlay: { backgroundColor: '--imagelightbox-scrim-surface' } } }];
   });
   const harness = await open(page, defect);
   const violation = await expectViolation('contract-render', () => harness.assertProperties());
