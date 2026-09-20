@@ -1,4 +1,4 @@
-Reference table for `criteria.md`. Not itself a grader.
+Reference table for the twelve `row-NN.md` graders, which each match one line of the reply's ANSWERS block. Not itself a grader.
 
 | # | Expected id | Variant | Key props | Note |
 |---|---|---|---|---|

@@ -52,4 +52,8 @@ if [ -d "$STORE" ]; then
 fi
 
 cd "$REPO"
-claude plugin eval .claude --no-publish --scaffold --trust-plugin --allow-tools Bash "$@"
+mkdir -p scratch
+status=0
+claude plugin eval .claude --no-publish --scaffold --trust-plugin --json scratch/eval-last.json --allow-tools Bash "$@" || status=$?
+if [ -s scratch/eval-last.json ]; then echo; node scripts/eval-report.mjs scratch/eval-last.json; fi
+exit $status

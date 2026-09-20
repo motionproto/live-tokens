@@ -12,6 +12,16 @@ allowed_tools:
 
 For each of the twelve requirements below, name the shipped `@motion-proto/live-tokens` component to use, the variant to set (when the component's props expose one that this requirement fixes), and the props that carry the requirement's specifics. When nothing in the catalogue fits, say so and name the skill that authors a new component instead. Consult the catalogue before answering; do not guess from memory. Give all twelve answers in a single numbered reply. Write no file.
 
+End the reply with a block in exactly this form, one line per requirement, so the answers can be checked by pattern. The id is the component's lowercase id as the catalogue prints it, or `none` when nothing shipped fits. The variant is the value of the component's `variant` prop when the requirement fixes one, and `-` otherwise. Use no backticks, bold, or extra words inside the block.
+
+```
+ANSWERS
+1: <id> <variant or ->
+2: <id> <variant or ->
+...
+12: <id> <variant or ->
+```
+
 1. A "Save changes" action at the bottom of a settings form. The label has to make what happens unambiguous.
 2. An inline control, sitting among other controls in a toolbar, that switches between a List view and a Grid view of the same set of records.
 3. A page with five report types. Picking one swaps the whole content area below it for that report.
