@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.83.0 — The catalogue entry names what rules a component out
 
 ### Added
 
