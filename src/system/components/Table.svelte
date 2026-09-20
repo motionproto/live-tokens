@@ -6,7 +6,7 @@
     family: 'display',
     whenToUse: 'records the reader scans and compares.',
     whenNotToUse: [
-      { when: 'the reader acts on each item; one Card per item.', use: 'card' },
+      { when: 'the reader acts on each item.', use: 'card' },
     ],
   } satisfies CatalogueEntry;
 </script>

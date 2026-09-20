@@ -177,7 +177,7 @@ family. No skill step needs a narrower answer, and the draft offered
 
 ## Invariants
 
-1. **Every declared name is verified.** Each `alternatives` key is a
+1. **Every declared name is verified.** Each `whenNotToUse[].use` is a
    registered id, each `constraints[].rule` is a rule id in `PAGE_RULES` or
    `COMPONENT_RULES`, each `props` key is a declared prop, and `family` is in
    the closed union. `registryContract.test.ts` fails otherwise.
@@ -195,7 +195,7 @@ family. No skill step needs a narrower answer, and the draft offered
    under 250 lines.
 5. **Entry text follows the writing rules:** active voice, no em dashes, and
    no pairing a statement with its rejected opposite. One condition per
-   `useFor` and per alternative, phrased as the question that separates them.
+   `whenToUse` and per `when`, phrased as the question that separates them.
 6. **No new tokens.** `tokens.css` changes only through `npx live-tokens migrate`.
 7. **The data tree is untouched.** A wave that runs the editor or `--tests`
    restores `src/live-tokens/data` per `CLAUDE.md`.

@@ -76,9 +76,9 @@ export const pickComponent: SkillTree = {
       "kind": "step",
       "title": "Read the catalogue entries",
       "desc": "Weigh each candidate's whenToUse, whenNotToUse, and constraints against the requirement. Drop a candidate whose whenNotToUse condition is met, following a use into its own entry, in any family.",
-      "lines": [14, 16],
+      "lines": [14, 17],
       "anchor": "Read each candidate's `whenToUse`, `whenNotToUse`, and `cons",
-      "anchorEnd": "When a dropped row names a `use`, run `npx live-tokens compo"
+      "anchorEnd": "Choose the surviving candidate whose `whenToUse` condition t"
     },
     {
       "id": "pk-fits",
