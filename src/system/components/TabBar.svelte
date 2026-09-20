@@ -3,7 +3,6 @@
 
   export const catalogue = {
     description: 'Tabs that swap the content below them.',
-    family: 'single-selection',
     whenToUse: 'two to seven views the reader moves between inside one page.',
     whenNotToUse: [
       { when: 'the switch sits among other controls in a row.', use: 'segmentedcontrol' },

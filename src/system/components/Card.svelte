@@ -3,7 +3,6 @@
 
   export const catalogue = {
     description: 'One item with a title.',
-    family: 'container',
     whenToUse: 'an item on its own, or each item in a set: a product, a record, a plan the reader may act on.',
     whenNotToUse: [
       { when: "the block is a stage, a list, a form, or copy that forms one section of the page's content.", use: 'panel' },

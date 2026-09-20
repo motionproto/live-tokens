@@ -3,7 +3,6 @@
 
   export const catalogue = {
     description: 'A text field with its label, hint, and error line.',
-    family: 'text-entry',
     whenToUse: 'an answer the page cannot list, such as a name, an amount, or a search string.',
     whenNotToUse: [
       { when: 'the answer comes from a predefined list of options.', use: 'menuselect' },

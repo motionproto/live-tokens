@@ -3,7 +3,6 @@
 
   export const catalogue = {
     description: 'A badge that sits on a corner of its parent.',
-    family: 'messaging',
     whenToUse: 'a count or status marker that sits on the thing it describes.',
     whenNotToUse: [
       { when: 'the label sits in the text flow.', use: 'badge' },

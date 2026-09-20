@@ -3,7 +3,6 @@
 
   export const catalogue = {
     description: 'Feedback about something that just happened.',
-    family: 'messaging',
     whenToUse: 'the outcome of an action or a system event, which the reader can dismiss.',
     whenNotToUse: [
       { when: 'the reader must know it about the content around it, and it stays present.', use: 'callout' },

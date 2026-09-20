@@ -3,15 +3,14 @@
 
   export const catalogue = {
     description: 'A labelled action.',
-    family: 'action',
     whenToUse: 'an action that needs a word to be unambiguous.',
     whenNotToUse: [
       { when: 'the glyph alone is plain, and space is short.', use: 'iconbutton' },
       { when: 'the actions confirm or cancel an inline edit.', use: 'inlineeditactions' },
     ],
     constraints: [
-      { rule: 'multiple-primary', text: 'One primary Button per page.' },
-      { rule: 'danger-without-dialog', text: 'A danger Button opens a Dialog to confirm before it runs.' },
+      'One primary Button per page.',
+      'A danger Button opens a Dialog to confirm before it runs.',
       'A link to another page is an anchor.',
     ],
     props: {

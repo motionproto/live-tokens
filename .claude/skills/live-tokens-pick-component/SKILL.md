@@ -1,63 +1,20 @@
 ---
 name: live-tokens-pick-component
-description: Recommend which shipped @motion-proto/live-tokens component fits a UX need, with a decision test for each confusable family. Called by live-tokens-create-page when more than one component could fit, and by live-tokens-create-component before it authors anything. Use when the user asks which component to use, or what the difference between two components is. Use when the user asks how to show or capture a UX outcome. Edits no file. For size, emphasis, or placement, read live-tokens-create-page. When the catalogue lacks a component with chrome, read live-tokens-create-component.
+description: Recommend which shipped @motion-proto/live-tokens component fits a UX need, by reading each component's catalogue entry. Called by live-tokens-create-page when more than one component could fit, and by live-tokens-create-component before it authors anything. Use when the user asks which component to use, or what the difference between two components is. Use when the user asks how to show or capture a UX outcome. Edits no file. For size, emphasis, or placement, read live-tokens-create-page. When the catalogue lacks a component with chrome, read live-tokens-create-component.
 ---
 
 # Picking a live-tokens component
 
-When more than one shipped component could fit, find the family below that names the candidates. Run its command and read each one's catalogue entry.
+When more than one component could fit, read the catalogue entries. Each entry states the condition that makes the component right and the conditions that rule it out.
 
 ## Procedure
 
-1. Name the family the need falls into, from the seven below.
-2. Run that family's command. Weigh a custom component by the same reading.
-3. Read each candidate's `whenToUse`, `whenNotToUse`, and `constraints`.
-4. Drop a candidate whose `whenNotToUse` names a condition the requirement meets.
-5. When a dropped row names a `use`, run `npx live-tokens components <that id>` and weigh that component the same way. It can sit in another family.
-6. Choose the surviving candidate whose `whenToUse` condition the requirement meets.
-7. When no candidate fits, follow "Nothing fits".
-
-## Action family
-
-The need is a control the reader presses to run an action.
-
-`npx live-tokens components --family action --json`
-
-## Single-selection family
-
-The need is one option chosen from a set.
-
-`npx live-tokens components --family single-selection --json`
-
-## Text entry
-
-The need is a value the reader supplies.
-
-`npx live-tokens components --family text-entry --json`
-
-## On and off
-
-The need is a setting or a choice with exactly two states.
-
-`npx live-tokens components --family on-off --json`
-
-## Container family
-
-The need is a block of content held apart from the rest of the page.
-
-`npx live-tokens components --family container --json`
-
-## Messaging family
-
-The need is a message the page shows the reader.
-
-`npx live-tokens components --family messaging --json`
-
-## Display family
-
-The need is a block the reader views or acts on.
-
-`npx live-tokens components --family display --json`
+1. Run `npx live-tokens components --json`. The list carries the catalogue entry of every shipped component and of each of the project's own components.
+2. Read each plausible candidate's `whenToUse`, `whenNotToUse`, and `constraints`.
+3. Drop a candidate whose `whenNotToUse` names a condition the requirement meets.
+4. When a dropped row names a `use`, weigh that component the same way.
+5. Choose the surviving candidate whose `whenToUse` condition the requirement meets.
+6. When no candidate fits, follow "Nothing fits".
 
 ## Nothing fits
 

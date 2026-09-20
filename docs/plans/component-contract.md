@@ -5,11 +5,30 @@ Plan of 2026-09-15. The analysis behind it is
 document, this plan is current. Reviewed against 0.82.0 on 2026-09-18; the
 changes that review made are listed under "Review of 2026-09-18".
 
-**Status, 2026-09-20.** Waves 0 to 3 are executed on local main and
-unreleased, Wave 3b included. Wave 4 is dropped: the user wants no eval in
-CI, and `eval-outcome-scaffold.md` is shelved. The Target model
-and Waves 1 to 3 describe the entry as it shipped; the revision holds the
-shape Wave 3b moves it to.
+**Closed 2026-09-20.** Waves 0 to 3b ran on local main. A review the same day
+cut two parts of the result, and Wave 4 was dropped because the user wants no
+eval in CI. Everything below is the record of how the entry got here. The
+entry as it stands:
+
+```ts
+export type CatalogueEntry = {
+  description: string;
+  whenToUse: string;
+  whenNotToUse: Array<{ when: string; use?: string }>;
+  constraints?: string[];
+  props?: Record<string, string>;
+};
+```
+
+| Cut | Measured on the 26 shipped entries | Went with it |
+|---|---|---|
+| `family` | The catalogue without tokens is 11.7 KB, so a filter saves nothing. 21 of the 54 `use` links cross a family line, one family held Toggle alone, and the picker needed a patch to follow a link out of a family | `CatalogueFamily`, `CATALOGUE_FAMILIES`, `components --family`, the `missing-description` family checks, invariant 2's `check:skills` cross-check, and the picker's seven sections |
+| The `{ rule, text }` constraint | Two rows, both on Button. The checker enforces the rule whether or not the entry cites its id | The union type, the parser shape, and the registry test's import of both rule tables |
+
+What stays: the entry is the one declared source of decision facts, `use` is a
+component id the registry test verifies, derived facts are never declared
+(decision 1), and the holders table of decision 9. The picker runs
+`components --json` and follows `use`.
 
 An agent that builds a page has to choose the shipped component a requirement
 calls for, configure it from its declared props, and stay inside the rules of

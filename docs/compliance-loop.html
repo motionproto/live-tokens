@@ -892,7 +892,7 @@
 
         <rect class="box" x="560" y="238" width="300" height="50" rx="3" />
         <text class="t" x="576" y="260">pick-component</text>
-        <text class="s" x="576" y="278">a decision test per confusable family</text>
+        <text class="s" x="576" y="278">reads each candidate's catalogue entry</text>
 
         <path class="flow" d="M710,288 V314" />
         <text class="lbl" x="722" y="306">still nothing fits</text>
@@ -949,7 +949,7 @@
     <ol class="steps">
       <li><strong>Read the project.</strong> The route table in <span class="mono">App.svelte</span>, <code>--columns-count</code> in the vendored <span class="mono">tokens.css</span>, and the catalogue from <code>npx live-tokens components</code>, which lists shipped and project components alike with the usage comment each one carries.</li>
       <li><strong>Name the sections before the columns.</strong> Read the page top to bottom, name each section by what the user reads, types into, or presses, and take its column spans from the layout that matches the reader's task. Each section is a row of the page grid.</li>
-      <li><strong>Match each need to a component.</strong> When two could fit, pick-component applies a decision test written for that family. When nothing fits, create-component authors one.</li>
+      <li><strong>Match each need to a component.</strong> When two could fit, pick-component reads each candidate's catalogue entry. When nothing fits, create-component authors one.</li>
       <li><strong>Author the component as three files and a contract.</strong> A runtime file whose <code>:global(:root)</code> block declares one semantic property per editable value, each assigned a token; an editor file exporting the schema; a registration; and a <span class="mono">ComponentContract</span> that names the component's parts. Without the contract, <code>--tests</code> reports <span class="mono">contract-missing</span>.</li>
       <li><strong>Check the component alone.</strong> <code>npx live-tokens check-component &lt;id&gt; --tests --strict</code> runs that one id through the static rules, the registry contract under Vitest, and the eight editor obligations under Playwright. Repeat until exit 0 with complete coverage.</li>
       <li><strong>Assemble.</strong> Components at their shipped defaults, page CSS in design tokens, one text style per element, one primary action, one space step per position, and a route whose <code>source</code> entry is what makes Page Source work.</li>

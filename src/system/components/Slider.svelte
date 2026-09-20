@@ -3,7 +3,6 @@
 
   export const catalogue = {
     description: 'A number the reader picks by position on a track.',
-    family: 'text-entry',
     whenToUse: 'a volume, a price range, or a percentage, where the position carries the meaning.',
     whenNotToUse: [
       { when: 'the reader knows the exact number and would rather type it.', use: 'input' },

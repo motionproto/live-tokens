@@ -3,7 +3,6 @@
 
   export const catalogue = {
     description: 'A standing message that sits inside a section.',
-    family: 'messaging',
     whenToUse: 'something the reader must know about the content around it.',
     whenNotToUse: [
       { when: 'the message is feedback about something that just happened, and the reader can dismiss it.', use: 'notification' },

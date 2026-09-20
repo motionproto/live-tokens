@@ -3,7 +3,6 @@
 
   export const catalogue = {
     description: "A frame around one section of the page's content.",
-    family: 'container',
     whenToUse: 'a stage, a list, a form, or a block of copy that forms one section.',
     whenNotToUse: [
       { when: 'the block is one item, or each item in a set.', use: 'card' },

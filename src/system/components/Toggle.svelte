@@ -3,7 +3,6 @@
 
   export const catalogue = {
     description: 'An on/off switch that names the setting it controls.',
-    family: 'on-off',
     whenToUse: 'a setting that takes effect the moment it flips.',
     whenNotToUse: [
       { when: 'the two states have names of their own that the reader compares.', use: 'segmentedcontrol' },

@@ -1,14 +1,3 @@
-/** The picker family a component belongs to. One per component; matches a
-    `## <Name> family` section of the live-tokens-pick-component skill. */
-export type CatalogueFamily =
-  | 'action'
-  | 'single-selection'
-  | 'text-entry'
-  | 'on-off'
-  | 'container'
-  | 'messaging'
-  | 'display';
-
 /** A component's catalogue entry: what it is, what to use it for, what to use
     instead, the rules of use, and what any guidance-bearing prop's values
     mean. Exported as `catalogue` from the runtime file's `<script module>`
@@ -18,15 +7,13 @@ export type CatalogueFamily =
 export type CatalogueEntry = {
   /** One sentence: what the component is. */
   description: string;
-  /** The picker family. One per component. */
-  family: CatalogueFamily;
   /** The condition that makes this component the right one. */
   whenToUse: string;
   /** Each row rules the component out. `use` is the component id
       (`table`, never `Table`) that fits instead. */
   whenNotToUse: Array<{ when: string; use?: string }>;
-  /** Rules of use. An entry with `rule` names the checker rule that enforces it. */
-  constraints?: Array<string | { rule: string; text: string }>;
+  /** Rules of use, one sentence each. */
+  constraints?: string[];
   /** Keyed by prop name; the value explains that prop's values. */
   props?: Record<string, string>;
 };

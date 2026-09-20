@@ -41,7 +41,7 @@ Prop names follow the shipped components. `label` names a control, `title` heads
 Before writing a file:
 
 1. Read the project's `package.json`, `live-tokens.config.json`, and `src/main.ts`.
-2. Run `npx live-tokens components`. The list holds every component the project has, with its variants and catalogue entry. `--family <name>` filters it to one picker family. `npx live-tokens components <id>` prints one component's props.
+2. Run `npx live-tokens components`. The list holds every component the project has, with its variants and catalogue entry. `npx live-tokens components <id>` prints one component's props.
 3. Run `npx live-tokens tokens --scale <name>` for each token scale the component will use. Those names are the tokens a property can reference.
 4. Read a shipped runtime and editor pair: `Toggle` for interaction states, `Badge` for variants and linked values, `Card` for text and container parts.
 5. Read `references/token-naming.md` for the suffixes that select editor controls.
@@ -103,7 +103,7 @@ Name a role as the shipped component that paints the same thing names it. A fill
 
 Create `src/system/components/StatCard.svelte`. A component in another directory is listed by `components` and `report`, and checked by `check-component <id>`, when that directory is named in `"componentDirs"` in `live-tokens.config.json`. Use Svelte 5 props and snippets, semantic HTML, and the behavior the task requires.
 
-Open the file with a `<script module lang="ts">` block that exports a `catalogue` entry in the shape every shipped component carries. `npx live-tokens components` prints it beside the id, and `components <id>` prints it with the props. Every value is a literal: a string in single, double, or backtick quotes, an object of strings, or an array. No `${}` interpolation, no concatenation, no identifier reference. `family` is one of `action`, `single-selection`, `text-entry`, `on-off`, `container`, `messaging`, and `display`; choose the family where the picker should find this component. Each `whenNotToUse` row is `{ when, use? }`: `when` states the condition that rules this component out, and `use`, where a sibling covers it, names that sibling by its component id (`table`, never `Table`); `registryContract.test.ts` fails when the id is not registered. An optional `constraints` array states a rule of use, as a plain sentence or, when a checker rule enforces it, `{ rule, text }` with the rule's id. An optional `props` map adds one line per prop whose values carry a choice, such as `variant`; each key names a prop the file declares, and the text says what the values mean.
+Open the file with a `<script module lang="ts">` block that exports a `catalogue` entry in the shape every shipped component carries. `npx live-tokens components` prints it beside the id, and `components <id>` prints it with the props. Every value is a literal: a string in single, double, or backtick quotes, an object of strings, or an array. No `${}` interpolation, no concatenation, no identifier reference. Each `whenNotToUse` row is `{ when, use? }`: `when` states the condition that rules this component out, and `use`, where a sibling covers it, names that sibling by its component id (`table`, never `Table`); `registryContract.test.ts` fails when the id is not registered. An optional `constraints` array states each rule of use as one sentence. An optional `props` map adds one line per prop whose values carry a choice, such as `variant`; each key names a prop the file declares, and the text says what the values mean.
 
 ```svelte
 <script module lang="ts">
@@ -111,7 +111,6 @@ Open the file with a `<script module lang="ts">` block that exports a `catalogue
 
   export const catalogue = {
     description: 'A figure with its label.',
-    family: 'display',
     whenToUse: 'one number the reader takes in at a glance.',
     whenNotToUse: [
       { when: 'the reader scans and compares many records.', use: 'table' },

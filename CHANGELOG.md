@@ -4,27 +4,22 @@
 
 ### Added
 
-- **`components --family <name>`.** Filters the list to one of the seven
-  picker families: `action`, `single-selection`, `text-entry`, `on-off`,
-  `container`, `messaging`, `display`. An unrecognized name fails and names
-  the seven.
-- **`CatalogueEntry` carries `family` and `constraints`.** `family` is one of
-  the seven picker families. `constraints` is an optional array of a plain
-  string or a `{ rule, text }` pair naming the checker rule that enforces it.
-  `components <id>` prints `Family:`, one `Not for:` line per `whenNotToUse`
-  row, and one `Rule:` line per constraint.
+- **`CatalogueEntry` carries `constraints`.** `constraints` is an optional
+  `string[]` of rules of use, one sentence each. `components <id>` prints one
+  `Not for:` line per `whenNotToUse` row and one `Rule:` line per constraint.
 
 ### Changed (breaking)
 
-- **`CatalogueEntry` drops `notFor` for `whenToUse` and `whenNotToUse`.**
-  `whenToUse` is a required string: the condition that makes the component the
-  right choice. `whenNotToUse` is a required array of `{ when, use? }` rows,
+- **`CatalogueEntry` requires `description`, `whenToUse`, and `whenNotToUse`.**
+  `notFor` is gone. `whenToUse` is a required string: the condition that makes
+  the component the right choice. `whenNotToUse` is a required array of
+  `{ when, use? }` rows,
   each naming a condition that rules the component out and, where a sibling
   fits instead, that sibling's component id. A component with no disqualifying
-  condition declares `whenNotToUse: []`. `family` is also required. A
-  runtime's `catalogue` export, and any consumer's, must supply all three;
-  `missing-description` reports any as missing, a `family` outside the seven,
-  or a `whenNotToUse` row's `use` that names no component.
+  condition declares `whenNotToUse: []`. `constraints` is an optional
+  `string[]`. A runtime's `catalogue` export, and any consumer's, must supply
+  all three required fields; `missing-description` reports any as missing, or a
+  `whenNotToUse` row's `use` that names no component.
 - **`components` and `components --json` drop `tokens` from the list form.**
   The id form (`components <id>`) is unchanged. The `--json` list drops from
   ~179 KB to ~37 KB across the 26 shipped components.

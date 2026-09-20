@@ -3,7 +3,6 @@
 
   export const catalogue = {
     description: 'A themed frame around the rows and cells the page writes.',
-    family: 'display',
     whenToUse: 'records the reader scans and compares.',
     whenNotToUse: [
       { when: 'the reader acts on each item.', use: 'card' },

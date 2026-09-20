@@ -2,7 +2,7 @@ import { describe, it, expect, afterEach } from 'vitest';
 import { mkdtempSync, mkdirSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { execFileSync, spawnSync } from 'node:child_process';
+import { execFileSync } from 'node:child_process';
 // @ts-expect-error — plain .mjs module, no types
 import { describeComponents, describeTokens, formatComponents, formatTokens, withoutTokens } from './lib/catalogue.mjs';
 // @ts-expect-error — plain .mjs module, no types
@@ -28,7 +28,6 @@ function project(): string {
     `<script module lang="ts">
   export const catalogue = {
     description: 'A dial for one bounded number.',
-    family: 'text-entry',
     whenToUse: 'a value the reader sets by turning a ring.',
     whenNotToUse: [{ when: 'the reader would rather type the exact value.', use: 'input' }],
     props: { variant: '\`round\` is a full circle, \`flat\` is a half circle.' },
@@ -55,7 +54,6 @@ function project(): string {
     `<script module lang="ts">
   export const catalogue = {
     description: 'A number chosen by turning a ring.',
-    family: 'display',
     whenToUse: 'a bounded number whose position on the ring carries the meaning.',
     whenNotToUse: [{ when: 'the reader would rather type an exact number.', use: 'input' }],
   };
@@ -113,8 +111,7 @@ describe('describeComponents', () => {
     const widget = describeComponents(loadVocabulary({ root }), { root }).find((c: { id: string }) => c.id === 'widget');
     expect(widget.catalogue).toEqual({
       description: 'A dial for one bounded number.',
-      family: 'text-entry',
-      whenToUse: 'a value the reader sets by turning a ring.',
+        whenToUse: 'a value the reader sets by turning a ring.',
       whenNotToUse: [{ when: 'the reader would rather type the exact value.', use: 'input' }],
       props: { variant: '`round` is a full circle, `flat` is a half circle.' },
     });
@@ -127,13 +124,12 @@ describe('describeComponents', () => {
     ]);
   });
 
-  it('prints the catalogue as description, Family, When to use, one Not for per row, then one line per guidance-bearing prop', () => {
+  it('prints the catalogue as description, When to use, one Not for per row, then one line per guidance-bearing prop', () => {
     const root = project();
     const widget = describeComponents(loadVocabulary({ root }), { root }).find((c: { id: string }) => c.id === 'widget');
     const dial = describeComponents(loadVocabulary({ root }), { root }).find((c: { id: string }) => c.id === 'dial');
-    expect(formatComponents([widget], { id: 'widget' }).split('\n').slice(1, 6)).toEqual([
+    expect(formatComponents([widget], { id: 'widget' }).split('\n').slice(1, 5)).toEqual([
       '  A dial for one bounded number.',
-      '  Family: text-entry',
       '  When to use: a value the reader sets by turning a ring.',
       '  Not for: the reader would rather type the exact value. Use input.',
       '  variant: `round` is a full circle, `flat` is a half circle.',
@@ -148,7 +144,6 @@ describe('describeComponents', () => {
     const knob = describeComponents(loadVocabulary({ root }), { root }).find((c: { id: string }) => c.id === 'knob');
     const out = formatComponents([knob], { id: 'knob' });
     expect(out.split('\n').slice(1, 3)).toEqual(['  A knob.', '  When to use: a value turned by hand.']);
-    expect(out).not.toContain('Family:');
     expect(out).not.toContain('Not for:');
     expect(out).not.toContain('undefined');
   });
@@ -161,31 +156,14 @@ describe('describeComponents', () => {
     expect(formatComponents(list, { id: 'widget' })).toContain('variant: round | flat');
   });
 
-  it('exposes family so a caller can filter to one of two families in a fixture', () => {
-    const root = project();
-    const custom = describeComponents(loadVocabulary({ root }), { root }).filter(
-      (c: { origin: string }) => c.origin === 'custom',
-    );
-    expect(
-      custom.filter((c: { catalogue?: { family?: string } }) => c.catalogue?.family === 'text-entry').map((c: { id: string }) => c.id),
-    ).toEqual(['widget']);
-    expect(
-      custom.filter((c: { catalogue?: { family?: string } }) => c.catalogue?.family === 'display').map((c: { id: string }) => c.id),
-    ).toEqual(['dial']);
-  });
-
-  it('components --family filters the --json list, omits tokens, and rejects a name outside the seven', () => {
+  it('components --json lists every component and omits tokens', () => {
     const root = project();
     const cli = join(process.cwd(), 'bin/cli.mjs');
-    const list = JSON.parse(execFileSync('node', [cli, 'components', '--family', 'display', '--json'], { cwd: root }).toString());
-    expect(list.filter((c: { origin: string }) => c.origin === 'custom').map((c: { id: string }) => c.id)).toEqual(['dial']);
-    for (const c of list) {
-      expect(c.catalogue.family).toBe('display');
-      expect(c).not.toHaveProperty('tokens');
-    }
-    const bad = spawnSync('node', [cli, 'components', '--family', 'nope'], { cwd: root });
-    expect(bad.status).not.toBe(0);
-    expect(bad.stderr.toString() + bad.stdout.toString()).toContain('single-selection');
+    const list = JSON.parse(execFileSync('node', [cli, 'components', '--json'], { cwd: root }).toString());
+    expect(list.filter((c: { origin: string }) => c.origin === 'custom').map((c: { id: string }) => c.id)).toEqual(
+      expect.arrayContaining(['widget', 'dial']),
+    );
+    for (const c of list) expect(c).not.toHaveProperty('tokens');
   });
 
   it('withoutTokens drops each entry\'s tokens array and nothing else', () => {
@@ -254,15 +232,16 @@ describe('catalogueOf, the literal-subset reader', () => {
     ]);
   });
 
-  it('reads a { rule, text } constraint entry, dropping one missing text', () => {
+  it('keeps the string constraints and drops an item that is not a string', () => {
     const catalogue = gauge(`{
       description: 'A gauge.',
       constraints: [
-        { rule: 'unknown-component', text: 'a rule-backed constraint' },
-        { rule: 'incomplete-entry' },
+        'A kept rule.',
+        { rule: 'unknown-component', text: 'an object item' },
+        'Another kept rule.',
       ],
     }`);
-    expect(catalogue.constraints).toEqual([{ rule: 'unknown-component', text: 'a rule-backed constraint' }]);
+    expect(catalogue.constraints).toEqual(['A kept rule.', 'Another kept rule.']);
   });
 
   it('reads a nested key that shares a top-level field\'s name at its own depth', () => {
@@ -285,7 +264,7 @@ describe('catalogueOf, the literal-subset reader', () => {
 
   it('reads no field out of the text of a non-literal value', () => {
     const catalogue = gauge(`{
-      description: \`a \${kind} family: "leak"\`,
+      description: \`a \${kind} props: { value: "leak" }\`,
       whenToUse: 'a reading' + ' whenNotToUse: [{ when: "leak" }]',
       constraints: [rule('leaked item'), 'A kept rule.'],
     }`);

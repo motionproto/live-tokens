@@ -12,13 +12,6 @@
 import { describe, it, expect } from 'vitest';
 import { getComponentRegistryEntries } from './registry';
 import { checkRegistryEntry } from './contract';
-import type { CatalogueFamily } from './scaffolding/types';
-// @ts-expect-error — plain .mjs module, no types
-import { CATALOGUE_FAMILIES } from '../../../bin/lib/catalogue.mjs';
-// @ts-expect-error — plain .mjs module, no types
-import { PAGE_RULES } from '../../../bin/check-page.mjs';
-// @ts-expect-error — plain .mjs module, no types
-import { COMPONENT_RULES } from '../../../bin/check-component.mjs';
 
 const entries = getComponentRegistryEntries();
 
@@ -68,38 +61,11 @@ describe('a built-in entry imports its catalogue, never copies it', () => {
   });
 });
 
-// `npm run check` holds this record to the union, member for member, and the
-// assertion holds the list to the record.
-const UNION_MEMBERS: Record<CatalogueFamily, true> = {
-  action: true,
-  'single-selection': true,
-  'text-entry': true,
-  'on-off': true,
-  container: true,
-  messaging: true,
-  display: true,
-};
-
-it('CATALOGUE_FAMILIES lists exactly the CatalogueFamily union', () => {
-  expect([...CATALOGUE_FAMILIES].sort()).toEqual(Object.keys(UNION_MEMBERS).sort());
-});
-
 // Invariant 1: every declared name in a catalogue entry is verified.
 describe.each(entries.map((e) => [e.id, e] as const))('%s catalogue', (_id, entry) => {
-  it('family is in the closed union', () => {
-    expect(CATALOGUE_FAMILIES).toContain(entry.catalogue.family);
-  });
-
   it('every whenNotToUse[].use names a registered component id', () => {
     const ids = new Set(entries.map((e) => e.id));
     for (const row of entry.catalogue.whenNotToUse ?? []) if (row.use) expect(ids.has(row.use)).toBe(true);
-  });
-
-  it('every constraints[].rule names a page or component rule id', () => {
-    for (const constraint of entry.catalogue.constraints ?? []) {
-      if (typeof constraint === 'string') continue;
-      expect(constraint.rule in PAGE_RULES || constraint.rule in COMPONENT_RULES).toBe(true);
-    }
   });
 });
 

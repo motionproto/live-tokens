@@ -23,7 +23,6 @@ const FILES = [
   'src/editor/core/themes/buildColors.ts',
 ];
 
-// `--family=` is the dead `tokens` alias; `components --family <name>` is live.
 const RETIRED_TERMS = /--family=|\btheme tokens?\b|\bcomponent tokens?\b|\bpackage defaults?\b|\btoken famil(?:y|ies)\b/i;
 const DOMAIN_VOCAB = /\b(?:ladder|rung|rungs|unsaved)\b/i;
 

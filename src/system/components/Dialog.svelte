@@ -3,7 +3,6 @@
 
   export const catalogue = {
     description: 'A modal window that blocks the page.',
-    family: 'container',
     whenToUse: 'a decision the page cannot continue without, such as a destructive confirmation or a sign-in.',
     whenNotToUse: [
       { when: 'the form is routine, and the page can continue around it.', use: 'panel' },

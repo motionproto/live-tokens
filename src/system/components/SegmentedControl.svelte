@@ -3,7 +3,6 @@
 
   export const catalogue = {
     description: 'An inline switch between named alternatives.',
-    family: 'single-selection',
     whenToUse: 'two to four short labels that pick one view of the same data.',
     whenNotToUse: [
       { when: "the choice swaps the page's content area below it.", use: 'tabbar' },

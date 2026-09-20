@@ -3,7 +3,6 @@
 
   export const catalogue = {
     description: 'The confirm-and-cancel pair that ends an inline edit.',
-    family: 'action',
     whenToUse: 'the two actions that close an in-place rename or value edit.',
     whenNotToUse: [
       { when: 'the actions belong to a form or a Dialog.', use: 'button' },

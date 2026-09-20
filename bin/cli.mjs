@@ -22,7 +22,6 @@ import { COMPONENT_RULES, checkComponent, discoverComponents, formatReport } fro
 import { PAGE_RULES, checkPages, discoverPages } from './check-page.mjs';
 import { resolvePageTestTargets } from './lib/pageRoutes.mjs';
 import {
-  CATALOGUE_FAMILIES,
   describeComponents,
   describeTokens,
   formatComponents,
@@ -65,16 +64,13 @@ Commands:
   create <dir> [--force]      Scaffold a new Svelte + Vite app wired up with
                               live-tokens (editor, components, design tokens)
   setup-claude [--force]      Install bundled Claude Code skills into ./.claude/skills/
-  components [id] [--family <name>] [--json]
+  components [id] [--json]
                               List every component the project has, shipped and
                               its own (src/system/components plus any
                               "componentDirs" in live-tokens.config.json), each
-                              with its catalogue entry (description, family,
-                              whenToUse, whenNotToUse, constraints). The list form
-                              omits tokens. --family <name> filters the list to
-                              one of the seven picker families: action,
-                              single-selection, text-entry, on-off, container,
-                              messaging, display. With an id, that component's
+                              with its catalogue entry (description, whenToUse,
+                              whenNotToUse, constraints). The list form omits
+                              tokens. With an id, that component's
                               props, variants, tokens, and defaults
   tokens [--scale <name>] [--json]
                               List every design token the project's tokens.css
@@ -278,22 +274,14 @@ function formatFixes({ applied, skipped }) {
 
 if (command === 'components') {
   const opts = parseCheckFlags(rest);
-  const familyAt = opts.rest.indexOf('--family');
-  const family = familyAt >= 0 ? opts.rest[familyAt + 1] : undefined;
-  if (familyAt >= 0 && !CATALOGUE_FAMILIES.includes(family)) {
-    const problem = family === undefined ? '--family takes a name' : `No such family "${family}"`;
-    fail(`${problem}. Families: ${CATALOGUE_FAMILIES.join(', ')}.`);
-  }
-  const positional = familyAt >= 0 ? [...opts.rest.slice(0, familyAt), ...opts.rest.slice(familyAt + 2)] : opts.rest;
-  const id = positional[0];
+  const id = opts.rest[0];
   const list = describeComponents(loadVocabulary());
   if (id) {
     if (!list.some((c) => c.id === id)) fail(formatComponents(list, { id }));
     writeOut(opts.json ? JSON.stringify(list.find((c) => c.id === id), null, 2) : formatComponents(list, { id }));
     process.exit(0);
   }
-  const filtered = family !== undefined ? list.filter((c) => c.catalogue?.family === family) : list;
-  writeOut(opts.json ? JSON.stringify(withoutTokens(filtered), null, 2) : formatComponents(filtered, {}));
+  writeOut(opts.json ? JSON.stringify(withoutTokens(list), null, 2) : formatComponents(list, {}));
   process.exit(0);
 }
 

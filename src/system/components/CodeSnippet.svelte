@@ -3,7 +3,6 @@
 
   export const catalogue = {
     description: 'A command or value with a copy button.',
-    family: 'display',
     whenToUse: 'text the reader is meant to run or paste somewhere else.',
     whenNotToUse: [
       { when: 'the text is prose the reader only reads, inside its own titled block.', use: 'card' },

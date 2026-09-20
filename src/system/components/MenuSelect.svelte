@@ -3,7 +3,6 @@
 
   export const catalogue = {
     description: 'A list of options with one checked.',
-    family: 'single-selection',
     whenToUse: 'single selection from a set too long to sit in a row, dropped from a Button.',
     whenNotToUse: [
       { when: 'the choice allows more than one value.' },

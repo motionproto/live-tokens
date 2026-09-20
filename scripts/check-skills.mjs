@@ -7,14 +7,12 @@ import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { MAX_SKILL_LINES, checkSkills } from './lib/skillChecks.mjs';
-import { CATALOGUE_FAMILIES, catalogueOf } from '../bin/lib/catalogue.mjs';
 import { PAGE_RULES } from '../bin/check-page.mjs';
 import { COMPONENT_RULES } from '../bin/check-component.mjs';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const SKILLS = join(ROOT, '.claude/skills');
 const CONFIGS = join(ROOT, 'src/live-tokens/data/component-configs');
-const COMPONENTS = join(ROOT, 'src/system/components');
 
 const read = (p) => readFileSync(p, 'utf8');
 const dirNames = (dir) =>
@@ -35,20 +33,11 @@ for (const skill of dirNames(SKILLS)) {
   skills[skill] = files;
 }
 
-// Every shipped entry's family, read the same static way the CLI reads it, so
-// this gate never has to import a component to see what it declares.
-const shippedFamilies = readdirSync(COMPONENTS)
-  .filter((f) => f.endsWith('.svelte') && !f.endsWith('Editor.svelte'))
-  .map((f) => ({ id: f.replace(/\.svelte$/, '').toLowerCase(), family: catalogueOf(read(join(COMPONENTS, f)))?.family }))
-  .filter((c) => c.family !== undefined);
-
 const errors = checkSkills({
   skills,
   cli: read(join(ROOT, 'bin/cli.mjs')),
   setupClaude: read(join(ROOT, 'bin/setup-claude.mjs')),
   aliasKinds: read(join(ROOT, 'src/editor/core/components/aliasKinds.ts')),
-  catalogueFamilies: CATALOGUE_FAMILIES,
-  shippedFamilies,
   ruleIds: [...Object.keys(PAGE_RULES), ...Object.keys(COMPONENT_RULES)],
 });
 

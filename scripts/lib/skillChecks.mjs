@@ -39,8 +39,6 @@ const UNSKILLED_VERBS = new Map([
   ['report', 'prints the project as facts for a person; check-compliance reads the checkers, which return the fixes and judgment calls themselves'],
 ]);
 
-const PICKER = 'live-tokens-pick-component';
-
 // One reading of a request produces three intents, and each contributing skill
 // reads its own dimension's column by the anchor name create-theme hands it. A
 // name that reaches only two of the four files is an anchor a sibling silently
@@ -78,17 +76,12 @@ const SUFFIX_SOURCES = [
 
 // `skills` maps a skill's directory name to its files keyed by the path within
 // it, `SKILL.md` and `references/*.md`; the other three are the sources those
-// files are checked against. `catalogueFamilies` is the `CatalogueFamily`
-// union (bin/lib/catalogue.mjs's `CATALOGUE_FAMILIES`), `shippedFamilies` is
-// each shipped runtime's `{ id, family }`, and `ruleIds` is every page and
-// component rule id.
+// files are checked against. `ruleIds` is every page and component rule id.
 export function checkSkills({
   skills,
   cli,
   setupClaude = '',
   aliasKinds = '',
-  catalogueFamilies = [],
-  shippedFamilies = [],
   ruleIds = [],
 }) {
   const errors = [];
@@ -236,29 +229,6 @@ export function checkSkills({
 
   for (const skill of samplePrompts) {
     if (!skillDirs.includes(skill)) errors.push(`bin/setup-claude.mjs: SAMPLE_PROMPTS names "${skill}", which is not bundled`);
-  }
-
-  // Invariant 2: the picker and the catalogue agree on the family union. Every
-  // `--family <name>` the picker runs is a real family, every real family has
-  // its own section running one, and no shipped entry declares one outside it.
-  if (catalogueFamilies.length > 0) {
-    const familySet = new Set(catalogueFamilies);
-    const pickerText = skills[PICKER]?.['SKILL.md'];
-    if (pickerText === undefined) {
-      errors.push(`${PICKER}: SKILL.md is missing, so the family cross-check has nothing to read`);
-    } else {
-      const pickerFamilies = new Set([...pickerText.matchAll(/--family\s+([a-z][a-z-]*)/g)].map((m) => m[1]));
-      for (const family of pickerFamilies) {
-        if (!familySet.has(family)) errors.push(`${PICKER}: runs \`components --family ${family}\`, which is outside CatalogueFamily`);
-      }
-      for (const family of catalogueFamilies) {
-        if (!pickerFamilies.has(family)) errors.push(`${PICKER}: no family section runs \`components --family ${family}\``);
-      }
-    }
-
-    for (const { id, family } of shippedFamilies) {
-      if (!familySet.has(family)) errors.push(`${id}: catalogue family "${family}" is outside CatalogueFamily`);
-    }
   }
 
   const directions = fileAt(DIRECTIONS);

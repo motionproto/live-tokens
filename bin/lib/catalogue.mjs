@@ -47,20 +47,6 @@ function literalValue(raw) {
   return inner.replace(/\s+/g, ' ').trim();
 }
 
-/** The seven picker families a `catalogue.family` can name, in the order the
- *  live-tokens-pick-component skill sections them. The one home both the CLI
- *  (`components --family`) and `check:skills` read, so neither re-derives the
- *  union by parsing `types.ts`. */
-export const CATALOGUE_FAMILIES = [
-  'action',
-  'single-selection',
-  'text-entry',
-  'on-off',
-  'container',
-  'messaging',
-  'display',
-];
-
 // Brace/bracket matching skips over quoted literals so a closer inside a
 // description (or a description containing a stray brace) never closes the
 // group early. Shared by object literals (`{`/`}`) and array literals
@@ -194,18 +180,9 @@ function whenNotToUseEntries(v) {
   return out;
 }
 
-/** `constraints` entries: a plain string, or a `{ rule, text }` object with
- *  both as strings. Anything else is dropped from the array. */
 function constraintEntries(v) {
   if (!Array.isArray(v)) return undefined;
-  const out = [];
-  for (const item of v) {
-    if (typeof item === 'string') out.push(item);
-    else if (isPlainObject(item) && typeof item.rule === 'string' && typeof item.text === 'string') {
-      out.push({ rule: item.rule, text: item.text });
-    }
-  }
-  return out;
+  return v.filter((item) => typeof item === 'string');
 }
 
 /**
@@ -227,7 +204,6 @@ export function catalogueOf(source) {
   const fields = readObject(balanced.content);
   const catalogue = {};
   if (typeof fields.description === 'string') catalogue.description = fields.description;
-  if (typeof fields.family === 'string') catalogue.family = fields.family;
   if (typeof fields.whenToUse === 'string') catalogue.whenToUse = fields.whenToUse;
   const whenNotToUse = whenNotToUseEntries(fields.whenNotToUse);
   if (whenNotToUse) catalogue.whenNotToUse = whenNotToUse;
@@ -325,15 +301,12 @@ export function describeTokens(vocab, { root = process.cwd() } = {}) {
 
 function describeLines(c) {
   if (!c.catalogue) return [];
-  const { description, family, whenToUse, whenNotToUse, constraints, props } = c.catalogue;
+  const { description, whenToUse, whenNotToUse, constraints, props } = c.catalogue;
   const lines = [];
   if (description) lines.push(description);
-  if (family) lines.push(`Family: ${family}`);
   if (whenToUse) lines.push(`When to use: ${whenToUse}`);
   for (const row of whenNotToUse ?? []) lines.push(row.use ? `Not for: ${row.when} Use ${row.use}.` : `Not for: ${row.when}`);
-  for (const constraint of constraints ?? []) {
-    lines.push(typeof constraint === 'string' ? `Rule: ${constraint}` : `Rule: ${constraint.text} [${constraint.rule}]`);
-  }
+  for (const constraint of constraints ?? []) lines.push(`Rule: ${constraint}`);
   for (const [prop, text] of Object.entries(props ?? {})) lines.push(`${prop}: ${text}`);
   return lines;
 }

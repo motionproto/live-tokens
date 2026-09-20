@@ -3,7 +3,6 @@
 
   export const catalogue = {
     description: 'An action that an icon alone carries.',
-    family: 'action',
     whenToUse: 'an action whose meaning is plain from the glyph, such as close, edit, or delete.',
     whenNotToUse: [
       { when: 'the action needs a word to be unambiguous.', use: 'button' },

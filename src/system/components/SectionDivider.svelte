@@ -3,7 +3,6 @@
 
   export const catalogue = {
     description: 'A titled break between the sections of a page.',
-    family: 'display',
     whenToUse: 'naming the section that follows it.',
     whenNotToUse: [
       { when: 'the titles are links that move the reader between pages.', use: 'sidenavigation' },

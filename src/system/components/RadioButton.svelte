@@ -3,7 +3,6 @@
 
   export const catalogue = {
     description: 'A form row that selects one option.',
-    family: 'single-selection',
     whenToUse: 'a choice the reader reviews as text before committing to a larger form.',
     whenNotToUse: [
       { when: 'the choice switches between views of the same data, inline.', use: 'segmentedcontrol' },

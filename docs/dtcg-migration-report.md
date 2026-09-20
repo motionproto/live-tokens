@@ -194,7 +194,7 @@ His rule: "Keep DTCG canonical, treat everything downstream as derived."
 | DTCG tokens | `tokens.css` (primitives and semantic scales), theme JSON (generator inputs), component `:global(:root)` blocks (component tier) | The format, and a component tier held inside `.svelte` files |
 | Style Dictionary build | `regenerateTokensCss` and `editorRenderer` | CSS is the only output |
 | Tailwind `@theme` | None | Could be an extra output |
-| DESIGN.md | `catalogue` entries (`description`, `family`, `whenToUse`, `whenNotToUse`, `constraints`, `props`), nine skills, the pick-component decision tests, and checker rules | The intent exists, but only as Svelte module scripts and Claude Code skills |
+| DESIGN.md | `catalogue` entries (`description`, `whenToUse`, `whenNotToUse`, `constraints`, `props`), nine skills, the pick-component decision tests, and checker rules | The intent exists, but only as Svelte module scripts and Claude Code skills |
 | Code Connect | None | Out of scope |
 
 The article lists two problems in real codebases: hand-written CSS drifting away from the token files, and semantic intent kept in prose instead of references. Live-tokens already solves both. It generates the CSS, and its checkers require semantic properties.

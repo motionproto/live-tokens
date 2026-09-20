@@ -3,7 +3,6 @@
 
   export const catalogue = {
     description: 'The rail that moves between the pages of a site.',
-    family: 'display',
     whenToUse: 'navigation that follows the current path.',
     whenNotToUse: [
       { when: 'the switch stays inside one page, with no URL change.', use: 'tabbar' },

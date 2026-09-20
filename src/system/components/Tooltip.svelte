@@ -3,7 +3,6 @@
 
   export const catalogue = {
     description: 'A short note that appears on an element on hover or focus.',
-    family: 'messaging',
     whenToUse: 'a definition or a shortcut the reader can do without.',
     whenNotToUse: [
       { when: 'the reader must not miss the content.', use: 'callout' },

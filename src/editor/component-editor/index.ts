@@ -31,4 +31,4 @@ export type { Token } from './scaffolding/types';
 export type { IntrinsicSpec } from './scaffolding/types';
 
 // Catalogue entry — the shape a runtime file's `catalogue` export satisfies.
-export type { CatalogueEntry, CatalogueFamily } from './scaffolding/types';
+export type { CatalogueEntry } from './scaffolding/types';

@@ -3,7 +3,6 @@
 
   export const catalogue = {
     description: 'A read-out of progress against a labelled track.',
-    family: 'display',
     whenToUse: 'reporting how far a task has run.',
     whenNotToUse: [
       { when: 'the reader sets the number.', use: 'slider' },

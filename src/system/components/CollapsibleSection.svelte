@@ -3,7 +3,6 @@
 
   export const catalogue = {
     description: 'A section the reader opens and closes.',
-    family: 'container',
     whenToUse: 'secondary content that most readers skip.',
     whenNotToUse: [
       { when: 'every reader needs the content, so it stays open.', use: 'card' },

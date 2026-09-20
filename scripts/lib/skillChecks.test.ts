@@ -8,12 +8,9 @@ type Repo = {
   cli: string;
   setupClaude: string;
   aliasKinds: string;
-  catalogueFamilies: string[];
-  shippedFamilies: { id: string; family: string }[];
   ruleIds: string[];
 };
 
-const FAMILIES = ['action', 'single-selection', 'text-entry', 'on-off', 'container', 'messaging', 'display'];
 const RULE_IDS = ['multiple-primary', 'danger-without-dialog', 'control-size', 'native-control'];
 
 const CLI = `
@@ -81,11 +78,6 @@ function repo(edit: (r: Repo) => void = () => {}): Repo {
     cli: CLI,
     setupClaude: SETUP_CLAUDE,
     aliasKinds: ALIAS_KINDS,
-    catalogueFamilies: FAMILIES,
-    shippedFamilies: [
-      { id: 'button', family: 'action' },
-      { id: 'card', family: 'container' },
-    ],
     ruleIds: RULE_IDS,
     skills: {
       'live-tokens-create-page': {
@@ -166,33 +158,9 @@ name: live-tokens-pick-component
 description: Choose the component that already does the job.
 ---
 
-## Action family
+## Procedure
 
-Run npx live-tokens components --family action --json.
-
-## Single-selection family
-
-Run npx live-tokens components --family single-selection --json.
-
-## Text entry
-
-Run npx live-tokens components --family text-entry --json.
-
-## On and off
-
-Run npx live-tokens components --family on-off --json.
-
-## Container family
-
-Run npx live-tokens components --family container --json.
-
-## Messaging family
-
-Run npx live-tokens components --family messaging --json.
-
-## Display family
-
-Run npx live-tokens components --family display --json.
+Run npx live-tokens components --json.
 `,
       },
     },
@@ -550,53 +518,6 @@ describe('the suffix vocabulary', () => {
   });
 });
 
-describe('the picker and the catalogue family union', () => {
-  it('rejects a --family value the union does not have', () => {
-    const problems = checkSkills(
-      repo(edited('live-tokens-pick-component', '--family display --json', '--family cards --json')),
-    );
-
-    expect(problems).toEqual([
-      'live-tokens-pick-component: runs `components --family cards`, which is outside CatalogueFamily',
-      'live-tokens-pick-component: no family section runs `components --family display`',
-    ]);
-  });
-
-  it('rejects a family with no section running its command', () => {
-    const problems = checkSkills(
-      repo((r) => {
-        r.skills['live-tokens-pick-component']['SKILL.md'] = r.skills['live-tokens-pick-component']['SKILL.md'].replace(
-          '## Display family\n\nRun npx live-tokens components --family display --json.\n',
-          '',
-        );
-      }),
-    );
-
-    expect(problems).toEqual(['live-tokens-pick-component: no family section runs `components --family display`']);
-  });
-
-  it('rejects a shipped entry whose family the union does not have', () => {
-    const problems = checkSkills(
-      repo((r) => {
-        r.shippedFamilies = [...r.shippedFamilies, { id: 'statcard', family: 'figures' }];
-      }),
-    );
-
-    expect(problems).toEqual(['statcard: catalogue family "figures" is outside CatalogueFamily']);
-  });
-
-  it('skips the cross-check when no families are given', () => {
-    const problems = checkSkills(
-      repo((r) => {
-        r.catalogueFamilies = [];
-        r.shippedFamilies = [{ id: 'statcard', family: 'figures' }];
-      }),
-    );
-
-    expect(problems).toEqual([]);
-  });
-});
-
 describe('a "Rules the checker enforces" list', () => {
   const withRulesHeading = (rules: string) => (r: Repo) => {
     r.skills['live-tokens-create-page']['SKILL.md'] += `\n## Rules the checker enforces\n\n${rules}\n`;
@@ -625,6 +546,6 @@ describe('the rules this file pins', () => {
   it('is every rule the module carries', () => {
     const source = readFileSync(new URL('./skillChecks.mjs', import.meta.url), 'utf8');
 
-    expect(source.match(/errors\.push\(/g)).toHaveLength(30);
+    expect(source.match(/errors\.push\(/g)).toHaveLength(26);
   });
 });

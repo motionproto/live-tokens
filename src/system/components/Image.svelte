@@ -3,7 +3,6 @@
 
   export const catalogue = {
     description: 'A framed picture in the page flow.',
-    family: 'display',
     whenToUse: 'any picture the page shows.',
     whenNotToUse: [
       { when: 'the detail is the point, and the reader opens it to see more.', use: 'imagelightbox' },

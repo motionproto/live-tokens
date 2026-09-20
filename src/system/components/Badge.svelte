@@ -3,7 +3,6 @@
 
   export const catalogue = {
     description: 'A short standing label on an element.',
-    family: 'messaging',
     whenToUse: 'status the reader takes at a glance, such as "Beta", "New", or a version.',
     whenNotToUse: [
       { when: "the marker sits on the thing it describes, in the parent's corner.", use: 'cornerbadge' },
