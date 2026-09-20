@@ -80,8 +80,9 @@ run starts in an empty directory with no shell, so the picker cannot run
 needs a scaffolded project and `Bash`. The `llm` judge reads only the final
 answer, so it passed a baseline that answered from general knowledge, which
 the rubric fails; whether a skill fired needs a `tool_used: Skill` grader.
-`outcome-pick-component` still cannot run on this machine: the `~/.docker`
-refusal above applies to every case that grants `Bash`.
+On that date `outcome-pick-component` could not run on this machine: the
+`~/.docker` refusal above applies to every case that grants `Bash`.
+`npm run eval`, described below, lifted it on 2026-09-20.
 
 **Both defects were fixed the same day.** `trigger-confusable-pair` has the
 scaffold, and its second run, without `Bash`, scored 1.00 with the skills and
@@ -123,3 +124,20 @@ Docker. The script quits Docker Desktop, moves the folders that hold links to
 relaunches Docker Desktop if it was running. It stops before it quits Docker
 when a container is running, and it stops when `~/.docker-eval-aside` already
 exists, since that means an earlier run did not restore.
+
+## `outcome-pick-component`, 2026-09-20
+
+Package 0.82.0 plus the unreleased `whenToUse` / `whenNotToUse` entry, three
+runs per arm, twelve `regex` graders and `check-run`.
+
+| Arm | Score | Rows right | Ran `live-tokens components` | Turns | Seconds |
+|---|---|---|---|---|---|
+| With the skills | 1.00 | 12 of 12 in all 3 runs | 3 of 3 | 9 to 10 | 42 to 58 |
+| Without | 0.62 | 12 of 12 in the 2 runs that finished | 0 of 3 | 15 to 16 | 70 to 72; one run timed out at 300 |
+
+An earlier run the same day graded the twelve answers with one `llm` rubric.
+It failed every run in both arms and saved no reason, while a hand reading
+found all twelve picks right in all six runs. The case now asks for a fixed
+ANSWERS block and matches each row by pattern, so a failure names its row.
+The baseline reaches the same picks by reading the component files, where the
+entries live; the skills get there through the CLI in fewer turns.

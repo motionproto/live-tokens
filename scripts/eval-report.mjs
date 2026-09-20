@@ -25,7 +25,7 @@ for (const c of result.cases) {
   for (const [arm, runs] of Object.entries(c.arms)) {
     const failures = new Map();
     for (const [i, run] of runs.entries()) {
-      if (run.error) lines.push(`  ${arm} run ${i + 1}: did not run. ${run.error}`);
+      if (run.error) { lines.push(`  ${arm} run ${i + 1}: did not finish, so it scores 0. ${run.error}`); continue; }
       for (const g of run.graders) {
         if (g.passed) continue;
         const seen = failures.get(g.name) ?? { runs: [], explanation: (graderBody(c.name, g.name) || g.explanation || '') + answeredLine(g.name, g.evidence) };
@@ -33,7 +33,7 @@ for (const c of result.cases) {
         failures.set(g.name, seen);
       }
     }
-    if (failures.size === 0) { lines.push(`  ${arm}: every grader passed in ${runs.length} run(s)`); continue; }
+    if (failures.size === 0) { lines.push(`  ${arm}: every grader passed in every run that finished`); continue; }
     for (const [name, f] of failures) lines.push(`  ${arm}: ${name} failed in run ${f.runs.join(', ')} of ${runs.length}. ${f.explanation ?? ''}`.trimEnd());
   }
 }
