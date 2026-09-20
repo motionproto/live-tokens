@@ -143,3 +143,29 @@ found all twelve picks right in all six runs. The case now asks for a fixed
 ANSWERS block and matches each row by pattern, so a failure names its row.
 The baseline reaches the same picks by reading the component files, where the
 entries live; the skills get there through the CLI in fewer turns.
+
+## `outcome-component-from-brief`, 2026-09-20
+
+One run per arm, 90 turns allowed, in the prebuilt consumer project.
+
+| | With the plugin | Without |
+|---|---|---|
+| Turns, seconds | 63, 569 | 66, 475 |
+| Runtime and editor files, `:global(:root)`, registration | pass | pass |
+| Entry exported with `whenToUse` and a `whenNotToUse` row | pass | pass |
+| A row's `use` names a shipped sibling | `progressbar`, `slider`, `card` | `progressbar`, `slider`, `badge` |
+| First `check-component rating --strict` | 0 findings | 0 findings |
+| `--tests` | `tests-setup`, which the sandbox causes | the same |
+
+Both arms read the create-component skill. The arm without the plugin found it
+in `node_modules/@motion-proto/live-tokens/.claude/skills/`, where the package
+ships it, so this case has no arm that works without the skill. Each `when`
+the two arms wrote reads correctly after "do not use Rating when", which is
+the wording rule the skill gained the same day.
+
+An `llm` grader over the trace asked whether the gate closed. It failed both
+runs 3 votes to 0 although each run's first strict check returned no findings,
+and the runner saves no reason. It is removed. Nothing now grades the repair
+loop itself; the file graders and `check-run` grade what the loop leaves.
+A first attempt at 40 turns cut both arms off before they finished.
+

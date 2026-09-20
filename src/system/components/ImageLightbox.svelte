@@ -43,6 +43,12 @@
         a non-zero spread has no shadow under `content` — `drop-shadow()` has no
         spread slot. */
     shadow?: 'box' | 'content' | 'none';
+    /** A ground behind the image, for this instance, as any CSS fill. Overrides
+        `--imagelightbox-tile-surface`, which a theme sets for every tile at once
+        and which defaults to transparent. Art with transparency wants one:
+        without a ground the page shows through the art's own gaps while a `box`
+        shadow still casts from the rectangle around them. */
+    surface?: string | undefined;
     /** When true, shows a bottom toolbar (zoom in/out + percent) and a top-right close button, and enables wheel/drag zoom inside the open modal. When false, click anywhere closes. */
     extended?: boolean;
     /** Maximum zoom, as a multiple of the image's natural resolution: `1` = 100%
@@ -75,6 +81,7 @@
     maxWidth = undefined,
     fit = 'contain',
     shadow = 'box',
+    surface = undefined,
     extended = false,
     maxZoom = undefined,
     capNatural = false,
@@ -605,6 +612,7 @@
     class:shadow-box={shadow === 'box'}
     class:shadow-content={shadow === 'content'}
     style:--imagelightbox-tile-object-fit={fit}
+    style:--imagelightbox-tile-surface={surface}
     type="button"
     aria-label={cover?.alt ? `Expand image: ${cover.alt}` : 'Expand image'}
     aria-haspopup="dialog"

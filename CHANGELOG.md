@@ -4,6 +4,14 @@
 
 ### Added
 
+- **`ImageLightbox` takes a `surface`.** Any CSS fill, written into
+  `--imagelightbox-tile-surface` for that one tile, the way `fit` writes
+  `--imagelightbox-tile-object-fit`. A theme's value still governs every tile
+  that passes nothing, and the default stays transparent. Art with transparency
+  wants a ground: without one the page shows through the art's own gaps while a
+  `box` shadow still casts from the rectangle around them. The open stage is
+  unaffected — it sits on the scrim and paints no tile fill.
+
 - **`CatalogueEntry` carries `constraints`.** `constraints` is an optional
   `string[]` of rules of use, one sentence each. `components <id>` prints one
   `Not for:` line per `whenNotToUse` row and one `Rule:` line per constraint.
