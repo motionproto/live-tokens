@@ -1,5 +1,49 @@
 # Changelog
 
+## 0.86.0 — Video and slides ship as components
+
+### Added
+
+- **VideoLightbox.** A still that fades the page away and plays its clip in
+  the middle of the screen. A click anywhere, the close button, or Escape
+  closes it. Tile, scrim, and close-button chrome are editable, with a hover
+  state for the close button. Every shipped theme carries it, derived from
+  that theme's ImageLightbox so the two match.
+
+- **VideoFrame.** It plays a clip in place from a poster frame, with a play
+  badge or no chrome at all, and falls back to the poster when the clip is
+  not served.
+
+- **SlidePager.** It flips a deck of slides in place. Its full-screen view
+  pages through every slide with the same bar and the arrow keys, and has a
+  close button and Tab stops on its controls. Its chevrons are inline SVG, so
+  it needs no icon font.
+
+  Every shipped theme carries VideoFrame and SlidePager, with frame corners
+  and borders taken from that theme's ImageLightbox and Card. The catalogue
+  entries of the four media components point to each other.
+
+### Changed
+
+- **Every ImageLightbox shows a close button.** A plain lightbox closed only
+  on a click, and nothing on screen said so. The close button now renders for
+  every lightbox and holds focus when the modal opens. An extended lightbox
+  also closes on a click to its unzoomed image; zoomed, a click still pans.
+
+- **The editor overlay picks the active page from a dropdown.** The theme
+  panel's Components and Sketchstyle rows lose their Open buttons, since the
+  view switcher at the top of the panel already opens both. The font pairing
+  moves into the Colors & Type info box.
+
+### Fixed
+
+- **`check-component --tests` collects only the installed package's
+  contracts.** `createVitestConfig` globbed the whole project, so a nested
+  project with its own copy of the package in `node_modules` added that
+  copy's contracts to the run, and they failed against this project's
+  registry. The default now scans the contract files' own directory, the way
+  `createPlaywrightConfig` already did.
+
 ## 0.85.0 — A theme's scrims and tints are a colour and three strengths
 
 ### Changed
