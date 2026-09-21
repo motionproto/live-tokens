@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased — A theme's scrims and tints are a colour and three strengths
+## 0.85.0 — A theme's scrims and tints are a colour and three strengths
 
 ### Changed
 
