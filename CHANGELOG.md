@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.87.0 — VideoLightbox play badge
 
 ### Added
 
