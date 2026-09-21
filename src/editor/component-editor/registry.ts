@@ -25,6 +25,10 @@ import { catalogue as imageCatalogue } from '../../system/components/Image.svelt
 import ImageLightboxEditor, { allTokens as imageLightboxTokens } from './ImageLightboxEditor.svelte';
 import { catalogue as imageLightboxCatalogue } from '../../system/components/ImageLightbox.svelte';
 import VideoLightboxEditor, { allTokens as videoLightboxTokens } from './VideoLightboxEditor.svelte';
+import VideoFrameEditor, { allTokens as videoFrameTokens } from './VideoFrameEditor.svelte';
+import { catalogue as videoFrameCatalogue } from '../../system/components/VideoFrame.svelte';
+import SlidePagerEditor, { allTokens as slidePagerTokens } from './SlidePagerEditor.svelte';
+import { catalogue as slidePagerCatalogue } from '../../system/components/SlidePager.svelte';
 import { catalogue as videoLightboxCatalogue } from '../../system/components/VideoLightbox.svelte';
 import InlineEditActionsEditor, { allTokens as inlineEditActionsTokens } from './InlineEditActionsEditor.svelte';
 import { catalogue as inlineEditActionsCatalogue } from '../../system/components/InlineEditActions.svelte';
@@ -84,7 +88,9 @@ type BuiltInComponentId =
   | 'toggle'
   | 'tooltip'
   | 'progressbar'
-  | 'videolightbox';
+  | 'videolightbox'
+  | 'videoframe'
+  | 'slidepager';
 
 /**
  * Public component id type. Widened to `string` because consumers can register
@@ -266,6 +272,26 @@ const builtInRegistry: Readonly<Record<BuiltInComponentId, RegistryEntry>> = Obj
     editorComponent: VideoLightboxEditor,
     schema: videoLightboxTokens,
     catalogue: videoLightboxCatalogue,
+    origin: 'system',
+  },
+  videoframe: {
+    id: 'videoframe',
+    label: 'Video Frame',
+    icon: 'fas fa-film',
+    sourceFile: 'src/system/components/VideoFrame.svelte',
+    editorComponent: VideoFrameEditor,
+    schema: videoFrameTokens,
+    catalogue: videoFrameCatalogue,
+    origin: 'system',
+  },
+  slidepager: {
+    id: 'slidepager',
+    label: 'Slide Pager',
+    icon: 'fas fa-images',
+    sourceFile: 'src/system/components/SlidePager.svelte',
+    editorComponent: SlidePagerEditor,
+    schema: slidePagerTokens,
+    catalogue: slidePagerCatalogue,
     origin: 'system',
   },
   inlineeditactions: {

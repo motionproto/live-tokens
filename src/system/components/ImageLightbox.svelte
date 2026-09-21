@@ -7,6 +7,7 @@
     whenNotToUse: [
       { when: 'the reader takes the picture in at a glance, with no detail to open.', use: 'image' },
       { when: 'a video clip the reader opens from its still.', use: 'videolightbox' },
+      { when: 'slides or pages the reader reads in order.', use: 'slidepager' },
     ],
   } satisfies CatalogueEntry;
 </script>

@@ -28,6 +28,8 @@ import { tableContract } from './table';
 import { toggleContract } from './toggle';
 import { tooltipContract } from './tooltip';
 import { videoLightboxContract } from './videolightbox';
+import { videoFrameContract } from './videoframe';
+import { slidePagerContract } from './slidepager';
 
 export const shippedContracts: ComponentContract[] = [
   badgeContract,
@@ -57,6 +59,8 @@ export const shippedContracts: ComponentContract[] = [
   toggleContract,
   tooltipContract,
   videoLightboxContract,
+  videoFrameContract,
+  slidePagerContract,
 ];
 
 /** Names the module `selectedContracts` loads a custom component's

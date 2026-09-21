@@ -518,7 +518,7 @@ describe('config-token', () => {
     expect(rules(root)).not.toContain('config-token');
   });
 
-  it('all 27 shipped default.json files pass it', () => {
+  it('all 29 shipped default.json files pass it', () => {
     for (const id of discoverComponents(process.cwd())) {
       expect(rules(process.cwd(), id)).not.toContain('config-token');
     }

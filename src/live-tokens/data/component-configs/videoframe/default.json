@@ -1,0 +1,25 @@
+{
+  "name": "default",
+  "component": "videoframe",
+  "createdAt": "2026-09-21T18:00:00.000Z",
+  "updatedAt": "2026-09-21T18:00:00.000Z",
+  "aliases": {
+    "--videoframe-frame-surface": "--surface-neutral-lowest",
+    "--videoframe-clip-surface": "--color-transparent",
+    "--videoframe-frame-border": "--border-neutral",
+    "--videoframe-frame-border-width": "--border-width-1",
+    "--videoframe-frame-radius": "--radius-2xl",
+    "--videoframe-badge-default-surface": "--surface-brand-lower",
+    "--videoframe-badge-default-border": "--border-brand-medium",
+    "--videoframe-badge-default-border-width": "--border-width-2",
+    "--videoframe-badge-default-icon": "--text-primary",
+    "--videoframe-badge-default-size": "--space-64",
+    "--videoframe-badge-default-icon-size": "--icon-size-4xl",
+    "--videoframe-badge-duration": "--duration-200",
+    "--videoframe-badge-easing": "--ease-out-quad",
+    "--videoframe-badge-hover-surface": "--surface-brand",
+    "--videoframe-badge-hover-border": "--border-brand-strong",
+    "--videoframe-badge-hover-icon": "--text-primary"
+  },
+  "schemaVersion": 38
+}

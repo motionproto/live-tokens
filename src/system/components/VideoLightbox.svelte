@@ -8,7 +8,7 @@
       'a short clip on a plain ground, such as a product shot, that the reader opens from a thumbnail beside the copy.',
     whenNotToUse: [
       { when: 'a picture whose detail is the point.', use: 'imagelightbox' },
-      { when: 'footage that plays in the layout at full size, with no thumbnail to open.' }
+      { when: 'footage that plays in the layout at full size, with no thumbnail to open.', use: 'videoframe' }
     ],
     props: {
       inline: 'true renders the open lightbox in flow, without the thumbnail. The editor preview uses it.',
