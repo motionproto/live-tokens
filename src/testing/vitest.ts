@@ -1,3 +1,5 @@
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { mergeConfig, type UserConfig } from 'vite';
 import type { TestUserConfig } from 'vitest/config';
 import { CONTRACTS_MODULE_ENV } from './contracts';
@@ -10,8 +12,8 @@ export { defineTestingConfig, resolveTestingConfig } from './config';
 export type { LiveTokensTestingConfig, ResolvedTestingConfig } from './config';
 
 export interface VitestConfigOptions {
-  /** Files the run collects. Default: the shipped registry and behavior
-   *  contracts, matched both in this package and in an installed copy. */
+  /** Files the run collects, relative to the project root. Default: the
+   *  registry and behavior contracts in this module's own directory. */
   include?: string[];
   exclude?: string[];
   setupFiles?: string[];
@@ -29,16 +31,11 @@ export interface VitestConfigOptions {
   contractsModule?: string;
 }
 
-// Matching both extensions would double-collect each contract when a developer
-// runs build:lib without cleaning: this module's own URL is `.ts` running from
-// source and `.js` once tsup compiles it, so one set of globs follows it.
-const CONTRACT_INCLUDE = import.meta.url.endsWith('.ts')
-  ? ['**/src/testing/registry.contract.ts', '**/src/testing/component-behavior.contract.ts']
-  : ['**/src/testing-js/registry.contract.js', '**/src/testing-js/component-behavior.contract.js'];
+const CONTRACT_INCLUDE = ['registry.contract.{ts,js}', 'component-behavior.contract.{ts,js}'];
 
-/** Vitest's own default drops everything under `node_modules`, which is where
- *  an installed package's contract file lives. */
-const CONTRACT_EXCLUDE = ['**/dist/**', '**/dist-plugin/**', '**/.git/**'];
+// A root-wide glob also collects the stale package copy inside any nested
+// project's node_modules, which then fails against this project's registry.
+const CONTRACT_DIR = path.dirname(fileURLToPath(import.meta.url));
 
 /**
  * The project's Vite config plus what the registry contract needs on top.
@@ -59,8 +56,10 @@ export function createVitestConfig(
     // states the condition for its build, not for a test run under happy-dom.
     resolve: { conditions: ['browser'] },
     test: {
-      include: options.include ?? CONTRACT_INCLUDE,
-      exclude: options.exclude ?? CONTRACT_EXCLUDE,
+      ...(options.include ? { include: options.include } : { dir: CONTRACT_DIR, include: CONTRACT_INCLUDE }),
+      // Vitest's own default drops everything under `node_modules`, which is
+      // where an installed package's contract file lives.
+      exclude: options.exclude ?? [],
       ...(options.setupFiles ? { setupFiles: options.setupFiles } : {}),
       environment: options.environment ?? 'happy-dom',
       environmentOptions: {
