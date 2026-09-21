@@ -19,7 +19,6 @@ to that list, so the two cannot drift apart.
 | `-fill`     | Inner fill (distinct from outer surface)                      |
 | `-color`    | A hairline rule's colour, or a color no role word above names |
 | `-shadow`   | Box-shadow                                                    |
-| `-opacity`  | Opacity (0–1)                                                 |
 | `-blur`     | Backdrop or filter blur radius                                |
 | `-tint`     | A wash over the surface, aliasing a `--tint-*` stop            |
 | `-indicator` | The colour of the bar or stripe that marks an item             |
