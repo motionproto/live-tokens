@@ -57,15 +57,11 @@
     /** The width of that line, as any CSS length. Overrides
         `--imagelightbox-tile-border-width`. */
     borderWidth?: string | undefined;
-    /** The scrim's colour behind the open image, for this instance. Overrides
-        `--imagelightbox-scrim-color`. The modal portals to <body>, out of reach
-        of a wrapper around the tile, so a page that wants its own scrim has to
-        say so here. */
+    /** The scrim behind the open image, for this instance, as any CSS fill,
+        such as `var(--scrim-low)`. Overrides `--imagelightbox-scrim-surface`.
+        The modal portals to <body>, out of reach of a wrapper around the tile,
+        so a page that wants its own scrim has to say so here. */
     scrim?: string | undefined;
-    /** How much of that colour covers the page, 0 to 1. Overrides
-        `--imagelightbox-scrim-opacity`, and stands on its own: the colour it
-        mixes with is whatever the theme holds. */
-    scrimOpacity?: number | undefined;
     /** When true, shows a bottom toolbar (zoom in/out + percent) and a top-right close button, and enables wheel/drag zoom inside the open modal. When false, click anywhere closes. */
     extended?: boolean;
     /** Maximum zoom, as a multiple of the image's natural resolution: `1` = 100%
@@ -102,7 +98,6 @@
     border = undefined,
     borderWidth = undefined,
     scrim = undefined,
-    scrimOpacity = undefined,
     extended = false,
     maxZoom = undefined,
     capNatural = false,
@@ -658,8 +653,7 @@
     <div
       bind:this={overlayEl}
       class="image-lightbox-overlay"
-      style:--imagelightbox-scrim-color={scrim}
-      style:--imagelightbox-scrim-opacity={scrimOpacity}
+      style:--imagelightbox-scrim-surface={scrim}
       class:active={open}
       aria-hidden="true"
       onclick={closeLightbox}
@@ -783,8 +777,7 @@
     --imagelightbox-tile-object-fit:       contain;
 
     /* overlay */
-    --imagelightbox-scrim-color:           var(--scrim-color);
-    --imagelightbox-scrim-opacity:         var(--scrim-opacity-high);
+    --imagelightbox-scrim-surface:         var(--scrim-high);
 
     /* chrome (toolbar + close button) */
     --imagelightbox-chrome-surface:        var(--surface-neutral-low);
@@ -910,11 +903,7 @@
   .image-lightbox-overlay {
     position: fixed;
     inset: 0;
-    background: color-mix(
-      in srgb,
-      var(--imagelightbox-scrim-color) calc(var(--imagelightbox-scrim-opacity) * 100%),
-      transparent
-    );
+    background: var(--imagelightbox-scrim-surface);
     backdrop-filter: blur(var(--blur-md));
     z-index: var(--z-overlay);
     opacity: 0;

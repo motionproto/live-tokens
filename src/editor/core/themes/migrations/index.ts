@@ -82,6 +82,7 @@ import { componentMigration_2026_09_13_sectiondividerSurface } from './2026-09-1
 import { componentMigration_2026_09_20_imagelightboxScrim } from './2026-09-20-imagelightbox-scrim';
 import { componentMigration_2026_09_20_scrimColorAndOpacity } from './2026-09-20-scrim-color-and-opacity';
 import { colorsAndTypeMigration_2026_09_21_washColorAndOpacity } from './2026-09-21-wash-color-and-opacity';
+import { componentMigration_2026_09_21_scrimSurface } from './2026-09-21-scrim-surface';
 import { componentMigration_2026_09_13_cornerbadgePrefix } from './2026-09-13-cornerbadge-prefix';
 import { componentMigration_2026_09_13_toggleLabel } from './2026-09-13-toggle-label';
 import { componentMigration_2026_09_13_collapsiblesectionOpen } from './2026-09-13-collapsiblesection-open';
@@ -138,6 +139,7 @@ export const MIGRATIONS: Migration[] = [
   componentMigration_2026_09_20_imagelightboxScrim,
   componentMigration_2026_09_20_scrimColorAndOpacity,
   colorsAndTypeMigration_2026_09_21_washColorAndOpacity,
+  componentMigration_2026_09_21_scrimSurface,
 ];
 
 function countFor(kind: 'colors-and-type' | 'component-config'): number {

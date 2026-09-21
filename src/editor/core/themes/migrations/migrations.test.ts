@@ -707,6 +707,25 @@ describe('migration runner — schemaVersion gating', () => {
     expect(runMigrations('colors-and-type', 8, out)).toEqual(expected);
   });
 
+  it('component-config v37 → v38: a scrim pair folds into one fill', () => {
+    const cases: Array<[string, Record<string, string>, Record<string, string>]> = [
+      ['dialog',
+        { '--dialog-scrim-color': '--scrim-color', '--dialog-scrim-opacity': '--scrim-opacity-low', '--dialog-radius': '--radius-lg' },
+        { '--dialog-scrim-surface': '--scrim-low', '--dialog-radius': '--radius-lg' }],
+      ['imagelightbox',
+        { '--imagelightbox-scrim-color': '--color-neutral-950', '--imagelightbox-scrim-opacity': '0.5' },
+        { '--imagelightbox-scrim-surface': 'color-mix(in srgb, var(--color-neutral-950) 50%, transparent)' }],
+      ['imagelightbox',
+        { '--imagelightbox-scrim-color': 'color-mix(in srgb, var(--color-neutral-950) 76%, transparent)', '--imagelightbox-scrim-opacity': '1' },
+        { '--imagelightbox-scrim-surface': 'color-mix(in srgb, var(--color-neutral-950) 76%, transparent)' }],
+    ];
+    for (const [component, input, expected] of cases) {
+      const out = runMigrations('component-config', 37, input, { component });
+      expect(out, component).toEqual(expected);
+      expect(runMigrations('component-config', 37, out, { component }), `${component} idempotent`).toEqual(expected);
+    }
+  });
+
   it('component-config at current version → no migrations run', () => {
     const current = { '--button-primary-surface': '--surface-success' };
     const out = runMigrations(

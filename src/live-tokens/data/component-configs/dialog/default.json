@@ -4,8 +4,7 @@
   "createdAt": "2026-05-10T20:05:24.719Z",
   "updatedAt": "2026-09-20T17:00:30.029Z",
   "aliases": {
-    "--dialog-scrim-color": "--scrim-color",
-    "--dialog-scrim-opacity": "--scrim-opacity-high",
+    "--dialog-scrim-surface": "--scrim-high",
     "--dialog-surface": "--surface-neutral-lowest",
     "--dialog-border": "--border-neutral-strong",
     "--dialog-border-width": "--border-width-2",
@@ -33,5 +32,5 @@
     "--dialog-footer-hairline-width": "--border-width-1",
     "--dialog-footer-padding": "--space-16"
   },
-  "schemaVersion": 37
+  "schemaVersion": 38
 }

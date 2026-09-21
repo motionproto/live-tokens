@@ -180,8 +180,7 @@
 <style>
   :global(:root) {
     /* Scrim */
-    --dialog-scrim-color: var(--scrim-color);
-    --dialog-scrim-opacity: var(--scrim-opacity-high);
+    --dialog-scrim-surface: var(--scrim-high);
 
     /* Dialog frame */
     --dialog-surface: var(--surface-neutral-lowest);
@@ -228,11 +227,7 @@
     left: 0;
     width: 100%;
     height: 100%;
-    background: color-mix(
-      in srgb,
-      var(--dialog-scrim-color) calc(var(--dialog-scrim-opacity) * 100%),
-      transparent
-    );
+    background: var(--dialog-scrim-surface);
     display: flex;
     justify-content: center;
     align-items: center;

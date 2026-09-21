@@ -3011,8 +3011,7 @@
       "createdAt": "2026-05-10T20:05:24.719Z",
       "updatedAt": "2026-08-25T01:13:11.520Z",
       "aliases": {
-        "--dialog-scrim-color": "--scrim-color",
-        "--dialog-scrim-opacity": "--scrim-opacity-high",
+        "--dialog-scrim-surface": "--scrim-high",
         "--dialog-surface": "--surface-neutral-lowest",
         "--dialog-border": "--border-neutral-strong",
         "--dialog-border-width": "--border-width-2",
@@ -3156,8 +3155,7 @@
         "--imagelightbox-tile-border": "--color-transparent",
         "--imagelightbox-tile-border-width": "--border-width-1",
         "--imagelightbox-tile-shadow": "--shadow-md",
-        "--imagelightbox-scrim-color": "--scrim-color",
-        "--imagelightbox-scrim-opacity": "--scrim-opacity-high",
+        "--imagelightbox-scrim-surface": "--scrim-high",
         "--imagelightbox-chrome-surface": "--surface-neutral-low",
         "--imagelightbox-chrome-border": "--border-brand",
         "--imagelightbox-chrome-border-width": "--border-width-1",
@@ -4011,5 +4009,5 @@
       }
     }
   },
-  "componentSchemaVersion": 37
+  "componentSchemaVersion": 38
 }

@@ -55,7 +55,7 @@
   let validKeys = $derived(new Set(options.map((o) => o.key)));
   let refMatcher = $derived.by(() => {
     const escaped = varPrefix.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    return new RegExp(`var\\((${escaped}[^)\\s]*)\\)`);
+    return new RegExp(`var\\((${escaped}[^)\\s]+)\\)`);
   });
 
   function parseRef(value: string): string | null {

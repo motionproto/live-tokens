@@ -11,7 +11,6 @@ export type TokenKind =
   | 'length'
   | 'blur'
   | 'scale'
-  | 'opacity'
   | 'shadow'
   | 'font-family'
   | 'font-weight'
@@ -60,9 +59,6 @@ export const KIND_RULES: ReadonlyArray<{
   { kind: 'dot-size',       suffix: ['-dot-size'] },
   { kind: 'blur',           suffix: ['-blur'], prefix: ['--blur-'] },
   { kind: 'scale',          suffix: ['-scale'], prefix: ['--scale-'] },
-  // A strength from 0 to 1 that the component mixes into a colour where it
-  // paints. A palette picker here writes a colour into a number.
-  { kind: 'opacity',        suffix: ['-opacity'], prefix: ['--scrim-opacity'] },
   { kind: 'shadow',         suffix: ['-shadow'], prefix: ['--shadow-'] },
   { kind: 'padding',        suffix: ['-padding', '-margin'] },
   { kind: 'gap',            suffix: ['-gap'] },

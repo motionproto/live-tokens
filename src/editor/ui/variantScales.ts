@@ -45,17 +45,6 @@ export const SCALE: VariantScaleEntry = {
   ],
 };
 
-/** The scrim's three strengths. The middle stop has no suffix, as `--scrim`
- *  and `--tint` have none, so its key is empty. */
-export const SCRIM_OPACITY: VariantScaleEntry = {
-  varPrefix: '--scrim-opacity',
-  options: [
-    { key: '-low', label: 'Low', value: '0.7' },
-    { key: '', label: 'Medium', value: '0.8' },
-    { key: '-high', label: 'High', value: '0.9' },
-  ],
-};
-
 export const BORDER_WIDTH: VariantScaleEntry = {
   varPrefix: '--border-width-',
   options: [

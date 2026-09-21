@@ -16,8 +16,20 @@
 
 - **Scrims default to 70%, 80%, and 90%.** They were 38%, 51%, and 64%. The
   shipped themes use the new stops, and their ImageLightbox scrims read
-  `--scrim-color` at `--scrim-opacity-high` instead of a hand-written fill.
-  Tints stay at 5%, 10%, and 15%.
+  `--scrim-high` instead of a hand-written fill. Tints stay at 5%, 10%, and 15%.
+
+### Changed (breaking)
+
+- **Dialog and ImageLightbox each take one scrim fill again,
+  `-scrim-surface`, defaulting to `--scrim-high`.** The theme composes each
+  `--scrim-*` stop from its colour and strength, so a screen picks a stop the
+  way a hover picks a `--tint-*` stop. `-scrim-color` and `-scrim-opacity`
+  are gone. ImageLightbox's `scrim` prop takes any CSS fill, such as
+  `var(--scrim-low)`, and `scrimOpacity` is gone. Migration
+  `2026-09-21-scrim-surface` folds a saved pair into one value: the scale's
+  colour at one of its strengths becomes that stop, and any other pair becomes
+  the `color-mix()` the screen painted. The editor's `opacity` property kind
+  and its stop picker go with them, since no other property used them.
 
 ### Added
 

@@ -16,5 +16,5 @@
     "--tooltip-padding": "--space-6",
     "--tooltip-shadow": "--shadow-md"
   },
-  "schemaVersion": 37
+  "schemaVersion": 38
 }

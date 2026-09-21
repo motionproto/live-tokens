@@ -9,8 +9,7 @@
     "--imagelightbox-tile-border": "--color-transparent",
     "--imagelightbox-tile-border-width": "--border-width-0",
     "--imagelightbox-tile-shadow": "--shadow-md",
-    "--imagelightbox-scrim-color": "--scrim-color",
-    "--imagelightbox-scrim-opacity": "--scrim-opacity-high",
+    "--imagelightbox-scrim-surface": "--scrim-high",
     "--imagelightbox-chrome-surface": "--surface-neutral-low",
     "--imagelightbox-chrome-border": "--border-brand",
     "--imagelightbox-chrome-border-width": "--border-width-1",
@@ -18,5 +17,5 @@
     "--imagelightbox-chrome-icon": "--text-primary",
     "--imagelightbox-chrome-hover-surface": "--surface-brand-high"
   },
-  "schemaVersion": 37
+  "schemaVersion": 38
 }
