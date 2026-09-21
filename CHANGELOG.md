@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.87.1 — Floating parts stay above the page in sketch mode
+
+### Fixed
+
+- **Sketch mode keeps a floating part's z-index.** The lightbox scrim and
+  close button, the video lightbox, and the tooltip dropped below a sticky
+  header whenever sketch mode drew them. They now stack over the page as
+  they do without sketch mode.
+
 ## 0.87.0 — VideoLightbox play badge
 
 ### Added
