@@ -6,6 +6,7 @@
     whenToUse: 'a screenshot, artwork, or chart whose detail is the point, and for a gallery of them.',
     whenNotToUse: [
       { when: 'the reader takes the picture in at a glance, with no detail to open.', use: 'image' },
+      { when: 'a video clip the reader opens from its still.', use: 'videolightbox' },
     ],
   } satisfies CatalogueEntry;
 </script>

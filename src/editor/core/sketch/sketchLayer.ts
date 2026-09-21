@@ -192,6 +192,13 @@ const PART_SPECS: readonly PartSpec[] = [
   // Close and the two nav chevrons all carry this class; each is fixed and
   // floats over the photo rather than a scrim of its own.
   { sel: '.image-lightbox-chrome', stem: 'imagelightbox-chrome', positioned: true, unmasked: true },
+  // The trigger inside clips the still, so the tile itself stays unclipped.
+  { sel: '.videolightbox', stem: 'videolightbox-tile' },
+  {
+    sel: '.videolightbox-modal', fill: 'var(--videolightbox-scrim-surface)',
+    stroke: 'transparent', positioned: true, unmasked: true,
+  },
+  { sel: '.videolightbox-close', stem: 'videolightbox-chrome', positioned: true, unmasked: true },
 
   // Status blocks
   ...STATUS_VARIANTS.map((v) => ({ sel: `.callout-${v}`, stem: `callout-${v}` })),

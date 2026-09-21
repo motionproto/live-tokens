@@ -114,7 +114,7 @@ describe('sketch layer', () => {
     const rule = buildStylesheet(marker)
       .match(/\[data-sketch\] :is\([^{]*\):is\(([^{]*)\)::before\{mask-image:none;\}/);
     expect(rule).not.toBeNull();
-    expect(rule![1]).toBe('.tooltip, .image-lightbox-overlay, .image-lightbox-chrome, .menuselect');
+    expect(rule![1]).toBe('.tooltip, .image-lightbox-overlay, .image-lightbox-chrome, .videolightbox-modal, .videolightbox-close, .menuselect');
   });
 
   it('names one field for the fill and the icons to share', () => {

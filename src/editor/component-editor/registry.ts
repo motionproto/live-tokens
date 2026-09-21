@@ -24,6 +24,8 @@ import ImageEditor, { allTokens as imageTokens, intrinsics as imageIntrinsics } 
 import { catalogue as imageCatalogue } from '../../system/components/Image.svelte';
 import ImageLightboxEditor, { allTokens as imageLightboxTokens } from './ImageLightboxEditor.svelte';
 import { catalogue as imageLightboxCatalogue } from '../../system/components/ImageLightbox.svelte';
+import VideoLightboxEditor, { allTokens as videoLightboxTokens } from './VideoLightboxEditor.svelte';
+import { catalogue as videoLightboxCatalogue } from '../../system/components/VideoLightbox.svelte';
 import InlineEditActionsEditor, { allTokens as inlineEditActionsTokens } from './InlineEditActionsEditor.svelte';
 import { catalogue as inlineEditActionsCatalogue } from '../../system/components/InlineEditActions.svelte';
 import InputEditor, { allTokens as inputTokens } from './InputEditor.svelte';
@@ -81,7 +83,8 @@ type BuiltInComponentId =
   | 'tabbar'
   | 'toggle'
   | 'tooltip'
-  | 'progressbar';
+  | 'progressbar'
+  | 'videolightbox';
 
 /**
  * Public component id type. Widened to `string` because consumers can register
@@ -253,6 +256,16 @@ const builtInRegistry: Readonly<Record<BuiltInComponentId, RegistryEntry>> = Obj
     editorComponent: ImageLightboxEditor,
     schema: imageLightboxTokens,
     catalogue: imageLightboxCatalogue,
+    origin: 'system',
+  },
+  videolightbox: {
+    id: 'videolightbox',
+    label: 'Video Lightbox',
+    icon: 'fas fa-circle-play',
+    sourceFile: 'src/system/components/VideoLightbox.svelte',
+    editorComponent: VideoLightboxEditor,
+    schema: videoLightboxTokens,
+    catalogue: videoLightboxCatalogue,
     origin: 'system',
   },
   inlineeditactions: {

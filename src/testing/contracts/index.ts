@@ -27,6 +27,7 @@ import { tabBarContract } from './tabbar';
 import { tableContract } from './table';
 import { toggleContract } from './toggle';
 import { tooltipContract } from './tooltip';
+import { videoLightboxContract } from './videolightbox';
 
 export const shippedContracts: ComponentContract[] = [
   badgeContract,
@@ -55,6 +56,7 @@ export const shippedContracts: ComponentContract[] = [
   tableContract,
   toggleContract,
   tooltipContract,
+  videoLightboxContract,
 ];
 
 /** Names the module `selectedContracts` loads a custom component's

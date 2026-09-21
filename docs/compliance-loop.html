@@ -487,7 +487,7 @@
       <span>8 skills</span>
       <span>2 static checkers</span>
       <span>3 test runs</span>
-      <span>26 component contracts</span>
+      <span>27 component contracts</span>
       <span>8 obligations each</span>
     </div>
   </header>
@@ -814,7 +814,7 @@
     <p>Node and happy-dom again, and wiring again, with its own question: whether the runtime does what its callback props promise. The suite lives beside the registry contract and mounts each component's own file with <code>mount</code> from Svelte, then drives every case its contract declares as a real DOM event: a click asks a controlled prop's callback to fire with the argument the case names, or asserts it stays silent, such as under <code>disabled</code>; a prop drives an attribute an action then leaves alone. A component with no callback prop declares the obligation inapplicable, with a reason. A failure reports <span class="mono">contract-behavior</span>, naming the case.</p>
 
     <h3>The eight obligations, under Playwright</h3>
-    <p>The 26 component contracts are data, one file per component, naming that component's parts, states, persistence cases, and theme expectations. A single suite drives every contract through the same eight tests, in a serial describe so the first failure stops the cascade.</p>
+    <p>The 27 component contracts are data, one file per component, naming that component's parts, states, persistence cases, and theme expectations. A single suite drives every contract through the same eight tests, in a serial describe so the first failure stops the cascade.</p>
     <details class="drawer">
       <summary>The component contracts <span class="count">26</span></summary>
       <p class="drawer-note">One file per component in <span class="mono">src/testing/contracts/</span>, named by component id.</p>

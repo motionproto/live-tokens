@@ -3943,6 +3943,29 @@
         "--tooltip-padding": "--space-6",
         "--tooltip-shadow": "--shadow-md"
       }
+    },
+    "videolightbox": {
+      "name": "default",
+      "component": "videolightbox",
+      "createdAt": "2026-09-21T17:00:00.000Z",
+      "updatedAt": "2026-09-21T17:00:00.000Z",
+      "aliases": {
+        "--videolightbox-tile-surface": "--color-transparent",
+        "--videolightbox-tile-border": "--color-transparent",
+        "--videolightbox-tile-border-width": "--border-width-0",
+        "--videolightbox-tile-radius": "--radius-2xl",
+        "--videolightbox-tile-shadow": "--shadow-md",
+        "--videolightbox-scrim-surface": "--scrim-high",
+        "--videolightbox-overlay-padding": "--space-64",
+        "--videolightbox-overlay-duration": "--duration-500",
+        "--videolightbox-overlay-easing": "--ease-out-quad",
+        "--videolightbox-chrome-surface": "--surface-neutral-low",
+        "--videolightbox-chrome-border": "--border-brand",
+        "--videolightbox-chrome-border-width": "--border-width-1",
+        "--videolightbox-chrome-radius": "--radius-full",
+        "--videolightbox-chrome-icon": "--text-primary",
+        "--videolightbox-chrome-hover-surface": "--surface-brand-high"
+      }
     }
   },
   "componentSchemaVersion": 38
