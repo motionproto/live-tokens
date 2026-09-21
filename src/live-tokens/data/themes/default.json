@@ -2259,12 +2259,14 @@
       "--columns-max-width": "1440px",
       "--columns-gutter": "32px",
       "--columns-margin": "0px",
-      "--scrim-low": "color-mix(in srgb, var(--surface-neutral-lowest) 38%, transparent)",
-      "--scrim": "color-mix(in srgb, var(--surface-neutral-lowest) 51%, transparent)",
-      "--scrim-high": "color-mix(in srgb, var(--surface-neutral-lowest) 64%, transparent)",
-      "--tint-low": "color-mix(in srgb, var(--text-primary) 5%, transparent)",
-      "--tint": "color-mix(in srgb, var(--text-primary) 10%, transparent)",
-      "--tint-high": "color-mix(in srgb, var(--text-primary) 15%, transparent)",
+      "--scrim-color": "var(--surface-neutral-lowest)",
+      "--scrim-opacity-low": "0.7",
+      "--scrim-opacity": "0.8",
+      "--scrim-opacity-high": "0.9",
+      "--tint-color": "var(--text-primary)",
+      "--tint-opacity-low": "0.05",
+      "--tint-opacity": "0.1",
+      "--tint-opacity-high": "0.15",
       "--shadow-sm": "1px 1px 2px hsla(237, 18%, 3%, 0.9)",
       "--shadow-md": "3px 3px 6px hsla(237, 18%, 3%, 0.9)",
       "--shadow-lg": "5px 5px 9px hsla(237, 18%, 3%, 0.9)",
@@ -2420,7 +2422,7 @@
         ]
       }
     ],
-    "schemaVersion": 8
+    "schemaVersion": 9
   },
   "componentConfigs": {
     "badge": {

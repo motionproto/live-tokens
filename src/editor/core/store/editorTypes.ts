@@ -23,14 +23,18 @@ export interface ShadowOverrideFlags {
   distance: boolean; blur: boolean; size: boolean;
 }
 
-/** A wash: an aliased color token + an opacity. Emits as
- *  `color-mix(in srgb, var(<alias>) <opacity%>, transparent)`. Scrims dim what
- *  is behind them; tints shade the surface they sit on. */
-export interface WashToken {
+/** One opacity stop of a wash family, emitted as a bare number. */
+export interface WashStop {
   variable: string;
   label: string;
-  alias: string;
   opacity: number;
+}
+
+/** A wash family: one aliased colour and its opacity stops. Scrims dim what is
+ *  behind them; tints shade the surface they sit on. */
+export interface WashScale {
+  color: string;
+  stops: WashStop[];
 }
 
 export interface ColumnsState {
@@ -113,8 +117,8 @@ export interface EditorState {
     overrides: Record<string, ShadowOverrideFlags>;
   };
   washes: {
-    scrims: WashToken[];
-    tints: WashToken[];
+    scrim: WashScale;
+    tint: WashScale;
   };
   columns: ColumnsState;
   components: Record<string, ComponentSlice>;

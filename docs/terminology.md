@@ -143,7 +143,7 @@ Three names for three things paint does over what is already there.
 | Term | Means |
 |---|---|
 | **scrim** | Dims what is behind it; the `--scrim-*` tokens. |
-| **tint** | Shades the surface it sits on; the `--tint-low`, `--tint`, and `--tint-high` stops. |
+| **tint** | Shades the surface it sits on; the `--tint-low`, `--tint`, and `--tint-high` stops, composed from `--tint-color` and `--tint-opacity-*`. |
 | **backdrop** | The polarity of the surface behind an element, light or dark, as `data-backdrop` states it. Backdrop is a fact about a surface and paints nothing. |
 
 ## Theme skill terminology

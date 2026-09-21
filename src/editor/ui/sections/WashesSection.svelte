@@ -1,18 +1,15 @@
 <script lang="ts">
   /**
-   * Scrim + tint stops. A scrim dims what sits behind it; a tint shades the
-   * surface it sits on. Each stop binds an existing color token through
-   * `UIPaletteSelector`; the picker handles family/step selection and opacity,
-   * and writes route through `onwrite` into the washes slice
-   * (see editorStore.makeDefaultWashesState). The slice fans the resulting
-   * color-mix expressions out to :root.
+   * Scrim and tint scales. Each family has one colour, bound to an existing
+   * color token through `UIPaletteSelector`, and three opacity stops. The
+   * slice emits the colour and the stops; tokens.css composes the `--scrim-*`
+   * and `--tint-*` fills that the swatches show.
    */
-  import { editorState, mutate } from '../../core/store/editorStore';
-  import type { WashToken } from '../../core/store/editorTypes';
+  import { editorState, mutate, beginSliderGesture } from '../../core/store/editorStore';
   import {
-    makeDefaultScrimTokens,
-    makeDefaultTintTokens,
-    parseWashCss,
+    makeDefaultWashScale,
+    washColorVar,
+    type WashFamily,
   } from '../../core/themes/slices/washes';
   import UIPaletteSelector from '../UIPaletteSelector.svelte';
 
@@ -23,107 +20,92 @@
 
   let { copiedVar = null, oncopy }: Props = $props();
 
-  type Channel = 'scrim' | 'tint';
+  const FAMILIES: { family: WashFamily; title: string }[] = [
+    { family: 'scrim', title: 'Scrims' },
+    { family: 'tint', title: 'Tints' },
+  ];
 
   function copy(v: string) { oncopy?.(v); }
 
-  /** Translate a UITokenSelector write payload into a slice mutation.
-   *  - `null` → restore this stop's default alias + opacity (reset).
-   *  - bare `--name` → 100% opacity on that alias.
-   *  - `color-mix(in srgb, var(--name) N%, transparent)` → alias + N%.
-   *  - other (incl. `transparent`) → ignored; the picker's "None" option
-   *    doesn't apply to a wash. */
-  function handleWrite(channel: Channel, idx: number, value: string | null) {
-    mutate(`${channel} ${idx} edit`, (s) => {
-      const arr = channel === 'scrim' ? s.washes.scrims : s.washes.tints;
-      const t = arr[idx];
-      if (!t) return;
-      if (value === null) {
-        const defaults = channel === 'scrim' ? makeDefaultScrimTokens() : makeDefaultTintTokens();
-        const d = defaults[idx];
-        if (d) { t.alias = d.alias; t.opacity = d.opacity; }
-        return;
-      }
-      if (value.startsWith('--')) { t.alias = value; t.opacity = 1; return; }
-      const parsed = parseWashCss(value);
-      if (parsed) { t.alias = parsed.alias; t.opacity = parsed.opacity; }
+  /** The fill a stop composes: `--scrim-opacity-low` → `--scrim-low`. */
+  const fillVar = (opacityVar: string) => opacityVar.replace('-opacity', '');
+
+  /** `null` restores the default colour; the picker's full-strength writes are
+   *  bare `--name`s. */
+  function writeColor(family: WashFamily, value: string | null) {
+    mutate(`${family} color edit`, (s) => {
+      if (value === null) s.washes[family].color = makeDefaultWashScale(family).color;
+      else if (value.startsWith('--')) s.washes[family].color = value;
     });
   }
 
-  function copyCss(t: WashToken): string {
-    const pct = Math.round(t.opacity * 100);
-    return pct >= 100 ? `var(${t.alias})` : `color-mix(in srgb, var(${t.alias}) ${pct}%, transparent)`;
+  function writeOpacity(family: WashFamily, idx: number, pct: number) {
+    if (!Number.isFinite(pct)) return;
+    mutate(`${family} opacity edit`, (s) => {
+      const stop = s.washes[family].stops[idx];
+      if (stop) stop.opacity = Math.max(0, Math.min(100, Math.round(pct))) / 100;
+    });
   }
 </script>
 
 <section class="section" id="washes">
   <h2 class="section-title">Washes</h2>
 
-  <h3 class="group-title">Scrims</h3>
-  <div class="washes-grid">
-    {#each $editorState.washes.scrims as token, i (token.variable)}
+  {#each FAMILIES as { family, title } (family)}
+    {@const scale = $editorState.washes[family]}
+    {@const colorVar = washColorVar(family)}
+    <h3 class="group-title">{title}</h3>
+    <div class="washes-grid">
       <div class="wash-row">
-        <div class="wash-swatch-wrap">
-          <div class="wash-swatch" style="background: var({token.variable});"></div>
+        <div class="wash-swatch-wrap" class:wash-swatch-wrap--dark={family === 'tint'}>
+          <div class="wash-swatch" style="background: var({colorVar});"></div>
         </div>
         <div class="wash-meta">
           <button
             class="token-variable copyable"
-            class:copied={copiedVar === token.variable}
-            onclick={() => copy(token.variable)}
-          >{copiedVar === token.variable ? 'copied!' : token.variable}</button>
-          <span class="token-value">{token.label} — {Math.round(token.opacity * 100)}%</span>
+            class:copied={copiedVar === colorVar}
+            onclick={() => copy(colorVar)}
+          >{copiedVar === colorVar ? 'copied!' : colorVar}</button>
+          <span class="token-value">Colour</span>
         </div>
-        <div class="wash-picker">
+        <div class="wash-control">
           <UIPaletteSelector
-            variable={token.variable}
+            variable={colorVar}
             showNone={false}
-            onwrite={(v) => handleWrite('scrim', i, v)}
+            showOpacity={false}
+            onwrite={(v) => writeColor(family, v)}
           />
         </div>
-        <button
-          class="copy-css-btn"
-          title="Copy resolved CSS"
-          onclick={() => copy(copyCss(token))}
-        >
-          {copiedVar === copyCss(token) ? 'copied!' : 'copy css'}
-        </button>
       </div>
-    {/each}
-  </div>
-
-  <h3 class="group-title">Tints</h3>
-  <div class="washes-grid">
-    {#each $editorState.washes.tints as token, i (token.variable)}
-      <div class="wash-row">
-        <div class="wash-swatch-wrap wash-swatch-wrap--dark">
-          <div class="wash-swatch" style="background: var({token.variable});"></div>
+      {#each scale.stops as stop, i (stop.variable)}
+        {@const pct = Math.round(stop.opacity * 100)}
+        {@const fill = fillVar(stop.variable)}
+        <div class="wash-row">
+          <div class="wash-swatch-wrap" class:wash-swatch-wrap--dark={family === 'tint'}>
+            <div class="wash-swatch" style="background: var({fill});"></div>
+          </div>
+          <div class="wash-meta">
+            <button
+              class="token-variable copyable"
+              class:copied={copiedVar === fill}
+              onclick={() => copy(fill)}
+            >{copiedVar === fill ? 'copied!' : fill}</button>
+            <span class="token-value">{stop.label}, {stop.variable}</span>
+          </div>
+          <div class="wash-control wash-opacity">
+            <input type="range" min="0" max="100" value={pct}
+              aria-label="{fill} opacity"
+              onpointerdown={() => beginSliderGesture(`edit ${family} opacity`)}
+              oninput={(e) => writeOpacity(family, i, +e.currentTarget.value)} />
+            <input class="wash-opacity-input" type="number" min="0" max="100" value={pct}
+              aria-label="{fill} opacity, percent"
+              onchange={(e) => writeOpacity(family, i, +e.currentTarget.value)} />
+            <span class="wash-opacity-unit">%</span>
+          </div>
         </div>
-        <div class="wash-meta">
-          <button
-            class="token-variable copyable"
-            class:copied={copiedVar === token.variable}
-            onclick={() => copy(token.variable)}
-          >{copiedVar === token.variable ? 'copied!' : token.variable}</button>
-          <span class="token-value">{token.label} — {Math.round(token.opacity * 100)}%</span>
-        </div>
-        <div class="wash-picker">
-          <UIPaletteSelector
-            variable={token.variable}
-            showNone={false}
-            onwrite={(v) => handleWrite('tint', i, v)}
-          />
-        </div>
-        <button
-          class="copy-css-btn"
-          title="Copy resolved CSS"
-          onclick={() => copy(copyCss(token))}
-        >
-          {copiedVar === copyCss(token) ? 'copied!' : 'copy css'}
-        </button>
-      </div>
-    {/each}
-  </div>
+      {/each}
+    </div>
+  {/each}
 </section>
 
 <style>
@@ -157,7 +139,7 @@
 
   .wash-row {
     display: grid;
-    grid-template-columns: 3.5rem minmax(10rem, 1fr) minmax(14rem, 1.5fr) auto;
+    grid-template-columns: 3.5rem minmax(10rem, 1fr) minmax(14rem, 1.5fr);
     gap: var(--ui-space-12);
     align-items: center;
     padding: var(--ui-space-8) var(--ui-space-12);
@@ -221,21 +203,40 @@
     color: var(--ui-text-muted);
   }
 
-  .wash-picker { min-width: 0; }
+  .wash-control { min-width: 0; }
 
-  .copy-css-btn {
-    all: unset;
-    font-size: var(--ui-font-size-xs);
-    color: var(--ui-text-muted);
-    cursor: pointer;
-    padding: var(--ui-space-2) var(--ui-space-6);
-    border: 1px solid var(--ui-border-low);
-    border-radius: var(--ui-radius-sm);
-    transition: color var(--ui-transition-fast), border-color var(--ui-transition-fast);
+  .wash-opacity {
+    display: flex;
+    align-items: center;
+    gap: var(--ui-space-8);
   }
 
-  .copy-css-btn:hover {
+  .wash-opacity input[type="range"] {
+    flex: 1;
+    min-width: 4rem;
+    accent-color: var(--ui-text-accent);
+    cursor: pointer;
+  }
+
+  .wash-opacity-input {
+    font-size: var(--ui-font-size-xs);
     color: var(--ui-text-primary);
-    border-color: var(--ui-border-high);
+    font-family: var(--ui-font-mono);
+    width: 2.5rem;
+    text-align: right;
+    flex-shrink: 0;
+    background: var(--ui-surface-lowest);
+    border: 1px solid var(--ui-border-low);
+    border-radius: var(--ui-radius-sm);
+    padding: var(--ui-space-2) var(--ui-space-4);
+    -moz-appearance: textfield;
+    appearance: textfield;
+  }
+
+  .wash-opacity-unit {
+    font-size: var(--ui-font-size-xs);
+    color: var(--ui-text-muted);
+    font-family: var(--ui-font-mono);
+    flex-shrink: 0;
   }
 </style>

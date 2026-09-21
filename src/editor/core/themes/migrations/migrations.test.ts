@@ -685,6 +685,28 @@ describe('migration runner — schemaVersion gating', () => {
     expect(out).toEqual(v34);
   });
 
+  it('colors-and-type v8 → v9: each wash family stores one colour and its opacity stops', () => {
+    const v8 = {
+      '--scrim-low': 'color-mix(in srgb, var(--surface-neutral-lowest) 38%, transparent)',
+      '--scrim': 'color-mix(in srgb, var(--surface-neutral-lowest) 51%, transparent)',
+      '--scrim-high': 'var(--surface-neutral-lowest)',
+      '--tint': 'color-mix(in srgb, var(--text-primary) 10%, transparent)',
+      '--tint-high': 'rgba(255, 255, 255, 0.15)',
+    };
+    const expected = {
+      '--scrim-color': 'var(--surface-neutral-lowest)',
+      '--scrim-opacity-low': '0.38',
+      '--scrim-opacity': '0.51',
+      '--scrim-opacity-high': '1',
+      '--tint-color': 'var(--text-primary)',
+      '--tint-opacity': '0.1',
+      '--tint-high': 'rgba(255, 255, 255, 0.15)',
+    };
+    const out = runMigrations('colors-and-type', 8, v8);
+    expect(out).toEqual(expected);
+    expect(runMigrations('colors-and-type', 8, out)).toEqual(expected);
+  });
+
   it('component-config at current version → no migrations run', () => {
     const current = { '--button-primary-surface': '--surface-success' };
     const out = runMigrations(

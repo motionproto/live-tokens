@@ -45,6 +45,9 @@
      *  arbitrary page content (a dropdown panel) and must stay legible there.
      *  A floor also retires "None", which would defeat it. */
     minOpacity?: number;
+    /** When false, the picker writes the colour at full strength and hides its
+     *  opacity control. For a colour whose strength another token holds. */
+    showOpacity?: boolean;
     onchange?: () => void;
     /** Forwarded to UITokenSelector — when set, writes route through this
      *  callback instead of the DOM. See UITokenSelector.onwrite. */
@@ -59,6 +62,7 @@
     selectionsLocked = false,
     familyFilter = null,
     showNone = true,
+    showOpacity = true,
     minOpacity = 0,
     onchange,
     onwrite,
@@ -599,7 +603,7 @@
     </div>
   {/snippet}
   {#snippet subheader()}
-    <div  class="opacity-control" class:hidden={chosenGradient !== null}>
+    <div  class="opacity-control" class:hidden={chosenGradient !== null || !showOpacity}>
       <span class="opacity-label">opacity</span>
       <input type="range" min={minOpacity} max="100" bind:value={opacity} class="opacity-slider" oninput={applyOpacity} />
       <input type="number" min={minOpacity} max="100" bind:value={opacity} class="opacity-input" onchange={applyOpacity} />

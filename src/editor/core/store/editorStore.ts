@@ -152,12 +152,8 @@ export {
 export {
   washesToVars,
   WASH_VAR_NAMES,
-  applyWashVarsToState,
   makeDefaultWashesState,
-  makeDefaultScrimTokens,
-  makeDefaultTintTokens,
-  washTokenToCss,
-  parseWashCss,
+  makeDefaultWashScale,
 } from '../themes/slices/washes';
 
 export {

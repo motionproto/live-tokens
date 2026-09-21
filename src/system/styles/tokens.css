@@ -273,19 +273,24 @@
      instead of darkening it. The three stops stay, composed from the two, for
      anywhere that wants one value. */
   --scrim-color: rgb(20, 3, 0);
-  --scrim-opacity-low: 0.38;
-  --scrim-opacity: 0.51;
-  --scrim-opacity-high: 0.64;
+  --scrim-opacity-low: 0.7;
+  --scrim-opacity: 0.8;
+  --scrim-opacity-high: 0.9;
   --scrim-low: color-mix(in srgb, var(--scrim-color) calc(var(--scrim-opacity-low) * 100%), transparent);
   --scrim: color-mix(in srgb, var(--scrim-color) calc(var(--scrim-opacity) * 100%), transparent);
   --scrim-high: color-mix(in srgb, var(--scrim-color) calc(var(--scrim-opacity-high) * 100%), transparent);
 
   /* Tints — translucent washes that shade the surface they sit on, for a hover
-     or an active row. The theme aliases these to the text color, so a tint
-     lightens a dark theme and darkens a light one without picking a direction. */
-  --tint-low: rgba(255, 255, 255, 0.05);
-  --tint: rgba(255, 255, 255, 0.1);
-  --tint-high: rgba(255, 255, 255, 0.15);
+     or an active row. The theme aliases --tint-color to the text color, so a
+     tint lightens a dark theme and darkens a light one without picking a
+     direction. Colour and strength are separate, as for scrims. */
+  --tint-color: rgb(255, 255, 255);
+  --tint-opacity-low: 0.05;
+  --tint-opacity: 0.1;
+  --tint-opacity-high: 0.15;
+  --tint-low: color-mix(in srgb, var(--tint-color) calc(var(--tint-opacity-low) * 100%), transparent);
+  --tint: color-mix(in srgb, var(--tint-color) calc(var(--tint-opacity) * 100%), transparent);
+  --tint-high: color-mix(in srgb, var(--tint-color) calc(var(--tint-opacity-high) * 100%), transparent);
 
   /* BORDERS — 5-point scales, faint → strong. */
 

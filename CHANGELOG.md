@@ -1,5 +1,34 @@
 # Changelog
 
+## Unreleased — A theme's scrims and tints are a colour and three strengths
+
+### Changed
+
+- **The theme stores each wash family as a colour and three opacity stops.**
+  It writes `--scrim-color` with `--scrim-opacity-low`, `--scrim-opacity`, and
+  `--scrim-opacity-high`, and the same four for tints. It no longer writes the
+  composed `--scrim-*` and `--tint-*` fills. From 0.84.0 Dialog and
+  ImageLightbox read `--scrim-color` and `--scrim-opacity-*`, and themes never
+  set them, so a theme's scrim reached neither screen. The Washes section edits
+  one colour per family and a slider per stop. Migration
+  `2026-09-21-wash-color-and-opacity` splits the composed fills in a saved
+  theme. A fill that is not a `color-mix()` of one token stays as written.
+
+- **Scrims default to 70%, 80%, and 90%.** They were 38%, 51%, and 64%. The
+  shipped themes use the new stops, and their ImageLightbox scrims read
+  `--scrim-color` at `--scrim-opacity-high` instead of a hand-written fill.
+  Tints stay at 5%, 10%, and 15%.
+
+### Added
+
+- **`--tint-color` and `--tint-opacity-low`, `--tint-opacity`,
+  `--tint-opacity-high`.** tokens.css composes the three `--tint-*` stops from
+  them. The additive tokens-css migration `2026-09-21-tint-color-and-opacity`
+  inserts the four names into an existing `tokens.css`. The stops already in
+  that file keep their values; to have them follow `--tint-color`, write each
+  as `color-mix(in srgb, var(--tint-color) calc(var(--tint-opacity) * 100%), transparent)`
+  with its own opacity stop.
+
 ## 0.84.0 — A scrim's colour and strength are separate tokens
 
 ### Added

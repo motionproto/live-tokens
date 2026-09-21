@@ -50,9 +50,9 @@ export const SCALE: VariantScaleEntry = {
 export const SCRIM_OPACITY: VariantScaleEntry = {
   varPrefix: '--scrim-opacity',
   options: [
-    { key: '-low', label: 'Low', value: '0.38' },
-    { key: '', label: 'Medium', value: '0.51' },
-    { key: '-high', label: 'High', value: '0.64' },
+    { key: '-low', label: 'Low', value: '0.7' },
+    { key: '', label: 'Medium', value: '0.8' },
+    { key: '-high', label: 'High', value: '0.9' },
   ],
 };
 

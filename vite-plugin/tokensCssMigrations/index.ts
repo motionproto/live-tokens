@@ -28,6 +28,7 @@ import { tokensCssMigration_2026_08_27_editorialLargeSteps } from './migrations/
 import { tokensCssMigration_2026_09_01_scrimRename } from './migrations/2026-09-01-scrim-rename';
 import { tokensCssMigration_2026_09_01_tintScale } from './migrations/2026-09-01-tint-scale';
 import { tokensCssMigration_2026_09_20_scrimColorAndOpacity } from './migrations/2026-09-20-scrim-color-and-opacity';
+import { tokensCssMigration_2026_09_21_tintColorAndOpacity } from './migrations/2026-09-21-tint-color-and-opacity';
 
 export type { TokensCssMigration } from './types';
 export {
@@ -63,6 +64,7 @@ export const TOKENS_CSS_MIGRATIONS: TokensCssMigration[] = [
   tokensCssMigration_2026_09_01_scrimRename,
   tokensCssMigration_2026_09_01_tintScale,
   tokensCssMigration_2026_09_20_scrimColorAndOpacity,
+  tokensCssMigration_2026_09_21_tintColorAndOpacity,
 ];
 
 export interface RunResult {

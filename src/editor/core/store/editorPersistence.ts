@@ -14,13 +14,13 @@
  */
 
 import { get } from 'svelte/store';
-import type { EditorState } from './editorTypes';
+import type { EditorState, WashScale } from './editorTypes';
 import { storageKey } from './editorConfig';
 import { store } from './editorCore';
 import { quietGet, quietSet } from '../storage/storage';
 import { isGradientSlot, makeDefaultGradients } from '../themes/slices/gradients';
 import { seedShadowsFromDom } from '../themes/slices/shadows';
-import { makeDefaultScrimTokens, makeDefaultTintTokens } from '../themes/slices/washes';
+import { makeDefaultWashScale, type WashFamily } from '../themes/slices/washes';
 import { sanitizeHarmonyAxes } from '../palettes/colorHarmony';
 import {
   renameBackgroundPaletteKey,
@@ -78,34 +78,57 @@ function migrateGradients(state: EditorState): EditorState {
 // calls `Object.entries(slice.config)` unconditionally, so backfill the
 // required fields and drop any non-object slice before the state reaches the
 // renderer. Spread preserves optional fields like `unlinked`.
-// The washes slice was `overlays: { tokens, hoverTokens }` before the scrim and
-// tint renames, and `hydrate` shallow-merges, so a persisted state from an
-// older build replaces `washes` wholesale and arrives without `tints`.
-// `washesToVars` iterates both lists unconditionally, so reshape here: carry the
-// stops across under their new names, and rewrite the variable each one carries.
-const WASH_VAR_RENAMES: Record<string, string> = {
-  '--overlay-low': '--scrim-low',
-  '--overlay': '--scrim',
-  '--overlay-high': '--scrim-high',
-  '--hover-low': '--tint-low',
-  '--hover': '--tint',
-  '--hover-high': '--tint-high',
+// A persisted washes slice can predate two reshapes. Before the scrim and tint
+// renames it was `overlays: { tokens, hoverTokens }`; until 0.85.0 each family
+// was a list of `{variable, alias, opacity}` stops, each carrying its own
+// colour. `hydrate` shallow-merges, so an older build's `washes` arrives whole
+// in that shape, and `washesToVars` reads `color` and `stops` unconditionally.
+// Reshape here: the family takes the base stop's colour, and each stop its
+// opacity under the new variable.
+const LEGACY_STOP_OPACITY_VARS: Record<string, string> = {
+  '--overlay-low': '--scrim-opacity-low',
+  '--overlay': '--scrim-opacity',
+  '--overlay-high': '--scrim-opacity-high',
+  '--scrim-low': '--scrim-opacity-low',
+  '--scrim': '--scrim-opacity',
+  '--scrim-high': '--scrim-opacity-high',
+  '--hover-low': '--tint-opacity-low',
+  '--hover': '--tint-opacity',
+  '--hover-high': '--tint-opacity-high',
+  '--tint-low': '--tint-opacity-low',
+  '--tint': '--tint-opacity',
+  '--tint-high': '--tint-opacity-high',
 };
 
 type LegacyWashes = {
+  scrim?: unknown;
+  tint?: unknown;
   scrims?: unknown;
   tints?: unknown;
   hoverTokens?: unknown;
   tokens?: unknown;
 };
 
-/** Carry a persisted stop list forward, or fall back to the shipped defaults. */
-function washList(raw: unknown, fallback: () => EditorState['washes']['scrims']) {
-  if (!Array.isArray(raw) || raw.length === 0) return fallback();
-  const carried = raw
-    .filter((t): t is EditorState['washes']['scrims'][number] => !!t && typeof t === 'object' && 'variable' in t)
-    .map((t) => ({ ...t, variable: WASH_VAR_RENAMES[t.variable] ?? t.variable }));
-  return carried.length > 0 ? carried : fallback();
+type LegacyStop = { variable: string; alias?: unknown; opacity?: unknown };
+
+function isScale(raw: unknown): raw is WashScale {
+  return !!raw && typeof raw === 'object'
+    && typeof (raw as WashScale).color === 'string'
+    && Array.isArray((raw as WashScale).stops);
+}
+
+function washScale(current: unknown, legacyList: unknown, family: WashFamily): WashScale {
+  if (isScale(current)) return current;
+  const scale = makeDefaultWashScale(family);
+  if (!Array.isArray(legacyList)) return scale;
+  const stops = legacyList.filter((t): t is LegacyStop => !!t && typeof t === 'object' && 'variable' in t);
+  const base = stops.find((t) => LEGACY_STOP_OPACITY_VARS[t.variable] === `--${family}-opacity`) ?? stops[0];
+  if (typeof base?.alias === 'string') scale.color = base.alias;
+  for (const t of stops) {
+    const stop = scale.stops.find((s) => s.variable === LEGACY_STOP_OPACITY_VARS[t.variable]);
+    if (stop && typeof t.opacity === 'number') stop.opacity = t.opacity;
+  }
+  return scale;
 }
 
 export function normalizeWashes(state: EditorState): EditorState {
@@ -113,8 +136,8 @@ export function normalizeWashes(state: EditorState): EditorState {
   const legacy = ((state as unknown as { overlays?: LegacyWashes }).overlays ?? {}) as LegacyWashes;
   const next = { ...state } as EditorState & { overlays?: unknown };
   next.washes = {
-    scrims: washList(washes.scrims ?? legacy.tokens, makeDefaultScrimTokens),
-    tints: washList(washes.tints ?? washes.hoverTokens ?? legacy.hoverTokens, makeDefaultTintTokens),
+    scrim: washScale(washes.scrim, washes.scrims ?? legacy.tokens, 'scrim'),
+    tint: washScale(washes.tint, washes.tints ?? washes.hoverTokens ?? legacy.hoverTokens, 'tint'),
   };
   delete next.overlays;
   return next;
