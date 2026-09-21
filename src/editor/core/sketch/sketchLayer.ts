@@ -867,7 +867,10 @@ export function buildStylesheet(s: SketchStyleSettings): string {
       `--sketch-jit-rot:var(--sketch-jit-rot-base);` +
       `--sketch-jit-scale:var(--sketch-jit-scale-base);` +
       `--sketch-corner-spread:var(--sketch-corner-spread-base);` +
-      `z-index:0;` +
+      // Holds the fill's z-index:-1 inside the part. A z-index would do the same
+      // but overwrite the one a floating part stacks by: a lightbox scrim or a
+      // tooltip at 0 falls under the page's sticky header.
+      `isolation:isolate;` +
       // The shadow is re-cast on the fill layer, where it follows the shape
       // that is actually drawn.
       `background:transparent !important;border-color:transparent !important;` +

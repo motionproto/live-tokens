@@ -117,6 +117,13 @@ describe('sketch layer', () => {
     expect(rule![1]).toBe('.tooltip, .image-lightbox-overlay, .image-lightbox-chrome, .videolightbox-modal, .videolightbox-close, .menuselect');
   });
 
+  it('leaves each part stacking at its own z-index', () => {
+    const host = buildStylesheet(marker).match(/\[data-sketch\] :is\([^{]*\)\{--sketch-jit-x:[^}]*\}/);
+    expect(host).not.toBeNull();
+    expect(host![0]).toContain('isolation:isolate;');
+    expect(host![0]).not.toMatch(/z-index/);
+  });
+
   it('names one field for the fill and the icons to share', () => {
     const css = buildStylesheet(marker);
     expect(css.match(/--sketch-mask:url/g)).toHaveLength(1);
