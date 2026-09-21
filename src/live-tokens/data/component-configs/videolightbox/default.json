@@ -18,7 +18,18 @@
     "--videolightbox-chrome-border-width": "--border-width-1",
     "--videolightbox-chrome-radius": "--radius-full",
     "--videolightbox-chrome-icon": "--text-primary",
-    "--videolightbox-chrome-hover-surface": "--surface-brand-high"
+    "--videolightbox-chrome-hover-surface": "--surface-brand-high",
+    "--videolightbox-badge-default-surface": "--surface-brand-lower",
+    "--videolightbox-badge-default-border": "--border-brand-medium",
+    "--videolightbox-badge-default-border-width": "--border-width-2",
+    "--videolightbox-badge-default-icon": "--text-primary",
+    "--videolightbox-badge-default-size": "--space-64",
+    "--videolightbox-badge-default-icon-size": "--icon-size-4xl",
+    "--videolightbox-badge-duration": "--duration-200",
+    "--videolightbox-badge-easing": "--ease-out-quad",
+    "--videolightbox-badge-hover-surface": "--surface-brand",
+    "--videolightbox-badge-hover-border": "--border-brand-strong",
+    "--videolightbox-badge-hover-icon": "--text-primary"
   },
   "schemaVersion": 38
 }

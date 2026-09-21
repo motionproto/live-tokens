@@ -19,9 +19,20 @@
       { label: 'border width', canBeLinked: true, element: 'close', variable: '--videolightbox-chrome-border-width' },
       { label: 'corner radius', canBeLinked: true, element: 'close', variable: '--videolightbox-chrome-radius' },
       { label: 'icon color', element: 'close', variable: '--videolightbox-chrome-icon' },
+      { label: 'surface color', element: 'badge', variable: '--videolightbox-badge-default-surface' },
+      { label: 'border color', element: 'badge', variable: '--videolightbox-badge-default-border' },
+      { label: 'border width', canBeLinked: true, element: 'badge', variable: '--videolightbox-badge-default-border-width' },
+      { label: 'size', canBeLinked: true, element: 'badge', variable: '--videolightbox-badge-default-size' },
+      { label: 'icon color', element: 'badge', variable: '--videolightbox-badge-default-icon' },
+      { label: 'icon size', canBeLinked: true, element: 'badge', variable: '--videolightbox-badge-default-icon-size' },
+      { label: 'hover duration', element: 'badge', variable: '--videolightbox-badge-duration' },
+      { label: 'hover easing', element: 'badge', variable: '--videolightbox-badge-easing' },
     ],
     hover: [
       { label: 'surface color', element: 'close', variable: '--videolightbox-chrome-hover-surface' },
+      { label: 'surface color', element: 'badge', variable: '--videolightbox-badge-hover-surface' },
+      { label: 'border color', element: 'badge', variable: '--videolightbox-badge-hover-border' },
+      { label: 'icon color', element: 'badge', variable: '--videolightbox-badge-hover-icon' },
     ],
   };
 
@@ -39,7 +50,7 @@
 <ComponentEditorBase
   {component}
   title="Video Lightbox"
-  description="A small still that fades the page away and plays its clip in the middle of the screen. Click anywhere, the close button, or Escape to close it. The open preview beside the tile shows the overlay and close button in place."
+  description="A small still that fades the page away and plays its clip in the middle of the screen. The play badge over the still is optional. Click anywhere, the close button, or Escape to close it. The open preview beside the tile shows the overlay and close button in place."
   tokens={allTokens}
 >
   <VariantGroup
@@ -47,7 +58,7 @@
     title="Video Lightbox"
     {states}
     {component}
-    elementOrder={['tile', 'overlay', 'close']}
+    elementOrder={['tile', 'badge', 'overlay', 'close']}
   >
     {#snippet children({ activeState })}
     <div class="videolightbox-demo">
@@ -58,6 +69,8 @@
           alt="Navigation running on a smartwatch"
           width={480}
           height={552}
+          chrome="badge"
+          class={activeState === 'hover' ? 'force-hover' : ''}
         />
       </div>
       <div class="videolightbox-demo-open">

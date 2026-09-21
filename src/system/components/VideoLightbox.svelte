@@ -11,6 +11,8 @@
       { when: 'footage that plays in the layout at full size, with no thumbnail to open.', use: 'videoframe' }
     ],
     props: {
+      chrome:
+        '`badge` lays a play badge over the thumbnail, so a still reads as a clip. `none` shows the still alone.',
       inline: 'true renders the open lightbox in flow, without the thumbnail. The editor preview uses it.',
       loop: 'true repeats the clip.',
       hoverPlay:
@@ -40,6 +42,8 @@
     width?: number;
     height?: number;
     loop?: boolean;
+    /** "badge" lays a play badge over the thumbnail. */
+    chrome?: 'badge' | 'none';
     /** Renders the open lightbox in flow, without the thumbnail. Used by the editor preview. */
     inline?: boolean;
     /** Plays the thumbnail muted under the pointer. Still for reduced motion. */
@@ -52,7 +56,7 @@
     thumbFit?: 'contain' | 'cover';
     /** Seconds in that the hover preview starts. The open clip still plays from 0. */
     previewStart?: number;
-    /** Editor preview hook: `force-hover` on an `inline` lightbox paints the close button's hover. */
+    /** Editor preview hook: `force-hover` paints the hover of the close button on an `inline` lightbox, and of the badge on a tile. */
     class?: string;
   }
 
@@ -63,6 +67,7 @@
     width = undefined,
     height = undefined,
     loop = false,
+    chrome = 'none',
     inline = false,
     hoverPlay = false,
     stretch = false,
@@ -195,6 +200,11 @@
       {:else}
         <img src={poster} alt="" {width} {height} draggable="false" />
       {/if}
+      {#if chrome === 'badge'}
+        <span class="videolightbox-badge sketch-chip" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.5v13l11-6.5z" /></svg>
+        </span>
+      {/if}
     </button>
   </div>
 
@@ -253,6 +263,19 @@
     --videolightbox-chrome-radius: var(--radius-full);
     --videolightbox-chrome-icon: var(--text-primary);
     --videolightbox-chrome-hover-surface: var(--surface-brand-high);
+
+    --videolightbox-badge-default-surface: var(--surface-brand-lower);
+    --videolightbox-badge-default-border: var(--border-brand-medium);
+    --videolightbox-badge-default-border-width: var(--border-width-2);
+    --videolightbox-badge-default-icon: var(--text-primary);
+    --videolightbox-badge-default-size: var(--space-64);
+    --videolightbox-badge-default-icon-size: var(--icon-size-4xl);
+    --videolightbox-badge-duration: var(--duration-200);
+    --videolightbox-badge-easing: var(--ease-out-quad);
+
+    --videolightbox-badge-hover-surface: var(--surface-brand);
+    --videolightbox-badge-hover-border: var(--border-brand-strong);
+    --videolightbox-badge-hover-icon: var(--text-primary);
   }
 
   .videolightbox {
@@ -265,8 +288,11 @@
 
   /* The clip lives one level in: the sketch layer forces the drawn part's
      overflow visible, which would let the picture's square corners escape. */
+  /* One grid cell stacks the badge on the still without positioning the
+     trigger, which would capture a `stretch` pad meant for the ancestor. */
   .videolightbox-trigger {
-    display: block;
+    display: grid;
+    grid-template: minmax(0, 1fr) / minmax(0, 1fr);
     width: 100%;
     height: 100%;
     padding: 0;
@@ -297,11 +323,58 @@
 
   .videolightbox-trigger img,
   .videolightbox-trigger .videolightbox-thumb {
+    grid-area: 1 / 1;
     display: block;
     width: 100%;
     height: 100%;
     object-fit: var(--videolightbox-thumb-fit, contain);
     user-select: none;
+  }
+
+  .videolightbox-badge {
+    grid-area: 1 / 1;
+    place-self: center;
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: var(--videolightbox-badge-default-size);
+    height: var(--videolightbox-badge-default-size);
+    color: var(--videolightbox-badge-default-icon);
+    background: var(--videolightbox-badge-default-surface);
+    border: var(--videolightbox-badge-default-border-width) solid
+      var(--videolightbox-badge-default-border);
+    border-radius: var(--radius-full);
+    transition:
+      background var(--videolightbox-badge-duration) var(--videolightbox-badge-easing),
+      border-color var(--videolightbox-badge-duration) var(--videolightbox-badge-easing),
+      color var(--videolightbox-badge-duration) var(--videolightbox-badge-easing);
+
+    --sketch-fill: var(--videolightbox-badge-default-surface);
+    --sketch-stroke: var(--videolightbox-badge-default-border);
+    --sketch-hatch-color: var(--videolightbox-badge-default-border);
+    --sketch-radius: var(--radius-full);
+    --sketch-shadow: none;
+    /* Travel is stated in px, and the play triangle is small enough to tear. */
+    --sketch-icon-off: var(--sketch-icon-soft);
+  }
+
+  .videolightbox-badge svg {
+    width: var(--videolightbox-badge-default-icon-size);
+    height: var(--videolightbox-badge-default-icon-size);
+    /* The triangle's mass sits left of centre; nudge it back onto the axis. */
+    margin-inline-start: 6%;
+  }
+
+  .videolightbox-trigger:hover .videolightbox-badge,
+  .videolightbox:global(.force-hover) .videolightbox-badge {
+    color: var(--videolightbox-badge-hover-icon);
+    background: var(--videolightbox-badge-hover-surface);
+    border-color: var(--videolightbox-badge-hover-border);
+
+    --sketch-fill: var(--videolightbox-badge-hover-surface);
+    --sketch-stroke: var(--videolightbox-badge-hover-border);
+    --sketch-hatch-color: var(--videolightbox-badge-hover-border);
   }
 
   .videolightbox-modal {

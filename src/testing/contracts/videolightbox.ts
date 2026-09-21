@@ -9,6 +9,8 @@ export const videoLightboxContract: ComponentContract = {
   parts: {
     root: '.videolightbox',
     trigger: '.videolightbox-trigger',
+    badge: '.videolightbox-badge',
+    badgeIcon: '.videolightbox-badge svg',
     overlay: '.videolightbox-modal.inline',
     closeButton: '.videolightbox-modal.inline .videolightbox-close',
     closeIcon: '.videolightbox-modal.inline .videolightbox-close svg',
@@ -35,6 +37,24 @@ export const videoLightboxContract: ComponentContract = {
           color: '--videolightbox-chrome-icon',
         },
         closeIcon: { stroke: '--videolightbox-chrome-icon' },
+        badge: {
+          backgroundColor: '--videolightbox-badge-default-surface',
+          borderTopColor: '--videolightbox-badge-default-border',
+          borderTopWidth: '--videolightbox-badge-default-border-width',
+          width: '--videolightbox-badge-default-size',
+          color: '--videolightbox-badge-default-icon',
+        },
+        badgeIcon: { width: '--videolightbox-badge-default-icon-size' },
+      },
+    },
+    {
+      state: 'hover',
+      paints: {
+        badge: {
+          backgroundColor: '--videolightbox-badge-hover-surface',
+          borderTopColor: '--videolightbox-badge-hover-border',
+          color: '--videolightbox-badge-hover-icon',
+        },
       },
     },
     // The inline close button has no handler, so the click leaves the pointer
@@ -48,6 +68,8 @@ export const videoLightboxContract: ComponentContract = {
   uncovered: {
     '--videolightbox-overlay-duration': 'consumed inside the opacity transition shorthand, never a standalone computed value',
     '--videolightbox-overlay-easing': 'consumed inside the opacity transition shorthand, never a standalone computed value',
+    '--videolightbox-badge-duration': 'consumed inside the badge transition shorthand, never a standalone computed value',
+    '--videolightbox-badge-easing': 'consumed inside the badge transition shorthand, never a standalone computed value',
   },
   persistence: {
     cases: [

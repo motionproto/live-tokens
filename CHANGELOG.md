@@ -1,5 +1,16 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+- **`VideoLightbox` takes `chrome="badge"`.** A play badge sits over the
+  thumbnail, so a still reads as a clip before anyone clicks it. The default,
+  `none`, shows the still alone, as before. The badge has its own
+  `--videolightbox-badge-*` tokens with a hover state, editable in the
+  component editor. Every shipped theme takes its values from that theme's
+  VideoFrame badge, so the two match.
+
 ## 0.86.0 — Video and slides ship as components
 
 ### Added
