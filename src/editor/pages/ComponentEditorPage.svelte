@@ -193,7 +193,7 @@
     </div>
     {#if drawerOpen}
       <div class="sidebar-footer">
-        <ThemePanel showComponentsLink={false} />
+        <ThemePanel />
       </div>
     {/if}
   </nav>

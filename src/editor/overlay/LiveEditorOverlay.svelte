@@ -47,6 +47,8 @@
     projectRoot = INJECTED_PROJECT_ROOT
   }: Props = $props();
 
+  let activeLink = $derived(navLinks.find((l) => l.path === $route));
+
   // Dev-only; skip inside iframe (editor route embeds this app).
   const isDev = import.meta.env.DEV;
   const isInIframe = typeof window !== 'undefined' && window.parent !== window;
@@ -677,22 +679,19 @@
 
     {#if open && navLinks.length > 0}
       <div class="seg-group" transition:fade={BTN_FADE}>
-        <span class="seg-label">Active Page:</span>
-        <div class="seg-bar" role="tablist" aria-label="Underlying page">
-          {#each navLinks as link (link.path)}
-            <button
-              type="button"
-              role="tab"
-              class="seg-pill"
-              class:active={$route === link.path}
-              aria-selected={$route === link.path}
-              disabled={link.disabled}
-              onclick={() => navigate(link.path)}
-            >
-              {#if link.icon}<i class="fas {link.icon}"></i>{/if}
-              <span>{link.label}</span>
-            </button>
-          {/each}
+        <label class="seg-label" for="lt-active-page">Active Page:</label>
+        <div class="page-select">
+          {#if activeLink?.icon}<i class="fas {activeLink.icon} page-icon"></i>{/if}
+          <select
+            id="lt-active-page"
+            value={$route}
+            onchange={(e) => navigate(e.currentTarget.value)}
+          >
+            {#each navLinks as link (link.path)}
+              <option value={link.path} disabled={link.disabled}>{link.label}</option>
+            {/each}
+          </select>
+          <i class="fas fa-chevron-down page-caret"></i>
         </div>
       </div>
     {/if}
@@ -1116,61 +1115,55 @@
     color: var(--ui-text-primary, #fff);
   }
 
-  .seg-bar {
+  .page-select {
+    position: relative;
     display: inline-flex;
     align-items: center;
-    gap: var(--ui-space-4, 4px);
-    padding: 3px;
+  }
+
+  .page-select select {
+    appearance: none;
+    color-scheme: dark;
+    padding: var(--ui-space-4, 4px) calc(var(--ui-space-8, 8px) + 20px) var(--ui-space-4, 4px) var(--ui-space-8, 8px);
     background: rgba(0, 0, 0, 0.55);
     border: 1px solid rgba(255, 255, 255, 0.28);
     border-radius: var(--ui-radius-lg, 6px);
-    box-shadow:
-      inset 0 1px 0 rgba(0, 0, 0, 0.5),
-      0 0 0 1px rgba(0, 0, 0, 0.4);
-  }
-
-  .seg-pill {
-    display: inline-flex;
-    align-items: center;
-    gap: var(--ui-space-4, 4px);
-    padding: var(--ui-space-4, 4px) var(--ui-space-8, 8px);
-    background: transparent;
-    border: 1px solid transparent;
-    border-radius: 3px;
-    color: rgba(255, 255, 255, 0.6);
+    color: var(--ui-text-primary, #fff);
     font-family: inherit;
     font-size: var(--ui-font-size-md, 16px);
     font-weight: var(--ui-font-weight-medium, 500);
     cursor: pointer;
-    transition:
-      background var(--ui-transition-fast, 120ms ease),
-      color var(--ui-transition-fast, 120ms ease),
-      border-color var(--ui-transition-fast, 120ms ease);
+    transition: border-color var(--ui-transition-fast, 120ms ease);
   }
 
-  .seg-pill i {
-    font-size: var(--ui-font-size-md, 16px);
-    opacity: 0.85;
+  .page-icon ~ select {
+    padding-left: calc(var(--ui-space-8, 8px) + 24px);
   }
 
-  .seg-pill:hover:not(:disabled) {
-    color: rgba(255, 255, 255, 0.9);
-  }
-
-  .seg-pill:disabled {
-    color: rgba(255, 255, 255, 0.28);
-    cursor: not-allowed;
-  }
-
-  .seg-pill:disabled i {
-    opacity: 0.5;
-  }
-
-  /* Outlined (not filled) so this reads as sibling to iframe's switcher, not a twin. */
-  .seg-pill.active {
-    color: var(--ui-text-primary, #fff);
+  .page-select select:hover {
     border-color: rgba(255, 255, 255, 0.5);
-    background: linear-gradient(180deg, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0.25) 100%);
+  }
+
+  .page-select select:focus-visible {
+    outline: 2px solid rgba(255, 255, 255, 0.5);
+    outline-offset: 2px;
+  }
+
+  .page-icon,
+  .page-caret {
+    position: absolute;
+    pointer-events: none;
+    color: rgba(255, 255, 255, 0.6);
+  }
+
+  .page-icon {
+    left: var(--ui-space-8, 8px);
+    font-size: var(--ui-font-size-md, 16px);
+  }
+
+  .page-caret {
+    right: var(--ui-space-8, 8px);
+    font-size: var(--ui-font-size-xs, 12px);
   }
 
   .frame-wrap {

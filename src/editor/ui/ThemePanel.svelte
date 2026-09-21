@@ -59,7 +59,6 @@
   } from '../core/store/editorStore';
   import { openThemeSlug } from '../core/store/editorConfigStore';
   import { sketchOffTheme, themeSketchSettings } from '../core/sketch/sketchStore';
-  import { editorView } from '../core/store/editorViewStore';
   import {
     componentActiveRevision,
     productionRevision,
@@ -70,23 +69,10 @@
   } from '../core/productionPulse';
   import { flashStatus } from '../core/flashStatus';
   import UIInfoPopover from './UIInfoPopover.svelte';
-  import UIPillButton from './UIPillButton.svelte';
   import FileLoadList from './FileLoadList.svelte';
   import FilePill from './FilePill.svelte';
   import UIDialog from './UIDialog.svelte';
   import SaveAsDialog from '../component-editor/scaffolding/SaveAsDialog.svelte';
-
-  interface Props {
-    /** False on the components page, which is the surface the link opens. */
-    showComponentsLink?: boolean;
-  }
-
-  let { showComponentsLink = true }: Props = $props();
-
-  let canOpenComponents = $derived(showComponentsLink && $editorView !== 'components');
-  // showComponentsLink=false marks the ThemePanel that renders outside the
-  // view switcher (ComponentEditorPage), where neither pill can navigate.
-  let canOpenSketchStyle = $derived(showComponentsLink && $editorView !== 'sketch');
 
   let files: ThemeMeta[] = $state([]);
   let colorsFiles: ColorsAndTypeMeta[] = $state([]);
@@ -180,14 +166,6 @@
     void $componentActiveRevision;
     refreshComponents();
   });
-
-  function openComponents() {
-    editorView.set('components');
-  }
-
-  function openSketchStyle() {
-    editorView.set('sketch');
-  }
 
   onMount(async () => {
     await refreshFiles();
@@ -822,19 +800,16 @@
   <div class="theme-parts">
     <div class="part-head part-static">
       <span class="part-label">Colors &amp; Type</span>
-      <span class="part-summary">
-        {#if pairing}
-          <span class="part-summary-sep">·</span>
-          <span class="part-summary-text" title={pairing}>{pairing}</span>
-        {/if}
-      </span>
+      <span class="part-summary"></span>
       <UIInfoPopover title="Colors &amp; Type" ariaLabel="About colors and type">
         <p>
           <strong>Colors &amp; type</strong> is the part of the theme your design tokens live in. Components read those tokens for their own appearance.
         </p>
-        <p>
-          The two faces named here are the heading and body fonts the page is showing.
-        </p>
+        {#if pairing}
+          <p>
+            The page shows <strong>{pairing}</strong> as its heading and body fonts.
+          </p>
+        {/if}
         <p>
           To load colors and type without touching your shapes, open <strong>Load</strong> above and turn on <strong>Colors and type only</strong>.
         </p>
@@ -852,16 +827,6 @@
           <span>in sync</span>
         {/if}
       </span>
-      {#if canOpenComponents}
-        <UIPillButton
-          size="compact"
-          icon="fa-cubes"
-          title="Open the component editors"
-          onclick={openComponents}
-        >
-          Open
-        </UIPillButton>
-      {/if}
     </div>
 
     <div class="part-head part-static">
@@ -871,21 +836,11 @@
         {#if $sketchOffTheme}
           <span>off the theme</span>
         {:else if $themeSketchSettings}
-          <span class="part-summary-text">{$themeSketchSettings.label}</span>
+          <span>{$themeSketchSettings.label}</span>
         {:else}
           <span>none</span>
         {/if}
       </span>
-      {#if canOpenSketchStyle}
-        <UIPillButton
-          size="compact"
-          icon="fa-pen-nib"
-          title="Open the Sketchstyle view"
-          onclick={openSketchStyle}
-        >
-          Open
-        </UIPillButton>
-      {/if}
       <UIInfoPopover title="Sketchstyle" ariaLabel="About the sketchstyle">
         <p>
           <strong>Sketchstyle</strong> is part of the theme, the same way colors and type are.
@@ -1258,7 +1213,8 @@
     color: var(--ui-text-secondary);
   }
 
-  .part-summary-text {
+  .part-summary > span:not(.part-summary-sep) {
+    min-width: 0;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
