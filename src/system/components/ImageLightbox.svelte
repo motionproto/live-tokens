@@ -62,7 +62,7 @@
         The modal portals to <body>, out of reach of a wrapper around the tile,
         so a page that wants its own scrim has to say so here. */
     scrim?: string | undefined;
-    /** When true, shows a bottom toolbar (zoom in/out + percent) and a top-right close button, and enables wheel/drag zoom inside the open modal. When false, click anywhere closes. */
+    /** When true, shows a bottom toolbar (zoom in/out + percent) and enables wheel/drag zoom inside the open modal. Either way, a click on the unzoomed image closes. */
     extended?: boolean;
     /** Maximum zoom, as a multiple of the image's natural resolution: `1` = 100%
         of the source's real pixels (1 source px = 1 screen px), `2` = 200%. The
@@ -314,8 +314,7 @@
       });
     }
 
-    // Move focus into the modal so keyboard users land inside the dialog; the
-    // stage (tabindex -1) is the fallback when there is no chrome to focus.
+    // Move focus into the modal so keyboard users land inside the dialog.
     (closeBtnEl ?? stageEl)?.focus();
   }
 
@@ -323,7 +322,7 @@
   // the zoom toolbar keeps its bespoke slide so it's handled separately.
   function chromeFadeEls(): HTMLElement[] {
     const els: (HTMLElement | undefined)[] = [];
-    if (extended || isGallery) els.push(closeBtnEl);
+    els.push(closeBtnEl);
     if (isGallery) els.push(prevBtnEl, nextBtnEl, counterEl);
     return els.filter((el): el is HTMLElement => !!el);
   }
@@ -549,11 +548,11 @@
       didDrag = false;
       return;
     }
-    if (!extended && !isGallery) closeLightbox();
+    if (!isGallery && scale <= MIN_SCALE) closeLightbox();
   }
 
   // Keep Tab inside the open dialog. The stage (tabindex -1) is excluded, so an
-  // image-only lightbox with no chrome simply holds focus on the stage.
+  // image-only lightbox holds focus on its close button.
   function trapTab(e: KeyboardEvent) {
     if (!modalEl) return;
     const f = [
@@ -688,21 +687,19 @@
       </div>
     </div>
 
-    {#if extended || isGallery}
-      <button
-        bind:this={closeBtnEl}
-        class="image-lightbox-chrome image-lightbox-close"
-        class:active={open}
-        type="button"
-        aria-label="Close"
-        onclick={closeLightbox}
-      >
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <path d="M18 6L6 18" />
-          <path d="M6 6l12 12" />
-        </svg>
-      </button>
-    {/if}
+    <button
+      bind:this={closeBtnEl}
+      class="image-lightbox-chrome image-lightbox-close"
+      class:active={open}
+      type="button"
+      aria-label="Close"
+      onclick={closeLightbox}
+    >
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M18 6L6 18" />
+        <path d="M6 6l12 12" />
+      </svg>
+    </button>
 
     {#if isGallery}
       <button
