@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.88.0 — Eval results on the testing page
+
+### Changed
+
+- **The testing page reports the eval results.** A new Measured value
+  chapter tabulates the pick-component eval across four arms: with and
+  without the skills, and with and without the CLI. It gives the requirements
+  each arm got right, with its turns, time, and cost. The Skill Atlas loses
+  its Measured value tab, and a `#measured-value` link to the atlas now opens
+  the chapter.
+
 ## 0.87.1 — Floating parts stay above the page in sketch mode
 
 ### Fixed
