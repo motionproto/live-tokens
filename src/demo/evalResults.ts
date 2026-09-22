@@ -1,46 +1,62 @@
-/** One arm of an eval: the same case run with the skills loaded, or without them. */
+/** One arm of an eval: the same case run with or without the skills, and with or without the CLI. */
 export interface EvalArm {
-  label: string;
-  score: number;
+  skills: boolean;
+  cli: boolean;
   rowsRight: string;
-  ranCatalogue: string;
   turns: string;
   seconds: string;
+  cost: string;
 }
 
 export interface EvalResult {
-  id: string;
+  cases: string[];
   date: string;
   packageVersion: string;
   runsPerArm: number;
   requirements: number;
-  arms: [withSkills: EvalArm, without: EvalArm];
+  arms: EvalArm[];
 }
 
 // Recorded by hand from `npm run eval` in the live-tokens repository. The
 // evals do not ship, so the page cannot read a result file at runtime.
 export const pickComponentEval: EvalResult = {
-  id: 'outcome-pick-component',
-  date: '2026-09-20',
-  packageVersion: '0.82.0, plus the unreleased catalogue entry',
+  cases: ['outcome-pick-component', 'outcome-pick-component-no-cli'],
+  date: '2026-09-22',
+  packageVersion: '0.87.1',
   runsPerArm: 3,
   requirements: 12,
   arms: [
     {
-      label: 'With the skills',
-      score: 1,
+      skills: true,
+      cli: true,
       rowsRight: '12 of 12 in all 3 runs',
-      ranCatalogue: '3 of 3 runs',
       turns: '9 to 10',
-      seconds: '42 to 58',
+      seconds: '46 to 76',
+      cost: '$0.41 to $0.46',
     },
     {
-      label: 'Without',
-      score: 0.62,
-      rowsRight: '12 of 12 in the 2 runs that finished',
-      ranCatalogue: '0 of 3 runs',
-      turns: '15 to 16',
-      seconds: '70 to 72, and one run timed out at 300',
+      skills: false,
+      cli: true,
+      rowsRight: '12 of 12 in all 3 runs; 2 of 3 found the CLI on their own',
+      turns: '15 to 17',
+      seconds: '65 to 102',
+      cost: '$0.63 to $0.74',
+    },
+    {
+      skills: true,
+      cli: false,
+      rowsRight: '12 of 12 in all 3 runs',
+      turns: '14 to 20',
+      seconds: '66 to 84',
+      cost: '$0.73 to $0.91',
+    },
+    {
+      skills: false,
+      cli: false,
+      rowsRight: '11 of 12 in one run, which missed requirement 12',
+      turns: '17 to 20',
+      seconds: '113 to 169',
+      cost: '$1.02 to $1.14',
     },
   ],
 };

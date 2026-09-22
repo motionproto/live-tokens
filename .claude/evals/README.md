@@ -5,7 +5,7 @@ never behaviour. Nothing here has ever measured whether these descriptions
 fire when they should, or whether following a skill end to end produces
 anything.
 
-Eleven cases, seven on triggering and four on outcome:
+Twelve cases, seven on triggering and five on outcome:
 
 | Case | Asks |
 |---|---|
@@ -20,6 +20,7 @@ Eleven cases, seven on triggering and four on outcome:
 | `outcome-component-from-brief` | Does create-component reach its gate, run `check-component --strict`, and iterate to exit 0? |
 | `outcome-page-from-brief` | Does create-page run `check-page --strict` on the new page and iterate to exit 0? |
 | `outcome-pick-component` | Across twelve requirements, does the catalogue change which component, variant, and props the model names? |
+| `outcome-pick-component-no-cli` | The same case without the package's `bin`: what does the picker skill contribute apart from the command it names? |
 
 Three of these are negatives, and that is the point. A suite of only positive
 cases scores an added trigger word as a free win, which is how a description
@@ -143,6 +144,27 @@ found all twelve picks right in all six runs. The case now asks for a fixed
 ANSWERS block and matches each row by pattern, so a failure names its row.
 The baseline reaches the same picks by reading the component files, where the
 entries live; the skills get there through the CLI in fewer turns.
+
+## `outcome-pick-component` with and without the CLI, 2026-09-22
+
+Package 0.87.1, three runs per arm, `npm run eval -- --case 'outcome-pick-component*' -j 2`.
+`outcome-pick-component-no-cli` seeds the same project and then removes the
+package's `bin` and `node_modules/.bin`, so `npx live-tokens components` fails
+with no network to fetch it. The skills are unchanged. It has no `check-run`,
+which would fail by construction. The runner's baseline arm on each case
+completes a two-by-two.
+
+| Skills | CLI | Rows right | Ran `live-tokens components` | Turns | Seconds | Cost |
+|---|---|---|---|---|---|---|
+| yes | yes | 12 of 12 in all 3 | 3 of 3 | 9 to 10 | 46 to 76 | $0.41 to $0.46 |
+| no | yes | 12 of 12 in all 3 | 2 of 3 | 15 to 17 | 65 to 102 | $0.63 to $0.74 |
+| yes | no | 12 of 12 in all 3 | n/a | 14 to 20 | 66 to 84 | $0.73 to $0.91 |
+| no | no | 11 of 12 in one run (row 12) | n/a | 17 to 20 | 113 to 169 | $1.02 to $1.14 |
+
+The skill's turn savings come from the command: without it the skill arm takes
+as many turns as the baseline. Unlike 2026-09-20, two of three baseline runs
+found the CLI themselves. The runner deleted the traces, so what each arm did
+after the failed command is unrecorded; pass `--keep-temp` to keep them.
 
 ## `outcome-component-from-brief`, 2026-09-20
 

@@ -1,10 +1,12 @@
 <script lang="ts">
+  import { onMount } from 'svelte';
   import CollapsibleSection from '../system/components/CollapsibleSection.svelte';
   import Panel from '../system/components/Panel.svelte';
   import Table from '../system/components/Table.svelte';
   import Card from '../system/components/Card.svelte';
   import { portal } from '../system/internal/portal';
   import { navigate } from '../editor/core/routing/router';
+  import { pickComponentEval as result } from './evalResults';
 
   let { homeHref = '/demo' }: { homeHref?: string } = $props();
 
@@ -14,12 +16,19 @@
     { id: 'test-runs', title: 'Testing pages and components' },
     { id: 'walkthrough', title: 'Build and check a page' },
     { id: 'reference', title: 'Rule reference' },
+    { id: 'measured-value', title: 'Measured value' },
   ];
 
   // Closed by default: open, the fixed panel covers the full-width figures.
   let contentsOpen = $state(false);
 
   let openRules = $state<Record<string, boolean>>({});
+
+  // The router loads this page lazily, after the browser's own jump to a hash has passed.
+  onMount(() => {
+    const id = window.location.hash.slice(1);
+    if (id) document.getElementById(id)?.scrollIntoView({ block: 'start' });
+  });
 
   function jump(event: MouseEvent, id: string) {
     event.preventDefault();
@@ -344,6 +353,63 @@
     </div>
   </section>
 
+  <section class="chapter" id="measured-value" aria-labelledby="measured-value-title">
+    <div class="chapter-body">
+      <h2 id="measured-value-title">Measured value</h2>
+      <p>An eval asked an agent to choose a component for {result.requirements} requirements. It ran in four arms of {result.runsPerArm} runs each: with and without the skills, and with and without the CLI. The arms chose the same components, with one miss among 144 answers, and differ in turns, time, and cost.</p>
+      <div class="eval-results">
+        <Table>
+          <table aria-label="Eval arms">
+            <thead>
+              <tr>
+                <th scope="col">Skills</th>
+                <th scope="col">CLI</th>
+                <th scope="col">Requirements right</th>
+                <th scope="col">Turns</th>
+                <th scope="col">Seconds</th>
+                <th scope="col">Cost</th>
+              </tr>
+            </thead>
+            <tbody>
+              {#each result.arms as arm (`${arm.skills}-${arm.cli}`)}
+                <tr>
+                  <td>{arm.skills ? 'Yes' : 'No'}</td>
+                  <td>{arm.cli ? 'Yes' : 'No'}</td>
+                  <td>{arm.rowsRight}</td>
+                  <td>{arm.turns}</td>
+                  <td>{arm.seconds}</td>
+                  <td>{arm.cost}</td>
+                </tr>
+              {/each}
+            </tbody>
+          </table>
+        </Table>
+      </div>
+      <ul class="eval-summary">
+        <li><strong>Turns:</strong> the skill saves turns only through the CLI command. Without the CLI, the skill arm takes as many turns as the agent with neither.</li>
+        <li><strong>Time and cost:</strong> the skills and the CLI each save time on their own, and together the run costs less than half as much as with neither.</li>
+        <li><strong>Accuracy:</strong> every arm scores about the same. The choices come from the entries in the component files.</li>
+        <li><strong>Change since 2026-09-20:</strong> in that run, no agent without the skills found the CLI; this time 2 of 3 did, so that arm varies from run to run.</li>
+      </ul>
+      <div class="text-columns">
+        <div>
+          <h3>Method</h3>
+          <ul>
+            <li>Cases <code>{result.cases[0]}</code> and <code>{result.cases[1]}</code>, run on {result.date} at package {result.packageVersion}.</li>
+            <li>Ten requirements with one right component, and two that nothing shipped fits.</li>
+            <li>The second case seeds the same project without the package’s <code>bin</code> folder, so the command the skill names fails. The skills are unchanged.</li>
+            <li>The runner adds the arm without skills to each case.</li>
+            <li>Each requirement has its own pattern grader, so a failure names its row.</li>
+          </ul>
+        </div>
+        <div>
+          <h3>Limits</h3>
+          <p>Three runs per arm is a small sample. The twelve requirements each have a clear answer in the entries. A harder case, where two components both fit, has not been measured.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
   <!-- NOTES, open questions for this page:
   - "Review by eye" (walkthrough step 7) and Figure 2's "Read the page yourself".
     Leaning toward removing both. The create-page skill says "Open the page at
@@ -438,6 +504,11 @@
     grid-column: 2 / -2;
   }
 
+  .chapter-body > .eval-results {
+    grid-column: 2 / -2;
+    margin-block: var(--space-12) var(--space-40);
+  }
+
   .chapter-body > .reference-groups {
     grid-column: 2 / 11;
   }
@@ -473,6 +544,35 @@
     line-height: var(--heading-lg-line-height);
     letter-spacing: var(--heading-lg-letter-spacing);
     margin: var(--space-0) var(--space-0) var(--space-24);
+  }
+
+  .text-columns h3 {
+    font-family: var(--heading-sm-font-family);
+    font-size: var(--heading-sm-font-size);
+    font-weight: var(--heading-sm-font-weight);
+    line-height: var(--heading-sm-line-height);
+    letter-spacing: var(--heading-sm-letter-spacing);
+    margin: var(--space-0) var(--space-0) var(--space-12);
+  }
+
+  .eval-summary {
+    margin: var(--space-0) var(--space-0) var(--space-40);
+    padding-left: var(--space-24);
+    color: var(--text-secondary);
+  }
+
+  .eval-summary li + li {
+    margin-top: var(--space-12);
+  }
+
+  .text-columns ul {
+    margin: var(--space-0);
+    padding-left: var(--space-24);
+    color: var(--text-secondary);
+  }
+
+  .text-columns li + li {
+    margin-top: var(--space-8);
   }
 
   p,
