@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.89.1 — Publish gate stops its dev server
+
+### Fixed
+
+- **The component gate stops the dev server it starts.** It launched
+  `npx vite`, and stopping npx left vite running, still writing into the
+  gate's temp folder while cleanup removed it. Cleanup failed with ENOTEMPTY,
+  and 0.89.0 never reached npm. The gate now runs vite directly and waits for
+  it to exit.
+
 ## 0.89.0 — Bare images
 
 ### Added

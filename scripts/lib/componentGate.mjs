@@ -180,11 +180,17 @@ function writeTestingConfig(dir, { dataDir, componentsPath } = {}) {
  *  version included, with this script never guessing or duplicating that
  *  number. */
 async function seedRealDataDir(dir, port) {
-  const child = spawn('npx', ['vite', '--port', String(port)], { cwd: dir, stdio: 'ignore' });
+  // Spawn vite's own entry, never `npx vite`: a signal to npx never reaches
+  // the vite grandchild, which then outlives the gate and writes into workDir
+  // while cleanup removes it (ENOTEMPTY).
+  const child = spawn(process.execPath, [join(dir, 'node_modules/vite/bin/vite.js'), '--port', String(port)], {
+    cwd: dir,
+    stdio: 'ignore',
+  });
+  const exited = new Promise((res) => child.once('exit', res));
   await sleep(4000);
   child.kill('SIGTERM');
-  await sleep(1000);
-  try { child.kill('SIGKILL'); } catch { /* already gone */ }
+  await exited;
 }
 
 function sleep(ms) {
