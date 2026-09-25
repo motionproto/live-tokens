@@ -17,6 +17,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
+      actions: read     # reads Verify's result for this commit
       id-token: write   # required for npm OIDC trusted publishing + provenance
 
     steps:
@@ -58,17 +59,31 @@ jobs:
       # earlier in the workflow.
       - run: npm install --include=optional --no-audit --no-fund
 
-      - run: npm test --if-present
+      # Verify already runs the type check, unit tests, and e2e suite on the
+      # push to main that carries this commit. Running them again here doubled
+      # a release's wall time, so publish waits on that result instead. A tag
+      # on a commit Verify never saw fails here: push it to main first.
+      - name: Wait for Verify to pass on this commit
+        timeout-minutes: 40
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          SHA=$(git rev-parse HEAD)
+          for _ in $(seq 1 24); do
+            RUN_ID=$(gh run list --workflow=verify.yml --commit "$SHA" --event push --limit 1 --json databaseId --jq '.[0].databaseId // empty')
+            [ -n "$RUN_ID" ] && break
+            sleep 5
+          done
+          if [ -z "$RUN_ID" ]; then
+            echo "No Verify run on $SHA. Push the commit to main, then re-run this workflow." >&2
+            exit 1
+          fi
+          gh run watch "$RUN_ID" --exit-status --interval 30 > /dev/null
+          echo "Verify run $RUN_ID passed on $SHA."
 
       - name: Install Playwright Chromium
         run: npx playwright install --with-deps chromium
-
-      # See verify.yml: four workers oversubscribe a 4-vCPU runner and these
-      # frame-gated specs slow down instead of speeding up.
-      - name: Test live editing in Chromium
-        run: npm run test:e2e
-        env:
-          PLAYWRIGHT_WORKERS: 2
 
       - name: Dry-run packaging (catches missing files, bad exports, etc.)
         run: npm pack --dry-run

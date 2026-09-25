@@ -1,8 +1,9 @@
 name: Verify
 
 # Catches the failure modes that have bitten us right before a publish:
-# type errors, broken plugin build, and packaging regressions. If this is
-# green on main, `publish.yml` will be too.
+# type errors, broken plugin build, and packaging regressions. `publish.yml`
+# gates on this run's result for the tagged commit and does not repeat the
+# type check, unit tests, or e2e suite.
 #
 # Install mirrors publish.yml: `npm install --include=optional` (NOT `npm ci`).
 # The package-lock.json is generated on macOS and cannot capture rolldown's

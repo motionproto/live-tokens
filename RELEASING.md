@@ -53,9 +53,11 @@ release — published docs are the only docs consumers see on npmjs.com.
 ## Pre-flight checklist
 
 CI (`.github/workflows/publish.yml`) runs the same `prepublishOnly` script chain
-that local `npm publish` used to run, plus `npm test`, the Chromium Playwright
-live-editing suite, `npm run check`, and a packaging dry-run (see `verify.yml`).
-So most of this is enforced for you. The
+that local `npm publish` used to run, plus a packaging dry-run. It first waits
+for `verify.yml` to pass on the tagged commit: that run holds `npm run check`,
+`npm test`, and the Chromium Playwright suite, so publish does not repeat them.
+Push the release commit to `main` along with the tag, or publish finds no
+Verify run and fails. So most of this is enforced for you. The
 items below are the ones the workflow can't verify because they're about your
 working tree at tag time.
 
