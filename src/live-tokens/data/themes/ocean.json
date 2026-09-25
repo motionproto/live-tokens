@@ -3127,6 +3127,10 @@
         "--image-default-border": "--border-neutral",
         "--image-default-border-width": "--border-width-1",
         "--image-default-shadow": "--shadow-md",
+        "--image-bare-radius": "--radius-none",
+        "--image-bare-border": "--color-transparent",
+        "--image-bare-border-width": "--border-width-0",
+        "--image-bare-shadow": "--shadow-none",
         "--image-zoom-scale": "--scale-sm"
       }
     },

@@ -1,5 +1,24 @@
 # Changelog
 
+## 0.89.0 — Bare images
+
+### Added
+
+- **`Image` takes `variant="bare"`.** A bare image shows the picture with no
+  border and no shadow, for art that carries its own edge: cut-out art,
+  screenshots with their own frame, photos that bleed into a section. It has
+  its own `--image-bare-*` tokens (radius, border, border width, shadow),
+  editable under the Bare tab in the editor. They default to no radius, a
+  transparent zero-width border, and no shadow. The shipped themes carry them.
+
+### Changed (breaking)
+
+- **`Image`'s height prop is `size`.** `variant` now picks the frame style
+  (`default` or `bare`), and `size` takes the heights `variant` used to:
+  `default`, `banner`, `medium`, `compact`. Rewrite `<Image variant="banner">`
+  as `<Image size="banner">`. `check-page` reports each old use as an
+  `unknown-prop-value` finding.
+
 ## 0.88.0 — Eval results on the testing page
 
 ### Changed

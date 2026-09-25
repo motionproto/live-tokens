@@ -3,18 +3,25 @@
 
   export const component = 'image';
 
-  // Single object: image frame.
-  const states: Record<string, Token[]> = {
-    image: [
-      { label: 'border color', groupKey: 'border', variable: '--image-default-border' },
-      { label: 'border width', groupKey: 'width', variable: '--image-default-border-width' },
-      { label: 'corner radius', groupKey: 'radius', variable: '--image-default-radius' },
-      { label: 'image shadow', groupKey: 'shadow', variable: '--image-default-shadow' },
-      { label: 'zoom amount', groupKey: 'scale', variable: '--image-zoom-scale' },
-    ],
-  };
+  const variants = ['default', 'bare'] as const;
+  type Variant = typeof variants[number];
 
-  export const allTokens: Token[] = Object.values(states).flat();
+  function frameTokens(v: Variant): Token[] {
+    return [
+      { label: 'border color', groupKey: 'border', variable: `--image-${v}-border` },
+      { label: 'border width', groupKey: 'width', variable: `--image-${v}-border-width` },
+      { label: 'corner radius', groupKey: 'radius', variable: `--image-${v}-radius` },
+      { label: 'image shadow', groupKey: 'shadow', variable: `--image-${v}-shadow` },
+    ];
+  }
+  const zoomScale: Token = { label: 'zoom amount', groupKey: 'scale', variable: '--image-zoom-scale' };
+  function variantStates(v: Variant): Record<string, Token[]> {
+    return { [v]: v === 'default' ? [...frameTokens(v), zoomScale] : frameTokens(v) };
+  }
+
+  export const allTokens: Token[] = variants.flatMap((v) => Object.values(variantStates(v)).flat());
+
+  const variantOptions = variants.map((v) => ({ value: v, label: v.charAt(0).toUpperCase() + v.slice(1) }));
 
   // Global zoom defaults. `none` = off; `scale(...)` = on. `--image-zoom-enabled` scales the
   // content within the masked frame (overflow scaling); `--image-grow-enabled` scales the whole
@@ -42,6 +49,7 @@
   import Image from '../../system/components/Image.svelte';
   import VariantGroup from './scaffolding/VariantGroup.svelte';
   import ComponentEditorBase from './scaffolding/ComponentEditorBase.svelte';
+  import { buildSiblings } from './scaffolding/siblings';
   import demoImageUrl from '../../system/assets/offering.webp';
   import { editorState, setComponentAlias } from '../core/store/editorStore';
 
@@ -66,8 +74,8 @@
   const setOverflowScaling = (checked: boolean) => applyZoom(useZoom, checked);
 </script>
 
-<ComponentEditorBase {component} title="Image" description="Framed image with rounded corners, border, and shadow." tokens={allTokens}>
-  <VariantGroup name="image" title="Image" {states} {component}>
+<ComponentEditorBase {component} title="Image" description="Picture in the page flow. Default frames it with rounded corners, a border, and a shadow. Bare shows the picture alone." tokens={allTokens} variants={variantOptions}>
+  <VariantGroup name="default" title="Default" states={variantStates('default')} {component} siblings={buildSiblings(variants, 'default', variantStates)}>
     {#snippet stateActions()}
       <label class="zoom-enable">
         <input type="checkbox" checked={useZoom} onchange={(e) => setUseZoom(e.currentTarget.checked)} />
@@ -78,13 +86,16 @@
         <span>Overflow scaling (mask zoom to frame)</span>
       </label>
     {/snippet}
-    <Image src={demoImageUrl} alt="Demo" variant="banner" zoom={useZoom ? undefined : false} {overflowScaling} forceHover={useZoom} />
+    <Image src={demoImageUrl} alt="Demo" size="banner" zoom={useZoom ? undefined : false} {overflowScaling} forceHover={useZoom} />
     <p class="zoom-help">
       Use zoom on hover: every image scales on hover (a page can still force it per image with the
       <code>zoom</code> prop). Overflow scaling on (default): the content zooms inside the fixed frame,
       masked by overflow. Off: the whole framed image grows past its box. Override per image with
       <code>overflowScaling</code>.
     </p>
+  </VariantGroup>
+  <VariantGroup name="bare" title="Bare" states={variantStates('bare')} {component} siblings={buildSiblings(variants, 'bare', variantStates)}>
+    <Image src={demoImageUrl} alt="Demo" variant="bare" size="banner" />
   </VariantGroup>
 </ComponentEditorBase>
 

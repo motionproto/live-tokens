@@ -10,7 +10,8 @@
     constraints: ['Page CSS paints decoration.'],
     props: {
       variant:
-        "`default` keeps the picture's own proportions, `banner` gives it a tall frame, `medium` and `compact` shorter ones.",
+        '`default` frames the picture with a border and shadow. `bare` drops the frame for pictures that carry their own edge, such as cut-out art or screenshots.',
+      size: "`default` keeps the picture's own proportions, `banner` gives it a tall frame, `medium` and `compact` shorter ones.",
     },
   } satisfies CatalogueEntry;
 </script>
@@ -19,7 +20,8 @@
   interface Props {
     src: string;
     alt: string;
-    variant?: 'default' | 'banner' | 'medium' | 'compact';
+    variant?: 'default' | 'bare';
+    size?: 'default' | 'banner' | 'medium' | 'compact';
     height?: string | undefined;
     /** Zoom the contents on hover (frame stays fixed). `undefined` inherits the editor's
         global "Use zoom" default; `true`/`false` force this instance on/off. */
@@ -42,6 +44,7 @@
     src,
     alt,
     variant = 'default',
+    size = 'default',
     height = undefined,
     zoom = undefined,
     overflowScaling = undefined,
@@ -52,14 +55,14 @@
     forceHover = false,
   }: Props = $props();
 
-  const variantHeights: Record<string, string | undefined> = {
+  const sizeHeights: Record<string, string | undefined> = {
     default: undefined,
     banner: '360px',
     medium: '240px',
     compact: '180px',
   };
 
-  let resolvedHeight = $derived(height ?? variantHeights[variant]);
+  let resolvedHeight = $derived(height ?? sizeHeights[size]);
 
   // Per-instance override of the global zoom intrinsics. `undefined` for a variable leaves
   // :root in charge. Exactly one of the two transforms is ever the scale (the other `none`),
@@ -80,6 +83,7 @@
 
 <div
   class="image"
+  class:bare={variant === 'bare'}
   class:force-hover={forceHover}
   style:height={resolvedHeight}
   style:--image-zoom-enabled={contentHover}
@@ -94,6 +98,10 @@
     --image-default-border: var(--border-neutral);
     --image-default-border-width: var(--border-width-1);
     --image-default-shadow: var(--shadow-md);
+    --image-bare-radius: var(--radius-none);
+    --image-bare-border: var(--color-transparent);
+    --image-bare-border-width: var(--border-width-0);
+    --image-bare-shadow: var(--shadow-none);
     --image-zoom-scale: var(--scale-sm);
     /* Hover-scale targets. Contained mode (`overflowScaling`) scales the content within the
        masked frame; grow mode scales the whole frame so it grows past its box. Each is `none`
@@ -109,6 +117,12 @@
     box-shadow: var(--image-default-shadow);
     transform-origin: center;
     transition: transform var(--duration-300) var(--ease-out-cubic);
+  }
+
+  .image.bare {
+    border-radius: var(--image-bare-radius);
+    border: var(--image-bare-border-width) solid var(--image-bare-border);
+    box-shadow: var(--image-bare-shadow);
   }
 
   img {

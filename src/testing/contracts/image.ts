@@ -1,28 +1,32 @@
-import type { ComponentContract } from '../componentContract';
+import type { ComponentContract, PaintMap } from '../componentContract';
+
+function framePaints(v: 'default' | 'bare'): PaintMap {
+  return {
+    root: {
+      borderTopColor: `--image-${v}-border`,
+      borderTopWidth: `--image-${v}-border-width`,
+      borderRadius: `--image-${v}-radius`,
+      boxShadow: `--image-${v}-shadow`,
+    },
+  };
+}
 
 export const imageContract: ComponentContract = {
   id: 'image',
   origin: 'system',
+  view: { variant: 'Default' },
   root: 'root',
   parts: {
     root: '.image',
     img: '.image img',
   },
   properties: [
-    {
-      paints: {
-        root: {
-          borderTopColor: '--image-default-border',
-          borderTopWidth: '--image-default-border-width',
-          borderRadius: '--image-default-radius',
-          boxShadow: '--image-default-shadow',
-        },
-      },
-    },
+    { variant: 'Default', paints: framePaints('default') },
+    { variant: 'Bare', paints: framePaints('bare') },
   ],
   states: {
     applicable: false,
-    reason: 'the editor renders one token group (image) with no state strip',
+    reason: 'each variant is one frame preset with one state, so the editor renders no state strip',
   },
   uncovered: {
     '--image-zoom-scale': 'consumed inside transform: scale(), never appears verbatim in a computed style',
