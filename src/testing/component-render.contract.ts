@@ -47,16 +47,31 @@ interface ProbeResult {
   unchanged: string[];
 }
 
+const TOKEN_OPTION_SELECTOR = [
+  '.ui-ts-dropdown .static-chip:not(.active):not(:disabled)',
+  '.ui-ts-dropdown .ui-option-item:not(.active):not(:disabled)',
+  '.ui-ts-dropdown .font-size-row:not(.active):not(:disabled)',
+].join(', ');
+
+/** Every token selector is one component writing to the variable it is
+ *  labelled with, so a click through its dropdown proves the same wiring for
+ *  every property. `tokenWrite` records that proof once per component test. */
+interface ControlProof {
+  tokenWrite: boolean;
+}
+
 /**
- * Exercise each standard token selector through the same click path a designer
- * uses. The rendered-property probe below deliberately writes root variables
- * directly so it can try arbitrary CSS values; this companion gate proves the
- * editor control itself reaches the store and the document root.
+ * The rendered-property probe below writes root variables directly so it can
+ * try arbitrary CSS values. This companion gate proves the editor control
+ * reaches the store and the document root: once per component through the
+ * click path a designer uses, and for every property by opening its dropdown
+ * and finding a value other than the current one to pick.
  */
 async function exerciseVisibleTokenControls(
   page: Page,
   componentAliases: string[],
   exercised: Set<string>,
+  proof: ControlProof,
 ): Promise<void> {
   const group = page.locator('.variant-group:visible');
   const settle = () => page.evaluate(() => new Promise<void>((resolve) =>
@@ -68,44 +83,78 @@ async function exerciseVisibleTokenControls(
     .evaluateAll((elements) => [...new Set(elements
       .map((element) => (element as HTMLElement).dataset.tokenVariable)
       .filter((value): value is string => !!value))]);
+  const pending = variables.filter((variable) => componentAliases.includes(variable) && !exercised.has(variable));
+  if (pending.length === 0) return;
 
-  for (const variable of variables) {
-    if (!componentAliases.includes(variable) || exercised.has(variable)) continue;
-    const selector = group.locator(`.ui-token-selector:visible[data-token-variable="${variable}"]:not(.disabled):not(.locked)`).first();
-    if (await selector.count() === 0) continue;
-    const before = await page.evaluate((name) =>
-      document.documentElement.style.getPropertyValue(name).trim(), variable);
-
-    const optionSelector = [
-      '.ui-ts-dropdown .static-chip:not(.active):not(:disabled)',
-      '.ui-ts-dropdown .ui-option-item:not(.active):not(:disabled)',
-      '.ui-ts-dropdown .font-size-row:not(.active):not(:disabled)',
-    ].join(', ');
-    let after = before;
-    let foundOption = false;
-    // Some semantic options can resolve to the same CSS as the current alias.
-    // Try several distinct visible choices before treating the control as dead.
-    for (let attempt = 0; attempt < 4 && after === before; attempt++) {
-      await settle();
-      await selector.locator('.ui-ts-trigger').click();
-      const options = selector.locator(optionSelector);
-      const count = await options.count();
-      if (count === 0) {
-        // Close an unsupported dropdown before the traversal moves on. The
-        // final coverage assertion reports its precise variable.
-        await selector.locator('.ui-ts-trigger').click();
+  if (!proof.tokenWrite) {
+    for (const variable of pending) {
+      if (await clickThroughTokenControl(page, variable, settle)) {
+        exercised.add(variable);
+        proof.tokenWrite = true;
         break;
       }
-      foundOption = true;
-      await options.nth(attempt % count).click();
-      await settle();
-      after = await page.evaluate((name) =>
-        document.documentElement.style.getPropertyValue(name).trim(), variable);
     }
-    if (!foundOption) continue;
-    expect(after, `${variable} did not write through its editor control`).not.toBe(before);
-    exercised.add(variable);
   }
+
+  const offered = await page.evaluate(async ({ names, optionSelector }) => {
+    const frame = () => new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+    const visibleGroup = [...document.querySelectorAll<HTMLElement>('.variant-group')]
+      .find((element) => element.checkVisibility());
+    const counts: Record<string, number> = {};
+    for (const name of names) {
+      const selector = [...(visibleGroup?.querySelectorAll<HTMLElement>(
+        `.ui-token-selector[data-token-variable="${CSS.escape(name)}"]:not(.disabled):not(.locked)`,
+      ) ?? [])].find((element) => element.checkVisibility());
+      const trigger = selector?.querySelector<HTMLElement>('.ui-ts-trigger');
+      if (!selector || !trigger) continue;
+      trigger.click();
+      await frame();
+      await frame();
+      counts[name] = selector.querySelectorAll(optionSelector).length;
+      trigger.click();
+      await frame();
+    }
+    return counts;
+  }, { names: pending.filter((variable) => !exercised.has(variable)), optionSelector: TOKEN_OPTION_SELECTOR });
+  for (const [variable, count] of Object.entries(offered)) {
+    if (count > 0) exercised.add(variable);
+  }
+}
+
+/** Picks options through the real dropdown until the root variable changes.
+ *  Returns false when the dropdown offers nothing to pick. */
+async function clickThroughTokenControl(
+  page: Page,
+  variable: string,
+  settle: () => Promise<void>,
+): Promise<boolean> {
+  const selector = page.locator('.variant-group:visible')
+    .locator(`.ui-token-selector:visible[data-token-variable="${variable}"]:not(.disabled):not(.locked)`).first();
+  if (await selector.count() === 0) return false;
+  const before = await page.evaluate((name) =>
+    document.documentElement.style.getPropertyValue(name).trim(), variable);
+  let after = before;
+  let foundOption = false;
+  // Some semantic options can resolve to the same CSS as the current alias.
+  // Try several distinct visible choices before treating the control as dead.
+  for (let attempt = 0; attempt < 4 && after === before; attempt++) {
+    await settle();
+    await selector.locator('.ui-ts-trigger').click();
+    const options = selector.locator(TOKEN_OPTION_SELECTOR);
+    const count = await options.count();
+    if (count === 0) {
+      await selector.locator('.ui-ts-trigger').click();
+      break;
+    }
+    foundOption = true;
+    await options.nth(attempt % count).click();
+    await settle();
+    after = await page.evaluate((name) =>
+      document.documentElement.style.getPropertyValue(name).trim(), variable);
+  }
+  if (!foundOption) return false;
+  expect(after, `${variable} did not write through its editor control`).not.toBe(before);
+  return true;
 }
 
 /** Split padding exposes four side selectors and a merge action instead of a
@@ -115,6 +164,7 @@ async function exerciseVisibleSplitPaddingControls(
   page: Page,
   componentAliases: string[],
   exercised: Set<string>,
+  proof: ControlProof,
 ): Promise<void> {
   const group = page.locator('.variant-group:visible');
   const variables = await group.locator('.merge-btn:visible[data-padding-parent-variable]')
@@ -130,7 +180,7 @@ async function exerciseVisibleSplitPaddingControls(
   if (variables.length > 0) {
     await page.evaluate(() => new Promise<void>((resolve) =>
       requestAnimationFrame(() => requestAnimationFrame(() => resolve()))));
-    await exerciseVisibleTokenControls(page, componentAliases, exercised);
+    await exerciseVisibleTokenControls(page, componentAliases, exercised, proof);
   }
 }
 
@@ -491,6 +541,7 @@ for (const [component, aliases] of aliasesByComponent) {
     const seen = new Set<string>();
     const unchanged = new Set<string>();
     const controlExercised = new Set<string>();
+    const proof: ControlProof = { tokenWrite: false };
 
     const probe = async (componentAliases: string[], forced: string[] = []) => {
       const remaining = forced.length > 0
@@ -516,11 +567,11 @@ for (const [component, aliases] of aliasesByComponent) {
       const dialogAction = page.locator('[role="dialog"] button:not(:disabled)').first();
       if (await dialogAction.count()) await dialogAction.hover({ force: true });
 
-      await exerciseVisibleTokenControls(page, componentAliases, controlExercised);
+      await exerciseVisibleTokenControls(page, componentAliases, controlExercised, proof);
       const gates = await exerciseVisibleCompositeControls(page, componentAliases, controlExercised);
       // A gate that just opened may have revealed a row (the tint colour).
-      await exerciseVisibleTokenControls(page, componentAliases, controlExercised);
-      await exerciseVisibleSplitPaddingControls(page, componentAliases, controlExercised);
+      await exerciseVisibleTokenControls(page, componentAliases, controlExercised, proof);
+      await exerciseVisibleSplitPaddingControls(page, componentAliases, controlExercised, proof);
       await exerciseVisibleGradientControls(page, componentAliases, controlExercised);
       const result = await probeCurrentView(page, componentAliases, remaining, [...covered]);
       for (const gate of gates) {
@@ -668,8 +719,9 @@ for (const [component, aliases] of aliasesByComponent) {
       .toEqual([]);
     expect(notReactive, `Properties whose rendered preview did not change:\n${notReactive.join('\n')}`)
       .toEqual([]);
-    expect(notControlExercised, `Properties not exercised through a rendered editor control:\n${notControlExercised.join('\n')}`)
+    expect(notControlExercised, `Properties with no rendered editor control offering another value:\n${notControlExercised.join('\n')}`)
       .toEqual([]);
+    expect(proof.tokenWrite, 'no token selector wrote through its dropdown').toBe(true);
     expect(covered.size).toBe(aliases.length);
   });
 }
