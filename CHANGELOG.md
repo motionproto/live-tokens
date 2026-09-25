@@ -1,5 +1,20 @@
 # Changelog
 
+## 0.89.2 — Faster component tests
+
+### Changed
+
+- **`check-component --tests` runs faster.** The declared-paint check probes
+  each view's properties in one browser call, and the token-selector check
+  clicks through one selector per component and opens every other property's
+  dropdown in one call per view. Across the 29 shipped components the two
+  checks drop from 321s to 191s. They still fail on the same defects: a
+  wrong or missing part, a pseudo-element, an SVG paint, and a dropdown with
+  nothing to pick.
+- **The npm publish waits for Verify.** A release push no longer runs the
+  unit tests and the live-editing suite twice. The publish workflow gates on
+  the Verify run for the tagged commit and runs only the packaging checks.
+
 ## 0.89.1 — Publish gate stops its dev server
 
 ### Fixed
