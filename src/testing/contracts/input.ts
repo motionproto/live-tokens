@@ -66,7 +66,7 @@ export const inputContract: ComponentContract = {
         placeholder: { color: '--input-default-placeholder' },
       },
     },
-    // `assertPaintsFromToken` (here) drives a controlled pixel probe, so a
+    // `assertProperties` (here) drives a controlled pixel probe, so a
     // unitless line-height round-trips fine. `assertPaintMap` (states, below)
     // reads the real, already-resolved value through `normalize()`, which
     // cannot recompute a unitless multiplier outside the field's own

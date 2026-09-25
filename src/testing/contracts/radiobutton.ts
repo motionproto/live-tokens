@@ -1,7 +1,7 @@
 import type { ComponentContract, PaintMap } from '../componentContract';
 
 /**
- * `assertPaintsFromToken` (used by `properties`) drives a controlled probe
+ * `assertProperties` (used by `properties`) drives a controlled probe
  * value, so a percentage dot-size or a unitless line-height round-trips fine.
  * `assertPaintMap` (used by `states`) instead reads the token's real, already
  * -resolved value straight through `normalize()`, which cannot recompute a

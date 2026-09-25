@@ -19,7 +19,9 @@ import {
 } from '../componentContract';
 import { openComponentsEditor } from './editor';
 
-const STAGE = '.variant-group:visible .sketch-scope';
+const STAGE_GROUP = '.variant-group';
+const STAGE_SCOPE = '.sketch-scope';
+const STAGE = `${STAGE_GROUP}:visible ${STAGE_SCOPE}`;
 
 /** A save or a reset is one file write on the dev server. Left implicit these
  *  waits inherit the run's action timeout, which is sized for a click, and a
@@ -206,43 +208,72 @@ export class ContractHarness {
   /**
    * Drive one design token to a probe value and require the declared part's
    * declared CSS property to adopt it. A repaint anywhere else in the preview
-   * cannot satisfy this.
+   * cannot satisfy this. Each view runs in one browser call: a call per
+   * property cost more in round trips than the paint it proved.
    */
-  async assertPaintsFromToken(key: string, css: string, variable: string, rule: ContractRule): Promise<void> {
-    await this.requirePart(key, rule);
-    const probe = probeValueFor(css)
-      ?? this.fail(rule, `no probe value for CSS property "${css}"; declare one in probeValueFor`);
-    const expected = await this.normalize(key, css, probe);
-    const before = (await this.read(key, [css]))[css];
-    const restore = await this.page.evaluate(({ name, value }) => {
-      const root = document.documentElement;
-      const prior = { value: root.style.getPropertyValue(name), priority: root.style.getPropertyPriority(name) };
-      root.style.setProperty(name, value, 'important');
-      return prior;
-    }, { name: variable, value: probe });
-    await settle(this.page);
-    const after = (await this.read(key, [css]))[css];
-    await this.page.evaluate(({ name, prior }) => {
-      const root = document.documentElement;
-      if (prior.value) root.style.setProperty(name, prior.value, prior.priority);
-      else root.style.removeProperty(name);
-    }, { name: variable, prior: restore });
-    await settle(this.page);
-    if (after !== expected) {
-      this.fail(rule, `${variable} set to ${probe} left ${key}.${css} at ${after} (was ${before}), expected ${expected}`);
-    }
-  }
-
   async assertProperties(): Promise<number> {
     let asserted = 0;
     for (const expectation of this.contract.properties) {
       await this.selectView(expectation);
-      for (const [key, map] of Object.entries(expectation.paints)) {
-        for (const [css, variable] of Object.entries(map)) {
-          await this.assertPaintsFromToken(key, css, variable, 'contract-render');
-          asserted++;
+      const cases = Object.entries(expectation.paints).flatMap(([key, map]) =>
+        Object.entries(map).map(([css, variable]) => ({
+          key,
+          css,
+          variable,
+          ...partLocator(this.contract, key),
+          probe: probeValueFor(css)
+            ?? this.fail('contract-render', `no probe value for CSS property "${css}"; declare one in probeValueFor`),
+        })));
+      const failure = await this.page.evaluate(async ({ cases, stage }) => {
+        const frame = () => new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+        const settle = async () => {
+          await frame();
+          await frame();
+          for (const animation of document.getAnimations()) {
+            try { animation.finish(); } catch { /* infinite effect */ }
+          }
+          await frame();
+          await frame();
+        };
+        const stageRoot = [...document.querySelectorAll<HTMLElement>(stage.group)]
+          .find((group) => group.checkVisibility())
+          ?.querySelector<HTMLElement>(stage.scope);
+        const root = document.documentElement;
+        for (const c of cases) {
+          const node = c.portal ? document.querySelector(c.selector) : stageRoot?.querySelector(c.selector);
+          if (!node) return { kind: 'missing' as const, key: c.key, selector: c.selector };
+          const read = () =>
+            ((getComputedStyle(node, c.pseudo ?? undefined) as unknown as Record<string, string>)[c.css] ?? '').trim();
+          const probe = document.createElement('div');
+          probe.style.display = 'none';
+          probe.style.borderStyle = 'solid';
+          probe.style.outlineStyle = 'solid';
+          (node.parentElement ?? document.body).appendChild(probe);
+          probe.style.setProperty(c.css.replace(/[A-Z]/g, (ch) => `-${ch.toLowerCase()}`), c.probe);
+          const expected = ((getComputedStyle(probe) as unknown as Record<string, string>)[c.css] ?? '').trim();
+          probe.remove();
+          const before = read();
+          const prior = { value: root.style.getPropertyValue(c.variable), priority: root.style.getPropertyPriority(c.variable) };
+          root.style.setProperty(c.variable, c.probe, 'important');
+          await settle();
+          const after = read();
+          if (prior.value) root.style.setProperty(c.variable, prior.value, prior.priority);
+          else root.style.removeProperty(c.variable);
+          if (after !== expected) {
+            await settle();
+            return { kind: 'unpainted' as const, key: c.key, css: c.css, variable: c.variable, probe: c.probe, before, after, expected };
+          }
         }
+        await settle();
+        return null;
+      }, { cases, stage: { group: STAGE_GROUP, scope: STAGE_SCOPE } });
+      if (failure?.kind === 'missing') {
+        this.fail('contract-render', `part "${failure.key}" (${failure.selector}) is not in the preview`);
       }
+      if (failure) {
+        this.fail('contract-render', `${failure.variable} set to ${failure.probe} left ${failure.key}.${failure.css} at ${failure.after} (was ${failure.before}), expected ${failure.expected}`);
+      }
+      asserted += cases.length;
     }
     return asserted;
   }

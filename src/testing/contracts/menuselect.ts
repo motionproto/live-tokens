@@ -1,7 +1,7 @@
 import type { ComponentContract, PaintMap } from '../componentContract';
 
 /**
- * `full` adds `lineHeight`. `assertPaintsFromToken` (properties) drives a
+ * `full` adds `lineHeight`. `assertProperties` (properties) drives a
  * controlled pixel probe, so a unitless line-height round-trips fine there;
  * `assertPaintMap` (states) reads the token's real, already-resolved value
  * through `normalize()`, which cannot recompute a unitless multiplier outside
