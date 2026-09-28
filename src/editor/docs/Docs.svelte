@@ -647,14 +647,13 @@
   /* Desktop: lock the docs surface to the viewport so only the content column
      scrolls — the rail is full-height and immovable, and there is never an
      empty band under the page. The router wrapper (.lt-app) assumes window-
-     scroll pages (min-height + a 12rem bottom pad); neutralise that here, for
+     scroll pages (min-height); neutralise that here, for
      the docs route only, via :has. The doubled .lt-app outranks the wrapper's
      own scoped rule on a specificity tie. */
   @media (min-width: 961px) {
     :global(.lt-app.lt-app:has(.docs-page)) {
       height: 100vh;
       min-height: 0;
-      padding-bottom: 0;
       overflow: hidden;
     }
     .docs-page { height: 100%; overflow: hidden; }

@@ -297,7 +297,6 @@
     width: 100%;
     min-height: 100vh;
     color: var(--text-primary);
-    padding-bottom: 12rem;
     /* Set by LiveEditorOverlay when docked-open. Extends layout past the
        fixed panel so the viewport can scroll to reveal hidden content. */
     padding-right: var(--lt-overlay-scroll-pad, 0px);
@@ -305,14 +304,12 @@
 
   .lt-app.is-editor,
   .lt-app.is-colors {
-    padding-bottom: 0;
     background: black;
   }
 
   .lt-app.is-component-editor {
     min-height: 0;
     height: 100vh;
-    padding-bottom: 0;
     padding-right: 0;
     background: black;
     overflow: hidden;

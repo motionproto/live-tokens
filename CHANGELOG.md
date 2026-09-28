@@ -1,5 +1,14 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+
+- **A page's footer sits at the bottom of the page.** The router wrapper
+  added 12rem of padding under every page, in production as well as in dev,
+  so a footer ended above an empty band. The wrapper no longer pads the
+  page, and each page sets its own bottom spacing.
+
 ## 0.89.2 — Faster component tests
 
 ### Changed
