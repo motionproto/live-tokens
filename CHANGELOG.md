@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.90.0 — Thumbnail ratio for ImageLightbox
 
 ### Added
 
