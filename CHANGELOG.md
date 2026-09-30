@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+### Added
+
+- **ImageLightbox takes a `thumbAspect`.** The prop sets the thumbnail box's
+  ratio, such as `thumbAspect={4 / 3}`, and pairs with `fit="cover"` to crop
+  the thumbnail. The image still opens whole, at its own ratio. VideoLightbox
+  has had the same prop. A page no longer overrides the wrapper's inline
+  `aspect-ratio` with `!important`.
+
 ### Fixed
 
 - **A page's footer sits at the bottom of the page.** The router wrapper

@@ -9,6 +9,10 @@
       { when: 'a video clip the reader opens from its still.', use: 'videolightbox' },
       { when: 'slides or pages the reader reads in order.', use: 'slidepager' },
     ],
+    props: {
+      thumbAspect:
+        'the ratio the thumbnail box holds, when it should not be the image\'s own. The image still opens whole, at its own ratio.',
+    },
   } satisfies CatalogueEntry;
 </script>
 
@@ -33,10 +37,12 @@
         single-entry array behaves exactly like a lone `src`. */
     images?: GalleryImage[];
     maxWidth?: number | string | undefined;
+    /** The thumbnail box's ratio, when it differs from the image's own. */
+    thumbAspect?: number | undefined;
     /** Closed-thumbnail object-fit. `cover` crops the thumbnail to fill its box;
         the expanded modal always uses `contain` so the whole image stays visible.
-        `cover` only crops when the thumbnail has its own box (an aspect from
-        `width`/`height`, or a CSS-constrained container). */
+        `cover` only crops when the thumbnail box differs from the image's shape
+        (a `thumbAspect`, or a CSS-constrained container). */
     fit?: 'contain' | 'cover';
     /** Where the tile's shadow lands. Both modes read
         `--imagelightbox-tile-shadow`: `box` casts it from the tile's rectangle,
@@ -94,6 +100,7 @@
     height = undefined,
     images = undefined,
     maxWidth = undefined,
+    thumbAspect = undefined,
     fit = 'contain',
     shadow = 'box',
     surface = undefined,
@@ -188,7 +195,7 @@
     return m ? m.w / m.h : undefined;
   };
   const naturalWidthOf = (it?: GalleryImage) => (it ? (it.width ?? measured[it.src]?.w) : undefined);
-  const coverAspect = $derived(aspectOf(cover)); // inline thumbnail box
+  const tileAspect = $derived(thumbAspect ?? aspectOf(cover));
   const aspect = $derived(aspectOf(current)); // open modal box
 
   // Internal `scale` is relative to the fitted stage, so a natural-size cap is
@@ -620,7 +627,7 @@
 
 <div
   class="image-lightbox-wrapper"
-  style:aspect-ratio={coverAspect ? `${coverAspect}` : undefined}
+  style:aspect-ratio={tileAspect ? `${tileAspect}` : undefined}
   style:max-width={typeof maxWidth === 'number' ? `${maxWidth}px` : maxWidth}
 >
   <button

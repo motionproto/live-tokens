@@ -207,6 +207,23 @@ describe('ImageLightbox gallery — thumbnail aspect independence (guards B1)', 
 
     unmount(c);
   });
+
+  it('thumbAspect shapes the thumbnail box while the image opens at its own ratio', async () => {
+    const target = fresh();
+    const c = mount(ImageLightbox, { target, props: { src: 'a.png', alt: 'A', thumbAspect: 1 } });
+    flushSync();
+    await open(target);
+
+    expect(wrapper().style.aspectRatio).toBe('1 / 1');
+
+    const to = animCalls
+      .filter((a) => a.el instanceof HTMLElement && a.el.classList.contains('image-lightbox-stage'))
+      .at(-1)!.keyframes.at(-1)!;
+    const px = (v: unknown) => Number(/(-?\d+(?:\.\d+)?)px/.exec(String(v))![1]);
+    expect(px(to.width) / px(to.height)).toBeCloseTo(1.6);
+
+    unmount(c);
+  });
 });
 
 describe('ImageLightbox gallery — accessibility (guards S4)', () => {
