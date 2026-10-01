@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.90.1 — Sketch mode spares the editor overlay
 
 ### Fixed
 
