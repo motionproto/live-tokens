@@ -370,6 +370,15 @@ const UNCLIPPED = PART_SPECS.filter((p) => !p.clips).map((p) => p.sel).join(', '
 const CLIPPED = PART_SPECS.filter((p) => p.clips).map((p) => p.sel).join(', ');
 const UNMASKED = PART_SPECS.filter((p) => p.unmasked).map((p) => p.sel).join(', ');
 
+/** Keeps the layer off the editor's own UI on the host page. The part
+    selectors are bare class names, and the overlay's `.tab` matched TabBar's:
+    the docked pill lost its positioning and its pull tab drew invisible. A
+    scope nested inside chrome draws again, so a preview stage placed there
+    still previews. `:where` adds no weight, so overrides keep their order. */
+const OUTSIDE_CHROME =
+  ':where(:not([data-live-tokens-chrome], [data-live-tokens-chrome] *),' +
+  ' [data-live-tokens-chrome] [data-sketch] *)';
+
 export function buildDefsMarkup(s: SketchStyleSettings): string {
   /**
    * `warp` is the shape stage: one wave of noise whose wavelength spans a whole
@@ -697,9 +706,9 @@ const WARP_FREQUENCY = 0.08;
 
 export function buildStylesheet(s: SketchStyleSettings): string {
   const on = '[data-sketch]';
-  const parts = `:is(${PARTS})`;
+  const parts = `:is(${PARTS})${OUTSIDE_CHROME}`;
   const el = `${on} ${parts}`;
-  const strokeEl = `${on} :is(${STROKE_PARTS})`;
+  const strokeEl = `${on} :is(${STROKE_PARTS})${OUTSIDE_CHROME}`;
 
   // `--radius-none` is a bare `0`, so a part the theme leaves square hands the
   // corner maths a number where it needs a length: `calc(0 + 0.95 * 16px)` is
@@ -780,7 +789,7 @@ export function buildStylesheet(s: SketchStyleSettings): string {
   const iconSel = `[class*="fa-"], svg:not([${DEFS_ATTR}])`;
   const iconsOn = s.iconTravel > 0 || s.iconMaskOn;
   const icons = iconsOn
-    ? `${on} :is(${iconSel}){` +
+    ? `${on} :is(${iconSel})${OUTSIDE_CHROME}{` +
         (s.iconTravel > 0
           ? `filter:var(--sketch-icon-off, var(--sketch-icon-filter, url(#${ID}-icon-0)));`
           : '') +
@@ -876,14 +885,14 @@ export function buildStylesheet(s: SketchStyleSettings): string {
       `background:transparent !important;border-color:transparent !important;` +
       `box-shadow:none !important;` +
     `}` +
-    `${on} :is(${UNCLIPPED}){overflow:visible !important;}` +
+    `${on} :is(${UNCLIPPED})${OUTSIDE_CHROME}{overflow:visible !important;}` +
     // The five that keep their clip take the drawn radii on the host, so what
     // the clip cuts turns the same way the ink does at the corners. It cannot
     // follow the displacement, which is a filter and has no geometry to clip to.
     `${el}:is(${CLIPPED}){${corners}}` +
     // Only parts that sit in flow. Forcing this onto an absolutely-positioned
     // part would drop it back to its flow position.
-    `${on} :is(${FLOW_PARTS}){position:relative;}`;
+    `${on} :is(${FLOW_PARTS})${OUTSIDE_CHROME}{position:relative;}`;
 
   // Fill layer. Own seed, own offset, sits behind the content.
   //
@@ -988,7 +997,7 @@ export function buildStylesheet(s: SketchStyleSettings): string {
   // per-instance cycle as the fill offset, so no two components retrace alike.
   const retraceStep = s.retraceOffset.toFixed(2);
   const retrace = s.retracePass === 'copy'
-    ? `[data-sketch][data-sketch-passes='double'] :is(${STROKE_PARTS})::after{` +
+    ? `[data-sketch][data-sketch-passes='double'] :is(${STROKE_PARTS})${OUTSIDE_CHROME}::after{` +
         `--sketch-retrace:drop-shadow(` +
           `calc(var(--sketch-jx, 0.6) * ${retraceStep}px)` +
           ` calc(var(--sketch-jy, -0.4) * ${retraceStep}px)` +

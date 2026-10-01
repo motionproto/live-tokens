@@ -211,6 +211,20 @@ describe('part coverage', () => {
     expect(positionRule![1]).not.toMatch(/\.tooltip|\.cornerbadge-/);
   });
 
+  // Custom properties alone draw nothing, so only rules that paint or move a
+  // part need the guard.
+  it('keeps every rule that paints or moves a part off the editor chrome', () => {
+    const drawing = [...css.matchAll(/([^{}]+)\{([^{}]*)\}/g)].filter(
+      ([, sel, block]) =>
+        sel.includes('[data-sketch]') && /(^|;)\s*[a-z][a-z-]*\s*:/.test(block),
+    );
+    expect(drawing.length).toBeGreaterThan(5);
+    for (const [, sel] of drawing) {
+      expect(sel).toContain(':not([data-live-tokens-chrome], [data-live-tokens-chrome] *)');
+      expect(sel).toContain('[data-live-tokens-chrome] [data-sketch] *');
+    }
+  });
+
   // The arrow is the tooltip's own ::after; the stroke layer would replace it.
   it('leaves the stroke layer off a part that owns ::after', () => {
     const strokeRule = css.match(/\[data-sketch\] :is\(([^{]*)\)::after\{content/);
@@ -283,7 +297,7 @@ describe('a reseeded second pass', () => {
 describe('icons', () => {
   it('filters icon glyphs but never body type', () => {
     const css = buildStylesheet(marker);
-    expect(css).toMatch(/:is\(\[class\*="fa-"\], svg:not\(\[data-sketch-defs\]\)\)\{filter:/);
+    expect(css).toMatch(/:is\(\[class\*="fa-"\], svg:not\(\[data-sketch-defs\]\)\)[^{]*\{filter:/);
     // The injected filter bank is itself an svg in the body.
     expect(css).toContain('svg:not([data-sketch-defs])');
     // A paragraph has no shape to lose; only the icon convention is targeted.
@@ -540,7 +554,7 @@ describe('the drawn box', () => {
     const css = buildStylesheet(marker);
     // Split into selector tokens: `.image` is also a leading substring of
     // `.image-lightbox-*`, which a plain string search would wrongly match.
-    const unclipped = css.match(/:is\(([^)]*)\)\{overflow:visible !important;\}/)![1].split(', ');
+    const unclipped = css.match(/:is\(([^)]*)\)[^{]*\{overflow:visible !important;\}/)![1].split(', ');
     for (const sel of ['.button.primary', '.card', '.panel', '.notification.info', '.dialog']) {
       expect(unclipped).toContain(sel);
     }

@@ -1,5 +1,19 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+
+- **Sketch mode leaves the editor overlay's layout alone.** The layer picks
+  out components by bare class name, and the overlay's pull tab shares
+  TabBar's `.tab`. With a sketchstyle on, a pill docked to an edge lost its
+  tab's positioning and background, which left nothing on screen to pull it
+  back with. Every rule that paints or moves an element now skips anything
+  inside `[data-live-tokens-chrome]`. A sketch scope nested inside chrome
+  still draws, so a preview stage placed there keeps previewing. The guard
+  sits in `:where()` and adds no specificity, so page overrides of the layer
+  keep their order.
+
 ## 0.90.0 — Thumbnail ratio for ImageLightbox
 
 ### Added
