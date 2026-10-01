@@ -1,5 +1,16 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+- **ImageLightbox takes an `overlay`.** The snippet pins content such as a
+  CornerBadge to the image's frame. It renders on the thumbnail and travels
+  with the image when the lightbox opens, growing in proportion to the frame,
+  then shrinks back on close. It sits outside the thumbnail's clip and the
+  open view's zoom, so it can reach past the frame's edges and stays put while
+  the reader zooms and pans.
+
 ## 0.90.1 — Sketch mode spares the editor overlay
 
 ### Fixed

@@ -17,7 +17,7 @@
 </script>
 
 <script lang="ts">
-  import { onMount, tick } from 'svelte';
+  import { onMount, tick, type Snippet } from 'svelte';
   import { portal } from '../internal/portal';
 
   interface GalleryImage {
@@ -91,6 +91,11 @@
         (from `width`/`height`, or the loaded image); until that's known the image
         fits the viewport, then snaps to the cap once measured. */
     capNatural?: boolean | number;
+    /** Content pinned to the image's frame, such as a CornerBadge. It renders
+        on the thumbnail and travels with the image into the open view, growing
+        in proportion to the frame. Zoom and pan leave it in place, and it may
+        extend past the frame's edges. */
+    overlay?: Snippet;
   }
 
   let {
@@ -110,6 +115,7 @@
     extended = false,
     maxZoom = undefined,
     capNatural = false,
+    overlay = undefined,
   }: Props = $props();
 
   const items = $derived(
@@ -158,6 +164,10 @@
   let counterEl: HTMLDivElement | undefined = $state();
   let incomingEl: HTMLImageElement | undefined = $state();
   let outgoingEl: HTMLImageElement | undefined = $state();
+  let attachedEl: HTMLDivElement | undefined = $state();
+  // The thumbnail width the overlay is laid out at; the open view scales it up
+  // from there so it grows with the frame instead of reflowing.
+  let attachedBase = 1;
 
   // `mounted` keeps the portaled modal in the DOM through the close animation;
   // `open` is the visual state the chrome reacts to.
@@ -267,11 +277,35 @@
     prevOverlayVisibility = null;
   }
 
+  // Width and easing match the stage's own keyframes, so a scale that is linear
+  // in width keeps the overlay on the frame for the whole flight.
+  function attachedFrame(rect: { width: number; height: number }) {
+    const s = rect.width / attachedBase;
+    return {
+      width: `${attachedBase}px`,
+      height: `${rect.height / s}px`,
+      transform: `scale(${s})`,
+    };
+  }
+
+  function animateAttached(from: { width: number; height: number } | null, to: { width: number; height: number }) {
+    if (!attachedEl) return;
+    if (!from) {
+      Object.assign(attachedEl.style, attachedFrame(to));
+      return;
+    }
+    attachedEl.animate([attachedFrame(from), attachedFrame(to)], {
+      duration: dur(),
+      easing: TRANSITION_EASE,
+      fill: 'forwards',
+    });
+  }
+
   function cancelAnimations() {
     // Commit each animation's current value to inline styles before cancelling,
     // so a mid-flight cancel doesn't visually snap the element back to its
     // pre-animation state.
-    for (const el of [stageEl, overlayEl, toolbarEl, closeBtnEl, prevBtnEl, nextBtnEl, counterEl]) {
+    for (const el of [stageEl, attachedEl, overlayEl, toolbarEl, closeBtnEl, prevBtnEl, nextBtnEl, counterEl]) {
       if (!el) continue;
       for (const a of el.getAnimations()) {
         try { a.commitStyles(); } catch {}
@@ -306,6 +340,8 @@
       ],
       { duration: dur(), easing: TRANSITION_EASE, fill: 'forwards' },
     );
+    attachedBase = start.width || 1;
+    animateAttached(start, target);
 
     overlayEl.animate([{ opacity: 0 }, { opacity: 1 }], {
       duration: dur(),
@@ -360,6 +396,8 @@
       ],
       { duration: dur(), easing: TRANSITION_EASE, fill: 'forwards' },
     );
+    attachedBase = target.width || 1;
+    animateAttached(from, target);
 
     overlayEl.animate([{ opacity: 1 }, { opacity: 0 }], {
       duration: dur(),
@@ -395,10 +433,13 @@
     const target = viewportTarget();
     if (animate) {
       const from = stageEl.getBoundingClientRect();
-      for (const a of stageEl.getAnimations()) {
-        try { a.commitStyles(); } catch {}
-        a.cancel();
+      for (const el of [stageEl, attachedEl]) {
+        for (const a of el?.getAnimations() ?? []) {
+          try { a.commitStyles(); } catch {}
+          a.cancel();
+        }
       }
+      animateAttached(from, target);
       stageEl.animate(
         [
           { top: `${from.top}px`, left: `${from.left}px`, width: `${from.width}px`, height: `${from.height}px` },
@@ -413,6 +454,7 @@
         width: `${target.width}px`,
         height: `${target.height}px`,
       });
+      animateAttached(null, target);
     }
     if (scale > maxScale) scale = maxScale; // a larger viewport lowers the natural-size cap
     offset = clampOffset(offset.x, offset.y, scale);
@@ -647,6 +689,13 @@
   >
     <img src={cover?.src} alt={cover?.alt} draggable="false" onload={onCoverLoad} />
   </button>
+  {#if overlay}
+    <!-- Beside the thumb, not in it: the thumb clips its corners. Hidden while
+         open, so the copy in the stage reads as the same one in flight. -->
+    <div class="image-lightbox-attached" class:away={mounted}>
+      {@render overlay()}
+    </div>
+  {/if}
 </div>
 
 {#if mounted}
@@ -694,6 +743,11 @@
           <img bind:this={incomingEl} class="image-lightbox-layer" src={current?.src} alt={current?.alt} draggable="false" onload={onImgLoad} />
         </div>
       </div>
+      {#if overlay}
+        <div bind:this={attachedEl} class="image-lightbox-attached image-lightbox-attached-stage">
+          {@render overlay()}
+        </div>
+      {/if}
     </div>
 
     <button
@@ -827,6 +881,29 @@
 
   .image-lightbox-thumb:hover {
     transform: scale(1.02);
+  }
+
+  .image-lightbox-attached {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    transition: transform 250ms ease;
+  }
+
+  .image-lightbox-thumb:hover + .image-lightbox-attached {
+    transform: scale(1.02);
+  }
+
+  .image-lightbox-attached.away {
+    visibility: hidden;
+  }
+
+  .image-lightbox-attached-stage {
+    inset: auto;
+    top: 0;
+    left: 0;
+    transform-origin: 0 0;
+    transition: none;
   }
 
   .image-lightbox-thumb:focus-visible {
