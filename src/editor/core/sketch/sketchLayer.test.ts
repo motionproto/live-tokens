@@ -573,6 +573,14 @@ describe('the drawn box', () => {
     expect(rule[1]).toContain('.progress-track');
   });
 
+  it('draws a bare image from the bare tokens', () => {
+    const css = buildStylesheet(marker);
+    expect(css).toContain(
+      '[data-sketch] .image.bare{--sketch-fill:transparent;--sketch-stroke:var(--image-bare-border);',
+    );
+    expect(css.indexOf('[data-sketch] .image.bare{')).toBeGreaterThan(css.indexOf('[data-sketch] .image{'));
+  });
+
   // A rule is a line. Rounding its ends reads as a mistake rather than a hand.
   it('keeps a hairline square', () => {
     const css = buildStylesheet(marker);

@@ -254,6 +254,11 @@ const PART_SPECS: readonly PartSpec[] = [
     // Holds the picture inside the frame; without it a zoom spills out square.
     clips: true,
   },
+  {
+    sel: '.image.bare', fill: 'transparent', stroke: 'var(--image-bare-border)',
+    radius: 'var(--image-bare-radius, 0px)', shadow: 'var(--image-bare-shadow, none)',
+    clips: true,
+  },
   ...['single', 'range'].map((v) => ({
     sel: `.slider.${v} .slider-track`,
     fill: `var(--slider-${v}-track-surface)`,

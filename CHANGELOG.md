@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.91.1 — Sketch mode respects bare images
+
+### Fixed
+
+- **Sketch mode leaves a bare Image unframed.** The layer drew every `.image`
+  from the default frame tokens, so `variant="bare"` lost its effect once a
+  sketchstyle was on and cut-out art picked up a hand-drawn border and rounded
+  clip. A bare image now draws from `--image-bare-border`,
+  `--image-bare-radius` and `--image-bare-shadow`.
+
 ## 0.91.0 — Overlay for ImageLightbox
 
 ### Added
