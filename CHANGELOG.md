@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.91.2 — Sketch mode claims its parts at ID weight
+
+### Changed
+
+- **Sketch mode claims what it repaints without `!important`.** The layer
+  hides a part's own background, border and shadow, lifts its clip, and takes
+  over its `::before` and `::after`. Those eight declarations now sit in rules
+  that carry the weight of one ID selector in place of `!important`. Svelte
+  scopes a component rule by adding a class, so the layer still outranks every
+  shipped component rule, and a page can override it at ID weight. A component
+  that joins the layer through a `sketch-*` class should select its elements by
+  class: an ID in its selector can outweigh the layer.
+
 ## 0.91.1 — Sketch mode respects bare images
 
 ### Fixed

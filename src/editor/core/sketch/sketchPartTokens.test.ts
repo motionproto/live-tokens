@@ -155,8 +155,9 @@ function paintedBySketch(): { sel: string; fill?: string; stroke?: string }[] {
   return out;
 }
 
+const rules = compiledRules();
+
 describe('what the layer paints a part with', () => {
-  const rules = compiledRules();
   const sketched = paintedBySketch();
 
   // A part the consumer colours itself has no component rule to check against;
@@ -193,6 +194,20 @@ describe('what the layer paints a part with', () => {
       .filter((s) => !rules.some((r) => applies(r.sel, s.sel)))
       .map((s) => s.sel);
     expect(unmatched).toEqual([]);
+  });
+});
+
+/**
+ * The layer claims what it repaints at the weight of one ID, which no number of
+ * classes reaches. A component rule that selected by ID would tie it on IDs and
+ * could then win on classes.
+ */
+describe('the claiming weight', () => {
+  it('stays above every shipped component rule, none of which selects by ID', () => {
+    const byId = rules
+      .filter((r) => /#[\w-]/.test(r.sel.replace(/\[[^\]]*\]/g, '')))
+      .map((r) => `${r.file}: ${r.sel}`);
+    expect(byId).toEqual([]);
   });
 });
 

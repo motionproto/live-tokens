@@ -17,16 +17,19 @@ forces:
 
 | It forces                                    | So the component must                                              |
 |----------------------------------------------|----------------------------------------------------------|
-| `background: transparent !important`          | Name the fill again as `--sketch-fill`                    |
-| `border-color: transparent !important`        | Name the outline again as `--sketch-stroke`               |
-| `box-shadow: none !important`                 | Name the shadow again as `--sketch-shadow`                |
-| `overflow: visible !important`                | Never put the class on a box whose clip carries meaning   |
+| `background: transparent`                     | Name the fill again as `--sketch-fill`                    |
+| `border-color: transparent`                   | Name the outline again as `--sketch-stroke`               |
+| `box-shadow: none`                            | Name the shadow again as `--sketch-shadow`                |
+| `overflow: visible`                           | Never put the class on a box whose clip carries meaning   |
 | `position: relative`                          | Never put the class on an absolutely-positioned root      |
 | `z-index: 0`                                  | Expect a new stacking context on that element             |
 | `::before` (the fill), `::after` (the stroke) | Never own either pseudo-element on that element           |
 
 `::after` survives on `sketch-rule` alone, which draws no outline. `::before` is
 claimed on all four.
+
+The layer wins each of these at the weight of one ID selector. Select the
+component's elements by class: a selector with an ID can outweigh the layer.
 
 ## Opting in
 

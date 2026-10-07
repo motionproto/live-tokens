@@ -8,12 +8,24 @@ import {
   buildStylesheet,
   removeSketchLayer,
   setSketchScope,
+  OUTWEIGH_COMPONENTS,
   PART_SELECTORS,
 } from './sketchLayer';
 import { maskTile } from './maskField';
 import { SHIPPED_SKETCH_SETTINGS } from './sketchStyles';
 
 const marker = SHIPPED_SKETCH_SETTINGS.marker;
+
+const CLAIM = `[data-sketch]${OUTWEIGH_COMPONENTS} `;
+
+/** Rules whose selector carries the claiming weight, as [the rest of the
+    selector, declarations]. */
+function claimedRules(css: string): [string, string][] {
+  return [...css.matchAll(/([^{}]+)\{([^{}]*)\}/g)]
+    .map((m) => [m[1].trim(), m[2]] as [string, string])
+    .filter(([sel]) => sel.startsWith(CLAIM))
+    .map(([sel, body]) => [sel.slice(CLAIM.length), body]);
+}
 
 /** Alpha at the middle of a straight run of the border once the pool blur has
     spread it, by numeric integration rather than by the layer's own maths. */
@@ -515,7 +527,7 @@ describe('the drawn box', () => {
   // drawing, so it is moved onto the layer that draws the real one.
   it('re-casts the shadow on the drawn box', () => {
     const css = buildStylesheet({ ...marker, maskOn: false });
-    expect(css).toContain('box-shadow:none !important;');
+    expect(css).toContain('border-color:transparent;box-shadow:none;}');
     expect(css).toContain('box-shadow:var(--sketch-shadow, none);');
     expect(css).toContain('--sketch-shadow:var(--card-default-shadow, none);');
   });
@@ -526,7 +538,7 @@ describe('the drawn box', () => {
   // anything the filter can move, and the paint held to the middle of it.
   it('draws the fill on a box the displacement cannot reach past', () => {
     const css = buildStylesheet(marker);
-    const bleed = Number(css.match(/inset:-(\d+)px !important/)![1]);
+    const bleed = Number(css.match(/inset:-(\d+)px;/)![1]);
     expect(bleed).toBeGreaterThan(marker.cornerTravel + marker.fillTravel);
     expect(css).toContain(`padding:${bleed}px;box-sizing:content-box;`);
     expect(css).toContain('background-clip:content-box;');
@@ -536,7 +548,7 @@ describe('the drawn box', () => {
 
   it('leaves the fill on its own box when there is no coverage to clip it', () => {
     const css = buildStylesheet({ ...marker, maskOn: false });
-    expect(css).toContain('inset:0 !important');
+    expect(css).toMatch(/::before\{inset:0;/);
     expect(css).not.toContain('background-clip:content-box;');
   });
 
@@ -554,7 +566,8 @@ describe('the drawn box', () => {
     const css = buildStylesheet(marker);
     // Split into selector tokens: `.image` is also a leading substring of
     // `.image-lightbox-*`, which a plain string search would wrongly match.
-    const unclipped = css.match(/:is\(([^)]*)\)[^{]*\{overflow:visible !important;\}/)![1].split(', ');
+    const [sel] = claimedRules(css).find(([, body]) => body === 'overflow:visible;')!;
+    const unclipped = sel.match(/^:is\(([^)]*)\)/)![1].split(', ');
     for (const sel of ['.button.primary', '.card', '.panel', '.notification.info', '.dialog']) {
       expect(unclipped).toContain(sel);
     }
@@ -701,19 +714,30 @@ describe('ink density', () => {
   });
 });
 
-describe('claiming the pseudo-elements', () => {
+describe('claiming what the layer repaints', () => {
+  it('outweighs the component on the host paint and the clip without !important', () => {
+    const css = buildStylesheet(marker);
+    expect(css).not.toContain('!important');
+    expect(claimedRules(css).map(([, body]) => body)).toEqual(expect.arrayContaining([
+      'background:transparent;border-color:transparent;box-shadow:none;',
+      'overflow:visible;',
+    ]));
+  });
+
   // Button parks a hover shimmer on ::before at left:-100% and slides it to
-  // left:100% over 0.5s, from a rule that outweighs the layer's. Unclaimed,
+  // left:100% over 0.5s, from a rule as heavy as the layer's own. Unclaimed,
   // the fill wipes across on hover and again when the effect switches on.
   it('cancels any component transition or offset on the layers it takes over', () => {
-    const css = buildStylesheet(marker);
-    const layers = [...css.matchAll(/\{([^{}]*content:''[^{}]*)\}/g)].map((m) => m[1]);
-    expect(layers.length).toBeGreaterThanOrEqual(2);
-    for (const decl of layers) {
-      // The fill sits on a box the bleed grows, so the inset it states is its
-      // own; what matters is that it beats whatever the component set.
-      expect(decl).toMatch(/inset:[^;]* !important/);
-      expect(decl).toContain('transition:none !important');
+    for (const settings of [marker, { ...marker, maskOn: false }]) {
+      const layers = claimedRules(buildStylesheet(settings))
+        .filter(([sel]) => /::(before|after)$/.test(sel));
+      expect(layers.map(([sel]) => sel.match(/::\w+$/)![0])).toEqual(['::before', '::after']);
+      for (const [, body] of layers) {
+        // The fill sits on a box the bleed grows, so the inset it states is its
+        // own; what matters is that it beats whatever the component set.
+        expect(body).toMatch(/^inset:[^;]*;/);
+        expect(body).toContain('transition:none;');
+      }
     }
   });
 });

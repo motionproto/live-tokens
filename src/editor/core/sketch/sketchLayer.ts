@@ -384,6 +384,12 @@ const OUTSIDE_CHROME =
   ':where(:not([data-live-tokens-chrome], [data-live-tokens-chrome] *),' +
   ' [data-live-tokens-chrome] [data-sketch] *)';
 
+/** Matches every element and weighs one ID. Svelte scopes a rule by adding a
+    class, and no shipped component selects by ID, so a rule carrying this
+    outweighs any component rule however many states it stacks. It goes only on
+    the declarations the layer has to win; the rest keep their ordinary weight. */
+export const OUTWEIGH_COMPONENTS = ':is(*, #_)';
+
 export function buildDefsMarkup(s: SketchStyleSettings): string {
   /**
    * `warp` is the shape stage: one wave of noise whose wavelength spans a whole
@@ -711,6 +717,7 @@ const WARP_FREQUENCY = 0.08;
 
 export function buildStylesheet(s: SketchStyleSettings): string {
   const on = '[data-sketch]';
+  const claim = `${on}${OUTWEIGH_COMPONENTS}`;
   const parts = `:is(${PARTS})${OUTSIDE_CHROME}`;
   const el = `${on} ${parts}`;
   const strokeEl = `${on} :is(${STROKE_PARTS})${OUTSIDE_CHROME}`;
@@ -868,10 +875,8 @@ export function buildStylesheet(s: SketchStyleSettings): string {
       shimmer ::before states `width: 100%` and would otherwise pin the grown box
       back to the element. `background` is a shorthand and resets both box
       properties, so `bleedPaint` follows every declaration of it. */
-  const bleedBox = bleed === 0
-    ? 'inset:0 !important;'
-    : `inset:-${bleed}px !important;padding:${bleed}px;box-sizing:content-box;` +
-      `width:auto !important;height:auto !important;`;
+  const bleedClaim = bleed === 0 ? 'inset:0;' : `inset:-${bleed}px;width:auto;height:auto;`;
+  const bleedBox = bleed === 0 ? '' : `padding:${bleed}px;box-sizing:content-box;`;
   const bleedPaint = bleed === 0 ? '' : 'background-origin:content-box;background-clip:content-box;';
 
   const host =
@@ -885,12 +890,11 @@ export function buildStylesheet(s: SketchStyleSettings): string {
       // but overwrite the one a floating part stacks by: a lightbox scrim or a
       // tooltip at 0 falls under the page's sticky header.
       `isolation:isolate;` +
-      // The shadow is re-cast on the fill layer, where it follows the shape
-      // that is actually drawn.
-      `background:transparent !important;border-color:transparent !important;` +
-      `box-shadow:none !important;` +
     `}` +
-    `${on} :is(${UNCLIPPED})${OUTSIDE_CHROME}{overflow:visible !important;}` +
+    // The shadow is re-cast on the fill layer, where it follows the shape that
+    // is actually drawn.
+    `${claim} ${parts}{background:transparent;border-color:transparent;box-shadow:none;}` +
+    `${claim} :is(${UNCLIPPED})${OUTSIDE_CHROME}{overflow:visible;}` +
     // The five that keep their clip take the drawn radii on the host, so what
     // the clip cuts turns the same way the ink does at the corners. It cannot
     // follow the displacement, which is a filter and has no geometry to clip to.
@@ -901,15 +905,15 @@ export function buildStylesheet(s: SketchStyleSettings): string {
 
   // Fill layer. Own seed, own offset, sits behind the content.
   //
-  // `inset` and `transition` are !important because the layer CLAIMS this
+  // `inset` and `transition` are claimed because the layer takes this
   // pseudo-element from whatever the component was using it for. Button drives
   // a hover shimmer off ::before — parked at left:-100%, sliding to left:100%
-  // over 0.5s — and its hover rule outweighs this one on specificity. Left
-  // alone, the fill wipes across the button on hover, and again the moment the
-  // effect is switched on, because `left` animates from -100% to 0.
+  // over 0.5s — from a hover rule as heavy as this one. Left alone, the fill
+  // wipes across the button on hover, and again the moment the effect is
+  // switched on, because `left` animates from -100% to 0.
   const fill =
     `${el}::before{` +
-      `content:'';position:absolute;${bleedBox}transition:none !important;` +
+      `content:'';position:absolute;${bleedBox}` +
       `z-index:-1;${fillCorners}` +
       `background:var(--sketch-fill, var(--surface-neutral-lower));` +
       bleedPaint +
@@ -926,7 +930,8 @@ export function buildStylesheet(s: SketchStyleSettings): string {
       `) rotate(calc(var(--sketch-jr, 0) * var(--sketch-jit-rot, 0deg)))` +
       ` scale(calc(1 + (var(--sketch-js, 0) + 1) / 2 * var(--sketch-jit-scale, 0)));` +
       `pointer-events:none;` +
-    `}`;
+    `}` +
+    `${claim} ${parts}::before{${bleedClaim}transition:none;}`;
 
   /* The parts that float over page content take the fill whole, and everything
      else the layer does with it. The second `:is` outweighs the rule above. */
@@ -1015,7 +1020,7 @@ export function buildStylesheet(s: SketchStyleSettings): string {
   // Outline layer. Own seed, above the content.
   const stroke =
     `${strokeEl}::after{` +
-      `content:'';position:absolute;inset:0 !important;transition:none !important;` +
+      `content:'';position:absolute;` +
       `z-index:1;${corners}` +
       `border-style:var(--sketch-stroke-style);` +
       `border-color:${ink('var(--border-neutral)')};` +
@@ -1024,7 +1029,8 @@ export function buildStylesheet(s: SketchStyleSettings): string {
       `filter:var(--sketch-stroke-filter) var(--sketch-retrace, opacity(1))` +
       ` var(--sketch-pool, opacity(1));` +
       `pointer-events:none;` +
-    `}`;
+    `}` +
+    `${claim} :is(${STROKE_PARTS})${OUTSIDE_CHROME}::after{inset:0;transition:none;}`;
 
   const seedRotation = SEEDS.map((seed, i) =>
     `${el}:nth-child(5n + ${i + 1}){` +
