@@ -40,8 +40,8 @@ function capitalize(id) {
 export const CONTRACT_SCALES = [
   'surface', 'text', 'border', 'border-width', 'color', 'space', 'radius', 'font', 'line-height',
   'letter-spacing', 'shadow', 'blur', 'icon-size', 'scrim', 'tint', 'columns',
-  'heading', 'body', 'editorial', 'eyebrow', 'code', 'easing', 'duration', 'zoom',
-  'gradient', 'stroke',
+  'display', 'heading', 'body', 'editorial', 'eyebrow', 'code', 'easing', 'duration',
+  'zoom', 'gradient', 'stroke',
 ];
 
 /** True when `name` belongs to a contract-governed scale, so a miss is a typo. */

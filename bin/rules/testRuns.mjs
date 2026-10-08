@@ -99,7 +99,7 @@ export const pageRules = {
     severity: 'error',
     repair: 'authored',
     guidance:
-      'The finding names the page file, the line of the text element, and the nearest bundle it missed. Set the text style on the text element itself, from one shipped bundle: heading, body, editorial, or code, each printed by `npx live-tokens tokens --scale <name>`. An ancestor typed for a different role hands down the wrong style.',
+      'The finding names the page file, the line of the text element, and the nearest bundle it missed. Set the text style on the text element itself, from one shipped bundle: display, heading, body, editorial, or code, each printed by `npx live-tokens tokens --scale <name>`. An ancestor typed for a different role hands down the wrong style.',
   },
   'page-contrast': {
     severity: 'error',

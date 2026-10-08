@@ -1,5 +1,5 @@
 import { describe, it, expect, afterEach } from 'vitest';
-import { mkdtempSync, mkdirSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdtempSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 // @ts-expect-error — plain .mjs module, no types
@@ -268,6 +268,33 @@ describe('check-page token rules', () => {
     </style>`);
     expect(rulesFor(root, axis).filter((r) => r === 'raw-text-axis')).toHaveLength(2);
     expect(rulesFor(root, bundle)).not.toContain('raw-text-axis');
+  });
+
+  it('accepts a page set in a display step of the shipped tokens.css', () => {
+    const root = fixtureRoot();
+    writeFileSync(
+      join(root, 'src/system/styles/tokens.css'),
+      readFileSync(join(process.cwd(), 'src/system/styles/tokens.css'), 'utf8'),
+    );
+    const rel = page(root, 'Hero.svelte', `<p class="hero">Launch</p>
+    <style>
+      .hero {
+        font-family: var(--display-xl-font-family);
+        font-size: var(--display-xl-font-size);
+        font-weight: var(--display-xl-font-weight);
+        line-height: var(--display-xl-line-height);
+        letter-spacing: var(--display-xl-letter-spacing);
+      }
+    </style>`);
+    expect(rulesFor(root, rel)).toEqual([]);
+  });
+
+  it('reads a misspelt display token as a design token that no longer exists', () => {
+    const root = fixtureRoot();
+    const rel = page(root, 'Typo.svelte', `<style>.a { font-size: var(--display-xl-font-sise); }</style>`);
+    const { findings } = checkPages([rel], { root });
+    expect(findings.map((f: { rule: string }) => f.rule)).toEqual(['unknown-token']);
+    expect(findings[0].message).toContain('has the shape of a design token');
   });
 
   it('ignores a weight token, which cannot move the scale or the fonts', () => {

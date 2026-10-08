@@ -96,11 +96,11 @@ These have no rule ids in the code, so the names below are descriptive. The suit
 
 Reports `contract-behavior`. The suite lives beside the registry contract, in `src/testing/component-behavior.contract.ts`, under the same `happy-dom` environment. It mounts each registered component's runtime with `mount` from Svelte, drives its declared `behavior` cases with real DOM events, and asserts a callback fired (or stayed silent) with the documented argument, or that a controlled prop drove the attribute the case names. A component with no callback prop declares the obligation inapplicable, with a reason.
 
-## Token contract scales (26)
+## Token contract scales (27)
 
 Listed in `bin/lib/tokenVocabulary.mjs` as `CONTRACT_SCALES`.
 
-surface, text, border, border-width, color, space, radius, font, line-height, letter-spacing, shadow, blur, icon-size, scrim, tint, columns, heading, body, editorial, eyebrow, code, easing, duration, zoom, gradient, stroke
+surface, text, border, border-width, color, space, radius, font, line-height, letter-spacing, shadow, blur, icon-size, scrim, tint, columns, display, heading, body, editorial, eyebrow, code, easing, duration, zoom, gradient, stroke
 
 ## Component contracts (26)
 

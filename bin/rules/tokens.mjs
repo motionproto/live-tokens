@@ -75,7 +75,7 @@ export const pageRules = {
     severity: 'error',
     repair: 'choice',
     guidance:
-      'Set every axis from one text style bundle, -font-family through -letter-spacing. The text styles are heading, body, editorial, and code, and `npx live-tokens tokens --scale heading` prints one of them. Rewrite a font: shorthand the same way.',
+      'Set every axis from one text style bundle, -font-family through -letter-spacing. The text styles are display, heading, body, editorial, and code, and `npx live-tokens tokens --scale heading` prints one of them. Rewrite a font: shorthand the same way.',
   },
   'hardcoded-columns': {
     severity: 'warn',
@@ -328,7 +328,7 @@ function checkDeclaration(decl, { text, region, vocab, at }, add) {
       add(
         'raw-text-axis',
         at(index),
-        `${prop}: ${value}. ${axis} is one axis. Set every axis from one text style bundle (--heading-*, --body-*, --editorial-*, --code-*).`,
+        `${prop}: ${value}. ${axis} is one axis. Set every axis from one text style bundle (--display-*, --heading-*, --body-*, --editorial-*, --code-*).`,
       );
       return;
     }
@@ -344,7 +344,7 @@ function checkDeclaration(decl, { text, region, vocab, at }, add) {
       add(
         'raw-text-axis',
         at(index),
-        `${prop}: ${value}. Set type from a text style bundle (--heading-*, --body-*, --editorial-*, --code-*).`,
+        `${prop}: ${value}. Set type from a text style bundle (--display-*, --heading-*, --body-*, --editorial-*, --code-*).`,
       );
       return;
     }
