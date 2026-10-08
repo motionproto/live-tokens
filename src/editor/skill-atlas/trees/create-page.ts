@@ -2,7 +2,7 @@ import type { SkillTree } from '../types';
 
 export const createPage: SkillTree = {
   "id": "live-tokens-create-page",
-  "digest": "sha256:4fb4f9d78ec6138c",
+  "digest": "sha256:dac3be326461ce44",
   "title": "create-page",
   "tagline": "Create a Page Using Live Tokens",
   "nodes": [
@@ -164,19 +164,19 @@ export const createPage: SkillTree = {
         },
         {
           "label": "Type",
-          "lines": [105, 126],
+          "lines": [105, 127],
           "anchor": "### Type",
           "anchorEnd": "Use the semantic element for each place: one `h1`, an `h2` f"
         },
         {
           "label": "Size and emphasis",
-          "lines": [128, 136],
+          "lines": [129, 137],
           "anchor": "### Size",
           "anchorEnd": "In a row of actions the primary sits last, on the right. Up "
         },
         {
           "label": "Spacing",
-          "lines": [138, 152],
+          "lines": [139, 153],
           "anchor": "### Spacing",
           "anchorEnd": "Every section after the first opens with a hairline: `paddin"
         }
@@ -193,12 +193,12 @@ export const createPage: SkillTree = {
       "chips": [
         {
           "label": "LiveTokensRouter",
-          "lines": [158, 158],
+          "lines": [159, 159],
           "anchor": "`<LiveTokensRouter pages={...}>`: add a `pages` entry with `"
         },
         {
           "label": "LiveEditorOverlay",
-          "lines": [159, 159],
+          "lines": [160, 160],
           "anchor": "Manual `<LiveEditorOverlay>`: dispatch with `$derived.by(() "
         }
       ]
@@ -209,7 +209,7 @@ export const createPage: SkillTree = {
       "kind": "cli",
       "title": "Run check-page",
       "desc": "check-page --tests --strict --json applies every auto repair, proves the rendered page at its own route, and returns the fixes beside the remaining findings.",
-      "lines": [176, 176],
+      "lines": [177, 177],
       "anchor": "Run `npx live-tokens check-page <file> --tests --strict --js"
     },
     {
@@ -218,7 +218,7 @@ export const createPage: SkillTree = {
       "kind": "gate",
       "title": "Repair from guidance",
       "desc": "Each remaining finding carries its guidance. Make each repair, then run check-page again.",
-      "lines": [178, 178],
+      "lines": [179, 179],
       "anchor": "Each remaining finding carries a rule id, a line, and its `g"
     },
     {
@@ -227,31 +227,31 @@ export const createPage: SkillTree = {
       "kind": "chipset",
       "title": "Check the page in the browser",
       "desc": "The checkers cannot see a layout. Open the page at its width and check each line.",
-      "lines": [180, 196],
+      "lines": [181, 197],
       "anchor": "The checkers cannot see a layout. Open the page at the width",
       "anchorEnd": "`references/interaction-sources.md` names the sources for th",
       "chips": [
         {
           "label": "Structure",
-          "lines": [182, 186],
+          "lines": [183, 187],
           "anchor": "The first section holds what the user came for.",
           "anchorEnd": "The containers in a section align at the bottom."
         },
         {
           "label": "Actions",
-          "lines": [187, 190],
+          "lines": [188, 191],
           "anchor": "The actions sit where the eye goes last, with the one primar",
           "anchorEnd": "An action that runs longer than a moment shows progress in a"
         },
         {
           "label": "Fields",
-          "lines": [191, 192],
+          "lines": [192, 193],
           "anchor": "Every field has a default, and Reset restores it.",
           "anchorEnd": "Secondary settings sit in a `CollapsibleSection`. Every cont"
         },
         {
           "label": "Words and access",
-          "lines": [193, 194],
+          "lines": [194, 195],
           "anchor": "Labels use the user's words, such as \"Export slices\".",
           "anchorEnd": "Every `img` has `alt` text. Focus order follows the reading "
         }
@@ -263,7 +263,7 @@ export const createPage: SkillTree = {
       "kind": "step",
       "title": "Read the page twice",
       "desc": "From a distance only the sections show. Up close, every border and bar earns its place or goes.",
-      "lines": [198, 198],
+      "lines": [199, 199],
       "anchor": "Then read the page from a distance: the sections and their e"
     },
     {

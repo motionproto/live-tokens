@@ -114,7 +114,8 @@ The text styles fall into five usages, each a scale of seven steps from `2xs` to
 | Section title | `h2` in `--heading-lg-*`, or `SectionDivider variant="sm"` |
 | Title inside a section | `h3` to `h6` in `--heading-md-*` to `--heading-2xs-*` |
 | Card title | the Card `title` prop |
-| Hero title, big number | `--display-md-*` |
+| Hero title | `--display-xl-*` |
+| Big number | `--display-md-*` |
 | Label above a group | `--body-sm-*` in `--text-secondary` |
 | Body | `p` in `--body-md-*` |
 | Secondary line | `--body-sm-*` in `--text-secondary` |

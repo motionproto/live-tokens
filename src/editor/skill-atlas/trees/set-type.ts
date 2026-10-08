@@ -2,7 +2,7 @@ import type { SkillTree } from '../types';
 
 export const setType: SkillTree = {
   "id": "live-tokens-set-type",
-  "digest": "sha256:5e434a9b7ac45032",
+  "digest": "sha256:7298f04f8a302e68",
   "title": "set-type",
   "tagline": "Set Typefaces from Google Fonts",
   "nodes": [

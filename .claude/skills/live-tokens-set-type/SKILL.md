@@ -31,7 +31,7 @@ Every slot is optional; an omitted slot keeps its family. `display` is `--font-d
 
 The body face is the anchor. It carries most of the words, and text faces survive small sizes where display faces do not. Pick it against the type intent, then pick the display face against it. A body face has regular, bold, and italic; low to moderate stroke contrast; open apertures; and a large x-height. A face missing any of these is a display face, whatever its name says.
 
-The display and heading usages ask the display face for 600 through `--display-font-weight` and `--heading-font-weight`. The body usage asks the body face for 400 through `--body-font-weight`, and `h4` to `h6` ask it for 600. The code usage asks the mono face for 400 through `--code-font-weight`. `strong` and `em` add 700 and italic. Screen candidates against those weights before running.
+The display and heading usages ask the display face for 600 through `--display-font-weight` and `--heading-font-weight`. The body usage asks the body face for 400 through `--body-font-weight`, and `h4` to `h6` ask it for 600. The code usage asks the mono face for 400 through `--code-font-weight`. `strong` asks for 600, and `em` adds italic. Screen candidates against those weights before running.
 
 ## The font matrix
 
