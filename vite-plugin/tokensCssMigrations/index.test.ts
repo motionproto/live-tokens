@@ -36,9 +36,10 @@ describe('editorial type role', () => {
     expect(applied).toContain('2026-08-25-editorial-type-role');
     expect(applied).toContain('2026-08-27-editorial-size-steps');
     expect(css).toContain('--font-editorial: var(--font-sans);');
-    expect(css).toContain('--editorial-md-font-family: var(--font-editorial);');
+    expect(css).toContain('--editorial-font-family: var(--font-editorial);');
+    expect(css).toContain('--editorial-md-font-family: var(--editorial-font-family);');
     expect(css).toContain('--editorial-md-line-height: var(--line-height-normal);');
-    expect(css).toContain('--editorial-sm-font-size: var(--font-size-sm);');
+    expect(css).toContain('--editorial-sm-font-size: var(--editorial-sm-desktop-font-size);');
   });
 
   it('carries a shipped unsized bundle onto the medium step, values intact', () => {
@@ -47,7 +48,7 @@ describe('editorial type role', () => {
       '--code-font-family: var(--font-mono);\n  --editorial-font-family: var(--font-editorial);\n  --editorial-font-size: var(--font-size-lg);',
     );
     const { css } = runTokensCssMigrations(sized);
-    expect(css).toContain('--editorial-md-font-size: var(--font-size-lg);');
+    expect(css).toContain('--editorial-md-desktop-font-size: var(--font-size-lg);');
     expect(css).not.toContain('--editorial-font-size:');
   });
 
@@ -92,9 +93,9 @@ describe('editorial steps above the reading size', () => {
   it('adds both steps to a tokens.css that only has the pair', () => {
     const { css, applied } = runTokensCssMigrations(PAIR);
     expect(applied).toContain('2026-08-27-editorial-large-steps');
-    expect(css).toContain('--editorial-lg-font-size: var(--font-size-lg);');
-    expect(css).toContain('--editorial-xl-font-size: var(--font-size-xl);');
-    expect(css).toContain('--editorial-xl-font-family: var(--font-editorial);');
+    expect(css).toContain('--editorial-lg-font-size: var(--editorial-lg-desktop-font-size);');
+    expect(css).toContain('--editorial-xl-font-size: var(--editorial-xl-desktop-font-size);');
+    expect(css).toContain('--editorial-xl-font-family: var(--editorial-font-family);');
   });
 
   it('tightens leading by one step away from the reading size', () => {
@@ -114,8 +115,8 @@ describe('editorial steps above the reading size', () => {
       '--editorial-sm-font-size: var(--font-size-sm);\n  --editorial-lg-font-size: var(--font-size-2xl);',
     );
     const { css } = runTokensCssMigrations(tuned);
-    expect(css).toContain('--editorial-lg-font-size: var(--font-size-2xl);');
-    expect(css).not.toContain('--editorial-lg-font-size: var(--font-size-lg);');
+    expect(css).toContain('--editorial-lg-desktop-font-size: var(--font-size-2xl);');
+    expect(css).not.toContain('--editorial-lg-desktop-font-size: calc(');
   });
 
   it('is idempotent', () => {
