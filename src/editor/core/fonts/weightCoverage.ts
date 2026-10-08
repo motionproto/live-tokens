@@ -18,6 +18,7 @@ export interface FaceCoverage {
 
 const STACK_REF = /var\(\s*(--font-(?:display|sans|serif|mono))\s*\)/;
 const VAR_REF = /var\(\s*(--[a-z0-9-]+)/i;
+const ALIAS = /^var\(\s*(--[a-z0-9-]+)\s*\)$/i;
 
 function declarations(css: string): Map<string, string> {
   const decls = new Map<string, string>();
@@ -25,6 +26,28 @@ function declarations(css: string): Map<string, string> {
     decls.set(name, value.trim());
   }
   return decls;
+}
+
+/**
+ * Follows whole-value aliases, such as a text style's `var(--heading-font-weight)`,
+ * until `read` accepts a value. A `--font-*` stack or weight token ends the walk,
+ * so an alias between stacks, such as `--font-editorial`, counts for no stack.
+ */
+function follow<T>(
+  decls: Map<string, string>,
+  value: string | undefined,
+  read: (v: string) => T | undefined,
+): T | undefined {
+  const seen = new Set<string>();
+  while (value !== undefined) {
+    const hit = read(value);
+    if (hit !== undefined) return hit;
+    const next = value.match(ALIAS)?.[1];
+    if (!next || next.startsWith('--font-') || seen.has(next)) return undefined;
+    seen.add(next);
+    value = decls.get(next);
+  }
+  return undefined;
 }
 
 /**
@@ -50,10 +73,16 @@ export function requiredWeights(
   for (const [name, value] of decls) {
     const familyVariable = inferFontFamilyVariable(name);
     if (!familyVariable) continue;
-    const stack = decls.get(familyVariable)?.match(STACK_REF)?.[1] as FontStackVariable | undefined;
+    const stack = follow(
+      decls,
+      decls.get(familyVariable),
+      (v) => v.match(STACK_REF)?.[1] as FontStackVariable | undefined,
+    );
     if (!stack) continue;
 
-    const weight = /^\d+$/.test(value) ? Number(value) : scale.get(value.match(VAR_REF)?.[1] ?? '');
+    const weight = follow(decls, value, (v) =>
+      /^\d+$/.test(v) ? Number(v) : scale.get(v.match(VAR_REF)?.[1] ?? ''),
+    );
     if (weight === undefined) continue;
 
     const key = `${stack}:${weight}`;

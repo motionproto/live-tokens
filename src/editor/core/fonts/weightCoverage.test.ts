@@ -5,10 +5,14 @@ const TOKENS = `:root {
   --font-weight-light: 300;
   --font-weight-normal: 400;
   --font-weight-semibold: 600;
-  --heading-lg-font-family: var(--font-display);
-  --heading-lg-font-weight: var(--font-weight-semibold);
-  --body-md-font-family: var(--font-sans);
-  --body-md-font-weight: var(--font-weight-normal);
+  --heading-font-family: var(--font-display);
+  --heading-font-weight: var(--font-weight-semibold);
+  --heading-lg-font-family: var(--heading-font-family);
+  --heading-lg-font-weight: var(--heading-font-weight);
+  --body-font-family: var(--font-sans);
+  --body-font-weight: var(--font-weight-normal);
+  --body-md-font-family: var(--body-font-family);
+  --body-md-font-weight: var(--body-font-weight);
   --code-font-family: var(--font-mono);
   --code-font-weight: 500;
 }`;
@@ -16,10 +20,32 @@ const TOKENS = `:root {
 describe('requiredWeights', () => {
   it('pairs each -font-weight with its -font-family and resolves the scale', () => {
     expect(requiredWeights(TOKENS)).toEqual([
-      { variable: '--heading-lg-font-weight', stack: '--font-display', weight: 600 },
-      { variable: '--body-md-font-weight', stack: '--font-sans', weight: 400 },
+      { variable: '--heading-font-weight', stack: '--font-display', weight: 600 },
+      { variable: '--body-font-weight', stack: '--font-sans', weight: 400 },
       { variable: '--code-font-weight', stack: '--font-mono', weight: 500 },
     ]);
+  });
+
+  it('follows a step’s aliases to its usage’s face and weight', () => {
+    const pinned = TOKENS.replace(
+      '}',
+      '  --heading-sm-font-family: var(--font-sans);\n  --heading-sm-font-weight: var(--heading-font-weight);\n}',
+    );
+    expect(requiredWeights(pinned)).toContainEqual({
+      variable: '--heading-sm-font-weight',
+      stack: '--font-sans',
+      weight: 600,
+    });
+  });
+
+  it('counts an alias between stacks for no stack', () => {
+    const found = requiredWeights(`:root {
+      --font-weight-bold: 700;
+      --font-editorial: var(--font-sans);
+      --editorial-font-family: var(--font-editorial);
+      --editorial-font-weight: var(--font-weight-bold);
+    }`);
+    expect(found).toEqual([]);
   });
 
   it('counts a theme’s own component tokens', () => {

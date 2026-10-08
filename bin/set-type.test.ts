@@ -85,10 +85,14 @@ function project(): string {
     `:root {
       --font-weight-normal: 400;
       --font-weight-semibold: 600;
-      --heading-lg-font-family: var(--font-display);
-      --heading-lg-font-weight: var(--font-weight-semibold);
-      --body-md-font-family: var(--font-sans);
-      --body-md-font-weight: var(--font-weight-normal);
+      --heading-font-family: var(--font-display);
+      --heading-font-weight: var(--font-weight-semibold);
+      --heading-lg-font-family: var(--heading-font-family);
+      --heading-lg-font-weight: var(--heading-font-weight);
+      --body-font-family: var(--font-sans);
+      --body-font-weight: var(--font-weight-normal);
+      --body-md-font-family: var(--body-font-family);
+      --body-md-font-weight: var(--body-font-weight);
     }`,
   );
   return root;
