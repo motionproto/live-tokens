@@ -16,6 +16,8 @@
     disabled?: boolean;
     selectionsLocked?: boolean;
     onchange?: () => void;
+    /** Routes writes to the caller in place of the DOM; see `UITokenSelector`. */
+    onwrite?: (value: string | null) => void;
   }
 
   let {
@@ -25,6 +27,7 @@
     disabled = false,
     selectionsLocked = false,
     onchange,
+    onwrite,
   }: Props = $props();
 
   const options = [
@@ -87,6 +90,7 @@
   varPrefix="--font-weight-"
   {options}
   {onchange}
+  {onwrite}
 >
   {#snippet option({ opt, active, select })}
       {@const unsupported = availability !== null && !availability.weights.has(Number(opt.value))}

@@ -29,6 +29,8 @@
     /** Trailing dropdown content (e.g. action buttons). */
     extras?: Snippet<[{ close: () => void }]>;
     onchange?: () => void;
+    /** Routes writes to the caller in place of the DOM; see `UITokenSelector`. */
+    onwrite?: (value: string | null) => void;
   }
 
   let {
@@ -47,6 +49,7 @@
     option: callerOption,
     extras: callerExtras,
     onchange,
+    onwrite,
   }: Props<T> = $props();
 
   let selector: UITokenSelector;
@@ -131,6 +134,7 @@
   {dropdownMaxWidth}
   onreset={handleReset}
   onvarChange={initFromCurrent}
+  {onwrite}
 >
   {#snippet triggerTitle()}
     {#if callerTriggerTitle}{@render callerTriggerTitle({ activeOption })}{:else}{activeOption?.label ?? ''}{/if}

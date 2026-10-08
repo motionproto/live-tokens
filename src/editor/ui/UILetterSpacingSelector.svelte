@@ -9,6 +9,8 @@
     disabled?: boolean;
     selectionsLocked?: boolean;
     onchange?: () => void;
+    /** Routes writes to the caller in place of the DOM; see `UITokenSelector`. */
+    onwrite?: (value: string | null) => void;
   }
 
   let {
@@ -18,6 +20,7 @@
     disabled = false,
     selectionsLocked = false,
     onchange,
+    onwrite,
   }: Props = $props();
 
   const options = [
@@ -38,6 +41,7 @@
   varPrefix="--letter-spacing-"
   {options}
   {onchange}
+  {onwrite}
 >
   {#snippet option({ opt, active, select })}
     <UIOptionItem {active} onclick={select}>

@@ -15,6 +15,8 @@
     disabled?: boolean;
     selectionsLocked?: boolean;
     onchange?: () => void;
+    /** Routes writes to the caller in place of the DOM; see `UITokenSelector`. */
+    onwrite?: (value: string | null) => void;
   }
 
   let {
@@ -24,6 +26,7 @@
     disabled = false,
     selectionsLocked = false,
     onchange,
+    onwrite,
   }: Props = $props();
 
   const SOURCE_KIND_LABELS: Record<FontSourceKind, string> = {
@@ -191,6 +194,7 @@
   dropdownMinWidth="14rem"
   onreset={handleReset}
   onvarChange={initFromCurrent}
+  {onwrite}
 >
   {#snippet triggerTitle()}{activeLabel}{/snippet}
   {#snippet triggerMeta()}{displayFamily || '—'}{/snippet}
@@ -198,7 +202,7 @@
   {#snippet children({ close })}
   
       <UIOptionList>
-        {#each options as opt}
+        {#each options as opt (opt.key)}
           <UIOptionItem
             active={chosenKey === opt.key}
             onclick={() => selectOption(opt.key, close)}

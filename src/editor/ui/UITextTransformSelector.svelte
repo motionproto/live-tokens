@@ -12,6 +12,8 @@
     disabled?: boolean;
     selectionsLocked?: boolean;
     onchange?: () => void;
+    /** Routes writes to the caller in place of the DOM; see `UITokenSelector`. */
+    onwrite?: (value: string | null) => void;
   }
 
   let {
@@ -21,6 +23,7 @@
     disabled = false,
     selectionsLocked = false,
     onchange,
+    onwrite,
   }: Props = $props();
 
   // text-transform is a literal CSS keyword, not a scale alias — the picker
@@ -78,6 +81,7 @@
   dropdownMinWidth="12rem"
   onreset={handleReset}
   onvarChange={readResolved}
+  {onwrite}
 >
   {#snippet triggerTitle()}{activeLabel}{/snippet}
   {#snippet triggerMeta()}{current || '—'}{/snippet}
