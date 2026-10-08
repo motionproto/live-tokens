@@ -79,7 +79,7 @@ Show related items side by side when the width permits. A line of copy runs 45 t
 - A native element with no chrome of its own needs no component: an `<input type="file">` behind a Button, a `<canvas>`, an `<img>` inside a stage.
 - Text inside a `Card` or a `CollapsibleSection` takes the container's type on nested `p`, `ul`, `ol`, and `li`. When the page owns that type, as full-bleed media does, pass `prose={false}`.
 - An empty stage shows a heading that names the condition and one `secondary` Button that fills it. An error goes in a `Callout variant="danger"`.
-- A container in a tool UI labels itself: `Card variant="bare"` with the label in the body as `--body-sm-*` in `--text-secondary`.
+- A container in a tool UI labels itself: `Card variant="bare"` with the label in the body as `.body-sm` in `--text-secondary`.
 - A row of fields is a flex row with `gap: var(--space-20)`; each field's wrapper takes `flex: 1`.
 - A toolbar is a flex row of Buttons on the section's bottom edge, with no container around it. Group the Buttons left and right with `justify-content: space-between`. A `danger` Button sits apart from the group it could be mistaken for. A vertical stack of Buttons sets `fullWidth` on each Button; a row omits it.
 - For a `MenuSelect` picker, toggle it from a Button with a trailing chevron (`icon="fa-solid fa-chevron-down" iconPosition="right"`) and position the list under the Button at `top: 100%` with a `--space-*` margin.
@@ -106,18 +106,24 @@ Show related items side by side when the width permits. A line of copy runs 45 t
 
 One text style per element. A text style has five axes: `-font-family`, `-font-size`, `-font-weight`, `-line-height`, and `-letter-spacing`. Set all five from the one style.
 
+The text styles fall into five usages, each a scale of seven steps from `2xs` to `2xl`: display for type outside the page outline, heading for the outline, body for interface text and short copy, editorial for long reading, and code. Each step is a style named `--{usage}-{step}-*`, such as `--body-sm-*`. Headings use the whole set. The other usages mostly take `md` and `sm`.
+
 | Element | Style |
 |---|---|
 | Page title | `h1` in `--heading-xl-*` |
 | Section title | `h2` in `--heading-lg-*`, or `SectionDivider variant="sm"` |
+| Title inside a section | `h3` to `h6` in `--heading-md-*` to `--heading-2xs-*` |
 | Card title | the Card `title` prop |
+| Hero title, big number | `--display-md-*` |
 | Label above a group | `--body-sm-*` in `--text-secondary` |
 | Body | `p` in `--body-md-*` |
 | Secondary line | `--body-sm-*` in `--text-secondary` |
 | Count, status, read-out | `--body-sm-*` in `--text-primary` |
-| Command or value | `code` in `--code-*` |
+| Article copy | `p` in `--editorial-md-*` |
+| Code block | `pre` in `--code-md-*` |
+| Command or value in a line | `code`, at `0.875em` of the text around it |
 
-Use the semantic element for each place: one `h1`, an `h2` for each section, `h3` inside a section, `p` for copy. Heading levels run in order with no skipped level. `site.css` types bare `h1` to `h4`, `p`, `code`, `pre`, and list items from these styles, so the tag carries the style. Type an element only when the table gives its tag a different style. A weight alone, on `strong` or a list marker, is the one axis a page sets by itself. A page shows at most two weights.
+Use the semantic element for each place: one `h1`, an `h2` for each section, `h3` inside a section, `p` for copy. Heading levels run in order with no skipped level. `site.css` types bare `h1` to `h6`, `p`, `small`, `code`, `pre`, and list items from these styles, so the tag carries the style. It also gives every step a class of the same name, such as `.display-md` or `.body-sm`, that sets all five axes. Type an element only when the table gives its tag a different style, and type it with the step's class. A weight alone, on `strong` or a list marker, is the one axis a page sets by itself. A page shows at most two weights.
 
 ### Size
 

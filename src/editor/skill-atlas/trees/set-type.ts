@@ -2,7 +2,7 @@ import type { SkillTree } from '../types';
 
 export const setType: SkillTree = {
   "id": "live-tokens-set-type",
-  "digest": "sha256:0c8d26a16313f9ee",
+  "digest": "sha256:5e434a9b7ac45032",
   "title": "set-type",
   "tagline": "Set Typefaces from Google Fonts",
   "nodes": [
@@ -38,7 +38,7 @@ export const setType: SkillTree = {
           "label": "Choose the body face first",
           "lines": [30, 34],
           "anchor": "## Choose the body face first",
-          "anchorEnd": "The shipped text styles ask the display face for 600 and the"
+          "anchorEnd": "The display and heading usages ask the display face for 600 "
         },
         {
           "label": "The font matrix",

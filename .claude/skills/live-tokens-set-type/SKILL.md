@@ -25,13 +25,13 @@ Flags: `--dry-run` reports without writing. `--no-verify` skips the network and 
 { "display": "Fraunces", "body": "Nunito Sans" }
 ```
 
-Every slot is optional; an omitted slot keeps its family. `display` is `--font-display` and `body` is `--font-sans`. `serif`, `mono`, and `editorial` exist when a theme needs them. `editorial` is `--font-editorial`, the long-reading face behind the `--editorial-*` text styles. An omitted `editorial` keeps its family, so set it only when essays and articles need a face of their own. Weight coverage is reported for `display`, `body`, `serif`, and `mono`. A family bound to `editorial` gets no coverage line. A slot may be `{ "name": "...", "url": "..." }` to pin a URL. A pinned URL is not probed, so the report shows no weights for it and coverage skips it. Spell families as Google does; the CLI reports the canonical spelling.
+Every slot is optional; an omitted slot keeps its family. `display` is `--font-display`, the face of the display and heading usages (`--display-font-family`, `--heading-font-family`). `body` is `--font-sans`, the face of the body usage (`--body-font-family`) and of `h4` to `h6`. `mono` is `--font-mono`, the face of the code usage (`--code-font-family`). `serif` exists when a theme needs it. `editorial` is `--font-editorial`, the long-reading face behind the editorial usage (`--editorial-font-family`). An omitted `editorial` keeps its family, so set it only when essays and articles need a face of their own. Weight coverage is reported for `display`, `body`, `serif`, and `mono`. A family bound to `editorial` gets no coverage line. A slot may be `{ "name": "...", "url": "..." }` to pin a URL. A pinned URL is not probed, so the report shows no weights for it and coverage skips it. Spell families as Google does; the CLI reports the canonical spelling.
 
 ## Choose the body face first
 
 The body face is the anchor. It carries most of the words, and text faces survive small sizes where display faces do not. Pick it against the type intent, then pick the display face against it. A body face has regular, bold, and italic; low to moderate stroke contrast; open apertures; and a large x-height. A face missing any of these is a display face, whatever its name says.
 
-The shipped text styles ask the display face for 600 and the body face for 400; `strong` and `em` add 700 and italic. Screen candidates against those four weights before running.
+The display and heading usages ask the display face for 600 through `--display-font-weight` and `--heading-font-weight`. The body usage asks the body face for 400 through `--body-font-weight`, and `h4` to `h6` ask it for 600. The code usage asks the mono face for 400 through `--code-font-weight`. `strong` and `em` add 700 and italic. Screen candidates against those weights before running.
 
 ## The font matrix
 
