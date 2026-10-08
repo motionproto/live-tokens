@@ -10,22 +10,32 @@
   `--code-md-letter-spacing`. `--code-font-family` and `--code-font-weight`
   keep their names and now set the code usage's face and weight. A `site.css`
   copied from an earlier release still reads the old names, and check-page
-  reports each one as `unknown-token`. Its `code` and `pre` rules become:
+  reports each one as `unknown-token`. The next entry gives the `code` and
+  `pre` rules that replace them.
+- **Inline `code` sizes relative to its parent.** `site.css` sets `code` at
+  `0.875em`, so inline code in a heading grows with the heading, and
+  `pre code` takes the block's size. `pre` reads the code md bundle. A project
+  keeps the `code` and `pre` rules in its own copy of `site.css` until it
+  replaces them with these:
 
   ```css
   code {
     font-family: var(--code-font-family);
-    font-size: var(--code-md-font-size);
+    font-size: 0.875em;
     font-weight: var(--code-font-weight);
     letter-spacing: var(--code-md-letter-spacing);
   }
 
   pre {
-    font-family: var(--code-font-family);
+    font-family: var(--code-md-font-family);
     font-size: var(--code-md-font-size);
-    font-weight: var(--code-font-weight);
+    font-weight: var(--code-md-font-weight);
     line-height: var(--code-md-line-height);
     letter-spacing: var(--code-md-letter-spacing);
+  }
+
+  pre code {
+    font-size: inherit;
   }
   ```
 
@@ -85,6 +95,11 @@
 - **Compression settings.** `--type-tablet-scale-compression` (0.75) and
   `--type-phone-scale-compression` (0.63) set how hard each tablet and phone
   size pulls toward 16px. At 1 a viewport keeps the desktop sizes.
+- **`site.css` rules for h5, h6 and `small`, and a class for every step.**
+  h5 reads heading xs, h6 reads heading 2xs, and `small` reads body sm. Each
+  of the 35 steps has a class that sets its five tokens, from `.display-2xl`
+  to `.code-2xs`. `create` copies the new rules into a new project. An
+  existing project copies them from the package's `src/app/site.css`.
 
 ### Migration
 
