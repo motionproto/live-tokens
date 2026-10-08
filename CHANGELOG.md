@@ -1,5 +1,103 @@
 # Changelog
 
+## Unreleased — Type scales for text styles
+
+### Changed (breaking)
+
+- **The code text style's size, leading and tracking move to its md step.**
+  `--code-font-size`, `--code-line-height` and `--code-letter-spacing` become
+  `--code-md-font-size`, `--code-md-line-height` and
+  `--code-md-letter-spacing`. `--code-font-family` and `--code-font-weight`
+  keep their names and now set the code usage's face and weight. A `site.css`
+  copied from an earlier release still reads the old names, and check-page
+  reports each one as `unknown-token`. Its `code` and `pre` rules become:
+
+  ```css
+  code {
+    font-family: var(--code-font-family);
+    font-size: var(--code-md-font-size);
+    font-weight: var(--code-font-weight);
+    letter-spacing: var(--code-md-letter-spacing);
+  }
+
+  pre {
+    font-family: var(--code-font-family);
+    font-size: var(--code-md-font-size);
+    font-weight: var(--code-font-weight);
+    line-height: var(--code-md-line-height);
+    letter-spacing: var(--code-md-letter-spacing);
+  }
+  ```
+
+- **Every text style's `-font-size` resolves per viewport.** Each step
+  declares a `-desktop-font-size`, a `-tablet-font-size` and a
+  `-phone-font-size`. Its `-font-size` keeps its name, points at the desktop
+  size, and `tokens.css` re-points it at 768px and 480px. A tablet or phone
+  size starts at `16px × (desktop size ÷ 16px) ^ compression`, capped at the
+  desktop size, so sizes above 16px shrink and reading sizes hold.
+  Set a size through its desktop, tablet or phone name: a theme that sets
+  `-font-size` itself outweighs the breakpoint re-points. The sizes use CSS
+  `pow()`, which ships in Chrome and Edge 120, Firefox 118 and Safari 15.4.
+- **Heading sizes follow a major third from a 24px base.** h2 and h3 grow the
+  most and take distinct sizes on phones.
+
+  | Element | Desktop | Tablet | Phone |
+  |---|---|---|---|
+  | h1, `--heading-xl-font-size` | 36 → 37.5px | 30 → 30.3px | 28 → 27.4px |
+  | h2, `--heading-lg-font-size` | 24 → 30px | 22 → 25.6px | 20 → 23.8px |
+  | h3, `--heading-md-font-size` | 20 → 24px | 20 → 21.7px | 20 → 20.7px |
+  | h4, `--heading-sm-font-size` | 18 → 19.2px | 18 → 18.3px | 18 → 17.9px |
+
+  Body sm, editorial sm and the eyebrow move from 14px to 14.2px. Editorial
+  xl moves from 20px to 20.2px, and editorial lg holds 18px on desktops. On
+  tablets they ease to 19.1px and 17.5px, and on phones to 18.6px and 17.2px.
+  Body md, editorial md and code md keep their sizes.
+- **Each step's face and weight read its usage's settings.**
+  `--heading-xl-font-family` holds `var(--heading-font-family)`, and every
+  other step follows the same pattern, so one edit restyles a whole usage.
+  Each resolves to the face and weight it had before. Heading sm, xs and 2xs
+  pin `var(--font-sans)`, which keeps h4 in the sans face.
+
+### Added
+
+- **The display usage.** `--display-{2xs,xs,sm,md,lg,xl,2xl}-*` style type
+  outside the page outline, such as heroes, section titles and big numbers.
+  Display md is 48px on a minor third, so display xl is 69.1px.
+- **Seven steps in every usage.** Display, heading, body, editorial and code
+  each run 2xs, xs, sm, md, lg, xl and 2xl. md is the base, each step up
+  multiplies by the ratio, and each step down divides by it. Heading gains
+  2xl, xs and 2xs; body gains 2xl, xl, lg, xs and 2xs; editorial gains 2xl,
+  xs and 2xs; code gains every step beside md. The eyebrow gains a desktop, a
+  tablet and a phone size, which follow body sm.
+- **Scale settings for each usage.** `--{usage}-font-family`,
+  `--{usage}-font-weight`, `--{usage}-scale-base` and `--{usage}-scale-ratio`.
+  The base is a unitless count of rem, and a step's desktop size is
+  `base × ratio ^ n`, with n from -3 at 2xs to 3 at 2xl.
+
+  | Usage | Face | Weight | Base | Ratio |
+  |---|---|---|---|---|
+  | Display | display | semibold | 3 (48px) | 1.2, minor third |
+  | Heading | display | semibold | 1.5 (24px) | 1.25, major third |
+  | Body | sans | normal | 1 (16px) | 1.125, major second |
+  | Editorial | editorial | normal | 1 (16px) | 1.125, major second |
+  | Code | mono | normal | 0.875 (14px) | 1.125, major second |
+
+- **Compression settings.** `--type-tablet-scale-compression` (0.75) and
+  `--type-phone-scale-compression` (0.63) set how hard each tablet and phone
+  size pulls toward 16px. At 1 a viewport keeps the desktop sizes.
+
+### Migration
+
+- Run `npx live-tokens migrate`. The `2026-10-08-type-scales` tokens.css
+  migration is breaking, so the dev plugin's `autoMigrate` skips it, and
+  check-page reports it as `tokens-breaking-migration` until it runs. It
+  renames the three code tokens and every reference to them in `tokens.css`,
+  moves a step size you changed into that step's desktop size, keeps a face or
+  weight you changed in place of its link, adds the new tokens, and appends
+  the re-points to the 768px and 480px blocks.
+- Themes need no migration. The editor never saved a text-style edit, so no
+  theme holds one.
+
 ## 0.91.2 — Sketch mode claims its parts at ID weight
 
 ### Changed
