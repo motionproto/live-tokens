@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
+import { recommendedEditedExpression, recommendedScaleExpression } from '../../src/editor/core/typeScale/typeScale';
 import { collectTokenValues, runAdditiveTokensCssMigrations, runTokensCssMigrations } from './index';
 
 const FIXTURE = readFileSync(resolve(__dirname, 'fixtures/tokens-0.91.2.css'), 'utf8');
@@ -59,6 +60,28 @@ describe('2026-10-08-type-scales', () => {
     const values = collectTokenValues(fold(edited));
     expect(values.get('--heading-xl-desktop-font-size')).toBe('2.5rem');
     expect(values.get('--heading-xl-font-size')).toBe('var(--heading-xl-desktop-font-size)');
+  });
+
+  it("derives an edited rem or px size's tablet and phone sizes by the editor's rule", () => {
+    const edited = FIXTURE.replace('--heading-xl-font-size: var(--font-size-4xl);', '--heading-xl-font-size: 2.5rem;')
+      .replace('--heading-lg-font-size: var(--font-size-2xl);', '--heading-lg-font-size: 28px;');
+    const values = collectTokenValues(fold(edited));
+    for (const viewport of ['tablet', 'phone'] as const) {
+      expect(values.get(`--heading-xl-${viewport}-font-size`)).toBe(recommendedEditedExpression('--heading-xl', 2.5, viewport));
+      expect(values.get(`--heading-lg-${viewport}-font-size`)).toBe(recommendedEditedExpression('--heading-lg', 1.75, viewport));
+    }
+  });
+
+  it("keeps the scale's tablet and phone sizes for an edited alias", () => {
+    const edited = FIXTURE.replace(
+      '--heading-xl-font-size: var(--font-size-4xl);',
+      '--heading-xl-font-size: var(--font-size-5xl);',
+    );
+    const values = collectTokenValues(fold(edited));
+    expect(values.get('--heading-xl-desktop-font-size')).toBe('var(--font-size-5xl)');
+    for (const viewport of ['tablet', 'phone'] as const) {
+      expect(values.get(`--heading-xl-${viewport}-font-size`)).toBe(recommendedScaleExpression('heading', 'xl', viewport));
+    }
   });
 
   it('keeps a changed face in place of the link to its usage', () => {

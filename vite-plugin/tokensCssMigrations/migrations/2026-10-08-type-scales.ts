@@ -20,6 +20,9 @@ import {
  * A consumer's edits carry over. A 0.91.2 step whose `-font-size` differs from
  * the shipped value keeps that value as its desktop size, and a face or weight
  * that differs from the shipped value stays in place of the link to its usage.
+ * A carried rem or px size sets the step's tablet and phone sizes by the
+ * editor's rule for an edited size. Any other carried size, such as an alias
+ * of a primitive, keeps the scale's tablet and phone sizes.
  *
  * `breaking`: it renames `--code-font-size`, `--code-line-height` and
  * `--code-letter-spacing` to `--code-md-*`, and it rewrites every 0.91.2
@@ -155,6 +158,23 @@ const COMPRESSION: ScaleEntry[] = [
   { name: '--type-tablet-scale-compression', value: '0.75' },
   { name: '--type-phone-scale-compression', value: '0.63' },
 ];
+
+const COMPRESSED_VIEWPORTS = ['tablet', 'phone'] as const;
+
+function literalRem(size: string): number | null {
+  const m = /^(-?\d*\.?\d+)(rem|px)$/.exec(size.trim());
+  if (!m) return null;
+  return m[2] === 'rem' ? Number(m[1]) : Number(m[1]) / 16;
+}
+
+/** Frozen from the editor's `recommendedEditedExpression`. */
+function editedSizes(prefix: string, rem: number): ScaleEntry[] {
+  const count = String(Number(rem.toFixed(4)));
+  return COMPRESSED_VIEWPORTS.map((viewport) => ({
+    name: `${prefix}-${viewport}-font-size`,
+    value: `min(var(${prefix}-desktop-font-size), calc(pow(${count}, var(--type-${viewport}-scale-compression)) * 1rem))`,
+  }));
+}
 
 const USAGES: UsageBlock[] = [
   {
@@ -798,9 +818,14 @@ export const tokensCssMigration_2026_10_08_typeScales: TokensCssMigration = {
       const size = values.get(`${step.prefix}-font-size`);
       if (size === undefined) continue;
       const desktop = `${step.prefix}-desktop-font-size`;
+      const edited = size !== step.size;
+      const rem = edited ? literalRem(size) : null;
       out = ensureScale(out, {
         anchorPrefixes: [`${step.prefix}-font-family`, `${step.prefix}-`],
-        entries: [{ name: desktop, value: size === step.size ? DECLARED.get(desktop)! : size }],
+        entries: [
+          { name: desktop, value: edited ? size : DECLARED.get(desktop)! },
+          ...(rem === null ? [] : editedSizes(step.prefix, rem)),
+        ],
       });
       out = setTokenValue(out, `${step.prefix}-font-size`, `var(${desktop})`);
       for (const link of step.links) out = setTokenValue(out, link.name, link.to, { from: link.from });

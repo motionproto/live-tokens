@@ -132,7 +132,10 @@
   renames the three code tokens and every reference to them in `tokens.css`,
   moves a step size you changed into that step's desktop size, keeps a face or
   weight you changed in place of its link, adds the new tokens, and appends
-  the re-points to the 768px and 480px blocks.
+  the re-points to the 768px and 480px blocks. A changed size in rem or px
+  sets its step's tablet and phone sizes the way an edit in the editor does.
+  A changed size that aliases a primitive, such as `var(--font-size-5xl)`,
+  keeps the scale's tablet and phone sizes.
 - Themes need no migration. The editor never saved a text-style edit, so no
   theme holds one.
 
