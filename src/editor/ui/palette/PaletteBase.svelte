@@ -1,6 +1,14 @@
+<script module lang="ts">
+  // Every family's header reads one drag source, because dataTransfer data is
+  // unreadable during dragover.
+  let swapSource: string | null = null;
+  const SWAP_DRAG_TYPE = 'application/x-palette-family';
+</script>
+
 <script lang="ts">
   import type { Snippet } from 'svelte';
   import { oklchToHexClamped, type Oklch } from '../../core/palettes/oklch';
+  import { BASE_KEY } from './paletteEditorState';
 
   interface Props {
     /**
@@ -20,6 +28,8 @@
     copiedKey: string | null;
     onStartEdit: () => void;
     onCopyBaseHex: (key: string, hex: string, event?: MouseEvent) => void;
+    /** Another family's header swatch dropped on this one. */
+    onSwapFrom: (family: string) => void;
     actions?: Snippet;
     /** A family-level setting, shown beside the name while this family's
      *  editor is open. Collapsed families keep the band to identity + actions. */
@@ -36,9 +46,33 @@
     copiedKey,
     onStartEdit,
     onCopyBaseHex,
+    onSwapFrom,
     actions,
     setting
   }: Props = $props();
+
+  let swapHover = $state(false);
+
+  function onDragStart(e: DragEvent) {
+    if (!e.dataTransfer) return;
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData(SWAP_DRAG_TYPE, label);
+    swapSource = label;
+  }
+
+  function onDragOver(e: DragEvent) {
+    if (swapSource === null || swapSource === label) return;
+    e.preventDefault();
+    if (e.dataTransfer) e.dataTransfer.dropEffect = 'move';
+    swapHover = true;
+  }
+
+  function onDrop(e: DragEvent) {
+    swapHover = false;
+    if (swapSource === null || swapSource === label) return;
+    e.preventDefault();
+    onSwapFrom(swapSource);
+  }
 
   let baseHex = $derived(oklchToHexClamped(baseColor.l, baseColor.c, baseColor.h));
 
@@ -54,11 +88,19 @@
       class="header-swatch"
       class:active={isEditingBase || pinnedOpen}
       class:selected
+      class:swap-target={swapHover}
       style="background: {baseHex}"
+      data-swatch-key={BASE_KEY}
+      draggable="true"
       onclick={onStartEdit}
       role="button"
       tabindex="0"
       onkeydown={(e) => e.key === 'Enter' && onStartEdit()}
+      ondragstart={onDragStart}
+      ondragend={() => (swapSource = null)}
+      ondragover={onDragOver}
+      ondragleave={() => (swapHover = false)}
+      ondrop={onDrop}
     ></div>
     <div class="primary-info">
       <span class="editor-label">{displayLabel ?? label}</span>
@@ -161,6 +203,13 @@
     box-shadow:
       inset 0 0 0 3px var(--ui-text-primary),
       inset 0 0 0 4px var(--ui-surface-lowest);
+  }
+
+  /* About to receive a swap: the axis row's doubled drop ring. */
+  .header-swatch.swap-target {
+    border-color: var(--ui-text-primary);
+    outline: 1px solid var(--ui-text-primary);
+    outline-offset: 1px;
   }
 
   .editor-label {

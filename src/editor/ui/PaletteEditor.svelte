@@ -30,9 +30,16 @@
   import { editorState, mutate, setPaletteConfig, beginSliderGesture, beginScope, commitScope, cancelScope, type Scope } from '../core/store/editorStore';
   // Base-color edits route through the shared setter so a bound harmony axis
   // follows the hue (invariant 1); the local `edit` would silently detach it.
-  import { setBaseColor } from './colors/paletteBaseColor';
+  import { setBaseColor, swapBaseColors } from './colors/paletteBaseColor';
   import { pendingPaletteFocus } from '../core/store/paletteFocus';
   import { showCopyPopover } from './copyPopover';
+  import {
+    activeSwatchFamily,
+    isSwatchCopy,
+    swatchPasteColor,
+    copySwatchColor,
+    showSwatchColor,
+  } from './swatchClipboard';
 
   // Full sRGB chroma range (gamutClamp trims per hue/lightness). Neutrals default
   // low but are not capped; their calm character comes from defaults, not a ceiling.
@@ -566,6 +573,29 @@
     dock = { title: editPanelTitle, color: editingColor, paletteIndex: editingPaletteIndex };
   });
   $effect(() => {
+    if (editingKey !== null) activeSwatchFamily.set(label);
+  });
+
+  let ownsClipboard = $derived($activeSwatchFamily === label && editingKey !== null);
+  let openSwatchEl = $derived(rootEl?.querySelector(`[data-swatch-key="${editingKey}"]`) ?? null);
+
+  function onWindowKeydown(e: KeyboardEvent) {
+    if (!ownsClipboard || !isSwatchCopy(e)) return;
+    e.preventDefault();
+    copySwatchColor(editing.kind === 'editingStep' ? editing.draft : baseColor, openSwatchEl);
+  }
+
+  // Paste lands in the open session like a slider edit: Cancel takes it back.
+  function onWindowPaste(e: ClipboardEvent) {
+    const color = ownsClipboard ? swatchPasteColor(e) : null;
+    if (color === null) return;
+    e.preventDefault();
+    if (isEditingBase) setBaseColor(label, color);
+    else handleColorChange(color);
+    showSwatchColor(color, openSwatchEl);
+  }
+
+  $effect(() => {
     // Touch each input so the effect tracks them (resnapScales reads indirectly).
     void baseColor;
     void scaleCurves;
@@ -595,6 +625,8 @@
   {/if}
 {/snippet}
 
+<svelte:window onkeydown={onWindowKeydown} onpaste={onWindowPaste} />
+
 <div class="palette-editor" bind:this={rootEl} style="--editor-base: {toHex(baseColor)}">
   <PaletteBase
     {label}
@@ -606,6 +638,7 @@
     {copiedKey}
     onStartEdit={startBaseEdit}
     onCopyBaseHex={copyHex}
+    onSwapFrom={(family) => swapBaseColors(family, label)}
   >
     {#snippet setting()}
       <!-- The family's own swatch and name sit alongside, so the label drops
@@ -687,6 +720,7 @@
               class:anchored={ps.anchored}
               title={ps.anchored ? 'Base color' : undefined}
               style="background: {ps.effective}"
+              data-swatch-key={ps.key}
               onclick={() => handlePaletteClick(ps)}
               role="button"
               tabindex="0"

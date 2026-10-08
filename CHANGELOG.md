@@ -1,5 +1,24 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+- **The Tokens view swaps two palettes' base colors by drag and drop.** Drop
+  one family's header swatch on another's and the two trade seed colors in one
+  undo step. A swap with a functional family leaves any harmony axis on the
+  family that held it, and the axis follows the new hue.
+- **Every Tokens-view swatch copies and pastes its color.** Click a header,
+  palette step, or override swatch open, and ⌘C (Ctrl+C) copies its color as
+  `oklch()` text. ⌘V (Ctrl+V) pastes a hex or `oklch()` color into the open
+  swatch, inside its edit session, so Cancel takes the paste back.
+
+### Fixed
+
+- **Pasting a swatch color needs no clipboard permission.** Paste reads the
+  browser's paste event, so Chrome no longer asks for clipboard access and
+  Safari no longer shows its Paste confirmation before ⌘V lands.
+
 ## 0.93.0 — Swatch swap and copy-paste
 
 ### Added

@@ -1,9 +1,8 @@
 <script lang="ts">
   import { cubicOut } from 'svelte/easing';
-  import { cssColorToOklch, oklchToCss, oklchToHexClamped } from '../../core/palettes/oklch';
+  import { oklchToHexClamped } from '../../core/palettes/oklch';
   import { PALETTE_SPECS } from '../../core/palettes/paletteDerivation';
   import { editorState, beginSliderGesture } from '../../core/store/editorStore';
-  import { isEditable } from '../../core/store/editorKeybindings';
   import { selectedPalette } from '../../core/store/paletteFocus';
   import { applyHarmonyToAxes, axisStatuses, HARMONY_ELIGIBLE, type HarmonyMode } from '../../core/palettes/colorHarmony';
   import AxisNumeral from './AxisNumeral.svelte';
@@ -14,7 +13,7 @@
   import PaletteStepStrip from './PaletteStepStrip.svelte';
   import HarmonyAxesList from './HarmonyAxesList.svelte';
   import PaletteJumpButton from '../palette/PaletteJumpButton.svelte';
-  import { showCopyPopover } from '../copyPopover';
+  import { isSwatchCopy, swatchPasteColor, copySwatchColor, showSwatchColor } from '../swatchClipboard';
   import {
     setBaseColor,
     setAxisHues,
@@ -157,31 +156,21 @@
   // Copy and paste act on the selected swatch, never the focused one: Safari
   // and macOS Firefox do not focus a button on click.
   function onWindowKeydown(e: KeyboardEvent) {
-    if (!(e.metaKey || e.ctrlKey) || e.shiftKey || e.altKey) return;
-    if (e.target instanceof HTMLElement && isEditable(e.target)) return;
-    const sw = swatches.find((s) => s.label === selected);
-    if (!sw) return;
-    const key = e.key.toLowerCase();
-    if (key === 'c') {
-      // Selected page text keeps the browser's own copy.
-      if (window.getSelection()?.isCollapsed === false) return;
-      e.preventDefault();
-      const css = oklchToCss(sw.color.l, sw.color.c, sw.color.h);
-      navigator.clipboard?.writeText(css);
-      showCopyPopover(css, swatchEls[sw.label]);
-    } else if (key === 'v') {
-      e.preventDefault();
-      pasteInto(sw, swatchEls[sw.label]);
-    }
+    const sw = selectedSwatch;
+    if (!sw || !isSwatchCopy(e)) return;
+    e.preventDefault();
+    copySwatchColor(sw.color, swatchEls[sw.label]);
   }
 
-  async function pasteInto(sw: Swatch, anchor: EventTarget | null) {
-    const color = cssColorToOklch(await navigator.clipboard.readText());
-    if (!color) return;
+  function onWindowPaste(e: ClipboardEvent) {
+    const sw = selectedSwatch;
+    const color = sw ? swatchPasteColor(e) : null;
+    if (!sw || color === null) return;
+    e.preventDefault();
     // A bound color drags its axis along, so an applied harmony no longer holds.
     if (sw.axis && color.h !== sw.color.h) activeMode = 'custom';
     setBaseColor(sw.label, color);
-    showCopyPopover(oklchToCss(color.l, color.c, color.h), anchor);
+    showSwatchColor(color, swatchEls[sw.label]);
   }
 
   let fullPalettes = $derived(palettesWithDefaults($editorState.palettes));
@@ -203,6 +192,8 @@
   });
 
   type Swatch = (typeof swatches)[number];
+
+  let selectedSwatch = $derived(swatches.find((s) => s.label === selected));
 
   const FUNCTIONAL_FAMILIES = new Set(['Info', 'Success', 'Warning', 'Danger']);
   // Declaration order, never a computed one: sorting by luminance made the row
@@ -229,7 +220,7 @@
   }
 </script>
 
-<svelte:window onkeydown={onWindowKeydown} />
+<svelte:window onkeydown={onWindowKeydown} onpaste={onWindowPaste} />
 
 <div class="colors-tab">
   <div class="pane">

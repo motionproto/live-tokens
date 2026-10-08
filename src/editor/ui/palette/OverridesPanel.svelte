@@ -180,6 +180,7 @@
             class:active={editingKey === k}
             class:populated={k in overrides}
             class:matching={k in overrides && overrides[k] === dHex}
+            data-swatch-key={k}
             onclick={() => onOverrideClick(k, step, scale.title)}
             role="button"
             tabindex="0"
@@ -212,6 +213,7 @@
               class:active={editingKey === k || snapPickerKey === k}
               class:populated={k in overrides}
               class:matching={k in overrides && overrides[k] === dHex}
+              data-swatch-key={k}
               onclick={() => snapped ? onSnappedClick(k) : onOverrideClick(k, step, scale.title)}
               role="button"
               tabindex="0"

@@ -577,6 +577,22 @@ describe('editorStore — harmony axis setters', () => {
     expect(s.harmonyAxes.some((a) => a.family === 'Brand')).toBe(false);
   });
 
+  it('swapBaseColors keeps a bound family on its axis when the other family cannot hold one', () => {
+    loadFromFile(colorsAndTypeWithPalettes({
+      editorConfigs: {
+        Brand: makePaletteConfig('#c04a2f'),
+        Info: makePaletteConfig('#2f6fc0'),
+      },
+    }));
+    const info0 = { ...get(editorState).palettes.Info.baseColor };
+    swapBaseColors('Brand', 'Info');
+    const s = get(editorState);
+    expect(s.palettes.Brand.baseColor).toEqual(info0);
+    expect(s.harmonyAxes[0].family).toBe('Brand');
+    expect(s.harmonyAxes[0].hue).toBe(info0.h);
+    expect(s.harmonyAxes.some((a) => a.family === 'Info')).toBe(false);
+  });
+
   it('swapBaseColors with itself adds no history entry', () => {
     loadFromFile(colorsAndTypeWithPalettes());
     const before = __getHistoryLengths().past;

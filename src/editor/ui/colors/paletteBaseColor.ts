@@ -19,7 +19,7 @@
 
 import { get } from 'svelte/store';
 import type { Oklch } from '../../core/palettes/oklch';
-import { axisLabel } from '../../core/palettes/colorHarmony';
+import { axisLabel, HARMONY_ELIGIBLE } from '../../core/palettes/colorHarmony';
 import { PALETTE_SPECS, syncBaseAnchor, type PaletteSpec } from '../../core/palettes/paletteDerivation';
 import { defaultPaletteConfig } from '../palette/paletteMath';
 import { mutate, transaction, editorState } from '../../core/store/editorStore';
@@ -208,8 +208,10 @@ function giveAxisHue(s: EditorState, index: number, family: string): boolean {
   return false;
 }
 
-/** Two families trade seed colors. Each axis binding travels with the color it
- *  held, so every axis keeps its hue and an applied harmony stays true. */
+/** Two families trade seed colors. Between two families an axis can hold, each
+ *  binding travels with its color, so every axis keeps its hue and an applied
+ *  harmony stays true. Otherwise a bound family keeps its axis, which follows
+ *  the new hue as it does on any direct color edit. */
 export function swapBaseColors(a: string, b: string): void {
   if (a === b) return;
   mutate(`colors: swap ${a} and ${b}`, (s) => {
@@ -218,9 +220,14 @@ export function swapBaseColors(a: string, b: string): void {
     [ca.baseColor, cb.baseColor] = [cb.baseColor, ca.baseColor];
     syncBaseAnchor(ca);
     syncBaseAnchor(cb);
-    for (const axis of s.harmonyAxes) {
-      if (axis.family === a) axis.family = b;
-      else if (axis.family === b) axis.family = a;
+    if (HARMONY_ELIGIBLE.includes(a) && HARMONY_ELIGIBLE.includes(b)) {
+      for (const axis of s.harmonyAxes) {
+        if (axis.family === a) axis.family = b;
+        else if (axis.family === b) axis.family = a;
+      }
+    } else {
+      syncBoundAxisHue(s, a);
+      syncBoundAxisHue(s, b);
     }
   });
 }
