@@ -658,83 +658,372 @@
   --letter-spacing-wide: 0.04em;
   --letter-spacing-wider: 0.08em;
 
-  /* Text styles — semantic typography roles. Bundles of aliases into the
-     primitive scales; site.css maps elements to styles. */
-  --heading-xl-font-family: var(--font-display);
-  --heading-xl-font-size: var(--font-size-4xl);
-  --heading-xl-font-weight: var(--font-weight-semibold);
+  /* Text styles: five usages, each a modular type scale. A usage's base and
+     ratio set every step's desktop size. Each tablet and phone size starts at
+     a recommendation the compression settings compute from the desktop size,
+     and never exceeds it. A step's -font-size resolves to the size for the
+     current viewport through the breakpoint blocks below. site.css maps
+     elements to steps. */
+  --type-tablet-scale-compression: 0.75;
+  --type-phone-scale-compression: 0.63;
+
+  /* Display: type outside the page outline, such as heroes, section titles
+     and big numbers. */
+  --display-font-family: var(--font-display);
+  --display-font-weight: var(--font-weight-semibold);
+  --display-scale-base: 3;
+  --display-scale-ratio: 1.2;
+
+  --display-2xl-font-family: var(--display-font-family);
+  --display-2xl-desktop-font-size: calc(var(--display-scale-base) * pow(var(--display-scale-ratio), 3) * 1rem);
+  --display-2xl-tablet-font-size: min(var(--display-2xl-desktop-font-size), calc(pow(var(--display-scale-base) * pow(var(--display-scale-ratio), 3), var(--type-tablet-scale-compression)) * 1rem));
+  --display-2xl-phone-font-size: min(var(--display-2xl-desktop-font-size), calc(pow(var(--display-scale-base) * pow(var(--display-scale-ratio), 3), var(--type-phone-scale-compression)) * 1rem));
+  --display-2xl-font-size: var(--display-2xl-desktop-font-size);
+  --display-2xl-font-weight: var(--display-font-weight);
+  --display-2xl-line-height: var(--line-height-tightest);
+  --display-2xl-letter-spacing: var(--letter-spacing-tight);
+
+  --display-xl-font-family: var(--display-font-family);
+  --display-xl-desktop-font-size: calc(var(--display-scale-base) * pow(var(--display-scale-ratio), 2) * 1rem);
+  --display-xl-tablet-font-size: min(var(--display-xl-desktop-font-size), calc(pow(var(--display-scale-base) * pow(var(--display-scale-ratio), 2), var(--type-tablet-scale-compression)) * 1rem));
+  --display-xl-phone-font-size: min(var(--display-xl-desktop-font-size), calc(pow(var(--display-scale-base) * pow(var(--display-scale-ratio), 2), var(--type-phone-scale-compression)) * 1rem));
+  --display-xl-font-size: var(--display-xl-desktop-font-size);
+  --display-xl-font-weight: var(--display-font-weight);
+  --display-xl-line-height: var(--line-height-tightest);
+  --display-xl-letter-spacing: var(--letter-spacing-tight);
+
+  --display-lg-font-family: var(--display-font-family);
+  --display-lg-desktop-font-size: calc(var(--display-scale-base) * pow(var(--display-scale-ratio), 1) * 1rem);
+  --display-lg-tablet-font-size: min(var(--display-lg-desktop-font-size), calc(pow(var(--display-scale-base) * pow(var(--display-scale-ratio), 1), var(--type-tablet-scale-compression)) * 1rem));
+  --display-lg-phone-font-size: min(var(--display-lg-desktop-font-size), calc(pow(var(--display-scale-base) * pow(var(--display-scale-ratio), 1), var(--type-phone-scale-compression)) * 1rem));
+  --display-lg-font-size: var(--display-lg-desktop-font-size);
+  --display-lg-font-weight: var(--display-font-weight);
+  --display-lg-line-height: var(--line-height-tightest);
+  --display-lg-letter-spacing: var(--letter-spacing-tight);
+
+  --display-md-font-family: var(--display-font-family);
+  --display-md-desktop-font-size: calc(var(--display-scale-base) * 1rem);
+  --display-md-tablet-font-size: min(var(--display-md-desktop-font-size), calc(pow(var(--display-scale-base), var(--type-tablet-scale-compression)) * 1rem));
+  --display-md-phone-font-size: min(var(--display-md-desktop-font-size), calc(pow(var(--display-scale-base), var(--type-phone-scale-compression)) * 1rem));
+  --display-md-font-size: var(--display-md-desktop-font-size);
+  --display-md-font-weight: var(--display-font-weight);
+  --display-md-line-height: var(--line-height-tightest);
+  --display-md-letter-spacing: var(--letter-spacing-normal);
+
+  --display-sm-font-family: var(--display-font-family);
+  --display-sm-desktop-font-size: calc(var(--display-scale-base) * pow(var(--display-scale-ratio), -1) * 1rem);
+  --display-sm-tablet-font-size: min(var(--display-sm-desktop-font-size), calc(pow(var(--display-scale-base) * pow(var(--display-scale-ratio), -1), var(--type-tablet-scale-compression)) * 1rem));
+  --display-sm-phone-font-size: min(var(--display-sm-desktop-font-size), calc(pow(var(--display-scale-base) * pow(var(--display-scale-ratio), -1), var(--type-phone-scale-compression)) * 1rem));
+  --display-sm-font-size: var(--display-sm-desktop-font-size);
+  --display-sm-font-weight: var(--display-font-weight);
+  --display-sm-line-height: var(--line-height-tighter);
+  --display-sm-letter-spacing: var(--letter-spacing-normal);
+
+  --display-xs-font-family: var(--display-font-family);
+  --display-xs-desktop-font-size: calc(var(--display-scale-base) * pow(var(--display-scale-ratio), -2) * 1rem);
+  --display-xs-tablet-font-size: min(var(--display-xs-desktop-font-size), calc(pow(var(--display-scale-base) * pow(var(--display-scale-ratio), -2), var(--type-tablet-scale-compression)) * 1rem));
+  --display-xs-phone-font-size: min(var(--display-xs-desktop-font-size), calc(pow(var(--display-scale-base) * pow(var(--display-scale-ratio), -2), var(--type-phone-scale-compression)) * 1rem));
+  --display-xs-font-size: var(--display-xs-desktop-font-size);
+  --display-xs-font-weight: var(--display-font-weight);
+  --display-xs-line-height: var(--line-height-tighter);
+  --display-xs-letter-spacing: var(--letter-spacing-normal);
+
+  --display-2xs-font-family: var(--display-font-family);
+  --display-2xs-desktop-font-size: calc(var(--display-scale-base) * pow(var(--display-scale-ratio), -3) * 1rem);
+  --display-2xs-tablet-font-size: min(var(--display-2xs-desktop-font-size), calc(pow(var(--display-scale-base) * pow(var(--display-scale-ratio), -3), var(--type-tablet-scale-compression)) * 1rem));
+  --display-2xs-phone-font-size: min(var(--display-2xs-desktop-font-size), calc(pow(var(--display-scale-base) * pow(var(--display-scale-ratio), -3), var(--type-phone-scale-compression)) * 1rem));
+  --display-2xs-font-size: var(--display-2xs-desktop-font-size);
+  --display-2xs-font-weight: var(--display-font-weight);
+  --display-2xs-line-height: var(--line-height-tighter);
+  --display-2xs-letter-spacing: var(--letter-spacing-normal);
+
+  /* Heading: the page outline, h1 at xl down to h6 at 2xs. The sm, xs and
+     2xs steps pin the sans face. */
+  --heading-font-family: var(--font-display);
+  --heading-font-weight: var(--font-weight-semibold);
+  --heading-scale-base: 1.5;
+  --heading-scale-ratio: 1.25;
+
+  --heading-2xl-font-family: var(--heading-font-family);
+  --heading-2xl-desktop-font-size: calc(var(--heading-scale-base) * pow(var(--heading-scale-ratio), 3) * 1rem);
+  --heading-2xl-tablet-font-size: min(var(--heading-2xl-desktop-font-size), calc(pow(var(--heading-scale-base) * pow(var(--heading-scale-ratio), 3), var(--type-tablet-scale-compression)) * 1rem));
+  --heading-2xl-phone-font-size: min(var(--heading-2xl-desktop-font-size), calc(pow(var(--heading-scale-base) * pow(var(--heading-scale-ratio), 3), var(--type-phone-scale-compression)) * 1rem));
+  --heading-2xl-font-size: var(--heading-2xl-desktop-font-size);
+  --heading-2xl-font-weight: var(--heading-font-weight);
+  --heading-2xl-line-height: var(--line-height-tightest);
+  --heading-2xl-letter-spacing: var(--letter-spacing-normal);
+
+  --heading-xl-font-family: var(--heading-font-family);
+  --heading-xl-desktop-font-size: calc(var(--heading-scale-base) * pow(var(--heading-scale-ratio), 2) * 1rem);
+  --heading-xl-tablet-font-size: min(var(--heading-xl-desktop-font-size), calc(pow(var(--heading-scale-base) * pow(var(--heading-scale-ratio), 2), var(--type-tablet-scale-compression)) * 1rem));
+  --heading-xl-phone-font-size: min(var(--heading-xl-desktop-font-size), calc(pow(var(--heading-scale-base) * pow(var(--heading-scale-ratio), 2), var(--type-phone-scale-compression)) * 1rem));
+  --heading-xl-font-size: var(--heading-xl-desktop-font-size);
+  --heading-xl-font-weight: var(--heading-font-weight);
   --heading-xl-line-height: var(--line-height-tightest);
   --heading-xl-letter-spacing: var(--letter-spacing-normal);
 
-  --heading-lg-font-family: var(--font-display);
-  --heading-lg-font-size: var(--font-size-2xl);
-  --heading-lg-font-weight: var(--font-weight-semibold);
+  --heading-lg-font-family: var(--heading-font-family);
+  --heading-lg-desktop-font-size: calc(var(--heading-scale-base) * pow(var(--heading-scale-ratio), 1) * 1rem);
+  --heading-lg-tablet-font-size: min(var(--heading-lg-desktop-font-size), calc(pow(var(--heading-scale-base) * pow(var(--heading-scale-ratio), 1), var(--type-tablet-scale-compression)) * 1rem));
+  --heading-lg-phone-font-size: min(var(--heading-lg-desktop-font-size), calc(pow(var(--heading-scale-base) * pow(var(--heading-scale-ratio), 1), var(--type-phone-scale-compression)) * 1rem));
+  --heading-lg-font-size: var(--heading-lg-desktop-font-size);
+  --heading-lg-font-weight: var(--heading-font-weight);
   --heading-lg-line-height: var(--line-height-tightest);
   --heading-lg-letter-spacing: var(--letter-spacing-normal);
 
-  --heading-md-font-family: var(--font-display);
-  --heading-md-font-size: var(--font-size-xl);
-  --heading-md-font-weight: var(--font-weight-semibold);
+  --heading-md-font-family: var(--heading-font-family);
+  --heading-md-desktop-font-size: calc(var(--heading-scale-base) * 1rem);
+  --heading-md-tablet-font-size: min(var(--heading-md-desktop-font-size), calc(pow(var(--heading-scale-base), var(--type-tablet-scale-compression)) * 1rem));
+  --heading-md-phone-font-size: min(var(--heading-md-desktop-font-size), calc(pow(var(--heading-scale-base), var(--type-phone-scale-compression)) * 1rem));
+  --heading-md-font-size: var(--heading-md-desktop-font-size);
+  --heading-md-font-weight: var(--heading-font-weight);
   --heading-md-line-height: var(--line-height-tighter);
   --heading-md-letter-spacing: var(--letter-spacing-normal);
 
   --heading-sm-font-family: var(--font-sans);
-  --heading-sm-font-size: var(--font-size-lg);
-  --heading-sm-font-weight: var(--font-weight-semibold);
+  --heading-sm-desktop-font-size: calc(var(--heading-scale-base) * pow(var(--heading-scale-ratio), -1) * 1rem);
+  --heading-sm-tablet-font-size: min(var(--heading-sm-desktop-font-size), calc(pow(var(--heading-scale-base) * pow(var(--heading-scale-ratio), -1), var(--type-tablet-scale-compression)) * 1rem));
+  --heading-sm-phone-font-size: min(var(--heading-sm-desktop-font-size), calc(pow(var(--heading-scale-base) * pow(var(--heading-scale-ratio), -1), var(--type-phone-scale-compression)) * 1rem));
+  --heading-sm-font-size: var(--heading-sm-desktop-font-size);
+  --heading-sm-font-weight: var(--heading-font-weight);
   --heading-sm-line-height: var(--line-height-tighter);
   --heading-sm-letter-spacing: var(--letter-spacing-normal);
 
-  --body-md-font-family: var(--font-sans);
-  --body-md-font-size: var(--font-size-md);
-  --body-md-font-weight: var(--font-weight-normal);
+  --heading-xs-font-family: var(--font-sans);
+  --heading-xs-desktop-font-size: calc(var(--heading-scale-base) * pow(var(--heading-scale-ratio), -2) * 1rem);
+  --heading-xs-tablet-font-size: min(var(--heading-xs-desktop-font-size), calc(pow(var(--heading-scale-base) * pow(var(--heading-scale-ratio), -2), var(--type-tablet-scale-compression)) * 1rem));
+  --heading-xs-phone-font-size: min(var(--heading-xs-desktop-font-size), calc(pow(var(--heading-scale-base) * pow(var(--heading-scale-ratio), -2), var(--type-phone-scale-compression)) * 1rem));
+  --heading-xs-font-size: var(--heading-xs-desktop-font-size);
+  --heading-xs-font-weight: var(--heading-font-weight);
+  --heading-xs-line-height: var(--line-height-tight);
+  --heading-xs-letter-spacing: var(--letter-spacing-normal);
+
+  --heading-2xs-font-family: var(--font-sans);
+  --heading-2xs-desktop-font-size: calc(var(--heading-scale-base) * pow(var(--heading-scale-ratio), -3) * 1rem);
+  --heading-2xs-tablet-font-size: min(var(--heading-2xs-desktop-font-size), calc(pow(var(--heading-scale-base) * pow(var(--heading-scale-ratio), -3), var(--type-tablet-scale-compression)) * 1rem));
+  --heading-2xs-phone-font-size: min(var(--heading-2xs-desktop-font-size), calc(pow(var(--heading-scale-base) * pow(var(--heading-scale-ratio), -3), var(--type-phone-scale-compression)) * 1rem));
+  --heading-2xs-font-size: var(--heading-2xs-desktop-font-size);
+  --heading-2xs-font-weight: var(--heading-font-weight);
+  --heading-2xs-line-height: var(--line-height-tight);
+  --heading-2xs-letter-spacing: var(--letter-spacing-normal);
+
+  /* Body: interface text and short copy. */
+  --body-font-family: var(--font-sans);
+  --body-font-weight: var(--font-weight-normal);
+  --body-scale-base: 1;
+  --body-scale-ratio: 1.125;
+
+  --body-2xl-font-family: var(--body-font-family);
+  --body-2xl-desktop-font-size: calc(var(--body-scale-base) * pow(var(--body-scale-ratio), 3) * 1rem);
+  --body-2xl-tablet-font-size: min(var(--body-2xl-desktop-font-size), calc(pow(var(--body-scale-base) * pow(var(--body-scale-ratio), 3), var(--type-tablet-scale-compression)) * 1rem));
+  --body-2xl-phone-font-size: min(var(--body-2xl-desktop-font-size), calc(pow(var(--body-scale-base) * pow(var(--body-scale-ratio), 3), var(--type-phone-scale-compression)) * 1rem));
+  --body-2xl-font-size: var(--body-2xl-desktop-font-size);
+  --body-2xl-font-weight: var(--body-font-weight);
+  --body-2xl-line-height: var(--line-height-tighter);
+  --body-2xl-letter-spacing: var(--letter-spacing-normal);
+
+  --body-xl-font-family: var(--body-font-family);
+  --body-xl-desktop-font-size: calc(var(--body-scale-base) * pow(var(--body-scale-ratio), 2) * 1rem);
+  --body-xl-tablet-font-size: min(var(--body-xl-desktop-font-size), calc(pow(var(--body-scale-base) * pow(var(--body-scale-ratio), 2), var(--type-tablet-scale-compression)) * 1rem));
+  --body-xl-phone-font-size: min(var(--body-xl-desktop-font-size), calc(pow(var(--body-scale-base) * pow(var(--body-scale-ratio), 2), var(--type-phone-scale-compression)) * 1rem));
+  --body-xl-font-size: var(--body-xl-desktop-font-size);
+  --body-xl-font-weight: var(--body-font-weight);
+  --body-xl-line-height: var(--line-height-tighter);
+  --body-xl-letter-spacing: var(--letter-spacing-normal);
+
+  --body-lg-font-family: var(--body-font-family);
+  --body-lg-desktop-font-size: calc(var(--body-scale-base) * pow(var(--body-scale-ratio), 1) * 1rem);
+  --body-lg-tablet-font-size: min(var(--body-lg-desktop-font-size), calc(pow(var(--body-scale-base) * pow(var(--body-scale-ratio), 1), var(--type-tablet-scale-compression)) * 1rem));
+  --body-lg-phone-font-size: min(var(--body-lg-desktop-font-size), calc(pow(var(--body-scale-base) * pow(var(--body-scale-ratio), 1), var(--type-phone-scale-compression)) * 1rem));
+  --body-lg-font-size: var(--body-lg-desktop-font-size);
+  --body-lg-font-weight: var(--body-font-weight);
+  --body-lg-line-height: var(--line-height-tight);
+  --body-lg-letter-spacing: var(--letter-spacing-normal);
+
+  --body-md-font-family: var(--body-font-family);
+  --body-md-desktop-font-size: calc(var(--body-scale-base) * 1rem);
+  --body-md-tablet-font-size: min(var(--body-md-desktop-font-size), calc(pow(var(--body-scale-base), var(--type-tablet-scale-compression)) * 1rem));
+  --body-md-phone-font-size: min(var(--body-md-desktop-font-size), calc(pow(var(--body-scale-base), var(--type-phone-scale-compression)) * 1rem));
+  --body-md-font-size: var(--body-md-desktop-font-size);
+  --body-md-font-weight: var(--body-font-weight);
   --body-md-line-height: var(--line-height-normal);
   --body-md-letter-spacing: var(--letter-spacing-normal);
 
-  --body-sm-font-family: var(--font-sans);
-  --body-sm-font-size: var(--font-size-sm);
-  --body-sm-font-weight: var(--font-weight-normal);
+  --body-sm-font-family: var(--body-font-family);
+  --body-sm-desktop-font-size: calc(var(--body-scale-base) * pow(var(--body-scale-ratio), -1) * 1rem);
+  --body-sm-tablet-font-size: min(var(--body-sm-desktop-font-size), calc(pow(var(--body-scale-base) * pow(var(--body-scale-ratio), -1), var(--type-tablet-scale-compression)) * 1rem));
+  --body-sm-phone-font-size: min(var(--body-sm-desktop-font-size), calc(pow(var(--body-scale-base) * pow(var(--body-scale-ratio), -1), var(--type-phone-scale-compression)) * 1rem));
+  --body-sm-font-size: var(--body-sm-desktop-font-size);
+  --body-sm-font-weight: var(--body-font-weight);
   --body-sm-line-height: var(--line-height-tight);
   --body-sm-letter-spacing: var(--letter-spacing-normal);
 
-  --code-font-family: var(--font-mono);
-  --code-font-size: var(--font-size-sm);
-  --code-font-weight: var(--font-weight-normal);
-  --code-line-height: var(--line-height-normal);
-  --code-letter-spacing: var(--letter-spacing-normal);
+  --body-xs-font-family: var(--body-font-family);
+  --body-xs-desktop-font-size: calc(var(--body-scale-base) * pow(var(--body-scale-ratio), -2) * 1rem);
+  --body-xs-tablet-font-size: min(var(--body-xs-desktop-font-size), calc(pow(var(--body-scale-base) * pow(var(--body-scale-ratio), -2), var(--type-tablet-scale-compression)) * 1rem));
+  --body-xs-phone-font-size: min(var(--body-xs-desktop-font-size), calc(pow(var(--body-scale-base) * pow(var(--body-scale-ratio), -2), var(--type-phone-scale-compression)) * 1rem));
+  --body-xs-font-size: var(--body-xs-desktop-font-size);
+  --body-xs-font-weight: var(--body-font-weight);
+  --body-xs-line-height: var(--line-height-tight);
+  --body-xs-letter-spacing: var(--letter-spacing-normal);
 
-  /* Editorial — the long-reading role. `md` is the reading step and takes the
-     most open leading; every step away from it tightens by one, so a lede or a
-     pull quote is not set at reading leading. Sizes stay inside the xs–xl band
-     the responsive scale leaves constant, so an article does not resize itself
-     between breakpoints. */
-  --editorial-xl-font-family: var(--font-editorial);
-  --editorial-xl-font-size: var(--font-size-xl);
-  --editorial-xl-font-weight: var(--font-weight-normal);
+  --body-2xs-font-family: var(--body-font-family);
+  --body-2xs-desktop-font-size: calc(var(--body-scale-base) * pow(var(--body-scale-ratio), -3) * 1rem);
+  --body-2xs-tablet-font-size: min(var(--body-2xs-desktop-font-size), calc(pow(var(--body-scale-base) * pow(var(--body-scale-ratio), -3), var(--type-tablet-scale-compression)) * 1rem));
+  --body-2xs-phone-font-size: min(var(--body-2xs-desktop-font-size), calc(pow(var(--body-scale-base) * pow(var(--body-scale-ratio), -3), var(--type-phone-scale-compression)) * 1rem));
+  --body-2xs-font-size: var(--body-2xs-desktop-font-size);
+  --body-2xs-font-weight: var(--body-font-weight);
+  --body-2xs-line-height: var(--line-height-tight);
+  --body-2xs-letter-spacing: var(--letter-spacing-normal);
+
+  /* Editorial: the long-reading role. `md` is the reading step and takes the
+     most open leading. Each step away from it tightens by one, and the steps
+     below md stop at tighter so small text stays legible. */
+  --editorial-font-family: var(--font-editorial);
+  --editorial-font-weight: var(--font-weight-normal);
+  --editorial-scale-base: 1;
+  --editorial-scale-ratio: 1.125;
+
+  --editorial-2xl-font-family: var(--editorial-font-family);
+  --editorial-2xl-desktop-font-size: calc(var(--editorial-scale-base) * pow(var(--editorial-scale-ratio), 3) * 1rem);
+  --editorial-2xl-tablet-font-size: min(var(--editorial-2xl-desktop-font-size), calc(pow(var(--editorial-scale-base) * pow(var(--editorial-scale-ratio), 3), var(--type-tablet-scale-compression)) * 1rem));
+  --editorial-2xl-phone-font-size: min(var(--editorial-2xl-desktop-font-size), calc(pow(var(--editorial-scale-base) * pow(var(--editorial-scale-ratio), 3), var(--type-phone-scale-compression)) * 1rem));
+  --editorial-2xl-font-size: var(--editorial-2xl-desktop-font-size);
+  --editorial-2xl-font-weight: var(--editorial-font-weight);
+  --editorial-2xl-line-height: var(--line-height-tightest);
+  --editorial-2xl-letter-spacing: var(--letter-spacing-normal);
+
+  --editorial-xl-font-family: var(--editorial-font-family);
+  --editorial-xl-desktop-font-size: calc(var(--editorial-scale-base) * pow(var(--editorial-scale-ratio), 2) * 1rem);
+  --editorial-xl-tablet-font-size: min(var(--editorial-xl-desktop-font-size), calc(pow(var(--editorial-scale-base) * pow(var(--editorial-scale-ratio), 2), var(--type-tablet-scale-compression)) * 1rem));
+  --editorial-xl-phone-font-size: min(var(--editorial-xl-desktop-font-size), calc(pow(var(--editorial-scale-base) * pow(var(--editorial-scale-ratio), 2), var(--type-phone-scale-compression)) * 1rem));
+  --editorial-xl-font-size: var(--editorial-xl-desktop-font-size);
+  --editorial-xl-font-weight: var(--editorial-font-weight);
   --editorial-xl-line-height: var(--line-height-tighter);
   --editorial-xl-letter-spacing: var(--letter-spacing-normal);
 
-  --editorial-lg-font-family: var(--font-editorial);
-  --editorial-lg-font-size: var(--font-size-lg);
-  --editorial-lg-font-weight: var(--font-weight-normal);
+  --editorial-lg-font-family: var(--editorial-font-family);
+  --editorial-lg-desktop-font-size: calc(var(--editorial-scale-base) * pow(var(--editorial-scale-ratio), 1) * 1rem);
+  --editorial-lg-tablet-font-size: min(var(--editorial-lg-desktop-font-size), calc(pow(var(--editorial-scale-base) * pow(var(--editorial-scale-ratio), 1), var(--type-tablet-scale-compression)) * 1rem));
+  --editorial-lg-phone-font-size: min(var(--editorial-lg-desktop-font-size), calc(pow(var(--editorial-scale-base) * pow(var(--editorial-scale-ratio), 1), var(--type-phone-scale-compression)) * 1rem));
+  --editorial-lg-font-size: var(--editorial-lg-desktop-font-size);
+  --editorial-lg-font-weight: var(--editorial-font-weight);
   --editorial-lg-line-height: var(--line-height-tight);
   --editorial-lg-letter-spacing: var(--letter-spacing-normal);
 
-  --editorial-md-font-family: var(--font-editorial);
-  --editorial-md-font-size: var(--font-size-md);
-  --editorial-md-font-weight: var(--font-weight-normal);
+  --editorial-md-font-family: var(--editorial-font-family);
+  --editorial-md-desktop-font-size: calc(var(--editorial-scale-base) * 1rem);
+  --editorial-md-tablet-font-size: min(var(--editorial-md-desktop-font-size), calc(pow(var(--editorial-scale-base), var(--type-tablet-scale-compression)) * 1rem));
+  --editorial-md-phone-font-size: min(var(--editorial-md-desktop-font-size), calc(pow(var(--editorial-scale-base), var(--type-phone-scale-compression)) * 1rem));
+  --editorial-md-font-size: var(--editorial-md-desktop-font-size);
+  --editorial-md-font-weight: var(--editorial-font-weight);
   --editorial-md-line-height: var(--line-height-normal);
   --editorial-md-letter-spacing: var(--letter-spacing-normal);
 
-  --editorial-sm-font-family: var(--font-editorial);
-  --editorial-sm-font-size: var(--font-size-sm);
-  --editorial-sm-font-weight: var(--font-weight-normal);
+  --editorial-sm-font-family: var(--editorial-font-family);
+  --editorial-sm-desktop-font-size: calc(var(--editorial-scale-base) * pow(var(--editorial-scale-ratio), -1) * 1rem);
+  --editorial-sm-tablet-font-size: min(var(--editorial-sm-desktop-font-size), calc(pow(var(--editorial-scale-base) * pow(var(--editorial-scale-ratio), -1), var(--type-tablet-scale-compression)) * 1rem));
+  --editorial-sm-phone-font-size: min(var(--editorial-sm-desktop-font-size), calc(pow(var(--editorial-scale-base) * pow(var(--editorial-scale-ratio), -1), var(--type-phone-scale-compression)) * 1rem));
+  --editorial-sm-font-size: var(--editorial-sm-desktop-font-size);
+  --editorial-sm-font-weight: var(--editorial-font-weight);
   --editorial-sm-line-height: var(--line-height-tight);
   --editorial-sm-letter-spacing: var(--letter-spacing-normal);
 
-  /* Eyebrow — values track the existing .eyebrow class in src/app/Home.svelte. */
-  --eyebrow-font-family: var(--font-sans);
-  --eyebrow-font-size: var(--font-size-sm);
-  --eyebrow-font-weight: var(--font-weight-normal);
+  --editorial-xs-font-family: var(--editorial-font-family);
+  --editorial-xs-desktop-font-size: calc(var(--editorial-scale-base) * pow(var(--editorial-scale-ratio), -2) * 1rem);
+  --editorial-xs-tablet-font-size: min(var(--editorial-xs-desktop-font-size), calc(pow(var(--editorial-scale-base) * pow(var(--editorial-scale-ratio), -2), var(--type-tablet-scale-compression)) * 1rem));
+  --editorial-xs-phone-font-size: min(var(--editorial-xs-desktop-font-size), calc(pow(var(--editorial-scale-base) * pow(var(--editorial-scale-ratio), -2), var(--type-phone-scale-compression)) * 1rem));
+  --editorial-xs-font-size: var(--editorial-xs-desktop-font-size);
+  --editorial-xs-font-weight: var(--editorial-font-weight);
+  --editorial-xs-line-height: var(--line-height-tighter);
+  --editorial-xs-letter-spacing: var(--letter-spacing-normal);
+
+  --editorial-2xs-font-family: var(--editorial-font-family);
+  --editorial-2xs-desktop-font-size: calc(var(--editorial-scale-base) * pow(var(--editorial-scale-ratio), -3) * 1rem);
+  --editorial-2xs-tablet-font-size: min(var(--editorial-2xs-desktop-font-size), calc(pow(var(--editorial-scale-base) * pow(var(--editorial-scale-ratio), -3), var(--type-tablet-scale-compression)) * 1rem));
+  --editorial-2xs-phone-font-size: min(var(--editorial-2xs-desktop-font-size), calc(pow(var(--editorial-scale-base) * pow(var(--editorial-scale-ratio), -3), var(--type-phone-scale-compression)) * 1rem));
+  --editorial-2xs-font-size: var(--editorial-2xs-desktop-font-size);
+  --editorial-2xs-font-weight: var(--editorial-font-weight);
+  --editorial-2xs-line-height: var(--line-height-tighter);
+  --editorial-2xs-letter-spacing: var(--letter-spacing-normal);
+
+  /* Code: code blocks and inline code. */
+  --code-font-family: var(--font-mono);
+  --code-font-weight: var(--font-weight-normal);
+  --code-scale-base: 0.875;
+  --code-scale-ratio: 1.125;
+
+  --code-2xl-font-family: var(--code-font-family);
+  --code-2xl-desktop-font-size: calc(var(--code-scale-base) * pow(var(--code-scale-ratio), 3) * 1rem);
+  --code-2xl-tablet-font-size: min(var(--code-2xl-desktop-font-size), calc(pow(var(--code-scale-base) * pow(var(--code-scale-ratio), 3), var(--type-tablet-scale-compression)) * 1rem));
+  --code-2xl-phone-font-size: min(var(--code-2xl-desktop-font-size), calc(pow(var(--code-scale-base) * pow(var(--code-scale-ratio), 3), var(--type-phone-scale-compression)) * 1rem));
+  --code-2xl-font-size: var(--code-2xl-desktop-font-size);
+  --code-2xl-font-weight: var(--code-font-weight);
+  --code-2xl-line-height: var(--line-height-normal);
+  --code-2xl-letter-spacing: var(--letter-spacing-normal);
+
+  --code-xl-font-family: var(--code-font-family);
+  --code-xl-desktop-font-size: calc(var(--code-scale-base) * pow(var(--code-scale-ratio), 2) * 1rem);
+  --code-xl-tablet-font-size: min(var(--code-xl-desktop-font-size), calc(pow(var(--code-scale-base) * pow(var(--code-scale-ratio), 2), var(--type-tablet-scale-compression)) * 1rem));
+  --code-xl-phone-font-size: min(var(--code-xl-desktop-font-size), calc(pow(var(--code-scale-base) * pow(var(--code-scale-ratio), 2), var(--type-phone-scale-compression)) * 1rem));
+  --code-xl-font-size: var(--code-xl-desktop-font-size);
+  --code-xl-font-weight: var(--code-font-weight);
+  --code-xl-line-height: var(--line-height-normal);
+  --code-xl-letter-spacing: var(--letter-spacing-normal);
+
+  --code-lg-font-family: var(--code-font-family);
+  --code-lg-desktop-font-size: calc(var(--code-scale-base) * pow(var(--code-scale-ratio), 1) * 1rem);
+  --code-lg-tablet-font-size: min(var(--code-lg-desktop-font-size), calc(pow(var(--code-scale-base) * pow(var(--code-scale-ratio), 1), var(--type-tablet-scale-compression)) * 1rem));
+  --code-lg-phone-font-size: min(var(--code-lg-desktop-font-size), calc(pow(var(--code-scale-base) * pow(var(--code-scale-ratio), 1), var(--type-phone-scale-compression)) * 1rem));
+  --code-lg-font-size: var(--code-lg-desktop-font-size);
+  --code-lg-font-weight: var(--code-font-weight);
+  --code-lg-line-height: var(--line-height-normal);
+  --code-lg-letter-spacing: var(--letter-spacing-normal);
+
+  --code-md-font-family: var(--code-font-family);
+  --code-md-desktop-font-size: calc(var(--code-scale-base) * 1rem);
+  --code-md-tablet-font-size: min(var(--code-md-desktop-font-size), calc(pow(var(--code-scale-base), var(--type-tablet-scale-compression)) * 1rem));
+  --code-md-phone-font-size: min(var(--code-md-desktop-font-size), calc(pow(var(--code-scale-base), var(--type-phone-scale-compression)) * 1rem));
+  --code-md-font-size: var(--code-md-desktop-font-size);
+  --code-md-font-weight: var(--code-font-weight);
+  --code-md-line-height: var(--line-height-normal);
+  --code-md-letter-spacing: var(--letter-spacing-normal);
+
+  --code-sm-font-family: var(--code-font-family);
+  --code-sm-desktop-font-size: calc(var(--code-scale-base) * pow(var(--code-scale-ratio), -1) * 1rem);
+  --code-sm-tablet-font-size: min(var(--code-sm-desktop-font-size), calc(pow(var(--code-scale-base) * pow(var(--code-scale-ratio), -1), var(--type-tablet-scale-compression)) * 1rem));
+  --code-sm-phone-font-size: min(var(--code-sm-desktop-font-size), calc(pow(var(--code-scale-base) * pow(var(--code-scale-ratio), -1), var(--type-phone-scale-compression)) * 1rem));
+  --code-sm-font-size: var(--code-sm-desktop-font-size);
+  --code-sm-font-weight: var(--code-font-weight);
+  --code-sm-line-height: var(--line-height-normal);
+  --code-sm-letter-spacing: var(--letter-spacing-normal);
+
+  --code-xs-font-family: var(--code-font-family);
+  --code-xs-desktop-font-size: calc(var(--code-scale-base) * pow(var(--code-scale-ratio), -2) * 1rem);
+  --code-xs-tablet-font-size: min(var(--code-xs-desktop-font-size), calc(pow(var(--code-scale-base) * pow(var(--code-scale-ratio), -2), var(--type-tablet-scale-compression)) * 1rem));
+  --code-xs-phone-font-size: min(var(--code-xs-desktop-font-size), calc(pow(var(--code-scale-base) * pow(var(--code-scale-ratio), -2), var(--type-phone-scale-compression)) * 1rem));
+  --code-xs-font-size: var(--code-xs-desktop-font-size);
+  --code-xs-font-weight: var(--code-font-weight);
+  --code-xs-line-height: var(--line-height-normal);
+  --code-xs-letter-spacing: var(--letter-spacing-normal);
+
+  --code-2xs-font-family: var(--code-font-family);
+  --code-2xs-desktop-font-size: calc(var(--code-scale-base) * pow(var(--code-scale-ratio), -3) * 1rem);
+  --code-2xs-tablet-font-size: min(var(--code-2xs-desktop-font-size), calc(pow(var(--code-scale-base) * pow(var(--code-scale-ratio), -3), var(--type-tablet-scale-compression)) * 1rem));
+  --code-2xs-phone-font-size: min(var(--code-2xs-desktop-font-size), calc(pow(var(--code-scale-base) * pow(var(--code-scale-ratio), -3), var(--type-phone-scale-compression)) * 1rem));
+  --code-2xs-font-size: var(--code-2xs-desktop-font-size);
+  --code-2xs-font-weight: var(--code-font-weight);
+  --code-2xs-line-height: var(--line-height-normal);
+  --code-2xs-letter-spacing: var(--letter-spacing-normal);
+
+  /* Eyebrow: values track the existing .eyebrow class in src/app/Home.svelte.
+     Its face and weight follow body, and its sizes follow body-sm. */
+  --eyebrow-font-family: var(--body-font-family);
+  --eyebrow-desktop-font-size: var(--body-sm-desktop-font-size);
+  --eyebrow-tablet-font-size: var(--body-sm-tablet-font-size);
+  --eyebrow-phone-font-size: var(--body-sm-phone-font-size);
+  --eyebrow-font-size: var(--eyebrow-desktop-font-size);
+  --eyebrow-font-weight: var(--body-font-weight);
   --eyebrow-line-height: var(--line-height-normal);
   --eyebrow-letter-spacing: var(--letter-spacing-normal);
   --eyebrow-text-transform: none;
@@ -747,8 +1036,9 @@
   --text-alternate-disabled: oklch(0.3523 0 0);
 }
 
-/* RESPONSIVE TYPE SCALE — display sizes (2xl–6xl) shrink on small
-   viewports; body sizes (xs–xl) stay constant. */
+/* RESPONSIVE TYPE SCALE. The primitive display sizes (2xl to 7xl) shrink on
+   small viewports, and the body sizes (xs to xl) hold. Each text style's
+   -font-size re-points to its tablet or phone size. */
 
 @media (max-width: 768px) {
   :root {
@@ -758,6 +1048,43 @@
     --font-size-5xl: 2.25rem;    /* 36px */
     --font-size-6xl: 2.5rem;     /* 40px */
     --font-size-7xl: 3rem;       /* 48px */
+
+    --display-2xl-font-size: var(--display-2xl-tablet-font-size);
+    --display-xl-font-size: var(--display-xl-tablet-font-size);
+    --display-lg-font-size: var(--display-lg-tablet-font-size);
+    --display-md-font-size: var(--display-md-tablet-font-size);
+    --display-sm-font-size: var(--display-sm-tablet-font-size);
+    --display-xs-font-size: var(--display-xs-tablet-font-size);
+    --display-2xs-font-size: var(--display-2xs-tablet-font-size);
+    --heading-2xl-font-size: var(--heading-2xl-tablet-font-size);
+    --heading-xl-font-size: var(--heading-xl-tablet-font-size);
+    --heading-lg-font-size: var(--heading-lg-tablet-font-size);
+    --heading-md-font-size: var(--heading-md-tablet-font-size);
+    --heading-sm-font-size: var(--heading-sm-tablet-font-size);
+    --heading-xs-font-size: var(--heading-xs-tablet-font-size);
+    --heading-2xs-font-size: var(--heading-2xs-tablet-font-size);
+    --body-2xl-font-size: var(--body-2xl-tablet-font-size);
+    --body-xl-font-size: var(--body-xl-tablet-font-size);
+    --body-lg-font-size: var(--body-lg-tablet-font-size);
+    --body-md-font-size: var(--body-md-tablet-font-size);
+    --body-sm-font-size: var(--body-sm-tablet-font-size);
+    --body-xs-font-size: var(--body-xs-tablet-font-size);
+    --body-2xs-font-size: var(--body-2xs-tablet-font-size);
+    --editorial-2xl-font-size: var(--editorial-2xl-tablet-font-size);
+    --editorial-xl-font-size: var(--editorial-xl-tablet-font-size);
+    --editorial-lg-font-size: var(--editorial-lg-tablet-font-size);
+    --editorial-md-font-size: var(--editorial-md-tablet-font-size);
+    --editorial-sm-font-size: var(--editorial-sm-tablet-font-size);
+    --editorial-xs-font-size: var(--editorial-xs-tablet-font-size);
+    --editorial-2xs-font-size: var(--editorial-2xs-tablet-font-size);
+    --code-2xl-font-size: var(--code-2xl-tablet-font-size);
+    --code-xl-font-size: var(--code-xl-tablet-font-size);
+    --code-lg-font-size: var(--code-lg-tablet-font-size);
+    --code-md-font-size: var(--code-md-tablet-font-size);
+    --code-sm-font-size: var(--code-sm-tablet-font-size);
+    --code-xs-font-size: var(--code-xs-tablet-font-size);
+    --code-2xs-font-size: var(--code-2xs-tablet-font-size);
+    --eyebrow-font-size: var(--eyebrow-tablet-font-size);
   }
 }
 
@@ -769,5 +1096,42 @@
     --font-size-5xl: 2rem;       /* 32px */
     --font-size-6xl: 2.25rem;    /* 36px */
     --font-size-7xl: 2.625rem;   /* 42px */
+
+    --display-2xl-font-size: var(--display-2xl-phone-font-size);
+    --display-xl-font-size: var(--display-xl-phone-font-size);
+    --display-lg-font-size: var(--display-lg-phone-font-size);
+    --display-md-font-size: var(--display-md-phone-font-size);
+    --display-sm-font-size: var(--display-sm-phone-font-size);
+    --display-xs-font-size: var(--display-xs-phone-font-size);
+    --display-2xs-font-size: var(--display-2xs-phone-font-size);
+    --heading-2xl-font-size: var(--heading-2xl-phone-font-size);
+    --heading-xl-font-size: var(--heading-xl-phone-font-size);
+    --heading-lg-font-size: var(--heading-lg-phone-font-size);
+    --heading-md-font-size: var(--heading-md-phone-font-size);
+    --heading-sm-font-size: var(--heading-sm-phone-font-size);
+    --heading-xs-font-size: var(--heading-xs-phone-font-size);
+    --heading-2xs-font-size: var(--heading-2xs-phone-font-size);
+    --body-2xl-font-size: var(--body-2xl-phone-font-size);
+    --body-xl-font-size: var(--body-xl-phone-font-size);
+    --body-lg-font-size: var(--body-lg-phone-font-size);
+    --body-md-font-size: var(--body-md-phone-font-size);
+    --body-sm-font-size: var(--body-sm-phone-font-size);
+    --body-xs-font-size: var(--body-xs-phone-font-size);
+    --body-2xs-font-size: var(--body-2xs-phone-font-size);
+    --editorial-2xl-font-size: var(--editorial-2xl-phone-font-size);
+    --editorial-xl-font-size: var(--editorial-xl-phone-font-size);
+    --editorial-lg-font-size: var(--editorial-lg-phone-font-size);
+    --editorial-md-font-size: var(--editorial-md-phone-font-size);
+    --editorial-sm-font-size: var(--editorial-sm-phone-font-size);
+    --editorial-xs-font-size: var(--editorial-xs-phone-font-size);
+    --editorial-2xs-font-size: var(--editorial-2xs-phone-font-size);
+    --code-2xl-font-size: var(--code-2xl-phone-font-size);
+    --code-xl-font-size: var(--code-xl-phone-font-size);
+    --code-lg-font-size: var(--code-lg-phone-font-size);
+    --code-md-font-size: var(--code-md-phone-font-size);
+    --code-sm-font-size: var(--code-sm-phone-font-size);
+    --code-xs-font-size: var(--code-xs-phone-font-size);
+    --code-2xs-font-size: var(--code-2xs-phone-font-size);
+    --eyebrow-font-size: var(--eyebrow-phone-font-size);
   }
 }

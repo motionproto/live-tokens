@@ -174,7 +174,7 @@
     text-align: right;
     font-family: var(--code-font-family);
     font-size: var(--font-size-md);
-    line-height: var(--code-line-height);
+    line-height: var(--code-md-line-height);
     font-variant-numeric: tabular-nums;
     color: var(--text-muted);
     cursor: pointer;
@@ -194,8 +194,8 @@
     font-family: var(--code-font-family);
     font-size: var(--font-size-md);
     font-weight: var(--code-font-weight);
-    line-height: var(--code-line-height);
-    letter-spacing: var(--code-letter-spacing);
+    line-height: var(--code-md-line-height);
+    letter-spacing: var(--code-md-letter-spacing);
     color: var(--text-secondary);
   }
 

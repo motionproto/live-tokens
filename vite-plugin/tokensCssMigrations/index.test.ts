@@ -5,6 +5,7 @@ import {
   validateTokensCss,
   TOKENS_CSS_MIGRATIONS,
 } from './index';
+import { tokensCssMigration_2026_07_20_semanticTextStyles as semanticTextStyles } from './migrations/2026-07-20-semantic-text-styles';
 
 // A tokens.css from an older generation: named line-height scale, no
 // letter-spacing or easing — the exact shape that strands 0.16.x components.
@@ -201,8 +202,7 @@ describe('runTokensCssMigrations', () => {
   });
 
   it('adds the semantic text-style bundles with fixed heading leading', () => {
-    const { css, applied } = runTokensCssMigrations(LEGACY_TOKENS_CSS);
-    expect(applied).toContain('2026-07-20-semantic-text-styles');
+    const css = semanticTextStyles.apply(LEGACY_TOKENS_CSS);
     for (const decl of [
       '--heading-xl-font-family: var(--font-display);',
       '--heading-sm-font-family: var(--font-sans);',
@@ -218,8 +218,18 @@ describe('runTokensCssMigrations', () => {
     // at `tightest` (1.1), md/sm at `tighter` (1.25).
     expect(css).toContain('--heading-xl-line-height: var(--line-height-tightest);');
     expect(css).toContain('--heading-md-line-height: var(--line-height-tighter);');
+  });
 
-    // Full fold twice = no change.
+  it('leaves the code size, leading and tracking to the type-scale rename', () => {
+    const css = semanticTextStyles.apply(LEGACY_TOKENS_CSS);
+    for (const axis of ['font-size', 'line-height', 'letter-spacing']) {
+      expect(css).not.toContain(`--code-${axis}:`);
+    }
+  });
+
+  it('folds the text-style bundles to a fixed point', () => {
+    const { css, applied } = runTokensCssMigrations(LEGACY_TOKENS_CSS);
+    expect(applied).toContain('2026-07-20-semantic-text-styles');
     expect(runTokensCssMigrations(css).changed).toBe(false);
   });
 

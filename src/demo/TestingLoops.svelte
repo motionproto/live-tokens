@@ -607,10 +607,10 @@
 
   code {
     font-family: var(--code-font-family);
-    font-size: var(--code-font-size);
+    font-size: var(--code-md-font-size);
     font-weight: var(--code-font-weight);
-    line-height: var(--code-line-height);
-    letter-spacing: var(--code-letter-spacing);
+    line-height: var(--code-md-line-height);
+    letter-spacing: var(--code-md-letter-spacing);
     background: var(--tint-low);
     padding-inline: var(--space-4);
     border-radius: var(--radius-sm);
@@ -863,10 +863,10 @@
 
   .dg :global(.rule) {
     font-family: var(--code-font-family);
-    font-size: var(--code-font-size);
+    font-size: var(--code-md-font-size);
     font-weight: var(--code-font-weight);
-    line-height: var(--code-line-height);
-    letter-spacing: var(--code-letter-spacing);
+    line-height: var(--code-md-line-height);
+    letter-spacing: var(--code-md-letter-spacing);
     fill: var(--text-accent);
   }
 
@@ -901,10 +901,10 @@
     padding-top: var(--space-24);
     border-top: var(--border-width-1) solid var(--border-neutral-subtle);
     font-family: var(--code-font-family);
-    font-size: var(--code-font-size);
+    font-size: var(--code-md-font-size);
     font-weight: var(--code-font-weight);
-    line-height: var(--code-line-height);
-    letter-spacing: var(--code-letter-spacing);
+    line-height: var(--code-md-line-height);
+    letter-spacing: var(--code-md-letter-spacing);
     color: var(--text-secondary);
   }
 

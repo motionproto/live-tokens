@@ -82,17 +82,17 @@ p:last-child {
 
 code {
   font-family: var(--code-font-family);
-  font-size: var(--code-font-size);
+  font-size: var(--code-md-font-size);
   font-weight: var(--code-font-weight);
-  letter-spacing: var(--code-letter-spacing);
+  letter-spacing: var(--code-md-letter-spacing);
 }
 
 pre {
   font-family: var(--code-font-family);
-  font-size: var(--code-font-size);
+  font-size: var(--code-md-font-size);
   font-weight: var(--code-font-weight);
-  line-height: var(--code-line-height);
-  letter-spacing: var(--code-letter-spacing);
+  line-height: var(--code-md-line-height);
+  letter-spacing: var(--code-md-letter-spacing);
 }
 
 a {

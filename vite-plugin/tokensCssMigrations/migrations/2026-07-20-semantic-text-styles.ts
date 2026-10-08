@@ -51,11 +51,12 @@ const BUNDLE = [
   { name: '--body-sm-line-height', value: 'var(--line-height-tight)' },
   { name: '--body-sm-letter-spacing', value: 'var(--letter-spacing-normal)' },
 
+  // The code bundle's size, leading and tracking belong to 2026-10-08-type-scales,
+  // which renames them to `--code-md-*`. An additive migration must not re-add
+  // names a later breaking rename removes, or re-running the fold loses
+  // idempotency.
   { name: '--code-font-family', value: 'var(--font-mono)' },
-  { name: '--code-font-size', value: 'var(--font-size-sm)' },
   { name: '--code-font-weight', value: 'var(--font-weight-normal)' },
-  { name: '--code-line-height', value: 'var(--line-height-normal)' },
-  { name: '--code-letter-spacing', value: 'var(--letter-spacing-normal)' },
 
   { name: '--eyebrow-font-family', value: 'var(--font-sans)' },
   { name: '--eyebrow-font-size', value: 'var(--font-size-sm)' },
