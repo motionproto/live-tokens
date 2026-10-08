@@ -39,6 +39,8 @@ export {
   renameToken,
   removeToken,
   removeTokensMatching,
+  setTokenValue,
+  appendMediaBlock,
 } from './cssTokenOps';
 export { readLiveTokensConfig } from '../files/dataPaths';
 

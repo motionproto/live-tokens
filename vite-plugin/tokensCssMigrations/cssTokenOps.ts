@@ -11,7 +11,8 @@
  * sectioning, and formatting survive untouched. They are idempotent **by
  * presence**: `ensure` skips a token that already exists, `rename` only fires
  * when the old name is present and the new one is absent, `remove` is a no-op
- * when the name is gone. Re-running a migration therefore never double-applies,
+ * when the name is gone, `set` writes nothing when the value already matches,
+ * and `appendMediaBlock` skips a name the block declares. Re-running a migration therefore never double-applies,
  * which is what lets the CLI run safely without a schema-version stamp.
  */
 
@@ -122,6 +123,84 @@ export function removeTokensMatching(css: string, predicate: (name: string) => b
   return kept.join('\n');
 }
 
+export interface SetTokenValueOptions {
+  /** Rewrite only when the current value equals this one, so a consumer's edit stays. */
+  from?: string;
+}
+
+/**
+ * Rewrite the value of `name` where the top-level `:root` declares it. A
+ * re-declaration inside `@media` keeps its value. No-op when the top-level
+ * `:root` does not declare `name`.
+ */
+export function setTokenValue(
+  css: string,
+  name: string,
+  value: string,
+  opts: SetTokenValueOptions = {},
+): string {
+  const lines = css.split('\n');
+  const declRe = new RegExp('(^|[\\s;{])(' + escapeRe(name) + ')(\\s*:)([^;}]*)');
+  let changed = false;
+  for (const root of findTopLevelRoots(lines)) {
+    let depth = 1;
+    for (let i = root.start + 1; i < root.end; i++) {
+      if (depth === 1) {
+        const m = lines[i].match(declRe);
+        const current = m?.[4].trim();
+        if (m && current !== value && (opts.from === undefined || current === opts.from.trim())) {
+          const at = m.index! + m[1].length + m[2].length + m[3].length;
+          lines[i] = lines[i].slice(0, at) + ' ' + value + lines[i].slice(at + m[4].length);
+          changed = true;
+        }
+      }
+      depth += braceDelta(lines[i]);
+    }
+  }
+  return changed ? lines.join('\n') : css;
+}
+
+/**
+ * Append each entry that no top-level `@media <query>` block declares yet to
+ * that block's `:root`. The query must match exactly. With no such block, a new
+ * one goes at the end of the file.
+ */
+export function appendMediaBlock(css: string, query: string, entries: ScaleEntry[]): string {
+  const lines = css.split('\n');
+  const at = query.trim();
+  const blocks = findTopLevelBlocks(lines, (line) => mediaQueryOf(line) === at);
+  const declared = collectDefinedTokens(
+    blocks.map((b) => lines.slice(b.start, b.end + 1).join('\n')).join('\n'),
+  );
+  const missing = entries.filter((e) => !declared.has(e.name));
+  if (missing.length === 0) return css;
+
+  const media = blocks.find((b) => b.end > b.start);
+  if (!media) {
+    const block = [`@media ${at} {`, '  :root {', ...declarationLines(missing, '    '), '  }', '}', ''];
+    while (lines.length > 0 && lines[lines.length - 1].trim() === '') lines.pop();
+    return [...lines, '', ...block].join('\n');
+  }
+
+  const root = findNestedRoot(lines, media);
+  if (!root) {
+    lines.splice(media.end, 0, '  :root {', ...declarationLines(missing, '    '), '  }');
+    return lines.join('\n');
+  }
+
+  let indent = (lines[root.end].match(/^\s*/)?.[0] ?? '') + '  ';
+  for (let i = root.start + 1; i < root.end; i++) {
+    const m = lines[i].match(/^(\s*)--[a-z0-9-]+\s*:/i);
+    if (m) indent = m[1];
+  }
+  lines.splice(root.end, 0, ...declarationLines(missing, indent));
+  return lines.join('\n');
+}
+
+function declarationLines(entries: ScaleEntry[], indent: string): string[] {
+  return entries.map((e) => `${indent}${e.name}: ${e.value};`);
+}
+
 /**
  * Locate where a new token block should be inserted.
  *
@@ -162,7 +241,7 @@ function findInsertionPoint(
         }
       }
     }
-    depth += (line.match(/\{/g)?.length ?? 0) - (line.match(/\}/g)?.length ?? 0);
+    depth += braceDelta(line);
   }
 
   // Prefer the highest-priority prefix that matched a direct child of `:root`.
@@ -175,27 +254,73 @@ function findInsertionPoint(
   return { indent: lastDecl?.indent ?? '  ', insertAfter: root.end - 1 };
 }
 
+interface LineBlock {
+  /** Line of the opening brace. */
+  start: number;
+  /** Line of the matching closing brace. */
+  end: number;
+}
+
+const ROOT_OPEN_RE = /(^|[\s,]):root[^{]*\{/;
+
 /**
  * Find the file's top-level `:root { … }` block: the first `:root` selector that
  * opens a block at brace-depth 0 (i.e. not nested inside `@media` or any other
  * at-rule). Returns the line indices of its opening and closing braces, or
  * `null` when there is no such block.
  */
-function findTopLevelRoot(lines: string[]): { start: number; end: number } | null {
+function findTopLevelRoot(lines: string[]): LineBlock | null {
+  return findTopLevelRoots(lines)[0] ?? null;
+}
+
+function findTopLevelRoots(lines: string[]): LineBlock[] {
+  return findTopLevelBlocks(lines, (line) => ROOT_OPEN_RE.test(line));
+}
+
+/** Blocks that open at brace-depth 0 on a line `opens` accepts. */
+function findTopLevelBlocks(lines: string[], opens: (line: string) => boolean): LineBlock[] {
+  const blocks: LineBlock[] = [];
   let depth = 0;
   for (let i = 0; i < lines.length; i++) {
-    const line = lines[i];
-    if (depth === 0 && /(^|[\s,]):root[^{]*\{/.test(line)) {
-      let d = 0;
-      for (let j = i; j < lines.length; j++) {
-        d += (lines[j].match(/\{/g)?.length ?? 0) - (lines[j].match(/\}/g)?.length ?? 0);
-        if (d === 0) return { start: i, end: j };
-      }
-      return { start: i, end: lines.length - 1 };
+    if (depth === 0 && opens(lines[i])) {
+      const end = blockEnd(lines, i);
+      blocks.push({ start: i, end });
+      i = end;
+      continue;
     }
-    depth += (line.match(/\{/g)?.length ?? 0) - (line.match(/\}/g)?.length ?? 0);
+    depth += braceDelta(lines[i]);
+  }
+  return blocks;
+}
+
+/** The first multi-line `:root` block directly inside `parent`. */
+function findNestedRoot(lines: string[], parent: LineBlock): LineBlock | null {
+  let depth = 1;
+  for (let i = parent.start + 1; i < parent.end; i++) {
+    if (depth === 1 && ROOT_OPEN_RE.test(lines[i])) {
+      const end = blockEnd(lines, i);
+      if (end > i && end < parent.end) return { start: i, end };
+    }
+    depth += braceDelta(lines[i]);
   }
   return null;
+}
+
+function blockEnd(lines: string[], start: number): number {
+  let depth = 0;
+  for (let j = start; j < lines.length; j++) {
+    depth += braceDelta(lines[j]);
+    if (depth === 0) return j;
+  }
+  return lines.length - 1;
+}
+
+function mediaQueryOf(line: string): string | null {
+  return line.match(/^\s*@media\s+([^{]*?)\s*\{/i)?.[1] ?? null;
+}
+
+function braceDelta(line: string): number {
+  return (line.match(/\{/g)?.length ?? 0) - (line.match(/\}/g)?.length ?? 0);
 }
 
 function escapeRe(s: string): string {

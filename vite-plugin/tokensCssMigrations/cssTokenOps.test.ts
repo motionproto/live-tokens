@@ -7,6 +7,8 @@ import {
   renameToken,
   removeToken,
   removeTokensMatching,
+  setTokenValue,
+  appendMediaBlock,
 } from './cssTokenOps';
 
 const ROOT = `:root {
@@ -203,6 +205,107 @@ describe('removeTokensMatching', () => {
 
   it('is a no-op when nothing matches', () => {
     expect(removeTokensMatching(ROOT, isLegacyDivider)).toBe(ROOT);
+  });
+});
+
+const RESPONSIVE = `:root {
+  --heading-xl-font-size: var(--font-size-4xl);
+  --heading-xl-font-family: var(--font-display);
+}
+
+@media (max-width: 768px) {
+  :root {
+    --font-size-4xl: 1.875rem; /* 30px */
+    --heading-xl-font-size: var(--heading-xl-tablet-font-size);
+  }
+}
+`;
+
+describe('setTokenValue', () => {
+  it('rewrites the top-level :root declaration', () => {
+    const out = setTokenValue(RESPONSIVE, '--heading-xl-font-size', 'var(--heading-xl-desktop-font-size)');
+    expect(out).toBe(
+      RESPONSIVE.replace(
+        '  --heading-xl-font-size: var(--font-size-4xl);',
+        '  --heading-xl-font-size: var(--heading-xl-desktop-font-size);',
+      ),
+    );
+  });
+
+  it('leaves the declaration inside @media untouched', () => {
+    const out = setTokenValue(RESPONSIVE, '--heading-xl-font-size', '2rem');
+    expect(out).toContain('    --heading-xl-font-size: var(--heading-xl-tablet-font-size);');
+  });
+
+  it('does nothing when the top-level :root does not declare the name', () => {
+    expect(setTokenValue(RESPONSIVE, '--missing', '1rem')).toBe(RESPONSIVE);
+    expect(setTokenValue(RESPONSIVE, '--font-size-4xl', '9rem')).toBe(RESPONSIVE);
+  });
+
+  it('rewrites only a value that equals `from`', () => {
+    const relinked = setTokenValue(RESPONSIVE, '--heading-xl-font-family', 'var(--heading-font-family)', {
+      from: 'var(--font-display)',
+    });
+    expect(relinked).toContain('--heading-xl-font-family: var(--heading-font-family);');
+
+    const edited = RESPONSIVE.replace('var(--font-display)', 'var(--font-sans)');
+    const kept = setTokenValue(edited, '--heading-xl-font-family', 'var(--heading-font-family)', {
+      from: 'var(--font-display)',
+    });
+    expect(kept).toBe(edited);
+  });
+
+  it('keeps a trailing comment and does not match a longer name', () => {
+    const css = `:root {\n  --a: 1rem; /* 16px */\n  --a-b: 2rem;\n}\n`;
+    expect(setTokenValue(css, '--a', '3rem')).toBe(`:root {\n  --a: 3rem; /* 16px */\n  --a-b: 2rem;\n}\n`);
+  });
+
+  it('is idempotent', () => {
+    const once = setTokenValue(RESPONSIVE, '--heading-xl-font-size', '2rem');
+    expect(setTokenValue(once, '--heading-xl-font-size', '2rem')).toBe(once);
+  });
+});
+
+describe('appendMediaBlock', () => {
+  const ENTRIES = [
+    { name: '--heading-xl-font-size', value: 'var(--heading-xl-tablet-font-size)' },
+    { name: '--heading-lg-font-size', value: 'var(--heading-lg-tablet-font-size)' },
+  ];
+
+  it('appends the missing entries to an existing block and skips the present ones', () => {
+    const out = appendMediaBlock(RESPONSIVE, '(max-width: 768px)', ENTRIES);
+    expect(out).toBe(
+      RESPONSIVE.replace(
+        '    --heading-xl-font-size: var(--heading-xl-tablet-font-size);\n',
+        '    --heading-xl-font-size: var(--heading-xl-tablet-font-size);\n' +
+          '    --heading-lg-font-size: var(--heading-lg-tablet-font-size);\n',
+      ),
+    );
+  });
+
+  it('appends a new block at the end of the file when no query matches exactly', () => {
+    const out = appendMediaBlock(RESPONSIVE, '(max-width: 480px)', [
+      { name: '--heading-xl-font-size', value: 'var(--heading-xl-phone-font-size)' },
+    ]);
+    expect(out).toBe(
+      RESPONSIVE +
+        '\n@media (max-width: 480px) {\n  :root {\n' +
+        '    --heading-xl-font-size: var(--heading-xl-phone-font-size);\n  }\n}\n',
+    );
+    expect(out.indexOf('(max-width: 480px)')).toBeGreaterThan(out.indexOf('(max-width: 768px)'));
+  });
+
+  it('never appends into the top-level :root', () => {
+    const out = appendMediaBlock(RESPONSIVE, '(max-width: 768px)', ENTRIES);
+    const top = out.slice(0, out.indexOf('@media'));
+    expect(top).not.toContain('--heading-lg-font-size');
+  });
+
+  it('is idempotent for an existing block and for a new one', () => {
+    for (const query of ['(max-width: 768px)', '(max-width: 480px)']) {
+      const once = appendMediaBlock(RESPONSIVE, query, ENTRIES);
+      expect(appendMediaBlock(once, query, ENTRIES)).toBe(once);
+    }
   });
 });
 
