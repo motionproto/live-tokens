@@ -1,6 +1,6 @@
 # Type scales for text styles
 
-Status: proposal, 2026-10-08. Prototype: [type-scales-prototype.html](type-scales-prototype.html).
+Status: approved 2026-10-08 and implemented by [plans/type-scales.md](plans/type-scales.md). Prototype: [type-scales-prototype.html](type-scales-prototype.html). The text below includes the plan's revisions: the editor never writes a structural size, no theme migration runs, and the migration op is `appendMediaBlock`.
 
 ## Summary
 
@@ -156,7 +156,7 @@ The phone scaling slider is the control for this trade. Raising it from 0.63 to 
 
 The recommendation raises the step's desktop size, counted in rem, to the compression. While the desktop size follows the scale, the expression uses the scale's terms, so a change to the base, the ratio or the compression moves every unedited size in the browser. Once the desktop size is edited, the editor writes that size's rem count into the expression in place of the scale's terms.
 
-The structural `-font-size` tokens stay out of the theme's token set, the way intrinsics do. That keeps them out of `tokens.generated.css`, which writes every theme token under `:root:root` and has no media blocks. A promoted theme then overrides the editable sizes, and the breakpoint blocks in `tokens.css` still switch between them. This closes the gap the semantic text styles work left open, where a promoted size outweighed its 768px re-point. Consumer CSS that reads `--heading-xl-font-size` keeps working, now with responsive sizes.
+The editor never writes a structural `-font-size` token, so no theme, `_working.json` or `tokens.generated.css` holds one. That matters because `tokens.generated.css` writes every theme token under `:root:root` and has no media blocks, so a structural size there would outweigh its breakpoint re-points. A promoted theme then overrides the editable sizes, and the breakpoint blocks in `tokens.css` still switch between them. This closes the gap the semantic text styles work left open, where a promoted size outweighed its 768px re-point. Consumer CSS that reads `--heading-xl-font-size` keeps working, now with responsive sizes.
 
 `pow()` ships in Chrome and Edge 120, Firefox 118 and Safari 15.4.
 
@@ -268,8 +268,8 @@ Renamed: `--code-font-size`, `--code-line-height` and `--code-letter-spacing` be
 ## Migration and release
 
 - **Release level.** The code rename ships `breaking`. The new usages, steps and settings ship `additive`.
-- **Consumer `tokens.css`.** A migration renames the three code tokens and their references, adds the settings and the desktop, tablet and phone sizes with `ensureScale`, re-points each existing step's `-font-size` to its desktop size, and appends the breakpoint blocks with `appendMediaOverride`.
-- **Saved themes.** A theme migration moves each stored `-font-size` value into the step's desktop size as an edit, converting a primitive alias to its desktop rem value. A saved theme keeps its desktop sizes, and its tablet and phone sizes take recommendations that land within 1.4px of today's breakpoint sizes above 20px. Resetting a desktop size adopts the scale.
+- **Consumer `tokens.css`.** A migration renames the three code tokens and their references, adds the settings and the desktop, tablet and phone sizes with `ensureScale`, re-points each existing step's `-font-size` to its desktop size, and appends the breakpoint blocks with `appendMediaBlock`. A step's `-font-size` that differs from its 0.91.2 default moves into the step's desktop size, so a consumer's hand edits to `tokens.css` carry over.
+- **Saved themes.** No theme migration runs. Text Styles edits never reached a saved theme before this change, so no theme holds a text-style key.
 - **Default theme.** The default theme adopts the scales, so projects on the default theme see the size changes above on upgrade. The release notes list them.
 - **`site.css`.** `site.css` is user-owned. The proposal adds rules for h5, h6, the `.display-*`, `.heading-*`, `.body-*`, `.editorial-*` and `.code-*` classes, and the relative inline `code` size. Each needs approval before it lands.
 - **Skills.** The create-page skill names text styles and needs the new usages and a rule for choosing among them: headings use the full set, and other usages mostly use md and sm. Run `npm run sync:skill-atlas` and `npm run sync:skill-sources` after the edit.
@@ -290,5 +290,5 @@ Renamed: `--code-font-size`, `--code-line-height` and `--code-letter-spacing` be
 5. A "Below 12px" marker in place of a size floor.
 6. The default values above, including the larger h2 and h3.
 7. Heading sm, xs and 2xs in sans, shipped unlinked. The alternative ships them linked to the display face and changes h4's face.
-8. Saved themes keep their desktop sizes as edits; the default theme adopts the scales.
+8. The default theme adopts the scales. Saved themes need no migration, because none holds a text-style key.
 9. The `site.css` additions.
