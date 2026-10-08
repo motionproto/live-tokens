@@ -4,7 +4,7 @@
   import { PALETTE_SPECS } from '../core/palettes/paletteDerivation';
   import FontStackEditor from './FontStackEditor.svelte';
   import ProjectFontsSection from './ProjectFontsSection.svelte';
-  import TextStylesSection from './TextStylesSection.svelte';
+  import TextStylesSection from './text-styles/TextStylesSection.svelte';
   import ColumnsSection from './sections/ColumnsSection.svelte';
   import TokenScaleTable from './sections/TokenScaleTable.svelte';
   import WashesSection from './sections/WashesSection.svelte';
@@ -100,7 +100,6 @@
       </div>
 
       <div class="typography-group text-styles-group">
-        <h3 class="group-title">Text Styles</h3>
         <TextStylesSection />
       </div>
 
@@ -254,10 +253,11 @@
     gap: var(--ui-space-32);
   }
 
-  /* The definition table is wide (four pickers + preview per row); give it the
-     full row so it isn't squeezed into an auto-fill column. */
+  /* Each step row holds three size inputs, a sample and four pickers, so the
+     group takes the full row. */
   .text-styles-group {
     grid-column: 1 / -1;
+    gap: var(--ui-space-16);
   }
 
   /* Utility Tokens */
