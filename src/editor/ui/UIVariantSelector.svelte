@@ -1,6 +1,7 @@
 <script lang="ts" generics="T extends { key: string; label?: string; value?: string }">
   import type { Snippet } from 'svelte';
   import { resolveAliasChain } from '../core/palettes/tokenRegistry';
+  import { parseVariantRef } from './variantScales';
   import UITokenSelector from './UITokenSelector.svelte';
   import UIOptionList from './UIOptionList.svelte';
   import UIOptionItem from './UIOptionItem.svelte';
@@ -53,16 +54,9 @@
   let currentValue: string = $state('');
 
   let validKeys = $derived(new Set(options.map((o) => o.key)));
-  let refMatcher = $derived.by(() => {
-    const escaped = varPrefix.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    return new RegExp(`var\\((${escaped}[^)\\s]+)\\)`);
-  });
 
   function parseRef(value: string): string | null {
-    const m = value.match(refMatcher);
-    if (!m) return null;
-    const key = m[1].slice(varPrefix.length);
-    return validKeys.has(key) ? key : null;
+    return parseVariantRef(value, varPrefix, validKeys);
   }
 
   function readResolved() {

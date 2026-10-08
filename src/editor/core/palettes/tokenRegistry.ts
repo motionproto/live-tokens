@@ -23,6 +23,8 @@ import tokensCss from '../../../system/styles/tokens.css?raw';
 import { editorState } from '../store/editorStore';
 import type { EditorState } from '../store/editorTypes';
 import { extractGlobalRootBody } from '../themes/parsers/globalRootBlock';
+import { stripMediaBlocks } from '../themes/parsers/mediaBlocks';
+import { parseColorOpacity } from '../themes/parsers/colorOpacity';
 import { refToCss } from '../store/cssVarRef';
 
 // Re-exported for tests and downstream consumers that previously imported it
@@ -43,37 +45,49 @@ export interface TokenRegistry {
 
 /**
  * Pure constructor: parses a CSS source string (possibly concatenated from
- * multiple files) and returns a registry bound to that snapshot.
+ * multiple files) and returns a registry bound to that snapshot. A declaration
+ * inside `@media` is a breakpoint re-point and never counts as declared.
  */
 export function buildTokenRegistry(cssText: string): TokenRegistry {
   const declarations = new Map<string, string>();
   const re = /(--[a-z0-9-]+)\s*:\s*([^;]+);/gi;
   let m: RegExpExecArray | null;
-  while ((m = re.exec(cssText)) !== null) {
+  const topLevel = stripMediaBlocks(cssText);
+  while ((m = re.exec(topLevel)) !== null) {
     declarations.set(m[1], m[2].trim());
   }
 
-  function resolveAliasChain(varName: string): string[] {
-    const chain = [varName];
-    const visited = new Set<string>([varName]);
-    let current = varName;
-    while (true) {
-      const decl = declarations.get(current);
-      if (!decl) return chain;
-      const aliasMatch = decl.match(/var\((--[a-z0-9-]+)\)/i);
-      if (!aliasMatch) return chain;
-      const next = aliasMatch[1];
-      if (visited.has(next)) return chain;
-      visited.add(next);
-      chain.push(next);
-      current = next;
-    }
-  }
-
+  const getDeclaredValue = (v: string): string | null => declarations.get(v) ?? null;
   return {
-    getDeclaredValue: (v) => declarations.get(v) ?? null,
-    resolveAliasChain,
+    getDeclaredValue,
+    resolveAliasChain: (varName) => walkAliasChain(varName, getDeclaredValue),
   };
+}
+
+const ALIAS_RE = /^var\(\s*(--[a-z0-9-]+)\s*\)$/i;
+
+/**
+ * The token a declaration aliases: the whole value is `var(--x)`, or `--x` at
+ * reduced opacity. A `var()` inside any other expression is arithmetic on the
+ * token, so `calc(var(--x) * 2)` aliases nothing.
+ */
+function aliasTarget(decl: string): string | null {
+  return decl.match(ALIAS_RE)?.[1] ?? parseColorOpacity(decl)?.name ?? null;
+}
+
+function walkAliasChain(varName: string, getDeclared: (v: string) => string | null): string[] {
+  const chain = [varName];
+  const visited = new Set<string>([varName]);
+  let current = varName;
+  while (true) {
+    const decl = getDeclared(current);
+    if (!decl) return chain;
+    const next = aliasTarget(decl);
+    if (!next || visited.has(next)) return chain;
+    visited.add(next);
+    chain.push(next);
+    current = next;
+  }
 }
 
 const componentTokenCss = Object.values(componentSources)
@@ -119,22 +133,7 @@ function buildOverlayRegistry(
     overrides.has(v) ? overrides.get(v)! : base.getDeclaredValue(v);
   return {
     getDeclaredValue: getDeclared,
-    resolveAliasChain(varName: string): string[] {
-      const chain = [varName];
-      const visited = new Set<string>([varName]);
-      let current = varName;
-      while (true) {
-        const decl = getDeclared(current);
-        if (!decl) return chain;
-        const aliasMatch = decl.match(/var\((--[a-z0-9-]+)\)/i);
-        if (!aliasMatch) return chain;
-        const next = aliasMatch[1];
-        if (visited.has(next)) return chain;
-        visited.add(next);
-        chain.push(next);
-        current = next;
-      }
-    },
+    resolveAliasChain: (varName) => walkAliasChain(varName, getDeclared),
   };
 }
 

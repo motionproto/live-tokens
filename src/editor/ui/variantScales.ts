@@ -21,6 +21,22 @@ export interface VariantScaleEntry {
   options: ReadonlyArray<VariantScaleOption>;
 }
 
+/**
+ * The option key a value selects: the whole value is `var(<varPrefix><key>)`
+ * and `key` is one of `validKeys`. A `var()` inside an expression such as
+ * `calc(var(--x) * 2)` selects nothing.
+ */
+export function parseVariantRef(
+  value: string,
+  varPrefix: string,
+  validKeys: ReadonlySet<string>,
+): string | null {
+  const name = value.trim().match(/^var\(\s*(--[a-z0-9-]+)\s*\)$/i)?.[1];
+  if (!name?.startsWith(varPrefix)) return null;
+  const key = name.slice(varPrefix.length);
+  return validKeys.has(key) ? key : null;
+}
+
 export const BLUR: VariantScaleEntry = {
   varPrefix: '--blur-',
   options: [

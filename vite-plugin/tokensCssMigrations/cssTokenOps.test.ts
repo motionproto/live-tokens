@@ -319,4 +319,10 @@ describe('collectTokenValues', () => {
   it('takes the last declaration, as the cascade would', () => {
     expect(collectTokenValues(':root { --a: 1; }\n:root { --a: 2; }').get('--a')).toBe('2');
   });
+
+  it('takes the top-level value of a token re-declared inside @media', () => {
+    const values = collectTokenValues(RESPONSIVE);
+    expect(values.get('--heading-xl-font-size')).toBe('var(--font-size-4xl)');
+    expect(values.has('--font-size-4xl')).toBe(false);
+  });
 });

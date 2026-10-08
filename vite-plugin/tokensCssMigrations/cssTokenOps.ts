@@ -16,6 +16,8 @@
  * which is what lets the CLI run safely without a schema-version stamp.
  */
 
+import { stripMediaBlocks } from '../../src/editor/core/themes/parsers/mediaBlocks';
+
 const DECL_RE = /(^|[\s;{])(--[a-z0-9-]+)\s*:/gi;
 const REF_RE = /var\(\s*(--[a-z0-9-]+)/gi;
 const DECL_VALUE_RE = /(^|[\s;{])(--[a-z0-9-]+)\s*:([^;}]*)/gi;
@@ -27,10 +29,13 @@ export function collectDefinedTokens(css: string): Set<string> {
   return out;
 }
 
-/** Declared name → value, last declaration winning (as the cascade would). */
+/**
+ * Declared name → top-level value, last declaration winning. Declarations
+ * inside `@media` are breakpoint re-points and never count.
+ */
 export function collectTokenValues(css: string): Map<string, string> {
   const out = new Map<string, string>();
-  for (const m of css.matchAll(DECL_VALUE_RE)) out.set(m[2], m[3].trim());
+  for (const m of stripMediaBlocks(css).matchAll(DECL_VALUE_RE)) out.set(m[2], m[3].trim());
   return out;
 }
 
