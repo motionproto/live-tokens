@@ -14,15 +14,16 @@
   `pre` rules that replace them.
 - **Inline `code` sizes relative to its parent.** `site.css` sets `code` at
   `0.875em`, so inline code in a heading grows with the heading, and
-  `pre code` takes the block's size. `pre` reads the code md bundle. A project
-  keeps the `code` and `pre` rules in its own copy of `site.css` until it
-  replaces them with these:
+  `pre code` takes the block's size. `code` and `pre` both read the code md
+  face, weight and letter spacing, and `pre` also reads its size and line
+  height. A project keeps the `code` and `pre` rules in its own copy of
+  `site.css` until it replaces them with these:
 
   ```css
   code {
-    font-family: var(--code-font-family);
+    font-family: var(--code-md-font-family);
     font-size: 0.875em;
-    font-weight: var(--code-font-weight);
+    font-weight: var(--code-md-font-weight);
     letter-spacing: var(--code-md-letter-spacing);
   }
 

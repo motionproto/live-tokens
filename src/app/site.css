@@ -111,9 +111,9 @@ small {
 }
 
 code {
-  font-family: var(--code-font-family);
+  font-family: var(--code-md-font-family);
   font-size: 0.875em;
-  font-weight: var(--code-font-weight);
+  font-weight: var(--code-md-font-weight);
   letter-spacing: var(--code-md-letter-spacing);
 }
 
