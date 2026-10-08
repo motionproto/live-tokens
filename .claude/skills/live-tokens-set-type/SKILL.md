@@ -14,7 +14,7 @@ The result is on screen as soon as the run finishes. The three set skills write 
 1. Read the type intent and any anchor live-tokens-create-theme passed. When either names an anchor (a feeling, an idiom, or a genre), read its entry in `references/type-anchors.md`; it overrides the Voice table below.
 2. Choose the pairing and write it to `scratch/font-pairing.json`.
 3. Run `npx live-tokens set-type scratch/font-pairing.json`. It prints each stack that moved, each family's weights and URL, and, under Weight coverage, the weights the typography tokens ask for that the family lacks.
-4. Read the report. Name a missing weight and offer an alternative only when it matters: a body face without 400, 700, or italic matters, and a display face without 300 does not. A family not on Google Fonts fails the run. Fix the spelling and re-run. A pairing the stacks already hold prints "Nothing to change" and writes nothing. A pairing equal to the open theme's discards the buffer, and the report says so.
+4. Read the report. Name a missing weight and offer an alternative only when it matters: a body face without 400, 600, or italic matters, and a display face without 300 does not. A family not on Google Fonts fails the run. Fix the spelling and re-run. A pairing the stacks already hold prints "Nothing to change" and writes nothing. A pairing equal to the open theme's discards the buffer, and the report says so.
 5. Reply with the two families, the form model behind each, the matrix verdict, and any missing weight worth naming.
 
 Flags: `--dry-run` reports without writing. `--no-verify` skips the network and requires a URL per family; use it only offline.
