@@ -101,6 +101,29 @@
   to `.code-2xs`. `create` copies the new rules into a new project. An
   existing project copies them from the package's `src/app/site.css`.
 
+### Changed
+
+- **The editor's Text Styles group holds a tab per usage.** A Responsive
+  scaling row opens the group with a tablet slider and a phone slider, each
+  showing its effect on 72, 48 and 24px. Each tab sets its usage's face,
+  weight, base and ratio, and lists its seven steps from 2xl to 2xs. A step
+  row shows its element, its desktop, tablet and phone sizes, a sample at the
+  preview viewport, and its face, weight, line height and letter spacing. A
+  face or weight follows the usage until you unlink it, and a size follows its
+  recommendation until you type another. A value that leaves its default
+  shows a reset icon, each tab's reset button restores its usage, and Reset
+  all restores the group. The Body tab ends with the eyebrow, whose sizes
+  follow body sm until you edit them.
+
+### Fixed
+
+- **Text Styles edits save with the theme and undo like every other edit.**
+  The pickers wrote straight to the page's `:root`, so an edit reached neither
+  the undo history nor Save. Every Text Styles edit now goes through the
+  editor store and lands in the theme's `cssVariables` on Save. A size edit
+  writes the step's desktop, tablet or phone size, so the breakpoint
+  re-points of its `-font-size` keep working in a promoted theme.
+
 ### Migration
 
 - Run `npx live-tokens migrate`. The `2026-10-08-type-scales` tokens.css
