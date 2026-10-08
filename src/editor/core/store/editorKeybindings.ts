@@ -41,7 +41,7 @@ const TEXT_INPUT_TYPES = new Set([
   'date', 'datetime-local', 'month', 'time', 'week',
 ]);
 
-function isEditable(el: HTMLElement): boolean {
+export function isEditable(el: HTMLElement): boolean {
   const tag = el.tagName;
   if (tag === 'TEXTAREA') return true;
   if (tag === 'INPUT') {

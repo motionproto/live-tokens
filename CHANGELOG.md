@@ -1,5 +1,36 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+- **The Colors view swaps two main colors by drag and drop.** Drop one swatch
+  of the main row on another and the two families trade seed colors in one
+  undo step. A harmony axis follows the color it held, so every axis keeps
+  its hue and an applied harmony stays true.
+- **Every swatch copies and pastes its color.** ⌘C (Ctrl+C) copies the
+  selected swatch's seed as `oklch()` text, and ⌘V (Ctrl+V) sets the selected
+  swatch's seed from a hex or `oklch()` color on the clipboard.
+
+### Fixed
+
+- **The type-scales migration derives an aliased size's tablet and phone
+  sizes from the alias.** A step size that aliases a primitive, such as
+  `--body-sm-font-size: var(--font-size-md)`, kept the scale's tablet and
+  phone sizes, so a 16px body sm fell to 14.6px on tablets. The migration now
+  resolves the alias through the file's top-level declarations and applies
+  the editor's rule for an edited size, so body sm holds 16px. A size it
+  cannot resolve, such as a `calc()`, keeps the scale's sizes.
+- **The type-scales migration carries a step the project declared by hand.**
+  A step 0.91.2 did not ship, such as a project's own
+  `--heading-2xl-font-size: 1.75rem`, kept that value in its `-font-size`
+  while the 768px and 480px blocks re-pointed it at the scale's tablet and
+  phone sizes. The migration now moves the value into the step's desktop size,
+  points `-font-size` at it, and derives the tablet and phone sizes by the
+  editor's rule.
+- A `tokens.css` that already ran the 0.92.0 migration never runs it again, so
+  these fixes reach projects that upgrade from 0.91 after this release.
+
 ## 0.92.0 — Type scales for text styles
 
 ### Changed (breaking)

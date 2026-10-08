@@ -20,9 +20,11 @@ import {
  * A consumer's edits carry over. A 0.91.2 step whose `-font-size` differs from
  * the shipped value keeps that value as its desktop size, and a face or weight
  * that differs from the shipped value stays in place of the link to its usage.
- * A carried rem or px size sets the step's tablet and phone sizes by the
- * editor's rule for an edited size. Any other carried size, such as an alias
- * of a primitive, keeps the scale's tablet and phone sizes.
+ * A carried rem or px size, or an alias that resolves to one, sets the step's
+ * tablet and phone sizes by the editor's rule for an edited size. Any other
+ * carried size, such as a `calc()`, keeps the scale's tablet and phone sizes.
+ * A step 0.91.2 did not ship whose `-font-size` the file already declares,
+ * such as a hand-added `--heading-2xl-font-size`, carries as an edit.
  *
  * `breaking`: it renames `--code-font-size`, `--code-line-height` and
  * `--code-letter-spacing` to `--code-md-*`, and it rewrites every 0.91.2
@@ -40,8 +42,8 @@ const RENAMES: [from: string, to: string][] = [
 
 interface CarriedStep {
   prefix: string;
-  /** The `-font-size` 0.91.2 shipped. */
-  size: string;
+  /** The `-font-size` 0.91.2 shipped, absent for a step it did not ship. */
+  size?: string;
   /** Face and weight re-points, each applied only while the value is the one 0.91.2 shipped. */
   links: { name: string; from: string; to: string }[];
 }
@@ -165,6 +167,21 @@ function literalRem(size: string): number | null {
   const m = /^(-?\d*\.?\d+)(rem|px)$/.exec(size.trim());
   if (!m) return null;
   return m[2] === 'rem' ? Number(m[1]) : Number(m[1]) / 16;
+}
+
+const ALIAS = /^var\(\s*(--[a-z0-9-]+)\s*\)$/i;
+
+/** Follows `var()` aliases through the file's top-level declarations, which hold the desktop values. */
+function resolvedRem(size: string, values: ReadonlyMap<string, string>): number | null {
+  const seen = new Set<string>();
+  let value = size.trim();
+  for (let ref = ALIAS.exec(value); ref; ref = ALIAS.exec(value)) {
+    const next = values.get(ref[1]);
+    if (next === undefined || seen.has(ref[1])) return null;
+    seen.add(ref[1]);
+    value = next.trim();
+  }
+  return literalRem(value);
 }
 
 /** Frozen from the editor's `recommendedEditedExpression`. */
@@ -804,6 +821,20 @@ const DECLARED = new Map(
 
 const TYPE_PRIMITIVES = ['--letter-spacing-', '--line-height-', '--font-weight-', '--font-size-', '--font-'];
 
+const CARRIED_PREFIXES = new Set(CARRIED.map((step) => step.prefix));
+
+/** Steps 0.91.2 did not ship that the file declares by hand. A desktop size means a step is already migrated. */
+function handDeclaredSteps(values: ReadonlyMap<string, string>): CarriedStep[] {
+  return USAGES.flatMap((u) => u.steps)
+    .filter(
+      ({ prefix }) =>
+        !CARRIED_PREFIXES.has(prefix) &&
+        values.has(`${prefix}-font-size`) &&
+        !values.has(`${prefix}-desktop-font-size`),
+    )
+    .map(({ prefix }) => ({ prefix, links: [] }));
+}
+
 export const tokensCssMigration_2026_10_08_typeScales: TokensCssMigration = {
   id: '2026-10-08-type-scales',
   kind: 'breaking',
@@ -814,12 +845,12 @@ export const tokensCssMigration_2026_10_08_typeScales: TokensCssMigration = {
     for (const [from, to] of RENAMES) out = renameToken(out, from, to);
 
     const values = collectTokenValues(out);
-    for (const step of CARRIED) {
+    for (const step of [...CARRIED, ...handDeclaredSteps(values)]) {
       const size = values.get(`${step.prefix}-font-size`);
       if (size === undefined) continue;
       const desktop = `${step.prefix}-desktop-font-size`;
       const edited = size !== step.size;
-      const rem = edited ? literalRem(size) : null;
+      const rem = edited ? resolvedRem(size, values) : null;
       out = ensureScale(out, {
         anchorPrefixes: [`${step.prefix}-font-family`, `${step.prefix}-`],
         entries: [

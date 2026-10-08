@@ -1,8 +1,9 @@
 <script lang="ts">
   import { cubicOut } from 'svelte/easing';
-  import { oklchToHexClamped } from '../../core/palettes/oklch';
+  import { cssColorToOklch, oklchToCss, oklchToHexClamped } from '../../core/palettes/oklch';
   import { PALETTE_SPECS } from '../../core/palettes/paletteDerivation';
   import { editorState, beginSliderGesture } from '../../core/store/editorStore';
+  import { isEditable } from '../../core/store/editorKeybindings';
   import { selectedPalette } from '../../core/store/paletteFocus';
   import { applyHarmonyToAxes, axisStatuses, HARMONY_ELIGIBLE, type HarmonyMode } from '../../core/palettes/colorHarmony';
   import AxisNumeral from './AxisNumeral.svelte';
@@ -13,10 +14,12 @@
   import PaletteStepStrip from './PaletteStepStrip.svelte';
   import HarmonyAxesList from './HarmonyAxesList.svelte';
   import PaletteJumpButton from '../palette/PaletteJumpButton.svelte';
+  import { showCopyPopover } from '../copyPopover';
   import {
     setBaseColor,
     setAxisHues,
     unbindFamily,
+    swapBaseColors,
     palettesWithDefaults,
   } from './paletteBaseColor';
   import { HARMONY_MODE_BUTTONS } from './harmonyModeIcons';
@@ -108,22 +111,98 @@
     if (family) unbindFamily(family);
   }
 
+  // A swatch dropped on another swatch swaps their colors; a chip dropped there
+  // still unassigns. The swap source is held here because dataTransfer data is
+  // unreadable during dragover, and both ends of a swap live in this row.
+  let swapSource = $state<string | null>(null);
+  let swapTarget = $state<string | null>(null);
+
+  function onSwatchDragStart(e: DragEvent, family: string) {
+    startFamilyDrag(e, family);
+    swapSource = family;
+  }
+
+  function onSwatchDragEnd() {
+    swapSource = null;
+    swapTarget = null;
+  }
+
+  function acceptsSwap(sw: Swatch): boolean {
+    return sw.eligible && swapSource !== null && swapSource !== sw.label;
+  }
+
+  function onSwatchDragOver(e: DragEvent, sw: Swatch) {
+    if (!acceptsSwap(sw)) return;
+    e.preventDefault();
+    e.stopPropagation();
+    if (e.dataTransfer) e.dataTransfer.dropEffect = 'move';
+    swapTarget = sw.label;
+    unassignHover = false;
+  }
+
+  function onSwatchDragLeave(sw: Swatch) {
+    if (swapTarget === sw.label) swapTarget = null;
+  }
+
+  function onSwatchDrop(e: DragEvent, sw: Swatch) {
+    if (!acceptsSwap(sw)) return;
+    e.preventDefault();
+    e.stopPropagation();
+    swapBaseColors(swapSource!, sw.label);
+    onSwatchDragEnd();
+  }
+
+  const swatchEls: Record<string, HTMLButtonElement> = {};
+
+  // Copy and paste act on the selected swatch, never the focused one: Safari
+  // and macOS Firefox do not focus a button on click.
+  function onWindowKeydown(e: KeyboardEvent) {
+    if (!(e.metaKey || e.ctrlKey) || e.shiftKey || e.altKey) return;
+    if (e.target instanceof HTMLElement && isEditable(e.target)) return;
+    const sw = swatches.find((s) => s.label === selected);
+    if (!sw) return;
+    const key = e.key.toLowerCase();
+    if (key === 'c') {
+      // Selected page text keeps the browser's own copy.
+      if (window.getSelection()?.isCollapsed === false) return;
+      e.preventDefault();
+      const css = oklchToCss(sw.color.l, sw.color.c, sw.color.h);
+      navigator.clipboard?.writeText(css);
+      showCopyPopover(css, swatchEls[sw.label]);
+    } else if (key === 'v') {
+      e.preventDefault();
+      pasteInto(sw, swatchEls[sw.label]);
+    }
+  }
+
+  async function pasteInto(sw: Swatch, anchor: EventTarget | null) {
+    const color = cssColorToOklch(await navigator.clipboard.readText());
+    if (!color) return;
+    // A bound color drags its axis along, so an applied harmony no longer holds.
+    if (sw.axis && color.h !== sw.color.h) activeMode = 'custom';
+    setBaseColor(sw.label, color);
+    showCopyPopover(oklchToCss(color.l, color.c, color.h), anchor);
+  }
+
   let fullPalettes = $derived(palettesWithDefaults($editorState.palettes));
 
   let swatches = $derived.by(() => {
     const statuses = axisStatuses(activeMode, $editorState.harmonyAxes);
     return PALETTE_SPECS.map((spec) => {
-      const { l, c, h } = $editorState.palettes[spec.label]?.baseColor ?? spec.initialColor;
+      const color = $editorState.palettes[spec.label]?.baseColor ?? spec.initialColor;
       const index = $editorState.harmonyAxes.findIndex((a) => a.family === spec.label);
       return {
         label: spec.label,
         display: spec.displayLabel ?? spec.label,
-        hex: oklchToHexClamped(l, c, h),
+        color,
+        hex: oklchToHexClamped(color.l, color.c, color.h),
         axis: index === -1 ? null : { index, status: statuses[index] },
         eligible: ELIGIBLE.has(spec.label),
       };
     });
   });
+
+  type Swatch = (typeof swatches)[number];
 
   const FUNCTIONAL_FAMILIES = new Set(['Info', 'Success', 'Warning', 'Danger']);
   // Declaration order, never a computed one: sorting by luminance made the row
@@ -149,6 +228,8 @@
     setBaseColor(selected, { l, c: chroma, h });
   }
 </script>
+
+<svelte:window onkeydown={onWindowKeydown} />
 
 <div class="colors-tab">
   <div class="pane">
@@ -227,7 +308,7 @@
       <div class="harmony-cols">
         <div class="group">
           <h3 class="title">Selected color</h3>
-          {#snippet swatchRow(row: typeof swatches, acceptsDrop = false)}
+          {#snippet swatchRow(row: Swatch[], acceptsDrop = false)}
             <!-- svelte-ignore a11y_no_static_element_interactions -->
             <div
               class="swatch-row"
@@ -242,12 +323,18 @@
                   class="swatch"
                   class:active={selected === sw.label}
                   class:draggable={sw.eligible}
+                  class:swap-target={swapTarget === sw.label}
                   style="--swatch-fill: {sw.hex}"
                   draggable={sw.eligible}
                   title={sw.eligible ? `${sw.display} · drag onto an axis to assign it` : sw.display}
                   aria-label={`Select ${sw.display}`}
                   aria-pressed={selected === sw.label}
-                  ondragstart={(e) => startFamilyDrag(e, sw.label)}
+                  bind:this={swatchEls[sw.label]}
+                  ondragstart={(e) => onSwatchDragStart(e, sw.label)}
+                  ondragend={onSwatchDragEnd}
+                  ondragover={(e) => onSwatchDragOver(e, sw)}
+                  ondragleave={() => onSwatchDragLeave(sw)}
+                  ondrop={(e) => onSwatchDrop(e, sw)}
                   onclick={() => select(sw.label)}
                 >
                   <span class="frame">
@@ -683,6 +770,13 @@
 
   .swatch:hover .frame {
     border-color: var(--ui-border-high);
+  }
+
+  /* The axis row's drop ring, doubled so it never reads as selection. */
+  .swatch.swap-target .frame {
+    border-color: var(--ui-text-primary);
+    outline: 1px solid var(--ui-text-primary);
+    outline-offset: 1px;
   }
 
   .swatch-label {

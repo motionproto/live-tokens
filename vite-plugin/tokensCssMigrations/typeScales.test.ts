@@ -72,16 +72,43 @@ describe('2026-10-08-type-scales', () => {
     }
   });
 
-  it("keeps the scale's tablet and phone sizes for an edited alias", () => {
+  it("derives an edited alias's tablet and phone sizes from the desktop rem it resolves to", () => {
     const edited = FIXTURE.replace(
       '--heading-xl-font-size: var(--font-size-4xl);',
       '--heading-xl-font-size: var(--font-size-5xl);',
-    );
+    ).replace('--body-sm-font-size: var(--font-size-sm);', '--body-sm-font-size: var(--font-size-md);');
     const values = collectTokenValues(fold(edited));
     expect(values.get('--heading-xl-desktop-font-size')).toBe('var(--font-size-5xl)');
     for (const viewport of ['tablet', 'phone'] as const) {
+      expect(values.get(`--heading-xl-${viewport}-font-size`)).toBe(recommendedEditedExpression('--heading-xl', 3, viewport));
+      expect(values.get(`--body-sm-${viewport}-font-size`)).toBe(recommendedEditedExpression('--body-sm', 1, viewport));
+    }
+  });
+
+  it("keeps the scale's tablet and phone sizes for an edited size it cannot resolve", () => {
+    const edited = FIXTURE.replace(
+      '--heading-xl-font-size: var(--font-size-4xl);',
+      '--heading-xl-font-size: calc(var(--font-size-4xl) * 1.1);',
+    );
+    const values = collectTokenValues(fold(edited));
+    for (const viewport of ['tablet', 'phone'] as const) {
       expect(values.get(`--heading-xl-${viewport}-font-size`)).toBe(recommendedScaleExpression('heading', 'xl', viewport));
     }
+  });
+
+  it('carries a step 0.91.2 did not ship as an edit when the file declares it', () => {
+    const declared = FIXTURE.replace(
+      '--heading-xl-font-size: var(--font-size-4xl);',
+      '--heading-xl-font-size: var(--font-size-4xl);\n  --heading-2xl-font-size: 1.75rem;',
+    );
+    const css = fold(declared);
+    const values = collectTokenValues(css);
+    expect(values.get('--heading-2xl-desktop-font-size')).toBe('1.75rem');
+    expect(values.get('--heading-2xl-font-size')).toBe('var(--heading-2xl-desktop-font-size)');
+    for (const viewport of ['tablet', 'phone'] as const) {
+      expect(values.get(`--heading-2xl-${viewport}-font-size`)).toBe(recommendedEditedExpression('--heading-2xl', 1.75, viewport));
+    }
+    expect(runTokensCssMigrations(css).changed).toBe(false);
   });
 
   it('keeps a changed face in place of the link to its usage', () => {

@@ -208,6 +208,23 @@ function giveAxisHue(s: EditorState, index: number, family: string): boolean {
   return false;
 }
 
+/** Two families trade seed colors. Each axis binding travels with the color it
+ *  held, so every axis keeps its hue and an applied harmony stays true. */
+export function swapBaseColors(a: string, b: string): void {
+  if (a === b) return;
+  mutate(`colors: swap ${a} and ${b}`, (s) => {
+    const ca = ensureConfig(s, a);
+    const cb = ensureConfig(s, b);
+    [ca.baseColor, cb.baseColor] = [cb.baseColor, ca.baseColor];
+    syncBaseAnchor(ca);
+    syncBaseAnchor(cb);
+    for (const axis of s.harmonyAxes) {
+      if (axis.family === a) axis.family = b;
+      else if (axis.family === b) axis.family = a;
+    }
+  });
+}
+
 /** Set several seed colors in ONE undo entry (harmony apply, global rotate). */
 export function setBaseColors(patch: Record<string, Oklch>, historyLabel = 'colors: harmony'): void {
   transaction(historyLabel, (s) => {

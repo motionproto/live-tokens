@@ -28,6 +28,7 @@ import {
   bindFamilyToAxis,
   unbindFamily,
   setBaseHue,
+  swapBaseColors,
 } from '../../ui/colors/paletteBaseColor';
 
 function makePaletteConfig(baseColor: string): PaletteConfig {
@@ -547,6 +548,40 @@ describe('editorStore — harmony axis setters', () => {
     const s = get(editorState);
     expect(s.palettes.Brand.baseColor.h).toBe(200);
     expect(s.harmonyAxes[0].hue).toBe(200);
+  });
+
+  it('swapBaseColors trades two bound colors in one entry, each axis following its color', () => {
+    loadFromFile(colorsAndTypeWithPalettes());
+    const brand0 = { ...get(editorState).palettes.Brand.baseColor };
+    const accent0 = { ...get(editorState).palettes.Accent.baseColor };
+    const hues0 = get(editorState).harmonyAxes.map((a) => a.hue);
+    const before = __getHistoryLengths().past;
+    swapBaseColors('Brand', 'Accent');
+    const s = get(editorState);
+    expect(__getHistoryLengths().past).toBe(before + 1);
+    expect(s.palettes.Brand.baseColor).toEqual(accent0);
+    expect(s.palettes.Accent.baseColor).toEqual(brand0);
+    expect(s.harmonyAxes.map((a) => a.family)).toEqual(['Accent', 'Brand', 'Canvas', null]);
+    expect(s.harmonyAxes.map((a) => a.hue)).toEqual(hues0);
+  });
+
+  it('swapBaseColors hands a bound color and its axis to an unbound family', () => {
+    loadFromFile(colorsAndTypeWithPalettes());
+    const brand0 = { ...get(editorState).palettes.Brand.baseColor };
+    const special0 = { ...get(editorState).palettes.Special.baseColor };
+    swapBaseColors('Brand', 'Special');
+    const s = get(editorState);
+    expect(s.palettes.Special.baseColor).toEqual(brand0);
+    expect(s.palettes.Brand.baseColor).toEqual(special0);
+    expect(s.harmonyAxes[0].family).toBe('Special');
+    expect(s.harmonyAxes.some((a) => a.family === 'Brand')).toBe(false);
+  });
+
+  it('swapBaseColors with itself adds no history entry', () => {
+    loadFromFile(colorsAndTypeWithPalettes());
+    const before = __getHistoryLengths().past;
+    swapBaseColors('Brand', 'Brand');
+    expect(__getHistoryLengths().past).toBe(before);
   });
 });
 
