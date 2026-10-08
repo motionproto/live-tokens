@@ -40,7 +40,7 @@ function capitalize(id) {
 export const CONTRACT_SCALES = [
   'surface', 'text', 'border', 'border-width', 'color', 'space', 'radius', 'font', 'line-height',
   'letter-spacing', 'shadow', 'blur', 'icon-size', 'scrim', 'tint', 'columns',
-  'display', 'heading', 'body', 'editorial', 'eyebrow', 'code', 'easing', 'duration',
+  'display', 'heading', 'body', 'editorial', 'eyebrow', 'code', 'type', 'easing', 'duration',
   'zoom', 'gradient', 'stroke',
 ];
 
