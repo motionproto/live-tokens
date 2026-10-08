@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.94.0 — Tokens-view swatch swap and copy-paste
 
 ### Added
 
