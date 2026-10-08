@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased — Type scales for text styles
+## 0.92.0 — Type scales for text styles
 
 ### Changed (breaking)
 
