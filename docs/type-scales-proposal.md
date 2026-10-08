@@ -1,6 +1,6 @@
 # Type scales for text styles
 
-Status: approved 2026-10-08 and implemented by [plans/type-scales.md](plans/type-scales.md). Prototype: [type-scales-prototype.html](type-scales-prototype.html). The text below includes the plan's revisions: the editor never writes a structural size, no theme migration runs, and the migration op is `appendMediaBlock`.
+Status: approved 2026-10-08 and implemented by [plans/type-scales.md](plans/type-scales.md). Prototype: [type-scales-prototype.html](type-scales-prototype.html). The text below includes the plan's revisions: the editor never writes a structural size, no theme migration runs, and the migration op is `appendMediaBlock`. It also records two outcomes of the build: the scale settings use the Text Styles section's own controls, and one `breaking` migration carries the whole change.
 
 ## Summary
 
@@ -261,13 +261,13 @@ The Font Sizes table stays in Typography, because components still use the primi
 | Theme total | 275 (today 61) |
 | Structural `-font-size` tokens, one per step and one for the eyebrow | 36 |
 
-New picker kinds in `src/editor/core/components/aliasKinds.ts`: `scale-base` (suffix `-scale-base`, a px input that stores rem), `scale-ratio` (suffix `-scale-ratio`, the interval picker) and `scale-compression` (suffix `-scale-compression`, a slider). No suffix matches an existing rule, so each needs an entry before `check-component` accepts it. The `--type-` prefix is unused today. The desktop, tablet and phone sizes end in `-font-size`, which the existing rule maps to the primitive size picker; the Text Styles section renders its own number inputs for them.
+The Text Styles section renders its own controls for the scale settings: a px input for each base that stores a rem count, the interval list with a custom number for each ratio, and a slider for each compression. `src/editor/core/components/aliasKinds.ts` keeps its existing rules. The `--type-` prefix was unused before this change. The desktop, tablet and phone sizes end in `-font-size`, which the existing rule maps to the primitive size picker; the Text Styles section renders its own number inputs for them.
 
 Renamed: `--code-font-size`, `--code-line-height` and `--code-letter-spacing` become `--code-md-font-size`, `--code-md-line-height` and `--code-md-letter-spacing`. `--code-font-family` and `--code-font-weight` keep their names and become the code usage's face and weight. No other proposed name collides with an existing token.
 
 ## Migration and release
 
-- **Release level.** The code rename ships `breaking`. The new usages, steps and settings ship `additive`.
+- **Release level.** One `breaking` migration, `2026-10-08-type-scales`, carries the whole change, because the code rename breaks consumers. `CHANGELOG.md` lists the rename under Changed (breaking) and the new usages, steps and settings under Added.
 - **Consumer `tokens.css`.** A migration renames the three code tokens and their references, adds the settings and the desktop, tablet and phone sizes with `ensureScale`, re-points each existing step's `-font-size` to its desktop size, and appends the breakpoint blocks with `appendMediaBlock`. A step's `-font-size` that differs from its 0.91.2 default moves into the step's desktop size, so a consumer's hand edits to `tokens.css` carry over.
 - **Saved themes.** No theme migration runs. Text Styles edits never reached a saved theme before this change, so no theme holds a text-style key.
 - **Default theme.** The default theme adopts the scales, so projects on the default theme see the size changes above on upgrade. The release notes list them.
