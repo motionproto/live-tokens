@@ -6,6 +6,10 @@ export const meta = {
 }
 
 const PLANS = {
+  'type-scales': {
+    order: ['1', '2', '3', '4', '5'],
+    after: 'Run /plan-wave type-scales 6 for the visual pass. It opens the browser.',
+  },
   'check-fix': {
     order: ['2', '3', '4', '5', '6', '7', '8a', '8b'],
     after: 'Approve the Release script audit table, then run /plan-wave check-fix 3b.',

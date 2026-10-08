@@ -1,0 +1,1148 @@
+<title>Type Scale Settings</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Arvo:wght@400;700&family=Fira+Code:wght@300..700&family=GFS+Didot&family=Manrope:wght@200..800&display=swap">
+<style>
+  /* Layout: one editor column. Responsive scaling, then an underlined tab bar over each usage's scale settings and its seven-row ramp, in the live-tokens editor's dark greyscale chrome. */
+  :root {
+    color-scheme: dark;
+    --surface-lowest: #050505;
+    --surface-low: #0f0f0f;
+    --surface: #141414;
+    --surface-high: #1a1a1a;
+    --surface-higher: #212121;
+    --border-low: #4d4d4d;
+    --border: #666666;
+    --border-high: #808080;
+    --text-primary: #ffffff;
+    --text-secondary: #bfbfbf;
+    --text-tertiary: #999999;
+    --text-muted: #808080;
+    --link-broken: #f0c34a;
+    --ui-font: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    --ui-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+    --fs-xs: 0.75rem;
+    --fs-sm: 0.875rem;
+    --fs-md: 1rem;
+    --fs-xl: 1.25rem;
+    --fs-2xl: 1.5rem;
+    --sp-2: 0.125rem;
+    --sp-4: 0.25rem;
+    --sp-6: 0.375rem;
+    --sp-8: 0.5rem;
+    --sp-10: 0.625rem;
+    --sp-12: 0.75rem;
+    --sp-16: 1rem;
+    --sp-20: 1.25rem;
+    --sp-24: 1.5rem;
+    --sp-32: 2rem;
+    --radius-md: 0.25rem;
+    --radius-lg: 0.375rem;
+    --radius-full: 9999px;
+  }
+
+  [hidden] { display: none !important; }
+
+  html { background: var(--surface-lowest); }
+
+  body {
+    background: var(--surface-lowest);
+    color: var(--text-primary);
+    font-family: var(--ui-font);
+    font-size: var(--fs-sm);
+    padding-inline: 16px;
+  }
+
+  .editor {
+    max-width: 72rem;
+    margin: 0 auto;
+    padding-block: var(--sp-32);
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-24);
+  }
+
+  .section-title {
+    font-size: var(--fs-2xl);
+    font-weight: 600;
+    margin: 0;
+    padding-bottom: var(--sp-8);
+    border-bottom: 2px solid var(--border-high);
+  }
+
+  .intro {
+    margin: var(--sp-8) 0 0;
+    max-width: 65ch;
+    color: var(--text-tertiary);
+    line-height: 1.5;
+  }
+
+  .intro code { font-family: var(--ui-mono); color: var(--text-secondary); }
+
+  .group { display: flex; flex-direction: column; gap: var(--sp-16); }
+
+  .group-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: var(--sp-12);
+  }
+
+  .group-title { font-size: var(--fs-xl); font-weight: 700; margin: 0; }
+
+  .pill {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--sp-8);
+    padding: var(--sp-6) var(--sp-16);
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0.25) 100%);
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    border-radius: var(--radius-full);
+    color: var(--text-primary);
+    font: inherit;
+    font-size: var(--fs-sm);
+    font-weight: 500;
+    line-height: 1;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: background 120ms ease, border-color 120ms ease;
+  }
+
+  .pill:hover:not(:disabled) {
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.25) 0%, rgba(255, 255, 255, 0.45) 100%);
+    border-color: rgba(255, 255, 255, 0.75);
+  }
+
+  .pill:disabled { opacity: 0.4; cursor: default; }
+
+  .pill svg { width: 12px; height: 12px; }
+
+  .scaling {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--sp-10) var(--sp-24);
+    padding: var(--sp-12) var(--sp-16);
+    background: var(--surface-low);
+    border: 1px solid var(--border-low);
+    border-radius: var(--radius-lg);
+  }
+
+  .scaling > .scaling-title,
+  .scaling > .scaling-hint { flex: 1 1 100%; }
+
+  .scaling-field { flex: 1 1 16rem; display: grid; gap: var(--sp-4); min-width: 0; }
+
+  .scaling-top { display: flex; justify-content: space-between; align-items: center; gap: var(--sp-8); }
+
+  .scaling-value { font-variant-numeric: tabular-nums; font-weight: 600; }
+
+  .scaling-field input[type="range"] { width: 100%; margin: 0; accent-color: var(--text-primary); }
+
+  .scaling-effect { color: var(--text-tertiary); font-size: var(--fs-xs); font-variant-numeric: tabular-nums; }
+
+  /* Tab bar: the active tab carries the bright underline that the editor
+     uses for section titles, sitting on the bar's own hairline. */
+  .tabs {
+    display: flex;
+    flex-wrap: wrap;
+    border-bottom: 1px solid var(--border-low);
+  }
+
+  .tab {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--sp-2);
+    margin-bottom: -1px;
+    padding: var(--sp-10) var(--sp-20) var(--sp-8);
+    background: none;
+    border: none;
+    border-bottom: 2px solid transparent;
+    color: var(--text-tertiary);
+    font: inherit;
+    font-size: var(--fs-md);
+    font-weight: 600;
+    text-align: left;
+    cursor: pointer;
+    transition: color 120ms ease, border-color 120ms ease;
+  }
+
+  .tab:hover { color: var(--text-primary); border-bottom-color: var(--border-high); }
+
+  .tab[aria-selected="true"] { color: var(--text-primary); border-bottom-color: var(--text-primary); }
+
+  .tab-ratio { color: var(--text-muted); font-size: var(--fs-xs); font-weight: 400; }
+
+  .tab[aria-selected="true"] .tab-ratio { color: var(--text-secondary); }
+
+  .tab-panel { display: flex; flex-direction: column; gap: var(--sp-16); padding-top: var(--sp-4); }
+
+  .scale {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: var(--sp-16);
+    padding: var(--sp-16);
+    background: var(--surface-low);
+    border: 1px solid var(--border-low);
+    border-radius: var(--radius-lg);
+  }
+
+  .field { display: flex; flex-direction: column; gap: var(--sp-4); min-width: 0; }
+
+  .field-label,
+  .ctl-label {
+    font-size: var(--fs-xs);
+    font-weight: 600;
+    color: var(--text-secondary);
+  }
+
+  .hint {
+    flex: 1 1 14rem;
+    margin: 0;
+    color: var(--text-muted);
+    font-size: var(--fs-xs);
+    line-height: 1.5;
+  }
+
+  .muted { color: var(--text-muted); font-size: var(--fs-xs); font-weight: 400; }
+
+  select,
+  input[type="number"] {
+    box-sizing: border-box;
+    height: 28px;
+    min-width: 0;
+    max-width: 100%;
+    padding: 0 var(--sp-8);
+    background: var(--surface-high);
+    color: var(--text-primary);
+    border: 1px solid var(--border-low);
+    border-radius: var(--radius-md);
+    font: inherit;
+    font-size: var(--fs-sm);
+  }
+
+  input[type="number"] { flex: none; width: 5.5rem; font-variant-numeric: tabular-nums; }
+
+  select:hover,
+  input[type="number"]:hover { border-color: var(--border-high); }
+
+  select:focus-visible,
+  input:focus-visible,
+  button:focus-visible,
+  summary:focus-visible {
+    outline: 2px solid var(--text-primary);
+    outline-offset: 2px;
+  }
+
+  /* Label line. Its height is fixed, and the reset icon sits after the label
+     text, so showing or hiding the icon moves nothing. */
+  .ctl-head {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-4);
+    height: 18px;
+    min-width: 0;
+  }
+
+  .reset {
+    flex: none;
+    display: inline-grid;
+    place-items: center;
+    width: 18px;
+    height: 18px;
+    padding: 0;
+    background: none;
+    border: none;
+    border-radius: var(--radius-md);
+    color: var(--text-tertiary);
+    cursor: pointer;
+  }
+
+  .reset:hover { color: var(--text-primary); background: var(--surface-higher); }
+
+  .reset svg { width: 12px; height: 12px; }
+
+  .inline {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-6);
+    min-width: 0;
+  }
+
+  .linkwrap {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: var(--sp-6);
+    min-width: 0;
+    padding-left: 4px;
+  }
+
+  /* Link bar, matching the editor's token selectors: a white bar flush
+     against a linked control, an amber tick beside an indented unlinked one. */
+  .linkwrap::before {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 0;
+    width: 4px;
+    height: 1.75rem;
+    background: var(--text-primary);
+    border-radius: var(--radius-md) 0 0 var(--radius-md);
+    transform: translateY(-50%);
+    transition: width 220ms ease, height 220ms ease, background-color 220ms ease;
+  }
+
+  .linkwrap.is-unlinked { padding-left: 10px; }
+
+  .linkwrap.is-unlinked::before {
+    width: 2px;
+    height: 0.875rem;
+    background: var(--link-broken);
+    border-radius: 1px;
+  }
+
+  /* Fixed-width control body. Unlinking indents the body by 6px and narrows
+     it by the same amount, so whatever follows keeps its position. */
+  .ctl-body {
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    width: var(--w);
+    min-width: 0;
+  }
+
+  .is-unlinked > .ctl-body { width: calc(var(--w) - 6px); }
+
+  .ctl-body > select,
+  .ctl-body > input[type="number"],
+  .ctl-body > .linked-value { flex: 1 1 auto; width: 100%; }
+
+  .linked-value {
+    box-sizing: border-box;
+    display: block;
+    height: 1.75rem;
+    min-width: 0;
+    padding: 0 var(--sp-8);
+    background: var(--surface-higher);
+    border: 1px solid var(--border-low);
+    border-left: none;
+    border-radius: 0 var(--radius-md) var(--radius-md) 0;
+    color: var(--text-secondary);
+    line-height: calc(1.75rem - 2px);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .unit { flex: none; color: var(--text-muted); font-size: var(--fs-xs); }
+
+  .rem {
+    flex: none;
+    display: inline-block;
+    width: 9ch;
+    color: var(--text-muted);
+    font-family: var(--ui-mono);
+    font-size: var(--fs-xs);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .lock {
+    flex: none;
+    display: inline-grid;
+    place-items: center;
+    width: 24px;
+    height: 24px;
+    padding: 0;
+    background: none;
+    border: none;
+    border-radius: var(--radius-md);
+    color: var(--text-tertiary);
+    cursor: pointer;
+  }
+
+  .lock:hover { color: var(--text-primary); background: var(--surface-higher); }
+
+  .is-unlinked > .lock { color: var(--link-broken); }
+
+  .lock svg { width: 14px; height: 14px; }
+
+  .ramp-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: var(--sp-12);
+  }
+
+  .ramp-title { margin: 0; font-size: var(--fs-md); font-weight: 600; }
+
+  .seg {
+    display: inline-flex;
+    gap: 2px;
+    padding: 4px;
+    background: var(--surface-low);
+    border: 1px solid var(--text-primary);
+    border-radius: var(--radius-lg);
+  }
+
+  .seg-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--sp-8);
+    height: 28px;
+    padding: 0 var(--sp-10);
+    background: none;
+    border: none;
+    border-radius: var(--radius-md);
+    color: var(--text-tertiary);
+    font: inherit;
+    font-size: var(--fs-sm);
+    font-weight: 500;
+    cursor: pointer;
+  }
+
+  .seg-btn:hover { color: var(--text-primary); }
+
+  .seg-btn[aria-checked="true"] { background: var(--surface-high); color: var(--text-primary); }
+
+  .radio {
+    box-sizing: border-box;
+    width: 12px;
+    height: 12px;
+    border: 1.5px solid currentColor;
+    border-radius: 50%;
+  }
+
+  .seg-btn[aria-checked="true"] .radio {
+    border-color: var(--text-primary);
+    box-shadow: inset 0 0 0 2.5px var(--surface-high), inset 0 0 0 6px var(--text-primary);
+  }
+
+  .ramp { display: flex; flex-direction: column; border: 1px solid var(--border); }
+
+  .step {
+    display: grid;
+    grid-template-columns: 7.5rem 11.5rem minmax(0, 1fr);
+    column-gap: var(--sp-16);
+    row-gap: var(--sp-10);
+    padding: var(--sp-12) var(--sp-10);
+    border-bottom: 1px solid var(--border-low);
+  }
+
+  .step:last-child { border-bottom: none; }
+
+  .step-id {
+    grid-row: 1 / span 2;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--sp-6);
+    min-width: 0;
+  }
+
+  .step-id code { font-family: var(--ui-mono); font-size: var(--fs-sm); }
+
+  .chip {
+    padding: 1px var(--sp-8);
+    border: 1px solid var(--border-low);
+    border-radius: var(--radius-full);
+    color: var(--text-secondary);
+    font-family: var(--ui-mono);
+    font-size: var(--fs-xs);
+  }
+
+  .flag {
+    padding: 1px var(--sp-8);
+    border: 1px dashed var(--border-high);
+    border-radius: var(--radius-full);
+    color: var(--text-primary);
+    font-size: var(--fs-xs);
+    white-space: nowrap;
+  }
+
+  .sizes { grid-row: 1 / span 2; display: grid; align-content: start; gap: var(--sp-6); }
+
+  .size-row {
+    display: grid;
+    grid-template-columns: 3.5rem auto;
+    align-items: center;
+    gap: var(--sp-4);
+  }
+
+  .size-label { color: var(--text-muted); font-size: var(--fs-xs); }
+
+  .size-row.is-current .size-label { color: var(--text-primary); font-weight: 600; }
+
+  .step-sample {
+    grid-column: 3;
+    min-width: 0;
+    max-width: min(100%, 22ch);
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    overflow-wrap: anywhere;
+    text-wrap: balance;
+  }
+
+  .step-controls {
+    grid-column: 3;
+    align-self: end;
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--sp-12);
+  }
+
+  .ctl { display: flex; flex-direction: column; gap: var(--sp-4); min-width: 0; }
+
+  .css {
+    background: var(--surface-low);
+    border: 1px solid var(--border-low);
+    border-radius: var(--radius-md);
+  }
+
+  .css summary { padding: var(--sp-10) var(--sp-12); font-weight: 600; cursor: pointer; }
+
+  .css pre {
+    margin: 0;
+    padding: var(--sp-12);
+    overflow-x: auto;
+    border-top: 1px solid var(--border-low);
+    color: var(--text-secondary);
+    font-family: var(--ui-mono);
+    font-size: var(--fs-xs);
+    line-height: 1.6;
+  }
+
+  @media (max-width: 720px) {
+    .step { grid-template-columns: minmax(0, 1fr); }
+    .step-id { grid-row: auto; flex-direction: row; align-items: center; flex-wrap: wrap; }
+    .sizes { grid-row: auto; }
+    .step-sample,
+    .step-controls { grid-column: auto; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .linkwrap::before,
+    .tab,
+    .pill { transition: none; }
+  }
+</style>
+
+<main class="editor">
+  <header>
+    <h2 class="section-title">Typography</h2>
+    <p class="intro">Prototype of the type scale proposal in <code>docs/type-scales-proposal.md</code>. Each usage sets a base size and a ratio, and its seven steps follow from them. Tablet and phone sizes start at a recommendation for every step. Edits stay on this page.</p>
+  </header>
+
+  <section class="group" aria-labelledby="text-styles-title">
+    <div class="group-head">
+      <h3 class="group-title" id="text-styles-title">Text Styles</h3>
+      <button type="button" class="pill" id="reset-all" data-act="reset-all"></button>
+    </div>
+    <div class="scaling" id="scaling"></div>
+    <div>
+      <div class="tabs" role="tablist" aria-label="Usages" id="tabs"></div>
+      <div class="tab-panel" id="panel" role="tabpanel" tabindex="-1"></div>
+    </div>
+  </section>
+</main>
+
+<script>
+  const STEPS = ['2xl', 'xl', 'lg', 'md', 'sm', 'xs', '2xs'];
+  const EXP = { '2xs': -3, xs: -2, sm: -1, md: 0, lg: 1, xl: 2, '2xl': 3 };
+  const VIEWPORTS = [['desktop', 'Desktop'], ['tablet', 'Tablet'], ['phone', 'Phone']];
+  const TABS = ['display', 'heading', 'body', 'editorial', 'code'];
+  const SETTING_FIELDS = ['face', 'weight', 'base', 'ratio'];
+  const STEP_FIELDS = ['size', 'family', 'weight', 'lh', 'ls', 'transform'];
+
+  const INTERVALS = [
+    ['minor-second', 'Minor second', 1.067],
+    ['major-second', 'Major second', 1.125],
+    ['minor-third', 'Minor third', 1.2],
+    ['major-third', 'Major third', 1.25],
+    ['perfect-fourth', 'Perfect fourth', 1.333],
+    ['augmented-fourth', 'Augmented fourth', 1.414],
+    ['perfect-fifth', 'Perfect fifth', 1.5],
+    ['golden', 'Golden ratio', 1.618],
+  ];
+
+  const FACES = {
+    display: { label: 'Display · Arvo', css: "'Arvo', Georgia, serif", token: '--font-display' },
+    sans: { label: 'Sans · Manrope', css: "'Manrope', system-ui, sans-serif", token: '--font-sans' },
+    serif: { label: 'Serif · GFS Didot', css: "'GFS Didot', Didot, Georgia, serif", token: '--font-serif' },
+    editorial: { label: 'Editorial · Sans', css: "'Manrope', system-ui, sans-serif", token: '--font-editorial' },
+    mono: { label: 'Mono · Fira Code', css: "'Fira Code', ui-monospace, Menlo, monospace", token: '--font-mono' },
+  };
+
+  const WEIGHTS = [[100, 'thin'], [200, 'extralight'], [300, 'light'], [400, 'normal'], [500, 'medium'],
+    [600, 'semibold'], [700, 'bold'], [800, 'extrabold'], [900, 'black']];
+  const LEADING = [['none', 1], ['tightest', 1.1], ['tighter', 1.25], ['tight', 1.35], ['normal', 1.5], ['relaxed', 1.75]];
+  const TRACKING = [['tighter', '-0.04em'], ['tight', '-0.02em'], ['normal', '0'], ['wide', '0.04em'], ['wider', '0.08em']];
+  const TRANSFORMS = ['none', 'uppercase', 'lowercase', 'capitalize'];
+
+  const LOCK = '<svg viewBox="0 0 16 16" aria-hidden="true"><rect x="3" y="7" width="10" height="7" rx="1.5" fill="currentColor"/><path d="M5.5 7V5a2.5 2.5 0 0 1 5 0v2" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>';
+  const UNLOCK = '<svg viewBox="0 0 16 16" aria-hidden="true"><rect x="3" y="7" width="10" height="7" rx="1.5" fill="currentColor"/><path d="M5.5 7V5a2.5 2.5 0 0 1 4.9-.7" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>';
+  const RESET = '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.6 5.6A5 5 0 1 1 3 8.8" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M3.2 2.6v3.3h3.3" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+
+  const intervalKey = (r) => (INTERVALS.find((i) => i[2] === r) || ['custom'])[0];
+  const ratioLabel = (r) => { const i = INTERVALS.find((x) => x[2] === r); return i ? i[1] : `Custom ${+r.toFixed(3)}`; };
+  const weightName = (w) => WEIGHTS.find((x) => x[0] === w)[1];
+  const px1 = (n) => n.toFixed(1);
+  const rem = (px) => `${+(px / 16).toFixed(4)}rem`;
+  const remCount = (px) => +(px / 16).toFixed(4);
+  const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
+  const clone = (o) => JSON.parse(JSON.stringify(o));
+  const compress = (px, c) => 16 * Math.pow(px / 16, c);
+  const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+
+  // A size of null follows its recommendation; a number is an override in px.
+  const followAll = () => ({ desktop: null, tablet: null, phone: null });
+
+  function makeUsage(o) {
+    const steps = {};
+    for (const s of STEPS) {
+      const pin = o.familyPin && o.familyPin[s];
+      steps[s] = {
+        size: followAll(),
+        family: pin ? { linked: false, face: pin } : { linked: true, face: o.face },
+        weight: { linked: true, w: o.weight },
+        lh: (o.lh && o.lh[s]) || 'normal',
+        ls: (o.ls && o.ls[s]) || 'normal',
+      };
+    }
+    return {
+      label: o.label,
+      face: o.face,
+      weight: o.weight,
+      base: o.base,
+      ratio: o.ratio,
+      ratioMode: intervalKey(o.ratio),
+      sample: o.sample,
+      elements: o.elements || {},
+      steps,
+    };
+  }
+
+  const DEFAULTS = {
+    // Calibrated so the defaults land on the 768px and 480px sizes tokens.css ships today.
+    compression: { tablet: 0.75, phone: 0.63 },
+    usages: {
+      display: makeUsage({
+        label: 'Display', face: 'display', weight: 600, base: 48, ratio: 1.2,
+        sample: 'Tokens that move with every edit',
+        lh: { '2xl': 'tightest', xl: 'tightest', lg: 'tightest', md: 'tightest', sm: 'tighter', xs: 'tighter', '2xs': 'tighter' },
+        ls: { '2xl': 'tight', xl: 'tight', lg: 'tight' },
+      }),
+      heading: makeUsage({
+        label: 'Heading', face: 'display', weight: 600, base: 24, ratio: 1.25,
+        sample: 'Choosing a palette for the launch page',
+        elements: { xl: 'h1', lg: 'h2', md: 'h3', sm: 'h4', xs: 'h5', '2xs': 'h6' },
+        familyPin: { sm: 'sans', xs: 'sans', '2xs': 'sans' },
+        lh: { '2xl': 'tightest', xl: 'tightest', lg: 'tightest', md: 'tighter', sm: 'tighter', xs: 'tight', '2xs': 'tight' },
+      }),
+      body: makeUsage({
+        label: 'Body', face: 'sans', weight: 400, base: 16, ratio: 1.125,
+        sample: 'Body copy for comfortable reading.',
+        elements: { md: 'p, li', sm: 'small' },
+        lh: { '2xl': 'tighter', xl: 'tighter', lg: 'tight', md: 'normal', sm: 'tight', xs: 'tight', '2xs': 'tight' },
+      }),
+      editorial: makeUsage({
+        label: 'Editorial', face: 'editorial', weight: 400, base: 16, ratio: 1.125,
+        sample: 'A pull quote sets the tone for the essay.',
+        lh: { '2xl': 'tightest', xl: 'tighter', lg: 'tight', md: 'normal', sm: 'tight', xs: 'tighter', '2xs': 'tighter' },
+      }),
+      code: makeUsage({
+        label: 'Code', face: 'mono', weight: 400, base: 14, ratio: 1.125,
+        sample: 'const total = sum(items.map(price));',
+        elements: { md: 'pre' },
+      }),
+    },
+    eyebrow: {
+      size: followAll(),
+      family: { linked: true, face: 'sans' },
+      weight: { linked: true, w: 400 },
+      lh: 'normal',
+      ls: 'normal',
+      transform: 'none',
+    },
+  };
+
+  const state = {
+    tab: 'heading', vp: 'desktop', cssOpen: false,
+    compression: clone(DEFAULTS.compression), usages: clone(DEFAULTS.usages), eyebrow: clone(DEFAULTS.eyebrow),
+  };
+
+  const tabsEl = document.getElementById('tabs');
+  const panel = document.getElementById('panel');
+  const current = () => state.usages[state.tab];
+  const stepTarget = (step) => (step === 'eyebrow' ? state.eyebrow : current().steps[step]);
+  const stepDefault = (step) => (step === 'eyebrow' ? DEFAULTS.eyebrow : DEFAULTS.usages[state.tab].steps[step]);
+
+  // ---- Sizes ----
+
+  const recommendFrom = (desktop, vp) => Math.min(desktop, compress(desktop, state.compression[vp]));
+
+  // Each viewport's size: its recommendation, and the override that replaces it.
+  function resolveSizes(size, desktopRecommendation, linkedViewport) {
+    const desktop = size.desktop ?? desktopRecommendation;
+    const out = { desktop: { value: desktop, recommended: desktopRecommendation, overridden: size.desktop != null } };
+    for (const vp of ['tablet', 'phone']) {
+      const recommended = size.desktop == null && linkedViewport ? linkedViewport(vp) : recommendFrom(desktop, vp);
+      out[vp] = { value: size[vp] ?? recommended, recommended, overridden: size[vp] != null };
+    }
+    return out;
+  }
+
+  const stepSizes = (u, s) => resolveSizes(u.steps[s].size, u.base * Math.pow(u.ratio, EXP[s]));
+
+  // The eyebrow follows body-sm on every viewport until its desktop size is edited.
+  function eyebrowSizes() {
+    const bodySm = stepSizes(state.usages.body, 'sm');
+    return resolveSizes(state.eyebrow.size, bodySm.desktop.value, (vp) => bodySm[vp].value);
+  }
+
+  const sizesOf = (step) => (step === 'eyebrow' ? eyebrowSizes() : stepSizes(current(), step));
+
+  // ---- Distance from defaults ----
+
+  // Two linked values match whatever they hold, because the link supplies the value.
+  const sameLink = (a, b) => a.linked === b.linked && (a.linked || JSON.stringify(a) === JSON.stringify(b));
+
+  function fieldOff(st, ds, f) {
+    if (f.startsWith('size-')) return st.size[f.slice(5)] != null;
+    return typeof ds[f] === 'object' ? !sameLink(st[f], ds[f]) : st[f] !== ds[f];
+  }
+
+  const stepOff = (st, ds) => STEP_FIELDS.some((f) => f in ds && fieldOff(st, ds, f));
+
+  function settingOff(u, d, f) {
+    if (f === 'ratio') return u.ratio !== d.ratio || u.ratioMode !== d.ratioMode;
+    return u[f] !== d[f];
+  }
+
+  function usageOff(k) {
+    const u = state.usages[k], d = DEFAULTS.usages[k];
+    return SETTING_FIELDS.some((f) => settingOff(u, d, f))
+      || STEPS.some((s) => stepOff(u.steps[s], d.steps[s]))
+      || (k === 'body' && stepOff(state.eyebrow, DEFAULTS.eyebrow));
+  }
+
+  const compressionOff = (vp) => state.compression[vp] !== DEFAULTS.compression[vp];
+  const anyOff = () => compressionOff('tablet') || compressionOff('phone') || TABS.some(usageOff);
+
+  function isOff(field, step) {
+    if (field.startsWith('comp-')) return compressionOff(field.slice(5));
+    if (step) return fieldOff(stepTarget(step), stepDefault(step), field);
+    return settingOff(current(), DEFAULTS.usages[state.tab], field);
+  }
+
+  const resetBtn = (field, name, step = '') =>
+    `<button type="button" class="reset" data-act="reset-field" data-field="${field}"${step ? ` data-step="${step}"` : ''}
+      aria-label="Reset ${name} to default" title="Reset to default"${isOff(field, step) ? '' : ' hidden'}>${RESET}</button>`;
+
+  function syncResets() {
+    document.querySelectorAll('[data-act="reset-field"]').forEach((b) => { b.hidden = !isOff(b.dataset.field, b.dataset.step); });
+    const usageBtn = document.getElementById('reset-usage');
+    if (usageBtn) usageBtn.disabled = !usageOff(state.tab);
+    const allBtn = document.getElementById('reset-all');
+    allBtn.innerHTML = `${RESET}Reset all`;
+    allBtn.disabled = !anyOff();
+  }
+
+  // After a reset its icon disappears, so focus moves to the control it restored.
+  function controlId(field, step) {
+    if (field.startsWith('comp-')) return field;
+    if (!step) return field;
+    const v = stepTarget(step)[field];
+    return v && typeof v === 'object' && v.linked ? `lock-${step}-${field}` : `c-${step}-${field}`;
+  }
+
+  // ---- Markup ----
+
+  const options = (list, selected) => list.map(([value, text]) =>
+    `<option value="${value}"${String(value) === String(selected) ? ' selected' : ''}>${esc(text)}</option>`).join('');
+  const intervalOptions = (mode) => options([...INTERVALS.map(([k, n, r]) => [k, `${n} · ${r}`]), ['custom', 'Custom']], mode);
+  const faceOptions = (sel) => options(Object.entries(FACES).map(([k, f]) => [k, f.label]), sel);
+  const weightOptions = (sel) => options(WEIGHTS.map(([w, n]) => [w, `${w} ${n}`]), sel);
+  const leadingOptions = (sel) => options(LEADING.map(([n, v]) => [n, `${n} · ${v}`]), sel);
+  const trackingOptions = (sel) => options(TRACKING.map(([n, v]) => [n, `${n} · ${v}`]), sel);
+
+  function linkCtl({ label, width, field, step, linked, linkedText, control }) {
+    const verb = linked ? 'Unlink' : 'Relink';
+    return `<div class="ctl">
+      <div class="ctl-head"><span class="ctl-label">${label}</span>${resetBtn(field, label.toLowerCase(), step)}</div>
+      <div class="linkwrap ${linked ? 'is-linked' : 'is-unlinked'}">
+        <div class="ctl-body" style="--w: ${width}">${linked ? `<span class="linked-value">${esc(linkedText)}</span>` : control}</div>
+        <button type="button" class="lock" id="lock-${step}-${field}" data-act="lock-step" data-step="${step}" data-field="${field}"
+          aria-pressed="${linked}" aria-label="${verb} ${label.toLowerCase()}" title="${verb}">${linked ? LOCK : UNLOCK}</button>
+      </div>
+    </div>`;
+  }
+
+  const plainCtl = ({ label, width, field, step, control }) => `<div class="ctl">
+      <div class="ctl-head"><span class="ctl-label">${label}</span>${resetBtn(field, label.toLowerCase(), step)}</div>
+      <div class="ctl-body" style="--w: ${width}">${control}</div>
+    </div>`;
+
+  function stepControls(step, st, name, linkedTexts) {
+    const sel = (field, label, opts) =>
+      `<select id="c-${step}-${field}" data-step="${step}" data-field="${field}" aria-label="${name} ${label}">${opts}</select>`;
+    const controls = [
+      linkCtl({ label: 'Face', width: '10rem', field: 'family', step, linked: st.family.linked, linkedText: linkedTexts.family, control: sel('family', 'face', faceOptions(st.family.face)) }),
+      linkCtl({ label: 'Weight', width: '8rem', field: 'weight', step, linked: st.weight.linked, linkedText: linkedTexts.weight, control: sel('weight', 'weight', weightOptions(st.weight.w)) }),
+      plainCtl({ label: 'Line height', width: '8rem', field: 'lh', step, control: sel('lh', 'line height', leadingOptions(st.lh)) }),
+      plainCtl({ label: 'Letter spacing', width: '9.5rem', field: 'ls', step, control: sel('ls', 'letter spacing', trackingOptions(st.ls)) }),
+    ];
+    if ('transform' in st) {
+      controls.push(plainCtl({ label: 'Transform', width: '8rem', field: 'transform', step, control: sel('transform', 'transform', options(TRANSFORMS.map((t) => [t, t]), st.transform)) }));
+    }
+    return controls.join('');
+  }
+
+  // One row per viewport. The input shows the recommendation until edited;
+  // an edit becomes that viewport's override, and its reset brings the
+  // recommendation back without touching any other size.
+  function sizesCell(step, sizes, name) {
+    return `<div class="sizes">${VIEWPORTS.map(([vp, label]) => {
+      const v = sizes[vp];
+      return `<div class="size-row${state.vp === vp ? ' is-current' : ''}">
+        <span class="size-label">${label}</span>
+        <div class="linkwrap ${v.overridden ? 'is-unlinked' : 'is-linked'}">
+          <div class="ctl-body" style="--w: 4.75rem">
+            <input type="number" id="c-${step}-size-${vp}" data-step="${step}" data-field="size-${vp}" min="6" max="200" step="0.5"
+              value="${px1(v.value)}" aria-label="${name} ${vp} size in px" title="${v.overridden ? `Recommended ${px1(v.recommended)}px` : 'Recommended size'}">
+          </div>
+          <span class="unit">px</span>
+          ${resetBtn(`size-${vp}`, `${name} ${vp} size`, step)}
+        </div>
+      </div>`;
+    }).join('')}</div>`;
+  }
+
+  function sampleStyle(face, px, w, lh, ls, transform) {
+    const lead = LEADING.find((l) => l[0] === lh)[1];
+    const track = TRACKING.find((t) => t[0] === ls)[1];
+    return `font-family:${FACES[face].css};font-size:${px}px;font-weight:${w};line-height:${lead};letter-spacing:${track}${transform ? `;text-transform:${transform}` : ''}`;
+  }
+
+  function stepRow({ step, name, chip, sizes, sample, face, w, st, transform, linkedTexts }) {
+    const px = sizes[state.vp].value;
+    return `<div class="step">
+      <div class="step-id">
+        <code>${name}</code>${chip ? `<span class="chip">${esc(chip)}</span>` : ''}
+        ${px < 12 ? '<span class="flag">Below 12px</span>' : ''}
+      </div>
+      ${sizesCell(step, sizes, name)}
+      <div class="step-sample" style="${sampleStyle(face, px, w, st.lh, st.ls, transform)}">${esc(sample)}</div>
+      <div class="step-controls">${stepControls(step, st, name, linkedTexts)}</div>
+    </div>`;
+  }
+
+  function usageRow(k, u, s) {
+    const st = u.steps[s];
+    return stepRow({
+      step: s, name: `${k}-${s}`, chip: u.elements[s], sizes: stepSizes(u, s), sample: u.sample,
+      face: st.family.linked ? u.face : st.family.face, w: st.weight.linked ? u.weight : st.weight.w, st,
+      linkedTexts: { family: FACES[u.face].label, weight: `${u.weight} ${weightName(u.weight)}` },
+    });
+  }
+
+  function eyebrowRow() {
+    const e = state.eyebrow, body = state.usages.body;
+    return stepRow({
+      step: 'eyebrow', name: 'eyebrow', chip: '.eyebrow', sizes: eyebrowSizes(), sample: 'Release notes',
+      face: e.family.linked ? body.face : e.family.face, w: e.weight.linked ? body.weight : e.weight.w, st: e, transform: e.transform,
+      linkedTexts: { family: 'Body face', weight: 'Body weight' },
+    });
+  }
+
+  // ---- Rendering ----
+
+  function renderScaling() {
+    document.getElementById('scaling').innerHTML = `
+      <h4 class="ramp-title scaling-title">Responsive scaling</h4>
+      ${[['tablet', 'Tablet'], ['phone', 'Phone']].map(([vp, label]) => `
+        <div class="scaling-field">
+          <div class="scaling-top">
+            <div class="ctl-head"><label class="field-label" for="comp-${vp}">${label} scaling</label>${resetBtn(`comp-${vp}`, `${vp} scaling`)}</div>
+            <span class="scaling-value" id="comp-${vp}-value"></span>
+          </div>
+          <input type="range" id="comp-${vp}" min="0.4" max="1" step="0.01" value="${state.compression[vp]}">
+          <span class="scaling-effect" id="comp-${vp}-effect"></span>
+        </div>`).join('')}
+      <p class="hint scaling-hint">Sets the recommended tablet and phone size for every step. Sizes above 16px move toward 16px; lower values fit large type to small screens and narrow the gap between levels, and higher values keep more of the desktop hierarchy. No recommendation is larger than its desktop size.</p>`;
+    syncScaling();
+  }
+
+  function syncScaling() {
+    for (const vp of ['tablet', 'phone']) {
+      const c = state.compression[vp];
+      document.getElementById(`comp-${vp}-value`).textContent = c.toFixed(2);
+      document.getElementById(`comp-${vp}-effect`).textContent =
+        `${[72, 48, 24].map((px) => `${px} → ${px1(compress(px, c))}`).join(' · ')} px`;
+    }
+  }
+
+  function renderTabs() {
+    tabsEl.innerHTML = TABS.map((k) => {
+      const u = state.usages[k], selected = state.tab === k;
+      return `<button type="button" role="tab" class="tab" id="tab-${k}" aria-selected="${selected}" aria-controls="panel"
+        tabindex="${selected ? 0 : -1}" data-act="tab" data-tab="${k}">${u.label}<span class="tab-ratio">${ratioLabel(u.ratio)}</span></button>`;
+    }).join('');
+  }
+
+  function renderPanel() {
+    const k = state.tab, u = current();
+    panel.setAttribute('aria-labelledby', `tab-${k}`);
+    panel.innerHTML = `
+      <div class="scale">
+        <div class="field">
+          <div class="ctl-head"><label class="field-label" for="face">Face</label>${resetBtn('face', 'face')}</div>
+          <select id="face">${faceOptions(u.face)}</select>
+        </div>
+        <div class="field">
+          <div class="ctl-head"><label class="field-label" for="weight">Weight</label>${resetBtn('weight', 'weight')}</div>
+          <select id="weight">${weightOptions(u.weight)}</select>
+        </div>
+        <div class="field">
+          <div class="ctl-head"><label class="field-label" for="base">Base</label>${resetBtn('base', 'base')}</div>
+          <div class="inline">
+            <input id="base" type="number" min="8" max="160" step="0.5" value="${u.base}" aria-label="Base size in px">
+            <span class="unit">px</span><span class="rem" id="base-rem"></span>
+          </div>
+        </div>
+        <div class="field">
+          <div class="ctl-head"><label class="field-label" for="ratio">Ratio</label>${resetBtn('ratio', 'ratio')}</div>
+          <div class="inline">
+            <select id="ratio">${intervalOptions(u.ratioMode)}</select>
+            ${u.ratioMode === 'custom' ? `<input id="ratio-custom" type="number" min="1.01" max="2" step="0.001" value="${u.ratio}" aria-label="Custom ratio">` : ''}
+          </div>
+        </div>
+        <p class="hint">Desktop sizes follow from the base and ratio. Every step uses this face and weight until you unlink it.</p>
+        <button type="button" class="pill" id="reset-usage" data-act="reset-usage">${RESET}Reset ${u.label}</button>
+      </div>
+
+      <div class="ramp-head">
+        <h4 class="ramp-title">Steps</h4>
+        <div class="seg" role="radiogroup" aria-label="Preview viewport">
+          ${VIEWPORTS.map(([v, label]) => `<button type="button" class="seg-btn" role="radio" id="vp-${v}" data-act="vp" data-vp="${v}" aria-checked="${state.vp === v}"><span class="radio"></span>${label}</button>`).join('')}
+        </div>
+      </div>
+      <div class="ramp" id="ramp"></div>
+      ${k === 'body' ? '<h4 class="ramp-title">Eyebrow</h4><div class="ramp" id="eyebrow"></div>' : ''}
+      <details class="css" id="css-details"${state.cssOpen ? ' open' : ''}>
+        <summary>Tokens this tab writes</summary>
+        <pre id="css"></pre>
+      </details>`;
+    renderRamp();
+  }
+
+  function scaleTerm(prefix, n) {
+    const base = `var(${prefix}-scale-base)`;
+    return n === 0 ? base : `${base} * pow(var(${prefix}-scale-ratio), ${n})`;
+  }
+
+  // The tokens for one step's three sizes. `linkedViewport` names the tokens a
+  // follower copies (the eyebrow copies body-sm) while its desktop size is unedited.
+  function sizeLines(name, size, desktopExpr, desktopRem, linkedViewport) {
+    const lines = [`${name}-desktop-font-size: ${size.desktop != null ? rem(size.desktop) : desktopExpr};`];
+    for (const vp of ['tablet', 'phone']) {
+      let value;
+      if (size[vp] != null) value = rem(size[vp]);
+      else if (size.desktop == null && linkedViewport) value = linkedViewport(vp);
+      else {
+        const d = size.desktop != null ? remCount(size.desktop) : desktopRem;
+        value = `min(var(${name}-desktop-font-size), calc(pow(${d}, var(--type-${vp}-scale-compression)) * 1rem))`;
+      }
+      lines.push(`${name}-${vp}-font-size: ${value};`);
+    }
+    return lines;
+  }
+
+  function renderCss() {
+    const k = state.tab, u = current(), p = `--${k}`;
+    const lines = [
+      `--type-tablet-scale-compression: ${state.compression.tablet};`,
+      `--type-phone-scale-compression: ${state.compression.phone};`,
+      '',
+      `${p}-font-family: var(${FACES[u.face].token});`,
+      `${p}-font-weight: var(--font-weight-${weightName(u.weight)});`,
+      `${p}-scale-base: ${remCount(u.base)};`,
+      `${p}-scale-ratio: ${+u.ratio.toFixed(4)};`,
+    ];
+    for (const s of STEPS) {
+      const st = u.steps[s], sp = `${p}-${s}`, term = scaleTerm(p, EXP[s]);
+      lines.push(
+        '',
+        `${sp}-font-family: ${st.family.linked ? `var(${p}-font-family)` : `var(${FACES[st.family.face].token})`};`,
+        ...sizeLines(sp, st.size, `calc(${term} * 1rem)`, term),
+        `${sp}-font-weight: ${st.weight.linked ? `var(${p}-font-weight)` : `var(--font-weight-${weightName(st.weight.w)})`};`,
+        `${sp}-line-height: var(--line-height-${st.lh});`,
+        `${sp}-letter-spacing: var(--letter-spacing-${st.ls});`,
+      );
+    }
+    if (k === 'body') {
+      const e = state.eyebrow;
+      lines.push(
+        '',
+        `--eyebrow-font-family: ${e.family.linked ? 'var(--body-font-family)' : `var(${FACES[e.family.face].token})`};`,
+        ...sizeLines('--eyebrow', e.size, 'var(--body-sm-desktop-font-size)', null, (vp) => `var(--body-sm-${vp}-font-size)`),
+        `--eyebrow-font-weight: ${e.weight.linked ? 'var(--body-font-weight)' : `var(--font-weight-${weightName(e.weight.w)})`};`,
+        `--eyebrow-line-height: var(--line-height-${e.lh});`,
+        `--eyebrow-letter-spacing: var(--letter-spacing-${e.ls});`,
+        `--eyebrow-text-transform: ${e.transform};`,
+      );
+    }
+    document.getElementById('css').textContent = lines.join('\n');
+  }
+
+  function renderRamp() {
+    const k = state.tab, u = current();
+    document.getElementById('ramp').innerHTML = STEPS.map((s) => usageRow(k, u, s)).join('');
+    const eyebrow = document.getElementById('eyebrow');
+    if (eyebrow) eyebrow.innerHTML = eyebrowRow();
+    document.querySelectorAll('[data-act="vp"]').forEach((b) => b.setAttribute('aria-checked', String(b.dataset.vp === state.vp)));
+    const remEl = document.getElementById('base-rem');
+    if (remEl) remEl.textContent = rem(u.base);
+    renderCss();
+    renderTabs();
+    syncResets();
+  }
+
+  // Re-rendering replaces the focused control; put focus back on its replacement.
+  function withFocus(fn, id) {
+    const target = id || (document.activeElement && document.activeElement.id);
+    fn();
+    if (target) document.getElementById(target)?.focus({ preventScroll: true });
+  }
+
+  // ---- Actions ----
+
+  function selectTab(k) {
+    state.tab = k;
+    withFocus(renderPanel, `tab-${k}`);
+  }
+
+  function resetField(field, step) {
+    if (field.startsWith('comp-')) {
+      state.compression[field.slice(5)] = DEFAULTS.compression[field.slice(5)];
+      renderScaling();
+      withFocus(renderRamp, field);
+      return;
+    }
+    if (step) {
+      const st = stepTarget(step);
+      if (field.startsWith('size-')) st.size[field.slice(5)] = null;
+      else st[field] = clone(stepDefault(step)[field]);
+      withFocus(renderRamp, controlId(field, step));
+      return;
+    }
+    const u = current(), d = DEFAULTS.usages[state.tab];
+    u[field] = d[field];
+    if (field === 'ratio') u.ratioMode = d.ratioMode;
+    withFocus(renderPanel, field);
+  }
+
+  document.addEventListener('click', (e) => {
+    const b = e.target.closest('button[data-act]');
+    if (!b) return;
+    const u = current();
+    switch (b.dataset.act) {
+      case 'tab':
+        selectTab(b.dataset.tab);
+        break;
+      case 'vp':
+        state.vp = b.dataset.vp;
+        withFocus(renderRamp);
+        break;
+      case 'reset-field':
+        resetField(b.dataset.field, b.dataset.step);
+        break;
+      case 'reset-usage':
+        state.usages[state.tab] = clone(DEFAULTS.usages[state.tab]);
+        if (state.tab === 'body') state.eyebrow = clone(DEFAULTS.eyebrow);
+        withFocus(renderPanel, `tab-${state.tab}`);
+        break;
+      case 'reset-all':
+        state.compression = clone(DEFAULTS.compression);
+        state.usages = clone(DEFAULTS.usages);
+        state.eyebrow = clone(DEFAULTS.eyebrow);
+        renderScaling();
+        withFocus(renderPanel, `tab-${state.tab}`);
+        break;
+      case 'lock-step': {
+        const step = b.dataset.step, field = b.dataset.field, ctl = stepTarget(step)[field];
+        if (ctl.linked) {
+          if (field === 'family') ctl.face = step === 'eyebrow' ? state.usages.body.face : u.face;
+          else ctl.w = step === 'eyebrow' ? state.usages.body.weight : u.weight;
+        }
+        ctl.linked = !ctl.linked;
+        withFocus(renderRamp);
+        break;
+      }
+    }
+  });
+
+  // Arrow keys move between tabs, following the ARIA tabs pattern.
+  tabsEl.addEventListener('keydown', (e) => {
+    const moves = { ArrowRight: 1, ArrowLeft: -1, Home: -TABS.length, End: TABS.length };
+    if (!(e.key in moves)) return;
+    e.preventDefault();
+    const i = clamp(TABS.indexOf(state.tab) + moves[e.key], 0, TABS.length - 1);
+    selectTab(TABS[i]);
+  });
+
+  document.addEventListener('change', (e) => {
+    const t = e.target, u = current();
+    if (t.id === 'face') { u.face = t.value; withFocus(renderRamp); return; }
+    if (t.id === 'weight') { u.weight = +t.value; withFocus(renderRamp); return; }
+    if (t.id === 'ratio') {
+      const interval = INTERVALS.find((i) => i[0] === t.value);
+      u.ratioMode = t.value;
+      if (interval) u.ratio = interval[2];
+      withFocus(renderPanel);
+      return;
+    }
+    if (!t.dataset.step) return;
+    const step = t.dataset.step, field = t.dataset.field, st = stepTarget(step);
+    if (field.startsWith('size-')) {
+      const vp = field.slice(5), v = parseFloat(t.value);
+      if (!Number.isFinite(v)) return;
+      // Typing the recommendation back in clears the override.
+      st.size[vp] = null;
+      const recommended = sizesOf(step)[vp].recommended;
+      st.size[vp] = Math.abs(v - recommended) < 0.05 ? null : clamp(v, 6, 200);
+    } else if (field === 'family') st.family.face = t.value;
+    else if (field === 'weight') st.weight.w = +t.value;
+    else st[field] = t.value;
+    withFocus(renderRamp);
+  });
+
+  document.addEventListener('input', (e) => {
+    const t = e.target, u = current();
+    const v = parseFloat(t.value);
+    if (!Number.isFinite(v)) return;
+    if (t.id === 'comp-tablet' || t.id === 'comp-phone') {
+      state.compression[t.id.slice(5)] = v;
+      syncScaling();
+      renderRamp();
+      return;
+    }
+    if (t.id === 'base') u.base = clamp(v, 8, 160);
+    else if (t.id === 'ratio-custom') u.ratio = clamp(v, 1.01, 2);
+    else return;
+    renderRamp();
+  });
+
+  // `toggle` does not bubble, so listen in the capture phase.
+  document.addEventListener('toggle', (e) => {
+    if (e.target.id === 'css-details') state.cssOpen = e.target.open;
+  }, true);
+
+  renderScaling();
+  renderPanel();
+</script>

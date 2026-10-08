@@ -172,8 +172,28 @@ const CONTRACT_WAVES = {
   '4': { executor: 'wave-executor', verify: false, reviewModel: 'sonnet' },
 }
 
+const TYPE_SCALES_WAVES = {
+  '1': { executor: 'wave-executor', verify: true },
+  '2': { executor: 'wave-executor', verify: true },
+  '3': { executor: 'wave-executor', verify: true },
+  '4': { executor: 'svelte:svelte-file-editor', verify: true },
+  '5': { executor: 'wave-executor', verify: true, reviewModel: 'sonnet' },
+  '6': {
+    executor: 'visual-qa',
+    verify: false,
+    extra: () =>
+      'Restore src/live-tokens/data as CLAUDE.md describes before you return, and list the screenshots you took ' +
+      'under oddities.',
+  },
+}
+
 // executeModel and escalateModel override the agent definition's model. A plan without them runs each agent as defined.
 const PLANS = {
+  'type-scales': {
+    file: 'docs/plans/type-scales.md',
+    prefix: 'Type-scales',
+    waves: TYPE_SCALES_WAVES,
+  },
   'check-fix': {
     file: 'docs/plans/check-and-fix-unification.md',
     prefix: 'Check-fix',
