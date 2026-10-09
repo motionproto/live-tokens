@@ -1050,6 +1050,61 @@ describe('adopting the whole theme', () => {
   });
 });
 
+describe('whether the bake holds the production theme', () => {
+  const baked = async () => (await request('GET', `${API}/themes/production`)).json._baked;
+
+  async function adoptSample() {
+    seedPointerTheme();
+    boot();
+    await request('PUT', `${API}/themes/sample/apply`);
+    await request('PUT', `${API}/production`);
+  }
+
+  async function saveSample(edit: (theme: any) => void = () => {}) {
+    const sample = readJson(path.join(themesDir, 'sample.json'));
+    edit(sample);
+    await request('PUT', `${API}/themes/sample`, sample);
+  }
+
+  it('reads as baked right after an Adopt', async () => {
+    await adoptSample();
+    expect(await baked()).toBe(true);
+  });
+
+  it('reads as behind once the production theme is saved with new content, until the next Adopt', async () => {
+    await adoptSample();
+    await saveSample((theme) => {
+      theme.componentConfigs.button.aliases['--button-primary-radius'] = '1px';
+    });
+    expect(await baked()).toBe(false);
+
+    await request('PUT', `${API}/production`);
+    expect(await baked()).toBe(true);
+  });
+
+  it('stays baked across a save that changes nothing the bake renders', async () => {
+    await adoptSample();
+    await saveSample();
+    expect(await baked()).toBe(true);
+  });
+
+  it('reads as baked after a restart, because boot rebakes', async () => {
+    await adoptSample();
+    await saveSample((theme) => {
+      theme.componentConfigs.button.aliases['--button-primary-radius'] = '1px';
+    });
+    boot();
+    expect(await baked()).toBe(true);
+  });
+
+  it('reads as behind when the generated CSS carries no fingerprint', async () => {
+    await adoptSample();
+    const file = path.join(tmp, 'tokens.generated.css');
+    fs.writeFileSync(file, fs.readFileSync(file, 'utf-8').replace(/^\/\* Bake fingerprint: .*\n/m, ''));
+    expect(await baked()).toBe(false);
+  });
+});
+
 // `normalizeTheme` migrates an embedded component config wherever a theme is
 // read, so the bake — which reads `productionTheme.componentConfigs` straight
 // off that normalized result — sees post-rename keys even for a theme written

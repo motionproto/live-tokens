@@ -14,7 +14,7 @@ import {
   setSketchScope,
   sketchLayerInstalled,
 } from './sketchLayer';
-import { liveMovedSinceBake } from '../productionPulse';
+import { liveUnsaved } from '../productionPulse';
 import {
   deleteSketchStyle,
   listSketchStyles,
@@ -171,7 +171,7 @@ export function liveSketchSettings(): SketchStyleSettings | undefined {
     made a sketch decision the same as any other control does. */
 export function setSketchEnabled(enabled: boolean): void {
   markSketchTouched();
-  if (enabled !== get(sketchEnabled)) liveMovedSinceBake.set(true);
+  if (enabled !== get(sketchEnabled)) liveUnsaved.set(true);
   sketchEnabled.set(enabled);
 }
 
@@ -236,7 +236,7 @@ export function selectUnsavedSketchStyle(): void {
   const style = get(themeSketchSettings);
   if (!style) return;
   markSketchTouched();
-  if (get(sketchEnabled)) liveMovedSinceBake.set(true);
+  if (get(sketchEnabled)) liveUnsaved.set(true);
   selectedSketchStyleId.set(THEME_SKETCH_ID);
   sketchBaseline.set({ ...style });
   sketchSettings.set({ ...style });
@@ -262,7 +262,7 @@ export function selectSketchStyle(id: string): void {
   const style = sketchStyleById(id);
   if (!style) return;
   markSketchTouched();
-  if (get(sketchEnabled)) liveMovedSinceBake.set(true);
+  if (get(sketchEnabled)) liveUnsaved.set(true);
   selectedSketchStyleId.set(id);
   sketchBaseline.set({ ...style.settings });
   sketchSettings.set({ ...style.settings });
@@ -356,7 +356,7 @@ export async function deleteSavedSketchStyle(fileName: string): Promise<void> {
     the drift. Save writes a new sketchstyle rather than overwriting the base. */
 export function updateSketchSettings(patch: Partial<SketchStyleSettings>): void {
   markSketchTouched();
-  if (get(sketchEnabled)) liveMovedSinceBake.set(true);
+  if (get(sketchEnabled)) liveUnsaved.set(true);
   sketchSettings.update((s) => ({ ...s, ...patch }));
 }
 

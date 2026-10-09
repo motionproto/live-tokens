@@ -8,7 +8,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { flushSync, mount, unmount } from 'svelte';
 import { API_BASE } from '../../core/storage/apiBase';
 import { setComponentAlias, __resetForTests } from '../../core/store/editorStore';
-import { liveMovedSinceBake, productionTheme } from '../../core/productionPulse';
+import { liveUnsaved, productionTheme } from '../../core/productionPulse';
 import ComponentFileManager from './ComponentFileManager.svelte';
 
 const CONFIG = {
@@ -35,6 +35,8 @@ const THEME = {
 let target: HTMLDivElement;
 let component: ReturnType<typeof mount> | null = null;
 let calls: string[];
+/** Whether the bake holds the saved theme: a theme save moves past it, Adopt catches up. */
+let baked: boolean;
 
 function json(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), {
@@ -60,7 +62,13 @@ function server(url: string, init?: RequestInit): Response {
     case 'GET /themes/active':
       return json(THEME);
     case 'GET /themes/production':
-      return json(THEME);
+      return json({ ...THEME, _baked: baked });
+    case 'PUT /themes/my-theme':
+      baked = false;
+      return json({ ok: true });
+    case 'PUT /production':
+      baked = true;
+      return json({ ok: true });
     default:
       return json({ ok: true });
   }
@@ -95,9 +103,10 @@ function pressSave() {
 
 beforeEach(() => {
   __resetForTests();
-  liveMovedSinceBake.set(false);
+  liveUnsaved.set(false);
   productionTheme.set(null);
   calls = [];
+  baked = true;
   vi.stubGlobal('fetch', async (url: string, init?: RequestInit) => server(url, init));
   document.body.innerHTML = '';
   target = document.createElement('div');

@@ -288,6 +288,9 @@ export interface Theme {
   sketchSettings?: SketchStyleSettings;
   /** Server-attached file-name marker. Same role as `ColorsAndType._fileName`. */
   _fileName?: string;
+  /** Server-attached on the production read only: `tokens.generated.css` holds
+   *  this theme as saved, so Adopt would change nothing. */
+  _baked?: boolean;
 }
 
 /**

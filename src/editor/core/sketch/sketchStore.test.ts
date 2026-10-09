@@ -9,7 +9,7 @@ import {
   THEME_SKETCH_ID,
   type SketchStyleSettings,
 } from './sketchStyles';
-import { liveMovedSinceBake } from '../productionPulse';
+import { liveUnsaved } from '../productionPulse';
 import { registerSketchStyle, sketchStyles } from './sketchRegistry';
 import {
   liveSketchSettings,
@@ -179,10 +179,10 @@ describe('liveSketchSettings', () => {
   });
 });
 
-describe('liveMovedSinceBake follows the gesture boundary', () => {
+describe('liveUnsaved follows the gesture boundary', () => {
   beforeEach(() => {
     openThemeSketchSettings(undefined);
-    liveMovedSinceBake.set(false);
+    liveUnsaved.set(false);
   });
 
   afterEach(() => {
@@ -192,16 +192,16 @@ describe('liveMovedSinceBake follows the gesture boundary', () => {
   it('is set by turning the effect on', () => {
     setSketchEnabled(true);
 
-    expect(get(liveMovedSinceBake)).toBe(true);
+    expect(get(liveUnsaved)).toBe(true);
   });
 
   it('is set by a sketchstyle pick while the effect is on', () => {
     setSketchEnabled(true);
-    liveMovedSinceBake.set(false);
+    liveUnsaved.set(false);
 
     selectSketchStyle('napkin');
 
-    expect(get(liveMovedSinceBake)).toBe(true);
+    expect(get(liveUnsaved)).toBe(true);
   });
 
   it('is not set by a sketchstyle pick while the effect is off', () => {
@@ -210,13 +210,13 @@ describe('liveMovedSinceBake follows the gesture boundary', () => {
     // while disabled, so nothing done to them then can reach a theme or a bake.
     selectSketchStyle('napkin');
 
-    expect(get(liveMovedSinceBake)).toBe(false);
+    expect(get(liveUnsaved)).toBe(false);
   });
 
   it('is not set by a dial move while the effect is off', () => {
     updateSketchSettings({ strokeWidth: 9 });
 
-    expect(get(liveMovedSinceBake)).toBe(false);
+    expect(get(liveUnsaved)).toBe(false);
   });
 
   it('is not set by a saved-sketchstyle pick while the effect is off', async () => {
@@ -225,22 +225,22 @@ describe('liveMovedSinceBake follows the gesture boundary', () => {
     selectSketchStyle('mine');
 
     expect(get(selectedSketchStyleId)).toBe('mine');
-    expect(get(liveMovedSinceBake)).toBe(false);
+    expect(get(liveUnsaved)).toBe(false);
   });
 
   it('is not set by re-enabling an effect that is already on', () => {
     setSketchEnabled(true);
-    liveMovedSinceBake.set(false);
+    liveUnsaved.set(false);
 
     setSketchEnabled(true);
 
-    expect(get(liveMovedSinceBake)).toBe(false);
+    expect(get(liveUnsaved)).toBe(false);
   });
 
   it('is not set by opening a theme', () => {
     openThemeSketchSettings(SHIPPED_SKETCH_SETTINGS.napkin);
 
-    expect(get(liveMovedSinceBake)).toBe(false);
+    expect(get(liveUnsaved)).toBe(false);
   });
 
   it('is not raised by the storage-echo path adopting a peer document\'s change', () => {
@@ -255,7 +255,7 @@ describe('liveMovedSinceBake follows the gesture boundary', () => {
     }));
 
     expect(get(sketchEnabled)).toBe(true);
-    expect(get(liveMovedSinceBake)).toBe(false);
+    expect(get(liveUnsaved)).toBe(false);
   });
 });
 
@@ -274,12 +274,12 @@ describe('saveCurrentSketchStyle', () => {
       return new Response(JSON.stringify({ files: [] }), { status: 200 });
     });
     openThemeSketchSettings(SHIPPED_SKETCH_SETTINGS.napkin);
-    liveMovedSinceBake.set(false);
+    liveUnsaved.set(false);
     expect(get(sketchOffTheme)).toBe(false);
 
     await saveCurrentSketchStyle('My Napkin');
 
-    expect(get(liveMovedSinceBake)).toBe(false);
+    expect(get(liveUnsaved)).toBe(false);
     expect(get(sketchOffTheme)).toBe(false);
   });
 

@@ -1,4 +1,5 @@
 import { writable } from 'svelte/store';
+import { API_BASE } from './storage/apiBase';
 import type { Theme } from './themes/themeTypes';
 
 /**
@@ -6,7 +7,7 @@ import type { Theme } from './themes/themeTypes';
  * surfaces that need to react to a sibling Adopt subscribe to this so they
  * refresh without per-pair wiring.
  *
- * Bumpers: `ThemePanel.runAdopt`, `ComponentFileManager.handleAdopt`.
+ * Bumped by `adoptTheme`, the one door every Adopt goes through.
  */
 export const productionRevision = writable(0);
 
@@ -28,27 +29,59 @@ export function bumpComponentActiveRevision(): void {
 }
 
 /**
- * The live theme has moved past the last bake. Only Adopt bakes the CSS, so a
- * buffer write or a theme save after one leaves production a version behind,
- * and no pointer file records when the bake happened. Every surface reads the
- * one signal: a component save has to reach the theme panel's Adopt, and a
- * component editor's Adopt has to clear it for the panel.
+ * The live state holds changes the open theme's file does not: a buffer
+ * written, or a sketch gesture that changes what the effect paints. Saving
+ * clears it, because a save captures the live state into the file. Whether that
+ * file has reached production since is the server's answer, carried on
+ * `productionTheme._baked`, so this flag never stands in for it.
  *
- * Set by the client writes that move the live theme (`writeWorkingColorsAndType`,
- * `writeWorkingComponentConfig`, `saveActiveTheme`, `saveAsTheme`, and every
- * sketch gesture that changes what the effect paints: `setSketchEnabled`,
- * `updateSketchSettings`, `selectSketchStyle`);
- * cleared by `adoptTheme` and by `hydrateAppliedTheme`, on this document and on
- * every peer an Apply broadcasts to. Module-level, so it survives the
- * remounts a view switch causes.
+ * Set by the client writes that move the live state (`writeWorkingColorsAndType`,
+ * `writeWorkingComponentConfig`, and every sketch gesture that changes what the
+ * effect paints: `setSketchEnabled`, `updateSketchSettings`, `selectSketchStyle`);
+ * cleared by `saveActiveTheme` and `saveAsTheme`; recomputed from the server's layer sources by
+ * `hydrateAppliedTheme`, on this document and on every peer an Apply broadcasts
+ * to. Module-level, so it survives the remounts a view switch causes.
  */
-export const liveMovedSinceBake = writable(false);
+export const liveUnsaved = writable(false);
+
+/** The published theme, served whole so the client can tell what production
+ *  runs from the document itself. */
+export async function getProductionTheme(): Promise<Theme> {
+  const res = await fetch(`${API_BASE}/themes/production`);
+  if (!res.ok) throw new Error('Failed to read the production theme');
+  return res.json();
+}
+
+const PRODUCTION_RETRY_MS = 3000;
+let latestProductionRead = 0;
+let pendingRetry: ReturnType<typeof setTimeout> | undefined;
 
 /**
- * Last-read production theme — the document `tokens.generated.css` was baked
- * from. The Theme panel and the component file managers live in surfaces that
- * swap in and out of the DOM, so keeping the last answer in a module-level
- * store means a remount renders the correct Adopt state on the first frame
+ * Last-read production theme, `_baked` included. Every surface renders from
+ * this store and none reads the server itself. The first subscriber starts a
+ * read; after that, the writes that can move the answer refresh it: `saveTheme`,
+ * `adoptTheme`, and a live-state frame from an outside writer.
+ *
+ * Module-level, so a remount renders the last answer on its first frame
  * instead of flashing through "not in sync" while a fresh fetch resolves.
  */
-export const productionTheme = writable<Theme | null>(null);
+export const productionTheme = writable<Theme | null>(null, () => {
+  void refreshProductionTheme();
+});
+
+/** Re-read the production theme into `productionTheme`. Never throws: a failed
+ *  read keeps the last answer and retries once, since nothing else asks again
+ *  until the next write. A newer read supersedes a pending retry. */
+export async function refreshProductionTheme(retry = true): Promise<void> {
+  clearTimeout(pendingRetry);
+  const read = ++latestProductionRead;
+  try {
+    const theme = await getProductionTheme();
+    // Reads can land out of order; only the latest one speaks for the server.
+    if (read === latestProductionRead) productionTheme.set(theme);
+  } catch {
+    if (retry && read === latestProductionRead) {
+      pendingRetry = setTimeout(() => void refreshProductionTheme(false), PRODUCTION_RETRY_MS);
+    }
+  }
+}

@@ -6,7 +6,7 @@ import { applyTheme, freshName } from './themeService';
 import { API_BASE } from '../storage/apiBase';
 import { editorState, __resetForTests } from '../store/editorStore';
 import { openThemeSlug } from '../store/editorConfigStore';
-import { liveMovedSinceBake } from '../productionPulse';
+import { liveUnsaved } from '../productionPulse';
 import { CSS_VARS_CHANGE_EVENT } from '../cssVarSync';
 
 beforeEach(() => {
@@ -69,7 +69,7 @@ describe('applyTheme', () => {
         skippedComponents: [],
       }), { status: 200, headers: { 'Content-Type': 'application/json' } });
     });
-    liveMovedSinceBake.set(true);
+    liveUnsaved.set(true);
     const batches = vi.fn();
     document.addEventListener(CSS_VARS_CHANGE_EVENT, batches);
 
@@ -78,7 +78,7 @@ describe('applyTheme', () => {
 
     const state = get(editorState);
     expect(get(openThemeSlug)).toBe('spring-meadow');
-    expect(get(liveMovedSinceBake)).toBe(false);
+    expect(get(liveUnsaved)).toBe(false);
     expect(state.cssVars['--loaded-color']).toBe('#74c67a');
     expect(state.components.sectiondivider.aliases['--sectiondivider-lg-hairline-color'])
       .toEqual({ kind: 'token', name: '--color-danger-600' });

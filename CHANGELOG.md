@@ -1,5 +1,17 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+
+- **Adopt stays available after you save the production theme.** Saving the
+  theme production ships leaves `tokens.generated.css` behind until the next
+  Adopt. The editor knew that only in memory, so a reload or a theme load
+  showed "in production" and disabled Adopt over a stale bake. Each bake now
+  records a fingerprint of what it rendered. The production read reports
+  `_baked: false` when a fresh render of the saved theme would differ, and the
+  Theme panel and component bars read "out of sync" until Adopt runs.
+
 ## 0.94.0 — Tokens-view swatch swap and copy-paste
 
 ### Added

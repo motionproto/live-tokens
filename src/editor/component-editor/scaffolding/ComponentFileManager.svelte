@@ -23,20 +23,19 @@
   } from '../../core/store/editorStore';
   import {
     bumpComponentActiveRevision,
-    bumpProductionRevision,
-    liveMovedSinceBake,
+    liveUnsaved,
     productionRevision,
     productionTheme,
   } from '../../core/productionPulse';
   import {
     adoptTheme,
     getActiveTheme,
-    getProductionTheme,
     listThemes,
     saveActiveTheme,
     saveAsTheme,
   } from '../../core/themes/themeService';
   import type { ThemeMeta } from '../../core/themes/themeTypes';
+  import { themeProductionState } from '../../core/themes/themeSummary';
   import { safeFetch } from '../../core/storage/storage';
   import { API_BASE } from '../../core/storage/apiBase';
   import { flashStatus } from '../../core/flashStatus';
@@ -101,7 +100,11 @@
   // still the published one, so only the shared signal can say the config on
   // screen is not what production runs.
   let isApplied = $derived(
-    productionDoc !== null && productionDoc === editorDoc && !compDirty && !$liveMovedSinceBake,
+    themeProductionState({
+      openTheme: editorDoc,
+      production: $productionTheme,
+      unsaved: compDirty || $liveUnsaved,
+    }).inProduction,
   );
   let resetDirty = $derived(!!resetVariables && compDirty);
 
@@ -124,20 +127,9 @@
     }
   }
 
-  async function refreshProduction() {
-    // Preserve the last answer on a transient failure rather than clobbering
-    // the store to null, which would read as "production unknown".
-    try {
-      productionTheme.set(await getProductionTheme());
-    } catch {
-      // silent
-    }
-  }
-
   onMount(async () => {
     await refreshFiles();
     await refreshLive();
-    await refreshProduction();
     window.addEventListener('keydown', handleKeydown);
   });
 
@@ -262,8 +254,6 @@
       if (wasDirty) await persist();
       await saveActiveTheme();
       await adoptTheme();
-      await refreshProduction();
-      bumpProductionRevision();
       adoptFeedback = wasDirty
         ? `Saved "${adoptingName}" and adopted`
         : `Adopted "${adoptingName}"`;

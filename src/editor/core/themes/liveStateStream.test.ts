@@ -4,8 +4,10 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { API_BASE } from '../storage/apiBase';
 
 vi.mock('./themeDocumentSync', () => ({ hydrateAppliedTheme: vi.fn() }));
+vi.mock('../productionPulse', () => ({ refreshProductionTheme: vi.fn() }));
 
 import { hydrateAppliedTheme } from './themeDocumentSync';
+import { refreshProductionTheme } from '../productionPulse';
 import { __resetForTests, init, LIVE_STATE_EVENT } from './liveStateStream';
 
 class FakeEventSource {
@@ -42,6 +44,7 @@ afterEach(() => {
   __resetForTests();
   vi.unstubAllGlobals();
   vi.mocked(hydrateAppliedTheme).mockReset();
+  vi.mocked(refreshProductionTheme).mockReset();
 });
 
 describe('liveStateStream', () => {
@@ -56,6 +59,12 @@ describe('liveStateStream', () => {
     init();
     FakeEventSource.instances[0].emit(LIVE_STATE_EVENT, STATE);
     expect(hydrateAppliedTheme).toHaveBeenCalledWith('meadow', STATE);
+  });
+
+  it('re-reads production on each live-state frame, since an outside save can move it past the bake', () => {
+    init();
+    FakeEventSource.instances[0].emit(LIVE_STATE_EVENT, STATE);
+    expect(refreshProductionTheme).toHaveBeenCalledTimes(1);
   });
 
   it('does nothing where EventSource is absent', () => {

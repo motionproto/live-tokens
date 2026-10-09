@@ -1,7 +1,11 @@
 import type { Theme, ThemeMeta, ThemeBundle, ColorsAndType, ComponentConfig, ThemeFillReport } from './themeTypes';
 import { versionedFileResource } from '../storage/files/versionedFileResourceClient';
 import { API_BASE } from '../storage/apiBase';
-import { liveMovedSinceBake } from '../productionPulse';
+import {
+  bumpProductionRevision,
+  liveUnsaved,
+  refreshProductionTheme,
+} from '../productionPulse';
 import { listComponents, getActiveComponentConfig } from '../components/componentConfigService';
 import { getActiveColorsAndType } from './colorsAndTypeService';
 import { broadcastAppliedTheme, hydrateAppliedTheme } from './themeDocumentSync';
@@ -33,21 +37,21 @@ export const listThemes = async (): Promise<ThemeMeta[]> => {
 
 export const loadTheme = (fileName: string): Promise<Theme> =>
   themesResource.load(fileName);
-export const saveTheme = (fileName: string, data: Theme): Promise<void> =>
-  themesResource.save(fileName, data);
+
+/** Every theme write goes through here. A write can move the production theme
+ *  past its bake, which only the server can tell, so this re-reads production. */
+export async function saveTheme(fileName: string, data: Theme): Promise<void> {
+  await themesResource.save(fileName, data);
+  await refreshProductionTheme();
+}
+
 export const deleteTheme = (fileName: string): Promise<void> =>
   themesResource.remove(fileName);
 export const getActiveTheme = (): Promise<Theme | null> => themesResource.getActive();
 export const setActiveTheme = (fileName: string): Promise<void> =>
   themesResource.setActive(fileName);
 
-/** The published theme, served whole so the client can tell what production
- *  runs from the document itself. */
-export async function getProductionTheme(): Promise<Theme> {
-  const res = await fetch(`${API_BASE}/themes/production`);
-  if (!res.ok) throw new Error('Failed to read the production theme');
-  return res.json();
-}
+export { getProductionTheme } from '../productionPulse';
 
 /** Step past the theme names already on disk rather than clobbering one. */
 export function freshName(base: string, taken: Set<string>): string {
@@ -116,7 +120,8 @@ export interface AdoptThemeResult {
  * the server has not been handed is invisible from here.
  *
  * Answers 409 `ACTIVE_IS_PROTECTED` while the Default theme is open, which the
- * caller recovers from by forking it under a name of the user's own.
+ * caller recovers from by forking it under a name of the user's own. On success
+ * it re-reads production and ticks `productionRevision`, so no caller does either.
  */
 export async function adoptTheme(): Promise<AdoptThemeResult> {
   const res = await fetch(`${API_BASE}/production`, { method: 'PUT' });
@@ -130,8 +135,10 @@ export async function adoptTheme(): Promise<AdoptThemeResult> {
     if (body.code) err.code = body.code;
     throw err;
   }
-  liveMovedSinceBake.set(false);
-  return res.json();
+  const result = await res.json() as AdoptThemeResult;
+  await refreshProductionTheme();
+  bumpProductionRevision();
+  return result;
 }
 
 /** `_fileName` and `_source` mark which document and which layer a read door
@@ -189,8 +196,8 @@ export async function saveAsTheme(
     ...content,
   });
   themeSketchSettings.set(content.sketchSettings);
-  liveMovedSinceBake.set(true);
   await setActiveTheme(fileName);
+  liveUnsaved.set(false);
 }
 
 /**
@@ -213,7 +220,7 @@ export async function saveActiveTheme(displayName?: string): Promise<void> {
     ...content,
   });
   themeSketchSettings.set(content.sketchSettings);
-  liveMovedSinceBake.set(true);
+  liveUnsaved.set(false);
 }
 
 export interface ImportThemeResult {

@@ -1,4 +1,4 @@
-import { liveMovedSinceBake } from '../productionPulse';
+import { liveUnsaved } from '../productionPulse';
 import { openThemeSlug } from '../store/editorConfigStore';
 import { loadThemeFromApi } from '../store/editorStore';
 import { migrateColorsAndTypeFonts } from '../fonts/fontMigration';
@@ -55,7 +55,7 @@ export function hydrateAppliedTheme(fileName: string, result: LiveState): void {
   );
   openThemeSlug.set(fileName);
   openThemeSketchSettings(result.theme.sketchSettings);
-  liveMovedSinceBake.set(hasUnsavedLayer(result));
+  liveUnsaved.set(hasUnsavedLayer(result));
   if (typeof document !== 'undefined') {
     document.dispatchEvent(new CustomEvent<AppliedThemeDetail>(THEME_APPLIED_EVENT, {
       detail: { fileName, result },

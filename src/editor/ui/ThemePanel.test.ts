@@ -11,8 +11,10 @@ import { API_BASE } from '../core/storage/apiBase';
 import { openThemeSlug } from '../core/store/editorConfigStore';
 import { mutate, setComponentAlias, __resetForTests } from '../core/store/editorStore';
 import { CURRENT_COMPONENT_SCHEMA_VERSION } from '../core/themes/migrations';
-import { liveMovedSinceBake, productionTheme } from '../core/productionPulse';
+import { THEME_SCHEMA_VERSION } from '../core/themes/themeTypes';
+import { liveUnsaved, productionTheme } from '../core/productionPulse';
 import { isPreviewing, __resetPreviewForTests } from '../core/preview/themePreview';
+import { hydrateAppliedTheme } from '../core/themes/themeDocumentSync';
 import ThemePanel from './ThemePanel.svelte';
 
 const COLORS_AND_TYPE = {
@@ -40,6 +42,9 @@ let requestBodies: Array<{ route: string; body: unknown }>;
 let confirms: string[];
 /** Route → response, consulted before the defaults. */
 let overrides: Record<string, () => Response>;
+/** Whether the bake holds the saved production theme: saving it moves past the
+ *  bake, Adopt catches up. */
+let baked: boolean;
 
 function json(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), {
@@ -54,6 +59,8 @@ function server(url: string, init?: RequestInit): Response {
   if (typeof init?.body === 'string') {
     requestBodies.push({ route, body: JSON.parse(init.body) });
   }
+  if (route === 'PUT /themes/my-theme') baked = false;
+  if (route === 'PUT /production') baked = true;
   const override = overrides[route];
   if (override) return override();
   switch (route) {
@@ -68,7 +75,7 @@ function server(url: string, init?: RequestInit): Response {
     // A theme other than the open one, so the theme reads out of sync and Adopt
     // is live.
     case 'GET /themes/production':
-      return json({ ...LOOK, _fileName: 'shipped', name: 'Shipped' });
+      return json({ ...LOOK, _fileName: 'shipped', name: 'Shipped', _baked: baked });
     case 'GET /component-configs':
       return json({ components: [] });
     default:
@@ -95,11 +102,12 @@ beforeEach(async () => {
   // Module-level state: the panel remounts against it in the real editor, and a
   // leftover from the last test would answer for the run under test.
   productionTheme.set(null);
-  liveMovedSinceBake.set(false);
+  liveUnsaved.set(false);
   calls = [];
   requestBodies = [];
   confirms = [];
   overrides = {};
+  baked = true;
   vi.stubGlobal('fetch', async (url: string, init?: RequestInit) => server(url, init));
   vi.stubGlobal('confirm', (message: string) => {
     confirms.push(message);
@@ -310,7 +318,7 @@ describe('Adopt', () => {
   });
 
   it('reads as out of sync once the theme is saved past what shipped', async () => {
-    overrides['GET /themes/production'] = () => json(LOOK);
+    overrides['GET /themes/production'] = () => json({ ...LOOK, _baked: baked });
     await mountPanel();
     expect(target.querySelector('.mfm-prod-status')!.textContent?.trim()).toBe('in production');
 
@@ -318,6 +326,47 @@ describe('Adopt', () => {
     await settle();
 
     expect(target.querySelector('.mfm-prod-status')!.textContent?.trim()).toBe('out of sync');
+  });
+
+  it('stays out of sync after an Apply re-hydrates the saved production theme', async () => {
+    overrides['GET /themes/production'] = () => json({ ...LOOK, _baked: baked });
+    await mountPanel();
+    button('Save').click();
+    await settle();
+
+    hydrateAppliedTheme('my-theme', {
+      fileName: 'my-theme',
+      theme: { ...LOOK, schemaVersion: THEME_SCHEMA_VERSION, componentSchemaVersion: CURRENT_COMPONENT_SCHEMA_VERSION },
+      colorsAndType: { ...COLORS_AND_TYPE, _source: 'theme' },
+      componentConfigs: {},
+    });
+    await settle();
+
+    expect(get(liveUnsaved)).toBe(false);
+    expect(target.querySelector('.mfm-prod-status')!.textContent?.trim()).toBe('out of sync');
+    expect(button('Adopt').disabled).toBe(false);
+  });
+
+  it('stays out of sync after a reload, until Adopt bakes the saved theme', async () => {
+    overrides['GET /themes/production'] = () => json({ ...LOOK, _baked: baked });
+    await mountPanel();
+    button('Save').click();
+    await settle();
+
+    unmount(component!);
+    component = null;
+    productionTheme.set(null);
+    liveUnsaved.set(false);
+    await mountPanel();
+
+    expect(target.querySelector('.mfm-prod-status')!.textContent?.trim()).toBe('out of sync');
+    expect(button('Adopt').disabled).toBe(false);
+
+    button('Adopt').click();
+    await settle();
+
+    expect(target.querySelector('.mfm-prod-status')!.textContent?.trim()).toBe('in production');
+    expect(button('Adopt').disabled).toBe(true);
   });
 
   it('forks the protected theme, then ships the fork', async () => {

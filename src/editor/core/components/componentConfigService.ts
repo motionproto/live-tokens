@@ -2,7 +2,7 @@ import type { ComponentConfig, ComponentConfigMeta, LiveSource } from '../themes
 import type { EditorState } from '../store/editorTypes';
 import { versionedFileResource } from '../storage/files/versionedFileResourceClient';
 import { API_BASE } from '../storage/apiBase';
-import { liveMovedSinceBake } from '../productionPulse';
+import { liveUnsaved } from '../productionPulse';
 import { CURRENT_COMPONENT_SCHEMA_VERSION } from '../themes/migrations';
 import { refToDiskValue } from '../store/cssVarRef';
 
@@ -98,5 +98,5 @@ export async function writeWorkingComponentConfig(
     const err = await res.json().catch(() => ({ error: 'Write failed' }));
     throw new Error(err.error || 'Write failed');
   }
-  liveMovedSinceBake.set(true);
+  liveUnsaved.set(true);
 }

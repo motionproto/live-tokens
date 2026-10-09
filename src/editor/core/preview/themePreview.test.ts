@@ -25,7 +25,7 @@ import {
 } from './themePreview';
 import { SHIPPED_SKETCH_SETTINGS, type SketchStyleSettings } from '../sketch/sketchStyles';
 import { setSketchScope } from '../sketch/sketchLayer';
-import { liveMovedSinceBake } from '../productionPulse';
+import { liveUnsaved } from '../productionPulse';
 import {
   openThemeSketchSettings,
   setSketchPageRoot,
@@ -591,17 +591,17 @@ describe('previewTheme and the sketch layer', () => {
     expect(document.documentElement.getAttribute('data-sketch-fill')).toBe('solid');
   });
 
-  it('does not move liveMovedSinceBake or sketchOffTheme, since browsing the picker is not a gesture', async () => {
+  it('does not move liveUnsaved or sketchOffTheme, since browsing the picker is not a gesture', async () => {
     openThemeSketchSettings(SHIPPED_SKETCH_SETTINGS.napkin);
-    liveMovedSinceBake.set(false);
+    liveUnsaved.set(false);
     const offThemeBefore = get(sketchOffTheme);
 
     await previewTheme(sketchedTheme('inked', SHIPPED_SKETCH_SETTINGS.hatched));
-    expect(get(liveMovedSinceBake)).toBe(false);
+    expect(get(liveUnsaved)).toBe(false);
     expect(get(sketchOffTheme)).toBe(offThemeBefore);
 
     revertPreview();
-    expect(get(liveMovedSinceBake)).toBe(false);
+    expect(get(liveUnsaved)).toBe(false);
     expect(get(sketchOffTheme)).toBe(offThemeBefore);
   });
 

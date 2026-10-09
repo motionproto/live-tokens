@@ -12,7 +12,6 @@
     listThemes,
     deleteTheme,
     getActiveTheme,
-    getProductionTheme,
     loadTheme,
     applyTheme,
     adoptTheme,
@@ -62,8 +61,7 @@
   import {
     componentActiveRevision,
     productionRevision,
-    bumpProductionRevision,
-    liveMovedSinceBake,
+    liveUnsaved,
     productionTheme,
     bumpComponentActiveRevision,
   } from '../core/productionPulse';
@@ -120,26 +118,6 @@
     }
   }
 
-  // A read that never lands leaves the production state unknown, and the panel
-  // has nothing else that asks on its own between pulses. One delayed retry is
-  // the way out of it.
-  const PRODUCTION_RETRY_MS = 3000;
-  let productionRetry: ReturnType<typeof setTimeout> | undefined;
-
-  async function refreshProduction(retry = true) {
-    try {
-      productionTheme.set(await getProductionTheme());
-    } catch {
-      if (retry) productionRetry = setTimeout(() => refreshProduction(false), PRODUCTION_RETRY_MS);
-    }
-  }
-
-  // The store it writes outlives the panel, so a pending retry has to go with
-  // the panel rather than land on a later mount's state.
-  onDestroy(() => {
-    if (productionRetry !== undefined) clearTimeout(productionRetry);
-  });
-
   // ── Components ────────────────────────────────────────────────────────
   //
   // The per-component file managers live in the component editors; the list
@@ -170,7 +148,6 @@
   onMount(async () => {
     await refreshFiles();
     await refreshActive();
-    await refreshProduction();
   });
 
   // A consumer can load a theme from the host while this iframe stays open.
@@ -186,9 +163,9 @@
   });
 
   // Re-read whenever an Adopt fires, here or in a component editor: it saves
-  // the open theme and moves the production pointer, so the identity, the
-  // component summary and the production state shown here all need to track.
-  // Skip the first tick (mount ran them already).
+  // the open theme and can fork it, so the identity, the file list and the
+  // component summary shown here all need to track. The production state rides
+  // on its own store. Skip the first tick (mount ran them already).
   let pulseInitialised = false;
   $effect(() => {
     void $productionRevision;
@@ -197,7 +174,6 @@
       return;
     }
     refreshActive();
-    refreshProduction();
     refreshFiles();
     refreshComponents();
   });
@@ -305,8 +281,8 @@
   let production = $derived(
     themeProductionState({
       openTheme: $openThemeSlug,
-      productionTheme: $productionTheme?._fileName ?? null,
-      unpublished: unsavedEdits || $liveMovedSinceBake,
+      production: $productionTheme,
+      unsaved: unsavedEdits || $liveUnsaved,
     }),
   );
 
@@ -341,9 +317,6 @@
         await saveActiveTheme(currentDisplayName);
       }
       await adoptTheme();
-      // The panel's own production pulse re-reads identity, the production
-      // theme and the component summary.
-      bumpProductionRevision();
       flashStatus(setAdoptStatus, 'done');
     } catch {
       flashStatus(setAdoptStatus, 'error', { durationMs: 3000 });
@@ -496,13 +469,12 @@
         await refreshActive();
       }
       await adoptTheme();
-      bumpProductionRevision();
       flashStatus(setAdoptStatus, 'done');
     } catch (err) {
       window.alert(`Theme loaded, but could not be adopted: ${(err as Error).message}`);
       flashStatus(setAdoptStatus, 'error', { durationMs: 3000 });
     }
-    await Promise.all([refreshFiles(), refreshComponents(), refreshProduction()]);
+    await Promise.all([refreshFiles(), refreshComponents()]);
   }
 
   /**
@@ -1009,6 +981,7 @@
   }
 
   .theme-name-trigger :global(.file-pill) {
+    box-sizing: border-box;
     width: 100%;
   }
 
