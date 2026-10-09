@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.94.1 — Adopt after a save
 
 ### Fixed
 
@@ -11,6 +11,9 @@
   records a fingerprint of what it rendered. The production read reports
   `_baked: false` when a fresh render of the saved theme would differ, and the
   Theme panel and component bars read "out of sync" until Adopt runs.
+- **The Theme panel's Active name stays inside its card.** The pill counted
+  its padding outside its width and ran past the sidebar edge. A long theme
+  name now ends in an ellipsis.
 
 ## 0.94.0 — Tokens-view swatch swap and copy-paste
 
