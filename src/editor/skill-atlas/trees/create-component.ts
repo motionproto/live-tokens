@@ -2,7 +2,7 @@ import type { SkillTree } from '../types';
 
 export const createComponent: SkillTree = {
   "id": "live-tokens-create-component",
-  "digest": "sha256:c23a0888aaf81681",
+  "digest": "sha256:f4e2bc25cb069f8a",
   "title": "create-component",
   "tagline": "Create a LiveTokens Component",
   "nodes": [
@@ -119,12 +119,12 @@ export const createComponent: SkillTree = {
         },
         {
           "label": "Sketch mode",
-          "lines": [235, 235],
+          "lines": [236, 236],
           "anchor": "Every component joins the sketch layer: read `references/ske"
         },
         {
           "label": "Fixed overlays",
-          "lines": [237, 237],
+          "lines": [238, 238],
           "anchor": "A fixed overlay portals to `<body>`: read `references/fixed-"
         }
       ]
@@ -155,7 +155,7 @@ export const createComponent: SkillTree = {
         },
         {
           "label": "Linked siblings",
-          "lines": [204, 204],
+          "lines": [205, 205],
           "anchor": "When variants share a value, read `references/linked-sibling"
         }
       ]
@@ -171,23 +171,23 @@ export const createComponent: SkillTree = {
       "chips": [
         {
           "label": "Shared module",
-          "lines": [208, 224],
+          "lines": [209, 225],
           "anchor": "Register the component in `src/registerComponents.ts`, a reg",
           "anchorEnd": "});"
         },
         {
           "label": "Import and name it",
-          "lines": [227, 227],
+          "lines": [228, 228],
           "anchor": "Import the module from `src/main.ts`, before `bootLiveTokens"
         },
         {
           "label": "Contract",
-          "lines": [227, 227],
+          "lines": [228, 228],
           "anchor": "Import the module from `src/main.ts`, before `bootLiveTokens"
         },
         {
           "label": "First-party",
-          "lines": [231, 231],
+          "lines": [232, 232],
           "anchor": "Inside the live-tokens repository, a first-party component k"
         }
       ]
@@ -198,7 +198,7 @@ export const createComponent: SkillTree = {
       "kind": "cli",
       "title": "Run check-component",
       "desc": "check-component <id> --tests --strict --json applies every auto repair, runs the contract suites, and returns the fixes beside the remaining findings and coverage by rule.",
-      "lines": [241, 241],
+      "lines": [242, 242],
       "anchor": "Run `npx live-tokens check-component <id> --tests --strict -"
     },
     {
@@ -207,7 +207,7 @@ export const createComponent: SkillTree = {
       "kind": "gate",
       "title": "Repair from guidance",
       "desc": "Each remaining finding carries its guidance. Make each repair, then run check-component again until coverage is complete.",
-      "lines": [242, 242],
+      "lines": [243, 243],
       "anchor": "Each remaining finding carries a rule id, a line, and its `g"
     },
     {
@@ -225,7 +225,7 @@ export const createComponent: SkillTree = {
       "kind": "hand",
       "title": "live-tokens-create-page",
       "desc": "The component is done. Placing it on a page is the next skill.",
-      "lines": [248, 248],
+      "lines": [249, 249],
       "anchor": "Then place the component on a page with **live-tokens-create"
     }
   ],

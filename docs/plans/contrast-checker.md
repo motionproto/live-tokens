@@ -538,6 +538,19 @@ failure predates the run:
   so its `metaAfter` snippet is a public addition and takes a third
   `### Added` entry. The index exports neither `UIInfoPopover` nor
   `UIContrastReadout`, so the `trigger` snippet and the readout take none.
+- W4 step 1, placement: `SKILL.md` held 249 lines against the 250-line ceiling
+  `check:skills` enforces, so the step is one line, a fourth item in the
+  editor file's list, and the list's intro reads "four parts". The skill now
+  sits at the ceiling.
+- W4 step 1, Review rule: the step states the contract test's four assertions
+  (every `allTokens` text or icon color is a foreground, pairs name only schema
+  and intrinsic variables, every text pair names `fontSize`, and no two pairs
+  share foreground, backdrop and context) and the `ContrastPair` fields. Its
+  top-first order, `fontWeight` and smaller-size guidance go past the test and
+  contradict none of it.
+- W4 step 1, registration: `registerComponent()` registers only the pairs its
+  entry carries, and the contract test reads `entry.contrastPairs`, so the step
+  adds that the registration passes the export as `contrastPairs`.
 
 ### Deferred
 
@@ -576,3 +589,12 @@ failure predates the run:
   `ContrastPair` type stays out of the public `component-editor` index, as W2
   left it. No Wave 3 step names the export, so Wave 4 or the reviewer may add
   it beside `IntrinsicSpec`.
+- W4 step 1: the `ContrastPair` type stays out of the public
+  `component-editor` index, so the skill step names no type and shows no code.
+  A consumer's untyped `contrastPairs` literal widens `role` to `string`, which
+  `registerComponent()` rejects under the Svelte check. Exporting the type
+  beside `IntrinsicSpec`, with a changelog line, would let the step type the
+  export. No Wave 4 step names the export, so the wave adds none.
+- W4 step 1: the Skill Atlas `cc-editor` chipset keeps its four chips and gains
+  none for contrast pairs. No step names a chip, so the sync only re-pointed
+  the moved ranges.
