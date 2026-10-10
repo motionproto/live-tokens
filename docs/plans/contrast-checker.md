@@ -542,3 +542,8 @@ failure predates the run:
   plan promises for every pair below its floor. The audit states that an
   inactive pair applies no floor, which supports the ranking. The reviewer may
   prefer the literal reading.
+- W2 step 2: `RegisterComponentEntry` gains `contrastPairs` through
+  `RegistryEntry`, but the `ContrastPair` type stays out of the public
+  `component-editor` index, which exports `Token` and `IntrinsicSpec`. A
+  consumer can pass pairs without the type. No step names the export, so the
+  wave adds none; Wave 3 or 4 may export it beside `IntrinsicSpec`.
