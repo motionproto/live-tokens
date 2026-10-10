@@ -1,5 +1,6 @@
 <script module lang="ts">
   import type { Token } from './scaffolding/types';
+  import type { ContrastPair } from '../core/palettes/contrastPairs';
   import { badgeVariants } from '../../system/components/Badge.svelte';
 
   export const component = 'cornerbadge';
@@ -40,6 +41,18 @@
   ];
 
   const variantOptions = badgeVariants.map((v) => ({ value: v, label: v.charAt(0).toUpperCase() + v.slice(1) }));
+
+  function variantContrastPairs(v: Variant): ContrastPair[] {
+    return [{
+      foreground: `--cornerbadge-${v}-text`,
+      backdrop: [`--cornerbadge-${v}-surface`],
+      role: 'text',
+      fontSize: '--cornerbadge-text-font-size',
+      fontWeight: '--cornerbadge-text-font-weight',
+    }];
+  }
+
+  export const contrastPairs: ContrastPair[] = badgeVariants.flatMap(variantContrastPairs);
 </script>
 
 <script lang="ts">

@@ -1,6 +1,7 @@
 <script module lang="ts">
   import { buildSiblings } from './scaffolding/siblings';
   import type { Token } from './scaffolding/types';
+  import type { ContrastPair } from '../core/palettes/contrastPairs';
 
   export const component = 'inlineeditactions';
 
@@ -38,6 +39,17 @@
     [`--inlineeditactions-${btn}-default-padding`, btn] as const,
     [`--inlineeditactions-${btn}-default-icon-size`, btn] as const,
   ]));
+
+  // Each button holds a glyph and no text, so its color is a non-text pair.
+  function buttonContrastPairs(btn: Button): ContrastPair[] {
+    return (['default', 'hover'] as const).map((state) => ({
+      foreground: `--inlineeditactions-${btn}-${state}-text`,
+      backdrop: [`--inlineeditactions-${btn}-${state}-surface`],
+      role: 'non-text',
+    }));
+  }
+
+  export const contrastPairs: ContrastPair[] = buttons.flatMap(buttonContrastPairs);
 </script>
 
 <script lang="ts">

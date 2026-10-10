@@ -448,6 +448,30 @@ failure predates the run:
   old and new forms over every size from 0 to 40px in 0.01px steps, the
   thresholds plus and minus 0.01, and 14 weights from 0 to 1000 found no
   difference.
+- W2 step 3, editor count: 27 registry entries hold `text-color` tokens, every
+  editor except Panel and Image, as the inventory's tables list. The plan's 24
+  repeats the audit's count. Step 4's first assertion requires a pair for each,
+  so all 27 editors declare pairs.
+- W2 step 3, tint gates: the gates are intrinsics the editors already export
+  but `registry.ts` never wired. Step 4 admits a backdrop variable only from the
+  schema or an intrinsic, so each entry whose pairs name a gate now carries its
+  editor's `intrinsics` (Button, IconButton, SegmentedControl, TabBar,
+  MenuSelect, SideNavigation). `intrinsicsContract.test.ts` covers and passes
+  them. ImageLightbox's `tile-fit` stays unwired because no pair names it.
+- W2 Button: the text renders at the variant size and at the shared small size,
+  so every Button text pair names `--button-small-text-font-size` and
+  `--button-small-text-font-weight`, the smaller size by default (sm against lg).
+- W2 Button and IconButton outline `:active`: the CSS repaints with the
+  `background` shorthand, which drops the tint layer, and sets no color. A
+  pointer press keeps the hover color and a key press or `force-active` keeps
+  the default one, so both colors gain a pair on the active surface, with
+  contexts `default`, `hover` and `active`.
+- W2 InlineEditActions: each `-text` color paints a lone glyph (`fa-check`,
+  `fa-times`) and no text, so the CSS makes its pairs `non-text`.
+- W2 Notification body: `size="small"` sets `.notification-description` in
+  `--font-size-sm`, the smaller of its two sizes, so the body pair names it
+  with the variant's weight. The dismiss pair takes the context
+  `dismiss button` and the body pair `body`.
 
 ### Deferred
 

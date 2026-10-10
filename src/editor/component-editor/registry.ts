@@ -4,15 +4,15 @@ import { registerComponentSchema } from '../core/store/editorStore';
 import type { ContrastPair } from '../core/palettes/contrastPairs';
 import { registerContrastPairs } from '../core/components/contrastPairRegistry';
 
-import BadgeEditor, { allTokens as badgeTokens } from './BadgeEditor.svelte';
+import BadgeEditor, { allTokens as badgeTokens, contrastPairs as badgeContrastPairs } from './BadgeEditor.svelte';
 import { catalogue as badgeCatalogue } from '../../system/components/Badge.svelte';
-import CalloutEditor, { allTokens as calloutTokens } from './CalloutEditor.svelte';
+import CalloutEditor, { allTokens as calloutTokens, contrastPairs as calloutContrastPairs } from './CalloutEditor.svelte';
 import { catalogue as calloutCatalogue } from '../../system/components/Callout.svelte';
-import CornerBadgeEditor, { allTokens as cornerBadgeTokens } from './CornerBadgeEditor.svelte';
+import CornerBadgeEditor, { allTokens as cornerBadgeTokens, contrastPairs as cornerBadgeContrastPairs } from './CornerBadgeEditor.svelte';
 import { catalogue as cornerBadgeCatalogue } from '../../system/components/CornerBadge.svelte';
-import ButtonEditor, { allTokens as buttonTokens } from './ButtonEditor.svelte';
+import ButtonEditor, { allTokens as buttonTokens, intrinsics as buttonIntrinsics, contrastPairs as buttonContrastPairs } from './ButtonEditor.svelte';
 import { catalogue as buttonCatalogue } from '../../system/components/Button.svelte';
-import IconButtonEditor, { allTokens as iconButtonTokens } from './IconButtonEditor.svelte';
+import IconButtonEditor, { allTokens as iconButtonTokens, intrinsics as iconButtonIntrinsics, contrastPairs as iconButtonContrastPairs } from './IconButtonEditor.svelte';
 import { catalogue as iconButtonCatalogue } from '../../system/components/IconButton.svelte';
 import CardEditor, { allTokens as cardTokens, intrinsics as cardIntrinsics } from './CardEditor.svelte';
 import { catalogue as cardCatalogue } from '../../system/components/Card.svelte';
@@ -32,13 +32,13 @@ import { catalogue as videoFrameCatalogue } from '../../system/components/VideoF
 import SlidePagerEditor, { allTokens as slidePagerTokens } from './SlidePagerEditor.svelte';
 import { catalogue as slidePagerCatalogue } from '../../system/components/SlidePager.svelte';
 import { catalogue as videoLightboxCatalogue } from '../../system/components/VideoLightbox.svelte';
-import InlineEditActionsEditor, { allTokens as inlineEditActionsTokens } from './InlineEditActionsEditor.svelte';
+import InlineEditActionsEditor, { allTokens as inlineEditActionsTokens, contrastPairs as inlineEditActionsContrastPairs } from './InlineEditActionsEditor.svelte';
 import { catalogue as inlineEditActionsCatalogue } from '../../system/components/InlineEditActions.svelte';
 import InputEditor, { allTokens as inputTokens } from './InputEditor.svelte';
 import { catalogue as inputCatalogue } from '../../system/components/Input.svelte';
 import MenuSelectEditor, { allTokens as menuSelectTokens } from './MenuSelectEditor.svelte';
 import { catalogue as menuSelectCatalogue } from '../../system/components/MenuSelect.svelte';
-import NotificationEditor, { allTokens as notificationTokens } from './NotificationEditor.svelte';
+import NotificationEditor, { allTokens as notificationTokens, contrastPairs as notificationContrastPairs } from './NotificationEditor.svelte';
 import { catalogue as notificationCatalogue } from '../../system/components/Notification.svelte';
 import PanelEditor, { allTokens as panelTokens } from './PanelEditor.svelte';
 import { catalogue as panelCatalogue } from '../../system/components/Panel.svelte';
@@ -60,7 +60,7 @@ import TabBarEditor, { allTokens as tabBarTokens } from './TabBarEditor.svelte';
 import { catalogue as tabBarCatalogue } from '../../system/components/TabBar.svelte';
 import ToggleEditor, { allTokens as toggleTokens } from './ToggleEditor.svelte';
 import { catalogue as toggleCatalogue } from '../../system/components/Toggle.svelte';
-import TooltipEditor, { allTokens as tooltipTokens } from './TooltipEditor.svelte';
+import TooltipEditor, { allTokens as tooltipTokens, contrastPairs as tooltipContrastPairs } from './TooltipEditor.svelte';
 import { catalogue as tooltipCatalogue } from '../../system/components/Tooltip.svelte';
 
 /** Internal narrowed union of the first-party component ids. Not exposed publicly. */
@@ -155,6 +155,8 @@ const builtInRegistry: Readonly<Record<BuiltInComponentId, RegistryEntry>> = Obj
     sourceFile: 'src/system/components/Button.svelte',
     editorComponent: ButtonEditor,
     schema: buttonTokens,
+    intrinsics: buttonIntrinsics,
+    contrastPairs: buttonContrastPairs,
     catalogue: buttonCatalogue,
     origin: 'system',
   },
@@ -165,6 +167,8 @@ const builtInRegistry: Readonly<Record<BuiltInComponentId, RegistryEntry>> = Obj
     sourceFile: 'src/system/components/IconButton.svelte',
     editorComponent: IconButtonEditor,
     schema: iconButtonTokens,
+    intrinsics: iconButtonIntrinsics,
+    contrastPairs: iconButtonContrastPairs,
     catalogue: iconButtonCatalogue,
     origin: 'system',
   },
@@ -175,6 +179,7 @@ const builtInRegistry: Readonly<Record<BuiltInComponentId, RegistryEntry>> = Obj
     sourceFile: 'src/system/components/Notification.svelte',
     editorComponent: NotificationEditor,
     schema: notificationTokens,
+    contrastPairs: notificationContrastPairs,
     catalogue: notificationCatalogue,
     origin: 'system',
   },
@@ -216,6 +221,7 @@ const builtInRegistry: Readonly<Record<BuiltInComponentId, RegistryEntry>> = Obj
     sourceFile: 'src/system/components/Badge.svelte',
     editorComponent: BadgeEditor,
     schema: badgeTokens,
+    contrastPairs: badgeContrastPairs,
     catalogue: badgeCatalogue,
     origin: 'system',
   },
@@ -226,6 +232,7 @@ const builtInRegistry: Readonly<Record<BuiltInComponentId, RegistryEntry>> = Obj
     sourceFile: 'src/system/components/Callout.svelte',
     editorComponent: CalloutEditor,
     schema: calloutTokens,
+    contrastPairs: calloutContrastPairs,
     catalogue: calloutCatalogue,
     origin: 'system',
   },
@@ -246,6 +253,7 @@ const builtInRegistry: Readonly<Record<BuiltInComponentId, RegistryEntry>> = Obj
     sourceFile: 'src/system/components/CornerBadge.svelte',
     editorComponent: CornerBadgeEditor,
     schema: cornerBadgeTokens,
+    contrastPairs: cornerBadgeContrastPairs,
     catalogue: cornerBadgeCatalogue,
     origin: 'system',
   },
@@ -307,6 +315,7 @@ const builtInRegistry: Readonly<Record<BuiltInComponentId, RegistryEntry>> = Obj
     sourceFile: 'src/system/components/InlineEditActions.svelte',
     editorComponent: InlineEditActionsEditor,
     schema: inlineEditActionsTokens,
+    contrastPairs: inlineEditActionsContrastPairs,
     catalogue: inlineEditActionsCatalogue,
     origin: 'system',
   },
@@ -408,6 +417,7 @@ const builtInRegistry: Readonly<Record<BuiltInComponentId, RegistryEntry>> = Obj
     sourceFile: 'src/system/components/Tooltip.svelte',
     editorComponent: TooltipEditor,
     schema: tooltipTokens,
+    contrastPairs: tooltipContrastPairs,
     catalogue: tooltipCatalogue,
     origin: 'system',
   },

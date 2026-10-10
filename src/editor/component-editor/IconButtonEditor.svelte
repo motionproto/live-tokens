@@ -1,6 +1,7 @@
 <script module lang="ts">
   import { buildSiblings } from './scaffolding/siblings';
   import type { Token, IntrinsicSpec } from './scaffolding/types';
+  import type { ContrastPair } from '../core/palettes/contrastPairs';
 
   export const component = 'iconbutton';
 
@@ -104,6 +105,32 @@
       default: { default: 'var(--color-transparent)' },
     },
   ];
+
+  function variantContrastPairs(v: Variant): ContrastPair[] {
+    const icon = (s: StateName) => `${statePrefix(v, s)}-icon`;
+    const surface = (s: StateName) => `${statePrefix(v, s)}-surface`;
+    const hoverStack = ['--iconbutton-hover-tint-enabled', surface('hover')];
+    const disabled: ContrastPair = { foreground: icon('disabled'), backdrop: [surface('disabled')], role: 'non-text', inactive: true };
+    if (v !== 'outline') {
+      return [
+        { foreground: icon('default'), backdrop: [surface('default')], role: 'non-text' },
+        { foreground: icon('hover'), backdrop: hoverStack, role: 'non-text' },
+        disabled,
+      ];
+    }
+    // `:active` repaints the surface without the tint. A pointer press keeps the
+    // hover icon color, and a key press keeps the default one.
+    const active = ['--iconbutton-outline-active-surface'];
+    return [
+      { foreground: icon('default'), backdrop: [surface('default')], role: 'non-text', context: 'default' },
+      { foreground: icon('default'), backdrop: active, role: 'non-text', context: 'active' },
+      { foreground: icon('hover'), backdrop: hoverStack, role: 'non-text', context: 'hover' },
+      { foreground: icon('hover'), backdrop: active, role: 'non-text', context: 'active' },
+      disabled,
+    ];
+  }
+
+  export const contrastPairs: ContrastPair[] = variants.flatMap(variantContrastPairs);
 </script>
 
 <script lang="ts">

@@ -1,5 +1,6 @@
 <script module lang="ts">
   import type { Token } from './scaffolding/types';
+  import type { ContrastPair } from '../core/palettes/contrastPairs';
 
   export const component = 'notification';
   const variants = ['info', 'success', 'warning', 'danger'] as const;
@@ -67,6 +68,20 @@
   }
 
   const variantOptions = variants.map((v) => ({ value: v, label: v.charAt(0).toUpperCase() + v.slice(1) }));
+
+  // The body color also paints the dismiss button on the header. The body has
+  // no surface, and size="small" sets its description in --font-size-sm.
+  function variantContrastPairs(v: Variant): ContrastPair[] {
+    const header = [`--notification-${v}-surface`];
+    return [
+      { foreground: `--notification-${v}-title`, backdrop: header, role: 'text', fontSize: `--notification-${v}-title-font-size`, fontWeight: `--notification-${v}-title-font-weight` },
+      { foreground: `--notification-${v}-icon`, backdrop: header, role: 'non-text' },
+      { foreground: `--notification-${v}-text`, backdrop: header, role: 'non-text', context: 'dismiss button' },
+      { foreground: `--notification-${v}-text`, backdrop: [], role: 'text', fontSize: '--font-size-sm', fontWeight: `--notification-${v}-text-font-weight`, context: 'body' },
+    ];
+  }
+
+  export const contrastPairs: ContrastPair[] = variants.flatMap(variantContrastPairs);
 </script>
 
 <script lang="ts">
