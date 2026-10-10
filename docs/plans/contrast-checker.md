@@ -557,6 +557,17 @@ failure predates the run:
   shipped default passes at 9.66:1, so the test keeps Button primary.
 - W5 step 1, Notification: the test opens the Info variant's `colors` part,
   where `--notification-info-text` lists its `dismiss button` and `body` pairs.
+- W5 Review rule, Toggle: `--toggle-thumb-surface` fails in the shipped default
+  at 2.93:1, and its test asserts only the popover's criterion and link, so the
+  test keeps the thumb and the report lists the failure.
+- W5 step 2, script: a scratch Playwright config built on
+  `createPlaywrightConfig` ran one scratch spec, so the dev server took a free
+  port and the isolated data copy. The copy drops `_active.json`, so the editor
+  opened the default theme, Motion Proto. The config, spec and generator are
+  deleted.
+- W5 step 2, report shape: the table sorts by ratio divided by floor, lowest
+  first, and adds Context and Role columns to the step's five, so two pairs on
+  one foreground stay distinct and a 3:1 floor reads as non-text or large text.
 
 ### Deferred
 
