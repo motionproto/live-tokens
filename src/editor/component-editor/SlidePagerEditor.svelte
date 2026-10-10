@@ -1,5 +1,6 @@
 <script module lang="ts">
   import type { Token } from './scaffolding/types';
+  import type { ContrastPair } from '../core/palettes/contrastPairs';
 
   export const component = 'slidepager';
 
@@ -46,6 +47,25 @@
   };
 
   export const allTokens: Token[] = Object.values(states).flat();
+
+  // The bar sits on the page inline and on the scrim when zoomed.
+  const scrim = '--slidepager-scrim-surface';
+  function controlContrastPairs(foreground: string, surface: string, inactive: boolean): ContrastPair[] {
+    const flag = inactive ? { inactive } : {};
+    return [
+      { foreground, backdrop: [surface], role: 'non-text', context: 'inline', ...flag },
+      { foreground, backdrop: [surface, scrim], role: 'non-text', context: 'zoomed', ...flag },
+    ];
+  }
+  const counter = { foreground: '--slidepager-counter-text', role: 'text', fontSize: '--slidepager-counter-font-size', fontWeight: '--slidepager-counter-font-weight' } as const;
+
+  export const contrastPairs: ContrastPair[] = [
+    ...controlContrastPairs('--slidepager-control-icon', '--slidepager-control-surface', false),
+    ...controlContrastPairs('--slidepager-control-hover-icon', '--slidepager-control-hover-surface', false),
+    ...controlContrastPairs('--slidepager-control-disabled-icon', '--slidepager-control-disabled-surface', true),
+    { ...counter, backdrop: [], context: 'inline' },
+    { ...counter, backdrop: [scrim], context: 'zoomed' },
+  ];
 </script>
 
 <script lang="ts">

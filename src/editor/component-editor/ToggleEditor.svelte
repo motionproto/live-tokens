@@ -1,5 +1,6 @@
 <script module lang="ts">
   import type { Token } from './scaffolding/types';
+  import type { ContrastPair } from '../core/palettes/contrastPairs';
 
   export const component = 'toggle';
 
@@ -44,6 +45,22 @@
   };
 
   export const allTokens: Token[] = Object.values(states).flat();
+
+  const label = { role: 'text', fontSize: '--toggle-label-font-size', fontWeight: '--toggle-label-font-weight' } as const;
+  // Each state's thumb paints on its own state's track.
+  const thumbOnTrack: [thumb: string, track: string][] = [
+    ['--toggle-thumb-surface', '--toggle-track-surface'],
+    ['--toggle-hover-thumb-surface', '--toggle-hover-track-surface'],
+    ['--toggle-on-thumb-surface', '--toggle-on-track-surface'],
+    ['--toggle-on-hover-thumb-surface', '--toggle-on-hover-track-surface'],
+  ];
+
+  export const contrastPairs: ContrastPair[] = [
+    { foreground: '--toggle-label', backdrop: [], ...label },
+    { foreground: '--toggle-disabled-label', backdrop: [], ...label, inactive: true },
+    ...thumbOnTrack.map(([thumb, track]): ContrastPair => ({ foreground: thumb, backdrop: [track], role: 'non-text' })),
+    { foreground: '--toggle-disabled-thumb-surface', backdrop: ['--toggle-disabled-track-surface'], role: 'non-text', inactive: true },
+  ];
 </script>
 
 <script lang="ts">

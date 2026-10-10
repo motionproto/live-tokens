@@ -492,6 +492,25 @@ failure predates the run:
 - W2 Table header: the inventory lists the header surface alone, but `th`
   sits inside `.table-wrapper`, which paints `--table-default-surface`, so the
   CSS puts the wrapper under the header surface.
+- W2 Dialog: the inventory lists the header surface and the dialog surface
+  alone, but the CSS nests the header and body in `.dialog` and `.dialog` in
+  `.dialog-backdrop`, which paints the scrim. The title and close icon stack
+  header, dialog and scrim; the body stacks dialog and scrim.
+- W2 SlidePager controls: the inventory lists the control surface alone, but
+  the zoomed bar sits on `.slidepager-modal`, which paints the scrim. Each
+  control color takes an `inline` pair on its surface and a `zoomed` pair on
+  its surface over the scrim. The counter follows the Review rule.
+- W2 SideNavigation: the title label stacks the label surface, the title state
+  and the panel. A pointer on the toggle also hovers `.sn-title`, and a
+  selected title has no hover rule, so the default toggle icon takes one pair
+  per title state and the hover icon one per hovered and selected title, with
+  contexts `title <state>`. The `-indicator` colors are absent from the
+  inventory and take no pair.
+- W2 Slider: the default, hover and disabled thumbs each take a `fill` pair and
+  a `track` pair per the Review rule, the disabled ones `inactive`. The shared
+  label and value take one pair each on the page.
+- W2 RadioButton: the ring and the hover and selected dot fills are marks on
+  the page. The default dot renders at opacity 0 and takes no pair.
 
 ### Deferred
 

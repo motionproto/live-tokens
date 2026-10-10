@@ -1,6 +1,7 @@
 <script module lang="ts">
   import { buildTypeGroupColorTokens } from './scaffolding/buildTypeGroupTokens';
   import type { Token, TypeGroupConfig } from './scaffolding/types';
+  import type { ContrastPair } from '../core/palettes/contrastPairs';
 
   export const component = 'progressbar';
 
@@ -70,6 +71,18 @@
     ...Object.values(states).flat(),
     ...buildTypeGroupColorTokens(typeGroups, { component }),
     ...typeGroupTokens,
+  ];
+
+  // The label and value sit on no surface. The fill paints on the track.
+  export const contrastPairs: ContrastPair[] = [
+    ...typeGroups.default.map((g): ContrastPair => ({
+      foreground: g.colorVariable,
+      backdrop: [],
+      role: 'text',
+      fontSize: g.sizeVariable,
+      fontWeight: g.weightVariable,
+    })),
+    { foreground: '--progressbar-fill', backdrop: ['--progressbar-track-surface'], role: 'non-text' },
   ];
 </script>
 

@@ -1,6 +1,7 @@
 <script module lang="ts">
   import { buildSiblings } from './scaffolding/siblings';
   import type { Token, TypeGroupConfig, IntrinsicSpec } from './scaffolding/types';
+  import type { ContrastPair } from '../core/palettes/contrastPairs';
 
   export const component = 'sectiondivider';
 
@@ -193,6 +194,22 @@
     },
   ];
   const INTRINSIC_BY_KEY = new Map(intrinsics.map((i) => [i.key, i]));
+
+  function variantContrastPairs(v: Variant): ContrastPair[] {
+    const backdrop = [`--sectiondivider-${v}-surface`];
+    return [
+      ...variantTypeGroups(v).map((g): ContrastPair => ({
+        foreground: g.colorVariable,
+        backdrop,
+        role: 'text',
+        fontSize: g.sizeVariable,
+        fontWeight: g.weightVariable,
+      })),
+      { foreground: `--sectiondivider-${v}-hairline-color`, backdrop, role: 'non-text' },
+    ];
+  }
+
+  export const contrastPairs: ContrastPair[] = variants.flatMap((v) => variantContrastPairs(v.key));
 </script>
 
 <script lang="ts">

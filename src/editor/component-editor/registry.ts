@@ -20,7 +20,7 @@ import CodeSnippetEditor, { allTokens as codeSnippetTokens, contrastPairs as cod
 import { catalogue as codeSnippetCatalogue } from '../../system/components/CodeSnippet.svelte';
 import CollapsibleSectionEditor, { allTokens as collapsibleSectionTokens, contrastPairs as collapsibleSectionContrastPairs } from './CollapsibleSectionEditor.svelte';
 import { catalogue as collapsibleSectionCatalogue } from '../../system/components/CollapsibleSection.svelte';
-import DialogEditor, { allTokens as dialogTokens } from './DialogEditor.svelte';
+import DialogEditor, { allTokens as dialogTokens, contrastPairs as dialogContrastPairs } from './DialogEditor.svelte';
 import { catalogue as dialogCatalogue } from '../../system/components/Dialog.svelte';
 import ImageEditor, { allTokens as imageTokens, intrinsics as imageIntrinsics } from './ImageEditor.svelte';
 import { catalogue as imageCatalogue } from '../../system/components/Image.svelte';
@@ -29,7 +29,7 @@ import { catalogue as imageLightboxCatalogue } from '../../system/components/Ima
 import VideoLightboxEditor, { allTokens as videoLightboxTokens } from './VideoLightboxEditor.svelte';
 import VideoFrameEditor, { allTokens as videoFrameTokens } from './VideoFrameEditor.svelte';
 import { catalogue as videoFrameCatalogue } from '../../system/components/VideoFrame.svelte';
-import SlidePagerEditor, { allTokens as slidePagerTokens } from './SlidePagerEditor.svelte';
+import SlidePagerEditor, { allTokens as slidePagerTokens, contrastPairs as slidePagerContrastPairs } from './SlidePagerEditor.svelte';
 import { catalogue as slidePagerCatalogue } from '../../system/components/SlidePager.svelte';
 import { catalogue as videoLightboxCatalogue } from '../../system/components/VideoLightbox.svelte';
 import InlineEditActionsEditor, { allTokens as inlineEditActionsTokens, contrastPairs as inlineEditActionsContrastPairs } from './InlineEditActionsEditor.svelte';
@@ -42,23 +42,23 @@ import NotificationEditor, { allTokens as notificationTokens, contrastPairs as n
 import { catalogue as notificationCatalogue } from '../../system/components/Notification.svelte';
 import PanelEditor, { allTokens as panelTokens } from './PanelEditor.svelte';
 import { catalogue as panelCatalogue } from '../../system/components/Panel.svelte';
-import ProgressBarEditor, { allTokens as progressBarTokens } from './ProgressBarEditor.svelte';
+import ProgressBarEditor, { allTokens as progressBarTokens, contrastPairs as progressBarContrastPairs } from './ProgressBarEditor.svelte';
 import { catalogue as progressBarCatalogue } from '../../system/components/ProgressBar.svelte';
-import SliderEditor, { allTokens as sliderTokens } from './SliderEditor.svelte';
+import SliderEditor, { allTokens as sliderTokens, contrastPairs as sliderContrastPairs } from './SliderEditor.svelte';
 import { catalogue as sliderCatalogue } from '../../system/components/Slider.svelte';
-import RadioButtonEditor, { allTokens as radioButtonTokens } from './RadioButtonEditor.svelte';
+import RadioButtonEditor, { allTokens as radioButtonTokens, contrastPairs as radioButtonContrastPairs } from './RadioButtonEditor.svelte';
 import { catalogue as radioButtonCatalogue } from '../../system/components/RadioButton.svelte';
-import SectionDividerEditor, { allTokens as sectionDividerTokens, intrinsics as sectionDividerIntrinsics } from './SectionDividerEditor.svelte';
+import SectionDividerEditor, { allTokens as sectionDividerTokens, intrinsics as sectionDividerIntrinsics, contrastPairs as sectionDividerContrastPairs } from './SectionDividerEditor.svelte';
 import { catalogue as sectionDividerCatalogue } from '../../system/components/SectionDivider.svelte';
 import SegmentedControlEditor, { allTokens as segmentedControlTokens, intrinsics as segmentedControlIntrinsics, contrastPairs as segmentedControlContrastPairs } from './SegmentedControlEditor.svelte';
 import { catalogue as segmentedControlCatalogue } from '../../system/components/SegmentedControl.svelte';
-import SideNavigationEditor, { allTokens as sideNavigationTokens } from './SideNavigationEditor.svelte';
+import SideNavigationEditor, { allTokens as sideNavigationTokens, intrinsics as sideNavigationIntrinsics, contrastPairs as sideNavigationContrastPairs } from './SideNavigationEditor.svelte';
 import { catalogue as sideNavigationCatalogue } from '../../system/components/SideNavigation.svelte';
 import TableEditor, { allTokens as tableTokens, contrastPairs as tableContrastPairs } from './TableEditor.svelte';
 import { catalogue as tableCatalogue } from '../../system/components/Table.svelte';
 import TabBarEditor, { allTokens as tabBarTokens, intrinsics as tabBarIntrinsics, contrastPairs as tabBarContrastPairs } from './TabBarEditor.svelte';
 import { catalogue as tabBarCatalogue } from '../../system/components/TabBar.svelte';
-import ToggleEditor, { allTokens as toggleTokens } from './ToggleEditor.svelte';
+import ToggleEditor, { allTokens as toggleTokens, contrastPairs as toggleContrastPairs } from './ToggleEditor.svelte';
 import { catalogue as toggleCatalogue } from '../../system/components/Toggle.svelte';
 import TooltipEditor, { allTokens as tooltipTokens, contrastPairs as tooltipContrastPairs } from './TooltipEditor.svelte';
 import { catalogue as tooltipCatalogue } from '../../system/components/Tooltip.svelte';
@@ -192,6 +192,7 @@ const builtInRegistry: Readonly<Record<BuiltInComponentId, RegistryEntry>> = Obj
     sourceFile: 'src/system/components/Dialog.svelte',
     editorComponent: DialogEditor,
     schema: dialogTokens,
+    contrastPairs: dialogContrastPairs,
     catalogue: dialogCatalogue,
     origin: 'system',
   },
@@ -202,6 +203,7 @@ const builtInRegistry: Readonly<Record<BuiltInComponentId, RegistryEntry>> = Obj
     sourceFile: 'src/system/components/RadioButton.svelte',
     editorComponent: RadioButtonEditor,
     schema: radioButtonTokens,
+    contrastPairs: radioButtonContrastPairs,
     catalogue: radioButtonCatalogue,
     origin: 'system',
   },
@@ -309,6 +311,7 @@ const builtInRegistry: Readonly<Record<BuiltInComponentId, RegistryEntry>> = Obj
     sourceFile: 'src/system/components/SlidePager.svelte',
     editorComponent: SlidePagerEditor,
     schema: slidePagerTokens,
+    contrastPairs: slidePagerContrastPairs,
     catalogue: slidePagerCatalogue,
     origin: 'system',
   },
@@ -364,6 +367,7 @@ const builtInRegistry: Readonly<Record<BuiltInComponentId, RegistryEntry>> = Obj
     editorComponent: SectionDividerEditor,
     schema: sectionDividerTokens,
     intrinsics: sectionDividerIntrinsics,
+    contrastPairs: sectionDividerContrastPairs,
     catalogue: sectionDividerCatalogue,
     origin: 'system',
   },
@@ -385,6 +389,8 @@ const builtInRegistry: Readonly<Record<BuiltInComponentId, RegistryEntry>> = Obj
     sourceFile: 'src/system/components/SideNavigation.svelte',
     editorComponent: SideNavigationEditor,
     schema: sideNavigationTokens,
+    intrinsics: sideNavigationIntrinsics,
+    contrastPairs: sideNavigationContrastPairs,
     catalogue: sideNavigationCatalogue,
     origin: 'system',
   },
@@ -418,6 +424,7 @@ const builtInRegistry: Readonly<Record<BuiltInComponentId, RegistryEntry>> = Obj
     sourceFile: 'src/system/components/Toggle.svelte',
     editorComponent: ToggleEditor,
     schema: toggleTokens,
+    contrastPairs: toggleContrastPairs,
     catalogue: toggleCatalogue,
     origin: 'system',
   },
@@ -439,6 +446,7 @@ const builtInRegistry: Readonly<Record<BuiltInComponentId, RegistryEntry>> = Obj
     sourceFile: 'src/system/components/ProgressBar.svelte',
     editorComponent: ProgressBarEditor,
     schema: progressBarTokens,
+    contrastPairs: progressBarContrastPairs,
     catalogue: progressBarCatalogue,
     origin: 'system',
   },
@@ -449,6 +457,7 @@ const builtInRegistry: Readonly<Record<BuiltInComponentId, RegistryEntry>> = Obj
     sourceFile: 'src/system/components/Slider.svelte',
     editorComponent: SliderEditor,
     schema: sliderTokens,
+    contrastPairs: sliderContrastPairs,
     catalogue: sliderCatalogue,
     origin: 'system',
   },

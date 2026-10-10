@@ -1,6 +1,7 @@
 <script module lang="ts">
   import { buildTypeGroupColorTokens } from './scaffolding/buildTypeGroupTokens';
   import type { Token, TypeGroupConfig, IntrinsicSpec } from './scaffolding/types';
+  import type { ContrastPair } from '../core/palettes/contrastPairs';
 
   export const component = 'sidenavigation';
 
@@ -270,6 +271,43 @@
       values: ['var(--color-transparent)', 'var(--sidenavigation-hover-tint)'],
       default: { default: 'var(--color-transparent)' },
     },
+  ];
+
+  // Every part sits on the panel, and a hover rule lays the tint over its
+  // surface. The section header's own CollapsibleSection surface belongs to
+  // that component and stays out of the stack.
+  const panel = '--sidenavigation-panel-surface';
+  const tint = '--sidenavigation-hover-tint-enabled';
+  const partStack = (part: string, s: string): string[] =>
+    s === 'hover' ? [tint, `--sidenavigation-${part}-hover-surface`] : [`--sidenavigation-${part}-${s}-surface`];
+  const textPairs = (groups: TypeGroupConfig[], backdrop: string[]): ContrastPair[] =>
+    groups.map((g) => ({ foreground: g.colorVariable, backdrop, role: 'text', fontSize: g.sizeVariable, fontWeight: g.weightVariable }));
+
+  // The toggle sits on the title, which a pointer on the toggle also hovers.
+  const toggleContrastPairs: ContrastPair[] = [
+    ...STATEFUL_STATES.map((title): ContrastPair => ({
+      foreground: '--sidenavigation-toggle-default-icon',
+      backdrop: ['--sidenavigation-toggle-default-surface', ...partStack('title', title), panel],
+      role: 'non-text',
+      context: `title ${title}`,
+    })),
+    ...(['hover', 'selected'] as const).map((title): ContrastPair => ({
+      foreground: '--sidenavigation-toggle-hover-icon',
+      backdrop: [...partStack('toggle', 'hover'), ...partStack('title', title), panel],
+      role: 'non-text',
+      context: `title ${title}`,
+    })),
+  ];
+
+  export const contrastPairs: ContrastPair[] = [
+    ...STATEFUL_STATES.flatMap((s): ContrastPair[] => [
+      ...textPairs(titleStateTypeGroups(s), ['--sidenavigation-title-label-surface', ...partStack('title', s), panel]),
+      ...textPairs(sectionStateTypeGroups(s), [...partStack('section', s), panel]),
+      ...textPairs(itemStateTypeGroups(s), [...partStack('item', s), panel]),
+      ...textPairs(footerStateTypeGroups(s), [...partStack('footer', s), panel]),
+      { foreground: `--sidenavigation-footer-${s}-icon`, backdrop: [...partStack('footer', s), panel], role: 'non-text' },
+    ]),
+    ...toggleContrastPairs,
   ];
 </script>
 
