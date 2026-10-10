@@ -551,6 +551,12 @@ failure predates the run:
 - W4 step 1, registration: `registerComponent()` registers only the pairs its
   entry carries, and the contract test reads `entry.contrastPairs`, so the step
   adds that the registration passes the export as `contrastPairs`.
+- W5 step 1, independent ratio: the test paints each color through its own
+  canvas and applies its own sRGB luminance, then asserts both colors are
+  opaque, so the page background drops out of the two-color comparison. The
+  shipped default passes at 9.66:1, so the test keeps Button primary.
+- W5 step 1, Notification: the test opens the Info variant's `colors` part,
+  where `--notification-info-text` lists its `dismiss button` and `body` pairs.
 
 ### Deferred
 
