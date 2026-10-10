@@ -1,5 +1,6 @@
 <script module lang="ts">
   import type { Token } from './scaffolding/types';
+  import type { ContrastPair } from '../core/palettes/contrastPairs';
 
   export const component = 'codesnippet';
 
@@ -33,6 +34,15 @@
   };
 
   export const allTokens: Token[] = Object.values(states).flat();
+
+  // The copy button and the scrollbar track paint no surface of their own.
+  const surface = ['--codesnippet-surface'];
+  export const contrastPairs: ContrastPair[] = [
+    { foreground: '--codesnippet-code-text', backdrop: surface, role: 'text', fontSize: '--codesnippet-code-font-size', fontWeight: '--codesnippet-code-font-weight' },
+    { foreground: '--codesnippet-icon', backdrop: surface, role: 'non-text' },
+    { foreground: '--codesnippet-hover-icon', backdrop: surface, role: 'non-text' },
+    { foreground: '--codesnippet-scrollbar-thumb', backdrop: surface, role: 'non-text' },
+  ];
 </script>
 
 <script lang="ts">

@@ -472,6 +472,26 @@ failure predates the run:
   `--font-size-sm`, the smaller of its two sizes, so the body pair names it
   with the variant's weight. The dismiss pair takes the context
   `dismiss button` and the body pair `body`.
+- W2 Input: the CSS colors the icon button's glyph with `--input-focused-icon`
+  on hover and on `:focus-within` while the field stays unfocused, so that
+  color gains a second pair on the default surface (contexts `focused` and
+  `icon button`). Each placeholder pair names its state's text size and weight.
+- W2 SegmentedControl and MenuSelect: every option sits inside the bar and
+  every item inside the menu, so the bar or menu surface closes every state's
+  stack, the opaque hover and selected surfaces included. `.segment` hard-codes
+  a transparent background, so the default option's stack is the bar alone.
+- W2 SegmentedControl text: `.small` rebinds every state's text size to
+  `--segmentedcontrol-option-small-text-font-size`, so each text pair names it
+  with its own state's weight.
+- W2 TabBar indicators: the inventory marks `--tabbar-<state>-border` as a
+  `mark` in all four states, so each takes a non-text pair on its tab's stack.
+  The default and hover indicators ship transparent and measure 1:1.
+- W2 Card: `size="small"` sets the title in `--font-size-md` and the body in
+  `--font-size-sm`, the smaller of each one's two sizes, so the pairs name
+  those with the Card's own weights.
+- W2 Table header: the inventory lists the header surface alone, but `th`
+  sits inside `.table-wrapper`, which paints `--table-default-surface`, so the
+  CSS puts the wrapper under the header surface.
 
 ### Deferred
 

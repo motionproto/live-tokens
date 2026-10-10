@@ -14,11 +14,11 @@ import ButtonEditor, { allTokens as buttonTokens, intrinsics as buttonIntrinsics
 import { catalogue as buttonCatalogue } from '../../system/components/Button.svelte';
 import IconButtonEditor, { allTokens as iconButtonTokens, intrinsics as iconButtonIntrinsics, contrastPairs as iconButtonContrastPairs } from './IconButtonEditor.svelte';
 import { catalogue as iconButtonCatalogue } from '../../system/components/IconButton.svelte';
-import CardEditor, { allTokens as cardTokens, intrinsics as cardIntrinsics } from './CardEditor.svelte';
+import CardEditor, { allTokens as cardTokens, intrinsics as cardIntrinsics, contrastPairs as cardContrastPairs } from './CardEditor.svelte';
 import { catalogue as cardCatalogue } from '../../system/components/Card.svelte';
-import CodeSnippetEditor, { allTokens as codeSnippetTokens } from './CodeSnippetEditor.svelte';
+import CodeSnippetEditor, { allTokens as codeSnippetTokens, contrastPairs as codeSnippetContrastPairs } from './CodeSnippetEditor.svelte';
 import { catalogue as codeSnippetCatalogue } from '../../system/components/CodeSnippet.svelte';
-import CollapsibleSectionEditor, { allTokens as collapsibleSectionTokens } from './CollapsibleSectionEditor.svelte';
+import CollapsibleSectionEditor, { allTokens as collapsibleSectionTokens, contrastPairs as collapsibleSectionContrastPairs } from './CollapsibleSectionEditor.svelte';
 import { catalogue as collapsibleSectionCatalogue } from '../../system/components/CollapsibleSection.svelte';
 import DialogEditor, { allTokens as dialogTokens } from './DialogEditor.svelte';
 import { catalogue as dialogCatalogue } from '../../system/components/Dialog.svelte';
@@ -34,9 +34,9 @@ import { catalogue as slidePagerCatalogue } from '../../system/components/SlideP
 import { catalogue as videoLightboxCatalogue } from '../../system/components/VideoLightbox.svelte';
 import InlineEditActionsEditor, { allTokens as inlineEditActionsTokens, contrastPairs as inlineEditActionsContrastPairs } from './InlineEditActionsEditor.svelte';
 import { catalogue as inlineEditActionsCatalogue } from '../../system/components/InlineEditActions.svelte';
-import InputEditor, { allTokens as inputTokens } from './InputEditor.svelte';
+import InputEditor, { allTokens as inputTokens, contrastPairs as inputContrastPairs } from './InputEditor.svelte';
 import { catalogue as inputCatalogue } from '../../system/components/Input.svelte';
-import MenuSelectEditor, { allTokens as menuSelectTokens } from './MenuSelectEditor.svelte';
+import MenuSelectEditor, { allTokens as menuSelectTokens, intrinsics as menuSelectIntrinsics, contrastPairs as menuSelectContrastPairs } from './MenuSelectEditor.svelte';
 import { catalogue as menuSelectCatalogue } from '../../system/components/MenuSelect.svelte';
 import NotificationEditor, { allTokens as notificationTokens, contrastPairs as notificationContrastPairs } from './NotificationEditor.svelte';
 import { catalogue as notificationCatalogue } from '../../system/components/Notification.svelte';
@@ -50,13 +50,13 @@ import RadioButtonEditor, { allTokens as radioButtonTokens } from './RadioButton
 import { catalogue as radioButtonCatalogue } from '../../system/components/RadioButton.svelte';
 import SectionDividerEditor, { allTokens as sectionDividerTokens, intrinsics as sectionDividerIntrinsics } from './SectionDividerEditor.svelte';
 import { catalogue as sectionDividerCatalogue } from '../../system/components/SectionDivider.svelte';
-import SegmentedControlEditor, { allTokens as segmentedControlTokens } from './SegmentedControlEditor.svelte';
+import SegmentedControlEditor, { allTokens as segmentedControlTokens, intrinsics as segmentedControlIntrinsics, contrastPairs as segmentedControlContrastPairs } from './SegmentedControlEditor.svelte';
 import { catalogue as segmentedControlCatalogue } from '../../system/components/SegmentedControl.svelte';
 import SideNavigationEditor, { allTokens as sideNavigationTokens } from './SideNavigationEditor.svelte';
 import { catalogue as sideNavigationCatalogue } from '../../system/components/SideNavigation.svelte';
-import TableEditor, { allTokens as tableTokens } from './TableEditor.svelte';
+import TableEditor, { allTokens as tableTokens, contrastPairs as tableContrastPairs } from './TableEditor.svelte';
 import { catalogue as tableCatalogue } from '../../system/components/Table.svelte';
-import TabBarEditor, { allTokens as tabBarTokens } from './TabBarEditor.svelte';
+import TabBarEditor, { allTokens as tabBarTokens, intrinsics as tabBarIntrinsics, contrastPairs as tabBarContrastPairs } from './TabBarEditor.svelte';
 import { catalogue as tabBarCatalogue } from '../../system/components/TabBar.svelte';
 import ToggleEditor, { allTokens as toggleTokens } from './ToggleEditor.svelte';
 import { catalogue as toggleCatalogue } from '../../system/components/Toggle.svelte';
@@ -145,6 +145,8 @@ const builtInRegistry: Readonly<Record<BuiltInComponentId, RegistryEntry>> = Obj
     sourceFile: 'src/system/components/SegmentedControl.svelte',
     editorComponent: SegmentedControlEditor,
     schema: segmentedControlTokens,
+    intrinsics: segmentedControlIntrinsics,
+    contrastPairs: segmentedControlContrastPairs,
     catalogue: segmentedControlCatalogue,
     origin: 'system',
   },
@@ -211,6 +213,7 @@ const builtInRegistry: Readonly<Record<BuiltInComponentId, RegistryEntry>> = Obj
     editorComponent: CardEditor,
     schema: cardTokens,
     intrinsics: cardIntrinsics,
+    contrastPairs: cardContrastPairs,
     catalogue: cardCatalogue,
     origin: 'system',
   },
@@ -243,6 +246,7 @@ const builtInRegistry: Readonly<Record<BuiltInComponentId, RegistryEntry>> = Obj
     sourceFile: 'src/system/components/CodeSnippet.svelte',
     editorComponent: CodeSnippetEditor,
     schema: codeSnippetTokens,
+    contrastPairs: codeSnippetContrastPairs,
     catalogue: codeSnippetCatalogue,
     origin: 'system',
   },
@@ -326,6 +330,7 @@ const builtInRegistry: Readonly<Record<BuiltInComponentId, RegistryEntry>> = Obj
     sourceFile: 'src/system/components/Input.svelte',
     editorComponent: InputEditor,
     schema: inputTokens,
+    contrastPairs: inputContrastPairs,
     catalogue: inputCatalogue,
     origin: 'system',
   },
@@ -336,6 +341,8 @@ const builtInRegistry: Readonly<Record<BuiltInComponentId, RegistryEntry>> = Obj
     sourceFile: 'src/system/components/MenuSelect.svelte',
     editorComponent: MenuSelectEditor,
     schema: menuSelectTokens,
+    intrinsics: menuSelectIntrinsics,
+    contrastPairs: menuSelectContrastPairs,
     catalogue: menuSelectCatalogue,
     origin: 'system',
   },
@@ -367,6 +374,7 @@ const builtInRegistry: Readonly<Record<BuiltInComponentId, RegistryEntry>> = Obj
     sourceFile: 'src/system/components/CollapsibleSection.svelte',
     editorComponent: CollapsibleSectionEditor,
     schema: collapsibleSectionTokens,
+    contrastPairs: collapsibleSectionContrastPairs,
     catalogue: collapsibleSectionCatalogue,
     origin: 'system',
   },
@@ -387,6 +395,7 @@ const builtInRegistry: Readonly<Record<BuiltInComponentId, RegistryEntry>> = Obj
     sourceFile: 'src/system/components/Table.svelte',
     editorComponent: TableEditor,
     schema: tableTokens,
+    contrastPairs: tableContrastPairs,
     catalogue: tableCatalogue,
     origin: 'system',
   },
@@ -397,6 +406,8 @@ const builtInRegistry: Readonly<Record<BuiltInComponentId, RegistryEntry>> = Obj
     sourceFile: 'src/system/components/TabBar.svelte',
     editorComponent: TabBarEditor,
     schema: tabBarTokens,
+    intrinsics: tabBarIntrinsics,
+    contrastPairs: tabBarContrastPairs,
     catalogue: tabBarCatalogue,
     origin: 'system',
   },

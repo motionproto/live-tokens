@@ -1,6 +1,7 @@
 <script module lang="ts">
   import { buildTypeGroupTokens, buildTypeGroupShareableContexts } from './scaffolding/buildTypeGroupTokens';
   import type { Token, TypeGroupConfig } from './scaffolding/types';
+  import type { ContrastPair } from '../core/palettes/contrastPairs';
 
   export const component = 'input';
 
@@ -146,6 +147,28 @@
   // Silence unused-import lint without changing behavior; buildTypeGroupTokens stays available
   // for editors that want auto-derived color rows, but we keep ours hand-built for slot-prefixed groupKeys.
   void buildTypeGroupTokens;
+
+  function textPair(foreground: string, state: string, backdrop: string[]): ContrastPair {
+    const g = typeGroups[state][0];
+    return { foreground, backdrop, role: 'text', fontSize: g.sizeVariable, fontWeight: g.weightVariable };
+  }
+
+  // The placeholder paints on each state's surface at that state's text size.
+  // The icon button takes the focused icon color on hover and focus while the
+  // field itself stays unfocused. Label, hint and error sit on no surface.
+  export const contrastPairs: ContrastPair[] = [
+    textPair('--input-default-text', 'default', ['--input-default-surface']),
+    textPair('--input-focused-text', 'focused', ['--input-focused-surface']),
+    { ...textPair('--input-disabled-text', 'disabled', ['--input-disabled-surface']), inactive: true },
+    { ...textPair('--input-default-placeholder', 'default', ['--input-default-surface']), context: 'default' },
+    { ...textPair('--input-default-placeholder', 'focused', ['--input-focused-surface']), context: 'focused' },
+    { ...textPair('--input-default-placeholder', 'disabled', ['--input-disabled-surface']), context: 'disabled', inactive: true },
+    { foreground: '--input-default-icon', backdrop: ['--input-default-surface'], role: 'non-text' },
+    { foreground: '--input-focused-icon', backdrop: ['--input-focused-surface'], role: 'non-text', context: 'focused' },
+    { foreground: '--input-focused-icon', backdrop: ['--input-default-surface'], role: 'non-text', context: 'icon button' },
+    { foreground: '--input-disabled-icon', backdrop: ['--input-disabled-surface'], role: 'non-text', inactive: true },
+    ...(['label', 'hint', 'error'] as const).map((slot) => textPair(`--input-${slot}`, slot, [])),
+  ];
 </script>
 
 <script lang="ts">
