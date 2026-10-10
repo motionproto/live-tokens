@@ -440,6 +440,10 @@
       column-gap: var(--ui-space-6);
     }
     .token-grid :global(.ui-token-selector) { grid-column: 2; }
+    /* The value name keeps the line under the trigger, and a contrast
+       readout wraps onto a line of its own. */
+    .token-grid :global(.ui-ts-meta) { flex-wrap: wrap; }
+    .token-grid :global(.ui-ts-meta > .ui-ts-meta-text) { flex-basis: 100%; }
   }
 
   .zone-divider {

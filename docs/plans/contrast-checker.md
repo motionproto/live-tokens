@@ -526,6 +526,14 @@ failure predates the run:
   (`-padding-top` and the rest) to `text-color` by fall-through, so the first
   assertion classifies each schema token by `rawKind(stripSide(variable))`,
   the side-aware reading `matchesKind` already uses.
+- W3 Review rule: TokenLayout's 380px query wraps `.ui-ts-meta` and gives the
+  value name a full line, so the readout takes a line of its own under it. A
+  headless probe of Button's text color row found the readout below the value
+  name at variant-group widths of 321 and 381px and beside it at 441px, with no
+  horizontal overflow of the token grid or the variant group.
+- W3 step 3, popover: a failing pair's measured ratio in the popover carries
+  the readout's amber exclamation mark, which Invariant 6 allows on a failing
+  pair. Passing and inactive pairs stay grey.
 
 ### Deferred
 
@@ -547,3 +555,16 @@ failure predates the run:
   `component-editor` index, which exports `Token` and `IntrinsicSpec`. A
   consumer can pass pairs without the type. No step names the export, so the
   wave adds none; Wave 3 or 4 may export it beside `IntrinsicSpec`.
+- W3 step 4: `UITokenSelector` wraps the value name and the snippet in
+  `.ui-ts-meta` only when `metaAfter` is set. A row without a readout keeps its
+  markup, so the four parents that restyle `.ui-ts-meta-text` (GradientEditor,
+  ControlBody, VariantGroup, ShadowBackdropControls) see no change. The
+  reviewer may prefer one wrapper on every row.
+- W3 step 3: a VariantGroup tab reuses one selector across states, so after a
+  tab switch the readout shows the previous variable's measure for one frame.
+  Hiding the readout until the new measure lands would shift the row for that
+  frame instead, so the wave keeps the lag.
+- W3 autofixer: `svelte-autofixer` reports missing `{#each}` keys in
+  `UIPaletteSelector.svelte` (8) and `TokenLayout.svelte` (2), all on lines the
+  wave leaves untouched. A key on TokenLayout's entry loop could remount its
+  selectors, so the wave adds none.

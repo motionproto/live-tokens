@@ -53,6 +53,8 @@
     triggerTitle?: Snippet;
     /** Optional meta text rendered after the trigger. Renamed from `slot="trigger-meta"` in 0.5.0. */
     triggerMeta?: Snippet;
+    /** Optional content after the meta text, in the same column. The meta text truncates first. */
+    metaAfter?: Snippet;
     /** Optional dropdown header replacement. */
     header?: Snippet;
     /** Optional dropdown content above the selections. */
@@ -87,6 +89,7 @@
     triggerText,
     triggerTitle,
     triggerMeta,
+    metaAfter,
     header,
     subheader,
     children,
@@ -360,11 +363,20 @@
     {/if}
   </div>
 
-  {#if triggerMeta}
+  {#snippet metaText(meta: Snippet)}
     <span
       class="ui-ts-meta-text"
       use:mirrorTextToTitle
-    >{@render triggerMeta()}</span>
+    >{@render meta()}</span>
+  {/snippet}
+
+  {#if metaAfter}
+    <div class="ui-ts-meta">
+      {#if triggerMeta}{@render metaText(triggerMeta)}{/if}
+      {@render metaAfter()}
+    </div>
+  {:else if triggerMeta}
+    {@render metaText(triggerMeta)}
   {/if}
 </div>
 
@@ -520,6 +532,16 @@
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+    min-width: 0;
+  }
+
+  /* Column 3 when `metaAfter` is set. `min-width: 0` keeps the pair from
+     widening the column; the meta text gives up width first. */
+  .ui-ts-meta {
+    display: flex;
+    align-items: center;
+    gap: var(--ui-space-6);
+    align-self: center;
     min-width: 0;
   }
 

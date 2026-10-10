@@ -8,6 +8,8 @@
   import { formatColorOpacity, parseColorOpacity } from '../core/themes/parsers/colorOpacity';
   import type { GradientToken } from '../core/store/editorTypes';
   import UITokenSelector from './UITokenSelector.svelte';
+  import UIContrastReadout from './UIContrastReadout.svelte';
+  import { getContrastPairs } from '../core/components/contrastPairRegistry';
 
   /** Honor prefers-reduced-motion: `t()` zeroes durations when the OS asks for
    *  less motion, so the detail-row enter/exit slides skip outright. Mirrors
@@ -67,6 +69,8 @@
     onchange,
     onwrite,
   }: Props = $props();
+
+  let hasContrastPairs = $derived(!!component && getContrastPairs(component, variable).length > 0);
 
   const clampOpacity = (n: number) => Math.max(minOpacity, Math.min(100, Math.round(n)));
   let noneAllowed = $derived(showNone && minOpacity <= 0);
@@ -582,6 +586,10 @@
   });
 </script>
 
+{#snippet contrastReadout()}
+  {#if component}<UIContrastReadout {component} {variable} />{/if}
+{/snippet}
+
 <UITokenSelector
   bind:this={selector}
   {variable}
@@ -590,6 +598,7 @@
   {disabled}
   {selectionsLocked}
   {onwrite}
+  metaAfter={hasContrastPairs ? contrastReadout : undefined}
   dropdownMinWidth="14rem"
   dropdownMaxWidth="calc(100vw - 2rem)"
   hideDefaultHeader={!!selectedFamily}
