@@ -5,10 +5,12 @@
   interface Props {
     title: string;
     ariaLabel?: string;
+    /** Replaces the info icon inside the button. */
+    trigger?: Snippet;
     children?: Snippet;
   }
 
-  let { title, ariaLabel, children }: Props = $props();
+  let { title, ariaLabel, trigger, children }: Props = $props();
 
   let open = $state(false);
   let btnEl = $state<HTMLButtonElement | undefined>(undefined);
@@ -83,13 +85,18 @@
 <button
   type="button"
   class="info-btn"
+  class:has-trigger={!!trigger}
   aria-label={ariaLabel ?? `About ${title}`}
   aria-expanded={open}
   bind:this={btnEl}
   data-info-popover-root
   onclick={() => (open = !open)}
 >
-  <i class="fas fa-circle-info"></i>
+  {#if trigger}
+    {@render trigger()}
+  {:else}
+    <i class="fas fa-circle-info"></i>
+  {/if}
 </button>
 
 {#if open}
@@ -138,6 +145,13 @@
   .info-btn:hover,
   .info-btn[aria-expanded='true'] {
     color: var(--ui-text-primary);
+  }
+
+  .info-btn.has-trigger {
+    width: auto;
+    height: auto;
+    color: inherit;
+    font: inherit;
   }
 
   /* Fixed positioning escapes any parent overflow/stacking context. JS
