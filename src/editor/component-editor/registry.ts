@@ -1,6 +1,8 @@
 import type { Component } from 'svelte';
 import type { CatalogueEntry, Token, IntrinsicSpec } from './scaffolding/types';
 import { registerComponentSchema } from '../core/store/editorStore';
+import type { ContrastPair } from '../core/palettes/contrastPairs';
+import { registerContrastPairs } from '../core/components/contrastPairRegistry';
 
 import BadgeEditor, { allTokens as badgeTokens } from './BadgeEditor.svelte';
 import { catalogue as badgeCatalogue } from '../../system/components/Badge.svelte';
@@ -116,6 +118,10 @@ export interface RegistryEntry {
       most components have none. When present, each spec's per-variant default is
       pinned to the runtime `:global(:root)` by intrinsicsContract.test. */
   intrinsics?: IntrinsicSpec[];
+  /** Each foreground color and the layers the runtime paints behind it. The
+      palette selector reads them to show a contrast readout on the foreground's
+      row. contrastContract.test pins them to the schema. */
+  contrastPairs?: ContrastPair[];
   /** What the component is, what to use it for, and what not to use it for.
       Imported from the runtime file's own `catalogue` export — never copied —
       so registryContract.test's identity check pins it to that one source. */
@@ -442,7 +448,8 @@ export type RegisterComponentEntry = Omit<RegistryEntry, 'origin'>;
  * the rest of the session).
  *
  * Side effect: registers the schema with the editor store so reset-to-default
- * and sibling-group resolution work for the new component.
+ * and sibling-group resolution work for the new component, and registers its
+ * contrast pairs, which replace a built-in's pairs on an id collision.
  */
 export function registerComponent(entry: RegisterComponentEntry): void {
   if (entry.id in builtInRegistry) {
@@ -453,6 +460,7 @@ export function registerComponent(entry: RegisterComponentEntry): void {
   const stored: RegistryEntry = { ...entry, origin: 'custom' };
   customRegistry.set(entry.id, stored);
   registerComponentSchema(entry.id, entry.schema);
+  registerContrastPairs(entry.id, entry.contrastPairs ?? []);
 }
 
 /**
@@ -495,6 +503,7 @@ export function getComponentIds(): ReadonlyArray<string> {
 // editor instance mounts.
 for (const entry of Object.values(builtInRegistry)) {
   registerComponentSchema(entry.id, entry.schema);
+  registerContrastPairs(entry.id, entry.contrastPairs ?? []);
 }
 
 /**
