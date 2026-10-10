@@ -598,3 +598,8 @@ failure predates the run:
 - W4 step 1: the Skill Atlas `cc-editor` chipset keeps its four chips and gains
   none for contrast pairs. No step names a chip, so the sync only re-pointed
   the moved ranges.
+- W4 step 2: `editing-tokens.md` opens with "This page covers **Tokens**",
+  and the readout lives in the Components view. The new section sits after
+  Columns, before Saving, opens with "In the **Components** view", and spells
+  "colour" as the chapter does. The intro stays unchanged; the reviewer may
+  extend it to name the readout.
