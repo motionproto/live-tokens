@@ -419,6 +419,29 @@ Commit with the subject `Contrast W6: report`.
 
 ### Baseline
 
+Snapshot of the repository's checkout, taken 2026-10-10 before the worktree
+existed:
+
+- `git rev-parse HEAD`: `ab02b35a6d967605b0a7baa11419d7064fbb4e51` on `main`.
+- `git status --short`: empty.
+
+Gates run in the worktree on `contrast-checker` at `ab02b35`, with
+`node_modules` from `npm ci` and no `dist-plugin/`. Every gate passes, so no
+failure predates the run:
+
+- `npx vitest run src/editor bin`: 97 files, 4349 tests passed.
+- `npm run check`: 1321 files, 0 errors, 0 warnings.
+- `npm run check:editor-font-isolation`: OK.
+- `npm run check:skills`: OK, 8 skills.
+- `npm run check:skill-atlas`: OK.
+- `npm run check:skill-sources`: current, 8 skills, 20 files.
+- `npm run check:docs-content`: current, 8 chapters.
+
 ### Calls
+
+- W0 step 3: `HEAD` already tracks the plan, both `temp/contrast-checker-*.md`
+  files and both workflow scripts, byte-identical to the checkout, so the
+  worktree copied nothing and the `Contrast W0: plan, audit and inventory`
+  commit does not exist.
 
 ### Deferred
