@@ -522,6 +522,10 @@ failure predates the run:
   the poster and the inventory omits; the VideoFrame badge sits on the clip and
   frame surfaces, as the inventory lists. The close button takes `default` and
   `hover` pairs over the scrim.
+- W2 step 4, token kind: `rawKind` sends the hidden per-side padding rows
+  (`-padding-top` and the rest) to `text-color` by fall-through, so the first
+  assertion classifies each schema token by `rawKind(stripSide(variable))`,
+  the side-aware reading `matchesKind` already uses.
 
 ### Deferred
 
