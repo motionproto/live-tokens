@@ -534,6 +534,10 @@ failure predates the run:
 - W3 step 3, popover: a failing pair's measured ratio in the popover carries
   the readout's amber exclamation mark, which Invariant 6 allows on a failing
   pair. Passing and inactive pairs stay grey.
+- W3 step 5, Invariant 11: `src/editor/ui/index.ts` exports `UITokenSelector`,
+  so its `metaAfter` snippet is a public addition and takes a third
+  `### Added` entry. The index exports neither `UIInfoPopover` nor
+  `UIContrastReadout`, so the `trigger` snippet and the readout take none.
 
 ### Deferred
 
@@ -568,3 +572,7 @@ failure predates the run:
   `UIPaletteSelector.svelte` (8) and `TokenLayout.svelte` (2), all on lines the
   wave leaves untouched. A key on TokenLayout's entry loop could remount its
   selectors, so the wave adds none.
+- W3 step 5: the changelog names the `contrastPairs` field, and the
+  `ContrastPair` type stays out of the public `component-editor` index, as W2
+  left it. No Wave 3 step names the export, so Wave 4 or the reviewer may add
+  it beside `IntrinsicSpec`.
