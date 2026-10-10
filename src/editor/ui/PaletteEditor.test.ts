@@ -281,4 +281,24 @@ describe('PaletteEditor — the anchored step is the base color', () => {
 
     cleanup();
   });
+
+  it('confirming an open step after a curve moved under it leaves the store cloneable', () => {
+    const plain = Array.from(target.querySelectorAll<HTMLElement>('.swatch.gray-swatch'))
+      .find((el) => !el.classList.contains('anchored') && !el.classList.contains('bookend'))!;
+    plain.click();
+    flushSync();
+
+    mutate('curve drag', (s) => {
+      s.palettes.Canvas.curveOffset = { ...s.palettes.Canvas.curveOffset, lightness: 15 };
+    });
+    flushSync();
+    plain.click();
+    flushSync();
+
+    expect(Object.keys(get(editorState).palettes.Canvas.overrides)).toHaveLength(1);
+    expect(() => structuredClone(get(editorState))).not.toThrow();
+    expect(() => mutate('next edit', (s) => { s.palettes.Canvas.curveOffset = {}; })).not.toThrow();
+
+    cleanup();
+  });
 });

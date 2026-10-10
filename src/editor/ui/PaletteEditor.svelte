@@ -174,7 +174,10 @@
     edit('curveAutoSmooth', { ...curveAutoSmooth, [key]: value });
   }
 
-  let editing: EditingState = $state(idleState);
+  // `$state.raw`: confirmEdit writes the draft into the store, which
+  // structuredClones on every edit, and a deep `$state` proxy is not cloneable.
+  // Only ever reassigned whole.
+  let editing: EditingState = $state.raw(idleState);
 
   function computePaletteOklch(index: number, base: Oklch): Oklch {
     return computePaletteOklchPure(index, base, lightnessCurve, saturationCurve, curveOffset, hueCurve);

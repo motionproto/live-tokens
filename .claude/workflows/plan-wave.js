@@ -187,7 +187,19 @@ const TYPE_SCALES_WAVES = {
   },
 }
 
+const CONTRAST_WAVES = {
+  '0': { executor: 'wave-executor', verify: false, review: false, setup: true },
+  '1': { executor: 'wave-executor', verify: true },
+  '2': { executor: 'wave-executor', verify: true },
+  '3': { executor: 'svelte:svelte-file-editor', verify: true },
+  '4': { executor: 'wave-executor', verify: true, reviewModel: 'sonnet' },
+  '5': { executor: 'wave-executor', verify: true },
+  '6': { executor: 'wave-executor', verify: false, review: false },
+}
+
 // executeModel and escalateModel override the agent definition's model. A plan without them runs each agent as defined.
+// root is a worktree, relative to the repository root, that every agent works in; the setup wave creates it.
+// An unattended plan settles judgment calls with its review rules and logs them, so no step waits on the user.
 const PLANS = {
   'type-scales': {
     file: 'docs/plans/type-scales.md',
@@ -206,6 +218,15 @@ const PLANS = {
     executeModel: 'sonnet',
     escalateModel: 'fable',
   },
+  contrast: {
+    file: 'docs/plans/contrast-checker.md',
+    prefix: 'Contrast',
+    waves: CONTRAST_WAVES,
+    root: '../live-tokens-contrast',
+    unattended: true,
+    fixRounds: 2,
+    escalateModel: 'fable',
+  },
 }
 
 const [planArg, waveArg] =
@@ -221,6 +242,22 @@ const prefix = `${plan.prefix} W${wave}:`
 const heading = `## Wave ${wave}:`
 const oddities = []
 let escalated = false
+const FIX_ROUNDS = plan.fixRounds ?? 1
+
+const where = !plan.root
+  ? ''
+  : cfg.setup
+    ? `This wave creates the worktree ${plan.root}, relative to the repository root, as its section says, and ` +
+      'runs every command after that from inside the worktree. '
+    : `Work only in the worktree ${plan.root}, relative to the repository root. Run \`cd ${plan.root} && pwd\` ` +
+      'first and use that absolute path: start every shell command with a cd into it, and read and edit files ' +
+      "only under it. The repository root holds the user's uncommitted work; write nothing there. "
+
+const unattended = plan.unattended
+  ? "This run is unattended and nobody can answer a question. Settle each judgment call with the wave's Review " +
+    "rule, record it as one line under Calls in the plan's Run log, and commit the log with the unit. When no rule " +
+    'decides, take the option that changes the least, record it under Deferred, and list it under oddities. '
+  : ''
 
 function stop(stage, detail) {
   return { plan: planArg, wave, status: 'stopped', stage, detail, escalated, oddities }
@@ -248,7 +285,7 @@ function escalate(reason) {
 
 let prepared
 if (cfg.prepare) {
-  prepared = await agent(cfg.prepare.prompt, {
+  prepared = await agent(where + cfg.prepare.prompt, {
     agentType: cfg.prepare.agentType,
     schema: cfg.prepare.schema,
     label: `W${wave} ${cfg.prepare.agentType}`,
@@ -258,6 +295,8 @@ if (cfg.prepare) {
 }
 
 const basePrompt =
+  where +
+  unattended +
   `Execute exactly the section headed "${heading}" in ${PLAN}. Read the plan's Invariants and Out of scope ` +
   `sections first. Commit each unit with the subject prefix "${prefix}". ` +
   (cfg.extra ? cfg.extra(prepared) + ' ' : '') +
@@ -276,6 +315,8 @@ if (exec.gates === 'fail') return stop('execute', exec.resumePoint)
 if (exec.skipped) return { plan: planArg, wave, status: 'skipped', oddities }
 
 const fixPrompt = (scope) =>
+  where +
+  unattended +
   `Wave ${wave} of ${PLAN} needs a fix before it passes. Fix only the scope below, commit with the subject prefix ` +
   `"${prefix}", and rerun the Verify commands under "${heading}". ${EXECUTOR_CONTRACT}\n` +
   JSON.stringify(scope, null, 2)
@@ -285,14 +326,16 @@ let reviewFixes = 0
 while (true) {
   if (cfg.verify) {
     const verified = await agent(
-      `Run every command under **Verify** and every check under **Done when** in the section headed "${heading}" ` +
+      where +
+        `Run every command under **Verify** and every check under **Done when** in the section headed "${heading}" ` +
         `of ${PLAN}. Edit nothing. Return pass true only when every command succeeds and every check holds. List ` +
-        `each failure with its decisive output line.`,
+        `each failure with its decisive output line.` +
+        (plan.unattended ? " Failures listed under Baseline in the plan's Run log predate this run and do not count." : ''),
       { agentType: 'test-verifier', schema: VERIFY, label: `W${wave} verify`, phase: 'Verify' },
     )
     if (!verified || !verified.pass) {
       const failures = verified ? verified.failures : ['the verifier returned nothing']
-      if (verifyFixes >= 1) return stop('verify', failures)
+      if (verifyFixes >= FIX_ROUNDS) return stop('verify', failures)
       verifyFixes += 1
       escalate('verify failed')
       exec = await execute(fixPrompt({ failures }), `W${wave} fix verify`)
@@ -301,10 +344,18 @@ while (true) {
     }
   }
 
+  if (cfg.review === false) return { plan: planArg, wave, status: 'approved', escalated, review: [], oddities }
+
   const review = await agent(
-    `Review Wave ${wave} of ${PLAN}, the section headed "${heading}". Find its commits with ` +
-      `git log --grep "${prefix}". The executor flagged these oddities: ${JSON.stringify(oddities)}. BLOCK when an ` +
-      `oddity needs the user's decision.`,
+    where +
+      `Review Wave ${wave} of ${PLAN}, the section headed "${heading}". Find its commits with ` +
+      `git log --grep "${prefix}". The executor flagged these oddities: ${JSON.stringify(oddities)}. ` +
+      (plan.unattended
+        ? "This run is unattended. The wave's Review rule settles each judgment call, and the plan's Run log " +
+          'records each call. Check each call against its rule. BLOCK only for a defect: a broken invariant, a ' +
+          'failing gate, a misapplied rule, or code that contradicts the plan. A question for the user belongs ' +
+          'under Deferred in the Run log and never blocks.'
+        : "BLOCK when an oddity needs the user's decision."),
     {
       agentType: 'wave-reviewer',
       schema: REVIEW,
@@ -317,7 +368,7 @@ while (true) {
     return { plan: planArg, wave, status: 'approved', escalated, review: review.findings, oddities }
   }
   const findings = review ? review.findings : [{ severity: 'high', file: PLAN, detail: 'the reviewer returned nothing' }]
-  if (reviewFixes >= 1) return stop('review', findings)
+  if (reviewFixes >= FIX_ROUNDS) return stop('review', findings)
   reviewFixes += 1
   escalate('the reviewer blocked')
   exec = await execute(fixPrompt({ findings }), `W${wave} fix review`)
