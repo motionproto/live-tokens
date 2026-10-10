@@ -417,6 +417,75 @@ Commit with the subject `Contrast W6: report`.
 
 ### Summary
 
+`/plan-all contrast` ran Waves 0 to 6 on 2026-10-10 in
+`../live-tokens-contrast`, on the branch `contrast-checker` from `ab02b35`.
+The branch stays unmerged and unreleased.
+
+**Commits.** `git log --grep "Contrast W" --oneline` lists 20 commits before
+this report:
+
+- W0: `ddf7df1` baseline. `HEAD` already held the plan, audit and inventory,
+  so the step 3 commit does not exist.
+- W1: `914a64e` large-text constants and contrast rules in contrast.ts,
+  `9e1b05d` pair declarations and measurement, `6eb8386` DOM color resolver,
+  `db6c88f` type splitTopLevel's separator as a plain predicate.
+- W2: `e86ab13` contrast pair registry and the contrastPairs entry field,
+  `03296ba` pairs for Button through Notification, `cda716c` pairs for Input
+  through CodeSnippet, `188a1b5` pairs for Dialog through ProgressBar,
+  `bc90396` pairs for ImageLightbox, VideoLightbox and VideoFrame, `223febf`
+  contrast pair contract test, `cd663cc` defer the ContrastPair type export.
+- W3: `52a4b6b` trigger snippet on UIInfoPopover, `50dd594` contrast readout
+  helpers, `06f7f8b` contrast readout beside foreground color rows, `4129c52`
+  changelog for the contrast readout.
+- W4: `6ea3f10` contrastPairs step in create-component, `bcfcac9` contrast
+  readout section in Editing tokens.
+- W5: `cb2b20e` browser check for the contrast readout, `2a8384a` report of
+  the shipped default pairs.
+- W6: `Contrast W6: report`, the commit that carries this Summary.
+
+**Judgment calls.** Calls holds 33 entries, each settled by its wave's Review
+rule or step text.
+
+**Deferred questions.** Deferred holds 10 entries, which raise 8 questions:
+
+1. `ContrastPair` export (W2 step 2, W3 step 5, W4 step 1). The type stays out
+   of the public `component-editor` index. A consumer's untyped
+   `contrastPairs` literal widens `role` to `string`, which
+   `registerComponent()` rejects under the Svelte check. Should the index
+   export it beside `IntrinsicSpec`, with a changelog line and a typed export
+   in the skill step?
+2. W1 step 1. `pageHarness.ts` imports `isLargeText` alone. Should it import
+   `LARGE_TEXT_PX`, `LARGE_BOLD_PX` and `BOLD` literally as well?
+3. W1 step 3. `closestToFailing` ranks active measures before inactive ones,
+   so an inactive pair never hides a failing active pair. Should it take the
+   step's literal "lowest ratio over its floor" instead?
+4. W3 step 4. `UITokenSelector` adds the `.ui-ts-meta` wrapper only when
+   `metaAfter` is set. Should every row carry the wrapper?
+5. W3 step 3. After a VariantGroup tab switch the readout shows the previous
+   variable's measure for one frame. Should it hide until the new measure
+   lands, at the cost of a one-frame row shift?
+6. W3 autofixer. `UIPaletteSelector.svelte` (8) and `TokenLayout.svelte` (2)
+   lack `{#each}` keys on lines the wave left untouched. Should a separate
+   change add them?
+7. W4 step 1. The Skill Atlas `cc-editor` chipset keeps its four chips.
+   Should it gain one for contrast pairs?
+8. W4 step 2. `editing-tokens.md` opens with "This page covers **Tokens**"
+   and now holds a Components view section. Should the intro name the
+   readout?
+
+Audit decision 6, the preview backdrop, stays open and out of scope.
+
+**Failing defaults.** In the shipped default theme, Motion Proto, 30 of 205
+active pairs in 12 components fall below their floor, 175 pass, and 31
+inactive pairs pass as exempt. `temp/contrast-checker-defaults.md` lists
+every failing pair. The run changed no default.
+
+**Repository checkout.** `git status --short` in the repository's checkout
+prints nothing, at `ab02b35` on `main`, which matches the Wave 0 snapshot.
+The comparison shows no write outside the worktree.
+
+**Review.** `git -C ../live-tokens-contrast log --oneline main..contrast-checker`
+
 ### Baseline
 
 Snapshot of the repository's checkout, taken 2026-10-10 before the worktree
