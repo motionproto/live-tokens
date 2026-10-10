@@ -24,10 +24,10 @@ import DialogEditor, { allTokens as dialogTokens, contrastPairs as dialogContras
 import { catalogue as dialogCatalogue } from '../../system/components/Dialog.svelte';
 import ImageEditor, { allTokens as imageTokens, intrinsics as imageIntrinsics } from './ImageEditor.svelte';
 import { catalogue as imageCatalogue } from '../../system/components/Image.svelte';
-import ImageLightboxEditor, { allTokens as imageLightboxTokens } from './ImageLightboxEditor.svelte';
+import ImageLightboxEditor, { allTokens as imageLightboxTokens, contrastPairs as imageLightboxContrastPairs } from './ImageLightboxEditor.svelte';
 import { catalogue as imageLightboxCatalogue } from '../../system/components/ImageLightbox.svelte';
-import VideoLightboxEditor, { allTokens as videoLightboxTokens } from './VideoLightboxEditor.svelte';
-import VideoFrameEditor, { allTokens as videoFrameTokens } from './VideoFrameEditor.svelte';
+import VideoLightboxEditor, { allTokens as videoLightboxTokens, contrastPairs as videoLightboxContrastPairs } from './VideoLightboxEditor.svelte';
+import VideoFrameEditor, { allTokens as videoFrameTokens, contrastPairs as videoFrameContrastPairs } from './VideoFrameEditor.svelte';
 import { catalogue as videoFrameCatalogue } from '../../system/components/VideoFrame.svelte';
 import SlidePagerEditor, { allTokens as slidePagerTokens, contrastPairs as slidePagerContrastPairs } from './SlidePagerEditor.svelte';
 import { catalogue as slidePagerCatalogue } from '../../system/components/SlidePager.svelte';
@@ -281,6 +281,7 @@ const builtInRegistry: Readonly<Record<BuiltInComponentId, RegistryEntry>> = Obj
     sourceFile: 'src/system/components/ImageLightbox.svelte',
     editorComponent: ImageLightboxEditor,
     schema: imageLightboxTokens,
+    contrastPairs: imageLightboxContrastPairs,
     catalogue: imageLightboxCatalogue,
     origin: 'system',
   },
@@ -291,6 +292,7 @@ const builtInRegistry: Readonly<Record<BuiltInComponentId, RegistryEntry>> = Obj
     sourceFile: 'src/system/components/VideoLightbox.svelte',
     editorComponent: VideoLightboxEditor,
     schema: videoLightboxTokens,
+    contrastPairs: videoLightboxContrastPairs,
     catalogue: videoLightboxCatalogue,
     origin: 'system',
   },
@@ -301,6 +303,7 @@ const builtInRegistry: Readonly<Record<BuiltInComponentId, RegistryEntry>> = Obj
     sourceFile: 'src/system/components/VideoFrame.svelte',
     editorComponent: VideoFrameEditor,
     schema: videoFrameTokens,
+    contrastPairs: videoFrameContrastPairs,
     catalogue: videoFrameCatalogue,
     origin: 'system',
   },

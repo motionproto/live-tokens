@@ -511,6 +511,17 @@ failure predates the run:
   label and value take one pair each on the page.
 - W2 RadioButton: the ring and the hover and selected dot fills are marks on
   the page. The default dot renders at opacity 0 and takes no pair.
+- W2 ImageLightbox: per the Review rule, `--imagelightbox-chrome-icon` takes an
+  `icons` pair and a `counter` text pair at `--font-size-xs`, both on the chrome
+  surface over the scrim, as the inventory's stack runs. The close and gallery
+  buttons repaint with `--imagelightbox-chrome-hover-surface` on hover, so a
+  third `hovered icons` pair sits on that surface over the scrim.
+- W2 VideoLightbox and VideoFrame: a stack drops the footage, which is no
+  variable, and keeps the component's layers under it. The VideoLightbox badge
+  sits on `--videolightbox-tile-surface`, which `.videolightbox` paints behind
+  the poster and the inventory omits; the VideoFrame badge sits on the clip and
+  frame surfaces, as the inventory lists. The close button takes `default` and
+  `hover` pairs over the scrim.
 
 ### Deferred
 
