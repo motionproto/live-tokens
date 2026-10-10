@@ -181,7 +181,10 @@ const VAR_RE = /^var\((--[a-z0-9-]+)\)$/i;
 
 /** Split on top-level separators only. Stop colours nest commas inside
  *  `color-mix(…)`, so a plain `split(',')` shreds them. */
-export function splitTopLevel(s: string, isSeparator = (c: string) => c === ','): string[] {
+export function splitTopLevel(
+  s: string,
+  isSeparator: (c: string) => boolean = (c) => c === ',',
+): string[] {
   const parts: string[] = [];
   let depth = 0;
   let start = 0;
