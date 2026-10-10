@@ -443,5 +443,16 @@ failure predates the run:
   files and both workflow scripts, byte-identical to the checkout, so the
   worktree copied nothing and the `Contrast W0: plan, audit and inventory`
   commit does not exist.
+- W1 Review rule: `aaFloor` now returns `isLargeText(...) ? AA_LARGE : AA_BODY`,
+  the same expression the local constants formed. A one-off comparison of the
+  old and new forms over every size from 0 to 40px in 0.01px steps, the
+  thresholds plus and minus 0.01, and 14 weights from 0 to 1000 found no
+  difference.
 
 ### Deferred
+
+- W1 step 1: `pageHarness.ts` imports `isLargeText` alone. `aaFloor` was the
+  only reader of the large-text constants, so importing `LARGE_TEXT_PX`,
+  `LARGE_BOLD_PX` and `BOLD` as well would add unused bindings. The Done-when
+  line "imports the large-text constants" reads as met through `isLargeText`;
+  the reviewer may prefer the literal import.

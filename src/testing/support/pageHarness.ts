@@ -5,7 +5,7 @@ import {
   PAGE_VIEWPORTS_ENV,
   type PageViewport,
 } from '../config';
-import { AA_BODY, AA_LARGE, contrastRatio } from '../../editor/core/palettes/contrast';
+import { AA_BODY, AA_LARGE, contrastRatio, isLargeText } from '../../editor/core/palettes/contrast';
 import { isInapplicable, type ComponentContract, type PaintMap } from '../componentContract';
 
 export type PageRule =
@@ -273,11 +273,6 @@ const GRID_VIEWPORT = 768;
 const SETTLE_QUIET_MS = 300;
 const SETTLE_BUDGET_MS = 5_000;
 
-/** WCAG's large-text sizes: the AA floor drops to 3:1 at either. */
-const LARGE_TEXT_PX = 24;
-const LARGE_BOLD_PX = 18.66;
-const BOLD = 700;
-
 /** Findings name CSS properties as a page's own stylesheet spells them. */
 const cssName = (camel: string) => camel.replace(/[A-Z]/g, (c) => `-${c.toLowerCase()}`);
 
@@ -296,9 +291,7 @@ function hex(rgb: string): string {
 
 /** The AA floor the pair has to clear, which its own size and weight set. */
 function aaFloor(pair: ContrastPair): number {
-  const large = pair.fontSize >= LARGE_TEXT_PX
-    || (pair.fontSize >= LARGE_BOLD_PX && pair.fontWeight >= BOLD);
-  return large ? AA_LARGE : AA_BODY;
+  return isLargeText(pair.fontSize, pair.fontWeight) ? AA_LARGE : AA_BODY;
 }
 
 /** A reason reads as prose: `a gradient (2), a blend mode (1)`. */
