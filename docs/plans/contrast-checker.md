@@ -456,3 +456,11 @@ failure predates the run:
   `LARGE_BOLD_PX` and `BOLD` as well would add unused bindings. The Done-when
   line "imports the large-text constants" reads as met through `isLargeText`;
   the reviewer may prefer the literal import.
+- W1 step 3: `closestToFailing` ranks active measures before inactive ones and
+  falls back to the inactive ones only when no active pair exists. The step's
+  literal "lowest ratio over its floor" would let an inactive pair hide a
+  failing active pair on the same foreground, such as Input's placeholder on
+  its disabled surface, and the readout would then skip the amber mark this
+  plan promises for every pair below its floor. The audit states that an
+  inactive pair applies no floor, which supports the ranking. The reviewer may
+  prefer the literal reading.
