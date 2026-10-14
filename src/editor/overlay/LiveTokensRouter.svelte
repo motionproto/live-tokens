@@ -226,10 +226,14 @@
   // `entry.lazy()` when provided (so each page's CSS side-effect imports stay
   // out of other routes), or via the eagerly-imported `entry.component`.
   let pagePromise = $derived.by(() => {
-    if (isEditor) return import('../pages/Editor.svelte');
-    if (isComponentEditor) return import('../pages/ComponentEditorPage.svelte');
-    if (isColors) return import('../pages/ColorsPage.svelte');
-    if (isDocs) return import('../docs/Docs.svelte');
+    // `import.meta.env.DEV` inline, not `isDev`: the build replaces it with a
+    // literal and drops these branches and their chunks.
+    if (import.meta.env.DEV) {
+      if (isEditor) return import('../pages/Editor.svelte');
+      if (isComponentEditor) return import('../pages/ComponentEditorPage.svelte');
+      if (isColors) return import('../pages/ColorsPage.svelte');
+      if (isDocs) return import('../docs/Docs.svelte');
+    }
     const entry = resolvedEntry;
     if (!entry) return Promise.resolve({ default: null as unknown as Component<any, any, any> });
     if (entry.lazy) return entry.lazy();

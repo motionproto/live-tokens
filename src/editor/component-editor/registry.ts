@@ -1,6 +1,9 @@
 import type { Component } from 'svelte';
 import type { CatalogueEntry, Token, IntrinsicSpec } from './scaffolding/types';
 import { registerComponentSchema } from '../core/store/editorStore';
+import { attachRegistry } from './registration';
+
+export { registerComponent } from './registration';
 
 import BadgeEditor, { allTokens as badgeTokens } from './BadgeEditor.svelte';
 import { catalogue as badgeCatalogue } from '../../system/components/Badge.svelte';
@@ -433,18 +436,7 @@ const customRegistry = new Map<string, RegistryEntry>();
 /** Argument shape for `registerComponent()`. `origin` is set internally to `'custom'`. */
 export type RegisterComponentEntry = Omit<RegistryEntry, 'origin'>;
 
-/**
- * Register a consumer-authored component at runtime. Call from `main.ts`
- * before app mount.
- *
- * Collision rule: if `entry.id` matches a built-in id, a warning is logged and
- * the custom entry wins (the custom editor and schema replace the built-in for
- * the rest of the session).
- *
- * Side effect: registers the schema with the editor store so reset-to-default
- * and sibling-group resolution work for the new component.
- */
-export function registerComponent(entry: RegisterComponentEntry): void {
+function addCustomComponent(entry: RegisterComponentEntry): void {
   if (entry.id in builtInRegistry) {
     console.warn(
       `[registerComponent] custom component "${entry.id}" overrides a built-in. The custom editor will be used.`,
@@ -496,6 +488,7 @@ export function getComponentIds(): ReadonlyArray<string> {
 for (const entry of Object.values(builtInRegistry)) {
   registerComponentSchema(entry.id, entry.schema);
 }
+attachRegistry(addCustomComponent);
 
 /**
  * Validate that the server's filesystem scan matches the merged registry's id list.
