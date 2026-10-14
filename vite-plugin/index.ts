@@ -1,5 +1,6 @@
 export { themeFileApi } from './themeFileApi';
 export type { ThemeFileApiOptions } from './themeFileApi';
+export type { ProductionCssOptions } from './productionCss';
 export {
   runTokensCssMigrations,
   validateTokensCss,

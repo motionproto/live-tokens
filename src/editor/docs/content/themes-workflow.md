@@ -133,6 +133,8 @@ as a theme of your own first, since the built-in one is read-only.
 
 Production builds (`npm run build`) ship only that plain CSS and your
 components. No editor, no JSON loading, no runtime indirection.
+The build also writes each token whose value never changes at runtime as its
+value. [Production CSS](production-css.md) gives the rule and its options.
 
 ## Keeping your work safe
 

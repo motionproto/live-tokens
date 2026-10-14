@@ -7,7 +7,10 @@ export default defineConfig({
     svelte({ preprocess: vitePreprocess() }),
     // In dev, persists editor changes to src/system/styles/tokens.css and the
     // JSON under src/live-tokens/data/. In `vite build`, runs the design checks
-    // first and stops the build on an error.
+    // first and stops the build on an error, then writes each token whose value
+    // never changes at runtime as its value. `productionCss: false` keeps every
+    // token a variable, and `productionCss: { keep: [...] }` keeps the names a
+    // script assembles at runtime.
     themeFileApi({ tokensCssPath: 'src/system/styles/tokens.css' }),
   ],
 });

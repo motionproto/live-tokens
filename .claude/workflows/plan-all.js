@@ -26,6 +26,10 @@ const PLANS = {
       'Read the Run log at the end of ../live-tokens-contrast/docs/plans/contrast-checker.md, then review the ' +
       'contrast-checker branch.',
   },
+  'production-css': {
+    order: ['1', '2', '3', '4', '5'],
+    after: 'Review the Calls in the Run log of docs/plans/production-css-variables.md, then cut a minor release.',
+  },
 }
 
 const CLEAN = {

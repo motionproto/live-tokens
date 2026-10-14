@@ -82,6 +82,7 @@ export type { Oklch } from './core/palettes/oklch';
 
 export { initializeTheme } from './core/themes/themeInit';
 
-export { registerComponent, getComponentRegistryEntries } from './component-editor/registry';
+export { registerComponent } from './component-editor/registration';
+export { getComponentRegistryEntries } from './component-editor/registry';
 export type { RegisterComponentEntry, RegistryEntry, ComponentId } from './component-editor/registry';
 export type { CatalogueEntry } from './component-editor/scaffolding/types';

@@ -94,16 +94,7 @@
     {
       path: 'guide',
       title: 'Guide',
-      items: [
-        { path: '01-overview',         title: 'Overview' },
-        { path: 'getting-started',     title: 'Getting started' },
-        { path: 'editing-tokens',      title: 'Editing tokens' },
-        { path: 'sketch-mode',         title: 'Sketch mode' },
-        { path: 'themes-workflow',     title: 'Themes' },
-        { path: 'where-themes-live',   title: 'Where themes live' },
-        { path: 'light-and-dark',      title: 'Light and dark' },
-        { path: 'creating-components', title: 'Creating components' },
-      ],
+      items: chapters.map((c) => ({ path: c.id, title: c.title })),
     },
   ];
 

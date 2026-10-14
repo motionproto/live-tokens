@@ -18,11 +18,8 @@ import { mount, type Component } from 'svelte';
 import * as cssVarSync from './core/cssVarSync';
 import * as router from './core/routing/router';
 import * as columnsOverlay from './overlay/columnsOverlay';
-import * as editorStore from './core/store/editorStore';
-import * as themeDocumentSync from './core/themes/themeDocumentSync';
-import * as liveStateStream from './core/themes/liveStateStream';
-import { initializeTheme } from './core/themes/themeInit';
-import { registerComponent, type RegisterComponentEntry } from './component-editor/registry';
+import { registerComponent } from './component-editor/registration';
+import type { RegisterComponentEntry } from './component-editor/registry';
 import { registerSketchStyle, type RegisterSketchStyleInput } from './core/sketch/sketchRegistry';
 
 export interface BootLiveTokensOptions {
@@ -43,7 +40,6 @@ export async function bootLiveTokens(
   cssVarSync.init();
   router.init();
   columnsOverlay.init();
-  editorStore.init();
 
   // Before the DEV block: `initializeTheme` recovers the open theme's style by
   // name against the pool, so the pool has to be whole by the time it runs.
@@ -52,6 +48,16 @@ export async function bootLiveTokens(
   }
 
   if (import.meta.env.DEV) {
+    // Imported here, never statically, so a build drops the editor. The
+    // registry alone imports every shipped component and editor.
+    const [editorStore, themeDocumentSync, liveStateStream, { initializeTheme }] = await Promise.all([
+      import('./core/store/editorStore'),
+      import('./core/themes/themeDocumentSync'),
+      import('./core/themes/liveStateStream'),
+      import('./core/themes/themeInit'),
+      import('./component-editor/registry'),
+    ]);
+    editorStore.init();
     themeDocumentSync.init();
     liveStateStream.init();
     if (opts.components) {
