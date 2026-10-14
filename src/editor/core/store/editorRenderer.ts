@@ -18,7 +18,6 @@ import { palettesToVars } from '../palettes/paletteDerivation';
 import {
   editorState,
   columnsToVars,
-  columnsEqualsDefault,
   washesToVars,
   shadowsToVars,
   gradientsToVars,
@@ -27,9 +26,7 @@ import {
 
 export function deriveCssVars(state: EditorState): Record<string, string> {
   const out: Record<string, string> = { ...state.cssVars };
-  if (!columnsEqualsDefault(state.columns)) {
-    Object.assign(out, columnsToVars(state.columns));
-  }
+  Object.assign(out, columnsToVars(state.columns));
   Object.assign(out, washesToVars(state.washes));
   if (state.shadows.tokens.length > 0) {
     Object.assign(out, shadowsToVars(state.shadows));

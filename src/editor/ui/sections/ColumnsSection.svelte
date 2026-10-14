@@ -1,38 +1,59 @@
 <script lang="ts">
-  import { onMount } from 'svelte';
   import { editorState, mutate, beginSliderGesture } from '../../core/store/editorStore';
-  import type { ColumnsState } from '../../core/store/editorTypes';
+  import {
+    COLUMN_BREAKPOINTS,
+    COLUMN_DEFAULTS,
+    type ColumnProperty,
+    type ColumnViewport,
+  } from '../../core/themes/slices/columns';
+  import UISegmentedControl from '../UISegmentedControl.svelte';
 
-  const STANDARD_COLS = 12;
   const COLS_MIN = 1;
   const COLS_MAX = 24;
-  // Pointer-events needed to break free of 12 once the drag arrives there.
-  // The slider is bound to state, so returning early during these trips
-  // keeps the thumb visually pinned at 12 even as the pointer wanders.
+  // Pointer-events needed to break free of the default count once the drag
+  // arrives there. The slider is bound to state, so returning early during
+  // these trips keeps the thumb visually pinned even as the pointer wanders.
   const DETENT_RESISTANCE = 4;
+
+  const VIEWPORT_OPTIONS: { value: ColumnViewport; label: string; title: string }[] = [
+    { value: 'desktop', label: 'Desktop', title: `Wider than ${COLUMN_BREAKPOINTS.tablet}px` },
+    { value: 'tablet', label: 'Tablet', title: `${COLUMN_BREAKPOINTS.tablet}px and narrower` },
+    { value: 'phone', label: 'Phone', title: `${COLUMN_BREAKPOINTS.phone}px and narrower` },
+  ];
+
+  let viewport = $state<ColumnViewport>('desktop');
+  let values = $derived($editorState.columns.viewports[viewport]);
+  let defaults = $derived(COLUMN_DEFAULTS.viewports[viewport]);
+  let viewportLabel = $derived(VIEWPORT_OPTIONS.find((o) => o.value === viewport)!.label.toLowerCase());
+  // The preview scales the grid to the widest window it serves.
+  let previewWidth = $derived(viewport === 'desktop' ? $editorState.columns.maxWidth : COLUMN_BREAKPOINTS[viewport]);
 
   function clampNum(v: number, lo: number, hi: number): number {
     return Math.max(lo, Math.min(hi, Math.round(v)));
   }
 
+  function setViewportValue(property: ColumnProperty, value: number) {
+    const target = viewport;
+    mutate(`set ${target} columns ${property}`, (s) => { s.columns.viewports[target][property] = value; });
+  }
   function setColumnsCount(n: number) {
-    mutate('set columns count', (s) => { s.columns.count = clampNum(n, COLS_MIN, COLS_MAX); });
+    setViewportValue('count', clampNum(n, COLS_MIN, COLS_MAX));
+  }
+  function setColumnsGutter(px: number) {
+    setViewportValue('gutter', clampNum(px, 0, 200));
+  }
+  function setColumnsMargin(px: number) {
+    setViewportValue('margin', clampNum(px, 0, 400));
   }
   function setColumnsMaxWidth(px: number) {
     mutate('set columns max-width', (s) => { s.columns.maxWidth = clampNum(px, 320, 2560); });
-  }
-  function setColumnsGutter(px: number) {
-    mutate('set columns gutter', (s) => { s.columns.gutter = clampNum(px, 0, 200); });
-  }
-  function setColumnsMargin(px: number) {
-    mutate('set columns margin', (s) => { s.columns.margin = clampNum(px, 0, 400); });
   }
 
   let colsDragging = false;
   let colsDetentTrips = 0;
 
   function onColsPointerDown() {
-    beginSliderGesture('drag columns count');
+    beginSliderGesture(`drag ${viewport} columns count`);
     colsDragging = true;
     colsDetentTrips = 0;
   }
@@ -41,76 +62,47 @@
     colsDetentTrips = 0;
   }
   function handleColsInput(raw: number, target: HTMLInputElement) {
-    const current = $editorState.columns.count;
+    const detent = defaults.count;
     if (
       colsDragging &&
-      current === STANDARD_COLS &&
-      Math.abs(raw - STANDARD_COLS) === 1
+      values.count === detent &&
+      Math.abs(raw - detent) === 1
     ) {
       colsDetentTrips += 1;
       if (colsDetentTrips < DETENT_RESISTANCE) {
         // Force the thumb back. Svelte's controlled value may not re-sync
         // when the underlying number is unchanged, so set the DOM value here.
-        target.value = String(STANDARD_COLS);
+        target.value = String(detent);
         return;
       }
       colsDetentTrips = 0;
     }
-    if (raw === STANDARD_COLS) colsDetentTrips = 0;
+    if (raw === detent) colsDetentTrips = 0;
     setColumnsCount(raw);
   }
 
-  // Tick position on the slider track. Slider runs from COLS_MIN to COLS_MAX,
-  // so 12 sits at (12 - min) / (max - min) along the track. Inset the edges by
-  // approximately one thumb-radius so the tick aligns with where the thumb
-  // sits when value === 12.
-  const colsTickPct = ((STANDARD_COLS - COLS_MIN) / (COLS_MAX - COLS_MIN)) * 100;
+  // Inset by approximately one thumb-radius so the tick aligns with where the
+  // thumb sits at the default count.
+  let colsTickPct = $derived(((defaults.count - COLS_MIN) / (COLS_MAX - COLS_MIN)) * 100);
 
-  let initialColumns: ColumnsState | null = null;
-
-  onMount(() => {
-    initialColumns = { ...$editorState.columns };
-  });
-
-  function resetColumns() {
-    if (!initialColumns) return;
-    const snapshot = initialColumns;
-    mutate('reset columns', (s) => { s.columns = { ...snapshot }; });
+  function resetViewport() {
+    const target = viewport;
+    mutate(`reset ${target} columns`, (s) => { s.columns.viewports[target] = { ...COLUMN_DEFAULTS.viewports[target] }; });
   }
 </script>
 
 <section class="section" id="columns">
   <h2 class="section-title">Columns</h2>
   <p class="columns-intro">
-    Layout grid for page content. Toggle the live overlay from the editor bar's
-    <i class="fas fa-grip-lines-vertical"></i> button to visualize.
+    Layout grid for page content. Desktop, tablet and phone each hold a count, a
+    gutter and a margin, and the grid switches at {COLUMN_BREAKPOINTS.tablet}px
+    and {COLUMN_BREAKPOINTS.phone}px. Toggle the live overlay from the editor
+    bar's <i class="fas fa-grip-lines-vertical"></i> button to visualize.
   </p>
 
   <div class="columns-controls">
-    <div class="global-shadow-row cols-row">
-      <span class="shadow-slider-label" title="Number of columns">Cols</span>
-      <div class="cols-slider-wrap">
-        <input type="range" min={COLS_MIN} max={COLS_MAX} value={$editorState.columns.count}
-          onpointerdown={onColsPointerDown}
-          onpointerup={onColsPointerUp}
-          onpointercancel={onColsPointerUp}
-          oninput={(e) => handleColsInput(+e.currentTarget.value, e.currentTarget)} />
-        <span class="cols-tick" style="left: {colsTickPct}%" aria-hidden="true"></span>
-        <span class="cols-tick-label" style="left: {colsTickPct}%" aria-hidden="true">12</span>
-      </div>
-      <input class="shadow-slider-input" type="number" min={COLS_MIN} max={COLS_MAX}
-        value={$editorState.columns.count}
-        onchange={(e) => setColumnsCount(+e.currentTarget.value)} />
-      <span class="shadow-slider-unit"></span>
-    </div>
-    {#if $editorState.columns.count !== STANDARD_COLS}
-      <p class="cols-consequence" role="note">
-        <i class="fas fa-circle-exclamation"></i>
-        <span>Most components assume 12 cols. Reset to restore.</span>
-      </p>
-    {/if}
     <div class="global-shadow-row">
-      <span class="shadow-slider-label" title="Maximum content width">Max-Width</span>
+      <span class="shadow-slider-label" title="Maximum content width, shared by every viewport">Max-Width</span>
       <input type="range" min="480" max="2560" step="10" value={$editorState.columns.maxWidth}
         onpointerdown={() => beginSliderGesture('drag columns max-width')}
         oninput={(e) => setColumnsMaxWidth(+e.currentTarget.value)} />
@@ -119,43 +111,71 @@
         onchange={(e) => setColumnsMaxWidth(+e.currentTarget.value)} />
       <span class="shadow-slider-unit">px</span>
     </div>
+
+    <div class="columns-viewport">
+      <UISegmentedControl bind:value={viewport} options={VIEWPORT_OPTIONS} ariaLabel="Viewport" />
+    </div>
+
+    <div class="global-shadow-row cols-row">
+      <span class="shadow-slider-label" title="Number of columns">Cols</span>
+      <div class="cols-slider-wrap">
+        <input type="range" min={COLS_MIN} max={COLS_MAX} value={values.count}
+          onpointerdown={onColsPointerDown}
+          onpointerup={onColsPointerUp}
+          onpointercancel={onColsPointerUp}
+          oninput={(e) => handleColsInput(+e.currentTarget.value, e.currentTarget)} />
+        <span class="cols-tick" style="left: {colsTickPct}%" aria-hidden="true"></span>
+        <span class="cols-tick-label" style="left: {colsTickPct}%" aria-hidden="true">{defaults.count}</span>
+      </div>
+      <input class="shadow-slider-input" type="number" min={COLS_MIN} max={COLS_MAX}
+        value={values.count}
+        onchange={(e) => setColumnsCount(+e.currentTarget.value)} />
+      <span class="shadow-slider-unit"></span>
+    </div>
+    {#if values.count !== defaults.count}
+      <p class="cols-consequence" role="note">
+        <i class="fas fa-circle-exclamation"></i>
+        <span>Most layouts assume {defaults.count} cols on {viewportLabel}. Reset to restore.</span>
+      </p>
+    {/if}
     <div class="global-shadow-row">
       <span class="shadow-slider-label" title="Space between columns">Gutter</span>
-      <input type="range" min="0" max="80" value={$editorState.columns.gutter}
-        onpointerdown={() => beginSliderGesture('drag columns gutter')}
+      <input type="range" min="0" max="80" value={values.gutter}
+        onpointerdown={() => beginSliderGesture(`drag ${viewport} columns gutter`)}
         oninput={(e) => setColumnsGutter(+e.currentTarget.value)} />
       <input class="shadow-slider-input" type="number" min="0" max="200"
-        value={$editorState.columns.gutter}
+        value={values.gutter}
         onchange={(e) => setColumnsGutter(+e.currentTarget.value)} />
       <span class="shadow-slider-unit">px</span>
     </div>
     <div class="global-shadow-row">
       <span class="shadow-slider-label" title="Outer page margin (side gutters)">Margin</span>
-      <input type="range" min="0" max="200" value={$editorState.columns.margin}
-        onpointerdown={() => beginSliderGesture('drag columns margin')}
+      <input type="range" min="0" max="200" value={values.margin}
+        onpointerdown={() => beginSliderGesture(`drag ${viewport} columns margin`)}
         oninput={(e) => setColumnsMargin(+e.currentTarget.value)} />
       <input class="shadow-slider-input columns-input-wide" type="number" min="0" max="400"
-        value={$editorState.columns.margin}
+        value={values.margin}
         onchange={(e) => setColumnsMargin(+e.currentTarget.value)} />
       <span class="shadow-slider-unit">px</span>
     </div>
 
     <div class="columns-controls-footer">
-      <button class="columns-reset" onclick={resetColumns} title="Restore values from when this editor session opened">
+      <button class="columns-reset" onclick={resetViewport} title="Restore the default {viewportLabel} count, gutter and margin">
         <i class="fas fa-rotate-left"></i>
-        Reset to initial
+        Reset {viewportLabel}
       </button>
     </div>
   </div>
 
-  <!-- A scaled picture of the grid at its max width: gutter and margin are
-       shares of it, so the preview keeps its proportions in any panel. -->
+  <!-- A scaled picture of the grid at the widest window it serves: gutter and
+       margin are shares of that width, so the preview keeps its proportions in
+       any panel. -->
   <div class="columns-preview">
     <div
       class="columns-preview-inner"
-      style="gap: {($editorState.columns.gutter / $editorState.columns.maxWidth) * 100}%; padding-inline: {($editorState.columns.margin / $editorState.columns.maxWidth) * 100}%; grid-template-columns: repeat({$editorState.columns.count}, minmax(0, 1fr));"
+      style="gap: {(values.gutter / previewWidth) * 100}%; padding-inline: {(values.margin / previewWidth) * 100}%; grid-template-columns: repeat({values.count}, minmax(0, 1fr));"
     >
-      {#each Array($editorState.columns.count) as _, i}
+      {#each { length: values.count }, i (i)}
         <div class="columns-preview-col"><span>{i + 1}</span></div>
       {/each}
     </div>
@@ -203,6 +223,13 @@
   .columns-controls .shadow-slider-label {
     width: 5rem;
     text-align: left;
+  }
+
+  .columns-viewport {
+    display: flex;
+    padding-top: var(--ui-space-8);
+    margin-top: var(--ui-space-4);
+    border-top: 1px solid var(--ui-border-low);
   }
 
   .cols-row {

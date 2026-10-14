@@ -21,6 +21,7 @@ import { quietGet, quietSet } from '../storage/storage';
 import { isGradientSlot, makeDefaultGradients } from '../themes/slices/gradients';
 import { seedShadowsFromDom } from '../themes/slices/shadows';
 import { makeDefaultWashScale, type WashFamily } from '../themes/slices/washes';
+import { normalizeColumnsState } from '../themes/slices/columns';
 import { sanitizeHarmonyAxes } from '../palettes/colorHarmony';
 import {
   renameBackgroundPaletteKey,
@@ -189,6 +190,10 @@ export function normalizePaletteBasis(state: EditorState): EditorState {
   return { ...state, palettes: migratePaletteColorsToOklch(raw) };
 }
 
+export function normalizeColumns(state: EditorState): EditorState {
+  return { ...state, columns: normalizeColumnsState(state.columns) };
+}
+
 export function hydrate(): void {
   // Corrupt state, missing key, or unavailable storage all return null;
   // the editor falls through to the empty default in that case.
@@ -200,7 +205,7 @@ export function hydrate(): void {
     store.set(
       normalizeHarmonyAxes(
         normalizeBaseAnchors(
-          normalizePaletteBasis(normalizePaletteLabels(normalizeComponents(normalizeWashes(migrateGradients(merged))))),
+          normalizePaletteBasis(normalizePaletteLabels(normalizeComponents(normalizeColumns(normalizeWashes(migrateGradients(merged)))))),
         ),
       ),
     );

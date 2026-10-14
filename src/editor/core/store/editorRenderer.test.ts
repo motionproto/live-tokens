@@ -43,7 +43,7 @@ describe('editor renderer reactive projection', () => {
   it('projects a representative cross-domain theme mutation in one pass', () => {
     mutate('reactive matrix', (state) => {
       state.cssVars['--font-size-5xl'] = '52px';
-      state.columns.count = 10;
+      state.columns.viewports.desktop.count = 10;
       state.washes.scrim.stops[0].opacity = 0.5;
       state.shadows.tokens = [{
         variable: '--shadow-sm',
@@ -132,5 +132,30 @@ describe('editor renderer reactive projection', () => {
 
     expect(redo()).toBe(true);
     expect(fontNode()).toBeNull();
+  });
+});
+
+describe('editor renderer column projection', () => {
+  const columnNames = () => {
+    const style = document.documentElement.style;
+    return Array.from({ length: style.length }, (_, i) => style.item(i)).filter((name) => name.startsWith('--columns-'));
+  };
+
+  it('writes no column name while every value sits at its default', () => {
+    mutate('unrelated edit', (state) => { state.cssVars['--font-size-5xl'] = '52px'; });
+    expect(columnNames()).toEqual([]);
+  });
+
+  it('writes an edited viewport value under its own name alone', () => {
+    mutate('set phone count', (state) => { state.columns.viewports.phone.count = 2; });
+    expect(columnNames()).toEqual(['--columns-phone-count']);
+    expect(document.documentElement.style.getPropertyValue('--columns-phone-count')).toBe('2');
+  });
+
+  it('removes the name once the value returns to its default', () => {
+    mutate('set tablet gutter', (state) => { state.columns.viewports.tablet.gutter = 40; });
+    expect(columnNames()).toEqual(['--columns-tablet-gutter']);
+    undo();
+    expect(columnNames()).toEqual([]);
   });
 });

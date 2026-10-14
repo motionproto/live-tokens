@@ -56,8 +56,7 @@ import {
   initializeEditorStore,
 } from './editorPersistence';
 import {
-  DEFAULT_COLUMNS,
-  columnsEqualsDefault,
+  defaultColumns,
   columnsToVars,
   loadColumnsFromVars,
 } from '../themes/slices/columns';
@@ -100,7 +99,7 @@ function emptyState(): EditorState {
       overrides: {},
     },
     washes: makeDefaultWashesState(),
-    columns: { ...DEFAULT_COLUMNS },
+    columns: defaultColumns(),
     components: {},
     gradients: { tokens: makeDefaultGradients() },
     harmonyAxes: defaultHarmonyAxes(),
@@ -143,10 +142,9 @@ export {
 
 export {
   columnsToVars,
-  columnsEqualsDefault,
+  columnsFromVars,
   COLUMN_VAR_NAMES,
-  DEFAULT_COLUMNS,
-  parseColumnVars,
+  defaultColumns,
 } from '../themes/slices/columns';
 
 export {
@@ -430,9 +428,7 @@ export function loadFromFile(colorsAndType: ColorsAndType): void {
  */
 function colorsAndTypeContent(state: EditorState): Omit<ColorsAndType, 'name' | 'createdAt' | 'updatedAt'> {
   const cssVariables: Record<string, string> = { ...state.cssVars };
-  if (!columnsEqualsDefault(state.columns)) {
-    Object.assign(cssVariables, columnsToVars(state.columns));
-  }
+  Object.assign(cssVariables, columnsToVars(state.columns));
   Object.assign(cssVariables, washesToVars(state.washes));
   if (state.shadows.tokens.length > 0) {
     Object.assign(cssVariables, shadowsToVars(state.shadows));

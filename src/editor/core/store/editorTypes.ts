@@ -1,6 +1,7 @@
 import type { PaletteConfig, FontSource, FontStack } from '../themes/themeTypes';
 import type { GradientStop, GradientValue, LinearDirection } from '../themes/parsers/gradient';
 import type { HarmonyAxis } from '../palettes/colorHarmony';
+import type { ColumnViewport, ColumnViewportValues } from '../themes/slices/columns';
 
 export interface ShadowGlobals {
   angle: number;
@@ -38,10 +39,8 @@ export interface WashScale {
 }
 
 export interface ColumnsState {
-  count: number;
   maxWidth: number;
-  gutter: number;
-  margin: number;
+  viewports: Record<ColumnViewport, ColumnViewportValues>;
 }
 
 /** Gradient render mode.
