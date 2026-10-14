@@ -172,7 +172,7 @@ function differences(untransformed: Snapshot, transformed: Snapshot): Difference
   return found;
 }
 
-async function compare(pages: Record<Build, Page>, state: string, step?: (page: Page) => Promise<void>) {
+async function compare(pages: Record<Build, Page>, state: string, step?: (page: Page) => Promise<void>): Promise<Snapshot> {
   const snapshots = await Promise.all(
     [pages.untransformed, pages.transformed].map(async (page) => {
       if (step) {
@@ -192,6 +192,21 @@ async function compare(pages: Record<Build, Page>, state: string, step?: (page: 
     shown.map((difference) => difference.line),
     `${found.length} computed values differ ${state}, in ${properties.size} properties`,
   ).toEqual([]);
+  return snapshots[0];
+}
+
+const homes = new Map<number, string[]>();
+
+// The router renders Home for a path it has no page for, so a misspelled route would compare Home against Home.
+async function homeElements(browser: Browser, width: number): Promise<string[]> {
+  let elements = homes.get(width);
+  if (!elements) {
+    const page = await open(browser, servers.site.untransformed + '/', width);
+    elements = (await page.evaluate(snapshot)).elements.map(([elPath]) => elPath);
+    await page.context().close();
+    homes.set(width, elements);
+  }
+  return elements;
 }
 
 const servers: Record<App, Record<Build, string>> = {
@@ -235,7 +250,11 @@ for (const width of WIDTHS) {
     test(`${route} computes the same styles at ${width}px wide`, async ({ browser }) => {
       test.setTimeout(120_000);
       await withBoth(browser, 'site', route, width, async (pages) => {
-        await compare(pages, 'at rest');
+        const rest = await compare(pages, 'at rest');
+        if (route !== '/') {
+          expect(rest.elements.map(([elPath]) => elPath), `${route} rendered Home, the router's page for an unknown path`)
+            .not.toEqual(await homeElements(browser, width));
+        }
         await compare(pages, 'on a light backdrop', (page) =>
           page.evaluate(() => document.documentElement.setAttribute('data-backdrop', 'light')),
         );

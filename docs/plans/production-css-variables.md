@@ -655,7 +655,9 @@ runs it.
   starts a transition on the Button that opened it. The first run settled
   once and failed on that Button's colors mid-transition.
 - `ROUTES` lists the five routes a build serves. A new page joins the list
-  by hand.
+  by hand. The router renders Home for a path it has no page for, so each
+  route's test also checks that its untransformed element list differs from
+  Home's at the same width; `/nope` fails that check with Home's 28 elements.
 - With `analyze` classing `--font-size-2xl` static, the spec fails at 768
   and 480 pixels and passes at 1280, where the `:root` value applies. The
   break never reached a commit. It changes `analyze.ts:260`, where the result
