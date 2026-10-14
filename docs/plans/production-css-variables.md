@@ -715,3 +715,10 @@ runs it.
   and opening the Dialog, and assert nothing about the state taking effect. A
   Dialog that failed to open would compare the resting page against itself.
   A follow-up asserts the `.dialog` element and the hovered values.
+- `template/vite.config.ts` says the plugin persists editor changes to
+  `tokens.css`. It writes `tokens.css` only under `autoMigrate`; Save writes
+  themes and Promote writes `tokens.generated.css`.
+- `README.md:9` says production builds get plain CSS variables, and its
+  "From edit to production" section (`:437-441`) leaves out the transform.
+- `test:e2e` chains `test:e2e:production-css`, which adds about 38 s and four
+  builds to every CI Verify run.
