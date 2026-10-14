@@ -205,6 +205,20 @@ const PRODUCTION_CSS_WAVES = {
   '5': { executor: 'wave-executor', verify: true, reviewModel: 'sonnet' },
 }
 
+const RESPONSIVE_COLUMNS_WAVES = {
+  '1': { executor: 'wave-executor', verify: true },
+  '2': { executor: 'svelte:svelte-file-editor', verify: true },
+  '3': { executor: 'wave-executor', verify: true },
+  '4': { executor: 'wave-executor', verify: true, reviewModel: 'sonnet' },
+  '5': {
+    executor: 'visual-qa',
+    verify: false,
+    extra: () =>
+      'Restore src/live-tokens/data as CLAUDE.md describes before you return, and list the screenshots you took ' +
+      'under oddities.',
+  },
+}
+
 // executeModel and escalateModel override the agent definition's model. A plan without them runs each agent as defined.
 // root is a worktree, relative to the repository root, that every agent works in; the setup wave creates it.
 // An unattended plan settles judgment calls with its review rules and logs them, so no step waits on the user.
@@ -240,6 +254,11 @@ const PLANS = {
     prefix: 'Production-css',
     waves: PRODUCTION_CSS_WAVES,
     escalateModel: 'fable',
+  },
+  'responsive-columns': {
+    file: 'docs/plans/responsive-columns.md',
+    prefix: 'Responsive-columns',
+    waves: RESPONSIVE_COLUMNS_WAVES,
   },
 }
 
