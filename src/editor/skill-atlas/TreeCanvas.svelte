@@ -128,7 +128,15 @@
         marker-end={wire.arrow ? 'url(#atlas-arrow)' : undefined}
       />
     {/each}
+  </svg>
 
+  <svg
+    class="wires wire-labels"
+    viewBox="0 0 {canvasSize.w} {canvasSize.h}"
+    width={canvasSize.w}
+    height={canvasSize.h}
+    aria-hidden="true"
+  >
     {#each labels as label, i (i)}
       <text
         class="wire-label"
@@ -200,6 +208,12 @@
   }
 
   /* The halo breaks the wire so the answer reads on its own ground. */
+  /* Sketch mode filters every inline svg as artwork, which smears type. The
+     labels get their own svg so the wires stay drawn and the answers crisp. */
+  .wire-labels {
+    --sketch-icon-off: none;
+  }
+
   .wire-label {
     font-family: var(--code-font-family);
     font-size: var(--font-size-sm);
