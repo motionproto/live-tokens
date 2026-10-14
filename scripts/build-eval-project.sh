@@ -11,7 +11,7 @@ source "$REPO_ROOT/scripts/lib/consumer-project.sh"
 TARGET="$REPO_ROOT/scratch/eval-project"
 # The tracked content of what ships, plus any uncommitted change to it. A
 # commit that touches none of it leaves the stamp alone.
-SHIPPED="src bin template package.json .claude/skills"
+SHIPPED="src bin template vite-plugin package.json .claude/skills"
 STAMP="$( (git ls-files -s -- $SHIPPED; git diff -- $SHIPPED) | shasum | cut -c1-16)"
 
 if [ -f "$TARGET/.built-from" ] && [ "$(cat "$TARGET/.built-from")" = "$STAMP" ]; then
