@@ -983,10 +983,18 @@
       display: block;
     }
 
+    /* The top leaves room for the fixed editor toolbar above the back link.
+       The sides inset by the grid's own margin, as the column overlay does. */
     .loops {
-      grid-template-columns: minmax(var(--space-0), 1fr);
-      /* Leave room for the fixed editor toolbar above the back link. */
-      padding: var(--space-64) var(--space-16) var(--space-48);
+      padding-block: var(--space-64) var(--space-48);
+      padding-inline: var(--columns-margin);
+    }
+
+    /* Both outrank the 1023px block's `.chapter-body > *`, so their 2 / -2
+       would take half of a phone's four columns. */
+    .chapter-body > h1,
+    .chapter-body > .eval-results {
+      grid-column: 1 / -1;
     }
 
     h1 {
