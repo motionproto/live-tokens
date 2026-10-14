@@ -1,5 +1,20 @@
 # Changelog
 
+## 0.94.2 — Palette step confirm
+
+### Fixed
+
+- **Confirming a palette step after a curve change saves the override.** A
+  step left open while a lightness, saturation, or hue curve moved held its
+  draft in a deep reactive proxy. Confirm wrote that proxy into the store,
+  and the next edit failed to clone the state. The editor now keeps the draft
+  as a plain value.
+
+### Changed
+
+- **The demo page's closing quote stands on its own.** The illustration beside
+  it is gone, and the quote sits centered between Layers and Get Started.
+
 ## 0.94.1 — Adopt after a save
 
 ### Fixed
