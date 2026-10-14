@@ -790,6 +790,24 @@
     overflow-x: auto;
   }
 
+  /* A phone frame scrolls the diagram, and the default overlay bar is too thin
+     to signal it. The standard scrollbar-width has no length value, and setting
+     it would disable these pseudo-elements in Chromium. */
+  .figure-scroll::-webkit-scrollbar {
+    height: var(--space-32);
+  }
+
+  .figure-scroll::-webkit-scrollbar-track {
+    background: var(--surface-neutral-low);
+    border-radius: var(--radius-full);
+  }
+
+  .figure-scroll::-webkit-scrollbar-thumb {
+    background: var(--surface-neutral-higher);
+    border: var(--border-width-1) solid var(--border-neutral);
+    border-radius: var(--radius-full);
+  }
+
   /* Inside the figure's subgrid, so 1 / 7 lines up with the text column. */
   figcaption {
     grid-column: 1 / 7;
@@ -1007,10 +1025,40 @@
       font-size: var(--table-default-header-font-size);
       font-weight: var(--table-default-header-font-weight);
       line-height: var(--table-default-header-line-height);
+      /* Half again as tall as a body row, so each card's caption marks a break between rules. */
+      padding-top: calc(var(--table-default-cell-padding-top, var(--table-default-cell-padding)) * 1.5 + 0.25lh);
+      padding-bottom: calc(var(--table-default-cell-padding-bottom, var(--table-default-cell-padding)) * 1.5 + 0.25lh);
     }
 
-    :is(.rule-group, .eval-results) :global(.table-wrapper tr:not(:last-child) td:last-child) {
+    .rule-group :global(.table-wrapper td:last-child) {
+      padding-bottom: calc(var(--table-default-cell-padding-bottom, var(--table-default-cell-padding)) + 0.5lh);
+    }
+
+    .eval-results :global(.table-wrapper tr:not(:last-child) td:last-child) {
       border-bottom: var(--table-default-header-hairline-width) solid var(--table-default-header-hairline-color);
+    }
+
+    /* Each rule stands as its own box: the wrapper hands its chrome to every row.
+       Visible overflow keeps the wrapper's scroll box from clipping each row's shadow. */
+    .rule-group :global(.table-wrapper) {
+      overflow: visible;
+      background: none;
+      border: none;
+      border-radius: var(--radius-none);
+      box-shadow: none;
+    }
+
+    .rule-group :global(.table-wrapper tbody) {
+      display: grid;
+      gap: var(--space-12);
+    }
+
+    .rule-group :global(.table-wrapper tr) {
+      overflow: hidden;
+      background: var(--table-default-surface);
+      border: var(--table-default-border-width) solid var(--table-default-border);
+      border-radius: var(--table-default-radius);
+      box-shadow: var(--table-default-shadow);
     }
 
     /* The hidden header row named these columns, so each value carries its own label. */
