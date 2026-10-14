@@ -135,6 +135,12 @@ A custom property is **dynamic** when any of these hold:
 4. An `@property` rule registers it.
 5. The `keep` option lists it.
 6. Its value references a dynamic property.
+7. Its winning value is a CSS-wide keyword, such as `initial`.
+8. It reaches a `var()` cycle.
+9. Its bare `:root` value differs between CSS assets.
+10. Its value reads a name that no CSS declares and no script, `keep` entry
+    or `@property` names.
+11. Only a lazy chunk's CSS declares it, and another asset reads it.
 
 Every other property is **static**. The build then:
 
@@ -193,6 +199,18 @@ The user settled these on 2026-10-14.
    when the plugin uses it at build time.
 4. **Release.** A minor version with a `### Changed` entry, since a consumer's
    runtime reads of removed tokens return empty.
+5. **File names follow the rewritten content.** Every emitted file whose bytes
+   the rewrite changes, directly or through a reference to a renamed file,
+   gets a name that hashes its final bytes. First test whether the rewrite
+   can run before Vite names the CSS assets, so the bundler's own hashes
+   cover the rewritten content. If it cannot, the hook renames each
+   rewritten sheet, then each chunk whose `viteMetadata.importedCss` changed,
+   then, through `chunk.imports` and `chunk.dynamicImports`, each chunk that
+   references a renamed chunk, and points `index.html`, the manifest and
+   every `.css.map` at the final names.
+6. **Lazy-only static properties are dynamic.** `analyze` classes a property
+   dynamic when only a lazy chunk's CSS declares it and another asset reads
+   it. `rewriteBundle` passes the entry asset indices.
 
 ## Agents and workflow runs
 
@@ -316,6 +334,8 @@ Record any difference and its cause under Calls.
    `ThemeFileApiOptions`.
 3. Log one line per build: properties before and after, and bytes saved.
 4. Move `postcss` from `devDependencies` to `dependencies`.
+5. Name emitted files by their final content, as Decision 5 sets out.
+6. Class lazy-only static properties dynamic, as Decision 6 sets out.
 
 **Review rule.** The hook returns early under `vite serve`, and a test proves
 it. Substitution copies the token stream unchanged.
@@ -326,7 +346,8 @@ the census on `dist`, then the scaffold build.
 **Done when**, for this repo's build and the scaffold build, the census
 reports `bareRootRedeclared` 0, and every variable left on `:root` appears in
 `dynamicReachedNames` of the same build made with `productionCss: false`.
-Record both census tables under Calls.
+Two scaffold builds that differ only in the theme emit no file under the same
+name with different bytes. Record both census tables under Calls.
 
 ## Wave 4: equivalence check
 
@@ -543,6 +564,11 @@ The scaffold build:
 - A static property declared only in a lazy chunk's CSS and read from the
   entry CSS resolves after substitution before that chunk loads, where today
   it is invalid until then. Both builds point every cross-asset static
-  reference at the entry CSS. `analyze` could class such a property dynamic
-  if `rewriteBundle` passed it the entry asset indices. Open for the user:
-  take the tightening or leave it.
+  reference at the entry CSS. Decision 6 takes the tightening.
+- The rename in `fbf0ef6` changes each entry chunk's bytes under the name the
+  bundler hashed before the rename, so an immutable cache serves an old chunk
+  that preloads a sheet name the release no longer emits. Decision 5 replaces
+  it.
+- `template/src/main.ts` passes `{ sketchLooks }` to `bootLiveTokens`, whose
+  option is `sketchStyles`, so a scaffolded project's saved sketch styles
+  never reach its build. The bug predates this plan and sits outside it.
