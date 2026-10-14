@@ -75,7 +75,7 @@ describe('editor renderer reactive projection', () => {
 
     const style = document.documentElement.style;
     expect(style.getPropertyValue('--font-size-5xl')).toBe('52px');
-    expect(style.getPropertyValue('--columns-count')).toBe('10');
+    expect(style.getPropertyValue('--columns-desktop-count')).toBe('10');
     expect(style.getPropertyValue('--scrim-opacity-low')).toBe('0.5');
     expect(style.getPropertyValue('--shadow-sm')).toBe('1px 2px 3px hsla(200, 20%, 10%, 0.25)');
     expect(style.getPropertyValue('--gradient-1')).toContain('22deg');

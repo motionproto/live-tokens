@@ -1,29 +1,63 @@
 /**
- * Columns slice — fixed-shape (count/maxWidth/gutter/margin) state, derived to
- * four CSS vars. Values default to a 12-column 1440px grid; while state matches
- * the default we leave tokens.css in charge so the `clamp()` in
- * `--columns-gutter` survives until the editor overrides it.
+ * Columns slice. The column grid holds one max width and a count, a gutter and
+ * a margin per viewport. `--columns-count`, `--columns-gutter` and
+ * `--columns-margin` are structural: tokens.css points them at the viewport
+ * values for the window's width, and the editor never writes them.
+ *
+ * The editor state holds one set, which edits the max width and the desktop
+ * values. A theme's tablet and phone values ride in the catch-all bag.
  */
-import type { ColumnsState } from '../../store/editorTypes';
+import type { ColumnsState, EditorState } from '../../store/editorTypes';
 
-export const DEFAULT_COLUMNS: ColumnsState = { count: 12, maxWidth: 1440, gutter: 16, margin: 0 };
+export const COLUMN_VIEWPORTS = ['desktop', 'tablet', 'phone'] as const;
+export type ColumnViewport = (typeof COLUMN_VIEWPORTS)[number];
 
-export const COLUMN_VAR_NAMES = ['--columns-count', '--columns-max-width', '--columns-gutter', '--columns-margin'] as const;
+export interface ColumnViewportValues {
+  count: number;
+  gutter: number;
+  margin: number;
+}
+export type ColumnProperty = keyof ColumnViewportValues;
+export const COLUMN_PROPERTIES: readonly ColumnProperty[] = ['count', 'gutter', 'margin'];
+
+export const COLUMN_MAX_WIDTH_NAME = '--columns-max-width';
+
+export function columnVarName(viewport: ColumnViewport, property: ColumnProperty): string {
+  return `--columns-${viewport}-${property}`;
+}
+
+export const VIEWPORT_COLUMN_NAMES: readonly string[] = COLUMN_VIEWPORTS.flatMap((viewport) =>
+  COLUMN_PROPERTIES.map((property) => columnVarName(viewport, property)),
+);
+
+export const STRUCTURAL_COLUMN_NAMES = ['--columns-count', '--columns-gutter', '--columns-margin'] as const;
+
+export const COLUMN_DEFAULTS: { maxWidth: number; viewports: Record<ColumnViewport, ColumnViewportValues> } = {
+  maxWidth: 1440,
+  viewports: {
+    desktop: { count: 12, gutter: 32, margin: 0 },
+    tablet: { count: 8, gutter: 24, margin: 24 },
+    phone: { count: 4, gutter: 16, margin: 16 },
+  },
+};
+
+export const DEFAULT_COLUMNS: ColumnsState = { maxWidth: COLUMN_DEFAULTS.maxWidth, ...COLUMN_DEFAULTS.viewports.desktop };
+
+export const COLUMN_VAR_NAMES = [
+  COLUMN_MAX_WIDTH_NAME,
+  ...COLUMN_PROPERTIES.map((property) => columnVarName('desktop', property)),
+] as const;
 
 export function columnsToVars(c: ColumnsState): Record<string, string> {
   return {
-    '--columns-count': String(c.count),
-    '--columns-max-width': `${c.maxWidth}px`,
-    '--columns-gutter': `${c.gutter}px`,
-    '--columns-margin': `${c.margin}px`,
+    [COLUMN_MAX_WIDTH_NAME]: `${c.maxWidth}px`,
+    [columnVarName('desktop', 'count')]: String(c.count),
+    [columnVarName('desktop', 'gutter')]: `${c.gutter}px`,
+    [columnVarName('desktop', 'margin')]: `${c.margin}px`,
   };
 }
 
-/**
- * Only emit column CSS vars once the user has actually modified columns.
- * While columns match the default, we leave tokens.css in charge — which
- * preserves the `clamp()` in `--columns-gutter` until the editor overrides it.
- */
+/** While columns match the default, tokens.css stays in charge of every column var. */
 export function columnsEqualsDefault(c: ColumnsState): boolean {
   return c.count === DEFAULT_COLUMNS.count
     && c.maxWidth === DEFAULT_COLUMNS.maxWidth
@@ -33,13 +67,13 @@ export function columnsEqualsDefault(c: ColumnsState): boolean {
 
 export function parseColumnVars(vars: Record<string, string>): Partial<ColumnsState> {
   const out: Partial<ColumnsState> = {};
-  const count = parseInt(vars['--columns-count'] ?? '', 10);
+  const count = parseInt(vars[columnVarName('desktop', 'count')] ?? '', 10);
   if (Number.isFinite(count) && count > 0) out.count = count;
-  const maxWidth = parseFloat(vars['--columns-max-width'] ?? '');
+  const maxWidth = parseFloat(vars[COLUMN_MAX_WIDTH_NAME] ?? '');
   if (Number.isFinite(maxWidth)) out.maxWidth = Math.round(maxWidth);
-  const gutter = parseFloat(vars['--columns-gutter'] ?? '');
+  const gutter = parseFloat(vars[columnVarName('desktop', 'gutter')] ?? '');
   if (Number.isFinite(gutter)) out.gutter = Math.round(gutter);
-  const margin = parseFloat(vars['--columns-margin'] ?? '');
+  const margin = parseFloat(vars[columnVarName('desktop', 'margin')] ?? '');
   if (Number.isFinite(margin)) out.margin = Math.round(margin);
   return out;
 }
@@ -49,10 +83,7 @@ export function parseColumnVars(vars: Record<string, string>): Partial<ColumnsSt
  * into `next.columns` and remove them from the bag so derivation stays
  * single-source. Mutates `next` and `rawVars` in place.
  */
-export function loadColumnsFromVars(
-  next: import('../../store/editorTypes').EditorState,
-  rawVars: Record<string, string>,
-): void {
+export function loadColumnsFromVars(next: EditorState, rawVars: Record<string, string>): void {
   const overrides = parseColumnVars(rawVars);
   next.columns = { ...DEFAULT_COLUMNS, ...overrides };
   for (const name of COLUMN_VAR_NAMES) delete rawVars[name];
