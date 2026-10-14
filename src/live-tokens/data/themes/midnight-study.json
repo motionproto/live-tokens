@@ -2267,10 +2267,10 @@
       }
     },
     "cssVariables": {
-      "--columns-count": "12",
+      "--columns-desktop-count": "12",
       "--columns-max-width": "1440px",
-      "--columns-gutter": "32px",
-      "--columns-margin": "0px",
+      "--columns-desktop-gutter": "32px",
+      "--columns-desktop-margin": "0px",
       "--scrim-color": "var(--surface-neutral-lowest)",
       "--scrim-opacity-low": "0.7",
       "--scrim-opacity": "0.8",
@@ -2530,7 +2530,7 @@
         "family": null
       }
     ],
-    "schemaVersion": 9
+    "schemaVersion": 10
   },
   "componentConfigs": {
     "badge": {

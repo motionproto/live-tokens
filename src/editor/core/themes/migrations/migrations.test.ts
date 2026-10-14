@@ -707,6 +707,36 @@ describe('migration runner — schemaVersion gating', () => {
     expect(runMigrations('colors-and-type', 8, out)).toEqual(expected);
   });
 
+  it('colors-and-type v9 → v10: the stored column values move to their desktop names', () => {
+    const v9 = {
+      '--columns-count': '10',
+      '--columns-max-width': '1280px',
+      '--columns-gutter': '24px',
+      '--columns-margin': '8px',
+      '--space-8': '0.5rem',
+    };
+    const expected = {
+      '--columns-desktop-count': '10',
+      '--columns-max-width': '1280px',
+      '--columns-desktop-gutter': '24px',
+      '--columns-desktop-margin': '8px',
+      '--space-8': '0.5rem',
+    };
+    const out = runMigrations('colors-and-type', 9, v9);
+    expect(out).toEqual(expected);
+    expect(Object.keys(out)).toEqual(Object.keys(expected));
+  });
+
+  it('colors-and-type v9 → v10 leaves a theme that stores no column values alone', () => {
+    const v9 = { '--space-8': '0.5rem', '--columns-max-width': '1280px' };
+    expect(runMigrations('colors-and-type', 9, v9)).toEqual(v9);
+  });
+
+  it('colors-and-type v9 → v10 changes nothing in an already-migrated theme', () => {
+    const v10 = { '--columns-desktop-count': '10', '--columns-phone-gutter': '12px' };
+    expect(runMigrations('colors-and-type', 9, v10)).toEqual(v10);
+  });
+
   it('component-config v37 → v38: a scrim pair folds into one fill', () => {
     const cases: Array<[string, Record<string, string>, Record<string, string>]> = [
       ['dialog',
