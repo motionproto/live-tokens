@@ -1,10 +1,4 @@
-<script lang="ts">
-  import offeringUrl from '../../system/assets/offering.webp';
-</script>
-
 <section class="offering">
-  <img class="offering-image" src={offeringUrl} alt="" />
-
   <figure class="offering-quote">
     <blockquote>
       <p>
@@ -23,37 +17,11 @@
     display: grid;
     grid-template-columns: repeat(var(--columns-count), 1fr);
     column-gap: var(--columns-gutter);
-    position: relative;
-    z-index: 1;
   }
 
-  /* Roughly a third of the content width, parked on the left edge so it
-     overlaps the left-hand card above without dominating the section. */
-  .offering-image {
-    grid-column: 2 / 7;
-    grid-row: 1;
-    display: block;
-    width: 100%;
-    height: auto;
-    border-radius: var(--radius-lg);
-    z-index: 1;
-  }
-
-  /* Sits in the open space to the right of the image. No glass background.
-     align-self centers it on the image, then translateY drops it by half the
-     image's upward overlap (the extra -space-64 in Demo.svelte) so it lands in
-     the middle of the actual gap between the cards above and Get Started below. */
   .offering-quote {
-    grid-column: 7 / -2;
-    grid-row: 1;
-    align-self: center;
-    transform: translateY(calc(var(--space-64) / 2));
+    grid-column: 3 / -3;
     margin: 0;
-    /* Align body text to the card text above. The cards split this same span
-       in half, so the right card's left edge sits half a gutter right of line 7;
-       its body text is then inset by the card's --space-20 padding. Match both,
-       and the open quote dangles left into this padding (text-indent on p). */
-    padding-left: calc(var(--columns-gutter) / 2 + var(--space-20));
   }
 
   .offering-quote blockquote {
@@ -104,11 +72,8 @@
   }
 
   @media (max-width: 960px) {
-    .offering-image {
-      grid-column: 2 / 7;
-    }
     .offering-quote {
-      grid-column: 7 / -2;
+      grid-column: 2 / -2;
     }
     .offering-quote p {
       font-size: var(--font-size-xl);
@@ -116,17 +81,8 @@
   }
 
   @media (max-width: 600px) {
-    .offering-image {
-      grid-column: 1 / -1;
-      grid-row: 1;
-    }
     .offering-quote {
       grid-column: 1 / -1;
-      grid-row: 2;
-      align-self: auto;
-      width: auto;
-      margin: var(--space-16) 0 0;
-      padding-left: 0;
     }
     .offering-quote p {
       font-size: var(--font-size-4xl);

@@ -64,14 +64,6 @@
     margin-top: var(--space-32);
   }
 
-  /* Overlap the offering image up into Layers (top) and butt Get Started
-     against its bottom. -space-64 cancels the grid row-gap; the extra
-     -space-64 on top is the actual overlap — tune that second term to taste. */
-  .kit > :global(.offering) {
-    margin-top: calc(var(--space-64) * -2 + var(--space-8));
-    margin-bottom: calc(var(--space-64) * -1);
-  }
-
   /* Inline code styling cascades into every section via :global descendants. */
   .kit :global(p > code),
   .kit :global(.callout code) {
@@ -88,10 +80,6 @@
     .kit.has-bar {
       padding: var(--space-32) var(--space-16);
       row-gap: var(--space-48);
-    }
-    .kit > :global(.offering) {
-      margin-top: calc(var(--space-48) * -2);
-      margin-bottom: calc(var(--space-48) * -1);
     }
   }
 </style>
