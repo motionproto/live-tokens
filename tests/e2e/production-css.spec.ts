@@ -146,20 +146,26 @@ async function open(browser: Browser, url: string, width: number): Promise<Page>
   return page;
 }
 
-function differences(untransformed: Snapshot, transformed: Snapshot): string[] {
+interface Difference {
+  property: string;
+  line: string;
+}
+
+function differences(untransformed: Snapshot, transformed: Snapshot): Difference[] {
   expect(transformed.properties).toEqual(untransformed.properties);
-  const found: string[] = [];
+  const found: Difference[] = [];
   const count = Math.max(untransformed.elements.length, transformed.elements.length);
   for (let i = 0; i < count; i++) {
     const [before, beforeValues] = untransformed.elements[i] ?? ['no element', []];
     const [after, afterValues] = transformed.elements[i] ?? ['no element', []];
     if (before !== after) {
-      found.push(`element ${i + 1}: untransformed ${before}, transformed ${after}`);
+      found.push({ property: '', line: `element ${i + 1}: untransformed ${before}, transformed ${after}` });
       break;
     }
     untransformed.properties.forEach((property, p) => {
       if (beforeValues[p] !== afterValues[p]) {
-        found.push(`${before} { ${property} }: untransformed ${JSON.stringify(beforeValues[p])}, transformed ${JSON.stringify(afterValues[p])}`);
+        const values = `untransformed ${JSON.stringify(beforeValues[p])}, transformed ${JSON.stringify(afterValues[p])}`;
+        found.push({ property, line: `${before} { ${property} }: ${values}` });
       }
     });
   }
@@ -177,7 +183,15 @@ async function compare(pages: Record<Build, Page>, state: string, step?: (page: 
     }),
   );
   const found = differences(snapshots[0], snapshots[1]);
-  expect(found.slice(0, SHOWN), `${found.length} computed values differ ${state}`).toEqual([]);
+  // A changed font size moves the height of every ancestor, and those come first in
+  // document order, so the report leads with each property's first difference.
+  const properties = new Set<string>();
+  const leading = found.filter((difference) => !properties.has(difference.property) && properties.add(difference.property));
+  const shown = [...leading, ...found.filter((difference) => !leading.includes(difference))].slice(0, SHOWN);
+  expect(
+    shown.map((difference) => difference.line),
+    `${found.length} computed values differ ${state}, in ${properties.size} properties`,
+  ).toEqual([]);
 }
 
 const servers: Record<App, Record<Build, string>> = {
