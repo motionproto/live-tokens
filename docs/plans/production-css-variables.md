@@ -391,4 +391,37 @@ matches the scaffold: 2,177 distinct, 2,570 declarations, 393 redeclarations,
 
 ### Calls
 
+**Wave 1, 2026-10-14.** The scaffold build from the working tree, measured
+with the census script:
+
+| Measure | Before | After |
+|---|---|---|
+| CSS files, JS files | 9, 9 | 2, 2 |
+| Distinct variables declared on `:root` | 2,177 | 821 |
+| Declarations on `:root` | 2,570 | 1,214 |
+| Redeclarations on `:root` | 393 | 393 |
+| Declared variables the JS names | 2,274 | 14 |
+| Variables some rule reaches | 2,175 | 401 |
+| Reached variables that must stay variables | 2,175 | 53 |
+
+`jsFiles` lists `Home` and `index` only, and `rootDistinctByPrefix` holds no
+`sidenavigation` and no `badge`. The count falls below the planned 932
+because the scaffold's Home renders its two Buttons inside `{#if isDev}`, so
+the build drops Button. This repo's own build declares 1,445 variables on
+`:root`, and its JS names 147. The demo site uses most of the catalogue.
+
+- `registerComponent` moved to `component-editor/registration.ts`, a queue
+  that `registry.ts` drains as it loads. `bootLiveTokens` imports the
+  registry, `editorStore`, `themeDocumentSync`, `liveStateStream` and
+  `themeInit` inside its `import.meta.env.DEV` block.
+- `package.json` declares `"sideEffects": ["**/*.css"]`. The package root
+  re-exports `getComponentRegistryEntries` and the store's API, and without
+  the declaration Rollup keeps those modules for their top-level code. The
+  measurement with the dynamic imports alone stayed at 2,177.
+- `editorStore` no longer runs in a production build. It used to write 16
+  variables inline on `:root` from its empty state: the scrim and tint
+  washes and the four gradients. Those values match the default theme. A
+  production theme with its own gradients or washes now renders them, where
+  before the store's defaults overrode them.
+
 ### Deferred
