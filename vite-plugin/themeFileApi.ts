@@ -2267,9 +2267,9 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
     generateBundle: {
       // After Vite's own hooks, so the bundle holds the minified CSS and index.html.
       order: 'post',
-      handler(_output, bundle) {
+      handler(output, bundle) {
         if (!productionCssLogger) return;
-        const report = rewriteBundle(bundle, opts.productionCss || {});
+        const report = rewriteBundle(bundle, opts.productionCss || {}, output.assetFileNames);
         if (report) productionCssLogger.info(formatReport(report));
       },
     },
