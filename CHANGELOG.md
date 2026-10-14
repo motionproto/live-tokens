@@ -1,5 +1,30 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+- **A production build keeps a CSS variable only where its value changes at
+  runtime.** `vite build` with `themeFileApi` removes each custom property no
+  rule reads, writes each one whose value never changes as its value, and
+  declares each one it keeps once on `:root`, so DevTools lists it once. A
+  scaffolded project's build drops from 821 variables on `:root` to 53, and
+  its CSS from 184 kB to 123 kB. Dev and your source files keep every token.
+  A script that reads a token under a name it assembles at runtime, such as
+  `` `--color-${family}-500` ``, now gets an empty string; list each such
+  name under `themeFileApi({ productionCss: { keep: [...] } })`.
+  `productionCss: { substitute: false }` removes unread properties and keeps
+  every other `var()`, and `productionCss: false` keeps every variable. The
+  guide's Production CSS chapter gives the full rule and its limits.
+- **The editor stays out of production builds.** `bootLiveTokens` loads the
+  component registry and the editor store only in dev, `registerComponent`
+  queues registrations from a module of its own, and `package.json` declares
+  `"sideEffects": ["**/*.css"]`. A build drops every editor module and every
+  component the site never imports, which takes a scaffolded project from
+  2,177 variables on `:root` to 821 before the step above. A production
+  theme's own gradients and scrim and tint washes now render; the editor
+  store used to write the default theme's values over them on `:root`.
+
 ## 0.94.3 — Demo bar chrome
 
 ### Fixed
