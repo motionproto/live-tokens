@@ -655,12 +655,20 @@
     .docs-shell :global(.docs-sidebar) { height: 100%; }
   }
 
-  /* Below 960px the rail stacks above the content; the page scrolls naturally. */
+  /* Below 960px the rail stacks above the content on the column grid; the
+     page scrolls naturally. */
   @media (max-width: 960px) {
     .docs-shell,
-    .docs-shell.collapsed { grid-template-columns: 1fr; }
+    .docs-shell.collapsed {
+      grid-template-columns: repeat(var(--columns-count), minmax(0, 1fr));
+      column-gap: var(--columns-gutter);
+    }
+    .docs-shell > :global(.docs-sidebar),
+    .docs-main { grid-column: 1 / -1; }
   }
-  @media (max-width: 600px) {
-    .docs-shell { padding: 0 var(--space-16, 1rem); }
+  /* tokens.css switches to the tablet grid below 768px. From there the shell
+     insets by the grid's own margin, as the column overlay does. */
+  @media (max-width: 767px) {
+    .docs-shell { padding-inline: var(--columns-margin); }
   }
 </style>
