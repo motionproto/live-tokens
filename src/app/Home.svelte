@@ -101,19 +101,15 @@
     margin-top: var(--space-24);
   }
 
-  /* Eleven 32px gutters leave a phone no room, so Home is one column there. */
+  /* tokens.css switches to the tablet grid below 768px. From there the page
+     insets by the grid's own margin, as the column overlay does. */
   @media (max-width: 767px) {
     .home {
-      grid-template-columns: 1fr;
-      column-gap: 0;
+      padding-inline: var(--columns-margin);
     }
   }
 
   @media (max-width: 600px) {
-    .home {
-      padding-inline: var(--space-16);
-    }
-
     .actions {
       flex-direction: column;
       align-items: stretch;

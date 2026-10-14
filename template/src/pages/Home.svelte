@@ -58,12 +58,12 @@
     margin-top: var(--space-20);
   }
 
-  /* The theme's own column gutter alone exceeds a phone's width at 12
-     columns, so every page has to collapse to one column below 768px. */
+  /* tokens.css switches to the tablet grid below 768px, where 4 / span 6
+     no longer fits. From there the page insets by the grid's own margin, as
+     the column overlay does. */
   @media (max-width: 767px) {
     .home {
-      grid-template-columns: 1fr;
-      column-gap: 0;
+      padding-inline: var(--columns-margin);
     }
 
     .stub {
@@ -72,10 +72,6 @@
   }
 
   @media (max-width: 600px) {
-    .home {
-      padding-inline: var(--space-16);
-    }
-
     .actions {
       flex-direction: column;
       align-items: stretch;
