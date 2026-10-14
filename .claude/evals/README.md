@@ -5,7 +5,7 @@ never behaviour. Nothing here has ever measured whether these descriptions
 fire when they should, or whether following a skill end to end produces
 anything.
 
-Twelve cases, seven on triggering and five on outcome:
+Thirteen cases, seven on triggering and six on outcome:
 
 | Case | Asks |
 |---|---|
@@ -19,6 +19,7 @@ Twelve cases, seven on triggering and five on outcome:
 | `outcome-theme-from-request` | Does create-theme route three intents and produce a real theme? |
 | `outcome-component-from-brief` | Does create-component reach its gate, run `check-component --strict`, and iterate to exit 0? |
 | `outcome-page-from-brief` | Does create-page run `check-page --strict` on the new page and iterate to exit 0? |
+| `outcome-page-from-brief-no-checker` | The same brief with the checker removed: what does the checker contribute to the finished page? |
 | `outcome-pick-component` | Across twelve requirements, does the catalogue change which component, variant, and props the model names? |
 | `outcome-pick-component-no-cli` | The same case without the package's `bin`: what does the picker skill contribute apart from the command it names? |
 
@@ -191,3 +192,27 @@ and the runner saves no reason. It is removed. Nothing now grades the repair
 loop itself; the file graders and `check-run` grade what the loop leaves.
 A first attempt at 40 turns cut both arms off before they finished.
 
+## `outcome-page-from-brief` with and without the checker
+
+Not yet run. Both cases seed the full consumer project and give the same
+brief. `outcome-page-from-brief-no-checker` then runs
+`_scaffold/remove-checker.mjs`, which makes `check-page`, `check-component`,
+and `report` fail as unknown commands and stubs the design checks `vite build`
+runs. The skills and `live-tokens components` are unchanged. It has no
+`check-run` or `criteria`, which would fail by construction. The runner's
+baseline arm on each case completes a two-by-two of skills and checker.
+
+The runner has no grader that runs a command, so the finished pages are scored
+afterwards. Keep the workspaces, then run the full checker over each one:
+
+```
+npm run build:eval-project
+npm run eval -- --case 'outcome-page-from-brief*' --keep-temp -j 2
+node scripts/eval-check-pages.mjs scratch/eval-last.json --tests
+```
+
+The script restores the patched files in each kept workspace, runs that
+workspace's `check-page --strict --no-fix` on every page the run added, and
+prints errors by rule beside turns, seconds, and cost. It names any rule the
+run turned off in `live-tokens.config.json`. Delete the kept workspaces from
+the system temp folder afterwards.

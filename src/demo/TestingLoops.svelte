@@ -669,6 +669,16 @@
     width: auto;
   }
 
+  /* The panel's stage padding sized for a figure makes a one-line toggle a tall slab. */
+  .contents {
+    --panel-stage-padding: var(--space-4);
+    --panel-stage-inline-padding: var(--space-8);
+  }
+
+  .contents :global(.panel) {
+    justify-content: flex-start;
+  }
+
   .contents-body {
     width: 100%;
     min-width: var(--space-0);

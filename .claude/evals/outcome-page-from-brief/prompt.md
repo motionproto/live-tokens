@@ -1,8 +1,8 @@
 ---
 name: outcome-page-from-brief
-runs: 1
-max_turns: 40
-timeout_seconds: 900
+runs: 3
+max_turns: 90
+timeout_seconds: 1800
 allowed_tools:
   - Bash
   - Read
