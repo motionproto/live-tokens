@@ -144,6 +144,14 @@ describe('analyze', () => {
     expect(width).toMatchObject({ dynamic: true, reasons: ['reference'] });
   });
 
+  it('classes a root property that reads a name nothing declares or sets as dynamic, and its dependents', () => {
+    const analysis = run({
+      css: [':root{--gap:var(--hook);--pad:var(--gap)}.box{margin:var(--gap,4px);padding:var(--pad)}'],
+    });
+    expect(property(analysis, '--gap')).toMatchObject({ dynamic: true, reasons: ['undeclared'] });
+    expect(property(analysis, '--pad')).toMatchObject({ dynamic: true, reasons: ['reference'] });
+  });
+
   it('classes a declaration under a selector list that mixes :root with another selector as scoped', () => {
     const font = property(run({ css: [':host,:root{--fa-font:solid}'] }), '--fa-font');
     expect(font).toMatchObject({ dynamic: true, reasons: ['scoped'], winner: null });

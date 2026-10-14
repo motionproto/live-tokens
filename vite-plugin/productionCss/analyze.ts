@@ -2,10 +2,12 @@ import postcss, { type AtRule, type Rule } from 'postcss';
 
 /**
  * The first six follow the dynamic rule in
- * docs/plans/production-css-variables.md, in order. The last three mark
+ * docs/plans/production-css-variables.md, in order. The last four mark
  * properties whose winning token stream would substitute wrongly: a CSS-wide
- * keyword, a `var()` loop, and `:root` values that differ between assets,
- * whose winner depends on which lazy chunks have loaded.
+ * keyword, a `var()` loop, `:root` values that differ between assets, whose
+ * winner depends on which lazy chunks have loaded, and a reference to a name
+ * nothing declares, which a computed name may set at runtime and which
+ * otherwise leaves the value guaranteed-invalid, so a `var()` fallback applies.
  */
 export type DynamicReason =
   | 'scoped'
@@ -16,7 +18,8 @@ export type DynamicReason =
   | 'reference'
   | 'keyword'
   | 'cycle'
-  | 'assets';
+  | 'assets'
+  | 'undeclared';
 
 export type Specificity = readonly [number, number, number];
 
@@ -93,7 +96,7 @@ function outranks(a: Declaration, b: Declaration): boolean {
   return a.asset !== b.asset ? a.asset > b.asset : a.order > b.order;
 }
 
-function winnerOf(declarations: Declaration[]): Declaration | null {
+export function winnerOf(declarations: Declaration[]): Declaration | null {
   let winner: Declaration | null = null;
   for (const d of declarations) if (d.bare && (!winner || outranks(d, winner))) winner = d;
   return winner;
@@ -183,6 +186,7 @@ export function analyze({ css, js, html, keep }: AnalyzeInput): Map<string, Prop
     return result;
   };
 
+  const setByName = (name: string) => scriptNames.has(name) || keepNames.has(name) || registered.has(name);
   const winners = new Map<string, Declaration | null>();
   const reasons = new Map<string, DynamicReason[]>();
   for (const [name, decls] of declarations) {
@@ -200,6 +204,7 @@ export function analyze({ css, js, html, keep }: AnalyzeInput): Map<string, Prop
     if (new Set(bare.map((d) => d.asset)).size > 1 && new Set(bare.map((d) => d.value)).size > 1) {
       why.push('assets');
     }
+    if ([...references.get(name)!].some((ref) => !declarations.has(ref) && !setByName(ref))) why.push('undeclared');
     reasons.set(name, why);
   }
 
