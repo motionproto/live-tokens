@@ -550,6 +550,77 @@ The scaffold build:
 - The hook runs with `order: 'post'`, after Vite's own `generateBundle`
   hooks, so the bundle holds the minified CSS and `index.html`.
 
+**Wave 3, decisions 5 and 6, 2026-10-14.** Both builds ran twice on a clean
+tree at `5fd05cd`, so the ledger reproduces these tables. This repo's
+`vite build`:
+
+| Measure | `productionCss: false` | Default |
+|---|---|---|
+| CSS files, JS files | 13, 13 | 13, 13 |
+| Distinct variables declared on `:root` | 1,445 | 531 |
+| Declarations on `:root` | 1,838 | 611 |
+| Redeclarations on `:root` | 393 | 80 |
+| `bareRootRedeclared` | 309 | 0 |
+| Declared variables the JS names | 131 | 131 |
+| Variables some rule reaches | 1,131 | 531 |
+| Reached variables that must stay variables | 531 | 531 |
+| CSS bytes | 325,594 | 242,395 |
+
+The scaffold build:
+
+| Measure | `productionCss: false` | Default |
+|---|---|---|
+| CSS files, JS files | 2, 2 | 2, 2 |
+| Distinct variables declared on `:root` | 821 | 53 |
+| Declarations on `:root` | 1,214 | 127 |
+| Redeclarations on `:root` | 393 | 74 |
+| `bareRootRedeclared` | 309 | 0 |
+| Declared variables the JS names | 14 | 14 |
+| Variables some rule reaches | 401 | 53 |
+| Reached variables that must stay variables | 53 | 53 |
+| CSS bytes | 184,317 | 122,989 |
+
+- In both builds the variables left on `:root` match the
+  `dynamicReachedNames` of the `productionCss: false` build name for name.
+  The build logs 630 of 1,548 custom properties and 83.2 kB for this repo,
+  and 76 of 848 and 61.3 kB for the scaffold.
+- Decision 5's first test failed: the rewrite cannot run before Vite names
+  the CSS. `vite:css-post` minifies each chunk's CSS inside that chunk's
+  `renderChunk`, emits it, and reads the hashed name straight into
+  `viteMetadata.importedCss`. A probe's `renderChunk` saw
+  `assets/index-X7bTifQu.css` named while its chunk still carried the
+  placeholder `assets/index-!~{000}~.js` and before `Home`'s CSS existed. The
+  analysis needs every sheet and chunk at once, by invariant 4, and the one
+  hook inside the minifier, a lightningcss visitor, sees one chunk's CSS.
+- The hook renames each rewritten sheet, then each chunk whose code or
+  imported CSS changed, then each chunk that imports or dynamically imports
+  a renamed chunk, until the set stops growing. `index` and `Home` import
+  each other in both builds, so neither can hash the other's final name. A
+  chunk's new hash covers its own code and imported CSS and those of every
+  chunk it reaches, as Rollup's own chunk hashes do. A pattern without a hash
+  keeps the name. `portal-BtBIrHJc.js` in this repo's build reaches no
+  rewritten file and keeps its name.
+- Each reference changes by the part of the name from the segment that holds
+  the hash, so relative imports, `__vite__mapDeps`, `index.html`,
+  `.vite/manifest.json` and its `_`-prefixed keys, each `.map` file's name and
+  `file` field, and each `sourceMappingURL` follow the rename. Vite emits no
+  `.css.map` in a build. With `build.sourcemap` and `build.manifest` on,
+  every hashed name in either build's JS, CSS, HTML, JSON and maps names a
+  file on disk: 157 references in this repo's build and 14 in the scaffold's.
+- Two scaffold builds with different production themes, which change
+  `--color-brand-500`, `--shadow-md` and `--columns-gutter` in
+  `tokens.generated.css`, give every hashed file a different name. Only
+  `index.html`, which carries no hash, changes under the same name. A pair
+  that differs only in `substitute` reproduced the defect `fbf0ef6` left:
+  both builds emitted `index-BTZYCmA_.js` with different bytes before this
+  change, and two different entry chunk names after it.
+- The entry assets are the CSS of each entry chunk and of every chunk an
+  entry imports statically, one sheet in each build. Rule 11 classes no
+  scaffold property. In this repo's build it marks
+  `--card-default-border-width`, `--card-default-radius`,
+  `--panel-frame-radius` and two Badge paddings, which other rules already
+  class dynamic, so no count moves.
+
 ### Deferred
 
 - Substitution replaces `var()` in every declaration, including `@font-face`
@@ -564,11 +635,11 @@ The scaffold build:
 - A static property declared only in a lazy chunk's CSS and read from the
   entry CSS resolves after substitution before that chunk loads, where today
   it is invalid until then. Both builds point every cross-asset static
-  reference at the entry CSS. Decision 6 takes the tightening.
+  reference at the entry CSS. Decision 6 takes the tightening, in `1ce217a`.
 - The rename in `fbf0ef6` changes each entry chunk's bytes under the name the
   bundler hashed before the rename, so an immutable cache serves an old chunk
   that preloads a sheet name the release no longer emits. Decision 5 replaces
-  it.
+  it, in `5fd05cd`.
 - `template/src/main.ts` passes `{ sketchLooks }` to `bootLiveTokens`, whose
   option is `sketchStyles`, so a scaffolded project's saved sketch styles
   never reach its build. The bug predates this plan and sits outside it.
