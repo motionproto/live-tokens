@@ -452,4 +452,57 @@ matches as well: 2,177, 2,277, 2,175 and 2,175.
 - `!important` outranks specificity in the cascade winner. Neither build
   declares an important custom property.
 
+**Wave 3, 2026-10-14.** Each build ran twice from the working tree, once
+with `productionCss: false`, and the census measured both. This repo's
+`vite build`:
+
+| Measure | `productionCss: false` | Default |
+|---|---|---|
+| CSS files, JS files | 12, 11 | 12, 11 |
+| Distinct variables declared on `:root` | 1,445 | 564 |
+| Declarations on `:root` | 1,838 | 648 |
+| Redeclarations on `:root` | 393 | 84 |
+| `bareRootRedeclared` | 309 | 0 |
+| Declared variables the JS names | 147 | 147 |
+| Variables some rule reaches | 1,139 | 564 |
+| Reached variables that must stay variables | 564 | 564 |
+| CSS bytes | 323,003 | 241,202 |
+
+The scaffold build:
+
+| Measure | `productionCss: false` | Default |
+|---|---|---|
+| CSS files, JS files | 2, 2 | 2, 2 |
+| Distinct variables declared on `:root` | 821 | 53 |
+| Declarations on `:root` | 1,214 | 127 |
+| Redeclarations on `:root` | 393 | 74 |
+| `bareRootRedeclared` | 309 | 0 |
+| Declared variables the JS names | 14 | 14 |
+| Variables some rule reaches | 401 | 53 |
+| Reached variables that must stay variables | 53 | 53 |
+| CSS bytes | 184,180 | 122,863 |
+
+- In both builds the variables that stay on `:root` match the
+  `dynamicReachedNames` of the `productionCss: false` build name for name.
+  No `var()` in either rewritten build reads a property the rewrite removed.
+- The redeclarations that remain sit in the two responsive `@media` blocks.
+  The scaffold drops 10 of them because no rule reaches those sizes.
+- The build logs `live-tokens: the production CSS declares 663 of 1,548
+  custom properties and is 81.8 kB smaller.` for this repo, and 76 of 848
+  and 61.3 kB for the scaffold. Those counts include the component-scoped
+  properties off `:root`.
+- `analyze` gained a tenth reason, `undeclared`: a value that reads a name
+  no CSS declares and no script, `keep` entry or `@property` names. A
+  computed name may set that name at runtime. Without a fallback the value
+  is guaranteed-invalid, so a `var()` fallback that reads the property
+  applies, and substitution would drop it. Every count of both builds stays
+  the same.
+- The merge keeps one bare `:root` declaration per property in each asset.
+  A lazy chunk's CSS loads on its own, so a winner in another asset cannot
+  stand in for it. Neither build declares a surviving property on bare
+  `:root` in two assets.
+- `substitute: false` merges the static properties it keeps as well.
+- The hook runs with `order: 'post'`, after Vite's own `generateBundle`
+  hooks, so the bundle holds the minified CSS and `index.html`.
+
 ### Deferred
