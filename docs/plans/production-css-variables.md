@@ -639,10 +639,15 @@ runs it.
   config, `tests/e2e/production-css/vite.config.ts`, makes it the one entry of
   the site's config, so the site build stays the one the demo ships.
 - Each demo route is compared at rest and again with `data-backdrop="light"`
-  on `<html>`. No token in this tree uses `light-dark()`, and none of the four
-  builds emits `--lightningcss-light` or `--lightningcss-dark`, so both
-  backdrop states change `color-scheme` alone. The Ground truth bullets on
-  the lowered toggles describe CSS this tree no longer ships.
+  on `<html>`. No token in this tree uses `light-dark()`; the one match in
+  `tokens.css` is a comment. lightningcss still declares
+  `--lightningcss-light` and `--lightningcss-dark` when it lowers
+  `color-scheme`, so both untransformed builds carry them under
+  `[data-backdrop]` and `:where(:root)`. No rule reads them, the rewrite
+  removes them as unreached, and the transformed builds keep `color-scheme`
+  alone under those selectors. Both backdrop states change `color-scheme`
+  and nothing else. The Ground truth bullets trace the toggles to
+  `light-dark()` and say the colors use it; both claims are stale.
 - The spec aborts every request off `127.0.0.1`, so both builds render the
   same fallbacks for the Google and Typekit fonts. It finishes each finite
   animation and transition and holds each infinite one at its start, in
@@ -653,7 +658,12 @@ runs it.
   by hand.
 - With `analyze` classing `--font-size-2xl` static, the spec fails at 768
   and 480 pixels and passes at 1280, where the `:root` value applies. The
-  break, one line in `analyze.ts`, never reached a commit:
+  break never reached a commit. It changes `analyze.ts:260`, where the result
+  loop sets each property's flag, to
+  `dynamic: why.length > 0 && name !== '--font-size-2xl',`, which clears
+  every reason at once. Bypassing the `scoped` reason alone fails only the
+  states page, because the site's JS names the token in `style:` directives
+  and `script` keeps it dynamic there:
 
   ```
   ✘ /demo computes the same styles at 768px wide
