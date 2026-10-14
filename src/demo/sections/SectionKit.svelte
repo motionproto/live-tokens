@@ -2,10 +2,14 @@
   import Button from '../../system/components/Button.svelte';
   import SectionDivider from '../../system/components/SectionDivider.svelte';
   import SegmentedControl from '../../system/components/SegmentedControl.svelte';
+  import { MediaQuery } from 'svelte/reactivity';
   import Panel from '../../system/components/Panel.svelte';
   import Section from '../Section.svelte';
 
   let { prose = true }: { prose?: boolean } = $props();
+
+  // Matches the demo's phone breakpoint in Demo.svelte.
+  const phone = new MediaQuery('max-width: 600px');
 
   type Override = 'shape' | 'color';
 
@@ -35,39 +39,98 @@
     return out;
   })();
 
-  const colorOverride: Record<string, string> = {
-    '--button-primary-surface': 'var(--surface-special-high)',
-    '--button-primary-border': 'var(--border-special)',
-    '--button-primary-hover-surface': 'var(--surface-special-higher)',
-    '--button-primary-hover-border': 'var(--border-special-strong)',
+  const FAMILIES = ['brand', 'accent', 'special', 'info', 'success', 'warning', 'danger'] as const;
+  type Family = (typeof FAMILIES)[number];
+  // The family each swapped variant paints from. Outline follows primary.
+  const SOURCES = { primary: 'brand', success: 'success', warning: 'warning', danger: 'danger' } as const;
+  type Swapped = keyof typeof SOURCES;
+  // Themes can give two families near-identical hues (Autumn's warning and
+  // accent share one), so a fixed swap can land on the colour it replaces.
+  const MIN_HUE_SHIFT = 60;
+  const SAME_HUE = 15;
 
-    '--button-outline-border': 'var(--border-special)',
-    '--button-outline-text': 'var(--text-special)',
-    '--button-outline-hover-border': 'var(--border-special-strong)',
+  let colorMap = $state<Record<Swapped, Family> | null>(null);
+  let colorStep = 0;
 
-    '--button-success-surface': 'var(--surface-accent-low)',
-    '--button-success-border': 'var(--border-accent)',
-    '--button-success-text': 'var(--text-accent)',
-    '--button-success-hover-surface': 'var(--surface-accent-higher)',
-    '--button-success-hover-border': 'var(--border-accent-strong)',
+  function familyHues(): Record<Family, number> {
+    const probe = document.createElement('span');
+    document.body.appendChild(probe);
+    const hues = {} as Record<Family, number>;
+    for (const family of FAMILIES) {
+      probe.style.color = `var(--color-${family}-500)`;
+      hues[family] = Number(/oklch\(\S+ \S+ ([\d.]+)/.exec(getComputedStyle(probe).color)?.[1] ?? 0);
+    }
+    probe.remove();
+    return hues;
+  }
 
-    '--button-warning-surface': 'var(--surface-info-low)',
-    '--button-warning-border': 'var(--border-info)',
-    '--button-warning-text': 'var(--text-info)',
-    '--button-warning-hover-surface': 'var(--surface-info-high)',
-    '--button-warning-hover-border': 'var(--border-info-medium)',
+  function hueGap(a: number, b: number): number {
+    const d = Math.abs(a - b) % 360;
+    return Math.min(d, 360 - d);
+  }
 
-    '--button-danger-surface': 'var(--surface-brand-low)',
-    '--button-danger-border': 'var(--border-brand)',
-    '--button-danger-text': 'var(--text-brand)',
-    '--button-danger-hover-surface': 'var(--surface-brand-high)',
-    '--button-danger-hover-border': 'var(--border-brand-medium)',
-  };
+  /** Each variant takes a family far enough round the wheel from its own,
+   *  on a hue no other variant has where the theme has enough, rotated by
+   *  `step`. Hue, not family: two families can share one. */
+  function pickColorMap(step: number): Record<Swapped, Family> {
+    const hues = familyHues();
+    const used: number[] = [];
+    const map = {} as Record<Swapped, Family>;
+    for (const [variant, source] of Object.entries(SOURCES) as [Swapped, Family][]) {
+      const byGap = FAMILIES.filter((f) => f !== source).sort((a, b) => hueGap(hues[b], hues[source]) - hueGap(hues[a], hues[source]));
+      const far = byGap.filter((f) => hueGap(hues[f], hues[source]) >= MIN_HUE_SHIFT);
+      const pool = far.length > 0 ? far : byGap.slice(0, 1);
+      const rotated = pool.map((_, i) => pool[(i + step) % pool.length]);
+      map[variant] = rotated.find((f) => used.every((h) => hueGap(h, hues[f]) >= SAME_HUE)) ?? rotated[0];
+      used.push(hues[map[variant]]);
+    }
+    return map;
+  }
+
+  function nextColorMap(): Record<Swapped, Family> {
+    const current = JSON.stringify(colorMap);
+    for (let tries = 0; tries < FAMILIES.length; tries++) {
+      const map = pickColorMap(++colorStep);
+      if (JSON.stringify(map) !== current) return map;
+    }
+    return pickColorMap(colorStep);
+  }
+
+  function colorOverride({ primary: p, success: s, warning: w, danger: d }: Record<Swapped, Family>): Record<string, string> {
+    return {
+      '--button-primary-surface': `var(--surface-${p}-high)`,
+      '--button-primary-border': `var(--border-${p})`,
+      '--button-primary-hover-surface': `var(--surface-${p}-higher)`,
+      '--button-primary-hover-border': `var(--border-${p}-strong)`,
+
+      '--button-outline-border': `var(--border-${p})`,
+      '--button-outline-text': `var(--text-${p})`,
+      '--button-outline-hover-border': `var(--border-${p}-strong)`,
+
+      '--button-success-surface': `var(--surface-${s}-low)`,
+      '--button-success-border': `var(--border-${s})`,
+      '--button-success-text': `var(--text-${s})`,
+      '--button-success-hover-surface': `var(--surface-${s}-higher)`,
+      '--button-success-hover-border': `var(--border-${s}-strong)`,
+
+      '--button-warning-surface': `var(--surface-${w}-low)`,
+      '--button-warning-border': `var(--border-${w})`,
+      '--button-warning-text': `var(--text-${w})`,
+      '--button-warning-hover-surface': `var(--surface-${w}-high)`,
+      '--button-warning-hover-border': `var(--border-${w}-medium)`,
+
+      '--button-danger-surface': `var(--surface-${d}-low)`,
+      '--button-danger-border': `var(--border-${d})`,
+      '--button-danger-text': `var(--text-${d})`,
+      '--button-danger-hover-surface': `var(--surface-${d}-high)`,
+      '--button-danger-hover-border': `var(--border-${d}-medium)`,
+    };
+  }
 
   let stageStyle = $derived.by(() => {
     const merged: Record<string, string> = {};
     if (shape) Object.assign(merged, shapeOverride);
-    if (color) Object.assign(merged, colorOverride);
+    if (color && colorMap) Object.assign(merged, colorOverride(colorMap));
     return Object.entries(merged)
       .map(([k, v]) => `${k}: ${v}`)
       .join('; ');
@@ -96,9 +159,11 @@
       lastApplied = shape ? 'shape' : color ? 'color' : null;
       return;
     }
+    // Every press of Color is a new swap, so it never toggles back off.
     if (v === 'color') {
-      color = !color;
-      lastApplied = color ? 'color' : shape ? 'shape' : null;
+      colorMap = nextColorMap();
+      color = true;
+      lastApplied = 'color';
     }
   }
 </script>
@@ -156,7 +221,7 @@
     <div class="swap-block">
       <div class="swap-control">
         <SectionDivider title="Swap tokens with a click" variant="sm" />
-        <SegmentedControl {segments} value={activeSegment} onchange={handleSelect} />
+        <SegmentedControl {segments} value={activeSegment} onchange={handleSelect} size={phone.current ? 'small' : 'default'} />
       </div>
 
       <Panel style={stageStyle}>
@@ -184,7 +249,7 @@
      columns and the row stops at column 9, leaving column 10 open on the right. */
   .kit-grid {
     display: grid;
-    grid-template-columns: repeat(calc(var(--columns-count) - 2), 1fr);
+    grid-template-columns: repeat(calc(var(--columns-count) - 2), minmax(0, 1fr));
     column-gap: var(--columns-gutter);
     row-gap: var(--space-32);
   }
@@ -202,7 +267,8 @@
     padding: 0 0 var(--space-12);
   }
 
-  /* Title, body and icon mirror the Card typography used in the Layers section. */
+  /* Title and body match the Card in the Layers section at desktop sizes, and
+     take the text styles' phone sizes below it. */
   .kit-icon {
     font-size: var(--icon-size-2xl);
     color: var(--text-primary);
@@ -211,7 +277,7 @@
   .kit-title {
     color: var(--text-primary);
     font-family: var(--font-sans);
-    font-size: var(--font-size-2xl);
+    font-size: var(--heading-md-font-size);
     font-weight: var(--font-weight-medium);
     line-height: var(--line-height-normal);
   }
@@ -219,7 +285,7 @@
   .kit-body {
     padding: var(--space-12) 0 0;
     font-family: var(--font-sans);
-    font-size: var(--font-size-xl);
+    font-size: var(--body-xl-font-size);
     line-height: var(--line-height-normal);
     font-weight: var(--font-weight-normal);
     color: var(--text-secondary);
@@ -270,7 +336,7 @@
     --sketch-hatch-color: var(--color-brand-500);
   }
 
-  /* The head only carries a surface of its own when stacked (see the 960
+  /* The head only carries a surface of its own when stacked (see the 1200
      breakpoint). Here it has none, and --sketch-fill inherits, so without this
      the layer would draw the lead's wash a second time behind the head. */
   .kit-lead .kit-head {
@@ -288,14 +354,14 @@
   }
 
   .kit-lead .kit-title {
-    font-size: var(--font-size-4xl);
+    font-size: var(--heading-xl-font-size);
     font-weight: var(--font-weight-bold);
   }
 
   .kit-lead .kit-body {
     grid-column: 4 / span 6;
     padding: var(--space-32) 0;
-    font-size: var(--font-size-2xl);
+    font-size: var(--body-2xl-font-size);
     color: var(--text-primary);
   }
 
@@ -304,7 +370,7 @@
   .kit-preview {
     margin-top: var(--space-32);
     display: grid;
-    grid-template-columns: repeat(calc(var(--columns-count) - 2), 1fr);
+    grid-template-columns: repeat(calc(var(--columns-count) - 2), minmax(0, 1fr));
     column-gap: var(--columns-gutter);
   }
 
@@ -349,7 +415,7 @@
   .stage-eyebrow {
     align-self: center;
     font-family: var(--font-sans);
-    font-size: var(--font-size-md);
+    font-size: var(--body-md-font-size);
     font-weight: var(--font-weight-medium);
     letter-spacing: var(--letter-spacing-wide);
     text-transform: uppercase;
@@ -373,9 +439,10 @@
     justify-content: center;
   }
 
-  @media (max-width: 960px) {
-    .kit-grid {
-      grid-template-columns: 1fr;
+  @media (max-width: 1200px) {
+    .kit-grid,
+    .kit-preview {
+      grid-template-columns: minmax(0, 1fr);
     }
     .kit-item {
       grid-column: auto;
@@ -404,7 +471,35 @@
     }
     .kit-lead .kit-body {
       padding: var(--space-16) var(--space-20);
-      font-size: var(--font-size-xl);
+      font-size: var(--body-xl-font-size);
+    }
+  }
+
+  /* Phone: the lead's text lines up with the page margin, and the head's tint
+     bleeds out to the screen edges. The tint is a border-image outset, which
+     paints past the box without widening the section. The swap control spans
+     the column, its segments sharing the width. */
+  @media (max-width: 600px) {
+    .swap-control {
+      flex-direction: column;
+      align-items: stretch;
+      gap: var(--space-8);
+    }
+    .swap-control :global(.segmented-control) {
+      display: flex;
+    }
+    .swap-control :global(.segment) {
+      flex: 1 1 0;
+      min-width: 0;
+      justify-content: center;
+    }
+    .kit-lead .kit-head {
+      padding-inline: 0;
+      background: none;
+      border-image: conic-gradient(var(--kit-head-tint) 0 0) fill 0 / 0 / 0 var(--space-16);
+    }
+    .kit-lead .kit-body {
+      padding-inline: 0;
     }
   }
 </style>

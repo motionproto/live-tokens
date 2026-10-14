@@ -36,9 +36,14 @@
 </div>
 
 <style>
+  /* Sections place themselves on these spans, and the full-width ones nest a
+     subgrid, so the breakpoints below are the only place a section's columns
+     change. minmax(0, 1fr) keeps a wide child from widening its track. */
   .kit {
+    --kit-content: 2 / -2;
+    --kit-narrow: 3 / -3;
     display: grid;
-    grid-template-columns: repeat(var(--columns-count), 1fr);
+    grid-template-columns: repeat(var(--columns-count), minmax(0, 1fr));
     column-gap: var(--columns-gutter);
     row-gap: var(--space-64);
     max-width: var(--columns-max-width);
@@ -75,7 +80,21 @@
     color: var(--text-primary);
   }
 
+  @media (max-width: 1200px) {
+    .kit {
+      --kit-content: 1 / -1;
+      --kit-narrow: 2 / -2;
+    }
+  }
+
+  /* Eleven gutters of a wide-gutter theme outgrow a phone, so the page is one
+     column there. */
   @media (max-width: 600px) {
+    .kit {
+      --kit-narrow: 1 / -1;
+      grid-template-columns: minmax(0, 1fr);
+    }
+
     .kit,
     .kit.has-bar {
       padding: var(--space-32) var(--space-16);

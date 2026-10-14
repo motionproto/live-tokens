@@ -116,6 +116,8 @@
   // Collapsed-pill size; slight overshoot is fine (overflow:hidden).
   const COLLAPSED_WIDTH = 252;
   const COLLAPSED_HEIGHT = 44;
+  // Mirrors --tab-width: the sliver of a docked pill left on screen.
+  const TAB_WIDTH = 20;
   const COLLAPSED_DEFAULT = { right: 12, top: 12 };
 
   // Drop the pill this close to an edge and it docks there.
@@ -153,13 +155,18 @@
   }
 
   // A fixed element's offsets resolve against the viewport without its
-  // scrollbars, which is what documentElement.clientWidth/Height report.
-  // window.innerWidth counts the scrollbar, and pinning a dock with it hangs
-  // the pill off the edge by the scrollbar's width.
-  let viewport = $state({
-    width: document.documentElement.clientWidth,
-    height: document.documentElement.clientHeight,
-  });
+  // scrollbars. window.innerWidth counts the scrollbar, and pinning a dock with
+  // it hangs the pill off the edge by the scrollbar's width. The router sets
+  // `scrollbar-gutter: stable` on html, and clientWidth counts that empty
+  // gutter while the page has no scrollbar; html's own box excludes it.
+  function measureViewport() {
+    return {
+      width: document.documentElement.getBoundingClientRect().width,
+      height: document.documentElement.clientHeight,
+    };
+  }
+
+  let viewport = $state(measureViewport());
 
   function maxRight() {
     return Math.max(0, viewport.width - COLLAPSED_WIDTH);
@@ -290,6 +297,8 @@
     (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
     const startX = e.clientX;
     const startY = e.clientY;
+    // A gesture starts from what is drawn, which a narrow window may have capped.
+    floating = { ...shownFloating };
     const origX = floating.x;
     const origY = floating.y;
     function move(ev: PointerEvent) {
@@ -416,10 +425,7 @@
   }
 
   function onViewportResize() {
-    viewport = {
-      width: document.documentElement.clientWidth,
-      height: document.documentElement.clientHeight,
-    };
+    viewport = measureViewport();
     clampCollapsed();
   }
 
@@ -437,6 +443,7 @@
     gesturing = 'resize-dock';
     (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
     const startX = e.clientX;
+    dockedWidth = shownDockedWidth;
     const origWidth = dockedWidth;
     function move(ev: PointerEvent) {
       // The panel is pinned to its docked side, so dragging away from that side
@@ -460,6 +467,7 @@
     (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
     const startX = e.clientX;
     const startY = e.clientY;
+    floating = { ...shownFloating };
     const origW = floating.width;
     const origH = floating.height;
     function move(ev: PointerEvent) {
@@ -529,6 +537,7 @@
     window.removeEventListener('lt-overlay-toggle', handleToggleRequest);
     window.removeEventListener('resize', onViewportResize);
     document.documentElement.style.removeProperty(PILL_INSET_VAR);
+    document.documentElement.style.removeProperty(PILL_CLEARANCE_VAR);
     clearTimeout(maskTimer);
     clearTimeout(snapTimer);
     clearTimeout(settleTimer);
@@ -542,25 +551,51 @@
   let dockClass = $derived(!open && collapsed.edge !== 'none' ? `dock-${collapsed.edge}` : '');
   let tabIsHorizontal = $derived(collapsed.edge === 'top' || collapsed.edge === 'bottom');
 
+  // At this width or less the open editor takes the whole screen, and the
+  // editor's own header carries the close button.
+  const FULL_SCREEN_MAX_WIDTH = 600;
+  let fullScreen = $derived(viewport.width <= FULL_SCREEN_MAX_WIDTH);
+
+  // The saved sizes are the user's preference, so a narrower window caps what
+  // is drawn and leaves them intact for when it widens again.
+  let shownDockedWidth = $derived(Math.min(dockedWidth, viewport.width));
+  let shownFloating = $derived.by(() => {
+    const width = Math.min(floating.width, viewport.width);
+    const height = Math.min(floating.height, viewport.height);
+    return {
+      x: clamp(floating.x, 0, viewport.width - width),
+      y: clamp(floating.y, 0, viewport.height - height),
+      width,
+      height,
+    };
+  });
+
   let panelStyle = $derived(!open
     ? `position: fixed; top: ${collapsed.top}px; right: ${collapsed.right}px; width: ${COLLAPSED_WIDTH}px; height: ${COLLAPSED_HEIGHT}px;`
-    : mode === 'docked'
-      // Both sides are pinned with `right`, so flipping side and collapsing to
-      // the pill are value changes on one axis, and animate.
-      ? `position: fixed; top: 0; right: ${dockSide === 'left' ? Math.max(0, viewport.width - dockedWidth) : 0}px; width: ${dockedWidth}px; height: 100vh;`
-      : `position: fixed; top: ${floating.y}px; left: ${floating.x}px; width: ${floating.width}px; height: ${floating.height}px;`);
+    : fullScreen
+      ? `position: fixed; top: 0; right: 0; width: ${viewport.width}px; height: 100dvh;`
+      : mode === 'docked'
+        // Both sides are pinned with `right`, so flipping side and collapsing to
+        // the pill are value changes on one axis, and animate.
+        ? `position: fixed; top: 0; right: ${dockSide === 'left' ? viewport.width - shownDockedWidth : 0}px; width: ${shownDockedWidth}px; height: 100vh;`
+        : `position: fixed; top: ${shownFloating.y}px; left: ${shownFloating.x}px; width: ${shownFloating.width}px; height: ${shownFloating.height}px;`);
 
   // A pill resting in the top band sits over any header pinned there, such as
   // the components page's variant strip. Publish its right-edge inset so pinned
-  // chrome can wrap clear of it; a pill anywhere else, or no pill, clears it.
+  // chrome can wrap clear of it, and how far down it reaches so a full-width
+  // bar can clear it from above; a pill anywhere else, or no pill, clears both.
   const PILL_INSET_VAR = '--lt-pill-inset';
+  const PILL_CLEARANCE_VAR = '--lt-pill-clearance';
   run(() => {
     const shown = enabled && !onEditorPath && !open;
     const inTopBand = collapsed.top < COLLAPSED_HEIGHT * 2;
+    const root = document.documentElement.style;
     if (shown && inTopBand) {
-      document.documentElement.style.setProperty(PILL_INSET_VAR, `${collapsed.right + COLLAPSED_WIDTH}px`);
+      root.setProperty(PILL_INSET_VAR, `${collapsed.right + COLLAPSED_WIDTH}px`);
+      root.setProperty(PILL_CLEARANCE_VAR, `${tucked && collapsed.edge === 'top' ? TAB_WIDTH : collapsed.top + COLLAPSED_HEIGHT}px`);
     } else {
-      document.documentElement.style.removeProperty(PILL_INSET_VAR);
+      root.removeProperty(PILL_INSET_VAR);
+      root.removeProperty(PILL_CLEARANCE_VAR);
     }
   });
 </script>
@@ -576,6 +611,7 @@
   class:docked={open && mode === 'docked'}
   class:side-left={open && mode === 'docked' && dockSide === 'left'}
   class:floating={open && mode === 'floating'}
+  class:full-screen={open && fullScreen}
   class:tucked
   class:dragging={gesturing === 'collapsed-drag'}
   class:snapping
@@ -746,6 +782,7 @@
 
     display: flex;
     flex-direction: column;
+    box-sizing: border-box;
     background: var(--ui-surface-lower, #0a0a0a);
     border: 1px solid rgba(255, 255, 255, 0.12);
     box-shadow: 0 18px 60px rgba(0, 0, 0, 0.6);
@@ -789,6 +826,17 @@
 
   .lt-overlay.floating {
     border-radius: var(--ui-radius-xl, 8px);
+  }
+
+  .lt-overlay.full-screen {
+    border: none;
+    border-radius: 0;
+  }
+
+  .lt-overlay.full-screen .header,
+  .lt-overlay.full-screen .resize-edge,
+  .lt-overlay.full-screen .resize-se {
+    display: none;
   }
 
   /* Collapsed state: draggable pill, placed from the right edge; iframe stays

@@ -1,7 +1,10 @@
 <script lang="ts">
   import { onMount, tick } from 'svelte';
+  import { MediaQuery } from 'svelte/reactivity';
   import { navigate, route } from '../core/routing/router';
+  import LabeledSelect from '../../demo/LabeledSelect.svelte';
   import Button from '../../system/components/Button.svelte';
+  import SegmentedControl from '../../system/components/SegmentedControl.svelte';
   import TabBar from '../../system/components/TabBar.svelte';
   import SourcePane from './SourcePane.svelte';
   import TreeCanvas from './TreeCanvas.svelte';
@@ -19,6 +22,8 @@
   let selection: Selection | null = $state(linked?.target ?? null);
   /** Which of the skill's documents the source pane shows. */
   let doc: string = $state(SKILL_DOC);
+  /** Which pane shows below the desktop lock, where the two would stack. */
+  let view: 'graph' | 'text' = $state('graph');
 
   let tree = $derived(skillTrees[active]);
   let docs = $derived(skillDocs[active]);
@@ -30,6 +35,13 @@
     label: `${t.title}\n${skillDocs[id][SKILL_DOC].length} lines`,
   }));
 
+  const skillItems = Object.entries(skillTrees).map(([id, t]) => ({ value: id, label: t.title }));
+
+  const views = [
+    { value: 'graph', label: 'Graph' },
+    { value: 'text', label: 'Text' },
+  ];
+
   let docTabs = $derived(
     Object.keys(docs).map((name) => ({
       id: name,
@@ -37,9 +49,19 @@
     })),
   );
 
+  // Matches the desktop lock in the styles: above it each pane scrolls on its
+  // own, below it the page does.
+  const locked = new MediaQuery('min-width: 64rem');
+
+  function toTop(pane: HTMLElement | undefined) {
+    if (locked.current) pane?.scrollTo({ top: 0 });
+    else window.scrollTo({ top: 0 });
+  }
+
   function openDoc(name: string) {
     doc = name;
-    sourcePane?.scrollTo({ top: 0 });
+    view = 'text';
+    toTop(sourcePane);
   }
 
   function selectTarget(key: string, label: string, range: LineRange) {
@@ -84,13 +106,26 @@
       ?.scrollIntoView({ block: 'center', behavior: 'smooth' });
   }
 
+  // A pane hidden behind the switch has no layout, so its scroll to the
+  // selection has to wait until it shows.
+  async function changeView(next: string) {
+    view = next as typeof view;
+    if (!selection) return;
+    if (view === 'graph') {
+      await tick();
+      scrollTreeTo(selection.key);
+    } else if (doc === SKILL_DOC) {
+      scrollSourceTo(selection.lines[0]);
+    }
+  }
+
   function changeTab(id: string) {
     active = id;
     selection = null;
     doc = SKILL_DOC;
     shareSelection();
-    treePane?.scrollTo({ top: 0 });
-    sourcePane?.scrollTo({ top: 0 });
+    toTop(treePane);
+    toTop(sourcePane);
   }
 
   function openLink(hash: string) {
@@ -137,10 +172,16 @@
   </header>
 
   <div class="tabs">
-    <TabBar {tabs} value={active} onchange={changeTab} />
+    <div class="tab-strip">
+      <TabBar {tabs} value={active} onchange={changeTab} />
+    </div>
+    <div class="picker">
+      <LabeledSelect label="Skill" items={skillItems} value={active} onchange={changeTab} />
+      <SegmentedControl segments={views} value={view} onchange={changeView} />
+    </div>
   </div>
 
-  <div class="split">
+  <div class="split" data-view={view}>
     <section class="pane" aria-label="{tree.id} decision tree">
       <div class="pane-head">
         <span class="pane-title">{tree.id}</span>
@@ -223,7 +264,25 @@
     padding-bottom: var(--space-40);
     background: var(--page-bg);
     background-attachment: var(--page-bg-attachment, fixed);
+  }
+
+  /* Below the desktop lock a dropdown replaces the strip, which would scroll
+     sideways past most of the skills. */
+  .tab-strip {
+    display: none;
     overflow-x: auto;
+  }
+
+  .picker {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-16);
+  }
+
+  .picker :global(.labeled-select) {
+    align-self: stretch;
+    align-items: stretch;
   }
 
   /* The label carries its own newline, so the line count sits under the skill
@@ -239,13 +298,19 @@
     gap: var(--space-32);
   }
 
-  /* The reference tabs only exist on the source pane, so a body of its own
-     fixed height would leave the two panes ending at different places. */
+  .split[data-view='graph'] .pane-source,
+  .split[data-view='text'] .pane:not(.pane-source) {
+    display: none;
+  }
+
+  /* Below the desktop lock a pane grows to its content and the page scrolls:
+     a scroll area nested in a scrolling page traps a phone's swipe. Isolated,
+     so the cards' raised badges stay under the pinned strip. */
   .pane {
     display: flex;
     flex-direction: column;
-    height: 82vh;
     min-width: 0;
+    isolation: isolate;
     border: var(--border-width-1) solid var(--border-neutral-subtle);
     border-radius: var(--radius-3xl);
     background: var(--surface-neutral-lowest);
@@ -318,8 +383,7 @@
   }
 
   /* Desktop: the surface locks to the viewport and each pane scrolls on its
-     own, so nothing ever slides under the tab strip. Placed after the base
-     .pane rule: its 82vh would otherwise win on source order. The router wrapper
+     own, so nothing ever slides under the tab strip. The router wrapper
      assumes window-scroll pages (min-height + a 12rem bottom pad); the doubled
      .lt-app outranks its scoped rule on a specificity tie. The child
      combinator keeps the demo home out: it has an .atlas of its own. */
@@ -344,6 +408,18 @@
       flex: 0 0 auto;
     }
 
+    .tab-strip {
+      display: block;
+    }
+
+    .picker {
+      display: none;
+    }
+
+    .split[data-view] .pane {
+      display: flex;
+    }
+
     /* minmax(0, 1fr) pins the row to the remaining height; an auto row would
        grow to the panes' content and break their scroll. */
     .split {
@@ -356,6 +432,12 @@
     .pane {
       box-sizing: border-box;
       height: 100%;
+    }
+  }
+
+  @media (max-width: 600px) {
+    .skill-atlas {
+      padding-inline: var(--space-16);
     }
   }
 

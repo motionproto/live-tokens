@@ -16,7 +16,7 @@
 
 <style>
   .provenance {
-    grid-column: 2 / -2;
+    grid-column: var(--kit-content);
     padding-top: var(--space-24);
     border-top: var(--border-width-2) solid var(--border-neutral);
     display: flex;
@@ -34,7 +34,7 @@
   .license {
     margin: 0;
     font-family: var(--font-sans);
-    font-size: var(--font-size-lg);
+    font-size: var(--body-lg-font-size);
     color: var(--text-secondary);
   }
 
@@ -52,13 +52,12 @@
   .copyright {
     margin: 0;
     font-family: var(--font-sans);
-    font-size: var(--font-size-md);
+    font-size: var(--body-md-font-size);
     color: var(--text-secondary);
   }
 
-  @media (max-width: 960px) {
+  @media (max-width: 1200px) {
     .provenance {
-      grid-column: 1 / -1;
       flex-direction: column;
       align-items: flex-start;
       gap: var(--space-24);

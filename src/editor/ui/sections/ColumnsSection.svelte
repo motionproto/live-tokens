@@ -148,10 +148,12 @@
     </div>
   </div>
 
+  <!-- A scaled picture of the grid at its max width: gutter and margin are
+       shares of it, so the preview keeps its proportions in any panel. -->
   <div class="columns-preview">
     <div
       class="columns-preview-inner"
-      style="gap: {$editorState.columns.gutter}px; padding-inline: {$editorState.columns.margin}px; grid-template-columns: repeat({$editorState.columns.count}, 1fr);"
+      style="gap: {($editorState.columns.gutter / $editorState.columns.maxWidth) * 100}%; padding-inline: {($editorState.columns.margin / $editorState.columns.maxWidth) * 100}%; grid-template-columns: repeat({$editorState.columns.count}, minmax(0, 1fr));"
     >
       {#each Array($editorState.columns.count) as _, i}
         <div class="columns-preview-col"><span>{i + 1}</span></div>

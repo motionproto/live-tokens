@@ -17,12 +17,11 @@
   .offering {
     grid-column: 1 / -1;
     display: grid;
-    grid-template-columns: repeat(var(--columns-count), 1fr);
-    column-gap: var(--columns-gutter);
+    grid-template-columns: subgrid;
   }
 
   .offering-quote {
-    grid-column: 3 / -3;
+    grid-column: var(--kit-narrow);
     margin: 0;
   }
 
@@ -38,7 +37,7 @@
 
   .offering-quote p {
     font-family: var(--font-serif);
-    font-size: var(--font-size-3xl);
+    font-size: var(--heading-lg-font-size);
     font-weight: var(--font-weight-normal);
     color: var(--text-primary);
     line-height: 1.2;
@@ -65,29 +64,11 @@
     margin-top: 0;
     font-family: var(--font-serif);
     font-weight: var(--font-weight-normal);
-    font-size: var(--font-size-3xl);
+    font-size: var(--heading-lg-font-size);
     font-variation-settings: 'opsz' 144, 'SOFT' 100;
     letter-spacing: 0.01em;
     color: var(--text-primary);
     text-align: right;
     padding-right: 0.4em;
-  }
-
-  @media (max-width: 960px) {
-    .offering-quote {
-      grid-column: 2 / -2;
-    }
-    .offering-quote p {
-      font-size: var(--font-size-xl);
-    }
-  }
-
-  @media (max-width: 600px) {
-    .offering-quote {
-      grid-column: 1 / -1;
-    }
-    .offering-quote p {
-      font-size: var(--font-size-4xl);
-    }
   }
 </style>

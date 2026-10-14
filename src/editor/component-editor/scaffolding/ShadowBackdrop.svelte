@@ -83,12 +83,21 @@
     grid-area: controls;
   }
 
+  /* Narrow: the preview leads, since it is what the pinned stage is for, and a
+     component wider than the stage scrolls inside it. */
   @container variant-group (max-width: 32rem) {
+    /* Holds its height so the pinned stage scrolls to the controls rather than
+       squeezing the preview under them. */
     .shadow-backdrop.with-controls {
+      flex-shrink: 0;
       grid-template-columns: minmax(0, 1fr);
       grid-template-areas:
-        "controls"
-        "preview";
+        "preview"
+        "controls";
+    }
+
+    .shadow-backdrop-content {
+      overflow-x: auto;
     }
   }
 </style>

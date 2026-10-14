@@ -853,6 +853,20 @@
     align-items: flex-start;
   }
 
+  /* No room for the sidebar: the editor stacks above the shadows and scrolls
+     with them, since pinned it would cover the screen. */
+  @media (max-width: 600px) {
+    .shadows-layout {
+      flex-direction: column-reverse;
+      align-items: stretch;
+    }
+
+    .global-shadow-editor {
+      position: static;
+      width: auto;
+    }
+  }
+
   .shadows-main {
     flex: 1;
     min-width: 0;

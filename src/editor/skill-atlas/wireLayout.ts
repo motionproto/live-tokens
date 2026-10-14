@@ -41,6 +41,8 @@ const CORNER = 12;
  *  inside the next when two share a stretch of gutter. */
 const LANE_INSET = 40;
 const LANE_STEP = 16;
+/** A comb rides inside the loop lanes, which start at LANE_INSET. */
+const COMB_INSET = 20;
 
 /** Cards laid out in one row share a top to within a pixel; cards pushed onto
  *  a second wrapped line do not, and a single bus cannot serve both. */
@@ -130,6 +132,52 @@ function fanIn(out: Drawing, parents: Box[], b: Box, edges: Edge[], lit: (i: num
     d:
       `M ${Math.min(...turns, b.midX)} ${busY} L ${Math.max(...turns, b.midX)} ${busY}` +
       ` M ${b.midX} ${busY} L ${b.midX} ${b.top - STANDOFF}`,
+  });
+}
+
+/** A branch row wrapped to one card per line, as on a phone: the cards share
+ *  a column and stand one under the next. */
+function stacked(group: Box[]): boolean {
+  return group.length > 1 && !aligned(group.map((g) => g.top)) && group.every((g) => group.every((h) => g.left < h.right && h.left < g.right));
+}
+
+/** `fanOut` for a stacked row: one comb down the right of the stack and a
+ *  tick into each card, instead of a lane per card nesting off the canvas. */
+function combOut(out: Drawing, a: Box, kids: Box[], edges: Edge[], lit: (i: number) => boolean) {
+  const lane = Math.max(a.right, ...kids.map((k) => k.right)) + COMB_INSET;
+  const last = kids[kids.length - 1];
+  const r = Math.max(0, Math.min(CORNER, (lane - a.right - STANDOFF) / 2, (last.midY - a.midY) / 2));
+  out.wires.push({
+    back: false,
+    arrow: false,
+    lit: kids.some((_, i) => lit(i)),
+    d:
+      `M ${a.right + STANDOFF} ${a.midY} L ${lane - r} ${a.midY}` +
+      ` Q ${lane} ${a.midY}, ${lane} ${a.midY + r} L ${lane} ${last.midY}`,
+  });
+  kids.forEach((k, i) => {
+    out.wires.push({ back: false, arrow: true, lit: lit(i), d: `M ${lane} ${k.midY} L ${k.right + STANDOFF} ${k.midY}` });
+    label(out, edges[i].label, lane, ((i === 0 ? a.midY : kids[i - 1].midY) + k.midY) / 2, lit(i), true);
+  });
+}
+
+/** `fanIn` for a stacked row: each card ties into one comb down the left of
+ *  the stack, which turns into the child. */
+function combIn(out: Drawing, parents: Box[], b: Box, edges: Edge[], lit: (i: number) => boolean) {
+  const lane = Math.min(b.left, ...parents.map((p) => p.left)) - COMB_INSET;
+  const first = parents[0];
+  const r = Math.max(0, Math.min(CORNER, (b.left - STANDOFF - lane) / 2, (b.midY - first.midY) / 2));
+  parents.forEach((p, i) => {
+    out.wires.push({ back: false, arrow: false, lit: lit(i), d: `M ${p.left - STANDOFF} ${p.midY} L ${lane} ${p.midY}` });
+    label(out, edges[i].label, lane, (p.midY + (parents[i + 1]?.midY ?? b.midY)) / 2, lit(i), true);
+  });
+  out.wires.push({
+    back: false,
+    arrow: true,
+    lit: parents.some((_, i) => lit(i)),
+    d:
+      `M ${lane} ${first.midY} L ${lane} ${b.midY - r}` +
+      ` Q ${lane} ${b.midY}, ${lane + r} ${b.midY} L ${b.left - STANDOFF} ${b.midY}`,
   });
 }
 
@@ -227,6 +275,13 @@ export function routeWires(boxes: Map<string, Box>, edges: Edge[], lit: (edge: E
     const kids = kidEdges.map((e) => boxes.get(e.to));
     if (!a || kidEdges.length < 2 || kids.some((k) => !k)) continue;
     const kept = kids as Box[];
+    if (stacked(kept)) {
+      const order = kept.map((_, i) => i).sort((i, j) => kept[i].top - kept[j].top);
+      const sortedEdges = order.map((i) => kidEdges[i]);
+      sortedEdges.forEach((e) => claimed.add(e));
+      combOut(out, a, order.map((i) => kept[i]), sortedEdges, (i) => lit(sortedEdges[i]));
+      continue;
+    }
     if (!aligned(kept.map((k) => k.top))) continue;
     kidEdges.forEach((e) => claimed.add(e));
     fanOut(out, a, kept, kidEdges, (i) => lit(kidEdges[i]));
@@ -238,6 +293,13 @@ export function routeWires(boxes: Map<string, Box>, edges: Edge[], lit: (edge: E
     const ups = open.map((e) => boxes.get(e.from));
     if (!b || open.length < 2 || ups.some((u) => !u)) continue;
     const kept = ups as Box[];
+    if (stacked(kept)) {
+      const order = kept.map((_, i) => i).sort((i, j) => kept[i].top - kept[j].top);
+      const sortedEdges = order.map((i) => open[i]);
+      sortedEdges.forEach((e) => claimed.add(e));
+      combIn(out, order.map((i) => kept[i]), b, sortedEdges, (i) => lit(sortedEdges[i]));
+      continue;
+    }
     if (!aligned(kept.map((u) => u.bottom))) continue;
     open.forEach((e) => claimed.add(e));
     fanIn(out, kept, b, open, (i) => lit(open[i]));

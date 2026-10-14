@@ -66,28 +66,27 @@
   .claude {
     grid-column: 1 / -1;
     display: grid;
-    grid-template-columns: repeat(var(--columns-count), 1fr);
-    column-gap: var(--columns-gutter);
+    grid-template-columns: subgrid;
     row-gap: var(--space-8);
     align-items: start;
     margin-bottom: var(--space-96);
   }
 
   .claude :global(.section-divider) {
-    grid-column: 2 / -2;
+    grid-column: var(--kit-content);
   }
 
-  /* Panel sits on page columns 2, 3, 4; the copy starts on column 5, hard
+  /* Panel sits on page columns 2 to 5; the copy starts on column 6, hard
      against the panel's right edge. */
   .panel-col {
-    grid-column: 2 / 5;
+    grid-column: 2 / 6;
     grid-row: 2;
     align-self: start;
     margin-top: var(--space-16);
   }
 
   .copy {
-    grid-column: 5 / 11;
+    grid-column: 6 / -2;
     grid-row: 2;
     align-self: start;
     display: flex;
@@ -98,7 +97,7 @@
 
   .intro {
     font-family: var(--font-sans);
-    font-size: var(--font-size-xl);
+    font-size: var(--body-xl-font-size);
     line-height: var(--line-height-tighter);
     font-weight: var(--font-weight-semibold);
     color: var(--text-primary);
@@ -114,7 +113,7 @@
   .install-caption {
     margin: 0;
     font-family: var(--font-sans);
-    font-size: var(--font-size-md);
+    font-size: var(--body-md-font-size);
     line-height: var(--line-height-normal);
     color: var(--text-secondary);
   }
@@ -171,17 +170,16 @@
 
   .skill-name {
     font-family: var(--font-sans);
-    font-size: var(--font-size-2xl);
+    font-size: var(--heading-md-font-size);
     font-weight: var(--font-weight-medium);
     line-height: var(--line-height-normal);
     color: var(--text-primary);
   }
 
-  @media (max-width: 960px) {
-    .claude :global(.section-divider),
+  @media (max-width: 1200px) {
     .panel-col,
     .copy {
-      grid-column: 1 / -1;
+      grid-column: var(--kit-content);
     }
 
     .panel-col,

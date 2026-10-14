@@ -262,6 +262,7 @@
       <div class="curve-grid-span">
         {#each curveDescriptors as curve (curve.key)}
           <ScaleCurveEditor
+            subject={scale.title}
             curveKey={curve.key}
             anchors={curve.anchors}
             cfg={curve.cfg}

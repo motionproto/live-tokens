@@ -409,7 +409,7 @@
 
   @media (max-width: 720px) {
     .font-stacks-columns {
-      grid-template-columns: 1fr;
+      grid-template-columns: minmax(0, 1fr);
     }
   }
 
@@ -471,7 +471,7 @@
 
   .slot-controls {
     display: grid;
-    grid-template-columns: auto auto 1fr auto;
+    grid-template-columns: auto auto minmax(0, 1fr) auto;
     align-items: center;
     gap: var(--ui-space-8);
   }

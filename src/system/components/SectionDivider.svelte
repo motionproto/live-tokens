@@ -436,8 +436,11 @@
     letter-spacing: var(--_divider-title-letter-spacing);
   }
 
+  /* The rows carry their own padding tokens, so a content-box 100% would run
+     past the divider by that padding. */
   .title-row {
     display: flex;
+    box-sizing: border-box;
     width: 100%;
     justify-content: var(--_divider-justify);
     align-items: center;
@@ -463,6 +466,7 @@
      flow entirely. */
   .description-row {
     display: var(--_divider-description-display);
+    box-sizing: border-box;
     width: 100%;
     justify-content: var(--_divider-justify);
     align-items: center;

@@ -268,6 +268,13 @@
     align-items: stretch;
   }
 
+  /* Sections stack one per line here, so each heading rule spans the card. */
+  @container variant-group (max-width: 32rem) {
+    .element-section {
+      flex: 1 1 100%;
+    }
+  }
+
   .element-section .state-type-groups {
     display: flex;
     flex-direction: row;

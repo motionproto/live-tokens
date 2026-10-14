@@ -48,9 +48,10 @@
 <style>
   .source-links {
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
-    gap: var(--space-48);
-    flex: none;
+    column-gap: var(--space-48);
+    row-gap: var(--space-16);
   }
 
   .brand-link {
@@ -148,9 +149,9 @@
     font-size: var(--font-size-xl);
   }
 
-  @media (max-width: 960px) {
+  @media (max-width: 1200px) {
     .source-links:not(.compact) {
-      gap: var(--space-24);
+      column-gap: var(--space-24);
     }
   }
 </style>
