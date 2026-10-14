@@ -458,15 +458,15 @@ with `productionCss: false`, and the census measured both. This repo's
 
 | Measure | `productionCss: false` | Default |
 |---|---|---|
-| CSS files, JS files | 12, 11 | 12, 11 |
-| Distinct variables declared on `:root` | 1,445 | 564 |
-| Declarations on `:root` | 1,838 | 648 |
-| Redeclarations on `:root` | 393 | 84 |
+| CSS files, JS files | 13, 13 | 13, 13 |
+| Distinct variables declared on `:root` | 1,445 | 562 |
+| Declarations on `:root` | 1,838 | 642 |
+| Redeclarations on `:root` | 393 | 80 |
 | `bareRootRedeclared` | 309 | 0 |
 | Declared variables the JS names | 147 | 147 |
-| Variables some rule reaches | 1,139 | 564 |
-| Reached variables that must stay variables | 564 | 564 |
-| CSS bytes | 323,003 | 241,202 |
+| Variables some rule reaches | 1,137 | 562 |
+| Reached variables that must stay variables | 562 | 562 |
+| CSS bytes | 324,892 | 242,983 |
 
 The scaffold build:
 
@@ -480,17 +480,41 @@ The scaffold build:
 | Declared variables the JS names | 14 | 14 |
 | Variables some rule reaches | 401 | 53 |
 | Reached variables that must stay variables | 53 | 53 |
-| CSS bytes | 184,180 | 122,863 |
+| CSS bytes | 184,267 | 122,950 |
 
+- Both measurements ran on a working tree with uncommitted edits to the demo
+  site, the editor and SectionDivider: 30 files at the first, 32 at the
+  second. The repo table follows those files, so the ledger alone cannot
+  reproduce it. The first measurement recorded 12 CSS files, 663 of 1,548
+  properties and 81.8 kB saved; the table above holds the second, after the
+  rename below. The scaffold's census counts match across both.
 - In both builds the variables that stay on `:root` match the
   `dynamicReachedNames` of the `productionCss: false` build name for name.
   No `var()` in either rewritten build reads a property the rewrite removed.
 - The redeclarations that remain sit in the two responsive `@media` blocks.
   The scaffold drops 10 of them because no rule reaches those sizes.
-- The build logs `live-tokens: the production CSS declares 663 of 1,548
-  custom properties and is 81.8 kB smaller.` for this repo, and 76 of 848
+- The build logs `live-tokens: the production CSS declares 661 of 1,548
+  custom properties and is 81.9 kB smaller.` for this repo, and 76 of 848
   and 61.3 kB for the scaffold. Those counts include the component-scoped
   properties off `:root`.
+- Vite hashes each sheet's file name from its content before `generateBundle`
+  runs, and the first transform wrote the new content under the old name. A
+  rewritten sheet depends on every other asset's `:root` values, on the names
+  in the JS and on `keep`, so a theme promotion renamed the entry sheet and
+  left a lazy sheet's name unchanged with new content, which an immutable
+  cache keeps serving. The review measured the scaffold's lazy sheet at
+  `Home-DmAZk9OB.css` in both builds, 17,735 bytes untransformed and 13,950
+  transformed, with 185 values substituted from `index-X7bTifQu.css`. The hook
+  now renames each sheet it rewrites to the first eight base64url characters
+  of a sha256 of the new content, in the position `output.assetFileNames`
+  gives the hash, and points every chunk, HTML page, JSON manifest and
+  `viteMetadata.importedCss` entry at the new name. A pattern without a hash
+  keeps the name. The scaffold emits `index-X7bTifQu.css` and
+  `Home-CUwkrpTn.css` with `productionCss: false`, and `index-pRbaQz97.css`
+  and `Home-iwExUhMr.css` by default; `index.html` and the entry chunk
+  reference the new names and no file keeps an old one.
+- `scripts/build-eval-project.sh` stamps `vite-plugin` with the other shipped
+  sources, so a plugin change rebuilds the scaffold.
 - `analyze` gained a tenth reason, `undeclared`: a value that reads a name
   no CSS declares and no script, `keep` entry or `@property` names. A
   computed name may set that name at runtime. Without a fallback the value
@@ -506,3 +530,19 @@ The scaffold build:
   hooks, so the bundle holds the minified CSS and `index.html`.
 
 ### Deferred
+
+- Substitution replaces `var()` in every declaration, including `@font-face`
+  and `@property` descriptors, where a browser ignores `var()` today and the
+  substituted value would apply. Neither build has a `var()` in a descriptor.
+  Wave 5 states the limit.
+- Substitution can turn a declaration that is invalid at computed-value time,
+  which the cascade treats as `unset`, into one that is invalid at parse
+  time, which the parser drops so an earlier declaration wins. No source
+  declares an empty custom property, and Wave 4's comparison is the only
+  check. Wave 5 states the limit.
+- A static property declared only in a lazy chunk's CSS and read from the
+  entry CSS resolves after substitution before that chunk loads, where today
+  it is invalid until then. Both builds point every cross-asset static
+  reference at the entry CSS. `analyze` could class such a property dynamic
+  if `rewriteBundle` passed it the entry asset indices. Open for the user:
+  take the tightening or leave it.
