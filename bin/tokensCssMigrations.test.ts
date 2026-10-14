@@ -22,6 +22,12 @@ const ids = (list: { details: { migrations: { id: string }[] } }[]) => list.flat
 const withoutTints = CURRENT.replace(/^\s*--tint(?:-low|-high)?:.*\n/gm, '');
 
 describe('the tokens.css migration pass', () => {
+  it('finds nothing to apply or report in the canonical tokens.css', async () => {
+    const { root, read } = project(CURRENT);
+    expect(await checkTokensCssMigrations({ root, apply: true, engine })).toEqual({ applied: [], findings: [] });
+    expect(read()).toBe(CURRENT);
+  });
+
   it('applies a pending additive migration, and a second run applies nothing', async () => {
     const { root, read } = project(withoutTints);
     const first = await checkTokensCssMigrations({ root, apply: true, engine });

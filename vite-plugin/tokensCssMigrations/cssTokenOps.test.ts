@@ -295,6 +295,24 @@ describe('appendMediaBlock', () => {
     expect(out.indexOf('(max-width: 480px)')).toBeGreaterThan(out.indexOf('(max-width: 768px)'));
   });
 
+  it('puts a new block before the first block of the `before` query', () => {
+    const out = appendMediaBlock(RESPONSIVE, '(max-width: 1023px)', ENTRIES, { before: '(max-width: 768px)' });
+    expect(out).toBe(
+      RESPONSIVE.replace(
+        '@media (max-width: 768px) {',
+        '@media (max-width: 1023px) {\n  :root {\n' +
+          '    --heading-xl-font-size: var(--heading-xl-tablet-font-size);\n' +
+          '    --heading-lg-font-size: var(--heading-lg-tablet-font-size);\n  }\n}\n\n' +
+          '@media (max-width: 768px) {',
+      ),
+    );
+  });
+
+  it('appends at the end when no block matches `before`', () => {
+    const out = appendMediaBlock(RESPONSIVE, '(max-width: 1023px)', ENTRIES, { before: '(max-width: 480px)' });
+    expect(out.indexOf('(max-width: 1023px)')).toBeGreaterThan(out.indexOf('(max-width: 768px)'));
+  });
+
   it('never appends into the top-level :root', () => {
     const out = appendMediaBlock(RESPONSIVE, '(max-width: 768px)', ENTRIES);
     const top = out.slice(0, out.indexOf('@media'));

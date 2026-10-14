@@ -497,13 +497,25 @@
   --scale-xl: 1.2;
   --scale-2xl: 1.25;
 
-  /* COLUMN LAYOUT — 12-col grid. Drives the dev overlay; consume via
+  /* COLUMN LAYOUT. Each viewport sets its own count, gutter and margin.
+     --columns-count, --columns-gutter and --columns-margin read the desktop
+     values, and the 767px and 480px blocks at the foot of this file re-point
+     them to the tablet and phone values. Drives the dev overlay; consume via
      grid-template-columns: repeat(var(--columns-count), 1fr) etc.
-     --columns-margin = side gutters (0 = flush). */
-  --columns-count: 12;
+     --columns-margin = side gutters (0px = flush). */
   --columns-max-width: 1440px;
-  --columns-gutter: clamp(0.5rem, 1.5vw, 1.5rem);
-  --columns-margin: 0;
+  --columns-desktop-count: 12;
+  --columns-desktop-gutter: 32px;
+  --columns-desktop-margin: 0px;
+  --columns-tablet-count: 8;
+  --columns-tablet-gutter: 24px;
+  --columns-tablet-margin: 24px;
+  --columns-phone-count: 4;
+  --columns-phone-gutter: 16px;
+  --columns-phone-margin: 16px;
+  --columns-count: var(--columns-desktop-count);
+  --columns-gutter: var(--columns-desktop-gutter);
+  --columns-margin: var(--columns-desktop-margin);
 
   /* Font Families */
   --font-display: "Arvo", serif;
@@ -1088,6 +1100,18 @@
   }
 }
 
+/* RESPONSIVE COLUMN GRID. The grid takes its tablet values at 767px and
+   narrower, and its phone values at 480px and narrower. This block precedes
+   the 480px block, so the phone values win on a phone. */
+
+@media (max-width: 767px) {
+  :root {
+    --columns-count: var(--columns-tablet-count);
+    --columns-gutter: var(--columns-tablet-gutter);
+    --columns-margin: var(--columns-tablet-margin);
+  }
+}
+
 @media (max-width: 480px) {
   :root {
     --font-size-2xl: 1.25rem;    /* 20px */
@@ -1133,5 +1157,10 @@
     --code-xs-font-size: var(--code-xs-phone-font-size);
     --code-2xs-font-size: var(--code-2xs-phone-font-size);
     --eyebrow-font-size: var(--eyebrow-phone-font-size);
+
+    /* The column grid's phone values. */
+    --columns-count: var(--columns-phone-count);
+    --columns-gutter: var(--columns-phone-gutter);
+    --columns-margin: var(--columns-phone-margin);
   }
 }

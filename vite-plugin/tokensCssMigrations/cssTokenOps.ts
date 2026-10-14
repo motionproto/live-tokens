@@ -165,12 +165,25 @@ export function setTokenValue(
   return changed ? lines.join('\n') : css;
 }
 
+export interface AppendMediaBlockOptions {
+  /**
+   * A query whose first top-level block a new block goes before. A block that
+   * overlaps a narrower one has to precede it, or it wins the cascade there.
+   */
+  before?: string;
+}
+
 /**
  * Append each entry that no top-level `@media <query>` block declares yet to
  * that block's `:root`. The query must match exactly. With no such block, a new
- * one goes at the end of the file.
+ * one goes before the first `opts.before` block, or else at the end of the file.
  */
-export function appendMediaBlock(css: string, query: string, entries: ScaleEntry[]): string {
+export function appendMediaBlock(
+  css: string,
+  query: string,
+  entries: ScaleEntry[],
+  opts: AppendMediaBlockOptions = {},
+): string {
   const lines = css.split('\n');
   const at = query.trim();
   const blocks = findTopLevelBlocks(lines, (line) => mediaQueryOf(line) === at);
@@ -183,6 +196,12 @@ export function appendMediaBlock(css: string, query: string, entries: ScaleEntry
   const media = blocks.find((b) => b.end > b.start);
   if (!media) {
     const block = [`@media ${at} {`, '  :root {', ...declarationLines(missing, '    '), '  }', '}', ''];
+    const before = opts.before?.trim();
+    const next = before === undefined ? undefined : findTopLevelBlocks(lines, (line) => mediaQueryOf(line) === before)[0];
+    if (next) {
+      lines.splice(next.start, 0, ...block);
+      return lines.join('\n');
+    }
     while (lines.length > 0 && lines[lines.length - 1].trim() === '') lines.pop();
     return [...lines, '', ...block].join('\n');
   }

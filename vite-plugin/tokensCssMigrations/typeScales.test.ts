@@ -30,7 +30,7 @@ function mediaDeclarations(css: string, query: string): Record<string, string> {
 describe('2026-10-08-type-scales', () => {
   it('folds the 0.91.2 tokens.css to the canonical names and top-level values', () => {
     const { css, applied } = runTokensCssMigrations(FIXTURE);
-    expect(applied).toEqual(['2026-10-08-type-scales']);
+    expect(applied).toEqual(['2026-10-08-type-scales', '2026-10-15-responsive-columns']);
     expect(topLevel(css)).toEqual(topLevel(CANONICAL));
   });
 
