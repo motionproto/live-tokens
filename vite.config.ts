@@ -21,6 +21,8 @@ export default defineConfig({
     // `LIVE_TOKENS_TEST_DATA_DIR`, so this config states the real paths only.
     themeFileApi({
       tokensCssPath: 'src/system/styles/tokens.css',
+      // tests/e2e/production-css.spec.ts builds the site once untransformed to compare against.
+      productionCss: process.env.LIVE_TOKENS_PRODUCTION_CSS === 'false' ? false : undefined,
     }),
   ],
   // Force Svelte's browser-side exports under vitest (happy-dom). Without this,
