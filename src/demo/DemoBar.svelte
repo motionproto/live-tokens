@@ -63,6 +63,12 @@
     }
   }
 
+  @media (max-width: 767px) {
+    .bar {
+      padding-inline: var(--columns-margin);
+    }
+  }
+
   /* No room beside the editor's toggle on a phone, so the pickers sit in the
      page below it and scroll away, clearing the toggle only when it rests in
      the top band. */
@@ -71,8 +77,7 @@
       position: static;
     }
     .bar {
-      grid-template-columns: minmax(0, 1fr);
-      padding: max(var(--space-16), calc(var(--lt-pill-clearance, 0px) + var(--space-8))) var(--space-16) var(--space-16);
+      padding-block: max(var(--space-16), calc(var(--lt-pill-clearance, 0px) + var(--space-8))) var(--space-16);
     }
     /* Side by side, each label over a trigger that fills its half. */
     .pickers {

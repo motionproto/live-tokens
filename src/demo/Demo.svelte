@@ -100,12 +100,17 @@
     }
   }
 
-  /* Eleven gutters of a wide-gutter theme outgrow a phone, so the page is one
-     column there. */
+  /* tokens.css switches to the tablet grid below 768px. From there the page
+     insets by the grid's own margin, as the column overlay does. */
+  @media (max-width: 767px) {
+    .kit {
+      padding-inline: var(--columns-margin);
+    }
+  }
+
   @media (max-width: 600px) {
     .kit {
       --kit-narrow: 1 / -1;
-      grid-template-columns: minmax(0, 1fr);
     }
 
     .kit,
@@ -113,7 +118,7 @@
       --kit-section-lead: var(--space-8);
       --kit-quote-pause: var(--space-16);
       --kit-footer-lead: var(--space-16);
-      padding: var(--space-32) var(--space-16);
+      padding-block: var(--space-32);
       row-gap: var(--space-48);
     }
   }

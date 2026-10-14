@@ -497,7 +497,7 @@
     .kit-lead .kit-head {
       padding-inline: 0;
       background: none;
-      border-image: conic-gradient(var(--kit-head-tint) 0 0) fill 0 / 0 / 0 var(--space-16);
+      border-image: conic-gradient(var(--kit-head-tint) 0 0) fill 0 / 0 / 0 var(--columns-margin);
     }
     .kit-lead .kit-body {
       padding-inline: 0;
