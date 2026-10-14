@@ -2,7 +2,7 @@
   import { cubicOut } from 'svelte/easing';
   import { oklchToHexClamped } from '../../core/palettes/oklch';
   import { PALETTE_SPECS } from '../../core/palettes/paletteDerivation';
-  import { editorState, beginSliderGesture } from '../../core/store/editorStore';
+  import { editorState, beginSliderGesture, undo, canUndo } from '../../core/store/editorStore';
   import { selectedPalette } from '../../core/store/paletteFocus';
   import { applyHarmonyToAxes, axisStatuses, HARMONY_ELIGIBLE, type HarmonyMode } from '../../core/palettes/colorHarmony';
   import AxisNumeral from './AxisNumeral.svelte';
@@ -13,6 +13,7 @@
   import PaletteStepStrip from './PaletteStepStrip.svelte';
   import HarmonyAxesList from './HarmonyAxesList.svelte';
   import PaletteJumpButton from '../palette/PaletteJumpButton.svelte';
+  import UIPillButton from '../UIPillButton.svelte';
   import { isSwatchCopy, swatchPasteColor, copySwatchColor, showSwatchColor } from '../swatchClipboard';
   import {
     setBaseColor,
@@ -270,6 +271,8 @@
         >
           {#snippet actions()}
             <div class="wheel-opts">
+              <!-- The editor keeps one history, so this steps back the last edit on any view, as Cmd+Z does. -->
+              <UIPillButton size="compact" variant="outline" icon="fa-rotate-left" title="Undo the last edit" disabled={!$canUndo} onclick={() => undo()}>Undo</UIPillButton>
               <label class="opt">
                 <input type="checkbox" bind:checked={absoluteChroma} />
                 <span>Absolute Chroma</span>
