@@ -424,4 +424,32 @@ the build drops Button. This repo's own build declares 1,445 variables on
   production theme with its own gradients or washes now renders them, where
   before the store's defaults overrode them.
 
+**Wave 2, 2026-10-14.** A scratch script fed the scaffold build's assets to
+`analyze` and compared its counts over the names declared on `:root` with the
+census:
+
+| Measure | Census | `analyze` |
+|---|---|---|
+| Distinct variables declared on `:root` | 821 | 821 |
+| Declared variables the JS names | 14 | 14 |
+| Variables some rule reaches | 401 | 401 |
+| Reached variables that must stay variables | 53 | 53 |
+
+The two lists of reached dynamic names match name for name. The build of this
+repo from before Wave 1, 17 CSS assets with `@container` style queries,
+matches as well: 2,177, 2,277, 2,175 and 2,175.
+
+- `analyze` classes three cases dynamic beyond rules 1 to 6, since
+  substituting the winning value would change a page: a winning value that is
+  a CSS-wide keyword, a `var()` loop, and bare `:root` values that differ
+  between assets. Neither build has a loop or a split value. The keyword case
+  hits only `--lightningcss-dark`, which rule 1 already classes dynamic.
+- Rules 2, 4 and 5 also seed rule 6 with names no CSS declares. A `:root` value
+  that reads a name the JS sets on some element resolves there differently
+  once substituted. The scaffold has no such reference. In the repo build, 13
+  SectionDivider, SegmentedControl and sketch properties have one, and rules 1
+  and 2 already class each of them dynamic.
+- `!important` outranks specificity in the cascade winner. Neither build
+  declares an important custom property.
+
 ### Deferred
