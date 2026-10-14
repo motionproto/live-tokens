@@ -30,6 +30,13 @@
     if (id) document.getElementById(id)?.scrollIntoView({ block: 'start' });
   });
 
+  function armName(arm: { skills: boolean; lookup: boolean }) {
+    if (arm.skills && arm.lookup) return 'Skills and lookup';
+    if (arm.skills) return 'Skills only';
+    if (arm.lookup) return 'Lookup only';
+    return 'Neither';
+  }
+
   function jump(event: MouseEvent, id: string) {
     event.preventDefault();
     contentsOpen = false;
@@ -68,7 +75,7 @@
       <h2 id="skills-title">LiveTokens skills</h2>
       <div class="text-columns skills-overview">
         <div>
-          <p>The CLI checks verify that skill output uses the design system and works correctly in the browser. They cover token use, component behavior, and page layout. Skills make design decisions and the CLI verifies the code.</p>
+          <p>The CLI checks verify that skill output uses the design system and works correctly in the browser. They cover token use, component behavior, and page layout. Skills make design decisions and the checker verifies the code.</p>
           <p>The package includes eight skills, and one setup command copies them into your project.</p>
         </div>
         <ul class="skill-stack">
@@ -356,29 +363,27 @@
   <section class="chapter" id="measured-value" aria-labelledby="measured-value-title">
     <div class="chapter-body">
       <h2 id="measured-value-title">Measured value</h2>
-      <p>An eval asked an agent to choose a component for {result.requirements} requirements. It ran in four arms of {result.runsPerArm} runs each: with and without the skills, and with and without the CLI. The arms chose the same components, with one miss among 144 answers, and differ in turns, time, and cost.</p>
+      <p>An eval asked an agent to choose a component for {result.requirements} requirements. It ran in four arms of {result.runsPerArm} runs each: with and without the skills, and with and without the lookup, the <code>live-tokens components</code> command that lists each component with its entry and props. The arms chose the same components, with one miss among 144 answers, and differ in turns, time, and cost.</p>
       <div class="eval-results">
         <Table>
           <table aria-label="Eval arms">
             <thead>
               <tr>
-                <th scope="col">Skills</th>
-                <th scope="col">CLI</th>
-                <th scope="col">Requirements right</th>
+                <th scope="col">Arm</th>
+                <th scope="col">Accuracy</th>
                 <th scope="col">Turns</th>
                 <th scope="col">Seconds</th>
                 <th scope="col">Cost</th>
               </tr>
             </thead>
             <tbody>
-              {#each result.arms as arm (`${arm.skills}-${arm.cli}`)}
+              {#each result.arms as arm (`${arm.skills}-${arm.lookup}`)}
                 <tr>
-                  <td>{arm.skills ? 'Yes' : 'No'}</td>
-                  <td>{arm.cli ? 'Yes' : 'No'}</td>
-                  <td>{arm.rowsRight}</td>
-                  <td>{arm.turns}</td>
-                  <td>{arm.seconds}</td>
-                  <td>{arm.cost}</td>
+                  <td>{armName(arm)}</td>
+                  <td data-label="Accuracy">{arm.rowsRight}</td>
+                  <td data-label="Turns">{arm.turns}</td>
+                  <td data-label="Seconds">{arm.seconds}</td>
+                  <td data-label="Cost">{arm.cost}</td>
                 </tr>
               {/each}
             </tbody>
@@ -386,10 +391,10 @@
         </Table>
       </div>
       <ul class="eval-summary">
-        <li><strong>Turns:</strong> the skill saves turns only through the CLI command. Without the CLI, the skill arm takes as many turns as the agent with neither.</li>
-        <li><strong>Time and cost:</strong> the skills and the CLI each save time on their own, and together the run costs less than half as much as with neither.</li>
+        <li><strong>Turns:</strong> the skill saves turns only through the lookup. Without the lookup, the skill arm takes as many turns as the agent with neither.</li>
+        <li><strong>Time and cost:</strong> the skills and the lookup each save time on their own, and together the run costs less than half as much as with neither.</li>
         <li><strong>Accuracy:</strong> every arm scores about the same. The choices come from the entries in the component files.</li>
-        <li><strong>Change since 2026-09-20:</strong> in that run, no agent without the skills found the CLI; this time 2 of 3 did, so that arm varies from run to run.</li>
+        <li><strong>Change since 2026-09-20:</strong> in that run, no agent without the skills found the lookup; this time 2 of 3 did, so that arm varies from run to run.</li>
       </ul>
       <div class="text-columns">
         <div>
@@ -972,5 +977,43 @@
       padding-block: var(--space-32);
     }
 
+    /* A phone leaves too little width for side-by-side columns, so each row stacks into a card. */
+    :is(.rule-group, .eval-results) :global(.table-wrapper :is(table, tbody, tr, td)) {
+      display: block;
+      min-width: var(--space-0);
+    }
+
+    :is(.rule-group, .eval-results) :global(.table-wrapper thead) {
+      display: none;
+    }
+
+    /* The row's first cell takes the table's header style and captions the card. */
+    :is(.rule-group, .eval-results) :global(.table-wrapper td:first-child) {
+      border-right: none;
+      border-bottom: var(--table-default-header-hairline-width) solid var(--table-default-header-hairline-color);
+      background: var(--table-default-header-surface);
+      color: var(--table-default-header-text);
+      font-family: var(--table-default-header-font-family);
+      font-size: var(--table-default-header-font-size);
+      font-weight: var(--table-default-header-font-weight);
+      line-height: var(--table-default-header-line-height);
+    }
+
+    :is(.rule-group, .eval-results) :global(.table-wrapper tr:not(:last-child) td:last-child) {
+      border-bottom: var(--table-default-header-hairline-width) solid var(--table-default-header-hairline-color);
+    }
+
+    /* The hidden header row named these columns, so each value carries its own label. */
+    .eval-results :global(.table-wrapper td[data-label]) {
+      display: grid;
+      grid-template-columns: minmax(var(--space-0), 2fr) minmax(var(--space-0), 3fr);
+      column-gap: var(--space-12);
+      border-right: none;
+    }
+
+    .eval-results :global(.table-wrapper td[data-label]::before) {
+      content: attr(data-label);
+      font-weight: var(--table-default-header-font-weight);
+    }
   }
 </style>

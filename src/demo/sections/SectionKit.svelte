@@ -481,6 +481,7 @@
      the column, its segments sharing the width. */
   @media (max-width: 600px) {
     .swap-control {
+      margin-top: var(--space-8);
       flex-direction: column;
       align-items: stretch;
       gap: var(--space-8);

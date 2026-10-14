@@ -63,7 +63,7 @@
   .hero {
     grid-column: 1 / -1;
     position: relative;
-    padding: var(--space-48) 0 var(--space-16);
+    padding: var(--space-48) 0 0;
     display: grid;
     grid-template-columns: subgrid;
   }

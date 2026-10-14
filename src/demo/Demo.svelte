@@ -42,6 +42,9 @@
   .kit {
     --kit-content: 2 / -2;
     --kit-narrow: 3 / -3;
+    --kit-section-lead: var(--space-32);
+    --kit-quote-pause: var(--space-32);
+    --kit-footer-lead: var(--space-32);
     display: grid;
     grid-template-columns: repeat(var(--columns-count), minmax(0, 1fr));
     column-gap: var(--columns-gutter);
@@ -62,11 +65,21 @@
     margin-bottom: 0;
   }
 
-  /* Equal lead-in above these three sections: row-gap (64) + 48 = 112px. */
+  /* Every titled section opens with the same lead-in: row-gap, this margin,
+     and the SectionDivider's own top margin. The quote pauses between the
+     layers and the panel below it, and the footer sets off from the page. */
   .kit > :global(.kit-section),
   .kit > :global(.layers),
   .kit > :global(.claude) {
-    margin-top: var(--space-32);
+    margin-top: var(--kit-section-lead);
+  }
+
+  .kit > :global(.offering) {
+    margin-block: var(--kit-quote-pause);
+  }
+
+  .kit > :global(.provenance) {
+    margin-top: var(--kit-footer-lead);
   }
 
   /* Inline code styling cascades into every section via :global descendants. */
@@ -97,6 +110,9 @@
 
     .kit,
     .kit.has-bar {
+      --kit-section-lead: var(--space-8);
+      --kit-quote-pause: var(--space-16);
+      --kit-footer-lead: var(--space-16);
       padding: var(--space-32) var(--space-16);
       row-gap: var(--space-48);
     }

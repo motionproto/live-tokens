@@ -69,7 +69,6 @@
     grid-template-columns: subgrid;
     row-gap: var(--space-8);
     align-items: start;
-    margin-bottom: var(--space-96);
   }
 
   .claude :global(.section-divider) {
@@ -185,6 +184,16 @@
     .panel-col,
     .copy {
       grid-row: auto;
+    }
+  }
+
+  @media (max-width: 600px) {
+    .atlas {
+      align-items: stretch;
+    }
+
+    .atlas-actions {
+      flex-direction: column;
     }
   }
 </style>

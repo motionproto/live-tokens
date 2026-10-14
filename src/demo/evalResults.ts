@@ -1,7 +1,7 @@
-/** One arm of an eval: the same case run with or without the skills, and with or without the CLI. */
+/** One arm of an eval: the same case run with or without the skills, and with or without the lookup command. */
 export interface EvalArm {
   skills: boolean;
-  cli: boolean;
+  lookup: boolean;
   rowsRight: string;
   turns: string;
   seconds: string;
@@ -28,7 +28,7 @@ export const pickComponentEval: EvalResult = {
   arms: [
     {
       skills: true,
-      cli: true,
+      lookup: true,
       rowsRight: '12 of 12 in all 3 runs',
       turns: '9 to 10',
       seconds: '46 to 76',
@@ -36,15 +36,15 @@ export const pickComponentEval: EvalResult = {
     },
     {
       skills: false,
-      cli: true,
-      rowsRight: '12 of 12 in all 3 runs; 2 of 3 found the CLI on their own',
+      lookup: true,
+      rowsRight: '12 of 12 in all 3 runs; 2 of 3 found the lookup on their own',
       turns: '15 to 17',
       seconds: '65 to 102',
       cost: '$0.63 to $0.74',
     },
     {
       skills: true,
-      cli: false,
+      lookup: false,
       rowsRight: '12 of 12 in all 3 runs',
       turns: '14 to 20',
       seconds: '66 to 84',
@@ -52,7 +52,7 @@ export const pickComponentEval: EvalResult = {
     },
     {
       skills: false,
-      cli: false,
+      lookup: false,
       rowsRight: '11 of 12 in one run, which missed requirement 12',
       turns: '17 to 20',
       seconds: '113 to 169',

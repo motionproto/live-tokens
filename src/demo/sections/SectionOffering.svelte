@@ -22,7 +22,10 @@
 
   .offering-quote {
     grid-column: var(--kit-narrow);
+    justify-self: center;
+    max-width: 24em;
     margin: 0;
+    font-size: var(--heading-lg-font-size);
   }
 
   .offering-quote blockquote {
@@ -43,6 +46,7 @@
     line-height: 1.2;
     margin: 0;
     hyphens: none;
+    text-wrap: pretty;
     text-indent: -0.55em;
   }
 
