@@ -164,10 +164,10 @@
 <div class="skill-atlas">
   <header class="masthead">
     <div class="masthead-top">
-      <h1>Skill Atlas</h1>
       <Button variant="primary" onclick={() => navigate('/')} icon="fas fa-arrow-left" iconPosition="left">
         Back to Demo
       </Button>
+      <h1>Skill Atlas</h1>
     </div>
   </header>
 
@@ -233,22 +233,18 @@
 
   .masthead-top {
     display: flex;
-    align-items: center;
-    /* Beside the title, not at the far right: the editor overlay pins top-right
-       and would cover a button parked there. */
-    gap: var(--space-24);
-    flex-wrap: wrap;
-    /* The row carries the heading's own margins; align-items centres the margin
-       box, so a margin left on the h1 offsets the title against the button by
-       half of it. */
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-32);
   }
 
+  /* The home page's heading style, so the two pages title alike. */
   .masthead-top h1 {
-    font-family: var(--heading-xl-font-family);
-    font-size: var(--heading-xl-font-size);
-    font-weight: var(--heading-xl-font-weight);
-    line-height: var(--heading-xl-line-height);
-    letter-spacing: var(--heading-xl-letter-spacing);
+    font-family: var(--display-xl-font-family);
+    font-size: var(--display-xl-font-size);
+    font-weight: var(--display-xl-font-weight);
+    line-height: var(--display-xl-line-height);
+    letter-spacing: var(--display-xl-letter-spacing);
     color: var(--text-primary);
     margin: 0;
   }
@@ -283,6 +279,15 @@
   .picker :global(.labeled-select) {
     align-self: stretch;
     align-items: stretch;
+  }
+
+  .picker :global(.segmented-control) {
+    align-self: stretch;
+  }
+
+  .picker :global(.segment) {
+    flex: 1;
+    justify-content: center;
   }
 
   /* The label carries its own newline, so the line count sits under the skill
