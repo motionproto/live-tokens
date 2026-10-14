@@ -2269,7 +2269,7 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
       order: 'post',
       handler(output, bundle) {
         if (!productionCssLogger) return;
-        const report = rewriteBundle(bundle, opts.productionCss || {}, output.assetFileNames);
+        const report = rewriteBundle(bundle, opts.productionCss || {}, output);
         if (report) productionCssLogger.info(formatReport(report));
       },
     },

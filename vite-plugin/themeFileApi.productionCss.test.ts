@@ -37,15 +37,23 @@ function build(
       type: 'chunk',
       fileName: CHUNK,
       code,
+      name: 'index',
       isEntry: true,
+      isDynamicEntry: false,
+      facadeModuleId: null,
+      moduleIds: [],
+      exports: [],
       imports: [],
+      dynamicImports: [],
+      sourcemapFileName: null,
       viteMetadata: { importedCss: new Set([SHEET, PLAIN]) },
     },
     'index.html': asset('index.html', `<link rel="stylesheet" href="/${SHEET}"><link rel="stylesheet" href="/${PLAIN}">`),
     '.vite/manifest.json': asset('.vite/manifest.json', JSON.stringify({ 'index.html': { file: CHUNK, css: [SHEET, PLAIN] } })),
   };
   const hook = plugin.generateBundle as { order: string; handler: (...args: unknown[]) => void };
-  hook.handler.call({}, { assetFileNames }, bundle, false);
+  const chunkFileNames = 'assets/[name]-[hash].js';
+  hook.handler.call({}, { assetFileNames, chunkFileNames, entryFileNames: chunkFileNames }, bundle, false);
   const sheet = bundle[SHEET] as Asset;
   return { bundle, sheet, css: sheet.source, info, order: hook.order };
 }
@@ -82,7 +90,7 @@ describe('themeFileApi productionCss', () => {
     expect(build('build', { keep: ['--gap'] }).css).toBe(':root{--gap:4px}.box{margin:var(--gap);color:red}');
   });
 
-  it('renames a rewritten sheet to its content hash and points every reference at it', () => {
+  it('renames a rewritten sheet and the chunk that imports it, and points every reference at them', () => {
     const code = `__vitePreload(()=>import("./x.js"),["${SHEET}","${PLAIN}"])`;
     const { bundle, sheet } = build('build', undefined, code);
     expect(sheet.fileName).toMatch(/^assets\/index-[\w-]{8}\.css$/);
@@ -91,13 +99,15 @@ describe('themeFileApi productionCss', () => {
     expect((bundle[PLAIN] as Asset).fileName).toBe(PLAIN);
 
     const chunk = bundle[CHUNK] as Chunk;
+    expect(chunk.fileName).toMatch(/^assets\/index-[\w-]{8}\.js$/);
+    expect(chunk.fileName).not.toBe(CHUNK);
     expect(chunk.code).toBe(`__vitePreload(()=>import("./x.js"),["${sheet.fileName}","${PLAIN}"])`);
-    expect(chunk.viteMetadata!.importedCss).toEqual(new Set([PLAIN, sheet.fileName]));
+    expect([...chunk.viteMetadata!.importedCss]).toEqual([sheet.fileName, PLAIN]);
     expect((bundle['index.html'] as Asset).source).toBe(
       `<link rel="stylesheet" href="/${sheet.fileName}"><link rel="stylesheet" href="/${PLAIN}">`,
     );
     expect(JSON.parse((bundle['.vite/manifest.json'] as Asset).source as string)).toEqual({
-      'index.html': { file: CHUNK, css: [sheet.fileName, PLAIN] },
+      'index.html': { file: chunk.fileName, css: [sheet.fileName, PLAIN] },
     });
   });
 
