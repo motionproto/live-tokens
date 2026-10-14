@@ -35,6 +35,7 @@ import { resolveDataDirs, testDataDir, testPackageDataDir } from './files/dataPa
 import { detectLegacyLayout, type LegacyLayout } from './files/legacyLayout';
 import { validateTokensCss, runAdditiveTokensCssMigrations } from './tokensCssMigrations';
 import { checkBeforeBuild } from './buildChecks';
+import { formatReport, rewriteBundle, type ProductionCssOptions } from './productionCss';
 import { fileURLToPath } from 'node:url';
 
 // Read live-tokens' own package.json by walking up from this file. Works the
@@ -131,6 +132,11 @@ export interface ThemeFileApiOptions {
   // default: true. `vite build` first runs both static design checkers under
   // the project's severities, and an error stops the build.
   checks?: boolean;
+  // default: on. `vite build` removes each custom property no rule reaches,
+  // substitutes each one whose value never changes at runtime, and declares
+  // each survivor once on :root. `{ substitute: false }` only removes, and
+  // `keep` lists names a script assembles at runtime. Dev keeps every token.
+  productionCss?: false | ProductionCssOptions;
 }
 
 export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
@@ -2229,6 +2235,7 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
 
   let buildLogger: Logger | null = null;
   let buildChecked = false;
+  let productionCssLogger: Logger | null = null;
 
   return {
     name: 'theme-file-api',
@@ -2248,6 +2255,7 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
     },
     configResolved(config) {
       buildLogger = config.command === 'build' && opts.checks !== false ? config.logger : null;
+      productionCssLogger = config.command === 'build' && opts.productionCss !== false ? config.logger : null;
     },
     async buildStart() {
       // A build with several environments calls buildStart once for each.
@@ -2255,6 +2263,15 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
       buildChecked = true;
       const failure = await checkBeforeBuild({ root: process.cwd(), logger: buildLogger });
       if (failure) this.error(failure);
+    },
+    generateBundle: {
+      // After Vite's own hooks, so the bundle holds the minified CSS and index.html.
+      order: 'post',
+      handler(_output, bundle) {
+        if (!productionCssLogger) return;
+        const report = rewriteBundle(bundle, opts.productionCss || {});
+        if (report) productionCssLogger.info(formatReport(report));
+      },
     },
     configureServer(server) {
       // Before every writer: the pre-0.48 layout has to be recognised while the
