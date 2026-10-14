@@ -12,9 +12,17 @@ export interface ProductionCssOptions {
 /** The fields of a Rollup or Rolldown output file that the transform reads and writes. */
 export type BundleFile =
   | { type: 'asset'; fileName: string; source: string | Uint8Array; names: string[]; originalFileNames: string[] }
-  | { type: 'chunk'; fileName: string; code: string; viteMetadata?: { importedCss: Set<string> } };
+  | {
+      type: 'chunk';
+      fileName: string;
+      code: string;
+      isEntry: boolean;
+      imports: string[];
+      viteMetadata?: { importedCss: Set<string> };
+    };
 
 type AssetFile = Extract<BundleFile, { type: 'asset' }>;
+type ChunkFile = Extract<BundleFile, { type: 'chunk' }>;
 
 /** `output.assetFileNames`: a pattern, or a function that returns the pattern for one asset. */
 export type AssetFileNames =
@@ -83,6 +91,25 @@ function repoint(files: BundleFile[], renames: Map<string, string>): void {
   }
 }
 
+/** The CSS of every entry chunk and of each chunk an entry imports statically. */
+function entrySheets(files: BundleFile[]): Set<string> {
+  const chunks = new Map(files.flatMap((f): [string, ChunkFile][] => (f.type === 'chunk' ? [[f.fileName, f]] : [])));
+  const sheets = new Set<string>();
+  const seen = new Set<string>();
+  const toVisit = [...chunks.values()].filter((c) => c.isEntry);
+  while (toVisit.length) {
+    const chunk = toVisit.pop()!;
+    if (seen.has(chunk.fileName)) continue;
+    seen.add(chunk.fileName);
+    for (const sheet of chunk.viteMetadata?.importedCss ?? []) sheets.add(sheet);
+    for (const name of chunk.imports) {
+      const imported = chunks.get(name);
+      if (imported) toVisit.push(imported);
+    }
+  }
+  return sheets;
+}
+
 /** Rewrites every CSS asset in the bundle in place. Returns null when the bundle holds no CSS. */
 export function rewriteBundle(
   bundle: Record<string, BundleFile>,
@@ -100,7 +127,9 @@ export function rewriteBundle(
     ...assets.filter((f) => /\.[cm]?js$/.test(f.fileName)).map((f) => text(f.source)),
   ];
   const html = assets.filter((f) => f.fileName.endsWith('.html')).map((f) => text(f.source));
-  const analysis = analyze({ css, js, html, keep });
+  const loadedWithPage = entrySheets(files);
+  const entries = sheets.flatMap((sheet, i) => (loadedWithPage.has(sheet.fileName) ? [i] : []));
+  const analysis = analyze({ css, js, html, keep, entries });
   const values = substitute ? staticValues(analysis) : null;
 
   let bytesSaved = 0;

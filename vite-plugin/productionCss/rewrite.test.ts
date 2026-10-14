@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { analyze } from './analyze';
 import { droppedDeclarations, rewrite, staticValues, substituteValue } from './rewrite';
 
-const run = (css: string[], js: string[] = []) => analyze({ css, js, html: [], keep: [] });
+const run = (css: string[], js: string[] = []) => analyze({ css, js, html: [], keep: [], entries: css.map((_, i) => i) });
 const lookup = (values: Record<string, string>) => (name: string) => values[name];
 
 describe('substituteValue', () => {

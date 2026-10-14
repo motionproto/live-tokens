@@ -33,7 +33,14 @@ function build(
   const bundle: Record<string, BundleFile> = {
     [SHEET]: asset(SHEET, CSS, ['index.css']),
     [PLAIN]: asset(PLAIN, '.plain{color:red}', ['plain.css']),
-    [CHUNK]: { type: 'chunk', fileName: CHUNK, code, viteMetadata: { importedCss: new Set([SHEET, PLAIN]) } },
+    [CHUNK]: {
+      type: 'chunk',
+      fileName: CHUNK,
+      code,
+      isEntry: true,
+      imports: [],
+      viteMetadata: { importedCss: new Set([SHEET, PLAIN]) },
+    },
     'index.html': asset('index.html', `<link rel="stylesheet" href="/${SHEET}"><link rel="stylesheet" href="/${PLAIN}">`),
     '.vite/manifest.json': asset('.vite/manifest.json', JSON.stringify({ 'index.html': { file: CHUNK, css: [SHEET, PLAIN] } })),
   };

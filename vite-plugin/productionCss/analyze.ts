@@ -1,13 +1,14 @@
 import postcss, { type AtRule, type Rule } from 'postcss';
 
 /**
- * The first six follow the dynamic rule in
- * docs/plans/production-css-variables.md, in order. The last four mark
- * properties whose winning token stream would substitute wrongly: a CSS-wide
- * keyword, a `var()` loop, `:root` values that differ between assets, whose
- * winner depends on which lazy chunks have loaded, and a reference to a name
- * nothing declares, which a computed name may set at runtime and which
- * otherwise leaves the value guaranteed-invalid, so a `var()` fallback applies.
+ * They follow the dynamic rule in docs/plans/production-css-variables.md, in
+ * order. The last five mark properties whose winning token stream would
+ * substitute wrongly: a CSS-wide keyword, a `var()` loop, `:root` values that
+ * differ between assets, whose winner depends on which lazy chunks have loaded,
+ * a reference to a name nothing declares, which a computed name may set at
+ * runtime and which otherwise leaves the value guaranteed-invalid, so a `var()`
+ * fallback applies, and a property only lazy CSS declares, which another asset
+ * can read before that CSS loads.
  */
 export type DynamicReason =
   | 'scoped'
@@ -19,7 +20,8 @@ export type DynamicReason =
   | 'keyword'
   | 'cycle'
   | 'assets'
-  | 'undeclared';
+  | 'undeclared'
+  | 'lazy';
 
 export type Specificity = readonly [number, number, number];
 
@@ -56,6 +58,8 @@ export interface AnalyzeInput {
   js: string[];
   html: string[];
   keep: string[];
+  /** Indices into `css` of the assets that load with the page. Every other asset belongs to a lazy chunk. */
+  entries: number[];
 }
 
 const ROOT_SPECIFICITY = new Map<string, Specificity>([
@@ -102,11 +106,12 @@ export function winnerOf(declarations: Declaration[]): Declaration | null {
   return winner;
 }
 
-export function analyze({ css, js, html, keep }: AnalyzeInput): Map<string, Property> {
+export function analyze({ css, js, html, keep, entries }: AnalyzeInput): Map<string, Property> {
   const declarations = new Map<string, Declaration[]>();
   const regularRefs = new Set<string>();
   const preludeNames = new Set<string>();
   const registered = new Set<string>();
+  const reads = css.map(() => new Set<string>());
 
   css.forEach((source, asset) => {
     let order = 0;
@@ -117,8 +122,10 @@ export function analyze({ css, js, html, keep }: AnalyzeInput): Map<string, Prop
         return;
       }
       if (node.type !== 'decl') return;
+      const refs = varRefs(node.value);
+      for (const name of refs) reads[asset].add(name);
       if (!node.prop.startsWith('--')) {
-        for (const name of varRefs(node.value)) regularRefs.add(name);
+        for (const name of refs) regularRefs.add(name);
         return;
       }
       let selector: string | null = null;
@@ -187,6 +194,7 @@ export function analyze({ css, js, html, keep }: AnalyzeInput): Map<string, Prop
   };
 
   const setByName = (name: string) => scriptNames.has(name) || keepNames.has(name) || registered.has(name);
+  const entryAssets = new Set(entries);
   const winners = new Map<string, Declaration | null>();
   const reasons = new Map<string, DynamicReason[]>();
   for (const [name, decls] of declarations) {
@@ -205,6 +213,13 @@ export function analyze({ css, js, html, keep }: AnalyzeInput): Map<string, Prop
       why.push('assets');
     }
     if ([...references.get(name)!].some((ref) => !declarations.has(ref) && !setByName(ref))) why.push('undeclared');
+    const declaring = new Set(decls.map((d) => d.asset));
+    if (
+      ![...declaring].some((asset) => entryAssets.has(asset)) &&
+      reads.some((names, asset) => !declaring.has(asset) && names.has(name))
+    ) {
+      why.push('lazy');
+    }
     reasons.set(name, why);
   }
 

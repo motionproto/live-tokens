@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { analyze, type AnalyzeInput, type Property } from './analyze';
 
 function run(input: Partial<AnalyzeInput> & Pick<AnalyzeInput, 'css'>): Map<string, Property> {
-  return analyze({ js: [], html: [], keep: [], ...input });
+  return analyze({ js: [], html: [], keep: [], entries: input.css.map((_, i) => i), ...input });
 }
 
 function property(analysis: Map<string, Property>, name: string): Property {
@@ -155,5 +155,22 @@ describe('analyze', () => {
   it('classes a declaration under a selector list that mixes :root with another selector as scoped', () => {
     const font = property(run({ css: [':host,:root{--fa-font:solid}'] }), '--fa-font');
     expect(font).toMatchObject({ dynamic: true, reasons: ['scoped'], winner: null });
+  });
+
+  it('classes a property only a lazy asset declares as dynamic when another asset reads it', () => {
+    const analysis = run({
+      css: ['.box{margin:var(--gap)}', ':root{--gap:4px;--pad:2px}.card{padding:var(--pad)}'],
+      entries: [0],
+    });
+    expect(property(analysis, '--gap')).toMatchObject({ dynamic: true, reasons: ['lazy'] });
+    expect(property(analysis, '--pad')).toMatchObject({ dynamic: false, reasons: [] });
+  });
+
+  it('keeps a property static when an entry asset declares it, whichever asset reads it', () => {
+    const gap = property(
+      run({ css: [':root{--gap:4px}', ':root{--gap:4px}.box{margin:var(--gap)}', '.card{margin:var(--gap)}'], entries: [0] }),
+      '--gap',
+    );
+    expect(gap).toMatchObject({ dynamic: false, reasons: [] });
   });
 });
