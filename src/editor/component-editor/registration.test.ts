@@ -18,7 +18,8 @@ beforeEach(() => {
   vi.resetModules();
 });
 
-it('keeps components registered before the registry loads', async () => {
+// The registry's first import compiles every editor component; under full-suite load it exceeds 5s.
+it('keeps components registered before the registry loads', { timeout: 30_000 }, async () => {
   const { registerComponent } = await import('./registration');
   registerComponent(entry('alpha'));
   registerComponent(entry('beta'));
