@@ -621,6 +621,61 @@ The scaffold build:
   `--panel-frame-radius` and two Badge paddings, which other rules already
   class dynamic, so no count moves.
 
+**Wave 4, 2026-10-14.** `tests/e2e/production-css.spec.ts` builds the site
+and a states page twice, once with `LIVE_TOKENS_PRODUCTION_CSS=false`, which
+`vite.config.ts` passes to `themeFileApi` as `productionCss: false`. It serves
+each build with `vite preview` on a free port and compares 475 standard
+computed properties on every element and every rendered `::before` and
+`::after`. All 18 tests pass at 1280, 768 and 480 pixels wide, in about 37
+seconds. `npm run test:e2e` runs the spec as `test:e2e:production-css`, and
+passes: 292 contract, 22 contract-defect, 10 page-defect, 6 stateful and 18
+production-css tests. The spec passes with `dist-plugin/` moved aside, as CI
+runs it.
+
+- The demo site's routes render no Dialog and state no backdrop. The wave's
+  text says they include a Dialog. `tests/e2e/production-css/States.svelte`
+  holds a light and a dark `data-backdrop` section, each with a hover-enabled
+  Card and a tinted primary Button, and a Dialog that a Button opens. Its own
+  config, `tests/e2e/production-css/vite.config.ts`, makes it the one entry of
+  the site's config, so the site build stays the one the demo ships.
+- Each demo route is compared at rest and again with `data-backdrop="light"`
+  on `<html>`. No token in this tree uses `light-dark()`, and none of the four
+  builds emits `--lightningcss-light` or `--lightningcss-dark`, so both
+  backdrop states change `color-scheme` alone. The Ground truth bullets on
+  the lowered toggles describe CSS this tree no longer ships.
+- The spec aborts every request off `127.0.0.1`, so both builds render the
+  same fallbacks for the Google and Typekit fonts. It finishes each finite
+  animation and transition and holds each infinite one at its start, in
+  rounds until none runs: a Dialog moves focus after the click, and the blur
+  starts a transition on the Button that opened it. The first run settled
+  once and failed on that Button's colors mid-transition.
+- `ROUTES` lists the five routes a build serves. A new page joins the list
+  by hand.
+- With `analyze` classing `--font-size-2xl` static, the spec fails at 768
+  and 480 pixels and passes at 1280, where the `:root` value applies. The
+  break, one line in `analyze.ts`, never reached a commit:
+
+  ```
+  ✘ /demo computes the same styles at 768px wide
+    Error: 152 computed values differ at rest, in 15 properties
+    … div.card.arch-card.arch-base:nth-child(1) > div.card-header:nth-child(1)
+      > span.card-title:nth-child(2) { font-size }: untransformed "22px", transformed "24px"
+  ✘ backdrops, hover and an open Dialog compute the same styles at 768px wide
+    Error: 57 computed values differ at rest, in 9 properties
+    … section.state.light:nth-child(1) > div.card:nth-child(3) > div.card-header:nth-child(1)
+      > span.card-title:nth-child(2) { font-size }: untransformed "22px", transformed "24px"
+  ✘ /demo computes the same styles at 480px wide
+    Error: 152 computed values differ at rest, in 15 properties
+    … span.card-title:nth-child(2) { font-size }: untransformed "20px", transformed "24px"
+  ✘ backdrops, hover and an open Dialog compute the same styles at 480px wide
+    Error: 57 computed values differ at rest, in 9 properties
+    … span.card-title:nth-child(2) { font-size }: untransformed "20px", transformed "24px"
+  4 failed, 14 passed
+  ```
+
+  The report first listed only the ancestors' heights, which come first in
+  document order, so it now leads with each property's first difference.
+
 ### Deferred
 
 - Substitution replaces `var()` in every declaration, including `@font-face`
