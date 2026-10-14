@@ -704,14 +704,14 @@
         {/if}
       </div>
       <div class="swatch-grid" style="--swatch-cols: {paletteStepLightness.length + 2}">
-        <div class="step-column">
+        <div class="step-column" style="--stacked-order: 0">
           <button class="step-label copyable-label" class:copied={copiedLabelKey === 'palette-white'} type="button" onclick={(e) => copyVarName('palette-white', `--color-${cssNamespace}-white`, e)}>
             {copiedLabelKey === 'palette-white' ? 'copied!' : 'white'}
           </button>
           <div class="swatch gray-swatch bookend" style="background: #ffffff"></div>
         </div>
-        {#each paletteComputed as ps}
-          <div class="step-column">
+        {#each paletteComputed as ps, i}
+          <div class="step-column" style="--stacked-order: {2 * (i + 1)}">
             <button class="step-label copyable-label" class:copied={copiedLabelKey === ps.key} class:selected={editingKey === ps.key || (isEditingBase && ps.anchored)} type="button" onclick={(e) => copyVarName(ps.key, `--color-${cssNamespace}-${ps.label}`, e)}>
               {copiedLabelKey === ps.key ? 'copied!' : ps.label}
             </button>
@@ -743,14 +743,14 @@
             >{copiedKey === ps.key ? 'copied!' : ps.effective}</button>
           </div>
         {/each}
-        <div class="step-column">
+        <div class="step-column" style="--stacked-order: {2 * (paletteComputed.length + 1)}">
           <button class="step-label copyable-label" class:copied={copiedLabelKey === 'palette-black'} type="button" onclick={(e) => copyVarName('palette-black', `--color-${cssNamespace}-black`, e)}>
             {copiedLabelKey === 'palette-black' ? 'copied!' : 'black'}
           </button>
           <div class="swatch gray-swatch bookend" style="background: #000000"></div>
         </div>
 
-        <UIReveal open={editingPaletteIndex !== null} style="grid-column: 2 / {paletteStepLightness.length + 2}">
+        <UIReveal open={editingPaletteIndex !== null} style="grid-column: 2 / {paletteStepLightness.length + 2}; --stacked-order: {2 * ((dock?.paletteIndex ?? 0) + 1) + 1}">
           <!-- The reveal has to own the grid slot, so the dock rebuilds the
                ramp's tracks inside it: the caret is then placed on the step's
                own column and points at it at any width, no arithmetic. -->
@@ -760,7 +760,7 @@
           </div>
         </UIReveal>
 
-      <UIReveal open={paletteEditorOpen} style="grid-column: 2 / {paletteStepLightness.length + 2}">
+      <UIReveal open={paletteEditorOpen} style="grid-column: 2 / {paletteStepLightness.length + 2}; --stacked-order: {2 * (paletteComputed.length + 1) + 1}">
         <div class="curve-grid-span">
           {#if anchorUnlockPrompt && anchorToBase}
             <div class="anchor-unlock-notice" role="alert">
@@ -773,6 +773,7 @@
             </div>
           {/if}
           <ScaleCurveEditor
+            subject={displayLabel ?? label}
             curveKey="hue"
             anchors={hueCurve ?? DEFAULT_PALETTE_HUE()}
             cfg={hueCurveConfig}
@@ -789,6 +790,7 @@
             onAutoSmoothChange={handleAutoSmooth}
           />
           <ScaleCurveEditor
+            subject={displayLabel ?? label}
             curveKey="saturation"
             anchors={saturationCurve}
             cfg={saturationCurveConfig}
@@ -805,6 +807,7 @@
             onAutoSmoothChange={handleAutoSmooth}
           />
           <ScaleCurveEditor
+            subject={displayLabel ?? label}
             curveKey="lightness"
             anchors={lightnessCurve}
             cfg={lightnessCurveConfig}
@@ -1229,6 +1232,61 @@
     color: #fff;
     font-size: var(--ui-font-size-xs);
     line-height: 1;
+  }
+
+  /* A phone-width editor stacks the ramp, one step per row, so each swatch is
+     wide enough to read and tap. --stacked-order puts the step editor under the
+     row it edits and the curves after black. */
+  @media (max-width: 600px) {
+    .scale-section {
+      width: 100%;
+    }
+
+    .swatch-grid {
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
+      width: 100%;
+    }
+
+    .swatch-grid > :global(*) {
+      order: var(--stacked-order, 0);
+    }
+
+    .step-column {
+      display: grid;
+      grid-template-columns: 3rem minmax(0, 1fr) 5rem;
+      align-items: center;
+      column-gap: var(--ui-space-8);
+    }
+
+    .step-label,
+    .step-label.copyable-label {
+      height: auto;
+      justify-content: flex-start;
+    }
+
+    .step-hex {
+      margin-top: 0;
+      text-align: left;
+    }
+
+    .swatch.gray-swatch {
+      height: 2.25rem;
+      margin-bottom: 0;
+    }
+
+    .swatch.gray-swatch.anchored {
+      height: 3rem;
+    }
+
+    .dock {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .edit-caret {
+      display: none;
+    }
   }
 
   .empty-mode-toggle {

@@ -567,7 +567,7 @@
      pinned and always leaves the controls a viewport to live in. */
   .tabs-preview {
     position: sticky;
-    top: 0;
+    top: var(--editor-sticky-top, 0px);
     z-index: 2;
     display: flex;
     flex-direction: column;
@@ -596,6 +596,20 @@
   .preview-header,
   .tabs-states-block {
     flex: none;
+  }
+
+  /* A capped stage nests a scroller inside the page scroll, which a phone
+     handles badly, and an uncapped pinned band covers the controls. The band
+     scrolls with the page at full height instead. */
+  @media (max-width: 600px) {
+    .tabs-preview {
+      position: relative;
+      max-height: none;
+    }
+
+    .tabs-preview::after {
+      display: none;
+    }
   }
 
   /* Soft fade at the bottom of the sticky band so property rows scrolling
@@ -910,8 +924,9 @@
   /* Direct child of .variant-group; needs its own margin since flex gap doesn't apply across siblings. */
   .properties-header {
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
-    gap: var(--ui-space-16);
+    gap: var(--ui-space-8) var(--ui-space-16);
     margin-top: var(--ui-space-8);
     margin-bottom: var(--ui-space-8);
   }

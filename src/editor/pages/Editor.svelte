@@ -31,6 +31,13 @@
     return '/demo';
   }
 
+  // The overlay owns its open state in the host window, so the iframe asks it
+  // to close.
+  function close() {
+    if (inOverlay) window.parent.dispatchEvent(new CustomEvent('lt-overlay-toggle'));
+    else window.location.assign(backHref);
+  }
+
   onMount(() => {
     initializeEditorStore();
     return installEditorKeybindings();
@@ -50,7 +57,7 @@
     </div>
   {/if}
 
-  <EditorShell />
+  <EditorShell onclose={close} />
   <UICopyPopover />
 </div>
 
@@ -99,6 +106,13 @@
 
   @media (max-width: 1100px) {
     .editor-label {
+      display: none;
+    }
+  }
+
+  /* The shell's own header carries the close button at this width. */
+  @media (max-width: 600px) {
+    .editor-bar {
       display: none;
     }
   }

@@ -28,7 +28,7 @@
 <style>
   .arch {
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     column-gap: var(--columns-gutter);
     row-gap: var(--space-32);
   }
@@ -46,9 +46,9 @@
     border-radius: var(--radius-sm);
   }
 
-  @media (max-width: 960px) {
+  @media (max-width: 1200px) {
     .arch {
-      grid-template-columns: 1fr;
+      grid-template-columns: minmax(0, 1fr);
     }
   }
 </style>

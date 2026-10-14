@@ -20,9 +20,8 @@
     <Card variant="bare">
       <h1>Home</h1>
       <p>
-        Replace this page with your own content. Edit <code>src/pages/Home.svelte</code>
-        to get started, or delete this file and point the <code>/</code> route somewhere else
-        in <code>src/App.svelte</code>.
+        This is your home page. Build it in <code>src/app/Home.svelte</code>, and add pages
+        to the route table in <code>src/app/App.svelte</code>.
       </p>
       {#if isDev}
         <div class="actions">
@@ -107,6 +106,21 @@
     .home {
       grid-template-columns: 1fr;
       column-gap: 0;
+    }
+  }
+
+  @media (max-width: 600px) {
+    .home {
+      padding-inline: var(--space-16);
+    }
+
+    .actions {
+      flex-direction: column;
+      align-items: stretch;
+    }
+
+    .actions :global(.push-right) {
+      margin-left: 0;
     }
   }
 </style>

@@ -953,7 +953,7 @@
     .loops {
       grid-template-columns: minmax(var(--space-0), 1fr);
       /* Leave room for the fixed editor toolbar above the back link. */
-      padding: var(--space-64) var(--space-20) var(--space-48);
+      padding: var(--space-64) var(--space-16) var(--space-48);
     }
 
     h1 {

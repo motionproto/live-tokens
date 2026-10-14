@@ -33,14 +33,8 @@
 
 <style>
   .demo-section {
-    grid-column: 2 / span 10;
+    grid-column: var(--kit-content);
     display: flex;
     flex-direction: column;
-  }
-
-  @media (max-width: 960px) {
-    .demo-section {
-      grid-column: 1 / -1;
-    }
   }
 </style>

@@ -79,8 +79,10 @@
 
 .ftt-string {
   stroke: var(--ftt-contrast-color);
+  fill: none;
   stroke-width: 2;
   stroke-linecap: round;
+  stroke-linejoin: round;
   vector-effect: non-scaling-stroke;
   opacity: var(--ftt-string-opacity);
   transition: opacity 150ms ease, stroke 150ms ease;
@@ -124,8 +126,9 @@
 
 /* --- Floating tag wrapper ------------------------------------------------- */
 .ftt-float {
+  --ftt-shift-x: -50%;
   position: absolute;
-  translate: -50% -50%;
+  translate: var(--ftt-shift-x) -50%;
   rotate: var(--ftt-rot, 0deg);
   animation: ftt-bob var(--ftt-bob-duration, 7s) ease-in-out infinite;
   z-index: 4;
@@ -134,7 +137,7 @@
   flex-direction: column;
   align-items: center;
   gap: 0.25rem;
-  width: 14rem;
+  width: max-content;
 }
 
 /* Lift open tag so its dropdown paints over sibling tags. */
@@ -159,8 +162,8 @@
 }
 
 @keyframes ftt-bob {
-  0%, 100% { translate: -50% -50%; }
-  50%      { translate: -50% calc(-50% + var(--ftt-bob-distance, -8px)); }
+  0%, 100% { translate: var(--ftt-shift-x) -50%; }
+  50%      { translate: var(--ftt-shift-x) calc(-50% + var(--ftt-bob-distance, -8px)); }
 }
 
 /* --- Property label paired with each tag ---------------------------------- */
@@ -270,6 +273,32 @@
   translate: -50% 0;
   pointer-events: auto;
   z-index: 10;
+}
+
+/* --- Stacked layout ------------------------------------------------------ */
+/* Narrow stage: tags hang in a column left of the box and the strings elbow
+   into its top and bottom edges. `left` positions each tag's left edge. */
+.ftt-stacked .ftt-box {
+  left: auto;
+  right: 0;
+  translate: 0 -50%;
+  width: 10rem;
+  padding: 0.75rem 1rem;
+}
+
+.ftt-stacked .ftt-float {
+  --ftt-shift-x: 0%;
+  rotate: 0deg;
+  align-items: flex-start;
+}
+
+.ftt-stacked .ftt-float-property {
+  padding-left: 0.75rem;
+}
+
+.ftt-stacked .ftt-dropdown-wrap {
+  left: 0;
+  translate: none;
 }
 
 /* --- Reduced motion ------------------------------------------------------- */

@@ -50,7 +50,7 @@
   import VariantGroup from './scaffolding/VariantGroup.svelte';
   import ComponentEditorBase from './scaffolding/ComponentEditorBase.svelte';
   import { buildSiblings } from './scaffolding/siblings';
-  import demoImageUrl from '../../system/assets/offering.webp';
+  import demoImageUrl from '../../system/assets/newspaper.webp';
   import { editorState, setComponentAlias } from '../core/store/editorStore';
 
   let aliases = $derived(

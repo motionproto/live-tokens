@@ -436,10 +436,9 @@
 
   @container variant-group (max-width: 380px) {
     .token-grid {
-      grid-template-columns: max-content 1fr;
+      grid-template-columns: max-content var(--token-selector-w) minmax(0, 1fr);
       column-gap: var(--ui-space-6);
     }
-    .token-grid :global(.ui-token-selector) { grid-column: 2; }
   }
 
   .zone-divider {

@@ -1159,7 +1159,7 @@
 
   .preview-col {
     position: sticky;
-    top: 0;
+    top: var(--editor-sticky-top, 0px);
   }
 
   @media (max-width: 1100px) {

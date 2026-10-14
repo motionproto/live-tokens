@@ -205,6 +205,17 @@
 
   .wash-control { min-width: 0; }
 
+  /* Too narrow for three columns: the control drops under the swatch and name. */
+  @media (max-width: 600px) {
+    .wash-row {
+      grid-template-columns: 3.5rem minmax(0, 1fr);
+    }
+
+    .wash-control {
+      grid-column: 1 / -1;
+    }
+  }
+
   .wash-opacity {
     display: flex;
     align-items: center;

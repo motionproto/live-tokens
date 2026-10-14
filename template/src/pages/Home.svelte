@@ -70,4 +70,15 @@
       grid-column: 1 / -1;
     }
   }
+
+  @media (max-width: 600px) {
+    .home {
+      padding-inline: var(--space-16);
+    }
+
+    .actions {
+      flex-direction: column;
+      align-items: stretch;
+    }
+  }
 </style>

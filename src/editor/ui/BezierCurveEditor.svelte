@@ -567,6 +567,8 @@
     transform: translateY(0);
   }
 
+  /* Chrome reads touch-action from the outer svg, never from the circles and
+     paths inside it, so the anchors' own rule alone leaves a drag scrolling. */
   .curve-svg {
     width: 100%;
     height: 100%;
@@ -575,6 +577,7 @@
     border-radius: var(--ui-radius-sm);
     cursor: crosshair;
     display: block;
+    touch-action: none;
   }
 
   .curve-out-of-range {

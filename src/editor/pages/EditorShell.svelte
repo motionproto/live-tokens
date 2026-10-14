@@ -2,6 +2,7 @@
   import { run } from 'svelte/legacy';
 
   import { onMount } from 'svelte';
+  import { MediaQuery } from 'svelte/reactivity';
   import VariablesTab from '../ui/VariablesTab.svelte';
   import ColorsTab from '../ui/colors/ColorsTab.svelte';
   import EditorViewSwitcher from '../ui/EditorViewSwitcher.svelte';
@@ -9,7 +10,7 @@
   import SketchTab from '../ui/sketch/SketchTab.svelte';
   import ThemePanel from '../ui/ThemePanel.svelte';
   import { scrollSectionIntoView } from '../ui/scrollSection';
-  import { editorView, sidebarCondensed, selectedComponent } from '../core/store/editorViewStore';
+  import { editorView, sidebarCondensed, selectedComponent, type EditorView } from '../core/store/editorViewStore';
   import { componentDirty } from '../core/store/editorStore';
   import { getComponentRegistryEntries, validateRegistryAgainstServerScan } from '../component-editor/registry';
   import { listComponents } from '../core/components/componentConfigService';
@@ -40,6 +41,8 @@
     { id: 'sketch-noise', label: 'Noise', icon: 'fas fa-wave-square' },
     { id: 'sketch-preview', label: 'Preview', icon: 'fas fa-eye' }
   ];
+
+  let { onclose }: { onclose?: () => void } = $props();
 
   const allComponentNavItems = getComponentRegistryEntries().map(({ id, label, icon, origin }) => ({ id, label, icon, origin }));
   const systemNavItems = allComponentNavItems.filter((i) => i.origin === 'system');
@@ -104,6 +107,62 @@
     sidebarCondensed.update((v) => !(v === true));
   }
 
+  // A narrow editor shows one section at a time, picked from a select, because
+  // the rail would leave the section itself no room.
+  const singleSection = new MediaQuery('max-width: 600px');
+  let themeScreen = $state(false);
+  let menuOpen = $state(false);
+  let screenBarHeight = $state(0);
+
+  const sectionNav: Partial<Record<EditorView, { id: string }[]>> = {
+    tokens: tokenNavItems,
+    sketch: sketchNavItems,
+    colors: colorsNavItems,
+  };
+
+  function shownSection(view: EditorView): string | null {
+    const items = sectionNav[view];
+    if (!items) return null;
+    return items.some((i) => i.id === selectedTokenSection) ? selectedTokenSection : items[0].id;
+  }
+
+  let menuItems = $derived(
+    $editorView === 'components' ? allComponentNavItems : (sectionNav[$editorView] as typeof tokenNavItems),
+  );
+  let activeItemId = $derived(
+    themeScreen ? null : $editorView === 'components' ? $selectedComponent : shownSection($editorView),
+  );
+  let activeItemLabel = $derived(menuItems.find((i) => i.id === activeItemId)?.label ?? '');
+
+  function pickSection(id: string) {
+    themeScreen = false;
+    if ($editorView === 'components') {
+      selectComponent(id);
+    } else {
+      selectedTokenSection = id;
+      sectionJump = { id };
+    }
+    menuOpen = false;
+    window.scrollTo(0, 0);
+  }
+
+  function pickTheme() {
+    themeScreen = true;
+    menuOpen = false;
+    window.scrollTo(0, 0);
+  }
+
+  // The panes render every section; a narrow editor marks all but the picked
+  // one so they drop out of the flow.
+  $effect(() => {
+    const items = sectionNav[$editorView];
+    if (!items) return;
+    const only = singleSection.current ? shownSection($editorView) : null;
+    for (const { id } of items) {
+      document.getElementById(id)?.toggleAttribute('data-off-screen', only !== null && id !== only);
+    }
+  });
+
   onMount(async () => {
     try {
       const summaries = await listComponents();
@@ -114,105 +173,144 @@
   });
 </script>
 
-<div class="layout" class:condensed>
-  <nav class="sidebar" class:condensed>
-    <div class="rail-toggle-row">
+<svelte:window onkeydown={(e) => { if (menuOpen && e.key === 'Escape') menuOpen = false; }} />
+
+<!-- Panes that pin a preview offset it by --editor-sticky-top to clear the
+     pinned select bar. -->
+<div
+  class="layout"
+  class:condensed
+  class:single-section={singleSection.current}
+  style:--editor-sticky-top="{singleSection.current ? screenBarHeight : 0}px"
+>
+  {#if singleSection.current}
+    <header class="screen-bar" bind:clientHeight={screenBarHeight}>
       <button
         type="button"
-        class="rail-toggle"
-        aria-label={condensed ? 'Expand sidebar' : 'Collapse sidebar'}
-        aria-expanded={!condensed}
-        onclick={toggleCondensed}
+        class="screen-picker"
+        aria-expanded={menuOpen}
+        aria-controls="screen-menu"
+        onclick={() => (menuOpen = !menuOpen)}
       >
-        <i class="fas {condensed ? 'fa-arrow-right' : 'fa-arrow-left'}"></i>
+        {#if themeScreen}
+          <span class="screen-picker-section">Theme</span>
+        {:else}
+          <span class="screen-picker-section">{activeItemLabel}</span>
+        {/if}
+        <i class="fas {menuOpen ? 'fa-chevron-up' : 'fa-chevron-down'}" aria-hidden="true"></i>
       </button>
-    </div>
+      {#if onclose}
+        <button type="button" class="screen-close" aria-label="Close the editor" onclick={onclose}>
+          <i class="fas fa-xmark"></i>
+        </button>
+      {/if}
+    </header>
+    {#if menuOpen}
+      <nav id="screen-menu" class="screen-menu" aria-label="Editor sections">
+        <EditorViewSwitcher />
+        <div class="nav-items">
+          {#each menuItems as item (item.id)}
+            <button
+              type="button"
+              class="nav-item"
+              class:active={activeItemId === item.id}
+              class:dirty={$editorView === 'components' && $componentDirty[item.id]}
+              onclick={() => pickSection(item.id)}
+            >
+              <i class={item.icon}></i>
+              <span class="nav-label">{item.label}</span>
+              {#if $editorView === 'components' && $componentDirty[item.id]}
+                <span class="dirty-dot" aria-label="Unsaved changes" title="Unsaved changes"></span>
+              {/if}
+            </button>
+          {/each}
+        </div>
+        <div class="nav-divider"></div>
+        <button type="button" class="nav-item" class:active={themeScreen} onclick={pickTheme}>
+          <i class="fas fa-swatchbook"></i>
+          <span class="nav-label">Theme</span>
+        </button>
+      </nav>
+    {/if}
+  {:else}
+    <nav class="sidebar" class:condensed>
+      <div class="rail-toggle-row">
+        <button
+          type="button"
+          class="rail-toggle"
+          aria-label={condensed ? 'Expand sidebar' : 'Collapse sidebar'}
+          aria-expanded={!condensed}
+          onclick={toggleCondensed}
+        >
+          <i class="fas {condensed ? 'fa-arrow-right' : 'fa-arrow-left'}"></i>
+        </button>
+      </div>
 
-    <EditorViewSwitcher {condensed} />
+      <EditorViewSwitcher {condensed} />
 
-    {#if $editorView === 'tokens'}
-      <div class="nav-items">
-        {#each tokenNavItems as item (item.id)}
-          <button
-            class="nav-item"
-            class:active={selectedTokenSection === item.id}
-            onmouseenter={(e) => showHint(item.label, e.currentTarget)}
-            onmouseleave={hideHint}
-            onclick={() => scrollToSection(item.id)}
-          >
-            <i class={item.icon}></i>
-            <span class="nav-label">{item.label}</span>
-          </button>
-        {/each}
-      </div>
-      {#if !condensed}
-        <div class="sidebar-footer">
-          <ThemePanel />
+      {#if $editorView === 'tokens'}
+        <div class="nav-items">
+          {#each tokenNavItems as item (item.id)}
+            <button
+              class="nav-item"
+              class:active={selectedTokenSection === item.id}
+              onmouseenter={(e) => showHint(item.label, e.currentTarget)}
+              onmouseleave={hideHint}
+              onclick={() => scrollToSection(item.id)}
+            >
+              <i class={item.icon}></i>
+              <span class="nav-label">{item.label}</span>
+            </button>
+          {/each}
         </div>
-      {/if}
-    {:else if $editorView === 'sketch'}
-      <div class="nav-items">
-        {#each sketchNavItems as item (item.id)}
-          <button
-            class="nav-item"
-            class:active={selectedTokenSection === item.id}
-            onmouseenter={(e) => showHint(item.label, e.currentTarget)}
-            onmouseleave={hideHint}
-            onclick={() => jumpToSketchSection(item.id)}
-          >
-            <i class={item.icon}></i>
-            <span class="nav-label">{item.label}</span>
-          </button>
-        {/each}
-      </div>
-      {#if !condensed}
-        <div class="sidebar-footer">
-          <ThemePanel />
-        </div>
-      {/if}
-    {:else if $editorView === 'colors'}
-      <div class="nav-items">
-        {#each colorsNavItems as item (item.id)}
-          <button
-            class="nav-item"
-            class:active={selectedTokenSection === item.id}
-            onmouseenter={(e) => showHint(item.label, e.currentTarget)}
-            onmouseleave={hideHint}
-            onclick={() => scrollToSection(item.id)}
-          >
-            <i class={item.icon}></i>
-            <span class="nav-label">{item.label}</span>
-          </button>
-        {/each}
-      </div>
-      {#if !condensed}
-        <div class="sidebar-footer">
-          <ThemePanel />
-        </div>
-      {/if}
-    {:else}
-      <div class="nav-items">
-        {#each systemNavItems as item (item.id)}
-          <button
-            class="nav-item"
-            class:active={$selectedComponent === item.id}
-            class:dirty={$componentDirty[item.id]}
-            onmouseenter={(e) => showHint(item.label, e.currentTarget)}
-            onmouseleave={hideHint}
-            onclick={() => selectComponent(item.id)}
-          >
-            <i class={item.icon}></i>
-            <span class="nav-label">{item.label}</span>
-            {#if $componentDirty[item.id]}
-              <span class="dirty-dot" aria-label="Unsaved changes" title="Unsaved changes"></span>
-            {/if}
-          </button>
-        {/each}
-        {#if customNavItems.length > 0}
-          <div class="nav-divider">
-            <span class="nav-divider-label">Custom</span>
+        {#if !condensed}
+          <div class="sidebar-footer">
+            <ThemePanel />
           </div>
-          {#each customNavItems as item (item.id)}
+        {/if}
+      {:else if $editorView === 'sketch'}
+        <div class="nav-items">
+          {#each sketchNavItems as item (item.id)}
+            <button
+              class="nav-item"
+              class:active={selectedTokenSection === item.id}
+              onmouseenter={(e) => showHint(item.label, e.currentTarget)}
+              onmouseleave={hideHint}
+              onclick={() => jumpToSketchSection(item.id)}
+            >
+              <i class={item.icon}></i>
+              <span class="nav-label">{item.label}</span>
+            </button>
+          {/each}
+        </div>
+        {#if !condensed}
+          <div class="sidebar-footer">
+            <ThemePanel />
+          </div>
+        {/if}
+      {:else if $editorView === 'colors'}
+        <div class="nav-items">
+          {#each colorsNavItems as item (item.id)}
+            <button
+              class="nav-item"
+              class:active={selectedTokenSection === item.id}
+              onmouseenter={(e) => showHint(item.label, e.currentTarget)}
+              onmouseleave={hideHint}
+              onclick={() => scrollToSection(item.id)}
+            >
+              <i class={item.icon}></i>
+              <span class="nav-label">{item.label}</span>
+            </button>
+          {/each}
+        </div>
+        {#if !condensed}
+          <div class="sidebar-footer">
+            <ThemePanel />
+          </div>
+        {/if}
+      {:else}
+        <div class="nav-items">
+          {#each systemNavItems as item (item.id)}
             <button
               class="nav-item"
               class:active={$selectedComponent === item.id}
@@ -228,18 +326,41 @@
               {/if}
             </button>
           {/each}
-        {/if}
-      </div>
-      {#if !condensed}
-        <div class="sidebar-footer">
-          <ThemePanel />
+          {#if customNavItems.length > 0}
+            <div class="nav-divider">
+              <span class="nav-divider-label">Custom</span>
+            </div>
+            {#each customNavItems as item (item.id)}
+              <button
+                class="nav-item"
+                class:active={$selectedComponent === item.id}
+                class:dirty={$componentDirty[item.id]}
+                onmouseenter={(e) => showHint(item.label, e.currentTarget)}
+                onmouseleave={hideHint}
+                onclick={() => selectComponent(item.id)}
+              >
+                <i class={item.icon}></i>
+                <span class="nav-label">{item.label}</span>
+                {#if $componentDirty[item.id]}
+                  <span class="dirty-dot" aria-label="Unsaved changes" title="Unsaved changes"></span>
+                {/if}
+              </button>
+            {/each}
+          {/if}
         </div>
+        {#if !condensed}
+          <div class="sidebar-footer">
+            <ThemePanel />
+          </div>
+        {/if}
       {/if}
-    {/if}
-  </nav>
+    </nav>
+  {/if}
 
   <main class="content">
-    {#if $editorView === 'tokens'}
+    {#if singleSection.current && themeScreen}
+      <ThemePanel />
+    {:else if $editorView === 'tokens'}
       <VariablesTab />
     {:else if $editorView === 'colors'}
       <ColorsTab />
@@ -269,6 +390,98 @@
 
   .layout.condensed {
     --sidebar-w: 48px;
+  }
+
+  .layout.single-section {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto 1fr;
+  }
+
+  .screen-bar {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    gap: var(--ui-space-8);
+    padding: var(--ui-space-8) var(--ui-space-12);
+    background: black;
+    border-bottom: 1px solid var(--ui-border-low);
+  }
+
+  .screen-picker {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    align-items: baseline;
+    gap: var(--ui-space-8);
+    padding: var(--ui-space-8) var(--ui-space-12);
+    background: var(--ui-surface-low);
+    border: 1px solid var(--ui-border);
+    border-radius: var(--ui-radius-md);
+    color: var(--ui-text-primary);
+    font-size: var(--ui-font-size-md);
+    text-align: left;
+    cursor: pointer;
+  }
+
+  .screen-picker-section {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .screen-picker i {
+    margin-left: auto;
+    align-self: center;
+    color: var(--ui-text-tertiary);
+  }
+
+  /* Fills the editor under the bar; picking a row closes it. */
+  .screen-menu {
+    position: fixed;
+    top: var(--editor-sticky-top);
+    right: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 3;
+    overflow-y: auto;
+    padding: var(--ui-space-12) var(--ui-space-8) var(--ui-space-24);
+    background: black;
+  }
+
+  .screen-menu .nav-item {
+    height: 44px;
+    font-size: var(--ui-font-size-lg);
+  }
+
+  .screen-menu .dirty-dot {
+    top: 12px;
+  }
+
+  .screen-close {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: none;
+    width: 40px;
+    height: 40px;
+    background: none;
+    border: none;
+    border-radius: var(--ui-radius-md);
+    color: var(--ui-text-primary);
+    font-size: var(--ui-font-size-lg);
+    cursor: pointer;
+  }
+
+  .screen-close:hover {
+    background: var(--ui-hover);
+  }
+
+  /* Beats each pane's own display rule for its sections. */
+  .content :global([data-off-screen]) {
+    display: none !important;
   }
 
   .sidebar {

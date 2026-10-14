@@ -1146,6 +1146,7 @@
   .palette-detail-row {
     grid-column: 2 / -1;
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
     gap: var(--ui-space-8);
     padding-top: var(--ui-space-4);
@@ -1192,6 +1193,7 @@
 
   .orientation-body {
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
     gap: var(--ui-space-8);
     flex: 1;

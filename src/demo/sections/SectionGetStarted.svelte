@@ -34,12 +34,11 @@ npm run dev`;
   .get-started {
     grid-column: 1 / -1;
     display: grid;
-    grid-template-columns: repeat(var(--columns-count), 1fr);
-    column-gap: var(--columns-gutter);
+    grid-template-columns: subgrid;
   }
 
   .gs-panel {
-    grid-column: 2 / -2;
+    grid-column: var(--kit-content);
     /* The .kit grid can stretch this section's row past its content (min-height:
        100vh on a short page); keep the panel sized to its content regardless. */
     align-self: start;
@@ -68,7 +67,7 @@ npm run dev`;
 
   .intro {
     font-family: var(--font-sans);
-    font-size: var(--font-size-xl);
+    font-size: var(--body-xl-font-size);
     line-height: var(--line-height-tighter);
     font-weight: var(--font-weight-semibold);
     color: var(--text-primary);
@@ -91,9 +90,9 @@ npm run dev`;
     overflow-y: hidden;
   }
 
-  @media (max-width: 960px) {
+  @media (max-width: 1200px) {
     .columns {
-      grid-template-columns: 1fr;
+      grid-template-columns: minmax(0, 1fr);
       align-items: stretch;
     }
   }

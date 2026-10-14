@@ -45,13 +45,12 @@
   import ImageLightbox from '../../system/components/ImageLightbox.svelte';
   import VariantGroup from './scaffolding/VariantGroup.svelte';
   import ComponentEditorBase from './scaffolding/ComponentEditorBase.svelte';
-  import offeringUrl from '../../system/assets/offering.webp';
   import newspaperUrl from '../../system/assets/newspaper.webp';
 
   const demoImages = [
-    // Offering carries explicit dimensions (the no-reflow path); Newspaper omits
-    // them to exercise self-measure from the loaded image.
-    { src: offeringUrl, alt: 'Offering', width: 1455, height: 970 },
+    // The first entry carries explicit dimensions (the no-reflow path); the second
+    // omits them to exercise self-measure from the loaded image.
+    { src: newspaperUrl, alt: 'Newspaper', width: 2048, height: 1152 },
     { src: newspaperUrl, alt: 'Newspaper' },
   ];
 

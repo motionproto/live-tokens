@@ -29,7 +29,7 @@
 
     <p class="hero-tagline">
       Design system authoring for Svelte.<br />
-      Edit tokens and components directly in the browser.<br />Ship plain CSS.
+      Edit tokens and components directly in the browser.<br class="desktop-break" /> Ship plain CSS.
     </p>
   </div>
 
@@ -65,16 +65,18 @@
     position: relative;
     padding: var(--space-48) 0 var(--space-16);
     display: grid;
-    grid-template-columns: repeat(var(--columns-count), 1fr);
-    column-gap: var(--columns-gutter);
+    grid-template-columns: subgrid;
   }
 
+  /* The title runs across the kite on the full content width; the tagline
+     keeps the first five columns. */
   .hero-text {
-    grid-column: 2 / span 5;
+    grid-column: var(--kit-content);
     grid-row: 1;
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-16);
+    display: grid;
+    grid-template-columns: subgrid;
+    align-content: start;
+    row-gap: var(--space-16);
     position: relative;
     padding: var(--space-96) 0 0;
   }
@@ -89,36 +91,37 @@
 
   .hero-title {
     font-family: var(--font-display);
-    font-size: var(--font-size-7xl);
+    font-size: var(--display-xl-font-size);
     font-weight: var(--font-weight-semibold);
     font-variation-settings: 'opsz' 144, 'SOFT' 30;
     color: var(--text-primary);
     line-height: .9;
     margin: 0;
+    grid-column: 1 / -1;
   }
 
   .hero-italic {
     font-family: var(--heading-xl-font-family);
-    font-size: var(--font-size-6xl);
+    font-size: var(--display-lg-font-size);
     font-weight: var(--font-weight-normal);
     color: var(--text-brand);
     font-variation-settings: 'opsz' 144, 'SOFT' 100;
-    white-space: nowrap;
   }
 
   .hero-tagline {
     font-family: var(--body-md-font-family);
-    font-size: var(--font-size-2xl);
+    font-size: var(--body-2xl-font-size);
     color: var(--text-primary);
     line-height: 1.2;
-    max-width: 48rem;
+    grid-column: 1 / span 5;
     margin: var(--space-8) 0 0;
+    text-wrap: pretty;
   }
 
   /* One row: the CTAs on the left rail, the credits on the right, sharing a
      top edge so the buttons sit on the brand-mark line. */
   .hero-actions {
-    grid-column: 2 / -2;
+    grid-column: var(--kit-content);
     grid-row: 2;
     display: grid;
     grid-template-columns: max-content 1fr;
@@ -148,7 +151,7 @@
 
   .hero-byline {
     font-family: var(--font-sans);
-    font-size: var(--font-size-md);
+    font-size: var(--body-md-font-size);
     font-weight: var(--font-weight-normal);
     line-height: var(--line-height-normal);
     color: var(--text-secondary);
@@ -164,20 +167,31 @@
     text-decoration: underline;
   }
 
-  @media (max-width: 960px) {
+  @media (max-width: 1200px) {
+    /* Stacked, the illustration sits between the title and the tagline, so the
+       wrapper steps aside and each takes its own row of the hero grid. */
+    .hero-text {
+      display: contents;
+    }
+    .hero-title {
+      grid-row: 1;
+    }
     .hero-kite {
       grid-column: 1 / -1;
-      grid-row: 1;
-      height: 28rem;
-    }
-    .hero-text {
-      grid-column: 1 / -1;
       grid-row: 2;
-      padding: 0;
+      height: 28rem;
+      margin-top: var(--space-32);
     }
-    .hero-actions {
+    .hero-tagline {
       grid-column: 1 / -1;
       grid-row: 3;
+      margin-top: var(--space-16);
+    }
+    .desktop-break {
+      display: none;
+    }
+    .hero-actions {
+      grid-row: 4;
       grid-template-columns: minmax(0, 1fr);
       row-gap: var(--space-16);
       margin-top: var(--space-12);
@@ -189,9 +203,15 @@
     }
   }
 
+  /* A phone wraps the second line, so the title steps up a size and the two
+     lines get a gap to tell them apart. */
   @media (max-width: 600px) {
     .hero-title {
-      font-size: var(--font-size-5xl);
+      font-size: var(--display-2xl-font-size);
+    }
+    .hero-italic {
+      display: block;
+      margin-top: var(--space-16);
     }
     .hero-controls {
       grid-template-columns: minmax(0, 1fr);

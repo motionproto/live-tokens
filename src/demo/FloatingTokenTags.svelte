@@ -18,6 +18,10 @@
     /** Tag center, in % of the stage. */
     top: number;
     left: number;
+    /** Stacked layout for a stage narrower than `NARROW_STAGE_PX`: tags form a
+     *  column left of the box, `left` is the tag's left edge, and the string
+     *  elbows into `anchor`. Nest anchors so higher tags land further right. */
+    narrow?: { top: number; left: number; anchor: Anchor };
     /** Bob delay, seconds. Negative values offset the start. */
     delay?: number;
     /** Static tilt, degrees. */
@@ -34,6 +38,7 @@
 
 <script lang="ts">
   import MenuSelect from '../system/components/MenuSelect.svelte';
+  import { untrack } from 'svelte';
   import { SvelteMap } from 'svelte/reactivity';
   import { contrastTokenForBackground } from '../system/backdrop';
   // `.ftt-tag` is hand-rolled (not Badge) so editing badge-* tokens doesn't
@@ -72,6 +77,7 @@
       icon: 'fas fa-fill-drip',
       label: '--surface-brand-high',
       top: 15, left: 20, delay: 0,    rotate: 3,
+      narrow: { top: 6,  left: 0,  anchor: { side: 'top', pos: 90 } },
       anchor: { side: 'inside', x: 10, y: 40 },
       controls: 'surface',
       placement: 'top',
@@ -81,6 +87,7 @@
       icon: 'fas fa-font',
       label: '--font-display',
       top: 5, left: 45, delay: -0.9, rotate: 2,
+      narrow: { top: 20, left: 5,  anchor: { side: 'top', pos: 64 } },
       anchor: { side: 'inside', x: 78, y: 28 },
       controls: 'font-family',
       placement: 'top',
@@ -89,6 +96,7 @@
       icon: 'fa-solid fa-bezier-curve',
       label: '--radius-2xl',
       top: 23, left: 75, delay: -1.8, rotate: 2,
+      narrow: { top: 34, left: 10, anchor: { side: 'top', pos: 38 } },
       anchor: { side: 'top', pos: 100 },
       controls: 'radius',
       placement: 'top',
@@ -97,6 +105,7 @@
       icon: 'fas fa-paint-roller',
       label: '--border-brand-strong',
       top: 79, left: 72, delay: -3.6, rotate: -2,
+      narrow: { top: 82, left: 8,  anchor: { side: 'bottom', pos: 84 } },
       anchor: { side: 'bottom', pos: 75 },
       controls: 'border-color',
       placement: 'top',
@@ -105,6 +114,7 @@
       icon: 'fas fa-grip-lines',
       label: '--border-width-3',
       top: 79, left: 28, delay: -5.2, rotate: -4,
+      narrow: { top: 66, left: 3,  anchor: { side: 'bottom', pos: 44 } },
       anchor: { side: 'bottom', pos: 25 },
       controls: 'border-width',
       placement: 'top',
@@ -138,8 +148,17 @@
   const DRAG_THRESHOLD_PX = 4;
   const dragStart = { px: 0, py: 0, tagIdx: -1, moved: false };
 
-  function tagTop(i: number): number  { return dragOverrides[i]?.top  ?? tags[i].top; }
-  function tagLeft(i: number): number { return dragOverrides[i]?.left ?? tags[i].left; }
+  const NARROW_STAGE_PX = 480;
+  let stageWidth = $state(0);
+  const stacked = $derived(
+    stageWidth > 0 && stageWidth < NARROW_STAGE_PX && tags.every(t => t.narrow),
+  );
+
+  function home(i: number): { top: number; left: number; anchor: Anchor } {
+    return (stacked && tags[i].narrow) || tags[i];
+  }
+  function tagTop(i: number): number  { return dragOverrides[i]?.top  ?? home(i).top; }
+  function tagLeft(i: number): number { return dragOverrides[i]?.left ?? home(i).left; }
 
   type BallState = { startedAt: number; duration: number; pendingValue: string };
   const ballStates = new SvelteMap<number, BallState>();
@@ -147,32 +166,36 @@
   const ballEls: HTMLSpanElement[] = $state([]);
 
   let stageEl: HTMLDivElement | undefined = $state();
+  let svgEl: SVGSVGElement | undefined = $state();
   let boxEl: HTMLDivElement | undefined = $state();
   const tagEls: HTMLSpanElement[] = $state([]);
-  const lineEls: SVGLineElement[] = $state([]);
+  const pathEls: SVGPathElement[] = $state([]);
   const knotEls: HTMLSpanElement[] = $state([]);
 
-  function anchorPoint(
-    anchor: Anchor,
-    cx = 50,
-    cy = 50,
-    w = boxSize.w,
-    h = boxSize.h,
-  ): { x: number; y: number } {
-    const halfW = w / 2, halfH = h / 2;
+  type Rect = { x: number; y: number; w: number; h: number };
+
+  function anchorPoint(anchor: Anchor, box: Rect): { x: number; y: number } {
     if (anchor.side === 'inside') {
-      return {
-        x: cx - halfW + (anchor.x / 100) * w,
-        y: cy - halfH + (anchor.y / 100) * h,
-      };
+      return { x: box.x + (anchor.x / 100) * box.w, y: box.y + (anchor.y / 100) * box.h };
     }
     const t = anchor.pos / 100;
     switch (anchor.side) {
-      case 'top':    return { x: cx - halfW + t * w, y: cy - halfH };
-      case 'bottom': return { x: cx - halfW + t * w, y: cy + halfH };
-      case 'left':   return { x: cx - halfW,         y: cy - halfH + t * h };
-      case 'right':  return { x: cx + halfW,         y: cy - halfH + t * h };
+      case 'top':    return { x: box.x + t * box.w, y: box.y };
+      case 'bottom': return { x: box.x + t * box.w, y: box.y + box.h };
+      case 'left':   return { x: box.x,             y: box.y + t * box.h };
+      case 'right':  return { x: box.x + box.w,     y: box.y + t * box.h };
     }
+  }
+
+  const ELBOW_RADIUS_PX = 14;
+  const px = (n: number) => n.toFixed(2);
+
+  // Runs level out of the tag, then turns through a rounded corner into the box.
+  function elbowPath(x1: number, y1: number, x2: number, y2: number): string {
+    const sx = Math.sign(x2 - x1), sy = Math.sign(y2 - y1);
+    const r = Math.min(ELBOW_RADIUS_PX, Math.abs(x2 - x1), Math.abs(y2 - y1));
+    return `M${px(x1)} ${px(y1)} H${px(x2 - sx * r)} `
+      + `Q${px(x2)} ${px(y1)} ${px(x2)} ${px(y1 + sy * r)} V${px(y2)}`;
   }
 
   // Reads `boxValues` (not `currentValues`) so the box repaints at impact.
@@ -216,31 +239,35 @@
 
   // Kite strings and energy balls are recomputed each frame from the box's
   // measured rect so intrinsic sizing drives anchor placement.
+  let lastViewBox = '';
   function syncFrame() {
-    if (!stageEl) return;
+    if (!stageEl || !svgEl || !boxEl) return;
     syncConnectorContrast();
     syncBoxLabelContrast();
     const stageRect = stageEl.getBoundingClientRect();
     if (stageRect.width === 0 || stageRect.height === 0) return;
 
-    let boxCx = 50, boxCy = 50;
-    let boxW = boxSize.w, boxH = boxSize.h;
-    if (boxEl) {
-      const br = boxEl.getBoundingClientRect();
-      if (br.width > 0 && br.height > 0) {
-        boxCx = ((br.left + br.width / 2) - stageRect.left) / stageRect.width * 100;
-        boxCy = ((br.top  + br.height / 2) - stageRect.top)  / stageRect.height * 100;
-        boxW  = (br.width  / stageRect.width)  * 100;
-        boxH  = (br.height / stageRect.height) * 100;
-      }
+    // A pixel viewBox keeps the elbow corners round on any stage aspect.
+    const viewBox = `0 0 ${px(stageRect.width)} ${px(stageRect.height)}`;
+    if (viewBox !== lastViewBox) {
+      svgEl.setAttribute('viewBox', viewBox);
+      lastViewBox = viewBox;
     }
+
+    const br = boxEl.getBoundingClientRect();
+    const box: Rect = {
+      x: br.left - stageRect.left,
+      y: br.top - stageRect.top,
+      w: br.width,
+      h: br.height,
+    };
 
     const now = performance.now();
 
     for (let i = 0; i < tags.length; i++) {
       const tagEl = tagEls[i];
-      const lineEl = lineEls[i];
-      if (!tagEl || !lineEl) continue;
+      const pathEl = pathEls[i];
+      if (!tagEl || !pathEl) continue;
 
       // Tag endpoint: center of the pill's rounded cap on the box-facing side.
       const pill = tagEl.querySelector('.ftt-tag') as HTMLElement | null;
@@ -254,23 +281,19 @@
         radius = Math.min(raw, r.height / 2);
       }
 
-      const onRight = tags[i].left > 50;
-      const px = onRight ? r.left + radius : r.right - radius;
-      const py = r.top + r.height / 2;
+      const capOnRight = stacked || tagLeft(i) <= 50;
+      const x1 = (capOnRight ? r.right - radius : r.left + radius) - stageRect.left;
+      const y1 = r.top + r.height / 2 - stageRect.top;
 
-      const x1 = (px - stageRect.left) / stageRect.width * 100;
-      const y1 = (py - stageRect.top)  / stageRect.height * 100;
-
-      lineEl.setAttribute('x1', x1.toFixed(3));
-      lineEl.setAttribute('y1', y1.toFixed(3));
-
-      const a = anchorPoint(tags[i].anchor, boxCx, boxCy, boxW, boxH);
-      lineEl.setAttribute('x2', a.x.toFixed(3));
-      lineEl.setAttribute('y2', a.y.toFixed(3));
+      const a = anchorPoint(home(i).anchor, box);
+      pathEl.setAttribute(
+        'd',
+        stacked ? elbowPath(x1, y1, a.x, a.y) : `M${px(x1)} ${px(y1)} L${px(a.x)} ${px(a.y)}`,
+      );
       const knotEl = knotEls[i];
       if (knotEl) {
-        knotEl.style.left = `${a.x.toFixed(3)}%`;
-        knotEl.style.top  = `${a.y.toFixed(3)}%`;
+        knotEl.style.left = `${px(a.x)}px`;
+        knotEl.style.top  = `${px(a.y)}px`;
       }
 
       const ballEl = ballEls[i];
@@ -290,13 +313,10 @@
         triggerBloop();
         continue;
       }
-      const x2 = parseFloat(lineEl.getAttribute('x2') || '0');
-      const y2 = parseFloat(lineEl.getAttribute('y2') || '0');
       const eased = 1 - Math.pow(1 - t, 3);
-      const bx = x1 + (x2 - x1) * eased;
-      const by = y1 + (y2 - y1) * eased;
-      ballEl.style.left = `${bx.toFixed(3)}%`;
-      ballEl.style.top  = `${by.toFixed(3)}%`;
+      const p = pathEl.getPointAtLength(pathEl.getTotalLength() * eased);
+      ballEl.style.left = `${px(p.x)}px`;
+      ballEl.style.top  = `${px(p.y)}px`;
       ballEl.style.opacity = '1';
     }
   }
@@ -307,6 +327,7 @@
       syncFrame();
       rafId = requestAnimationFrame(loop);
     };
+    untrack(syncFrame);
     rafId = requestAnimationFrame(loop);
     return () => cancelAnimationFrame(rafId);
   });
@@ -469,17 +490,16 @@
 
 <div
   class="ftt-stage"
+  class:ftt-stacked={stacked}
   bind:this={stageEl}
+  bind:clientWidth={stageWidth}
   style:--ftt-bob-duration="{duration}s"
   style:--ftt-bob-distance="{-distance}px"
 >
-  <svg class="ftt-strings" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
-    {#each tags as tag, i (i)}
-      {@const a = anchorPoint(tag.anchor)}
-      <line
-        bind:this={lineEls[i]}
-        x1={tag.left} y1={tag.top}
-        x2={a.x}      y2={a.y}
+  <svg class="ftt-strings" bind:this={svgEl} aria-hidden="true">
+    {#each tags as _t, i (i)}
+      <path
+        bind:this={pathEls[i]}
         class="ftt-string"
         class:ftt-live={ballStates.has(i)}
       />
@@ -504,15 +524,8 @@
     >I'm a button</span>
   </div>
 
-  {#each tags as tag, i (i)}
-    {@const a = anchorPoint(tag.anchor)}
-    <span
-      bind:this={knotEls[i]}
-      class="ftt-knot"
-      style:left="{a.x}%"
-      style:top="{a.y}%"
-      aria-hidden="true"
-    ></span>
+  {#each tags as _t, i (i)}
+    <span bind:this={knotEls[i]} class="ftt-knot" aria-hidden="true"></span>
   {/each}
 
   {#each tags as _t, i (i)}

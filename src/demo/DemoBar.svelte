@@ -44,7 +44,7 @@
     margin-inline: auto;
     padding: var(--space-12) var(--space-32);
     display: grid;
-    grid-template-columns: repeat(var(--columns-count), 1fr);
+    grid-template-columns: repeat(var(--columns-count), minmax(0, 1fr));
     column-gap: var(--columns-gutter);
   }
 
@@ -57,20 +57,37 @@
     row-gap: var(--space-8);
   }
 
-  @media (max-width: 960px) {
+  @media (max-width: 1200px) {
     .pickers {
       grid-column: 1 / -1;
     }
   }
 
   /* No room beside the editor's toggle on a phone, so the pickers sit in the
-     page below it and scroll away. */
+     page below it and scroll away, clearing the toggle only when it rests in
+     the top band. */
   @media (max-width: 600px) {
     .demo-bar {
       position: static;
     }
     .bar {
-      padding: var(--space-64) var(--space-16) 0;
+      grid-template-columns: minmax(0, 1fr);
+      padding: max(var(--space-16), calc(var(--lt-pill-clearance, 0px) + var(--space-8))) var(--space-16) var(--space-16);
+    }
+    /* Side by side, each label over a trigger that fills its half. */
+    .pickers {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: var(--space-12);
+    }
+    .pickers :global(.chrome-select) {
+      flex-direction: column;
+      align-items: stretch;
+      gap: var(--ui-space-4);
+    }
+    .pickers :global(.chrome-select-trigger) {
+      width: 100%;
+      min-width: 0;
     }
   }
 </style>
