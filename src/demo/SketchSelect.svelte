@@ -1,8 +1,20 @@
 <script lang="ts">
   import LabeledSelect from './LabeledSelect.svelte';
+  import ChromeSelect from './ChromeSelect.svelte';
   import { setSketch, sketchPick, sketchStyles, unsavedSketchStyle } from '../editor/core/sketch';
 
-  let { inline = false, size = 'default', onpick }: { inline?: boolean; size?: 'default' | 'small'; onpick?: (id: string | null) => void } = $props();
+  let {
+    inline = false,
+    size = 'default',
+    chrome = false,
+    onpick,
+  }: {
+    inline?: boolean;
+    size?: 'default' | 'small';
+    /** Paint in the editor's --ui-* chrome; needs an .editor-page ancestor. */
+    chrome?: boolean;
+    onpick?: (id: string | null) => void;
+  } = $props();
 
   // The empty string is the placeholder's value, so off needs a name of its own.
   const OFF = 'none';
@@ -45,14 +57,26 @@
   }
 </script>
 
-<LabeledSelect
-  {inline}
-  {size}
-  label="Sketch"
-  {items}
-  value={selected}
-  placeholder="Custom"
-  disabled={busy}
-  {error}
-  onchange={changeSketch}
-/>
+{#if chrome}
+  <ChromeSelect
+    label="Sketch"
+    {items}
+    value={selected}
+    placeholder="Custom"
+    disabled={busy}
+    {error}
+    onchange={changeSketch}
+  />
+{:else}
+  <LabeledSelect
+    {inline}
+    {size}
+    label="Sketch"
+    {items}
+    value={selected}
+    placeholder="Custom"
+    disabled={busy}
+    {error}
+    onchange={changeSketch}
+  />
+{/if}

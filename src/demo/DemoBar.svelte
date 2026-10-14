@@ -1,4 +1,5 @@
 <script lang="ts">
+  import '../editor/styles/ui-editor.css';
   import ThemeSelect from './ThemeSelect.svelte';
   import SketchSelect from './SketchSelect.svelte';
 
@@ -11,11 +12,14 @@
   } = $props();
 </script>
 
-<div class="demo-bar">
+<!-- Editor chrome, like the overlay: the bar paints from --ui-*, so every
+     theme leaves it legible, and data-live-tokens-chrome keeps sketch mode off
+     it. .editor-page scopes the --ui-* tokens and hosts the selects' menus. -->
+<div class="demo-bar editor-page" data-live-tokens-chrome>
   <div class="bar">
     <div class="pickers">
-      <ThemeSelect inline size="small" onpick={onThemePick} />
-      <SketchSelect inline size="small" onpick={onSketchPick} />
+      <ThemeSelect chrome onpick={onThemePick} />
+      <SketchSelect chrome onpick={onSketchPick} />
     </div>
   </div>
 </div>
@@ -27,9 +31,9 @@
     left: 0;
     right: 0;
     z-index: var(--z-sticky);
-    background: var(--scrim-high);
-    backdrop-filter: blur(var(--blur-md));
-    border-bottom: var(--border-width-1) solid var(--tint-high);
+    --sketch-icon-off: none;
+    background: var(--ui-surface-lower);
+    border-bottom: 1px solid var(--ui-border-low);
   }
 
   /* The bar repeats the demo's .kit grid, so its content lines up with the
@@ -64,9 +68,6 @@
   @media (max-width: 600px) {
     .demo-bar {
       position: static;
-      background: none;
-      backdrop-filter: none;
-      border-bottom: none;
     }
     .bar {
       padding: var(--space-64) var(--space-16) 0;

@@ -1,5 +1,16 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+
+- **The demo's Theme and Sketch bar stays legible in every theme.** The bar
+  painted from the open theme's scrim, and its selects were themed Buttons, so
+  a theme or sketchstyle could leave its labels unreadable. The bar now paints
+  as editor chrome from the `--ui-*` tokens, like the editor overlay, and
+  sketch mode leaves it alone. `ThemeSelect` and `SketchSelect` take a
+  `chrome` prop for the bar. Elsewhere they stay themed.
+
 ## 0.94.2 — Palette step confirm
 
 ### Fixed

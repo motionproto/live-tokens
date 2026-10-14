@@ -1,11 +1,23 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import LabeledSelect from './LabeledSelect.svelte';
+  import ChromeSelect from './ChromeSelect.svelte';
   import { listThemes, applyTheme } from '../editor/core/themes/themeService';
   import { openThemeSlug } from '../editor/core/store/editorConfigStore';
   import { carrySketch } from './sketchCarry';
 
-  let { inline = false, size = 'default', onpick }: { inline?: boolean; size?: 'default' | 'small'; onpick?: (fileName: string) => void } = $props();
+  let {
+    inline = false,
+    size = 'default',
+    chrome = false,
+    onpick,
+  }: {
+    inline?: boolean;
+    size?: 'default' | 'small';
+    /** Paint in the editor's --ui-* chrome; needs an .editor-page ancestor. */
+    chrome?: boolean;
+    onpick?: (fileName: string) => void;
+  } = $props();
 
   let themes = $state<{ value: string; label: string }[]>([]);
   let busy = $state(false);
@@ -40,13 +52,24 @@
 
 <!-- The open theme drives the selection, so applies from the Themes panel or
      another tab show up here too. -->
-<LabeledSelect
-  {inline}
-  {size}
-  label="Theme"
-  items={themes}
-  value={$openThemeSlug}
-  disabled={busy}
-  {error}
-  onchange={changeTheme}
-/>
+{#if chrome}
+  <ChromeSelect
+    label="Theme"
+    items={themes}
+    value={$openThemeSlug}
+    disabled={busy}
+    {error}
+    onchange={changeTheme}
+  />
+{:else}
+  <LabeledSelect
+    {inline}
+    {size}
+    label="Theme"
+    items={themes}
+    value={$openThemeSlug}
+    disabled={busy}
+    {error}
+    onchange={changeTheme}
+  />
+{/if}
