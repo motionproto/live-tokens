@@ -691,12 +691,14 @@ runs it.
 - Substitution replaces `var()` in every declaration, including `@font-face`
   and `@property` descriptors, where a browser ignores `var()` today and the
   substituted value would apply. Neither build has a `var()` in a descriptor.
-  Wave 5 states the limit.
+  Done: the rewrite skips declarations inside `@font-face`, `@property`,
+  `@counter-style` and `@font-palette-values`, and the guide drops the limit.
 - Substitution can turn a declaration that is invalid at computed-value time,
   which the cascade treats as `unset`, into one that is invalid at parse
   time, which the parser drops so an earlier declaration wins. No source
   declares an empty custom property, and Wave 4's comparison is the only
-  check. Wave 5 states the limit.
+  check. Wave 5 states the limit. Kept as a stated limit: a fix would need a
+  value grammar for every property.
 - A static property declared only in a lazy chunk's CSS and read from the
   entry CSS resolves after substitution before that chunk loads, where today
   it is invalid until then. Both builds point every cross-asset static
@@ -708,17 +710,28 @@ runs it.
 - `template/src/main.ts` passes `{ sketchLooks }` to `bootLiveTokens`, whose
   option is `sketchStyles`, so a scaffolded project's saved sketch styles
   never reach its build. The bug predates this plan and sits outside it.
+  Done: the template and the README pass `sketchStyles`, and the changelog
+  tells scaffolded projects to rename the option in their own `main.ts`.
 - `hashedFileName` fails the build when a rewritten sheet's name does not
   follow `output.assetFileNames`, as with a plugin that emits a sheet under an
-  explicit `fileName`. Neither build hits it. Wave 5 states the limit.
+  explicit `fileName`. Neither build hits it. Wave 5 states the limit. Kept as
+  a stated limit: the build stops with a message that names the fix.
 - The spec's state steps compare both builds after hovering a Card or Button
   and opening the Dialog, and assert nothing about the state taking effect. A
   Dialog that failed to open would compare the resting page against itself.
-  A follow-up asserts the `.dialog` element and the hovered values.
+  A follow-up asserts the `.dialog` element and the hovered values. Done: each
+  hover step fails when the hovered subtree's computed values match rest, and
+  the Dialog step waits for a visible `.dialog`.
 - `template/vite.config.ts` says the plugin persists editor changes to
   `tokens.css`. It writes `tokens.css` only under `autoMigrate`; Save writes
-  themes and Promote writes `tokens.generated.css`.
+  themes and Promote writes `tokens.generated.css`. Done: the comment names the
+  data JSON and Adopt's `tokens.generated.css`.
 - `README.md:9` says production builds get plain CSS variables, and its
   "From edit to production" section (`:437-441`) leaves out the transform.
+  Done: both describe the rewrite and point at the guide's chapter. The
+  README's sketch example also used the retired `sketchLooks`,
+  `themeSketchLook` and `theme.sketchStyle` names, now fixed.
 - `test:e2e` chains `test:e2e:production-css`, which adds about 38 s and four
   builds to every CI Verify run.
+  Kept: the spec is the only check that the transform preserves rendering,
+  and the user chose to keep it in Verify on 2026-10-14.

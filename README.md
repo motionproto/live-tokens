@@ -6,7 +6,7 @@ A design system for styling and building Svelte + Vite microsites. Edit tokens a
 npm install @motion-proto/live-tokens
 ```
 
-The editor is dev-only. Production builds get plain CSS variables and the components you used.
+The editor is dev-only. Production builds get the components you used, and their CSS keeps a variable only for a token whose value can change while the page runs.
 
 ## Features
 
@@ -283,7 +283,7 @@ The dev server reads the open theme and paints what it carries. A built site has
 import { seedSketchFromTheme } from '@motion-proto/live-tokens/sketch';
 import theme from './live-tokens/data/themes/sketchy.json';
 
-seedSketchFromTheme(theme.sketchStyle);
+seedSketchFromTheme(theme.sketchSettings);
 await bootLiveTokens(App, '#app');
 ```
 
@@ -296,7 +296,7 @@ const files = import.meta.glob('./live-tokens/data/sketch-styles/*.json', {
 });
 
 await bootLiveTokens(App, '#app', {
-  sketchLooks: Object.entries(files).map(([path, file]) => {
+  sketchStyles: Object.entries(files).map(([path, file]) => {
     const id = path.split('/').pop().replace('.json', '');
     return { id, label: file.name || id, settings: file.settings };
   }),
@@ -307,7 +307,7 @@ The file's slug is the look's id, so a sketchstyle picked in the editor keeps wo
 
 ### Build a picker
 
-`sketchLooks` is a store holding every look on offer, shipped and your own in one list. Give each row `setSketch(look.id)`, and add a None row yourself: off is a state of the effect rather than one of the looks. `themeSketchLook` carries the theme's own look as one more row, and reads null when the theme carries none.
+`sketchStyles` is a store holding every sketchstyle on offer, shipped and your own, in one list. Give each row `setSketch(style.id)`. Off is a state of the effect, so add a None row yourself that calls `setSketch(null)`. `unsavedSketchStyle` adds one more row when the theme carries sketch settings that no sketchstyle file holds, and reads null otherwise.
 
 ### Draw your own elements
 
@@ -438,7 +438,7 @@ The skill runs both checkers, which apply every pending additive `tokens.css` mi
 
 1. Edit on `/live-tokens/editor`, `/live-tokens/colors`, or `/live-tokens/components`. Edits sit in the working buffer (`_working.json`). **Save** in the Theme panel captures the buffer into the open theme at `<dataDir>/themes/{name}.json`.
 2. **Adopt** the theme. It becomes the production theme, and its variables are baked into `tokens.generated.css` next to your authored `tokens.css`. Nothing else writes that file, so trying a look never changes what you ship.
-3. `npm run build` bundles both as plain CSS. No editor code, no JSON lookups, no dev surfaces reach production.
+3. `npm run build` bundles both, with no editor code, JSON lookups, or dev surfaces. `themeFileApi` then rewrites the emitted CSS: it removes each token no rule reads, writes each token whose value never changes as its value, and keeps a variable for the rest. Your source files keep every token name. The user guide's Production CSS chapter covers the rule, the `keep` option, and the limits.
 
 ## File ownership
 

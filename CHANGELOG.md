@@ -25,6 +25,14 @@
   theme's own gradients and scrim and tint washes now render; the editor
   store used to write the default theme's values over them on `:root`.
 
+### Fixed
+
+- **A scaffolded project's saved sketchstyles reach its build.** The `create`
+  template's `main.ts` passed them to `bootLiveTokens` as `sketchLooks`, an
+  option renamed `sketchStyles`, so a built site offered only the shipped
+  sketchstyles. A project scaffolded before this release keeps the old line;
+  rename `sketchLooks` to `sketchStyles` in its `main.ts`.
+
 ## 0.94.3 — Demo bar chrome
 
 ### Fixed

@@ -118,6 +118,16 @@ describe('rewrite', () => {
     );
   });
 
+  it('leaves var() in @font-face and @property descriptors unsubstituted', () => {
+    const css =
+      ':root{--face:Inter;--gap:4px}@font-face{font-family:var(--face);src:url(a.woff2)}' +
+      '@property --size{syntax:"<length>";inherits:false;initial-value:var(--gap)}.box{margin:var(--gap)}';
+    expect(rewrite(css, 0, run([css]), { substitute: true })).toBe(
+      '@font-face{font-family:var(--face);src:url(a.woff2)}' +
+        '@property --size{syntax:"<length>";inherits:false;initial-value:var(--gap)}.box{margin:4px}',
+    );
+  });
+
   it('rewrites each asset against the analysis of all of them', () => {
     const assets = [':root{--gap:4px}', '.box{margin:var(--gap)}'];
     const analysis = run(assets);

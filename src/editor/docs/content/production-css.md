@@ -104,10 +104,6 @@ away points at a token the rule missed, and `keep` fixes it.
 
 ## Limits
 
-- **Descriptors.** Substitution replaces `var()` in every declaration,
-  including `@font-face` and `@property` descriptors. A browser ignores a
-  descriptor that holds `var()`, so in dev it has no effect, and in production
-  it takes the token's value. Write descriptors as literal values.
 - **Values a property rejects.** In dev, `width: var(--color-brand-500)` passes
   the parser, and when the color reaches `width` the browser treats the
   declaration as `unset`. After substitution, `width` holds a color, the parser

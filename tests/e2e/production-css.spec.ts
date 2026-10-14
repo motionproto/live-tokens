@@ -245,6 +245,28 @@ async function withBoth(
   }
 }
 
+/** Runs in the page: the computed values of an element, its descendants and their pseudo-elements. */
+function subtreeStyles(root: Element): string[] {
+  const read = (style: CSSStyleDeclaration) =>
+    Array.from(style)
+      .filter((name) => !name.startsWith('--'))
+      .map((name) => `${name}: ${style.getPropertyValue(name)}`);
+  return [root, ...root.querySelectorAll('*')].flatMap((el) => [
+    ...read(getComputedStyle(el)),
+    ...read(getComputedStyle(el, '::before')),
+    ...read(getComputedStyle(el, '::after')),
+  ]);
+}
+
+// Without the check, a hover that changed nothing would compare the resting page against itself.
+const hover = (selector: string) => async (page: Page) => {
+  const target = page.locator(selector);
+  const resting = await target.evaluate(subtreeStyles);
+  await target.hover();
+  await settle(page);
+  expect(await target.evaluate(subtreeStyles), `hovering ${selector} changed no computed value`).not.toEqual(resting);
+};
+
 for (const width of WIDTHS) {
   for (const route of ROUTES) {
     test(`${route} computes the same styles at ${width}px wide`, async ({ browser }) => {
@@ -266,9 +288,12 @@ for (const width of WIDTHS) {
     test.setTimeout(120_000);
     await withBoth(browser, 'states', STATES_PAGE, width, async (pages) => {
       await compare(pages, 'at rest');
-      await compare(pages, 'with a Card hovered', (page) => page.hover('[data-backdrop="light"] .card'));
-      await compare(pages, 'with a Button hovered', (page) => page.hover('[data-backdrop="dark"] .button.primary'));
-      await compare(pages, 'with the Dialog open', (page) => page.click('.open-dialog'));
+      await compare(pages, 'with a Card hovered', hover('[data-backdrop="light"] .card'));
+      await compare(pages, 'with a Button hovered', hover('[data-backdrop="dark"] .button.primary'));
+      await compare(pages, 'with the Dialog open', async (page) => {
+        await page.click('.open-dialog');
+        await expect(page.locator('.dialog')).toBeVisible();
+      });
     });
   });
 }

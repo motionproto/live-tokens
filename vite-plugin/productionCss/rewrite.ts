@@ -1,4 +1,4 @@
-import postcss, { AtRule, Rule, type Container } from 'postcss';
+import postcss, { AtRule, Rule, type Container, type Declaration } from 'postcss';
 import { winnerOf, type Property } from './analyze';
 
 export type Analysis = Map<string, Property>;
@@ -15,6 +15,8 @@ const VAR_NAME = /^\s*(--(?:[\w-]|[^\x00-\x7f])+)\s*(?:,|$)/;
 const JOINS_LEFT = /[\w\-#@.+\\]|[^\x00-\x7f]/;
 const JOINS_RIGHT = /[\w\-.+%(\\]|[^\x00-\x7f]/;
 const EMPTIED_AT_RULES = new Set(['media', 'supports', 'container']);
+// A browser drops a descriptor that holds var(), so substituting one would apply a value dev never applies.
+const DESCRIPTOR_AT_RULES = new Set(['font-face', 'property', 'counter-style', 'font-palette-values']);
 
 function skipString(value: string, start: number): number {
   const quote = value[start];
@@ -155,6 +157,9 @@ export function droppedDeclarations(analysis: Analysis, asset: number, { substit
   return dropped;
 }
 
+const isDescriptor = (decl: Declaration): boolean =>
+  decl.parent instanceof AtRule && DESCRIPTOR_AT_RULES.has(decl.parent.name.toLowerCase());
+
 const removableWhenEmpty = (node: unknown): node is Rule | AtRule =>
   node instanceof Rule || (node instanceof AtRule && EMPTIED_AT_RULES.has(node.name.toLowerCase()));
 
@@ -190,7 +195,7 @@ export function rewrite(
       decl.remove();
       return;
     }
-    if (!values) return;
+    if (!values || isDescriptor(decl)) return;
     const value = substituteValue(decl.value, (name) => values.get(name));
     if (value !== decl.value) decl.value = value;
   });
