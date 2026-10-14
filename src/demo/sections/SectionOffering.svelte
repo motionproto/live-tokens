@@ -1,3 +1,5 @@
+<script lang="ts"></script>
+
 <section class="offering">
   <figure class="offering-quote">
     <blockquote>
