@@ -151,7 +151,7 @@
     onSwatchDragEnd();
   }
 
-  const swatchEls: Record<string, HTMLButtonElement> = {};
+  const swatchEls: Record<string, HTMLButtonElement> = $state({});
 
   // Copy and paste act on the selected swatch, never the focused one: Safari
   // and macOS Firefox do not focus a button on click.
