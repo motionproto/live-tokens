@@ -2,6 +2,7 @@ import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { stripMediaBlocks } from '../../editor/core/themes/parsers/mediaBlocks';
+import { STRUCTURAL_COLUMN_NAMES } from '../../editor/core/themes/slices/columns';
 import {
   EDITABLE_NAMES,
   MEDIA_QUERY,
@@ -14,6 +15,7 @@ import {
 
 const TOKENS_CSS = readFileSync(resolve(__dirname, 'tokens.css'), 'utf8');
 const DECL_RE = /(?:^|[\s;{])(--[a-z0-9-]+)\s*:\s*([^;}]*);/gi;
+const COLUMN_NAMES: ReadonlySet<string> = new Set(STRUCTURAL_COLUMN_NAMES);
 
 function declarations(css: string): TokenDeclaration[] {
   const uncommented = css.replace(/\/\*[\s\S]*?\*\//g, '');
@@ -48,7 +50,8 @@ describe('the text-style block of tokens.css', () => {
     it(`re-points every structural size at ${MEDIA_QUERY[viewport]}, beside the primitive sizes`, () => {
       const blocks = mediaBlocks(TOKENS_CSS, MEDIA_QUERY[viewport]);
       expect(blocks).toHaveLength(1);
-      const inBlock = declarations(blocks[0]);
+      // The 480px block also re-points the column grid.
+      const inBlock = declarations(blocks[0]).filter((d) => !COLUMN_NAMES.has(d.name));
       const primitives = inBlock.filter((d) => !STRUCTURAL_NAMES.has(d.name));
       expect(primitives.map((d) => d.name)).toEqual(
         ['2xl', '3xl', '4xl', '5xl', '6xl', '7xl'].map((s) => `--font-size-${s}`),
