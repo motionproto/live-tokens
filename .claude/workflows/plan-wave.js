@@ -197,6 +197,14 @@ const CONTRAST_WAVES = {
   '6': { executor: 'wave-executor', verify: false, review: false },
 }
 
+const PRODUCTION_CSS_WAVES = {
+  '1': { executor: 'svelte:svelte-file-editor', verify: true },
+  '2': { executor: 'wave-executor', verify: true },
+  '3': { executor: 'wave-executor', verify: true },
+  '4': { executor: 'wave-executor', verify: true },
+  '5': { executor: 'wave-executor', verify: true, reviewModel: 'sonnet' },
+}
+
 // executeModel and escalateModel override the agent definition's model. A plan without them runs each agent as defined.
 // root is a worktree, relative to the repository root, that every agent works in; the setup wave creates it.
 // An unattended plan settles judgment calls with its review rules and logs them, so no step waits on the user.
@@ -225,6 +233,12 @@ const PLANS = {
     root: '../live-tokens-contrast',
     unattended: true,
     fixRounds: 2,
+    escalateModel: 'fable',
+  },
+  'production-css': {
+    file: 'docs/plans/production-css-variables.md',
+    prefix: 'Production-css',
+    waves: PRODUCTION_CSS_WAVES,
     escalateModel: 'fable',
   },
 }
