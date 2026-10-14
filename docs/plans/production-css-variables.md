@@ -107,15 +107,14 @@ Fifteen variables stay in the Card and Button build:
 - `SectionDivider.svelte:499-529` queries custom property values in
   `@container sd style(--_divider-hairline: ...)`. A name in an at-rule
   prelude is a runtime dependency.
-- Vite's CSS minifier (lightningcss) lowers `light-dark()` into the
-  `--lightningcss-light` and `--lightningcss-dark` toggles, declared under
-  `[data-backdrop]` and `:where(:root)`. The transform runs on that lowered
-  CSS, so the toggles count as dynamic by rule 1, and any token built on them
-  by rule 6.
-- `tokens.css` scopes `color-scheme` under `[data-backdrop]`, and its colors
-  use `light-dark()`. An unregistered custom property holds a token stream,
-  and `light-dark()` resolves on the element that uses it. Substituting the
-  token stream unchanged keeps that behavior.
+- `tokens.css` scopes `color-scheme` under `[data-backdrop]`. Vite's CSS
+  minifier (lightningcss) lowers `color-scheme` by declaring the
+  `--lightningcss-light` and `--lightningcss-dark` toggles under
+  `[data-backdrop]` and `:where(:root)`. No stylesheet uses `light-dark()`,
+  so no rule reads the toggles, and the transform removes them as unreached.
+- An unregistered custom property holds a token stream, and functions such as
+  `color-mix()` resolve on the element that uses it. Substituting the token
+  stream unchanged keeps that behavior.
 - `postcss` 8.5.26 arrived through `tsup` until Wave 0 made it a direct dev
   dependency.
 - `scripts/smoke-create.sh` scaffolds a consumer from the tarball and runs
@@ -646,8 +645,7 @@ runs it.
   `[data-backdrop]` and `:where(:root)`. No rule reads them, the rewrite
   removes them as unreached, and the transformed builds keep `color-scheme`
   alone under those selectors. Both backdrop states change `color-scheme`
-  and nothing else. The Ground truth bullets trace the toggles to
-  `light-dark()` and say the colors use it; both claims are stale.
+  and nothing else. Ground truth now states these facts.
 - The spec aborts every request off `127.0.0.1`, so both builds render the
   same fallbacks for the Google and Typekit fonts. It finishes each finite
   animation and transition and holds each infinite one at its start, in
@@ -710,3 +708,10 @@ runs it.
 - `template/src/main.ts` passes `{ sketchLooks }` to `bootLiveTokens`, whose
   option is `sketchStyles`, so a scaffolded project's saved sketch styles
   never reach its build. The bug predates this plan and sits outside it.
+- `hashedFileName` fails the build when a rewritten sheet's name does not
+  follow `output.assetFileNames`, as with a plugin that emits a sheet under an
+  explicit `fileName`. Neither build hits it. Wave 5 states the limit.
+- The spec's state steps compare both builds after hovering a Card or Button
+  and opening the Dialog, and assert nothing about the state taking effect. A
+  Dialog that failed to open would compare the resting page against itself.
+  A follow-up asserts the `.dialog` element and the hovered values.

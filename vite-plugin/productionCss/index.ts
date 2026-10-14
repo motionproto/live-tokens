@@ -201,7 +201,7 @@ function renameRewritten(files: BundleFile[], sheetRenames: Map<string, string>,
             exports: chunk.exports,
           });
     const renamed = hashedFileName(chunk.fileName, pattern, [chunk, ...others].map(identity).join('\0\0'));
-    if (renamed !== null) chunkRenames.set(chunk.fileName, renamed);
+    if (renamed !== null && renamed !== chunk.fileName) chunkRenames.set(chunk.fileName, renamed);
   }
   if (chunkRenames.size > 0) repoint(files, chunkRenames);
 }
@@ -260,7 +260,7 @@ export function rewriteBundle(
         ? assetFileNames
         : assetFileNames({ type: 'asset', names: sheet.names, originalFileNames: sheet.originalFileNames, source: rewritten });
     const renamed = hashedFileName(sheet.fileName, pattern, rewritten);
-    if (renamed !== null) renames.set(sheet.fileName, renamed);
+    if (renamed !== null && renamed !== sheet.fileName) renames.set(sheet.fileName, renamed);
   });
   if (renames.size > 0) renameRewritten(files, renames, names);
 

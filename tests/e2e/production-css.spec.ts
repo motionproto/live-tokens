@@ -28,7 +28,7 @@ function buildEnv(build: Build): NodeJS.ProcessEnv {
     VITE_CONFIG_NATIVE_IGNORE_WARNING: 'true',
     LIVE_TOKENS_PRODUCTION_CSS: build === 'untransformed' ? 'false' : '',
   };
-  // A build reads the project's own data tree, as `npm run build` does, never the contract run's copy.
+  // A build reads the project's own data tree, as `npm run build` does.
   delete env.LIVE_TOKENS_TEST_DATA_DIR;
   delete env.LIVE_TOKENS_DATA_DIR;
   return env;
