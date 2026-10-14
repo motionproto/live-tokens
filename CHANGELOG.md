@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.94.3 — Demo bar chrome
 
 ### Fixed
 
