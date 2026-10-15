@@ -237,11 +237,18 @@ for c in outcome-build-billing outcome-build-billing-no-checker outcome-build-bi
   npm run eval -- --case "$c" --ablation none --keep-temp
   cp scratch/eval-last.json "scratch/eval-$c.json"
 done
-for f in scratch/eval-*billing*.json; do node scripts/eval-check-build.mjs "$f" --tests; done
+node scripts/eval-check-build.mjs scratch/eval-*billing*.json --tests
 ```
 
-The script restores the patched files in each kept workspace, runs that
-workspace's checkers with `--strict --no-fix`, and prints each run and a
-table of means per arm. It names any rule a run turned off in
-`live-tokens.config.json`. Delete the kept workspaces from the system temp
-folder afterwards.
+Each run is a fresh `claude` session given the same prompt file in a freshly
+copied project, so no arm sees another's work. The script restores the
+patched files in each kept workspace and runs that workspace's checkers with
+`--strict --no-fix`. It then serves the workspace with its own Vite dev
+server and screenshots `/billing` at 1280 and 390 pixels wide, with the
+router's overlay hidden. It prints a table of means per arm and writes
+`scratch/eval-reports/<time>/index.html`: the means, then one row of arm
+columns per run, each with its screenshots, metrics, failed graders, checker
+findings by rule, and links to the saved page and component sources. It names
+any rule a run turned off in `live-tokens.config.json`. The report keeps its
+own copies, so delete the kept workspaces from the system temp folder
+afterwards.
