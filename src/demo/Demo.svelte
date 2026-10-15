@@ -49,9 +49,11 @@
     grid-template-columns: repeat(var(--columns-count), minmax(0, 1fr));
     column-gap: var(--columns-gutter);
     row-gap: var(--space-64);
+    box-sizing: content-box;
     max-width: var(--columns-max-width);
     margin: 0 auto;
-    padding: var(--space-48) var(--space-32);
+    padding-block: var(--space-48);
+    padding-inline: var(--columns-margin);
     min-height: 100vh;
   }
 
@@ -97,14 +99,6 @@
     .kit {
       --kit-content: 1 / -1;
       --kit-narrow: 2 / -2;
-    }
-  }
-
-  /* tokens.css switches to the tablet grid below 768px. From there the page
-     insets by the grid's own margin, as the column overlay does. */
-  @media (max-width: 767px) {
-    .kit {
-      padding-inline: var(--columns-margin);
     }
   }
 

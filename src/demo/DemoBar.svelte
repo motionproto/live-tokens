@@ -40,9 +40,11 @@
      sections beneath it. The right side stays empty for the editor's collapsed
      toggle, which pins top-right. */
   .bar {
+    box-sizing: content-box;
     max-width: var(--columns-max-width);
     margin-inline: auto;
-    padding: var(--space-12) var(--space-32);
+    padding-block: var(--space-12);
+    padding-inline: var(--columns-margin);
     display: grid;
     grid-template-columns: repeat(var(--columns-count), minmax(0, 1fr));
     column-gap: var(--columns-gutter);
@@ -60,12 +62,6 @@
   @media (max-width: 1200px) {
     .pickers {
       grid-column: 1 / -1;
-    }
-  }
-
-  @media (max-width: 767px) {
-    .bar {
-      padding-inline: var(--columns-margin);
     }
   }
 
