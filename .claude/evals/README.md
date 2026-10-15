@@ -197,7 +197,7 @@ A first attempt at 40 turns cut both arms off before they finished.
 
 ## `outcome-build-billing`: lookup and checker
 
-Not yet run. The four cases give one brief, a `/billing` page, and differ
+The four cases give one brief, a `/billing` page, and differ
 only in their fixtures. Each seeds the full consumer project and deletes the
 skills the package ships, so only the plugin supplies them.
 `_scaffold/remove-cli.mjs` then removes the `lookup` group (`components`,
@@ -209,14 +209,17 @@ The brief reads like a client's request and avoids the catalogue's own
 wording, so the lookup has to earn its picks. For the lookup, each
 requirement has one right component, and the delivery day needs a calendar
 of next month that shows each date's weekday. Nothing shipped draws a month
-grid, and a `MenuSelect` of dates hides the weekdays, so the run must author
-a component. For the checker, the brief asks for things the rules refuse:
+grid, and a `MenuSelect` of dates hides the weekdays. The brief asks for the
+calendar as a new component, a one-month day picker, so every run exercises
+the component skill and `check-component`. The first smoke run, on
+2026-10-15, had no such request and built the calendar from shipped
+`Button`s. For the checker, the brief asks for things the rules refuse:
 smaller toolbar buttons (`control-size`), four plans side by side
 (`hardcoded-columns`), big prices (`raw-text-axis`), the brand gold
 (`color-literal`, `page-contrast`), a way to pick every plan
 (`multiple-primary`), and a permanent cancel (`danger-without-dialog`).
 
-Each case measures three things:
+Each case measures four things:
 
 - **Accuracy.** The runner's graders check the component each requirement
   takes, that no `MenuSelect` stands in for the calendar, that a new
@@ -227,6 +230,12 @@ Each case measures three things:
   tokens, which the subscription covers. Scoring afterwards is not counted.
 - **Loops.** The agent's turns, and its `check-page` and `check-component`
   runs, counted from the trace.
+- **Behaviour.** The trace also gives each run a timeline: the skills it
+  loaded, its lookups, each checker run and the rules it reported, its reads
+  of the package's own source in `node_modules`, and the files it wrote. The
+  report counts skills loaded and source reads per arm. An arm without the
+  lookup or the checker shows how the agent went without: failed calls, or
+  more source reads.
 
 The eval sandbox refuses to let a process listen on a local port, so
 Playwright and Vite cannot start inside a run, and `--tests` would report
@@ -234,8 +243,12 @@ Playwright and Vite cannot start inside a run, and `--tests` would report
 runner writes the sandbox settings itself and offers no way to allow it).
 Every fixture therefore runs `_scaffold/static-checks.mjs`, which makes
 `--tests` run the static checks and say why. The browser rules are scored
-afterwards for every arm. The runner caps each run at 200 turns and one hour,
-its maximums, and the report flags any run that hit a cap.
+afterwards for every arm. The same limit reaches the component contract:
+its `theme` case wants a theme saved with the editor, which cannot start. The
+first run that wrote a contract, on 2026-10-15, named a theme the project
+lacks, and `contract-theme` failed at scoring. The runner caps each run at
+200 turns and one hour, its maximums, and the report flags any run that hit
+a cap.
 
 Five arms answer the question. The case with neither runs with the runner's
 baseline, which gives the unattended model and the skills alone. The other
@@ -263,14 +276,18 @@ fresh copy of the eval project. There it runs the full checkers with
 `--strict --no-fix`, browser tests included. It then serves that copy with
 its own Vite dev server and screenshots `/billing` at 1280 and 390 pixels wide, with the
 router's overlay hidden. It prints a table of means per arm and writes
-`scratch/eval-reports/<time>/index.html`: the means, then one row of arm
-columns per run, each with its screenshots, metrics, failed graders, checker
-findings by rule, and links to the saved page and component sources. Each
+`scratch/eval-reports/<time>/index.html`: the brief, the means, then one tab
+per run holding every arm side by side, each with its metrics, a screenshot
+that a switch sets to desktop or mobile, its behaviour, failed graders,
+checker findings by rule, and links to the saved page and component sources. Each
 column also lists the components the page renders, the components the run
 authored, the tokens it added or changed in `tokens.css`, the custom
 properties its page and components declare beyond a new component's own
-`--<id>-*` properties, and the literal values the checker found. The
+`--<id>-*` properties and the `--sketch-*` hooks sketch mode prescribes, and
+the literal values the checker found. The
 screenshots are captured at twice their pixel density and open in a lightbox
-that steps through every run with the arrow keys. It names
+whose arrow keys step through the arms of the open run. It names
 any rule a run turned off in `live-tokens.config.json`. The report keeps its
-own copies of the screenshots, sources, findings, and trace.
+own copies of the screenshots, sources, findings, trace, and the run's files
+in `workspace/`. Scoring the same result JSON again with `--out` set to the
+same report folder works after the sandboxes are gone.

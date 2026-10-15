@@ -63,6 +63,12 @@ the path, then name what separates the arms:
   not counted.
 - **Checker runs, lookup runs**: counted from the trace. In an arm without the
   tool, these are failed attempts.
+- **Skills loaded, source reads**: the skills the agent invoked, and its reads
+  of the package's own source in `node_modules`. Source reads stand in for a
+  missing lookup, or for an argument with a checker rule.
+- **Behaviour**: each run's timeline in the report. Compare the arms' paths:
+  which skill each loaded first, when it looked components up, what the
+  checker reported, and how the agent answered it.
 - **New components, new tokens, literal values**: whether the run authored
   the calendar, and what it added outside the design tokens.
 

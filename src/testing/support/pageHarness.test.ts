@@ -10,6 +10,7 @@ import { sectionDividerContract } from '../contracts/sectiondivider';
 import { inputContract } from '../contracts/input';
 import { menuSelectContract } from '../contracts/menuselect';
 import { notificationContract } from '../contracts/notification';
+import { radioButtonContract } from '../contracts/radiobutton';
 import { toggleContract } from '../contracts/toggle';
 import { restingPaintSpec } from './pageHarness';
 
@@ -79,6 +80,18 @@ describe('restingPaintSpec', () => {
     const variables = variablesOf(restingPaintSpec(toggleContract));
     expect(variables.has('--toggle-track-surface')).toBe(true);
     expect(variables.has('--toggle-on-track-surface')).toBe(false);
+  });
+
+  it('marks the disabled, on, and selected states a page instance can sit in', () => {
+    expect(restingPaintSpec(buttonContract)?.away).toContainEqual({
+      forceClass: null,
+      attributes: [{ selector: null, name: 'disabled', value: '' }],
+    });
+    expect(restingPaintSpec(toggleContract)?.away).toContainEqual({
+      forceClass: null,
+      attributes: [{ selector: null, name: 'aria-checked', value: 'true' }],
+    });
+    expect(restingPaintSpec(radioButtonContract)?.away.map((m) => m.forceClass)).toContain('selected');
   });
 
   it('reaches an instance that spells its variant bare', () => {

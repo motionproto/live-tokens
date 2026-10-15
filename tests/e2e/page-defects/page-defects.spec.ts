@@ -133,6 +133,13 @@ test('a grid of its own inside a section passes page-grid', async ({ page }) => 
   expect(await harness.assertGrid()).toBeNull();
 });
 
+test('disabled, selected, and switched-on controls pass page-component-paint', async ({ page }) => {
+  for (const viewport of [DESKTOP, PHONE]) {
+    const harness = await open(page, 'ControlStates', 'control-states', viewport);
+    expect(await harness.assertComponentPaint(await paintSpecs()), `${viewport.width}x${viewport.height}`).toBeNull();
+  }
+});
+
 test('a page with no shipped instance reports page-component-paint inapplicable', async ({ page }) => {
   const harness = await open(page, 'NoInstance', 'no-instance', DESKTOP);
   const reason = await harness.assertComponentPaint(await paintSpecs());

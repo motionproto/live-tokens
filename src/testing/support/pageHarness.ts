@@ -104,10 +104,40 @@ function variantPattern(label: string | undefined | null): string | null {
   return `(?:^|-)(?:${keys.join('|')})$`;
 }
 
+/** How an instance shows it sits in a state other than rest: the class its
+ *  root carries and the attributes its parts carry. A null `selector` is the
+ *  root; a null `value` requires the attribute's absence. */
+interface StateMarker {
+  forceClass: string | null;
+  attributes: { selector: string | null; name: string; value: string | null }[];
+}
+
 export interface ContractPaintSpec {
   id: string;
   root: string;
   entries: PaintEntry[];
+  /** An instance matching any of these is disabled, on, selected, and so on,
+   *  and paints that state's map, so its resting paints are not asserted. */
+  away: StateMarker[];
+}
+
+function stateMarkers(contract: ComponentContract): StateMarker[] {
+  if (isInapplicable(contract.states)) return [];
+  const markers: StateMarker[] = [];
+  for (const state of contract.states) {
+    if (restingState(state.state)) continue;
+    const attributes: StateMarker['attributes'] = [];
+    for (const [part, attrs] of Object.entries(state.attributes ?? {})) {
+      const declared = contract.parts[part];
+      if (declared === undefined || (typeof declared !== 'string' && declared.portal)) continue;
+      const selector = part === contract.root ? null : typeof declared === 'string' ? declared : declared.selector;
+      for (const [name, value] of Object.entries(attrs)) attributes.push({ selector, name, value });
+    }
+    // A marker made only of absences would match nearly every instance.
+    if (!state.forceClass && !attributes.some((a) => a.value !== null)) continue;
+    markers.push({ forceClass: state.forceClass ?? null, attributes });
+  }
+  return markers;
 }
 
 function paintChecks(contract: ComponentContract, map: PaintMap): PaintCheck[] {
@@ -167,7 +197,7 @@ export function restingPaintSpec(contract: ComponentContract): ContractPaintSpec
     }
   }
   if (entries.length === 0) return null;
-  return { id: contract.id, root: rootSelector, entries };
+  return { id: contract.id, root: rootSelector, entries, away: stateMarkers(contract) };
 }
 
 export interface PaintFailure {
@@ -463,9 +493,14 @@ export class PageHarness {
       // component that sets its own font size (every Button does) makes the
       // parent's the wrong ruler. A `font-size` token overwrites the seed and
       // still resolves its own relative units against the parent, as it must.
-      const normalize = (node: Element, css: string, raw: string): string => {
+      const normalize = (node: Element, css: string, raw: string, rendered = false): string => {
         const probe = document.createElement('div');
-        probe.style.display = 'none';
+        // A hidden probe keeps a percentage as written, so a percentage is
+        // measured again on a rendered one that takes the part's positioning.
+        if (rendered) {
+          probe.style.visibility = 'hidden';
+          probe.style.position = getComputedStyle(node).position;
+        } else probe.style.display = 'none';
         // A border width computes to 0 while the border style is `none`, so
         // the probe would answer 0px for every stroke thickness.
         probe.style.borderStyle = 'solid';
@@ -473,10 +508,19 @@ export class PageHarness {
         probe.style.fontSize = getComputedStyle(node).fontSize;
         (node.parentElement ?? document.body).appendChild(probe);
         probe.style.setProperty(css.replace(/[A-Z]/g, (c) => `-${c.toLowerCase()}`), raw);
-        const computed = (getComputedStyle(probe) as unknown as Record<string, string>)[css];
+        const computed = ((getComputedStyle(probe) as unknown as Record<string, string>)[css] ?? '').trim();
         probe.remove();
-        return (computed ?? '').trim();
+        return !rendered && computed.endsWith('%') ? normalize(node, css, raw, true) : computed;
       };
+
+      const atRest = (element: Element, markers: StateMarker[]): boolean =>
+        !markers.some((marker) =>
+          (marker.forceClass === null || element.classList.contains(marker.forceClass))
+          && marker.attributes.every(({ selector, name, value }) => {
+            const part = selector === null ? element : element.querySelector(selector);
+            if (!part) return false;
+            return value === null ? !part.hasAttribute(name) : part.getAttribute(name) === value;
+          }));
 
       for (const spec of list) {
         const patterns = spec.entries.map((entry) => (entry.pattern === null ? null : new RegExp(entry.pattern)));
@@ -484,6 +528,7 @@ export class PageHarness {
         for (const element of root.querySelectorAll(spec.root)) {
           if (element.closest(chrome)) continue;
           instances++;
+          if (!atRest(element, spec.away)) continue;
           const classes = [...element.classList];
           const line = window.__liveTokensPageLine(element, source);
           let covered = false;

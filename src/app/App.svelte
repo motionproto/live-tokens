@@ -83,6 +83,10 @@
             lazy: () => import('../../tests/e2e/page-defects/LocalGrid.svelte'),
             source: 'tests/e2e/page-defects/LocalGrid.svelte',
           },
+          '/page-defects/control-states': {
+            lazy: () => import('../../tests/e2e/page-defects/ControlStates.svelte'),
+            source: 'tests/e2e/page-defects/ControlStates.svelte',
+          },
           '/page-defects/no-instance': {
             lazy: () => import('../../tests/e2e/page-defects/NoInstance.svelte'),
             source: 'tests/e2e/page-defects/NoInstance.svelte',
