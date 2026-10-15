@@ -209,6 +209,7 @@ const RESPONSIVE_COLUMNS_WAVES = {
   '1': { executor: 'wave-executor', verify: true },
   '2': { executor: 'svelte:svelte-file-editor', verify: true },
   '3': { executor: 'wave-executor', verify: true },
+  '3b': { executor: 'wave-executor', verify: true },
   '4': { executor: 'wave-executor', verify: true, reviewModel: 'sonnet' },
   '5': {
     executor: 'visual-qa',

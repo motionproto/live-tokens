@@ -31,7 +31,7 @@ const PLANS = {
     after: 'Review the Calls in the Run log of docs/plans/production-css-variables.md, then cut a minor release.',
   },
   'responsive-columns': {
-    order: ['1', '2', '3', '4'],
+    order: ['1', '2', '3', '3b', '4'],
     after: 'Run /plan-wave responsive-columns 5 for the visual pass. It opens the browser.',
   },
 }
