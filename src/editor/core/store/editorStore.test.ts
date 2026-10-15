@@ -654,29 +654,47 @@ describe('editorStore — intra-session slider-drag tracking', () => {
 describe('editorStore — columns round-trip', () => {
   const columnKeys = (vars: Record<string, string>) => Object.keys(vars).filter((name) => name.startsWith('--columns-'));
 
-  it('a phone count edit saves as --columns-phone-count alone and survives a reload', () => {
-    mutate('set phone count', (s) => { s.columns.viewports.phone.count = 3; });
+  it('a phone gutter edit saves as --columns-phone-gutter alone and survives a reload', () => {
+    mutate('set phone gutter', (s) => { s.columns.viewports.phone.gutter = 12; });
     const file = toColorsAndType(get(editorState), { name: 't' });
-    expect(columnKeys(file.cssVariables)).toEqual(['--columns-phone-count']);
-    expect(file.cssVariables['--columns-phone-count']).toBe('3');
+    expect(columnKeys(file.cssVariables)).toEqual(['--columns-phone-gutter']);
+    expect(file.cssVariables['--columns-phone-gutter']).toBe('12px');
 
     __resetForTests();
     loadFromFile(file);
     const s = get(editorState);
-    expect(s.columns.viewports.phone.count).toBe(3);
-    expect(s.columns.viewports.tablet.count).toBe(8);
-    expect(s.cssVars['--columns-phone-count']).toBeUndefined();
+    expect(s.columns.viewports.phone.gutter).toBe(12);
+    expect(s.columns.viewports.tablet.gutter).toBe(24);
+    expect(s.cssVars['--columns-phone-gutter']).toBeUndefined();
     expect(get(colorsAndTypeDirty)).toBe(false);
   });
 
-  it('a file stored before the per-viewport names loads its values onto desktop', () => {
+  it('a count edit saves as --columns-count alone and survives a reload', () => {
+    mutate('set columns count', (s) => { s.columns.count = 16; });
+    const file = toColorsAndType(get(editorState), { name: 't' });
+    expect(columnKeys(file.cssVariables)).toEqual(['--columns-count']);
+    expect(file.cssVariables['--columns-count']).toBe('16');
+
+    __resetForTests();
+    loadFromFile(file);
+    expect(get(editorState).columns.count).toBe(16);
+    expect(get(colorsAndTypeDirty)).toBe(false);
+  });
+
+  it('a file stored before the per-viewport names keeps its count and loads its gutter onto desktop', () => {
     loadFromFile(makeColorsAndType({
       schemaVersion: 9,
-      cssVariables: { '--columns-count': '10', '--columns-gutter': '20px', '--columns-max-width': '1200px' },
+      cssVariables: {
+        '--columns-count': '10',
+        '--columns-gutter': '20px',
+        '--columns-margin': '0px',
+        '--columns-max-width': '1200px',
+      },
     }));
     const { columns, cssVars } = get(editorState);
+    expect(columns.count).toBe(10);
     expect(columns.maxWidth).toBe(1200);
-    expect(columns.viewports.desktop).toEqual({ count: 10, gutter: 20, margin: 0 });
+    expect(columns.viewports.desktop).toEqual({ gutter: 20, margin: 32 });
     expect(columnKeys(cssVars)).toEqual([]);
   });
 });

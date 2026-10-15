@@ -43,7 +43,7 @@ describe('editor renderer reactive projection', () => {
   it('projects a representative cross-domain theme mutation in one pass', () => {
     mutate('reactive matrix', (state) => {
       state.cssVars['--font-size-5xl'] = '52px';
-      state.columns.viewports.desktop.count = 10;
+      state.columns.count = 10;
       state.washes.scrim.stops[0].opacity = 0.5;
       state.shadows.tokens = [{
         variable: '--shadow-sm',
@@ -75,7 +75,7 @@ describe('editor renderer reactive projection', () => {
 
     const style = document.documentElement.style;
     expect(style.getPropertyValue('--font-size-5xl')).toBe('52px');
-    expect(style.getPropertyValue('--columns-desktop-count')).toBe('10');
+    expect(style.getPropertyValue('--columns-count')).toBe('10');
     expect(style.getPropertyValue('--scrim-opacity-low')).toBe('0.5');
     expect(style.getPropertyValue('--shadow-sm')).toBe('1px 2px 3px hsla(200, 20%, 10%, 0.25)');
     expect(style.getPropertyValue('--gradient-1')).toContain('22deg');
@@ -147,9 +147,9 @@ describe('editor renderer column projection', () => {
   });
 
   it('writes an edited viewport value under its own name alone', () => {
-    mutate('set phone count', (state) => { state.columns.viewports.phone.count = 2; });
-    expect(columnNames()).toEqual(['--columns-phone-count']);
-    expect(document.documentElement.style.getPropertyValue('--columns-phone-count')).toBe('2');
+    mutate('set phone margin', (state) => { state.columns.viewports.phone.margin = 8; });
+    expect(columnNames()).toEqual(['--columns-phone-margin']);
+    expect(document.documentElement.style.getPropertyValue('--columns-phone-margin')).toBe('8px');
   });
 
   it('removes the name once the value returns to its default', () => {

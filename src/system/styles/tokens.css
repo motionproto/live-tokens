@@ -497,23 +497,22 @@
   --scale-xl: 1.2;
   --scale-2xl: 1.25;
 
-  /* COLUMN LAYOUT. Each viewport sets its own count, gutter and margin.
-     --columns-count, --columns-gutter and --columns-margin read the desktop
+  /* COLUMN LAYOUT. Twelve columns at every width; each viewport sets its own
+     gutter and margin. --columns-gutter and --columns-margin read the desktop
      values, and the 767px and 480px blocks at the foot of this file re-point
      them to the tablet and phone values. Drives the dev overlay; consume via
      grid-template-columns: repeat(var(--columns-count), 1fr) etc.
-     --columns-margin = side gutters (0px = flush). */
+     --columns-margin = the page grid's inline padding. With box-sizing:
+     content-box the columns span --columns-max-width and the margin sits
+     outside them. */
+  --columns-count: 12;
   --columns-max-width: 1440px;
-  --columns-desktop-count: 12;
   --columns-desktop-gutter: 32px;
-  --columns-desktop-margin: 0px;
-  --columns-tablet-count: 8;
+  --columns-desktop-margin: 32px;
   --columns-tablet-gutter: 24px;
   --columns-tablet-margin: 24px;
-  --columns-phone-count: 4;
   --columns-phone-gutter: 16px;
   --columns-phone-margin: 16px;
-  --columns-count: var(--columns-desktop-count);
   --columns-gutter: var(--columns-desktop-gutter);
   --columns-margin: var(--columns-desktop-margin);
 
@@ -1100,13 +1099,12 @@
   }
 }
 
-/* RESPONSIVE COLUMN GRID. The grid takes its tablet values at 767px and
-   narrower, and its phone values at 480px and narrower. This block precedes
-   the 480px block, so the phone values win on a phone. */
+/* RESPONSIVE COLUMN GRID. The grid takes its tablet gutter and margin at
+   767px and narrower, and its phone gutter and margin at 480px and narrower.
+   This block precedes the 480px block, so the phone values win on a phone. */
 
 @media (max-width: 767px) {
   :root {
-    --columns-count: var(--columns-tablet-count);
     --columns-gutter: var(--columns-tablet-gutter);
     --columns-margin: var(--columns-tablet-margin);
   }
@@ -1159,7 +1157,6 @@
     --eyebrow-font-size: var(--eyebrow-phone-font-size);
 
     /* The column grid's phone values. */
-    --columns-count: var(--columns-phone-count);
     --columns-gutter: var(--columns-phone-gutter);
     --columns-margin: var(--columns-phone-margin);
   }

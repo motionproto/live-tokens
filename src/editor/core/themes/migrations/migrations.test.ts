@@ -707,21 +707,27 @@ describe('migration runner — schemaVersion gating', () => {
     expect(runMigrations('colors-and-type', 8, out)).toEqual(expected);
   });
 
-  it('colors-and-type v9 → v10: the stored column values move to their desktop names', () => {
-    const v9 = {
-      '--columns-count': '10',
-      '--columns-max-width': '1280px',
-      '--columns-gutter': '24px',
-      '--columns-margin': '8px',
-      '--space-8': '0.5rem',
-    };
-    const expected = {
-      '--columns-desktop-count': '10',
-      '--columns-max-width': '1280px',
-      '--columns-desktop-gutter': '24px',
-      '--columns-desktop-margin': '8px',
-      '--space-8': '0.5rem',
-    };
+  it('colors-and-type v9 → v10 drops a stored column set at the shipped values', () => {
+    for (const margin of ['0px', '0']) {
+      const v9 = {
+        '--columns-count': '12',
+        '--columns-max-width': '1440px',
+        '--columns-gutter': '32px',
+        '--columns-margin': margin,
+        '--space-8': '0.5rem',
+      };
+      expect(runMigrations('colors-and-type', 9, v9)).toEqual({ '--columns-max-width': '1440px', '--space-8': '0.5rem' });
+    }
+  });
+
+  it('colors-and-type v9 → v10 keeps an edited count under --columns-count', () => {
+    const v9 = { '--columns-count': '16', '--columns-gutter': '32px', '--space-8': '0.5rem' };
+    expect(runMigrations('colors-and-type', 9, v9)).toEqual({ '--columns-count': '16', '--space-8': '0.5rem' });
+  });
+
+  it('colors-and-type v9 → v10 moves an edited gutter and margin to their desktop names', () => {
+    const v9 = { '--columns-gutter': '24px', '--columns-margin': '48px', '--space-8': '0.5rem' };
+    const expected = { '--columns-desktop-gutter': '24px', '--columns-desktop-margin': '48px', '--space-8': '0.5rem' };
     const out = runMigrations('colors-and-type', 9, v9);
     expect(out).toEqual(expected);
     expect(Object.keys(out)).toEqual(Object.keys(expected));
@@ -733,7 +739,7 @@ describe('migration runner — schemaVersion gating', () => {
   });
 
   it('colors-and-type v9 → v10 changes nothing in an already-migrated theme', () => {
-    const v10 = { '--columns-desktop-count': '10', '--columns-phone-gutter': '12px' };
+    const v10 = { '--columns-count': '10', '--columns-desktop-margin': '48px', '--columns-phone-gutter': '12px' };
     expect(runMigrations('colors-and-type', 9, v10)).toEqual(v10);
   });
 

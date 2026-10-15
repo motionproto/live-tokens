@@ -48,17 +48,24 @@ describe('2026-10-15-responsive-columns', () => {
     expect(css.indexOf(`@media ${TABLET}`)).toBeLessThan(css.indexOf(`@media ${PHONE}`));
   });
 
-  it('carries a hand-edited count and gutter into the desktop names', () => {
-    const edited = FIXTURE.replace('--columns-count: 12;', '--columns-count: 16;').replace(
-      '--columns-gutter: clamp(0.5rem, 1.5vw, 1.5rem);',
-      '--columns-gutter: 20px;',
-    );
+  it('maps the shipped 0 margin to 32px and leaves the count alone', () => {
+    const values = collectTokenValues(fold(FIXTURE));
+    expect(values.get('--columns-desktop-margin')).toBe('32px');
+    expect(values.get('--columns-desktop-gutter')).toBe('32px');
+    expect(values.get('--columns-count')).toBe('12');
+    expect(values.has('--columns-desktop-count')).toBe(false);
+  });
+
+  it('carries a hand-edited gutter and margin into the desktop names, and keeps a hand-edited count', () => {
+    const edited = FIXTURE.replace('--columns-count: 12;', '--columns-count: 16;')
+      .replace('--columns-gutter: clamp(0.5rem, 1.5vw, 1.5rem);', '--columns-gutter: 20px;')
+      .replace('--columns-margin: 0;', '--columns-margin: 48px;');
     const values = collectTokenValues(fold(edited));
-    expect(values.get('--columns-desktop-count')).toBe('16');
+    expect(values.get('--columns-count')).toBe('16');
     expect(values.get('--columns-desktop-gutter')).toBe('20px');
-    expect(values.get('--columns-desktop-margin')).toBe('0px');
-    expect(values.get('--columns-count')).toBe('var(--columns-desktop-count)');
+    expect(values.get('--columns-desktop-margin')).toBe('48px');
     expect(values.get('--columns-gutter')).toBe('var(--columns-desktop-gutter)');
+    expect(values.get('--columns-margin')).toBe('var(--columns-desktop-margin)');
   });
 
   it('changes nothing on a second fold', () => {

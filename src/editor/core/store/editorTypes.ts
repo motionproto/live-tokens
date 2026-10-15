@@ -39,6 +39,7 @@ export interface WashScale {
 }
 
 export interface ColumnsState {
+  count: number;
   maxWidth: number;
   viewports: Record<ColumnViewport, ColumnViewportValues>;
 }

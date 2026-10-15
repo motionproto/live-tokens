@@ -22,8 +22,8 @@
   ];
 
   let viewport = $state<ColumnViewport>('desktop');
+  let count = $derived($editorState.columns.count);
   let values = $derived($editorState.columns.viewports[viewport]);
-  let defaults = $derived(COLUMN_DEFAULTS.viewports[viewport]);
   let viewportLabel = $derived(VIEWPORT_OPTIONS.find((o) => o.value === viewport)!.label.toLowerCase());
   // The preview scales the grid to the widest window it serves.
   let previewWidth = $derived(viewport === 'desktop' ? $editorState.columns.maxWidth : COLUMN_BREAKPOINTS[viewport]);
@@ -37,7 +37,7 @@
     mutate(`set ${target} columns ${property}`, (s) => { s.columns.viewports[target][property] = value; });
   }
   function setColumnsCount(n: number) {
-    setViewportValue('count', clampNum(n, COLS_MIN, COLS_MAX));
+    mutate('set columns count', (s) => { s.columns.count = clampNum(n, COLS_MIN, COLS_MAX); });
   }
   function setColumnsGutter(px: number) {
     setViewportValue('gutter', clampNum(px, 0, 200));
@@ -53,7 +53,7 @@
   let colsDetentTrips = 0;
 
   function onColsPointerDown() {
-    beginSliderGesture(`drag ${viewport} columns count`);
+    beginSliderGesture('drag columns count');
     colsDragging = true;
     colsDetentTrips = 0;
   }
@@ -62,10 +62,10 @@
     colsDetentTrips = 0;
   }
   function handleColsInput(raw: number, target: HTMLInputElement) {
-    const detent = defaults.count;
+    const detent = COLUMN_DEFAULTS.count;
     if (
       colsDragging &&
-      values.count === detent &&
+      count === detent &&
       Math.abs(raw - detent) === 1
     ) {
       colsDetentTrips += 1;
@@ -83,7 +83,7 @@
 
   // Inset by approximately one thumb-radius so the tick aligns with where the
   // thumb sits at the default count.
-  let colsTickPct = $derived(((defaults.count - COLS_MIN) / (COLS_MAX - COLS_MIN)) * 100);
+  const colsTickPct = ((COLUMN_DEFAULTS.count - COLS_MIN) / (COLS_MAX - COLS_MIN)) * 100;
 
   function resetViewport() {
     const target = viewport;
@@ -94,13 +94,36 @@
 <section class="section" id="columns">
   <h2 class="section-title">Columns</h2>
   <p class="columns-intro">
-    Layout grid for page content. Desktop, tablet and phone each hold a count, a
-    gutter and a margin, and the grid switches at {COLUMN_BREAKPOINTS.tablet}px
-    and {COLUMN_BREAKPOINTS.phone}px. Toggle the live overlay from the editor
-    bar's <i class="fas fa-grip-lines-vertical"></i> button to visualize.
+    Layout grid for page content. The count and the max width hold at every
+    width. Desktop, tablet and phone each hold a gutter and a margin, and the
+    grid switches them at {COLUMN_BREAKPOINTS.tablet}px and
+    {COLUMN_BREAKPOINTS.phone}px. Toggle the live overlay from the editor bar's
+    <i class="fas fa-grip-lines-vertical"></i> button to visualize.
   </p>
 
   <div class="columns-controls">
+    <div class="global-shadow-row cols-row">
+      <span class="shadow-slider-label" title="Number of columns, shared by every viewport">Cols</span>
+      <div class="cols-slider-wrap">
+        <input type="range" min={COLS_MIN} max={COLS_MAX} value={count}
+          onpointerdown={onColsPointerDown}
+          onpointerup={onColsPointerUp}
+          onpointercancel={onColsPointerUp}
+          oninput={(e) => handleColsInput(+e.currentTarget.value, e.currentTarget)} />
+        <span class="cols-tick" style="left: {colsTickPct}%" aria-hidden="true"></span>
+        <span class="cols-tick-label" style="left: {colsTickPct}%" aria-hidden="true">{COLUMN_DEFAULTS.count}</span>
+      </div>
+      <input class="shadow-slider-input" type="number" min={COLS_MIN} max={COLS_MAX}
+        value={count}
+        onchange={(e) => setColumnsCount(+e.currentTarget.value)} />
+      <span class="shadow-slider-unit"></span>
+    </div>
+    {#if count !== COLUMN_DEFAULTS.count}
+      <p class="cols-consequence" role="note">
+        <i class="fas fa-circle-exclamation"></i>
+        <span>Most layouts assume {COLUMN_DEFAULTS.count} cols.</span>
+      </p>
+    {/if}
     <div class="global-shadow-row">
       <span class="shadow-slider-label" title="Maximum content width, shared by every viewport">Max-Width</span>
       <input type="range" min="480" max="2560" step="10" value={$editorState.columns.maxWidth}
@@ -116,28 +139,6 @@
       <UISegmentedControl bind:value={viewport} options={VIEWPORT_OPTIONS} ariaLabel="Viewport" />
     </div>
 
-    <div class="global-shadow-row cols-row">
-      <span class="shadow-slider-label" title="Number of columns">Cols</span>
-      <div class="cols-slider-wrap">
-        <input type="range" min={COLS_MIN} max={COLS_MAX} value={values.count}
-          onpointerdown={onColsPointerDown}
-          onpointerup={onColsPointerUp}
-          onpointercancel={onColsPointerUp}
-          oninput={(e) => handleColsInput(+e.currentTarget.value, e.currentTarget)} />
-        <span class="cols-tick" style="left: {colsTickPct}%" aria-hidden="true"></span>
-        <span class="cols-tick-label" style="left: {colsTickPct}%" aria-hidden="true">{defaults.count}</span>
-      </div>
-      <input class="shadow-slider-input" type="number" min={COLS_MIN} max={COLS_MAX}
-        value={values.count}
-        onchange={(e) => setColumnsCount(+e.currentTarget.value)} />
-      <span class="shadow-slider-unit"></span>
-    </div>
-    {#if values.count !== defaults.count}
-      <p class="cols-consequence" role="note">
-        <i class="fas fa-circle-exclamation"></i>
-        <span>Most layouts assume {defaults.count} cols on {viewportLabel}. Reset to restore.</span>
-      </p>
-    {/if}
     <div class="global-shadow-row">
       <span class="shadow-slider-label" title="Space between columns">Gutter</span>
       <input type="range" min="0" max="80" value={values.gutter}
@@ -160,7 +161,7 @@
     </div>
 
     <div class="columns-controls-footer">
-      <button class="columns-reset" onclick={resetViewport} title="Restore the default {viewportLabel} count, gutter and margin">
+      <button class="columns-reset" onclick={resetViewport} title="Restore the default {viewportLabel} gutter and margin">
         <i class="fas fa-rotate-left"></i>
         Reset {viewportLabel}
       </button>
@@ -173,9 +174,9 @@
   <div class="columns-preview">
     <div
       class="columns-preview-inner"
-      style="gap: {(values.gutter / previewWidth) * 100}%; padding-inline: {(values.margin / previewWidth) * 100}%; grid-template-columns: repeat({values.count}, minmax(0, 1fr));"
+      style="gap: {(values.gutter / previewWidth) * 100}%; padding-inline: {(values.margin / previewWidth) * 100}%; grid-template-columns: repeat({count}, minmax(0, 1fr));"
     >
-      {#each { length: values.count }, i (i)}
+      {#each { length: count }, i (i)}
         <div class="columns-preview-col"><span>{i + 1}</span></div>
       {/each}
     </div>
