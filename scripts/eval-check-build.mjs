@@ -124,7 +124,7 @@ async function screenshot(browser, workspace, outDir) {
     await waitForServer(`http://localhost:${port}/`, server);
     const shots = [];
     for (const viewport of VIEWPORTS) {
-      const page = await browser.newPage({ viewport: { width: viewport.width, height: viewport.height } });
+      const page = await browser.newPage({ viewport: { width: viewport.width, height: viewport.height }, deviceScaleFactor: 2 });
       await page.goto(`http://localhost:${port}${ROUTE}`, { waitUntil: 'networkidle' });
       await page.waitForSelector('[data-live-tokens-page]', { timeout: 15000 });
       await page.addStyleTag({ content: '[data-live-tokens-chrome] { display: none !important; }' });
@@ -141,6 +141,47 @@ async function screenshot(browser, workspace, outDir) {
     await new Promise((r) => setTimeout(r, 300));
     if (server.exitCode === null) server.kill('SIGKILL');
   }
+}
+
+// Findings whose message names a raw value the run wrote instead of a token.
+const LITERAL_RULES = new Set(['color-literal', 'dimension-literal', 'raw-text-axis', 'hardcoded-columns']);
+function declarations(css) {
+  const found = new Map();
+  for (const m of css.matchAll(/(--[\w-]+)\s*:\s*([^;{}]+);/g)) {
+    found.set(m[1], [...(found.get(m[1]) ?? []), m[2].trim()]);
+  }
+  return found;
+}
+
+function inventory(workspace, pages) {
+  const report = spawnSync(process.execPath, [join(PKG, 'bin/cli.mjs'), 'report', '--json'], { cwd: workspace, encoding: 'utf8' });
+  const facts = JSON.parse(report.stdout);
+  const origin = new Map(facts.components.map((c) => [c.id, c.origin]));
+  const used = facts.usage.byPage
+    .filter((p) => pages.includes(p.file))
+    .flatMap((p) => p.components.map((c) => ({ ...c, origin: origin.get(c.id) })));
+  const created = facts.components
+    .filter((c) => c.origin !== 'shipped')
+    .map(({ id, file, registered, tokens }) => ({ id, file, registered, properties: tokens }));
+
+  const template = declarations(readFileSync(join(PROJECT, 'src/system/styles/tokens.css'), 'utf8'));
+  const tokensCss = join(workspace, 'src/system/styles/tokens.css');
+  const current = existsSync(tokensCss) ? declarations(readFileSync(tokensCss, 'utf8')) : new Map();
+  const addedTokens = [...current.keys()].filter((name) => !template.has(name));
+  const changedTokens = [...current.keys()].filter((name) => template.has(name) && current.get(name).join('|') !== template.get(name).join('|'));
+
+  const owned = created.map((c) => `--${c.id}-`);
+  const authoredFiles = [...pages, ...created.map((c) => c.file), ...created.map((c) => c.file.replace(/\.svelte$/, 'Editor.svelte'))];
+  const customProperties = [];
+  for (const file of authoredFiles) {
+    if (!existsSync(join(workspace, file))) continue;
+    for (const name of declarations(readFileSync(join(workspace, file), 'utf8')).keys()) {
+      if (owned.some((prefix) => name.startsWith(prefix))) continue;
+      customProperties.push({ name, file, overrides: template.has(name) });
+    }
+  }
+
+  return { used, created, addedTokens, changedTokens, customProperties };
 }
 
 function saveSources(workspace, outDir, pages) {
@@ -185,10 +226,12 @@ async function checkRun(browser, run, slug) {
   const silenced = silencedRules(workspace);
   if (silenced.length > 0) notes.push(`live-tokens.config.json turns off: ${silenced.join(', ')}`);
   writeFileSync(join(outDir, 'findings.json'), JSON.stringify(checks, null, 2));
+  const made = { ...inventory(workspace, pages), literals: checks.flatMap((c) => c.findings).filter((f) => LITERAL_RULES.has(f.rule)).map((f) => `${f.file}:${f.line} ${f.message.replace(/\. Use .*$/s, '')}`) };
+  writeFileSync(join(outDir, 'inventory.json'), JSON.stringify(made, null, 2));
   const sources = saveSources(workspace, outDir, pages);
   const { shots, note } = pages.length > 0 ? await screenshot(browser, workspace, outDir) : { shots: [] };
   if (note) notes.push(note);
-  return { ...loops, errors, checks, shots, sources, notes };
+  return { ...loops, errors, checks, shots, sources, notes, made };
 }
 
 const ARM_ORDER = ['no skills|neither', 'skills|neither', 'skills|lookup', 'skills|checker', 'skills|lookup and checker'];
@@ -235,6 +278,7 @@ const ordered = [...arms.values()].sort((a, b) => {
   const rank = (k) => (ARM_ORDER.indexOf(k) === -1 ? ARM_ORDER.length : ARM_ORDER.indexOf(k));
   return rank(a.key) - rank(b.key);
 });
+const newTokenCount = (made) => made.addedTokens.length + made.changedTokens.length + made.customProperties.length;
 const summary = ordered.map((arm) => {
   const avg = (pick) => mean(arm.runs.map(pick));
   return {
@@ -247,15 +291,19 @@ const summary = ordered.map((arm) => {
     checkerRuns: avg((r) => r.checked.checkerRuns),
     lookupRuns: avg((r) => r.checked.lookupRuns),
     cost: avg((r) => r.run.costUsd),
+    shippedUsed: avg((r) => r.checked.made?.used.filter((c) => c.origin === 'shipped').length),
+    created: avg((r) => r.checked.made?.created.length),
+    newTokens: avg((r) => r.checked.made && newTokenCount(r.checked.made)),
+    literals: avg((r) => r.checked.made?.literals.length),
   };
 });
 
 const lines = [
   `Checkers restored from scratch/eval-project, run with --strict --no-fix${tests.length ? ' --tests' : ''}.`,
   '',
-  '| Arm | Runs | Grader score | Checker errors left | Seconds | Turns | Checker runs | Lookup runs | Cost |',
-  '|---|---|---|---|---|---|---|---|---|',
-  ...summary.map((s) => `| ${s.name} | ${s.runs} | ${fmt(s.score, 2)} | ${fmt(s.errors)} | ${fmt(s.seconds, 0)} | ${fmt(s.turns)} | ${fmt(s.checkerRuns)} | ${fmt(s.lookupRuns)} | $${fmt(s.cost, 2)} |`),
+  '| Arm | Runs | Grader score | Checker errors left | Seconds | Turns | Checker runs | Lookup runs | Cost | Shipped components | New components | New tokens | Literal values |',
+  '|---|---|---|---|---|---|---|---|---|---|---|---|---|',
+  ...summary.map((s) => `| ${s.name} | ${s.runs} | ${fmt(s.score, 2)} | ${fmt(s.errors)} | ${fmt(s.seconds, 0)} | ${fmt(s.turns)} | ${fmt(s.checkerRuns)} | ${fmt(s.lookupRuns)} | $${fmt(s.cost, 2)} | ${fmt(s.shippedUsed)} | ${fmt(s.created)} | ${fmt(s.newTokens)} | ${fmt(s.literals)} |`),
   '',
   `Report: ${join(reportDir, 'index.html')}`,
 ];
@@ -264,13 +312,31 @@ console.log(lines.join('\n'));
 const esc = (s) => String(s).replace(/[&<>"]/g, (ch) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[ch]);
 const maxRuns = Math.max(...ordered.map((a) => a.runs.length));
 
+function made({ used, created, addedTokens, changedTokens, customProperties, literals }) {
+  const list = (items, render) => `<ul class="made">${items.map((item) => `<li>${render(item)}</li>`).join('')}</ul>`;
+  const none = (text) => `<p class="none">${text}</p>`;
+  const tokens = [
+    ...addedTokens.map((name) => `<code>${esc(name)}</code> added to tokens.css`),
+    ...changedTokens.map((name) => `<code>${esc(name)}</code> changed in tokens.css`),
+    ...customProperties.map((p) => `<code>${esc(p.name)}</code> declared in ${esc(p.file)}${p.overrides ? ', overriding a design token' : ''}`),
+  ];
+  return `<h4>Components used</h4>
+  ${used.length ? `<div class="chips">${used.map((c) => `<span class="chip ${c.origin === 'shipped' ? '' : 'custom'}">${esc(c.id)} <b>${c.rendered}</b></span>`).join('')}</div>` : none('No component rendered on the page.')}
+  <h4>New components</h4>
+  ${created.length ? list(created, (c) => `<code>${esc(c.id)}</code> ${esc(c.file)}, ${c.properties} properties, ${c.registered ? 'registered' : 'not registered'}`) : none('None.')}
+  <h4>New tokens</h4>
+  ${tokens.length ? list(tokens, (t) => t) : none('None.')}
+  <h4>Literal values</h4>
+  ${literals.length ? list(literals, (l) => esc(l)) : none('None.')}`;
+}
+
 function column(arm, r) {
   if (!r) return `<article class="col empty"><h3>${esc(arm.name)}</h3><p class="note">No run ${esc(String(arm.runs.length + 1))}.</p></article>`;
   const { run, checked, failed, slug } = r;
   const metric = (label, value) => `<div><dt>${label}</dt><dd>${value}</dd></div>`;
   const shot = (name) =>
     checked.shots.includes(name)
-      ? `<a class="shot ${name}" href="${slug}/${name}.png" target="_blank"><img src="${slug}/${name}.png" alt="${esc(arm.name)}, run ${r.index}, ${name}" loading="lazy"></a>`
+      ? `<a class="shot ${name}" href="${slug}/${name}.png" data-width="${VIEWPORTS.find((v) => v.name === name).width}" data-caption="${esc(arm.name)}, run ${r.index}, ${name}"><img src="${slug}/${name}.png" alt="${esc(arm.name)}, run ${r.index}, ${name}" loading="lazy"></a>`
       : '';
   const rules = checked.checks
     .map((c) => `<li><span class="check">${esc(c.label)}</span> ${c.note ? esc(c.note) : `${c.errors} errors`}${c.byRule.length ? `<ul class="rules">${c.byRule.map(([rule, n]) => `<li><code>${esc(rule)}</code> ${n}</li>`).join('')}</ul>` : ''}</li>`)
@@ -289,9 +355,10 @@ function column(arm, r) {
   ${run.error ? `<p class="note">Did not finish: ${esc(run.error)}</p>` : ''}
   ${checked.notes.map((n) => `<p class="note">${esc(n)}</p>`).join('')}
   <div class="shots">${shot('desktop')}${shot('mobile')}</div>
+  ${checked.made ? made(checked.made) : ''}
   ${failed.length ? `<h4>Failed graders</h4><ul class="graders">${failed.map((g) => `<li><code>${esc(g)}</code></li>`).join('')}</ul>` : (run.graders ?? []).length ? '<h4>Every grader passed</h4>' : ''}
   ${rules ? `<h4>Checker findings</h4><ul class="checks">${rules}</ul>` : ''}
-  ${checked.sources.length ? `<h4>Sources</h4><ul class="sources">${checked.sources.map((s) => `<li><a href="${slug}/${esc(s)}" target="_blank">${esc(s)}</a></li>`).join('')}<li><a href="${slug}/findings.json" target="_blank">findings.json</a></li></ul>` : ''}
+  ${checked.sources.length ? `<h4>Sources</h4><ul class="sources">${checked.sources.map((s) => `<li><a href="${slug}/${esc(s)}" target="_blank">${esc(s)}</a></li>`).join('')}<li><a href="${slug}/findings.json" target="_blank">findings.json</a></li><li><a href="${slug}/inventory.json" target="_blank">inventory.json</a></li></ul>` : ''}
 </article>`;
 }
 
@@ -334,11 +401,26 @@ const html = `<!doctype html>
   .shot { display: block; width: 100%; border: 1px solid var(--line); border-radius: 6px; overflow: hidden; max-height: 900px; }
   .shot.mobile { width: 50%; }
   .shot img { display: block; width: 100%; }
+  .shot { cursor: zoom-in; }
+  .lightbox { width: 100vw; height: 100dvh; max-width: none; max-height: none; margin: 0; padding: 0; border: 0; background: #0a0a09; color: #ecebe6; }
+  .lightbox::backdrop { background: transparent; }
+  .lightbox-bar { position: sticky; top: 0; z-index: 1; display: flex; align-items: center; gap: 12px; padding: 12px 20px; background: rgb(10 10 9 / 0.9); }
+  .lightbox-bar span { flex: 1; font-weight: 600; }
+  .lightbox-bar button { font: inherit; color: inherit; background: rgb(255 255 255 / 0.1); border: 1px solid rgb(255 255 255 / 0.2); border-radius: 999px; padding: 4px 14px; cursor: pointer; }
+  .lightbox-bar button:hover { background: rgb(255 255 255 / 0.2); }
+  .lightbox-stage { overflow: auto; height: calc(100dvh - 58px); padding: 0 20px 40px; }
+  .lightbox-stage img { display: block; margin: 0 auto; max-width: 100%; height: auto; cursor: zoom-out; }
   ul { margin: 0; padding-left: 18px; }
   .rules { padding-left: 16px; color: var(--muted); }
   .graders li, .note { color: var(--bad); }
   .note { margin: 8px 0 0; font-size: 13px; }
   .check { font-weight: 600; }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chip { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 12px; padding: 2px 8px; border: 1px solid var(--line); border-radius: 999px; }
+  .chip b { font-weight: 600; color: var(--muted); }
+  .chip.custom { border-color: var(--ink); }
+  .made { font-size: 13px; }
+  .none { margin: 0; font-size: 13px; color: var(--muted); }
   a { color: inherit; }
   @media (max-width: 640px) { header, section { padding: 16px; } .strip { grid-auto-columns: 88vw; } }
 </style>
@@ -346,19 +428,55 @@ const html = `<!doctype html>
 <body>
 <header>
   <h1>Billing eval report</h1>
-  <p class="lede">Every run gets the same brief in a fresh session and a freshly copied project. Columns compare the arms; click a screenshot to open it at full size. Checker errors come from the full checkers run afterwards with --strict --no-fix${tests.length ? ' --tests' : ''}, the same for every arm.</p>
+  <p class="lede">Every run gets the same brief in a fresh session and a freshly copied project. Columns compare the arms; click a screenshot to open it at full size, and use the arrow keys to step between screenshots. Checker errors come from the full checkers run afterwards with --strict --no-fix${tests.length ? ' --tests' : ''}, the same for every arm.</p>
 </header>
 <section>
   <h2>Means per arm</h2>
   <div class="table-scroll"><table>
-    <thead><tr><th>Arm</th><th>Runs</th><th>Grader score</th><th>Errors left</th><th>Seconds</th><th>Turns</th><th>Checker runs</th><th>Lookup runs</th><th>Cost</th></tr></thead>
-    <tbody>${summary.map((s) => `<tr><td>${esc(s.name)}</td><td>${s.runs}</td><td>${fmt(s.score, 2)}</td><td>${fmt(s.errors)}</td><td>${fmt(s.seconds, 0)}</td><td>${fmt(s.turns)}</td><td>${fmt(s.checkerRuns)}</td><td>${fmt(s.lookupRuns)}</td><td>$${fmt(s.cost, 2)}</td></tr>`).join('')}</tbody>
+    <thead><tr><th>Arm</th><th>Runs</th><th>Grader score</th><th>Errors left</th><th>Seconds</th><th>Turns</th><th>Checker runs</th><th>Lookup runs</th><th>Cost</th><th>Shipped components</th><th>New components</th><th>New tokens</th><th>Literal values</th></tr></thead>
+    <tbody>${summary.map((s) => `<tr><td>${esc(s.name)}</td><td>${s.runs}</td><td>${fmt(s.score, 2)}</td><td>${fmt(s.errors)}</td><td>${fmt(s.seconds, 0)}</td><td>${fmt(s.turns)}</td><td>${fmt(s.checkerRuns)}</td><td>${fmt(s.lookupRuns)}</td><td>$${fmt(s.cost, 2)}</td><td>${fmt(s.shippedUsed)}</td><td>${fmt(s.created)}</td><td>${fmt(s.newTokens)}</td><td>${fmt(s.literals)}</td></tr>`).join('')}</tbody>
   </table></div>
 </section>
 ${Array.from({ length: maxRuns }, (_, i) => `<section>
   <h2>Run ${i + 1}</h2>
   <div class="strip">${ordered.map((arm) => column(arm, arm.runs[i])).join('\n')}</div>
 </section>`).join('\n')}
+<dialog class="lightbox" aria-label="Screenshot">
+  <div class="lightbox-bar">
+    <span class="lightbox-caption"></span>
+    <button type="button" data-step="-1" aria-label="Previous screenshot">Previous</button>
+    <button type="button" data-step="1" aria-label="Next screenshot">Next</button>
+    <button type="button" data-close aria-label="Close">Close</button>
+  </div>
+  <div class="lightbox-stage"><img alt=""></div>
+</dialog>
+<script>
+  const shots = [...document.querySelectorAll('.shot')];
+  const box = document.querySelector('.lightbox');
+  const img = box.querySelector('img');
+  const caption = box.querySelector('.lightbox-caption');
+  const stage = box.querySelector('.lightbox-stage');
+  let current = 0;
+  // Shots are captured at 2x, so the CSS width is the viewport the page was rendered at.
+  function show(i) {
+    current = (i + shots.length) % shots.length;
+    const shot = shots[current];
+    img.src = shot.getAttribute('href');
+    img.alt = shot.dataset.caption;
+    img.style.width = shot.dataset.width + 'px';
+    caption.textContent = shot.dataset.caption + ' (' + (current + 1) + ' of ' + shots.length + ')';
+    stage.scrollTop = 0;
+    if (!box.open) box.showModal();
+  }
+  shots.forEach((shot, i) => shot.addEventListener('click', (event) => { event.preventDefault(); show(i); }));
+  box.querySelectorAll('[data-step]').forEach((b) => b.addEventListener('click', () => show(current + Number(b.dataset.step))));
+  box.querySelector('[data-close]').addEventListener('click', () => box.close());
+  img.addEventListener('click', () => box.close());
+  box.addEventListener('keydown', (event) => {
+    if (event.key === 'ArrowRight') show(current + 1);
+    if (event.key === 'ArrowLeft') show(current - 1);
+  });
+</script>
 </body>
 </html>
 `;
