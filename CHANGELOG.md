@@ -1,9 +1,57 @@
 # Changelog
 
-## Unreleased
+## Unreleased — Responsive columns
+
+### Changed (breaking)
+
+- **The column gutter narrows on tablets and phones.** `--columns-gutter`
+  stays 32px on a desktop, becomes 24px at 767px and narrower, and becomes
+  16px at 480px and narrower. `--columns-count` stays 12 at every width, so
+  `span 6` is half the page on a phone and on a desktop. Six tokens hold the
+  values: `--columns-desktop-gutter`, `--columns-tablet-gutter`,
+  `--columns-phone-gutter`, and the three matching `-margin` names.
+  `--columns-gutter` and `--columns-margin` keep their names and point at the
+  desktop values, and `tokens.css` re-points them in a new 767px block and in
+  its 480px block. Set a gutter or a margin through its viewport's name: a
+  theme that sets `--columns-gutter` itself outweighs the breakpoints. The
+  `clamp(0.5rem, 1.5vw, 1.5rem)` default gutter goes. Every shipped theme
+  pinned 32px over it.
+- **The desktop column margin becomes 32px.** `--columns-margin` was `0`.
+  Each viewport's margin now equals its gutter, so it becomes 24px at 767px
+  and narrower and 16px at 480px and narrower. The column overlay insets its
+  columns by the margin, so on a desktop they now line up with a page grid
+  that pads with `--space-32`, as the `create` template's Home did before
+  this release. A theme that stored the old `0px` margin takes the new 32px.
+  The theme migration drops a stored `--columns-margin` of `0px` or `0`, a
+  `--columns-gutter` of `32px`, and a `--columns-count` of `12`, the values
+  every shipped theme held, and moves any other stored gutter or margin to
+  its desktop name.
+- **A custom production theme keeps its old column values in production
+  until you save it.** Its file still stores `--columns-gutter` and
+  `--columns-margin`, and `tokens.generated.css` writes them on `:root:root`,
+  where they outweigh the breakpoints. The editor migrates a theme as it loads
+  it. Open the production theme in the editor, save it once, and Adopt it to
+  write the new values.
+- **A `@media (max-width: 767px)` block below the 480px block overrides the
+  phone values.** Both blocks apply on a phone, and the later one wins. The
+  migration adds the tablet re-points to a 767px block your `tokens.css`
+  already holds, wherever it sits, and otherwise writes a new block above the
+  480px block. Move a 767px block of your own above the 480px block.
 
 ### Changed
 
+- **The editor's Columns section edits each viewport.** The count and the
+  max width sit at the top and hold at every width. A Desktop, Tablet and
+  Phone control picks the viewport whose gutter and margin the sliders below
+  it set, and Reset restores that viewport's defaults. A theme stores a
+  viewport's value once it differs from the default.
+- **The shipped pages and the `create` template keep the column grid at
+  every width.** Each page grid pads with `padding-inline:
+  var(--columns-margin)` and declares `box-sizing: content-box`, so its
+  columns span `--columns-max-width` and match the overlay. Spans count
+  twelfths at every width and widen below 768px. The create-page skill
+  teaches the same grid. A page of yours that sets
+  `grid-template-columns: 1fr` below 768px keeps working.
 - **A production build keeps a CSS variable only where its value changes at
   runtime.** `vite build` with `themeFileApi` removes each custom property no
   rule reads, writes each one whose value never changes as its value, and
@@ -32,6 +80,20 @@
   option renamed `sketchStyles`, so a built site offered only the shipped
   sketchstyles. A project scaffolded before this release keeps the old line;
   rename `sketchLooks` to `sketchStyles` in its `main.ts`.
+
+### Migration
+
+- Run `npx live-tokens migrate`. The `2026-10-15-responsive-columns`
+  tokens.css migration is breaking, so the dev plugin's `autoMigrate` skips
+  it, and check-page reports it as `tokens-breaking-migration` until it runs.
+  It adds the six viewport names, moves a gutter or margin you changed into
+  its desktop name, gives the shipped `clamp()` gutter and `0` margin the new
+  32px, points `--columns-gutter` and `--columns-margin` at the desktop
+  names, and adds the 767px and 480px re-points. It leaves `--columns-count`
+  as it is.
+- A theme migrates when the editor loads it, and the next save writes the
+  result. The entry on custom production themes above gives the step that
+  reaches production.
 
 ## 0.94.3 — Demo bar chrome
 
