@@ -9,6 +9,7 @@ import { fileURLToPath } from 'node:url';
 import { MAX_SKILL_LINES, checkSkills } from './lib/skillChecks.mjs';
 import { PAGE_RULES } from '../bin/check-page.mjs';
 import { COMPONENT_RULES } from '../bin/check-component.mjs';
+import { SKILL_PREFIX } from '../bin/setup-claude.mjs';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const SKILLS = join(ROOT, '.claude/skills');
@@ -22,7 +23,7 @@ const dirNames = (dir) =>
     .sort();
 
 const skills = {};
-for (const skill of dirNames(SKILLS)) {
+for (const skill of dirNames(SKILLS).filter((name) => name.startsWith(SKILL_PREFIX))) {
   const dir = join(SKILLS, skill);
   const files = {};
   if (existsSync(join(dir, 'SKILL.md'))) files['SKILL.md'] = read(join(dir, 'SKILL.md'));

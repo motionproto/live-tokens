@@ -6,4 +6,4 @@ target:
 pattern: '<Dialog\b'
 ---
 
-Cancelling cannot be undone, so the action confirms in a `dialog`. A bare danger `button` is the trap.
+Cancelling is permanent, so the action confirms in a `dialog`. A bare danger `button` is the trap.

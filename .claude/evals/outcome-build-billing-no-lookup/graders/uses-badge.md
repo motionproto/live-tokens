@@ -6,4 +6,4 @@ target:
 pattern: '<Badge\b'
 ---
 
-Each invoice status is a short standing label, so it takes `badge`.
+Whether each invoice was paid is a short standing label, so it takes `badge`.

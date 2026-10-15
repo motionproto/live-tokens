@@ -3,17 +3,19 @@ import { existsSync, readdirSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { SKILL_DOC, skillDocs } from './skillSources.generated';
+// @ts-expect-error — plain .mjs module, no types
+import { SKILL_PREFIX } from '../../../bin/setup-claude.mjs';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../../..');
 const SKILLS = join(ROOT, '.claude/skills');
 
 const skillDirs = readdirSync(SKILLS, { withFileTypes: true })
-  .filter((e) => e.isDirectory())
+  .filter((e) => e.isDirectory() && e.name.startsWith(SKILL_PREFIX))
   .map((e) => e.name)
   .sort();
 
 describe('skillDocs', () => {
-  it('is keyed by every directory under .claude/skills', () => {
+  it('is keyed by every shipped skill under .claude/skills', () => {
     const ids = skillDirs.map((dir) => dir.replace(/^live-tokens-/, '')).sort();
     expect(Object.keys(skillDocs).sort()).toEqual(ids);
   });

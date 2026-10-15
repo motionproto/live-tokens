@@ -6,4 +6,4 @@ target:
 pattern: '<Table\b'
 ---
 
-The invoices are records the reader scans and compares, so they take `table`.
+Two years of monthly invoices are records the reader scans and compares, so they take `table`.

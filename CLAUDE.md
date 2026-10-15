@@ -42,3 +42,13 @@ anchor text is gone, which means that node has to be re-pointed by hand.
 Renaming or moving a node also needs a look at the rendered card. A title and
 its chip labels can each be correct and still contradict each other, and every
 check passes on that.
+
+# Evals
+
+`.claude/evals/README.md` describes every eval case and how to run it.
+The `evaluate` skill runs the billing comparison and reads its report.
+`npm run eval:billing -- --smoke` runs one billing case end to end;
+`--runs <n>` runs all five arms (unattended, skills only, lookup, checker,
+both) and writes a comparison report under `scratch/eval-billing/`. A run
+takes up to an hour per arm. Stop Docker containers first: the eval script
+quits Docker Desktop for the length of the run.

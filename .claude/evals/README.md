@@ -19,7 +19,7 @@ Sixteen cases, seven on triggering and nine on outcome:
 | `outcome-theme-from-request` | Does create-theme route three intents and produce a real theme? |
 | `outcome-component-from-brief` | Does create-component reach its gate, run `check-component --strict`, and iterate to exit 0? |
 | `outcome-page-from-brief` | Does create-page run `check-page --strict` on the new page and iterate to exit 0? |
-| `outcome-build-billing` | A billing page that needs eight shipped components and one new one: with the lookup and the checker, how accurate, how fast, and how many loops? |
+| `outcome-build-billing` | A coffee-box billing page that needs eight shipped components and a new one-month calendar: with the lookup and the checker, how accurate, how fast, and how many loops? |
 | `outcome-build-billing-no-checker` | The same brief with the lookup only. |
 | `outcome-build-billing-no-lookup` | The same brief with the checker only. |
 | `outcome-build-billing-no-cli` | The same brief with neither; its no-plugin arm is the unattended model. |
@@ -205,19 +205,21 @@ skills the package ships, so only the plugin supplies them.
 the checks `vite build` runs), or both. A removed command fails as an unknown
 command.
 
-The brief sets traps on both sides. For the lookup, each requirement has one
-right component, and the invoice recipients fit nothing shipped, so the run
-must author a component. For the checker, the brief asks for things the rules
-refuse: smaller toolbar buttons (`control-size`), four cards in a row
-(`hardcoded-columns`), price in large type (`raw-text-axis`), a gold
-highlight (`color-literal`, `page-contrast`), a "Choose plan" action on every
-card (`multiple-primary`), and an irreversible cancel
-(`danger-without-dialog`).
+The brief reads like a client's request and avoids the catalogue's own
+wording, so the lookup has to earn its picks. For the lookup, each
+requirement has one right component, and the delivery day needs a calendar
+of next month that shows each date's weekday. Nothing shipped draws a month
+grid, and a `MenuSelect` of dates hides the weekdays, so the run must author
+a component. For the checker, the brief asks for things the rules refuse:
+smaller toolbar buttons (`control-size`), four plans side by side
+(`hardcoded-columns`), big prices (`raw-text-axis`), the brand gold
+(`color-literal`, `page-contrast`), a way to pick every plan
+(`multiple-primary`), and a permanent cancel (`danger-without-dialog`).
 
 Each case measures three things:
 
 - **Accuracy.** The runner's graders check the component each requirement
-  takes, that no `MenuSelect` stands in for the recipients, that a new
+  takes, that no `MenuSelect` stands in for the calendar, that a new
   component is registered, and the route. Afterwards the full checkers count
   the errors the run left in its page and components.
 - **Time.** The run's seconds, and its cost.
@@ -230,15 +232,17 @@ three run with `--ablation none`, since a no-plugin arm there adds only a
 model that may stumble on the commands.
 
 ```
-npm run build:eval-project
-npm run eval -- --case outcome-build-billing-no-cli --keep-temp
-cp scratch/eval-last.json scratch/eval-billing-no-cli.json
-for c in outcome-build-billing outcome-build-billing-no-checker outcome-build-billing-no-lookup; do
-  npm run eval -- --case "$c" --ablation none --keep-temp
-  cp scratch/eval-last.json "scratch/eval-$c.json"
-done
-node scripts/eval-check-build.mjs scratch/eval-*billing*.json --tests
+npm run eval:billing -- --smoke     # one run of the case with every tool
+npm run eval:billing -- --runs 3    # all five arms, three runs each
 ```
+
+`scripts/eval-billing.sh` refuses to start while a Docker container runs,
+builds the eval project, runs the cases one at a time with `--keep-temp`,
+and keeps each case's result and log in `scratch/eval-billing/<time>/`.
+It then runs `scripts/eval-check-build.mjs` over the results, which writes
+the report to `report/index.html` in that folder and deletes the kept
+sandboxes once the report holds its copies.
+
 
 Each run is a fresh `claude` session given the same prompt file in a freshly
 copied project, so no arm sees another's work. The script restores the
@@ -256,5 +260,4 @@ properties its page and components declare beyond a new component's own
 screenshots are captured at twice their pixel density and open in a lightbox
 that steps through every run with the arrow keys. It names
 any rule a run turned off in `live-tokens.config.json`. The report keeps its
-own copies, so delete the kept workspaces from the system temp folder
-afterwards.
+own copies of the screenshots, sources, findings, and trace.

@@ -4,11 +4,11 @@ import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 // @ts-expect-error — plain .mjs module, no types
-import { runSetupClaude, formatSetupResult } from './setup-claude.mjs';
+import { SKILL_PREFIX, runSetupClaude, formatSetupResult } from './setup-claude.mjs';
 
 const pkgRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const skillsDir = join(pkgRoot, '.claude', 'skills');
-const shipped = readdirSync(skillsDir).filter((n) => statSync(join(skillsDir, n)).isDirectory());
+const shipped = readdirSync(skillsDir).filter((n) => statSync(join(skillsDir, n)).isDirectory() && n.startsWith(SKILL_PREFIX));
 
 const created: string[] = [];
 function freshProject(): string {

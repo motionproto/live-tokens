@@ -18,6 +18,7 @@
 import { readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { SKILL_PREFIX } from '../bin/setup-claude.mjs';
 import {
   atlasNodes,
   auditStructure,
@@ -68,7 +69,7 @@ errors.push(...auditStructure(activeTrees, Object.values(trees).map((tree) => tr
 
 // `check:skills` enumerates the same directory for the same reason.
 const skillDirs = readdirSync(SKILLS, { withFileTypes: true })
-  .filter((e) => e.isDirectory())
+  .filter((e) => e.isDirectory() && e.name.startsWith(SKILL_PREFIX))
   .map((e) => e.name)
   .sort();
 errors.push(...uncoveredSkills(trees, skillDirs));

@@ -6,4 +6,4 @@ target:
 pattern: '<Notification\b'
 ---
 
-The save confirmation is feedback about something that just happened and goes away on its own, so it takes `notification`.
+Telling the reader the save worked is feedback about something that just happened, so it takes `notification`. `callout` stays present and is about no event.

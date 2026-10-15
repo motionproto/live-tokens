@@ -6,4 +6,4 @@ target:
 pattern: '<RadioButton\b'
 ---
 
-The payment method is a choice the reader reviews as text before committing, so it takes `radiobutton`.
+The payment method is a choice the reader reads, with who qualifies, before committing, so it takes `radiobutton`.

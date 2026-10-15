@@ -14,18 +14,17 @@
 import { readFileSync, writeFileSync, readdirSync, existsSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { SKILL_PREFIX as PREFIX } from '../bin/setup-claude.mjs';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const SKILLS = join(ROOT, '.claude/skills');
 const OUT = join(ROOT, 'src/editor/skill-atlas/skillSources.generated.ts');
-const PREFIX = 'live-tokens-';
-
 const args = process.argv.slice(2);
 const write = args.includes('--write');
 const check = args.includes('--check');
 
 const skillDirs = readdirSync(SKILLS, { withFileTypes: true })
-  .filter((e) => e.isDirectory())
+  .filter((e) => e.isDirectory() && e.name.startsWith(PREFIX))
   .map((e) => e.name)
   .sort();
 

@@ -19,7 +19,7 @@ import { join } from 'node:path';
 
 // The package owns this prefix in a project's skills directory. A skill without
 // it is the project's own and is never touched, whatever the flags say.
-const SKILL_PREFIX = 'live-tokens-';
+export const SKILL_PREFIX = 'live-tokens-';
 
 const SAMPLE_PROMPTS = {
   'live-tokens-create-page': 'build a pricing page using live-tokens components',
@@ -44,7 +44,7 @@ export function runSetupClaude({ pkgRoot, cwd, force = false }) {
     throw new Error(`No bundled skills found at ${srcSkills}. Is the package installed correctly?`);
   }
 
-  const shipped = directoriesIn(srcSkills);
+  const shipped = directoriesIn(srcSkills).filter((name) => name.startsWith(SKILL_PREFIX));
   if (shipped.length === 0) {
     throw new Error('No bundled skills to install.');
   }

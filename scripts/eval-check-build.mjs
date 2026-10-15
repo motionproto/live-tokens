@@ -7,14 +7,15 @@
 // from the trace. The runner has no grader that runs a command, so this reads
 // the workspaces and traces a `--keep-temp` run kept.
 //
-//   node scripts/eval-check-build.mjs scratch/eval-*billing*.json [--tests]
+//   node scripts/eval-check-build.mjs <result json>... [--tests] [--out <dir>] [--clean]
 //
-// The report lands in scratch/eval-reports/<time>/index.html, with each run's
-// screenshots, page and component sources, and findings beside it.
+// The report lands in <dir>/index.html (default scratch/eval-reports/<time>),
+// with each run's screenshots, sources, findings, and trace beside it.
+// --clean deletes each run's kept sandbox once the report holds its copies.
 
 import { spawn, spawnSync } from 'node:child_process';
-import { copyFileSync, cpSync, existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
-import { dirname, join, resolve } from 'node:path';
+import { copyFileSync, cpSync, existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { basename, dirname, join, resolve } from 'node:path';
 import process from 'node:process';
 import { chromium } from 'playwright';
 
@@ -40,10 +41,13 @@ const CHECKER_RUN = /check-(page|component)\b/;
 const LOOKUP_RUN = /live-tokens\s+(components|tokens)\b/;
 
 const args = process.argv.slice(2);
-const resultPaths = args.filter((a) => !a.startsWith('--'));
+const outAt = args.indexOf('--out');
+const outArg = outAt >= 0 ? args[outAt + 1] : undefined;
+const resultPaths = args.filter((a, i) => !a.startsWith('--') && i !== outAt + 1);
 const tests = args.includes('--tests') ? ['--tests'] : [];
-if (resultPaths.length === 0) {
-  console.error('usage: node scripts/eval-check-build.mjs <eval result json>... [--tests]');
+const clean = args.includes('--clean');
+if (resultPaths.length === 0 || (outAt >= 0 && !outArg)) {
+  console.error('usage: node scripts/eval-check-build.mjs <result json>... [--tests] [--out <dir>] [--clean]');
   process.exit(1);
 }
 if (!existsSync(join(PROJECT, PKG))) {
@@ -51,7 +55,7 @@ if (!existsSync(join(PROJECT, PKG))) {
   process.exit(1);
 }
 const templatePages = new Set(readdirSync(join(PROJECT, 'src/pages')));
-const reportDir = join(REPO, 'scratch/eval-reports', new Date().toISOString().replace(/[:.]/g, '-'));
+const reportDir = outArg ? resolve(outArg) : join(REPO, 'scratch/eval-reports', new Date().toISOString().replace(/[:.]/g, '-'));
 
 function findWorkspace(root, depth = 2) {
   if (existsSync(join(root, 'src/App.svelte'))) return root;
@@ -229,6 +233,7 @@ async function checkRun(browser, run, slug) {
   const made = { ...inventory(workspace, pages), literals: checks.flatMap((c) => c.findings).filter((f) => LITERAL_RULES.has(f.rule)).map((f) => `${f.file}:${f.line} ${f.message.replace(/\. Use .*$/s, '')}`) };
   writeFileSync(join(outDir, 'inventory.json'), JSON.stringify(made, null, 2));
   const sources = saveSources(workspace, outDir, pages);
+  if (commands) copyFileSync(run.tracePath, join(outDir, 'trace.jsonl'));
   const { shots, note } = pages.length > 0 ? await screenshot(browser, workspace, outDir) : { shots: [] };
   if (note) notes.push(note);
   return { ...loops, errors, checks, shots, sources, notes, made };
@@ -272,6 +277,16 @@ try {
   }
 } finally {
   await browser.close();
+}
+
+// Only a directory the runner itself names `e-<id>` is removed, so a stray tracePath cannot reach anything else.
+if (clean) {
+  for (const arm of arms.values()) {
+    for (const { run } of arm.runs) {
+      const sandbox = dirname(dirname(run.tracePath));
+      if (/^e-[A-Za-z0-9]+$/.test(basename(sandbox)) && existsSync(sandbox)) rmSync(sandbox, { recursive: true, force: true });
+    }
+  }
 }
 
 const ordered = [...arms.values()].sort((a, b) => {
@@ -358,7 +373,7 @@ function column(arm, r) {
   ${checked.made ? made(checked.made) : ''}
   ${failed.length ? `<h4>Failed graders</h4><ul class="graders">${failed.map((g) => `<li><code>${esc(g)}</code></li>`).join('')}</ul>` : (run.graders ?? []).length ? '<h4>Every grader passed</h4>' : ''}
   ${rules ? `<h4>Checker findings</h4><ul class="checks">${rules}</ul>` : ''}
-  ${checked.sources.length ? `<h4>Sources</h4><ul class="sources">${checked.sources.map((s) => `<li><a href="${slug}/${esc(s)}" target="_blank">${esc(s)}</a></li>`).join('')}<li><a href="${slug}/findings.json" target="_blank">findings.json</a></li><li><a href="${slug}/inventory.json" target="_blank">inventory.json</a></li></ul>` : ''}
+  ${checked.sources.length ? `<h4>Sources</h4><ul class="sources">${checked.sources.map((s) => `<li><a href="${slug}/${esc(s)}" target="_blank">${esc(s)}</a></li>`).join('')}<li><a href="${slug}/findings.json" target="_blank">findings.json</a></li><li><a href="${slug}/inventory.json" target="_blank">inventory.json</a></li>${checked.checkerRuns !== null ? `<li><a href="${slug}/trace.jsonl" target="_blank">trace.jsonl</a></li>` : ''}</ul>` : ''}
 </article>`;
 }
 

@@ -12,13 +12,14 @@ allowed_tools:
   - Grep
 ---
 
-Add a billing page at `/billing`, in `src/pages/Billing.svelte`.
+We need a billing page at `/billing`, in `src/pages/Billing.svelte`, for our monthly coffee box.
 
-- At the top, a switch between monthly and annual prices. It sits in one row with two actions, "Download invoices" and "Contact sales". Make those toolbar buttons smaller than the rest of the page's buttons.
-- Four plan cards side by side: Free, Team, Business, and Enterprise. Each shows its price in large type, three features, and a "Choose plan" action. Mark Business as recommended, with a gold highlight on its card.
-- A payment method choice: card, bank transfer, or invoice. Each option has a line saying who is eligible, which the reader reads before choosing.
-- An "Email receipts" setting that takes effect the moment it flips.
-- Invoice recipients: the reader picks any number of people from the full team list of 30.
-- The last 24 invoices, with date, amount, and status, for the reader to scan and compare. Show each status as a short label.
-- A "Save billing details" action. After it saves, a confirmation appears and goes away on its own.
-- A "Cancel subscription" action at the bottom of the page. Cancelling cannot be undone.
+Customers should see their current plan next to the others, Taster, Regular, Office, and Roastery, all side by side, with prices they can flip between monthly and annual. Regular is the plan we want to push, so make it stand out; our brand gold works for that. Each plan needs a way to pick it, and the prices should be big and clear. Next to the price switch, put two smaller buttons, Download invoices and Contact us, so they don't compete with the plans.
+
+Next month's box ships on a day the customer chooses. Show next month as a calendar, so they can see which weekday each date falls on, and let them pick one day. We don't ship on weekends.
+
+Below that, let them set how they pay: card, bank transfer, or invoice. Not everyone qualifies for the last two, so say who does.
+
+Add a switch for emailed receipts, their invoice history for the last two years with whether each one was paid, and one save button for all of this that tells them it worked.
+
+At the very bottom, give them a way to cancel the subscription. Cancelling is permanent, so it shouldn't happen by accident.

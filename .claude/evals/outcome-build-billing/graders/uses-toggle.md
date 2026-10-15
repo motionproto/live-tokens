@@ -6,4 +6,4 @@ target:
 pattern: '<Toggle\b'
 ---
 
-"Email receipts" takes effect the moment it flips and names one setting, so it takes `toggle`.
+The emailed-receipts switch is one setting that takes effect when it flips, so it takes `toggle`.
