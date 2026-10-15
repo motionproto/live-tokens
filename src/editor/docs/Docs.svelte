@@ -359,19 +359,27 @@
     color: var(--text-primary);
     min-height: 100vh;
   }
+  /* The open rail spans three columns of the page grid and the closed rail one.
+     A percentage resolves against the shell's content box, and the rail's own
+     width tokens resolve 100cqw against the same box, so track and rail tween
+     together. The rail's width excludes its border-right. */
   .docs-shell {
+    --docs-column: calc((100% - (var(--columns-count) - 1) * var(--columns-gutter)) / var(--columns-count));
+    --docs-rail-column: calc((100cqw - (var(--columns-count) - 1) * var(--columns-gutter)) / var(--columns-count));
+    --sidenavigation-panel-open-width: calc(3 * var(--docs-rail-column) + 2 * var(--columns-gutter) - var(--sidenavigation-panel-border-width));
+    --sidenavigation-panel-closed-width: calc(var(--docs-rail-column) - var(--sidenavigation-panel-border-width));
+    container-type: inline-size;
     display: grid;
-    grid-template-columns: var(--sidenavigation-panel-open-width, 16rem) minmax(0, 1fr);
+    grid-template-columns: calc(3 * var(--docs-column) + 2 * var(--columns-gutter)) minmax(0, 1fr);
+    column-gap: var(--columns-gutter);
     box-sizing: content-box;
     max-width: var(--columns-max-width, 1440px);
     margin: 0 auto;
     padding-inline: var(--columns-margin);
     transition: grid-template-columns var(--duration-200, 200ms) var(--ease-in-out-sine, ease);
   }
-  /* The rail's own width tween (its width tokens) drives the column; keep the
-     grid track locked to the closed width so content reflows in step. */
   .docs-shell.collapsed {
-    grid-template-columns: var(--sidenavigation-panel-closed-width, 3rem) minmax(0, 1fr);
+    grid-template-columns: var(--docs-column) minmax(0, 1fr);
   }
 
   .docs-main {
@@ -382,7 +390,7 @@
   /* -------------------------------------------------------------- Top header */
   .docs-page-header {
     border-bottom: var(--border-width-1, 1px) solid var(--border-neutral-faint, #1c2327);
-    padding: var(--space-48, 3rem) 0 var(--space-32, 2rem) var(--space-32, 2rem);
+    padding: var(--space-48, 3rem) 0 var(--space-32, 2rem);
     background: linear-gradient(
       180deg,
       color-mix(in srgb, var(--surface-neutral-lower, #162027) 50%, transparent),
@@ -463,7 +471,7 @@
     min-width: 0;
     max-width: 760px;
     outline: none;
-    padding: var(--space-32, 2rem) 0 0 var(--space-32, 2rem);
+    padding: var(--space-32, 2rem) 0 0;
   }
 
   .loading-row {
@@ -656,13 +664,13 @@
     .docs-shell :global(.docs-sidebar) { height: 100%; }
   }
 
-  /* Below 960px the rail stacks above the content on the column grid; the
-     page scrolls naturally. */
+  /* Below 960px the open rail stacks full width above the content; the page
+     scrolls naturally. */
   @media (max-width: 960px) {
+    .docs-shell { --sidenavigation-panel-open-width: calc(100cqw - var(--sidenavigation-panel-border-width)); }
     .docs-shell,
     .docs-shell.collapsed {
       grid-template-columns: repeat(var(--columns-count), minmax(0, 1fr));
-      column-gap: var(--columns-gutter);
     }
     .docs-shell > :global(.docs-sidebar),
     .docs-main { grid-column: 1 / -1; }

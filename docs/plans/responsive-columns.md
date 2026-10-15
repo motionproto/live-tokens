@@ -463,4 +463,9 @@ overlay's columns lining up with the page's section edges.
   narrower) has 12 tracks whose edges sit within 0.13px of the overlay's
   columns. Gutter and margin read 32/32, 32/32, 24/24 and 16/16. Above 960px
   the Docs shell is a 16rem rail beside the content: its outer edges match the
-  overlay, and the rail's inner edge lands at 288px, inside column 3.
+  overlay, and the rail's inner edge lands at 288px, inside column 3. A
+  follow-up commit puts the rail on the grid: open it spans columns 1 to 3,
+  collapsed it spans column 1, and at 960px and narrower it fills the row.
+  The header and article text start on the first column beside the rail.
+  The shell sets SideNavigation's two width tokens, which check-page reports
+  as `property-override` and, without `--no-fix`, deletes.
