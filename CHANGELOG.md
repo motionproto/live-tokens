@@ -12,6 +12,12 @@
   `width`/`height` or the loaded image, the readout measures against the
   fitted view as before. The zoom steps and caps stay the same.
 
+### Fixed
+
+- **The Testing loops page keeps its diagram text crisp in sketch mode.** The
+  text lies in its own svg above the boxes and arrows, so the sketch filter
+  roughens the shapes and leaves the labels legible.
+
 ## 0.95.0 — Responsive columns and production CSS
 
 ### Changed (breaking)
