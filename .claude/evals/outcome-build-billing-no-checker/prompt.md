@@ -1,7 +1,7 @@
 ---
 name: outcome-build-billing-no-checker
 runs: 3
-max_turns: 150
+max_turns: 200
 timeout_seconds: 3600
 allowed_tools:
   - Bash

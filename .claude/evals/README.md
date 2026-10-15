@@ -222,9 +222,20 @@ Each case measures three things:
   takes, that no `MenuSelect` stands in for the calendar, that a new
   component is registered, and the route. Afterwards the full checkers count
   the errors the run left in its page and components.
-- **Time.** The run's seconds, and its cost.
+- **Time.** The agent's session from prompt to final answer, page and
+  components included, in seconds, and its cost: the list-price value of its
+  tokens, which the subscription covers. Scoring afterwards is not counted.
 - **Loops.** The agent's turns, and its `check-page` and `check-component`
   runs, counted from the trace.
+
+The eval sandbox refuses to let a process listen on a local port, so
+Playwright and Vite cannot start inside a run, and `--tests` would report
+`tests-setup` until the turn cap (a probe on 2026-10-15 confirmed it; the
+runner writes the sandbox settings itself and offers no way to allow it).
+Every fixture therefore runs `_scaffold/static-checks.mjs`, which makes
+`--tests` run the static checks and say why. The browser rules are scored
+afterwards for every arm. The runner caps each run at 200 turns and one hour,
+its maximums, and the report flags any run that hit a cap.
 
 Five arms answer the question. The case with neither runs with the runner's
 baseline, which gives the unattended model and the skills alone. The other
@@ -245,10 +256,12 @@ sandboxes once the report holds its copies.
 
 
 Each run is a fresh `claude` session given the same prompt file in a freshly
-copied project, so no arm sees another's work. The script restores the
-patched files in each kept workspace and runs that workspace's checkers with
-`--strict --no-fix`. It then serves the workspace with its own Vite dev
-server and screenshots `/billing` at 1280 and 390 pixels wide, with the
+copied project, so no arm sees another's work. The runner seals each kept
+workspace read-only and warns against running anything in it, so the script
+unseals it and copies the run's `src/`, `tests/`, and checker settings into a
+fresh copy of the eval project. There it runs the full checkers with
+`--strict --no-fix`, browser tests included. It then serves that copy with
+its own Vite dev server and screenshots `/billing` at 1280 and 390 pixels wide, with the
 router's overlay hidden. It prints a table of means per arm and writes
 `scratch/eval-reports/<time>/index.html`: the means, then one row of arm
 columns per run, each with its screenshots, metrics, failed graders, checker

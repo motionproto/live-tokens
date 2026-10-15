@@ -14,7 +14,8 @@
 // --clean deletes each run's kept sandbox once the report holds its copies.
 
 import { spawn, spawnSync } from 'node:child_process';
-import { copyFileSync, cpSync, existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { copyFileSync, cpSync, existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { basename, dirname, join, resolve } from 'node:path';
 import process from 'node:process';
 import { chromium } from 'playwright';
@@ -22,10 +23,10 @@ import { chromium } from 'playwright';
 const REPO = resolve(dirname(new URL(import.meta.url).pathname), '..');
 const PROJECT = join(REPO, 'scratch/eval-project');
 const PKG = 'node_modules/@motion-proto/live-tokens';
-// The files _scaffold/remove-cli.mjs patches. Restoring them in every
-// workspace lets each arm run its own CLI, whose --tests needs the workspace's
-// own @playwright/test.
-const PATCHED = ['bin/cli.mjs', 'bin/lib/buildChecks.mjs'];
+// What a run can author. The runner seals each kept workspace and warns
+// against running anything in it, and its CLI is patched, so each run's files
+// are scored in a fresh copy of the eval project.
+const RUN_FILES = ['src', 'tests', 'live-tokens.config.json', 'live-tokens.testing.ts'];
 const TOOLS = {
   'outcome-build-billing': 'lookup and checker',
   'outcome-build-billing-no-checker': 'lookup',
@@ -202,18 +203,41 @@ function saveSources(workspace, outDir, pages) {
   return saved;
 }
 
+// The runner leaves home/ and tmp/ in mode 000 and the kept directory read-only.
+function unseal(root) {
+  spawnSync('chmod', ['-R', 'u+rwX', root]);
+}
+
+function freshProject(workspace) {
+  const work = mkdtempSync(join(tmpdir(), 'lt-eval-score-'));
+  spawnSync('cp', ['-cR', `${PROJECT}/.`, work]);
+  for (const file of RUN_FILES) {
+    rmSync(join(work, file), { recursive: true, force: true });
+    if (existsSync(join(workspace, file))) cpSync(join(workspace, file), join(work, file), { recursive: true });
+  }
+  return work;
+}
+
 async function checkRun(browser, run, slug) {
   const commands = bashCommands(run.tracePath);
   const loops = commands
     ? { checkerRuns: commands.filter((c) => CHECKER_RUN.test(c)).length, lookupRuns: commands.filter((c) => LOOKUP_RUN.test(c)).length }
     : { checkerRuns: null, lookupRuns: null };
   const root = dirname(dirname(run.tracePath));
-  const workspace = findWorkspace(root);
-  if (!workspace) return { ...loops, errors: null, checks: [], shots: [], sources: [], notes: [`no kept workspace under ${root}; run the eval with --keep-temp`] };
+  if (existsSync(root)) unseal(root);
+  const kept = existsSync(join(root, 'sealed')) ? findWorkspace(join(root, 'sealed'), 3) : null;
+  if (!kept) return { ...loops, errors: null, checks: [], shots: [], sources: [], notes: [`no kept workspace under ${root}; run the eval with --keep-temp`] };
+  const workspace = freshProject(kept);
+  try {
+    return await scoreWorkspace(browser, run, slug, workspace, commands, loops);
+  } finally {
+    rmSync(workspace, { recursive: true, force: true });
+  }
+}
 
+async function scoreWorkspace(browser, run, slug, workspace, commands, loops) {
   const outDir = join(reportDir, slug);
   mkdirSync(outDir, { recursive: true });
-  for (const file of PATCHED) copyFileSync(join(PROJECT, PKG, file), join(workspace, PKG, file));
   const notes = [];
   const pages = readdirSync(join(workspace, 'src/pages'))
     .filter((name) => name.endsWith('.svelte') && !templatePages.has(name))
@@ -269,7 +293,12 @@ try {
           console.error(`checking ${entry.name}, run ${index}`);
           const checked = await checkRun(browser, run, slug);
           const failed = (run.graders ?? []).filter((g) => g.scored !== false && !g.passed).map((g) => g.name);
-          entry.runs.push({ index, slug, run, checked, failed });
+          // A capped run stopped before the agent said it was done, so its numbers measure the cap.
+          const capped =
+            run.turns >= c.maxTurns ? `Hit the turn cap of ${c.maxTurns}.`
+            : run.durationSeconds >= c.timeoutSeconds ? `Hit the time cap of ${c.timeoutSeconds} s.`
+            : null;
+          entry.runs.push({ index, slug, run, checked, failed, capped });
         }
         arms.set(key, entry);
       }
@@ -284,7 +313,10 @@ if (clean) {
   for (const arm of arms.values()) {
     for (const { run } of arm.runs) {
       const sandbox = dirname(dirname(run.tracePath));
-      if (/^e-[A-Za-z0-9]+$/.test(basename(sandbox)) && existsSync(sandbox)) rmSync(sandbox, { recursive: true, force: true });
+      if (/^e-[A-Za-z0-9]+$/.test(basename(sandbox)) && existsSync(sandbox)) {
+        unseal(sandbox);
+        rmSync(sandbox, { recursive: true, force: true });
+      }
     }
   }
 }
@@ -299,6 +331,7 @@ const summary = ordered.map((arm) => {
   return {
     name: arm.name,
     runs: arm.runs.length,
+    finished: arm.runs.filter((r) => !r.capped && !r.run.error).length,
     score: avg((r) => r.run.score),
     errors: avg((r) => r.checked.errors),
     seconds: avg((r) => r.run.durationSeconds),
@@ -316,9 +349,9 @@ const summary = ordered.map((arm) => {
 const lines = [
   `Checkers restored from scratch/eval-project, run with --strict --no-fix${tests.length ? ' --tests' : ''}.`,
   '',
-  '| Arm | Runs | Grader score | Checker errors left | Seconds | Turns | Checker runs | Lookup runs | Cost | Shipped components | New components | New tokens | Literal values |',
+  '| Arm | Finished | Grader score | Checker errors left | Generation seconds | Turns | Checker runs | Lookup runs | Generation cost | Shipped components | New components | New tokens | Literal values |',
   '|---|---|---|---|---|---|---|---|---|---|---|---|---|',
-  ...summary.map((s) => `| ${s.name} | ${s.runs} | ${fmt(s.score, 2)} | ${fmt(s.errors)} | ${fmt(s.seconds, 0)} | ${fmt(s.turns)} | ${fmt(s.checkerRuns)} | ${fmt(s.lookupRuns)} | $${fmt(s.cost, 2)} | ${fmt(s.shippedUsed)} | ${fmt(s.created)} | ${fmt(s.newTokens)} | ${fmt(s.literals)} |`),
+  ...summary.map((s) => `| ${s.name} | ${s.finished} of ${s.runs} | ${fmt(s.score, 2)} | ${fmt(s.errors)} | ${fmt(s.seconds, 0)} | ${fmt(s.turns)} | ${fmt(s.checkerRuns)} | ${fmt(s.lookupRuns)} | $${fmt(s.cost, 2)} | ${fmt(s.shippedUsed)} | ${fmt(s.created)} | ${fmt(s.newTokens)} | ${fmt(s.literals)} |`),
   '',
   `Report: ${join(reportDir, 'index.html')}`,
 ];
@@ -361,12 +394,13 @@ function column(arm, r) {
   <dl class="metrics">
     ${metric('Grader score', fmt(run.score, 2))}
     ${metric('Errors left', checked.errors ?? 'n/a')}
-    ${metric('Seconds', run.durationSeconds)}
+    ${metric('Generation seconds', run.durationSeconds)}
     ${metric('Turns', run.turns)}
     ${metric('Checker runs', checked.checkerRuns ?? 'n/a')}
     ${metric('Lookup runs', checked.lookupRuns ?? 'n/a')}
-    ${metric('Cost', `$${run.costUsd.toFixed(2)}`)}
+    ${metric('Generation cost', `$${run.costUsd.toFixed(2)}`)}
   </dl>
+  ${r.capped ? `<p class="note">${esc(r.capped)} The agent never said it was done, so read this run's numbers as a floor.</p>` : ''}
   ${run.error ? `<p class="note">Did not finish: ${esc(run.error)}</p>` : ''}
   ${checked.notes.map((n) => `<p class="note">${esc(n)}</p>`).join('')}
   <div class="shots">${shot('desktop')}${shot('mobile')}</div>
@@ -443,13 +477,13 @@ const html = `<!doctype html>
 <body>
 <header>
   <h1>Billing eval report</h1>
-  <p class="lede">Every run gets the same brief in a fresh session and a freshly copied project. Columns compare the arms; click a screenshot to open it at full size, and use the arrow keys to step between screenshots. Checker errors come from the full checkers run afterwards with --strict --no-fix${tests.length ? ' --tests' : ''}, the same for every arm.</p>
+  <p class="lede">Every run gets the same brief in a fresh session and a freshly copied project. Columns compare the arms; click a screenshot to open it at full size, and use the arrow keys to step between screenshots. Generation seconds and cost cover the agent's session from prompt to its final answer, page and components included; cost is the list-price value of the tokens, not a charge. Inside the eval, --tests ran the static checks only, because the sandbox cannot start a browser. Checker errors come from the full checkers run afterwards on a fresh copy of each run's files, with --strict --no-fix${tests.length ? ' --tests' : ''}, the same for every arm.</p>
 </header>
 <section>
   <h2>Means per arm</h2>
   <div class="table-scroll"><table>
-    <thead><tr><th>Arm</th><th>Runs</th><th>Grader score</th><th>Errors left</th><th>Seconds</th><th>Turns</th><th>Checker runs</th><th>Lookup runs</th><th>Cost</th><th>Shipped components</th><th>New components</th><th>New tokens</th><th>Literal values</th></tr></thead>
-    <tbody>${summary.map((s) => `<tr><td>${esc(s.name)}</td><td>${s.runs}</td><td>${fmt(s.score, 2)}</td><td>${fmt(s.errors)}</td><td>${fmt(s.seconds, 0)}</td><td>${fmt(s.turns)}</td><td>${fmt(s.checkerRuns)}</td><td>${fmt(s.lookupRuns)}</td><td>$${fmt(s.cost, 2)}</td><td>${fmt(s.shippedUsed)}</td><td>${fmt(s.created)}</td><td>${fmt(s.newTokens)}</td><td>${fmt(s.literals)}</td></tr>`).join('')}</tbody>
+    <thead><tr><th>Arm</th><th>Finished</th><th>Grader score</th><th>Errors left</th><th>Generation seconds</th><th>Turns</th><th>Checker runs</th><th>Lookup runs</th><th>Generation cost</th><th>Shipped components</th><th>New components</th><th>New tokens</th><th>Literal values</th></tr></thead>
+    <tbody>${summary.map((s) => `<tr><td>${esc(s.name)}</td><td>${s.finished} of ${s.runs}</td><td>${fmt(s.score, 2)}</td><td>${fmt(s.errors)}</td><td>${fmt(s.seconds, 0)}</td><td>${fmt(s.turns)}</td><td>${fmt(s.checkerRuns)}</td><td>${fmt(s.lookupRuns)}</td><td>$${fmt(s.cost, 2)}</td><td>${fmt(s.shippedUsed)}</td><td>${fmt(s.created)}</td><td>${fmt(s.newTokens)}</td><td>${fmt(s.literals)}</td></tr>`).join('')}</tbody>
   </table></div>
 </section>
 ${Array.from({ length: maxRuns }, (_, i) => `<section>
