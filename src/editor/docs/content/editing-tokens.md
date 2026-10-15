@@ -68,9 +68,11 @@ Change a step and every element using it repaints.
 
 ## Columns
 
-The page-grid overlay. Set column count, gutter, and outer margin, and toggle
-the visual guide with `Cmd/Ctrl+G`. Pages built on the column system reflow
-live.
+Pages lay out on the column grid. The column count and the max width hold at
+every width. Desktop, Tablet, and Phone each set a gutter and an outer margin,
+and the grid takes the tablet values at 767px and narrower and the phone values
+at 480px and narrower. The columns button in the editor bar draws the grid over
+the page, and a page on the grid reflows as you edit.
 
 ## Saving
 

@@ -372,7 +372,7 @@ The skill runs `npx live-tokens components --json` and reads each candidate's ca
 
 Ask for a page, a route, or a screen: "build a pricing page", "add a /settings route", "put a hero at the top of Home".
 
-The skill composes the page from shipped components, styles every value with `var(--token-*)` (no hex, no pixel literals, so editor changes repaint the page), places content on the column grid via `--columns-count`, `--columns-gutter`, and `--columns-max-width`, adds the route as a `lazy` import with a `source` so the overlay's "Page Source" button works, and imports `site.css` from the page rather than `main.ts` so page CSS stays out of the editor routes. It writes your page files and the route entry, and never touches the data tree.
+The skill composes the page from shipped components, styles every value with `var(--token-*)` (no hex, no pixel literals, so editor changes repaint the page), places content on the column grid via `--columns-count`, `--columns-gutter`, `--columns-margin`, and `--columns-max-width` at every width, adds the route as a `lazy` import with a `source` so the overlay's "Page Source" button works, and imports `site.css` from the page rather than `main.ts` so page CSS stays out of the editor routes. It writes your page files and the route entry, and never touches the data tree.
 
 ### `live-tokens-create-theme`
 

@@ -46,8 +46,8 @@ of these hold:
 
 - A rule declares it under a selector besides a root selector such as `:root`
   or `:root:root`, or inside `@media`, `@supports` or `@container`. The size
-  tokens in the two responsive `@media` blocks of `tokens.css` stay variables
-  this way.
+  tokens and the column gutter and margin in the three responsive `@media`
+  blocks of `tokens.css` stay variables this way.
 - Its name appears in a script or HTML page the build emits. That covers
   `style:--name` directives, `setProperty`, `getPropertyValue` and inline
   `style` attributes. Card sets `--card-hover-border-enabled` through a
