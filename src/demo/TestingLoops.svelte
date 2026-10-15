@@ -121,12 +121,11 @@
         <div class="figure-stage">
             <!-- svelte-ignore a11y_no_noninteractive_tabindex (Keyboard users need to scroll the diagram.) -->
             <div class="figure-scroll" role="region" aria-label="Figure 1" tabindex="0">
+          <div class="dg-stack">
           <svg class="dg" viewBox="20 12 1160 866" role="img" aria-label="The skill builds a page or component and runs the checks. The CLI checker checks the code, makes the routine repairs, tests the result, and reports the findings. The skill repairs each finding and runs the checks again until every check passes.">
             <rect class="lane-checker" x="20" y="12" width="1160" height="866" rx="8" />
             <path class="lane-skill" d="M28,12 H600 V878 H28 A8,8 0 0 1 20,870 V20 A8,8 0 0 1 28,12 Z" />
             <path class="lane-shade" d="M600,12 H1172 A8,8 0 0 1 1180,20 V870 A8,8 0 0 1 1172,878 H600 Z" />
-            <text class="lane-title" x="80" y="52">Claude Skill</text>
-            <text class="lane-title" x="660" y="52">CLI checker</text>
             <path class="flow" d="M540,148 L876,148 Q890,148 890,162 L890,225" />
             <path class="flow" d="M890,320 L890,353" />
             <path class="flow" d="M890,448 L890,481" />
@@ -135,33 +134,38 @@
             <path class="flow" d="M890,728 L890,781" />
             <path class="back" d="M310,640 L310,290 Q310,276 324,276 L653,276" />
             <rect class="box-lead" x="80" y="104" width="460" height="88" rx="4" />
+            <rect class="box" x="660" y="232" width="460" height="88" rx="4" />
+            <rect class="box" x="660" y="360" width="460" height="88" rx="4" />
+            <rect class="box" x="660" y="488" width="460" height="112" rx="4" />
+            <rect class="box" x="660" y="640" width="460" height="88" rx="4" />
+            <rect class="box" x="80" y="640" width="460" height="88" rx="4" />
+            <rect class="box-lead" x="660" y="788" width="460" height="72" rx="4" />
+          </svg>
+          <svg class="dg dg-text" viewBox="20 12 1160 866" aria-hidden="true">
+            <text class="lane-title" x="80" y="52">Claude Skill</text>
+            <text class="lane-title" x="660" y="52">CLI checker</text>
             <text class="t" x="101.3" y="138">Build a page or component</text>
             <text class="s" x="101.3" y="166">from the catalogue and design tokens</text>
-            <rect class="box" x="660" y="232" width="460" height="88" rx="4" />
             <text class="t" x="681.3" y="266">Check the code</text>
             <text class="tag" x="1098.7" y="266" text-anchor="end">Static check</text>
             <text class="s" x="681.3" y="294">design tokens, components, and props</text>
-            <rect class="box" x="660" y="360" width="460" height="88" rx="4" />
             <text class="t" x="681.3" y="394">Make the routine repairs</text>
             <text class="s" x="681.3" y="422">fixes with one right answer</text>
-            <rect class="box" x="660" y="488" width="460" height="112" rx="4" />
             <text class="t" x="681.3" y="522">Test the result</text>
             <text class="tag" x="1098.7" y="522" text-anchor="end">Vitest · Playwright</text>
             <text class="s" x="681.3" y="550">Test component interactions, rendering, and themes.</text>
             <text class="s" x="681.3" y="574">Check page layout, contrast, and typography.</text>
-            <rect class="box" x="660" y="640" width="460" height="88" rx="4" />
             <text class="t" x="681.3" y="674">Report the findings</text>
             <text class="s" x="681.3" y="702">each with guidance for its repair</text>
-            <rect class="box" x="80" y="640" width="460" height="88" rx="4" />
             <text class="t" x="101.3" y="674">Repair each finding</text>
             <text class="s" x="101.3" y="702">make the choice or write the code</text>
-            <rect class="box-lead" x="660" y="788" width="460" height="72" rx="4" />
             <text class="t" x="890" y="830" text-anchor="middle">Every check passes</text>
             <text class="lbl" x="715" y="136" text-anchor="middle">run the checks</text>
             <text class="lbl" x="600" y="672" text-anchor="middle">findings</text>
             <text class="lbl" x="906" y="759">none remain</text>
             <text class="rule" x="479" y="262" text-anchor="middle">check again</text>
           </svg>
+          </div>
             </div>
         </div>
       </figure>
@@ -179,12 +183,11 @@
         <div class="figure-stage">
             <!-- svelte-ignore a11y_no_noninteractive_tabindex (Keyboard users need to scroll the diagram.) -->
             <div class="figure-scroll" role="region" aria-label="Figure 2" tabindex="0">
+          <div class="dg-stack">
           <svg class="dg" viewBox="20 12 1160 916" role="img" aria-label="Read the project, plan the sections, and choose components. When no component fits, create one and check it until every check passes, and it joins the catalogue. Assemble the page and check it. Repair each finding until every check passes, then review the page.">
             <rect class="lane-checker" x="20" y="12" width="1160" height="916" rx="8" />
             <path class="lane-skill" d="M28,12 H600 V928 H28 A8,8 0 0 1 20,920 V20 A8,8 0 0 1 28,12 Z" />
             <path class="lane-shade" d="M600,12 H1172 A8,8 0 0 1 1180,20 V920 A8,8 0 0 1 1172,928 H600 Z" />
-            <text class="lane-title" x="80" y="52">Page</text>
-            <text class="lane-title" x="660" y="52">New component</text>
             <path class="flow" d="M310,192 L310,225" />
             <path class="flow" d="M310,320 L310,353" />
             <path class="flow" d="M310,448 L310,545" />
@@ -194,25 +197,29 @@
             <path class="back" d="M540,724 L556,724 Q570,724 570,710 L570,629 Q570,620 561,620 L547,620" />
             <path class="flow" d="M310,768 L310,813" />
             <rect class="box-lead" x="80" y="104" width="460" height="88" rx="4" />
+            <rect class="box" x="80" y="232" width="460" height="88" rx="4" />
+            <rect class="box" x="80" y="360" width="460" height="88" rx="4" />
+            <rect class="box" x="660" y="360" width="460" height="112" rx="4" />
+            <rect class="box" x="80" y="552" width="460" height="88" rx="4" />
+            <rect class="box" x="80" y="680" width="460" height="88" rx="4" />
+            <rect class="box-lead" x="80" y="820" width="460" height="88" rx="4" />
+          </svg>
+          <svg class="dg dg-text" viewBox="20 12 1160 916" aria-hidden="true">
+            <text class="lane-title" x="80" y="52">Page</text>
+            <text class="lane-title" x="660" y="52">New component</text>
             <text class="t" x="101.3" y="138">Read the project</text>
             <text class="s" x="101.3" y="166">routes, grid, and the component catalogue</text>
-            <rect class="box" x="80" y="232" width="460" height="88" rx="4" />
             <text class="t" x="101.3" y="266">Plan the sections</text>
             <text class="s" x="101.3" y="294">one section per purpose</text>
-            <rect class="box" x="80" y="360" width="460" height="88" rx="4" />
             <text class="t" x="101.3" y="394">Choose components</text>
             <text class="s" x="101.3" y="422">from the catalogue first</text>
-            <rect class="box" x="660" y="360" width="460" height="112" rx="4" />
             <text class="t" x="681.3" y="394">Create the component</text>
             <text class="s" x="681.3" y="422">check it and repair it</text>
             <text class="s" x="681.3" y="446">until every check passes</text>
-            <rect class="box" x="80" y="552" width="460" height="88" rx="4" />
             <text class="t" x="101.3" y="586">Assemble the page</text>
             <text class="s" x="101.3" y="614">components, tokens, and text styles</text>
-            <rect class="box" x="80" y="680" width="460" height="88" rx="4" />
             <text class="t" x="101.3" y="714">Check the page</text>
             <text class="s" x="101.3" y="742">review the code and test it in the browser</text>
-            <rect class="box-lead" x="80" y="820" width="460" height="88" rx="4" />
             <text class="t" x="101.3" y="854">Review the page</text>
             <text class="s" x="101.3" y="882">read it the way a visitor would</text>
             <text class="lbl" x="326" y="499">a shipped component fits</text>
@@ -221,6 +228,7 @@
             <text class="rule" x="584" y="677">repair</text>
             <text class="lbl" x="326" y="793">every check passes</text>
           </svg>
+          </div>
             </div>
         </div>
       </figure>
@@ -830,6 +838,21 @@
     height: auto;
     min-width: calc(var(--space-96) * 7);
     color: var(--text-primary);
+  }
+
+  /* Sketch mode filters every inline svg as artwork, which smears type. The
+     text gets its own svg over the shapes, so the boxes stay drawn and the
+     labels crisp. */
+  .dg-stack {
+    display: grid;
+  }
+
+  .dg-stack > .dg {
+    grid-area: 1 / 1;
+  }
+
+  .dg-text {
+    --sketch-icon-off: none;
   }
 
   .dg :global(.lane-checker) {
