@@ -457,3 +457,10 @@ overlay's columns lining up with the page's section edges.
   CHANGELOG retitles `## Unreleased` and adds a Migration section: run
   `npx live-tokens migrate`, then save and Adopt a custom production theme.
   The docs drop the unbound `Cmd/Ctrl+G` shortcut.
+- **Wave 5, 2026-10-15.** Headless Playwright against the dev server,
+  overlay on. At 1280, 768, 600 and 390px, every page grid (Home `.home`,
+  demo `.kit` and `.bar`, testing `.loops`, Docs `.docs-shell` at 960px and
+  narrower) has 12 tracks whose edges sit within 0.13px of the overlay's
+  columns. Gutter and margin read 32/32, 32/32, 24/24 and 16/16. Above 960px
+  the Docs shell is a 16rem rail beside the content: its outer edges match the
+  overlay, and the rail's inner edge lands at 288px, inside column 3.
