@@ -53,7 +53,7 @@ describe('2026-10-15-responsive-columns', () => {
     expect(values.get('--columns-desktop-margin')).toBe('32px');
     expect(values.get('--columns-desktop-gutter')).toBe('32px');
     expect(values.get('--columns-count')).toBe('12');
-    expect(values.has('--columns-desktop-count')).toBe(false);
+    expect([...values.keys()].filter((name) => /^--columns-.*count$/.test(name))).toEqual(['--columns-count']);
   });
 
   it('carries a hand-edited gutter and margin into the desktop names, and keeps a hand-edited count', () => {
