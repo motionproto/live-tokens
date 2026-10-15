@@ -9,10 +9,22 @@
   import { navigate } from '../editor/core/routing/router';
   import { DEFAULT_COMPONENTS_PATH } from '../editor/core/routing/ownedRoutes';
   import { overlayOpen } from '../editor/overlay/overlayState';
+  import { setEditorView } from '../editor/core/store/editorViewStore';
   import ThemeSelect from '../demo/ThemeSelect.svelte';
   import SketchSelect from '../demo/SketchSelect.svelte';
 
   const isDev = import.meta.env.DEV;
+
+  // The components page has no phone layout. At the width where the editor
+  // opens full screen, open its components view instead.
+  function openComponents() {
+    if (!window.matchMedia('(max-width: 600px)').matches) {
+      navigate(DEFAULT_COMPONENTS_PATH);
+      return;
+    }
+    setEditorView('components');
+    if (!$overlayOpen) window.dispatchEvent(new CustomEvent('lt-overlay-toggle'));
+  }
 </script>
 
 <div class="home">
@@ -26,7 +38,7 @@
       {#if isDev}
         <div class="actions">
           <Button variant="primary" on:click={() => navigate('/demo')}>Demo page</Button>
-          <Button variant="secondary" on:click={() => navigate(DEFAULT_COMPONENTS_PATH)}>Components</Button>
+          <Button variant="secondary" on:click={openComponents}>Components</Button>
           <Button
             variant="secondary"
             class="push-right"
