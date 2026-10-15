@@ -362,9 +362,10 @@
   .docs-shell {
     display: grid;
     grid-template-columns: var(--sidenavigation-panel-open-width, 16rem) minmax(0, 1fr);
+    box-sizing: content-box;
     max-width: var(--columns-max-width, 1440px);
     margin: 0 auto;
-    padding: 0 var(--space-32, 2rem);
+    padding-inline: var(--columns-margin);
     transition: grid-template-columns var(--duration-200, 200ms) var(--ease-in-out-sine, ease);
   }
   /* The rail's own width tween (its width tokens) drives the column; keep the
@@ -665,10 +666,5 @@
     }
     .docs-shell > :global(.docs-sidebar),
     .docs-main { grid-column: 1 / -1; }
-  }
-  /* tokens.css switches to the tablet grid below 768px. From there the shell
-     insets by the grid's own margin, as the column overlay does. */
-  @media (max-width: 767px) {
-    .docs-shell { padding-inline: var(--columns-margin); }
   }
 </style>
