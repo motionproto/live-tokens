@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased — Responsive columns
+## 0.95.0 — Responsive columns and production CSS
 
 ### Changed (breaking)
 
