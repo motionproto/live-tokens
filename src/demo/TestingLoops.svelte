@@ -461,9 +461,11 @@
     display: grid;
     grid-template-columns: repeat(var(--columns-count), minmax(var(--space-0), 1fr));
     column-gap: var(--columns-gutter);
+    box-sizing: content-box;
     max-width: var(--columns-max-width);
     margin-inline: auto;
-    padding: var(--space-48) var(--space-32) var(--space-64);
+    padding-block: var(--space-48) var(--space-64);
+    padding-inline: var(--columns-margin);
     color: var(--text-primary);
   }
 
@@ -983,15 +985,13 @@
       display: block;
     }
 
-    /* The top leaves room for the fixed editor toolbar above the back link.
-       The sides inset by the grid's own margin, as the column overlay does. */
+    /* The top leaves room for the fixed editor toolbar above the back link. */
     .loops {
       padding-block: var(--space-64) var(--space-48);
-      padding-inline: var(--columns-margin);
     }
 
-    /* Both outrank the 1023px block's `.chapter-body > *`, so their 2 / -2
-       would take half of a phone's four columns. */
+    /* Both outrank the 1023px block's `.chapter-body > *`, so without this
+       they keep the 2 / -2 inset the rest of the chapter drops. */
     .chapter-body > h1,
     .chapter-body > .eval-results {
       grid-column: 1 / -1;
