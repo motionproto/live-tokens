@@ -90,7 +90,9 @@
   its desktop name, gives the shipped `clamp()` gutter and `0` margin the new
   32px, points `--columns-gutter` and `--columns-margin` at the desktop
   names, and adds the 767px and 480px re-points. It leaves `--columns-count`
-  as it is.
+  as it is. Until it runs, `--columns-margin` stays `0`, and the shipped
+  docs, demo and testing pages, which now pad with it, sit flush against the
+  window at every width.
 - A theme migrates when the editor loads it, and the next save writes the
   result. The entry on custom production themes above gives the step that
   reaches production.

@@ -447,3 +447,13 @@ overlay's columns lining up with the page's section edges.
   verify and review did not run. The executor applied `--columns-margin`
   below 768px only, since the desktop margin was 0px. D9 replaces that, and
   D11 replaces the 8- and 4-column grids it laid pages out on.
+- **Wave 3b, 2026-10-15.** `85cd35d`, `f37ddd7`, `6bfe629`, `c36bd8a`,
+  `8e8ed7d`. Approved. Each page grid swapped its `--space-32` inset for
+  `var(--columns-margin)`, so no desktop layout moved. A stored flat session's
+  `0` margin takes the 32px default. A session saved in the Wave 2 shape gets
+  no conversion, as planned. `check-page` without `--no-fix` applies auto
+  repairs; Open question 1's restated command needs the flag.
+- **Wave 4, 2026-10-15.** `87f2de3`, `0459fbe`, `bf42659`. Approved. The
+  CHANGELOG retitles `## Unreleased` and adds a Migration section: run
+  `npx live-tokens migrate`, then save and Adopt a custom production theme.
+  The docs drop the unbound `Cmd/Ctrl+G` shortcut.
