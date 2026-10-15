@@ -5,7 +5,7 @@ never behaviour. Nothing here has ever measured whether these descriptions
 fire when they should, or whether following a skill end to end produces
 anything.
 
-Thirteen cases, seven on triggering and six on outcome:
+Sixteen cases, seven on triggering and nine on outcome:
 
 | Case | Asks |
 |---|---|
@@ -19,7 +19,10 @@ Thirteen cases, seven on triggering and six on outcome:
 | `outcome-theme-from-request` | Does create-theme route three intents and produce a real theme? |
 | `outcome-component-from-brief` | Does create-component reach its gate, run `check-component --strict`, and iterate to exit 0? |
 | `outcome-page-from-brief` | Does create-page run `check-page --strict` on the new page and iterate to exit 0? |
-| `outcome-page-from-brief-no-checker` | The same brief with the checker removed: what does the checker contribute to the finished page? |
+| `outcome-build-billing` | A billing page that needs eight shipped components and one new one: with the lookup and the checker, how accurate, how fast, and how many loops? |
+| `outcome-build-billing-no-checker` | The same brief with the lookup only. |
+| `outcome-build-billing-no-lookup` | The same brief with the checker only. |
+| `outcome-build-billing-no-cli` | The same brief with neither; its no-plugin arm is the unattended model. |
 | `outcome-pick-component` | Across twelve requirements, does the catalogue change which component, variant, and props the model names? |
 | `outcome-pick-component-no-cli` | The same case without the package's `bin`: what does the picker skill contribute apart from the command it names? |
 
@@ -192,27 +195,53 @@ and the runner saves no reason. It is removed. Nothing now grades the repair
 loop itself; the file graders and `check-run` grade what the loop leaves.
 A first attempt at 40 turns cut both arms off before they finished.
 
-## `outcome-page-from-brief` with and without the checker
+## `outcome-build-billing`: lookup and checker
 
-Not yet run. Both cases seed the full consumer project and give the same
-brief. `outcome-page-from-brief-no-checker` then runs
-`_scaffold/remove-checker.mjs`, which makes `check-page`, `check-component`,
-and `report` fail as unknown commands and stubs the design checks `vite build`
-runs. The skills and `live-tokens components` are unchanged. It has no
-`check-run` or `criteria`, which would fail by construction. The runner's
-baseline arm on each case completes a two-by-two of skills and checker.
+Not yet run. The four cases give one brief, a `/billing` page, and differ
+only in their fixtures. Each seeds the full consumer project and deletes the
+skills the package ships, so only the plugin supplies them.
+`_scaffold/remove-cli.mjs` then removes the `lookup` group (`components`,
+`tokens`), the `checker` group (`check-page`, `check-component`, `report`, and
+the checks `vite build` runs), or both. A removed command fails as an unknown
+command.
 
-The runner has no grader that runs a command, so the finished pages are scored
-afterwards. Keep the workspaces, then run the full checker over each one:
+The brief sets traps on both sides. For the lookup, each requirement has one
+right component, and the invoice recipients fit nothing shipped, so the run
+must author a component. For the checker, the brief asks for things the rules
+refuse: smaller toolbar buttons (`control-size`), four cards in a row
+(`hardcoded-columns`), price in large type (`raw-text-axis`), a gold
+highlight (`color-literal`, `page-contrast`), a "Choose plan" action on every
+card (`multiple-primary`), and an irreversible cancel
+(`danger-without-dialog`).
+
+Each case measures three things:
+
+- **Accuracy.** The runner's graders check the component each requirement
+  takes, that no `MenuSelect` stands in for the recipients, that a new
+  component is registered, and the route. Afterwards the full checkers count
+  the errors the run left in its page and components.
+- **Time.** The run's seconds, and its cost.
+- **Loops.** The agent's turns, and its `check-page` and `check-component`
+  runs, counted from the trace.
+
+Five arms answer the question. The case with neither runs with the runner's
+baseline, which gives the unattended model and the skills alone. The other
+three run with `--ablation none`, since a no-plugin arm there adds only a
+model that may stumble on the commands.
 
 ```
 npm run build:eval-project
-npm run eval -- --case 'outcome-page-from-brief*' --keep-temp -j 2
-node scripts/eval-check-pages.mjs scratch/eval-last.json --tests
+npm run eval -- --case outcome-build-billing-no-cli --keep-temp
+cp scratch/eval-last.json scratch/eval-billing-no-cli.json
+for c in outcome-build-billing outcome-build-billing-no-checker outcome-build-billing-no-lookup; do
+  npm run eval -- --case "$c" --ablation none --keep-temp
+  cp scratch/eval-last.json "scratch/eval-$c.json"
+done
+for f in scratch/eval-*billing*.json; do node scripts/eval-check-build.mjs "$f" --tests; done
 ```
 
 The script restores the patched files in each kept workspace, runs that
-workspace's `check-page --strict --no-fix` on every page the run added, and
-prints errors by rule beside turns, seconds, and cost. It names any rule the
-run turned off in `live-tokens.config.json`. Delete the kept workspaces from
-the system temp folder afterwards.
+workspace's checkers with `--strict --no-fix`, and prints each run and a
+table of means per arm. It names any rule a run turned off in
+`live-tokens.config.json`. Delete the kept workspaces from the system temp
+folder afterwards.
