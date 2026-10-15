@@ -38,7 +38,11 @@ The stage is the canvas, player, or strip the work is about. Stretch a section's
 
 ### Grid
 
-The page is the column grid: `display: grid`, `grid-template-columns: repeat(var(--columns-count), 1fr)`, `column-gap: var(--columns-gutter)`, `max-width: var(--columns-max-width)`, `margin: 0 auto`. Each section spans it with `grid-column: 1 / -1`.
+The page is the column grid: `display: grid`, `grid-template-columns: repeat(var(--columns-count), 1fr)`, `column-gap: var(--columns-gutter)`, `box-sizing: content-box`, `max-width: var(--columns-max-width)`, `margin: 0 auto`, and `padding-inline: var(--columns-margin)`. Each section spans it with `grid-column: 1 / -1`. The page sets its top and bottom space with `padding-block`.
+
+The columns span `--columns-max-width`, and the margin sits outside them, where `ColumnsOverlay` draws it. `box-sizing: content-box` keeps a project-wide `border-box` reset from narrowing the columns.
+
+The page keeps the grid at every width. `tokens.css` narrows `--columns-gutter` and `--columns-margin` at 767px and again at 480px, and `--columns-count` holds at every width, so the page grid itself takes no `@media` rule.
 
 To place a section's children at page-column positions:
 
@@ -49,7 +53,7 @@ To place a section's children at page-column positions:
 
 A grid that follows the page columns takes `var(--columns-count)` or a `calc()` of it as its count, so it stays in step with `ColumnsOverlay`. A local grid of two or three equal columns writes its own count. A column number in `grid-column` is fixed to the count read in step 1.
 
-No scaffold collapses the page grid on a phone: the theme's own column gutter alone exceeds a phone's width at the full column count, so every page writes its own `@media (max-width: 767px)` rule setting `grid-template-columns: 1fr` and `column-gap: 0`, with each section's children spanning `grid-column: 1 / -1`. A section's columns then stack in reading order.
+Spans count twelfths of the page at every width, so `span 6` is half the page on a desktop and on a phone. Widen the spans on a narrow screen. In a `@media (max-width: 767px)` rule, give a child that spans 4 on a desktop `span 6`, or give each child `grid-column: 1 / -1` to stack the section in reading order. A column at 390px is about 15px wide, so in a `@media (max-width: 480px)` rule each child spans 12, 6, or 4 columns.
 
 ### Separation
 
@@ -148,7 +152,7 @@ Each position takes one step of the `--space-*` scale. Space inside a group is s
 | Between containers in a section | `--columns-gutter` across, `--space-24` down |
 | Between sections | `--space-16` above a hairline |
 | Page title to first section | `--space-24`, no hairline |
-| Page margin | `--space-32` |
+| Page margin | `--columns-margin`, as the page grid's `padding-inline` |
 
 Every section after the first opens with a hairline: `padding-top: var(--space-16)` and `border-top: var(--border-width-1) solid var(--border-neutral)`. The hairline separates, so the gap between sections is smaller than the gap between the containers inside them. A section's edge is the hairline alone.
 
