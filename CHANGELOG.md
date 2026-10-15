@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.96.0 — Lightbox zoom readout in natural pixels
+
+### Changed
+
+- **The `ImageLightbox` zoom readout measures the image against its natural
+  resolution.** 100% shows one source pixel per CSS pixel, the unit `maxZoom`
+  already takes. A 2880px image fitted into a 960px box opens at 33%, and
+  `maxZoom={1}` tops out at 100%. The readout used to call the fitted view
+  100% whatever the image's size. Until the natural size is known, from
+  `width`/`height` or the loaded image, the readout measures against the
+  fitted view as before. The zoom steps and caps stay the same.
+
 ## 0.95.0 — Responsive columns and production CSS
 
 ### Changed (breaking)

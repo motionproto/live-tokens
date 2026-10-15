@@ -353,6 +353,30 @@ describe('ImageLightbox — maxZoom cap (natural-size)', () => {
     // maxZoom={2} permits twice the magnification of maxZoom={1} (±1% rounding).
     expect(Math.abs(at2x - 2 * at1x)).toBeLessThanOrEqual(1);
   });
+
+  it('the readout opens at the fitted share of natural pixels', async () => {
+    const target = fresh();
+    const c = mount(ImageLightbox, { target, props: { images: [BIG], extended: true } });
+    flushSync();
+    await open(target);
+
+    const fitW = Math.min(window.innerWidth * 0.94, window.innerHeight * 0.92 * 2);
+    expect(zoomPercent()).toBe(Math.round((fitW / BIG.width) * 100));
+
+    unmount(c);
+  });
+
+  it('maxZoom={1} tops out at a 100% readout', async () => {
+    const target = fresh();
+    const c = mount(ImageLightbox, { target, props: { images: [BIG], extended: true, maxZoom: 1 } });
+    flushSync();
+    await open(target);
+    maxOut();
+
+    expect(zoomPercent()).toBe(100);
+
+    unmount(c);
+  });
 });
 
 describe('ImageLightbox — capNatural (open-fit cap)', () => {

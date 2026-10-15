@@ -70,7 +70,7 @@
         The modal portals to <body>, out of reach of a wrapper around the tile,
         so a page that wants its own scrim has to say so here. */
     scrim?: string | undefined;
-    /** When true, shows a bottom toolbar (zoom in/out + percent) and enables wheel/drag zoom inside the open modal. Either way, a click on the unzoomed image closes. */
+    /** When true, shows a bottom toolbar (zoom in/out + percent) and enables wheel/drag zoom inside the open modal. Either way, a click on the unzoomed image closes. The percent measures the image against its natural resolution: 100% shows one source pixel per CSS pixel, so a large image opens fitted below 100%. Until the natural size is known it measures against the fitted view. */
     extended?: boolean;
     /** Maximum zoom, as a multiple of the image's natural resolution: `1` = 100%
         of the source's real pixels (1 source px = 1 screen px), `2` = 200%. The
@@ -664,7 +664,14 @@
     };
   });
 
-  let percentLabel = $derived(`${Math.round(scale * 100)}%`);
+  // `scale` is relative to the fitted stage; the readout reports the share of
+  // the source's real pixels, the unit `maxZoom` takes.
+  let percentLabel = $derived.by(() => {
+    const nw = naturalWidthOf(current);
+    const fitW = viewportTarget().width;
+    const ratio = nw && fitW ? (scale * fitW) / nw : scale;
+    return `${Math.round(ratio * 100)}%`;
+  });
 </script>
 
 <div
