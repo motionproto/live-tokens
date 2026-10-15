@@ -59,9 +59,11 @@
     display: grid;
     grid-template-columns: repeat(var(--columns-count), 1fr);
     column-gap: var(--columns-gutter);
+    box-sizing: content-box;
     max-width: var(--columns-max-width);
     margin: 0 auto;
-    padding: var(--space-48) var(--space-32);
+    padding-block: var(--space-48);
+    padding-inline: var(--columns-margin);
     min-height: 100vh;
     align-content: center;
   }
@@ -111,14 +113,6 @@
     flex-wrap: wrap;
     gap: var(--space-20);
     margin-top: var(--space-24);
-  }
-
-  /* tokens.css switches to the tablet grid below 768px. From there the page
-     insets by the grid's own margin, as the column overlay does. */
-  @media (max-width: 767px) {
-    .home {
-      padding-inline: var(--columns-margin);
-    }
   }
 
   @media (max-width: 600px) {

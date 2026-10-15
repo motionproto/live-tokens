@@ -34,9 +34,11 @@
     display: grid;
     grid-template-columns: repeat(var(--columns-count), 1fr);
     column-gap: var(--columns-gutter);
+    box-sizing: content-box;
     max-width: var(--columns-max-width);
     margin: 0 auto;
-    padding: var(--space-48) var(--space-32);
+    padding-block: var(--space-48);
+    padding-inline: var(--columns-margin);
     min-height: 100vh;
     align-content: center;
   }
@@ -58,14 +60,8 @@
     margin-top: var(--space-20);
   }
 
-  /* tokens.css switches to the tablet grid below 768px, where 4 / span 6
-     no longer fits. From there the page insets by the grid's own margin, as
-     the column overlay does. */
+  /* Spans count twelfths at every width, and a narrow screen widens them. */
   @media (max-width: 767px) {
-    .home {
-      padding-inline: var(--columns-margin);
-    }
-
     .stub {
       grid-column: 1 / -1;
     }
