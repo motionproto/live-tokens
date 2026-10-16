@@ -44,7 +44,7 @@ The open theme holds it as a token named by number: `--color-custom-1`,
 `--color-custom-2`, and so on.
 
 - **Adding.** Every colour picker has a **Custom** row after Danger. Open it
-  and click **Add**. The new colour starts from the slot's current colour and
+  and click the plus swatch. The new colour starts from the slot's current colour and
   opens in the OKLCH editor, and the slot previews it as you drag. The check
   assigns it to the slot; the cross discards it and restores the slot.
 - **Reusing.** Pick a custom colour from the same row as you pick a palette

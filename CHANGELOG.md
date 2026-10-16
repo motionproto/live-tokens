@@ -7,7 +7,7 @@
 - **Every color picker offers custom colors.** A **Custom** row after Danger
   lists the open theme's own colors, `--color-custom-1`, `--color-custom-2`
   and so on, each holding one OKLCH value for light and dark. The row's
-  **Add** swatch starts a new color from the slot's current color and opens
+  plus swatch starts a new color from the slot's current color and opens
   the OKLCH editor; confirm assigns it to the slot in one undo step, and
   cancel removes it. A slot picks an existing custom color as it picks a
   palette step, opacity included. The pencil on a custom swatch edits it in
