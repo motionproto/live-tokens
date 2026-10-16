@@ -234,6 +234,7 @@ function inventory(workspace, pages) {
   const changedTokens = [...current.keys()].filter((name) => template.has(name) && current.get(name).join('|') !== template.get(name).join('|'));
 
   const owned = created.map((c) => `--${c.id}-`);
+  const shipped = facts.components.filter((c) => c.origin === 'shipped').map((c) => c.id);
   const authoredFiles = [...pages, ...created.map((c) => c.file), ...created.map((c) => c.file.replace(/\.svelte$/, 'Editor.svelte'))];
   const customProperties = [];
   for (const file of authoredFiles) {
@@ -241,7 +242,10 @@ function inventory(workspace, pages) {
     for (const name of declarations(readFileSync(join(workspace, file), 'utf8')).keys()) {
       // `--sketch-*` are the hooks the create-component skill's sketch mode prescribes.
       if (name.startsWith('--sketch-') || owned.some((prefix) => name.startsWith(prefix))) continue;
-      customProperties.push({ name, file, overrides: template.has(name) });
+      // A shipped component's semantic property set in place is property-override's
+      // finding, so it is listed but not counted as a new token.
+      const component = shipped.find((id) => name.startsWith(`--${id}-`));
+      customProperties.push({ name, file, overrides: template.has(name), component });
     }
   }
 
@@ -402,7 +406,7 @@ const ordered = [...arms.values()].sort((a, b) => {
   const rank = (k) => (ARM_ORDER.indexOf(k) === -1 ? ARM_ORDER.length : ARM_ORDER.indexOf(k));
   return rank(a.key) - rank(b.key);
 });
-const newTokenCount = (made) => made.addedTokens.length + made.changedTokens.length + made.customProperties.length;
+const newTokenCount = (made) => made.addedTokens.length + made.changedTokens.length + made.customProperties.filter((p) => !p.component).length;
 const summary = ordered.map((arm) => {
   const avg = (pick) => mean(arm.runs.map(pick));
   return {
@@ -445,14 +449,17 @@ function made({ used, created, addedTokens, changedTokens, customProperties, lit
   const tokens = [
     ...addedTokens.map((name) => `<code>${esc(name)}</code> added to tokens.css`),
     ...changedTokens.map((name) => `<code>${esc(name)}</code> changed in tokens.css`),
-    ...customProperties.map((p) => `<code>${esc(p.name)}</code> declared in ${esc(p.file)}${p.overrides ? ', overriding a design token' : ''}`),
+    ...customProperties.filter((p) => !p.component).map((p) => `<code>${esc(p.name)}</code> declared in ${esc(p.file)}${p.overrides ? ', overriding a design token' : ''}`),
   ];
+  const overrides = customProperties.filter((p) => p.component);
   return `<h4>Components used</h4>
   ${used.length ? `<div class="chips">${used.map((c) => `<span class="chip ${c.origin === 'shipped' ? '' : 'custom'}">${esc(c.id)} <b>${c.rendered}</b></span>`).join('')}</div>` : none('No component rendered on the page.')}
   <h4>New components</h4>
   ${created.length ? list(created, (c) => `<code>${esc(c.id)}</code> ${esc(c.file)}, ${c.properties} properties, ${c.registered ? 'registered' : 'not registered'}`) : none('None.')}
   <h4>New tokens</h4>
   ${tokens.length ? list(tokens, (t) => t) : none('None.')}
+  ${overrides.length ? `<h4>Overridden component properties</h4>
+  ${list(overrides, (p) => `<code>${esc(p.name)}</code> set in ${esc(p.file)}, overriding ${esc(p.component)}`)}` : ''}
   <h4>Literal values</h4>
   ${literals.length ? list(literals, (l) => esc(l)) : none('None.')}`;
 }

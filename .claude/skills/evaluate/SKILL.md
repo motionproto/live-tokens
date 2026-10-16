@@ -29,7 +29,8 @@ The argument is `$ARGUMENTS`.
 - **Smoke run**, `npm run eval:billing -- --smoke`: one run of the case with
   every tool, up to an hour. Run it when the argument is empty, after any
   change to the cases, the fixtures, the scorer, or the package, and whenever
-  the user has not asked for a full run.
+  the user has not asked for a full run. After a change to one case's
+  fixture, `--smoke <case>` runs that case once with the plugin.
 - **Full run**, `npm run eval:billing -- --runs <n>`: all five arms, `n` runs
   each, up to an hour per run. Run it when the argument is `runs <n>`. When
   the user asks for a full run without a number, confirm `n` and say how many

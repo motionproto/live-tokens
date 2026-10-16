@@ -34,7 +34,12 @@ if docker_running; then
 fi
 
 moved=()
+plugin=""
 restore() {
+  if [ -n "$plugin" ]; then
+    if [ -d "$plugin/evals/results" ]; then mkdir -p .claude/evals/results && cp -R "$plugin/evals/results/." .claude/evals/results/; fi
+    rm -rf "$plugin"
+  fi
   for name in ${moved[@]+"${moved[@]}"}; do mv "$ASIDE/$name" "$STORE/$name"; done
   if [ -d "$ASIDE" ]; then rmdir "$ASIDE"; fi
   if $was_running; then open -g -a "Docker Desktop"; fi
@@ -53,7 +58,19 @@ fi
 
 cd "$REPO"
 mkdir -p scratch
+
+# A run can read its plugin's skills and nothing else of the repository, so the
+# plugin under test is staged outside it with only the skills the package
+# ships. The runner refuses a linked evals folder, so the cases are copied, and
+# _scaffold/repo tells the fixtures where the repository is.
+plugin="$(mktemp -d "${TMPDIR:-/tmp}/live-tokens-plugin.XXXXXX")"
+mkdir "$plugin/skills"
+cp -R .claude/.claude-plugin "$plugin/"
+cp -R .claude/skills/live-tokens-* "$plugin/skills/"
+rsync -a --exclude results .claude/evals/ "$plugin/evals/"
+printf '%s\n' "$REPO" > "$plugin/evals/_scaffold/repo"
+
 status=0
-claude plugin eval .claude --no-publish --scaffold --trust-plugin --json scratch/eval-last.json --allow-tools Bash Write Edit "$@" || status=$?
+claude plugin eval "$plugin" --no-publish --scaffold --trust-plugin --json scratch/eval-last.json --allow-tools Bash Write Edit "$@" || status=$?
 if [ -s scratch/eval-last.json ]; then echo; node scripts/eval-report.mjs scratch/eval-last.json; fi
 exit $status

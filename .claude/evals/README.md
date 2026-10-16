@@ -198,12 +198,38 @@ A first attempt at 40 turns cut both arms off before they finished.
 ## `outcome-build-billing`: lookup and checker
 
 The four cases give one brief, a `/billing` page, and differ
-only in their fixtures. Each seeds the full consumer project and deletes the
-skills the package ships, so only the plugin supplies them.
-`_scaffold/remove-cli.mjs` then removes the `lookup` group (`components`,
-`tokens`), the `checker` group (`check-page`, `check-component`, `report`, and
-the checks `vite build` runs), or both. A removed command fails as an unknown
-command.
+only in their fixtures. Each seeds the full consumer project, and
+`_scaffold/isolate.mjs` closes every copy of the layers the arm runs without,
+so each arm reaches only the knowledge its own layers give it, by any route:
+
+- **Skills.** Every fixture deletes the skills the package bundles, the Skill
+  Atlas, which embeds each skill's text, and the Testing Loops demo page. The
+  plugin under test is the only source.
+- **Lookup.** The `lookup` group removes `components` and `tokens` and blanks
+  the catalogue entry in every shipped component, so the reasons to pick or
+  reject a component go with the command. Props and variants stay, because
+  the code needs them, and so does the project's own `tokens.css`.
+- **Checker.** The `checker` group removes `check-page`, `check-component`,
+  and `report`, stubs the checks `vite build` runs, makes the checker modules
+  refuse to load outside the CLI, deletes the contract suites, and drops the
+  `test:design` script. `vitest` and Playwright stay for tests the agent
+  writes itself. The rule source in
+  `bin/rules/` stays readable, because other commands import it; the
+  behaviour timeline shows any read of it.
+
+A removed command leaves the usage text too, and running it fails as an
+unknown command. The skills keep the same text in every arm, so an arm
+without a tool still meets the instruction to run it, and the trace counts
+those failed calls. The README and the editor docs stay in every arm. They
+summarise the skills and commands, and a user without the plugin has them
+too. Scoring runs on a fresh copy of the project with every layer in place.
+
+A run's sandbox can read its plugin's skills and nothing else on the machine:
+a probe on 2026-10-16 found the repository, the home folder, and the
+plugin's own `evals` folder all denied. `scripts/eval.sh` therefore stages
+the plugin under test in a temporary folder that holds only the
+`live-tokens-*` skills, so a repo-only skill such as `evaluate` never reaches
+an arm, and copies the results back into `.claude/evals/results/`.
 
 The brief reads like a client's request and avoids the catalogue's own
 wording, so the lookup has to earn its picks. For the lookup, each
@@ -257,6 +283,7 @@ model that may stumble on the commands.
 
 ```
 npm run eval:billing -- --smoke     # one run of the case with every tool
+npm run eval:billing -- --smoke outcome-build-billing-no-cli   # one run of another case, with the plugin
 npm run eval:billing -- --runs 3    # all five arms, three runs each
 ```
 

@@ -3,7 +3,8 @@
 # `npx live-tokens components` reads. The run's sandbox cannot read the
 # repository or reach the network, so the files are copied in.
 set -euo pipefail
-REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../.." && pwd)"
+# scripts/eval.sh runs the cases from a staged copy and writes the repository path beside this file.
+REPO="$(cat "$(dirname "${BASH_SOURCE[0]}")/repo")"
 PKG=node_modules/@motion-proto/live-tokens
 mkdir -p "$PKG/src/system" "$PKG/src/editor/component-editor" node_modules/.bin src/pages
 cp -R "$REPO/bin" "$PKG/bin"

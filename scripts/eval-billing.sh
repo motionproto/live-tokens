@@ -5,6 +5,8 @@ set -euo pipefail
 # The cases and what each arm measures are described in .claude/evals/README.md.
 #
 #   npm run eval:billing -- --smoke     one run of the case with every tool
+#   npm run eval:billing -- --smoke outcome-build-billing-no-cli
+#                                       one run of another case, with the plugin
 #   npm run eval:billing -- --runs 3    all five arms, three runs each
 
 REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -12,11 +14,15 @@ cd "$REPO"
 
 runs=1
 smoke=false
+smoke_case=outcome-build-billing
 while [ $# -gt 0 ]; do
   case "$1" in
-    --smoke) smoke=true ;;
+    --smoke)
+      smoke=true
+      if [ $# -gt 1 ] && [ "${2#--}" = "$2" ]; then smoke_case="$2"; shift; fi
+      ;;
     --runs) runs="$2"; shift ;;
-    *) echo "eval:billing: unknown option $1. Use --smoke or --runs <n>." >&2; exit 1 ;;
+    *) echo "eval:billing: unknown option $1. Use --smoke [case] or --runs <n>." >&2; exit 1 ;;
   esac
   shift
 done
@@ -49,7 +55,8 @@ run_case() {
 }
 
 if $smoke; then
-  run_case outcome-build-billing --ablation none
+  [ -d ".claude/evals/$smoke_case" ] || { echo "eval:billing: no case $smoke_case in .claude/evals." >&2; exit 1; }
+  run_case "$smoke_case" --ablation none
 else
   # The runner's baseline arm here is the unattended model.
   run_case outcome-build-billing-no-cli
