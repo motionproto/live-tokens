@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.96.1 — Vitest 5 peer range
+
+### Fixed
+
+- **Installs alongside Vitest 5.** The optional `vitest` peer range now reads
+  `^4.0 || ^5.0`. With `^4.0` alone, npm stopped any install that re-resolved
+  the tree with `ERESOLVE` once Vitest 5 sat anywhere in it, including as an
+  uninstalled optional peer of Vite's devtools. The `testing` contract helpers
+  pass the full suite on Vitest 5.
+
 ## 0.96.0 — Lightbox zoom readout in natural pixels
 
 ### Changed

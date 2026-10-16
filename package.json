@@ -1,6 +1,6 @@
 {
   "name": "@motion-proto/live-tokens",
-  "version": "0.96.0",
+  "version": "0.96.1",
   "type": "module",
   "sideEffects": [
     "**/*.css"
@@ -218,7 +218,7 @@
     "sass": "^1.0",
     "svelte": "^5",
     "vite": "^8",
-    "vitest": "^4.0"
+    "vitest": "^4.0 || ^5.0"
   },
   "peerDependenciesMeta": {
     "@playwright/test": {
