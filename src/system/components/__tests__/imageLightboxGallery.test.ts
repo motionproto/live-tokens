@@ -226,6 +226,34 @@ describe('ImageLightbox gallery — thumbnail aspect independence (guards B1)', 
   });
 });
 
+describe('ImageLightbox thumbSrc', () => {
+  it('shows thumbSrc in the tile and opens src in the modal', async () => {
+    const target = fresh();
+    const c = mount(ImageLightbox, { target, props: { src: 'full.png', thumbSrc: 'small.png', alt: 'A' } });
+    flushSync();
+
+    expect(thumbImg().getAttribute('src')).toBe('small.png');
+    thumb().click();
+    await settle();
+    expect(modalImg().getAttribute('src')).toBe('full.png');
+
+    unmount(c);
+  });
+
+  it('leaves the thumbnail file out of the measured size', async () => {
+    const target = fresh();
+    const c = mount(ImageLightbox, { target, props: { src: 'full.png', thumbSrc: 'small.png', alt: 'A' } });
+    flushSync();
+
+    settable(thumbImg(), 1100, 1100);
+    thumbImg().dispatchEvent(new Event('load'));
+    await settle();
+    expect(wrapper().style.aspectRatio).toBe('');
+
+    unmount(c);
+  });
+});
+
 describe('ImageLightbox gallery — accessibility (guards S4)', () => {
   it('the open modal is a labelled dialog and focus moves inside it', async () => {
     const target = fresh();

@@ -12,6 +12,8 @@
     props: {
       thumbAspect:
         'the ratio the thumbnail box holds, when it should not be the image\'s own. The image still opens whole, at its own ratio.',
+      thumbSrc:
+        'a smaller file for the closed thumbnail, when the full image is far larger than the tile. The lightbox still opens `src`.',
     },
   } satisfies CatalogueEntry;
 </script>
@@ -39,6 +41,8 @@
     maxWidth?: number | string | undefined;
     /** The thumbnail box's ratio, when it differs from the image's own. */
     thumbAspect?: number | undefined;
+    /** A smaller file for the closed thumbnail; the modal still opens `src`. */
+    thumbSrc?: string | undefined;
     /** Closed-thumbnail object-fit. `cover` crops the thumbnail to fill its box;
         the expanded modal always uses `contain` so the whole image stays visible.
         `cover` only crops when the thumbnail box differs from the image's shape
@@ -106,6 +110,7 @@
     images = undefined,
     maxWidth = undefined,
     thumbAspect = undefined,
+    thumbSrc = undefined,
     fit = 'contain',
     shadow = 'box',
     surface = undefined,
@@ -694,7 +699,9 @@
     aria-expanded={open}
     onclick={openLightbox}
   >
-    <img src={cover?.src} alt={cover?.alt} draggable="false" onload={onCoverLoad} />
+    <!-- A thumbnail's pixels understate the full image, so it never feeds the
+         measured size behind the tile aspect and the zoom caps. -->
+    <img src={thumbSrc ?? cover?.src} alt={cover?.alt} draggable="false" onload={thumbSrc ? undefined : onCoverLoad} />
   </button>
   {#if overlay}
     <!-- Beside the thumb, not in it: the thumb clips its corners. Hidden while
