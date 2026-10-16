@@ -163,9 +163,7 @@ production CSS build and theme export then carry them with no new code.
 - A per-scheme value. A custom colour holds one value in light and dark.
 - Teaching the skills or the CLI to create custom colours.
 
-## Waves
-
-### Wave 1: model and store
+## Wave 1: model and store
 
 - `CustomColorDiskToken` in `themeTypes.ts`; `customColors?` on
   `ColorsAndType`.
@@ -184,7 +182,14 @@ production CSS build and theme export then carry them with no new code.
   `replaceAndRemoveCustomColor` rewrites every reference, keeps opacity, and
   undoes in one step; `buildColors` carries the list.
 
-### Wave 2: picker
+**Verify.** `npx vitest run src/editor/core bin`, `npm run check`,
+`node scripts/check-production-is-default.mjs`.
+
+**Done when** every test the wave lists passes, and
+`git grep -l -- '--color-custom-' src/live-tokens/data src/system/styles`
+prints nothing (D2).
+
+## Wave 2: picker
 
 - `UIPaletteSelector`: the Custom row (D3), the drill-in (D4), add (D5),
   edit (D6), remove with the replace step (D7, D11), and
@@ -192,18 +197,18 @@ production CSS build and theme export then carry them with no new code.
 - Test: select, reopen, and read the meta for a custom colour at 100% and at
   60% opacity.
 
-### Wave 3: Tokens view section
+## Wave 3: Tokens view section
 
 - `CustomColorsSection.svelte` beside `GradientsSection` (D7), reusing the
   replace step from Wave 2.
 
-### Wave 4: docs
+## Wave 4: docs
 
 - A short section in `src/editor/docs/content/` on custom colours, then
   `npm run sync:docs`.
 - CHANGELOG entry: additive `customColors` field.
 
-### Wave 5: visual pass
+## Wave 5: visual pass
 
 The user's: open a picker, add three custom colours, assign them across two
 components, edit one, save, reload, switch themes, and adopt.
