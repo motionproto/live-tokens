@@ -192,6 +192,7 @@ export {
   setCustomColor,
   removeCustomColor,
   customColorUsages,
+  describeCustomColorUsages,
   nearestColorToken,
   replaceAndRemoveCustomColor,
 } from '../themes/slices/customColors';

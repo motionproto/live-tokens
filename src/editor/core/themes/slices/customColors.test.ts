@@ -17,6 +17,7 @@ import {
   removeCustomColor,
   nextCustomColorSlot,
   customColorUsages,
+  describeCustomColorUsages,
   nearestColorToken,
   replaceAndRemoveCustomColor,
   __resetForTests,
@@ -131,6 +132,16 @@ describe('custom colours — usages', () => {
       { kind: 'gradient', gradient: '--gradient-2' },
       { kind: 'wash', family: 'scrim' },
     ]);
+  });
+
+  it('the usage line names components, library gradients and washes', () => {
+    seedUsages();
+    const label = (id: string) => ({ button: 'Button', card: 'Card' })[id] ?? id;
+    const s = get(editorState);
+    expect(describeCustomColorUsages(customColorUsages(s, '--color-custom-1'), label))
+      .toBe('Used by 4 properties in Button and Card, Gradient 2 and the scrim colour.');
+    expect(describeCustomColorUsages(customColorUsages(s, '--color-custom-2'), label))
+      .toBe('Used by 1 property in Button.');
   });
 
   it('removeCustomColor refuses a colour a slot names', () => {

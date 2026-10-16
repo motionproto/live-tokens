@@ -123,6 +123,30 @@ export function customColorUsages(state: EditorState, variable: string): CustomC
   return out;
 }
 
+function joinAnd(items: readonly string[]): string {
+  if (items.length <= 1) return items[0] ?? '';
+  return `${items.slice(0, -1).join(', ')} and ${items[items.length - 1]}`;
+}
+
+/** The replace step's usage line: "Used by 4 properties in Button and Card." */
+export function describeCustomColorUsages(
+  usages: readonly CustomColorUsage[],
+  componentLabel: (component: string) => string,
+): string {
+  const aliases = usages.filter((u) => u.kind === 'alias');
+  const parts: string[] = [];
+  if (aliases.length > 0) {
+    const components = [...new Set(aliases.map((u) => u.component))].map(componentLabel);
+    const noun = aliases.length === 1 ? 'property' : 'properties';
+    parts.push(`${aliases.length} ${noun} in ${joinAnd(components)}`);
+  }
+  for (const u of usages) {
+    if (u.kind === 'gradient') parts.push(`Gradient ${u.gradient.replace(/^--gradient-/, '')}`);
+    else if (u.kind === 'wash') parts.push(`the ${u.family} colour`);
+  }
+  return `Used by ${joinAnd(parts)}.`;
+}
+
 const WHITE: Oklch = { l: 1, c: 0, h: 0 };
 const BLACK: Oklch = { l: 0, c: 0, h: 0 };
 
