@@ -24,7 +24,6 @@
   import type { GradientToken } from '../core/store/editorTypes';
   import UITokenSelector from './UITokenSelector.svelte';
   import ColorEditPanel from './ColorEditPanel.svelte';
-  import UIPillButton from './UIPillButton.svelte';
   import CustomColorReplaceStep from './CustomColorReplaceStep.svelte';
 
   /** Honor prefers-reduced-motion: `t()` zeroes durations when the OS asks for
@@ -570,13 +569,11 @@
   );
   let customOutOfFamily = $derived(familyFilter !== null && familyFilter !== CUSTOM);
 
-  /** An open add or edit of one custom colour. `replacing` is set while the
-   *  remove's replace step shows. */
+  /** An open add, edit, or replace-on-remove of one custom colour. */
   interface CustomSession {
-    mode: 'add' | 'edit';
+    mode: 'add' | 'edit' | 'remove';
     variable: string;
     draft: Oklch;
-    replacing: boolean;
   }
   let session = $state<CustomSession | null>(null);
   // Held outside $state: the store matches an open scope by identity, and a
@@ -622,14 +619,14 @@
     chosenStep = customNumber(added);
     selector?.writeOverride(buildValue(added));
     onchange?.();
-    session = { mode: 'add', variable: added, draft: seed, replacing: false };
+    session = { mode: 'add', variable: added, draft: seed };
   }
 
   function openEdit(customVar: string) {
     const token = get(editorState).customColors.tokens.find((t) => t.variable === customVar);
     if (!token) return;
     sessionScope = beginScope({ label: `edit custom colour ${customVar}`, collapseToOne: true, clipUndoFloor: true });
-    session = { mode: 'edit', variable: customVar, draft: { ...token.color }, replacing: false };
+    session = { mode: 'edit', variable: customVar, draft: { ...token.color } };
   }
 
   function editDraft(h: number, c: number, lPct: number) {
@@ -666,29 +663,27 @@
     initFromCurrent();
   }
 
-  function requestRemove() {
-    if (!session) return;
-    const customVar = session.variable;
+  function requestRemove(customVar: string) {
     if (customColorUsages(get(editorState), customVar).length === 0) {
-      cancelSession();
       removeCustomColor(customVar);
+      initFromCurrent();
       return;
     }
-    session.replacing = true;
+    const token = get(editorState).customColors.tokens.find((t) => t.variable === customVar);
+    if (!token) return;
+    session = { mode: 'remove', variable: customVar, draft: { ...token.color } };
   }
 
   function confirmReplace(replacement: string) {
     if (!session) return;
     const customVar = session.variable;
-    if (sessionScope) cancelScope(sessionScope);
-    sessionScope = null;
     session = null;
     replaceAndRemoveCustomColor(customVar, replacement);
     initFromCurrent();
   }
 
   function cancelReplace() {
-    if (session) session.replacing = false;
+    session = null;
   }
 
   // Re-derive trigger state when the bound `variable` changes (e.g. when a
@@ -888,6 +883,14 @@
                     disabled={session !== null}
                     onclick={() => openEdit(token.variable)}
                   ><i class="fas fa-pen" aria-hidden="true"></i></button>
+                  <button
+                    type="button"
+                    class="custom-remove"
+                    title="Remove custom colour {n}"
+                    aria-label="Remove custom colour {n}"
+                    disabled={session !== null}
+                    onclick={() => requestRemove(token.variable)}
+                  ><i class="fas fa-trash" aria-hidden="true"></i></button>
                 {/if}
               </div>
             {/each}
@@ -906,7 +909,7 @@
           </div>
           {#if session}
             <div class="custom-panel">
-              {#if session.replacing}
+              {#if session.mode === 'remove'}
                 <CustomColorReplaceStep
                   variable={session.variable}
                   color={session.draft}
@@ -923,13 +926,7 @@
                   onSliderStart={() => beginSliderGesture(`edit ${session?.variable ?? 'custom colour'}`)}
                   onConfirm={confirmSession}
                   onCancel={cancelSession}
-                >
-                  {#snippet actions()}
-                    {#if session?.mode === 'edit'}
-                      <UIPillButton size="compact" variant="outline" icon="fa-trash" onclick={requestRemove}>Remove colour</UIPillButton>
-                    {/if}
-                  {/snippet}
-                </ColorEditPanel>
+                />
               {/if}
             </div>
           {/if}
@@ -1326,10 +1323,10 @@
     flex: 1;
   }
 
-  .custom-edit {
+  .custom-edit,
+  .custom-remove {
     position: absolute;
     top: 0;
-    right: 0;
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -1342,18 +1339,26 @@
     color: var(--ui-text-secondary);
     font-size: 0.5625rem;
     cursor: pointer;
-    opacity: 0;
-    transition: opacity var(--ui-transition-fast);
   }
 
-  .custom-cell:hover .custom-edit:not(:disabled),
-  .custom-edit:focus-visible {
-    opacity: 1;
+  .custom-edit {
+    right: 0;
   }
 
-  .custom-edit:hover {
+  .custom-remove {
+    left: 0;
+  }
+
+  .custom-edit:hover:not(:disabled),
+  .custom-remove:hover:not(:disabled) {
     color: var(--ui-text-primary);
     border-color: var(--ui-border-higher);
+  }
+
+  .custom-edit:disabled,
+  .custom-remove:disabled {
+    cursor: default;
+    opacity: 0.5;
   }
 
   .step-item:disabled {

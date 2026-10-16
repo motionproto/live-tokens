@@ -99,6 +99,30 @@ describe('UIPaletteSelector custom colours', () => {
     expect(__getHistoryLengths().past).toBe(pastBefore + 1);
   });
 
+  it('removing a colour nothing names deletes it from the swatch at once', () => {
+    addCustomColor({ l: 0.62, c: 0.11, h: 190 });
+    const { target } = mountPicker();
+    openCustom(target);
+    click(target.querySelector('button[aria-label="Remove custom colour 1"]'));
+
+    expect(get(editorState).customColors.tokens).toEqual([]);
+    expect(target.querySelector('.replace-usage')).toBeNull();
+  });
+
+  it('cancelling the replace step keeps the colour', () => {
+    addCustomColor({ l: 0.62, c: 0.11, h: 190 });
+    mutate('seed usage', (s) => {
+      s.components.button = { aliases: { '--button-bg': { kind: 'token', name: '--color-custom-1' } }, config: {} };
+    });
+    const { target } = mountPicker();
+    openCustom(target);
+    click(target.querySelector('button[aria-label="Remove custom colour 1"]'));
+    click(byText(target, 'button', 'Cancel'));
+
+    expect(get(editorState).customColors.tokens).toHaveLength(1);
+    expect(target.querySelector('.replace-usage')).toBeNull();
+  });
+
   it('removing a colour a slot names replaces it through the replace step', () => {
     addCustomColor({ l: 0.62, c: 0.11, h: 190 });
     mutate('seed usage', (s) => {
@@ -106,8 +130,7 @@ describe('UIPaletteSelector custom colours', () => {
     });
     const { target } = mountPicker();
     openCustom(target);
-    click(target.querySelector('button[aria-label="Edit custom colour 1"]'));
-    click(byText(target, 'button', 'Remove colour'));
+    click(target.querySelector('button[aria-label="Remove custom colour 1"]'));
 
     expect(target.querySelector('.replace-usage')?.textContent).toMatch(/^Used by 1 property in /);
     click(byText(target, 'button', 'Replace and remove'));

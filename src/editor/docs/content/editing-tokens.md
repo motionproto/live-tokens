@@ -49,10 +49,10 @@ The open theme holds it as a token named by number: `--color-custom-1`,
   assigns it to the slot; the cross discards it and restores the slot.
 - **Reusing.** Pick a custom colour from the same row as you pick a palette
   step, opacity included. Every slot that names it follows its value.
-- **Editing.** Hover a custom swatch in the picker and click its pencil, or
+- **Editing.** Click the pencil on a custom swatch in the picker, or
   click **Edit** in the **Custom Colours** section of the Tokens view. The edit
   repaints every slot that names the colour.
-- **Removing.** **Remove colour** in the picker's edit panel, or **Remove** in
+- **Removing.** The bin on a custom swatch in the picker, or **Remove** in
   the Tokens view, deletes a colour nothing names. When a component property,
   gradient stop, or wash names it, the editor first asks for a replacement and
   preselects the nearest colour. **Replace and remove** points each of those

@@ -106,11 +106,11 @@ production CSS build and theme export then carry them with no new code.
   picker. Cancel removes the new token and restores the slot. The add, the
   edits and the assignment collapse into one undo step through the
   PaletteEditor scope pattern (Ground truth 7).
-- **D6. Editing.** Each custom swatch in the drill-in shows a pencil on hover.
+- **D6. Editing.** Each custom swatch in the drill-in carries a pencil in its corner.
   The pencil opens the same panel, titled "Custom › N", on that token. The
   edit moves every slot that names the token. Confirm commits; cancel
   restores the old value.
-- **D7. Removing.** The edit panel (D6) carries a **Remove colour** button,
+- **D7. Removing.** Each custom swatch in the drill-in carries a bin button,
   and the Tokens view gains a Custom colours section beside
   `GradientsSection` with edit and remove on each token. A custom colour
   that nothing names goes at once. One that a slot names opens a replace
