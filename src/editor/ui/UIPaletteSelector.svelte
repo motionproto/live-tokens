@@ -1,13 +1,37 @@
+<script module lang="ts">
+  let replaceVarSeq = 0;
+</script>
+
 <script lang="ts">
   import { untrack } from 'svelte';
+  import { get } from 'svelte/store';
   import { slide } from 'svelte/transition';
   import { cubicOut, cubicIn } from 'svelte/easing';
   import { resolveAliasChain } from '../core/palettes/tokenRegistry';
-  import { editorState } from '../core/store/editorStore';
+  import {
+    editorState,
+    beginScope,
+    commitScope,
+    cancelScope,
+    beginSliderGesture,
+    addCustomColor,
+    setCustomColor,
+    removeCustomColor,
+    customColorUsages,
+    describeCustomColorUsages,
+    nearestColorToken,
+    replaceAndRemoveCustomColor,
+    type Scope,
+  } from '../core/store/editorStore';
+  import { setCssVar, removeCssVar } from '../core/cssVarSync';
+  import { cssColorToOklch, hexToOklch, type Oklch } from '../core/palettes/oklch';
   import { formatGradientStops } from '../core/themes/slices/gradients';
   import { formatColorOpacity, parseColorOpacity } from '../core/themes/parsers/colorOpacity';
   import type { GradientToken } from '../core/store/editorTypes';
   import UITokenSelector from './UITokenSelector.svelte';
+  import ColorEditPanel from './ColorEditPanel.svelte';
+  import UIPillButton from './UIPillButton.svelte';
+  import UIPaletteSelector from './UIPaletteSelector.svelte';
 
   /** Honor prefers-reduced-motion: `t()` zeroes durations when the OS asks for
    *  less motion, so the detail-row enter/exit slides skip outright. Mirrors
@@ -52,6 +76,9 @@
     /** Forwarded to UITokenSelector — when set, writes route through this
      *  callback instead of the DOM. See UITokenSelector.onwrite. */
     onwrite?: (value: string | null) => void;
+    /** Set on the picker a replace step opens to choose a stand-in for this
+     *  custom colour. The picker omits the colour and offers no add or edit. */
+    replacing?: string | null;
   }
 
   let {
@@ -66,6 +93,7 @@
     minOpacity = 0,
     onchange,
     onwrite,
+    replacing = null,
   }: Props = $props();
 
   const clampOpacity = (n: number) => Math.max(minOpacity, Math.min(100, Math.round(n)));
@@ -87,6 +115,12 @@
   ];
 
   const familyNames = families.map(f => f.name);
+
+  /** The Custom row's family name. A custom colour is its palette step `N`, so
+   *  `getVarName('palette', CUSTOM, N)` yields `--color-custom-N`. */
+  const CUSTOM = 'custom';
+  const CUSTOM_PREFIX = '--color-custom-';
+  const customNumber = (v: string) => v.slice(CUSTOM_PREFIX.length);
 
   const paletteSteps = ['100', '200', '300', '400', '500', '600', '700', '800', '850', '900', '950'];
 
@@ -232,6 +266,9 @@
     const varMatch = value.match(/var\((--[a-z0-9-]+)\)/);
     if (!varMatch) return null;
     const varName = varMatch[1];
+
+    const customM = varName.match(/^--color-custom-(\d+)$/);
+    if (customM) return { category: 'palette', family: CUSTOM, step: customM[1] };
 
     const paletteM = varName.match(/^--color-([a-z]+)-(\d{3})$/);
     if (paletteM && familyNames.includes(paletteM[1]) && paletteSteps.includes(paletteM[2])) {
@@ -452,6 +489,7 @@
   }
 
   function handleClose() {
+    if (session) cancelSession();
     selectedFamily = null;
   }
 
@@ -464,6 +502,7 @@
   }
 
   function backToFamilies() {
+    if (session) cancelSession();
     selectedFamily = null;
   }
 
@@ -530,6 +569,160 @@
     onchange?.();
   }
 
+  let customTokens = $derived(
+    $editorState.customColors.tokens
+      .filter((t) => t.variable !== replacing)
+      .sort((a, b) => Number(customNumber(a.variable)) - Number(customNumber(b.variable))),
+  );
+  let customOutOfFamily = $derived(familyFilter !== null && familyFilter !== CUSTOM);
+
+  /** An open add or edit of one custom colour. `replacement` is set while the
+   *  remove's replace step shows. */
+  interface CustomSession {
+    mode: 'add' | 'edit';
+    variable: string;
+    draft: Oklch;
+    replacement: string | null;
+    usageLine: string;
+  }
+  let session = $state<CustomSession | null>(null);
+  // Held outside $state: the store matches an open scope by identity, and a
+  // proxied handle would never match.
+  let sessionScope: Scope | null = null;
+  let slotRawBeforeAdd = '';
+
+  const replaceVar = `--__custom-replace-${++replaceVarSeq}`;
+
+  function readSlotRaw(): string {
+    return document.documentElement.style.getPropertyValue(variable).trim();
+  }
+
+  function rgbChannelsToOklch(r: number, g: number, b: number): Oklch {
+    const hex = (n: number) => Math.max(0, Math.min(255, Math.round(n))).toString(16).padStart(2, '0');
+    return hexToOklch(`#${hex(r)}${hex(g)}${hex(b)}`);
+  }
+
+  /** The slot's colour as the browser paints it. A custom property's computed
+   *  value is its unresolved text, so a probe's `color` does the resolving. */
+  function resolvedSlotColor(): Oklch {
+    const probe = document.createElement('span');
+    probe.style.color = `var(${variable})`;
+    document.body.appendChild(probe);
+    const css = getComputedStyle(probe).color.trim();
+    probe.remove();
+    const rgb = css.match(/^rgba?\(\s*([\d.]+)[\s,]+([\d.]+)[\s,]+([\d.]+)/i);
+    if (rgb) return rgbChannelsToOklch(+rgb[1], +rgb[2], +rgb[3]);
+    const srgb = css.match(/^color\(srgb\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)/i);
+    if (srgb) return rgbChannelsToOklch(+srgb[1] * 255, +srgb[2] * 255, +srgb[3] * 255);
+    return cssColorToOklch(css) ?? { l: 0.6, c: 0, h: 0 };
+  }
+
+  function openAdd() {
+    const seed = resolvedSlotColor();
+    slotRawBeforeAdd = readSlotRaw();
+    sessionScope = beginScope({ label: 'add custom colour', collapseToOne: true, clipUndoFloor: true });
+    const added = addCustomColor(seed);
+    chosenNone = false;
+    chosenStatic = null;
+    chosenGradient = null;
+    chosenAngle = null;
+    chosenCategory = 'palette';
+    chosenFamily = CUSTOM;
+    chosenStep = customNumber(added);
+    selector?.writeOverride(buildValue(added));
+    onchange?.();
+    session = { mode: 'add', variable: added, draft: seed, replacement: null, usageLine: '' };
+  }
+
+  function openEdit(customVar: string) {
+    const token = get(editorState).customColors.tokens.find((t) => t.variable === customVar);
+    if (!token) return;
+    sessionScope = beginScope({ label: `edit custom colour ${customVar}`, collapseToOne: true, clipUndoFloor: true });
+    session = { mode: 'edit', variable: customVar, draft: { ...token.color }, replacement: null, usageLine: '' };
+  }
+
+  function editDraft(h: number, c: number, lPct: number) {
+    if (!session) return;
+    session.draft = { l: lPct / 100, c, h };
+    setCustomColor(session.variable, session.draft);
+  }
+
+  function confirmSession() {
+    if (!session) return;
+    const added = session.mode === 'add';
+    if (sessionScope) commitScope(sessionScope);
+    sessionScope = null;
+    session = null;
+    if (added) {
+      selectedFamily = null;
+      selector?.close();
+      onchange?.();
+    }
+  }
+
+  // A cancelled add would leave the slot naming a colour the scope removed, so
+  // the scope restores the slot with it. A slot that writes only to the DOM
+  // sits outside the store, so its prior value goes back by hand.
+  function cancelSession() {
+    const added = session?.mode === 'add';
+    if (sessionScope) cancelScope(sessionScope);
+    sessionScope = null;
+    session = null;
+    if (added && !component && !onwrite) {
+      if (slotRawBeforeAdd) setCssVar(variable, slotRawBeforeAdd);
+      else removeCssVar(variable);
+    }
+    initFromCurrent();
+  }
+
+  async function componentLabeler(): Promise<(id: string) => string> {
+    // Loaded on demand: the registry imports every component editor, and
+    // those editors import this picker.
+    const { getComponentRegistry } = await import('../component-editor/registry');
+    const registry = getComponentRegistry();
+    return (id) => registry[id]?.label ?? id;
+  }
+
+  async function requestRemove() {
+    if (!session) return;
+    const customVar = session.variable;
+    const usages = customColorUsages(get(editorState), customVar);
+    if (usages.length === 0) {
+      cancelSession();
+      removeCustomColor(customVar);
+      return;
+    }
+    session.replacement = nearestColorToken(session.draft, get(editorState), customVar);
+    session.usageLine = describeCustomColorUsages(usages, (id) => id);
+    const label = await componentLabeler();
+    if (session?.variable === customVar) session.usageLine = describeCustomColorUsages(usages, label);
+  }
+
+  function confirmReplace() {
+    if (!session?.replacement) return;
+    const { variable: customVar, replacement } = session;
+    if (sessionScope) cancelScope(sessionScope);
+    sessionScope = null;
+    session = null;
+    replaceAndRemoveCustomColor(customVar, replacement);
+    initFromCurrent();
+  }
+
+  function cancelReplace() {
+    if (session) session.replacement = null;
+  }
+
+  function writeReplacement(value: string | null) {
+    if (session && value?.startsWith('--')) session.replacement = value;
+  }
+
+  $effect(() => {
+    const replacement = session?.replacement;
+    if (!replacement) return;
+    setCssVar(replaceVar, `var(${replacement})`);
+    return () => removeCssVar(replaceVar);
+  });
+
   // Re-derive trigger state when the bound `variable` changes (e.g. when a
   // VariantGroup tabs view reuses the same selector instance across states).
   // The wrapper UITokenSelector forwards `var-change` only for the currently
@@ -567,9 +760,11 @@
           ? getVarName(chosenCategory, chosenFamily, chosenStep).replace(/^--/, '') + (opacity < 100 ? ` (${opacity}%)` : '')
           : ''));
 
-  let availableTabs = $derived(selectedFamily
-    ? allCategories.filter(c => c.id !== 'text' || familiesWithText.includes(selectedFamily!))
-    : allCategories);
+  let availableTabs = $derived(selectedFamily === CUSTOM
+    ? allCategories.filter(c => c.id === 'palette')
+    : selectedFamily
+      ? allCategories.filter(c => c.id !== 'text' || familiesWithText.includes(selectedFamily!))
+      : allCategories);
 
   $effect(() => {
     const family = selectedFamily;
@@ -590,7 +785,7 @@
   {disabled}
   {selectionsLocked}
   {onwrite}
-  dropdownMinWidth="14rem"
+  dropdownMinWidth={session ? '22rem' : '14rem'}
   dropdownMaxWidth="calc(100vw - 2rem)"
   hideDefaultHeader={!!selectedFamily}
   onreset={handleReset}
@@ -632,7 +827,7 @@
           {/if}
         </div>
         <div class="family-list">
-          {#each families as fam}
+          {#each families as fam (fam.name)}
             {@const outOfFamily = familyFilter !== null && fam.name !== familyFilter}
             <button
               class="family-item"
@@ -652,9 +847,30 @@
               {/if}
             </button>
           {/each}
+          <button
+            class="family-item"
+            class:active={!chosenNone && chosenFamily === CUSTOM}
+            class:out-of-family={customOutOfFamily}
+            disabled={customOutOfFamily}
+            onclick={() => selectFamily(CUSTOM)}
+          >
+            <div class="family-swatches">
+              {#each [0, 1, 2] as i (i)}
+                {#if customTokens[i]}
+                  <div class="mini-swatch" style="background: var({customTokens[i].variable});"></div>
+                {:else}
+                  <div class="mini-swatch mini-swatch--empty"></div>
+                {/if}
+              {/each}
+            </div>
+            <span class="family-label">Custom</span>
+            {#if !customOutOfFamily}
+              <i class="fas fa-chevron-right family-arrow"></i>
+            {/if}
+          </button>
           {#if gradientsAllowed && gradientTokens.length > 0}
             <div class="family-divider">Gradients</div>
-            {#each gradientTokens as g}
+            {#each gradientTokens as g (g.variable)}
               <button class="family-item" class:active={chosenGradient === g.variable} onclick={() => selectGradient(g.variable, close)}>
                 <div class="family-swatches">
                   <div class="gradient-swatch" style="background: var({g.variable});"></div>
@@ -667,11 +883,11 @@
       {:else}
         <button class="dropdown-back" onclick={backToFamilies}>
           <i class="fas fa-chevron-left"></i>
-          <span>{families.find(f => f.name === selectedFamily)?.label}</span>
+          <span>{selectedFamily === CUSTOM ? 'Custom' : families.find(f => f.name === selectedFamily)?.label}</span>
         </button>
 
         <div class="tab-bar">
-          {#each availableTabs as tab}
+          {#each availableTabs as tab (tab.id)}
             <button
               class="tab-btn"
               class:selected={selectedCategory === tab.id}
@@ -681,9 +897,90 @@
           {/each}
         </div>
 
-        {#if selectedCategory === 'palette'}
+        {#if selectedFamily === CUSTOM}
           <div class="step-grid">
-            {#each paletteSteps as step}
+            {#each customTokens as token (token.variable)}
+              {@const n = customNumber(token.variable)}
+              <div class="custom-cell">
+                <button
+                  class="step-item"
+                  class:active={chosenCategory === 'palette' && chosenFamily === CUSTOM && chosenStep === n}
+                  disabled={session !== null}
+                  onclick={() => selectSwatch('palette', n, close)}
+                >
+                  <div class="step-swatch" style="background: var({token.variable});"></div>
+                  <span class="step-label">{n}</span>
+                </button>
+                {#if !replacing}
+                  <button
+                    type="button"
+                    class="custom-edit"
+                    title="Edit custom colour {n}"
+                    aria-label="Edit custom colour {n}"
+                    disabled={session !== null}
+                    onclick={() => openEdit(token.variable)}
+                  ><i class="fas fa-pen" aria-hidden="true"></i></button>
+                {/if}
+              </div>
+            {/each}
+            {#if !replacing}
+              <button
+                class="step-item"
+                title="Add a custom colour"
+                aria-label="Add a custom colour"
+                disabled={session !== null}
+                onclick={openAdd}
+              >
+                <div class="step-swatch step-swatch--add"><i class="fas fa-plus" aria-hidden="true"></i></div>
+                <span class="step-label">Add</span>
+              </button>
+            {/if}
+          </div>
+          {#if session}
+            <div class="custom-panel">
+              {#if session.replacement}
+                <div class="replace-step">
+                  <p class="replace-usage">{session.usageLine}</p>
+                  <div class="replace-pick">
+                    <span class="replace-label">Replace with</span>
+                    <div class="replace-picker">
+                      <UIPaletteSelector
+                        variable={replaceVar}
+                        replacing={session.variable}
+                        showNone={false}
+                        showOpacity={false}
+                        onwrite={writeReplacement}
+                      />
+                    </div>
+                  </div>
+                  <div class="replace-actions">
+                    <UIPillButton size="compact" variant="primary" onclick={confirmReplace}>Replace and remove</UIPillButton>
+                    <UIPillButton size="compact" variant="outline" onclick={cancelReplace}>Cancel</UIPillButton>
+                  </div>
+                </div>
+              {:else}
+                <ColorEditPanel
+                  title="Custom › {customNumber(session.variable)}"
+                  hue={session.draft.h}
+                  chroma={session.draft.c}
+                  lightness={session.draft.l * 100}
+                  onHueChromaChange={editDraft}
+                  onSliderStart={() => beginSliderGesture(`edit ${session?.variable ?? 'custom colour'}`)}
+                  onConfirm={confirmSession}
+                  onCancel={cancelSession}
+                >
+                  {#snippet actions()}
+                    {#if session?.mode === 'edit'}
+                      <UIPillButton size="compact" variant="outline" icon="fa-trash" onclick={requestRemove}>Remove colour</UIPillButton>
+                    {/if}
+                  {/snippet}
+                </ColorEditPanel>
+              {/if}
+            </div>
+          {/if}
+        {:else if selectedCategory === 'palette'}
+          <div class="step-grid">
+            {#each paletteSteps as step (step)}
               <button
                 class="step-item"
                 class:active={chosenCategory === 'palette' && chosenFamily === selectedFamily && chosenStep === step}
@@ -696,7 +993,7 @@
           </div>
         {:else if selectedCategory === 'surface'}
           <div class="step-grid">
-            {#each surfaceSteps as step}
+            {#each surfaceSteps as step (step.key)}
               <button
                 class="step-item"
                 class:active={chosenCategory === 'surface' && chosenFamily === selectedFamily && chosenStep === step.key}
@@ -709,7 +1006,7 @@
           </div>
         {:else if selectedCategory === 'border'}
           <div class="step-grid">
-            {#each borderSteps as step}
+            {#each borderSteps as step (step.key)}
               <button
                 class="step-item"
                 class:active={chosenCategory === 'border' && chosenFamily === selectedFamily && chosenStep === step.key}
@@ -722,7 +1019,7 @@
           </div>
         {:else if selectedCategory === 'text'}
           <div class="step-grid">
-            {#each (selectedFamily === 'neutral' ? neutralTextSteps : textSteps) as step}
+            {#each (selectedFamily === 'neutral' ? neutralTextSteps : textSteps) as step (step.key)}
               <button
                 class="step-item"
                 class:active={chosenCategory === 'text' && chosenFamily === selectedFamily && chosenStep === step.key}
@@ -756,7 +1053,7 @@
     <span class="detail-label">orientation</span>
     <div class="orientation-body">
       <div class="dir-grid">
-        {#each directionGrid as d}
+        {#each directionGrid as d (d.angle)}
           <button
             type="button"
             class="dir-btn"
@@ -1059,6 +1356,114 @@
     width: 0.75rem;
     height: 0.75rem;
     border-radius: 2px;
+  }
+
+  .mini-swatch--empty {
+    border: 1px dashed var(--ui-border);
+  }
+
+  .custom-cell {
+    position: relative;
+    display: flex;
+  }
+
+  .custom-cell > .step-item {
+    flex: 1;
+  }
+
+  .custom-edit {
+    position: absolute;
+    top: 0;
+    right: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.125rem;
+    height: 1.125rem;
+    padding: 0;
+    background: var(--ui-surface-high);
+    border: 1px solid var(--ui-border);
+    border-radius: var(--ui-radius-sm);
+    color: var(--ui-text-secondary);
+    font-size: 0.5625rem;
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity var(--ui-transition-fast);
+  }
+
+  .custom-cell:hover .custom-edit:not(:disabled),
+  .custom-edit:focus-visible {
+    opacity: 1;
+  }
+
+  .custom-edit:hover {
+    color: var(--ui-text-primary);
+    border-color: var(--ui-border-higher);
+  }
+
+  .step-item:disabled {
+    cursor: default;
+    opacity: 0.5;
+  }
+
+  .step-item:disabled:hover {
+    background: none;
+    border-color: transparent;
+  }
+
+  .step-swatch--add {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px dashed var(--ui-border-higher);
+    color: var(--ui-text-muted);
+    font-size: var(--ui-font-size-xs);
+  }
+
+  .custom-panel {
+    padding: 0 var(--ui-space-8) var(--ui-space-8);
+  }
+
+  .replace-step {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ui-space-8);
+    padding: var(--ui-space-12);
+    background: var(--ui-surface-lowest);
+    border: 1px solid var(--ui-border-low);
+    border-radius: var(--ui-radius-md);
+  }
+
+  .replace-usage {
+    margin: 0;
+    font-size: var(--ui-font-size-sm);
+    color: var(--ui-text-primary);
+  }
+
+  .replace-pick {
+    display: flex;
+    align-items: center;
+    gap: var(--ui-space-8);
+  }
+
+  .replace-label {
+    font-size: var(--ui-font-size-xs);
+    color: var(--ui-text-secondary);
+    flex-shrink: 0;
+  }
+
+  /* The nested picker lays itself out on its parent row's subgrid; this grid
+     stands in for that row. */
+  .replace-picker {
+    flex: 1;
+    min-width: 0;
+    display: grid;
+    grid-template-columns: minmax(3rem, 1fr) auto;
+  }
+
+  .replace-actions {
+    display: flex;
+    gap: var(--ui-space-6);
   }
 
   .gradient-swatch {
