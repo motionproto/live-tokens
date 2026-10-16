@@ -818,13 +818,6 @@
     color: var(--ui-text-tertiary);
   }
 
-  /* Anchor dropdown to the trigger's right edge; the toolbar sits flush against
-     the editor's right gutter, so a left-anchored dropdown would clip. */
-  .canvas-toolbar :global(.ui-ts-dropdown) {
-    left: auto;
-    right: 0;
-  }
-
   .variant-tabs {
     display: inline-flex;
     flex-wrap: wrap;

@@ -22,7 +22,7 @@
   } from '../core/store/editorStore';
   import UILinkToggle from './UILinkToggle.svelte';
   import UIRelinkConfirmDialog from './UIRelinkConfirmDialog.svelte';
-  import { keepInViewport } from './keepInViewport';
+  import { anchorToTrigger } from './anchorToTrigger';
 
   type DropdownContext = { close: () => void; handleReset: () => void };
 
@@ -100,6 +100,7 @@
 
   let open = $state(false);
   let container: HTMLElement;
+  let triggerEl = $state<HTMLButtonElement | undefined>(undefined);
   let relinkOpen = $state(false);
   let relinkCandidates: { variable: string; alias: string }[] = $state([]);
 
@@ -292,6 +293,7 @@
 >
   <div class="ui-ts-trigger-wrap">
     <button
+      bind:this={triggerEl}
       class="ui-ts-trigger"
       class:linked={isLinkedDisplay}
       class:unlinked={showLinkToggle && !isLinkedDisplay}
@@ -329,7 +331,7 @@
       <div
         class="ui-ts-dropdown"
         style="min-width: {dropdownMinWidth};{dropdownMaxWidth ? ` max-width: ${dropdownMaxWidth};` : ''}"
-        use:keepInViewport
+        use:anchorToTrigger={triggerEl!}
       >
         {#if !hideDefaultHeader}
           {#if header}
@@ -452,8 +454,7 @@
     background: var(--ui-surface-high);
   }
 
-  /* Link-state pop-bar. The wrap already has `position: relative` (so the
-     dropdown can anchor). The bar is a `::before` anchored at the wrap's
+  /* Link-state pop-bar. The wrap already has `position: relative`. The bar is a `::before` anchored at the wrap's
      left edge — same column position regardless of state, so a stack of
      mixed linked/unlinked rows shares one continuous link-state column.
      Linked rows: bar is teal, full size, sitting flush against the trigger.
@@ -487,12 +488,6 @@
     width: 2px;
     height: 0.875rem;
     border-radius: 1px;
-  }
-  /* Keep the dropdown's left edge aligned with the (indented) trigger rather
-     than the column anchor, so an open dropdown doesn't bleed left of its
-     associated control. */
-  .ui-ts-trigger-wrap:has(> .ui-ts-trigger.unlinked) > .ui-ts-dropdown {
-    left: 0.5rem;
   }
   @media (prefers-reduced-motion: reduce) {
     .ui-ts-trigger-wrap,
@@ -534,8 +529,8 @@
   }
 
   .ui-ts-dropdown {
-    position: absolute;
-    top: calc(100% + var(--ui-space-4));
+    position: fixed;
+    top: 0;
     left: 0;
     background: var(--ui-surface-higher);
     border: 1px solid var(--ui-border-high);
