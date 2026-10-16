@@ -26,7 +26,7 @@ import { SHADOW_VAR_NAMES, parseShadowCss, shadowTokenCss } from './parsers/shad
 import { AA_BODY, AA_LARGE, contrastRatio, findLForContrast } from '../palettes/contrast';
 import { type HarmonyAxis, type HarmonyMode } from '../palettes/colorHarmony';
 import { defaultPaletteConfig } from '../../ui/palette/paletteMath';
-import type { GradientDiskToken, PaletteConfig } from './themeTypes';
+import type { CustomColorDiskToken, GradientDiskToken, PaletteConfig } from './themeTypes';
 
 export interface ColorsInput {
   scheme: SchemeDirection;
@@ -41,12 +41,14 @@ export interface ColorsInput {
 }
 
 /** The live colors and type this pass reads before it replaces the color
- *  state: the override bag, so every name no palette owns rides through, and
- *  the swatch gradients, so user-tuned ones survive. Shadow opacity is
- *  derived, not carried — see `shadowVars`. */
+ *  state: the override bag, so every name no palette owns rides through, the
+ *  swatch gradients, so user-tuned ones survive, and the custom colours, which
+ *  ride through untouched. Shadow opacity is derived, not carried — see
+ *  `shadowVars`. */
 export interface CarryForward {
   cssVariables?: Record<string, string>;
   gradients?: GradientDiskToken[];
+  customColors?: CustomColorDiskToken[];
 }
 
 export interface ContrastCheck {
@@ -80,6 +82,9 @@ export interface ColorsState {
   editorConfigs: Record<string, PaletteConfig>;
   harmonyAxes: HarmonyAxis[];
   gradients: GradientDiskToken[];
+  /** Present only when the carried colours and type held the field, so a
+   *  recolor adds no key to a theme that never had one. */
+  customColors?: CustomColorDiskToken[];
   cssVariables: Record<string, string>;
 }
 
@@ -467,7 +472,13 @@ export function buildColors(input: ColorsInput, carry: CarryForward = {}): Build
   Object.assign(cssVariables, shadowVars(carry.cssVariables ?? {}, baseColors.Canvas));
 
   return {
-    colors: { editorConfigs: configs, harmonyAxes, gradients, cssVariables },
+    colors: {
+      editorConfigs: configs,
+      harmonyAxes,
+      gradients,
+      ...(carry.customColors ? { customColors: carry.customColors } : {}),
+      cssVariables,
+    },
     report: {
       ...report,
       gradients: gradients === carry.gradients ? 'carried' : 'recipes',

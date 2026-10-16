@@ -82,6 +82,7 @@ export async function runSetColors({
   const { colors, report } = buildColors(input, {
     cssVariables: live.cssVariables,
     gradients: live.gradients,
+    customColors: live.customColors,
   });
 
   const next = {

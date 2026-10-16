@@ -183,6 +183,20 @@ describe('runSetColors', () => {
     expect(buffer(root).cssVariables['--gradient-1']).toContain('33deg');
   });
 
+  it('carries custom colours through a recolor', async () => {
+    const root = project();
+    const customColors = [{ variable: '--color-custom-1', color: { l: 0.62, c: 0.11, h: 190 } }];
+    openTheme(root, 'sunset', {
+      name: 'Sunset',
+      cssVariables: { '--color-custom-1': 'oklch(0.62 0.11 190)' },
+      customColors,
+    });
+    await run(root);
+
+    expect(buffer(root).customColors).toEqual(customColors);
+    expect(buffer(root).cssVariables['--color-custom-1']).toBe('oklch(0.62 0.11 190)');
+  });
+
   it('reports a name in the base color file as ignored', async () => {
     const root = project();
     expect((await run(root)).ignoredName).toBe(null);

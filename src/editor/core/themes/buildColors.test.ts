@@ -114,6 +114,17 @@ describe('buildColors', () => {
     expect(colors.cssVariables['--gradient-1']).toContain('33deg');
   });
 
+  it('carries custom colours and their rendered vars untouched, and adds no field when none were carried', () => {
+    const customColors = [{ variable: '--color-custom-1', color: { l: 0.62, c: 0.11, h: 190 } }];
+    const { colors } = buildColors(lightInput, {
+      customColors,
+      cssVariables: { '--color-custom-1': 'oklch(0.62 0.11 190)' },
+    });
+    expect(colors.customColors).toBe(customColors);
+    expect(colors.cssVariables['--color-custom-1']).toBe('oklch(0.62 0.11 190)');
+    expect('customColors' in buildColors(lightInput).colors).toBe(false);
+  });
+
   it('canvasGradient: true turns on the page sky on the scheme-safe side of the Canvas anchor', () => {
     const dark = buildColors({ ...darkInput, canvasGradient: true });
     const canvas = dark.colors.editorConfigs.Canvas;
