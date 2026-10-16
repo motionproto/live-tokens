@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased — Custom colors
+## 0.97.0 — Custom colors
 
 ### Added
 
