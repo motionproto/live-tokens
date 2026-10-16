@@ -37,6 +37,34 @@ Editing a palette base ripples through every colour that depends on it, in real
 time. Colours use OKLCH, so the ramp stays perceptually even across hues
 without muddy mid-tones.
 
+## Custom colours
+
+A custom colour is one colour of your own, for a slot no palette step fits.
+The open theme holds it as a token named by number: `--color-custom-1`,
+`--color-custom-2`, and so on.
+
+- **Adding.** Every colour picker has a **Custom** row after Danger. Open it
+  and click **Add**. The new colour starts from the slot's current colour and
+  opens in the OKLCH editor, and the slot previews it as you drag. The check
+  assigns it to the slot; the cross discards it and restores the slot.
+- **Reusing.** Pick a custom colour from the same row as you pick a palette
+  step, opacity included. Every slot that names it follows its value.
+- **Editing.** Hover a custom swatch in the picker and click its pencil, or
+  click **Edit** in the **Custom Colours** section of the Tokens view. The edit
+  repaints every slot that names the colour.
+- **Removing.** **Remove colour** in the picker's edit panel, or **Remove** in
+  the Tokens view, deletes a colour nothing names. When a component property,
+  gradient stop, or wash names it, the editor first asks for a replacement and
+  preselects the nearest colour. **Replace and remove** points each of those
+  at the replacement, keeps each one's opacity, and deletes the custom colour.
+
+Each add, edit, and remove is one undo step. A custom colour holds one value in
+light and dark mode. Saving writes the theme's custom colours into its file,
+and loading another theme brings in that theme's set. Reach a custom colour
+through a component property: `live-tokens check-page` reports `unknown-token`
+for page CSS that writes `var(--color-custom-1)`, since the name exists only in
+the theme.
+
 ## Type
 
 - **Fonts.** Add sources from Google Fonts, Adobe (Typekit), a CSS URL, or an
