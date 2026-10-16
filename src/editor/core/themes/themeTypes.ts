@@ -148,6 +148,13 @@ export interface GradientDiskToken {
   stops: { position: number; color: string; opacity?: number }[];
 }
 
+/** On-disk shape of one `--color-custom-N` token: a theme-owned colour that
+ *  holds its own OKLCH value, one value for light and dark alike. */
+export interface CustomColorDiskToken {
+  variable: string;
+  color: Oklch;
+}
+
 /**
  * Where a live component config resolved from: the unsaved `_working`
  * buffer, or the open theme's embedded copy. Every theme carries every
@@ -177,6 +184,9 @@ export interface ColorsAndType {
   /** Absent on files saved before gradients round-tripped; the loader keeps
    *  the stock defaults then, which match what those files rendered. */
   gradients?: GradientDiskToken[];
+  /** Absent when the theme holds no custom colour; the loader reads that as
+   *  an empty list. */
+  customColors?: CustomColorDiskToken[];
   /** Four fixed harmony axes, each owning a hue with an optional bound family. */
   harmonyAxes?: HarmonyAxis[];
   /**

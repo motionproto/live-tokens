@@ -75,6 +75,10 @@ import {
   makeDefaultGradients,
 } from '../themes/slices/gradients';
 import {
+  customColorsToVars,
+  loadCustomColorsFromFile,
+} from '../themes/slices/customColors';
+import {
   componentBaseline,
   getComponentOwnedVarNames,
   loadComponentsFromVars,
@@ -102,6 +106,7 @@ function emptyState(): EditorState {
     columns: defaultColumns(),
     components: {},
     gradients: { tokens: makeDefaultGradients() },
+    customColors: { tokens: [] },
     harmonyAxes: defaultHarmonyAxes(),
     cssVars: {},
   };
@@ -178,6 +183,19 @@ export {
   addGradientToken,
   removeGradientToken,
 } from '../themes/slices/gradients';
+
+export {
+  customColorsToVars,
+  nextCustomColorSlot,
+  isCustomColorSlot,
+  addCustomColor,
+  setCustomColor,
+  removeCustomColor,
+  customColorUsages,
+  nearestColorToken,
+  replaceAndRemoveCustomColor,
+} from '../themes/slices/customColors';
+export type { CustomColorUsage } from '../themes/slices/customColors';
 
 export {
   componentsToVars,
@@ -404,6 +422,7 @@ export function colorsAndTypeToState(colorsAndType: ColorsAndType): EditorState 
   // begin with).
   for (const load of Object.values(domainLoaders)) load(next, rawVars);
   loadGradientsFromFile(next, colorsAndType.gradients, rawVars);
+  loadCustomColorsFromFile(next, colorsAndType.customColors, rawVars);
   next.harmonyAxes = sanitizeHarmonyAxes(renameBackgroundHarmonyFamily(colorsAndType.harmonyAxes), next.palettes);
   next.cssVars = rawVars;
   return next;
@@ -438,12 +457,17 @@ function colorsAndTypeContent(state: EditorState): Omit<ColorsAndType, 'name' | 
   if (state.gradients.tokens.length > 0) {
     Object.assign(cssVariables, gradientsToVars(state.gradients));
   }
+  // An empty list writes no field, so a theme that never held a custom colour
+  // still compares equal to the buffer its load produced.
+  const hasCustomColors = state.customColors.tokens.length > 0;
+  if (hasCustomColors) Object.assign(cssVariables, customColorsToVars(state.customColors));
   return {
     editorConfigs: state.palettes,
     cssVariables,
     fontSources: state.fonts.sources,
     fontStacks: state.fonts.stacks,
     gradients: state.gradients.tokens,
+    ...(hasCustomColors ? { customColors: state.customColors.tokens } : {}),
     harmonyAxes: state.harmonyAxes,
     schemaVersion: CURRENT_COLORS_AND_TYPE_SCHEMA_VERSION,
   };

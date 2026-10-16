@@ -19,6 +19,7 @@ import { storageKey } from './editorConfig';
 import { store } from './editorCore';
 import { quietGet, quietSet } from '../storage/storage';
 import { isGradientSlot, makeDefaultGradients } from '../themes/slices/gradients';
+import { isCustomColorList } from '../themes/slices/customColors';
 import { seedShadowsFromDom } from '../themes/slices/shadows';
 import { makeDefaultWashScale, type WashFamily } from '../themes/slices/washes';
 import { normalizeColumnsState } from '../themes/slices/columns';
@@ -71,6 +72,13 @@ function migrateGradients(state: EditorState): EditorState {
   const tokens = state.gradients?.tokens ?? [];
   if (tokens.length > 0 && tokens.every((g) => isGradientSlot(g.variable))) return state;
   return { ...state, gradients: { tokens: makeDefaultGradients() } };
+}
+
+// Persisted state from before custom colours gets the empty default from the
+// shallow merge; anything else that is not a well-formed list loads as empty.
+function migrateCustomColors(state: EditorState): EditorState {
+  if (isCustomColorList(state.customColors?.tokens)) return state;
+  return { ...state, customColors: { tokens: [] } };
 }
 
 // `hydrate` shallow-merges the persisted `components` bag over the default, so
@@ -205,7 +213,7 @@ export function hydrate(): void {
     store.set(
       normalizeHarmonyAxes(
         normalizeBaseAnchors(
-          normalizePaletteBasis(normalizePaletteLabels(normalizeComponents(normalizeColumns(normalizeWashes(migrateGradients(merged)))))),
+          normalizePaletteBasis(normalizePaletteLabels(normalizeComponents(normalizeColumns(normalizeWashes(migrateCustomColors(migrateGradients(merged))))))),
         ),
       ),
     );

@@ -1,6 +1,7 @@
 import type { PaletteConfig, FontSource, FontStack } from '../themes/themeTypes';
 import type { GradientStop, GradientValue, LinearDirection } from '../themes/parsers/gradient';
 import type { HarmonyAxis } from '../palettes/colorHarmony';
+import type { Oklch } from '../palettes/oklch';
 import type { ColumnViewport, ColumnViewportValues } from '../themes/slices/columns';
 
 export interface ShadowGlobals {
@@ -80,6 +81,13 @@ export interface GradientToken {
   stops: GradientTokenStop[];
 }
 
+/** A theme-owned `--color-custom-N` colour. Slots name it the way they name a
+ *  palette step, so one edit moves every slot that names it. */
+export interface CustomColorToken {
+  variable: string;
+  color: Oklch;
+}
+
 /** Structured gradient payload carried inline on a component alias.
  *  `GradientToken` minus `variable` (the alias key itself is the binding).
  *  Used when a component owns a per-instance gradient that doesn't share the
@@ -123,6 +131,7 @@ export interface EditorState {
   columns: ColumnsState;
   components: Record<string, ComponentSlice>;
   gradients: { tokens: GradientToken[] };
+  customColors: { tokens: CustomColorToken[] };
   /** Four fixed numbered axes (index 0 is the anchor); each owns a hue;
    *  family is the live-bound color or null. */
   harmonyAxes: HarmonyAxis[];

@@ -21,6 +21,7 @@ import {
   washesToVars,
   shadowsToVars,
   gradientsToVars,
+  customColorsToVars,
   componentsToVars,
 } from './editorStore';
 
@@ -34,6 +35,7 @@ export function deriveCssVars(state: EditorState): Record<string, string> {
   if (state.gradients.tokens.length > 0) {
     Object.assign(out, gradientsToVars(state.gradients));
   }
+  Object.assign(out, customColorsToVars(state.customColors));
   Object.assign(out, palettesToVars(state.palettes));
   Object.assign(out, componentsToVars(state.components));
   Object.assign(out, resolveFontStackValues(state.fonts.stacks, state.fonts.sources));
