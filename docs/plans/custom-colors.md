@@ -116,7 +116,10 @@ production CSS build and theme export then carry them with no new code.
   that nothing names goes at once. One that a slot names opens a replace
   step (D11) first. The user approved remove in the picker on 2026-10-16.
 - **D11. Replace on remove.** Remove scans the current theme for every
-  component alias and gradient stop that names the token. When it finds
+  component alias, gradient stop, wash colour (scrim and tint) and literal
+  alias that names the token. The washes pick through `UIPaletteSelector`
+  with no `familyFilter`, so under D3 they offer custom colours. A literal
+  alias carries the ref when a slot overrides a library gradient's angle. When it finds
   any, the panel shows a replace step:
 
   > Used by 4 properties in Button and Card. Replace with: [swatch]
@@ -170,7 +173,7 @@ production CSS build and theme export then carry them with no new code.
 - `slices/customColors.ts`: `customColorsToVars`, `loadCustomColorsFromFile`,
   `nextCustomColorSlot`, `addCustomColor`, `setCustomColor`,
   `removeCustomColor`, `customColorUsages(state, variable)`,
-  `nearestColorToken(color, state)`, and
+  `nearestColorToken(color, state, exclude?)`, and
   `replaceAndRemoveCustomColor(variable, replacement)` for D7 and D11.
 - `EditorState.customColors`, `emptyState`, `deriveCssVars`,
   `colorsAndTypeContent`, `colorsAndTypeToState`, and the localStorage
@@ -194,19 +197,41 @@ prints nothing (D2).
 - `UIPaletteSelector`: the Custom row (D3), the drill-in (D4), add (D5),
   edit (D6), remove with the replace step (D7, D11), and
   `parseRef`/`getVarName`/`metaLabel` for `--color-custom-N`.
+- The usage line names washes and library-gradient literals as well as
+  components.
+- D5 cancel cancels the PaletteEditor scope. `removeCustomColor` refuses while
+  a slot names the colour, and the slot still previews the new token.
 - Test: select, reopen, and read the meta for a custom colour at 100% and at
   60% opacity.
+
+**Verify.** `npx vitest run src/editor`, `npm run check`,
+`node scripts/check-production-is-default.mjs`.
+
+**Done when** the wave's test passes, svelte-check reports 0 errors, and
+`git status --short src/live-tokens/data` prints nothing.
 
 ## Wave 3: Tokens view section
 
 - `CustomColorsSection.svelte` beside `GradientsSection` (D7), reusing the
   replace step from Wave 2.
 
+**Verify.** `npx vitest run src/editor`, `npm run check`,
+`node scripts/check-production-is-default.mjs`.
+
+**Done when** the section lists, edits and removes custom colours through
+the Wave 2 replace step, svelte-check reports 0 errors, and
+`git status --short src/live-tokens/data` prints nothing.
+
 ## Wave 4: docs
 
 - A short section in `src/editor/docs/content/` on custom colours, then
   `npm run sync:docs`.
 - CHANGELOG entry: additive `customColors` field.
+
+**Verify.** `npm run check:docs-content`, `npm run check`.
+
+**Done when** `check:docs-content` reports no drift and
+`grep -n customColors CHANGELOG.md` prints the new entry.
 
 ## Wave 5: visual pass
 
