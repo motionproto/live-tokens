@@ -220,6 +220,13 @@ const RESPONSIVE_COLUMNS_WAVES = {
   },
 }
 
+const CUSTOM_COLORS_WAVES = {
+  '1': { executor: 'wave-executor', verify: true },
+  '2': { executor: 'svelte:svelte-file-editor', verify: true },
+  '3': { executor: 'svelte:svelte-file-editor', verify: true },
+  '4': { executor: 'wave-executor', verify: true, reviewModel: 'sonnet' },
+}
+
 // executeModel and escalateModel override the agent definition's model. A plan without them runs each agent as defined.
 // root is a worktree, relative to the repository root, that every agent works in; the setup wave creates it.
 // An unattended plan settles judgment calls with its review rules and logs them, so no step waits on the user.
@@ -260,6 +267,11 @@ const PLANS = {
     file: 'docs/plans/responsive-columns.md',
     prefix: 'Responsive-columns',
     waves: RESPONSIVE_COLUMNS_WAVES,
+  },
+  'custom-colors': {
+    file: 'docs/plans/custom-colors.md',
+    prefix: 'Custom-colors',
+    waves: CUSTOM_COLORS_WAVES,
   },
 }
 

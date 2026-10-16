@@ -34,6 +34,10 @@ const PLANS = {
     order: ['1', '2', '3', '3b', '4'],
     after: 'Run /plan-wave responsive-columns 5 for the visual pass. It opens the browser.',
   },
+  'custom-colors': {
+    order: ['1', '2', '3', '4'],
+    after: 'Do the Wave 5 visual pass in docs/plans/custom-colors.md by hand.',
+  },
 }
 
 const CLEAN = {
