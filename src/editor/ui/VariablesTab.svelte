@@ -8,6 +8,7 @@
   import ColumnsSection from './sections/ColumnsSection.svelte';
   import TokenScaleTable from './sections/TokenScaleTable.svelte';
   import WashesSection from './sections/WashesSection.svelte';
+  import CustomColorsSection from './sections/CustomColorsSection.svelte';
   import GradientsSection from './sections/GradientsSection.svelte';
   import ShadowsSection from './sections/ShadowsSection.svelte';
   import {
@@ -138,6 +139,8 @@
 
   <!-- Overlays -->
   <WashesSection {copiedVar} oncopy={copyVariable} />
+
+  <CustomColorsSection {copiedVar} oncopy={copyVariable} />
 
   <!-- Gradients -->
   <GradientsSection {copiedVar} oncopy={copyVariable} />

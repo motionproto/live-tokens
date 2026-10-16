@@ -24,6 +24,7 @@
     { id: 'icon-sizes', label: 'Icon Sizes', icon: 'fas fa-expand' },
     { id: 'shadows', label: 'Shadows', icon: 'fas fa-cloud' },
     { id: 'washes', label: 'Washes', icon: 'fas fa-layer-group' },
+    { id: 'custom-colors', label: 'Custom Colours', icon: 'fas fa-eye-dropper' },
     { id: 'gradients', label: 'Gradients', icon: 'fas fa-droplet' },
     { id: 'utility-tokens', label: 'Utility Tokens', icon: 'fas fa-sliders' }
   ];
