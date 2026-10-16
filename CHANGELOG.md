@@ -1,5 +1,32 @@
 # Changelog
 
+## Unreleased — Custom colors
+
+### Added
+
+- **Every color picker offers custom colors.** A **Custom** row after Danger
+  lists the open theme's own colors, `--color-custom-1`, `--color-custom-2`
+  and so on, each holding one OKLCH value for light and dark. The row's
+  **Add** swatch starts a new color from the slot's current color and opens
+  the OKLCH editor; confirm assigns it to the slot in one undo step, and
+  cancel removes it. A slot picks an existing custom color as it picks a
+  palette step, opacity included. The pencil on a custom swatch edits it in
+  place, and the edit moves every slot that names it. The Tokens view gains a
+  **Custom Colours** section that lists, edits and removes them. Removing a
+  color that a component property, gradient stop or wash names first asks
+  for a replacement, preselects the nearest token, and rewrites each
+  reference with its opacity intact, all in one undo step.
+- **Themes carry an optional `customColors` field.**
+  `ColorsAndType.customColors` sits beside `gradients` and holds
+  `{ variable, color }` entries. The field is additive: a theme without it
+  loads with no custom colors, `THEME_SCHEMA_VERSION` stays 5, and no
+  migration runs. Save, export and import keep the list, and Adopt writes
+  each custom color into `tokens.generated.css` with the theme's other
+  variables. `set-colors` and `save-theme` carry the field through
+  unchanged. `tokens.css` and the shipped themes declare no custom color, so
+  `check-page` reports `unknown-token` for page CSS that names
+  `var(--color-custom-1)`; reach a custom color through a component property.
+
 ## 0.96.1 — Vitest 5 peer range
 
 ### Fixed
