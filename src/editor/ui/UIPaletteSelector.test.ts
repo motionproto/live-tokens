@@ -8,6 +8,7 @@ import {
   __resetForTests,
   addCustomColor,
   editorState,
+  mutate,
 } from '../core/store/editorStore';
 
 const SLOT = '--test-slot-color';
@@ -96,5 +97,24 @@ describe('UIPaletteSelector custom colours', () => {
     expect(get(editorState).customColors.tokens).toHaveLength(1);
     expect(meta(target)).toBe('color-custom-1');
     expect(__getHistoryLengths().past).toBe(pastBefore + 1);
+  });
+
+  it('removing a colour a slot names replaces it through the replace step', () => {
+    addCustomColor({ l: 0.62, c: 0.11, h: 190 });
+    mutate('seed usage', (s) => {
+      s.components.button = { aliases: { '--button-bg': { kind: 'token', name: '--color-custom-1', opacity: 60 } }, config: {} };
+    });
+    const { target } = mountPicker();
+    openCustom(target);
+    click(target.querySelector('button[aria-label="Edit custom colour 1"]'));
+    click(byText(target, 'button', 'Remove colour'));
+
+    expect(target.querySelector('.replace-usage')?.textContent).toMatch(/^Used by 1 property in /);
+    click(byText(target, 'button', 'Replace and remove'));
+
+    const s = get(editorState);
+    expect(s.customColors.tokens).toEqual([]);
+    expect(s.components.button.aliases['--button-bg']).toMatchObject({ kind: 'token', opacity: 60 });
+    expect(s.components.button.aliases['--button-bg']).not.toMatchObject({ name: '--color-custom-1' });
   });
 });

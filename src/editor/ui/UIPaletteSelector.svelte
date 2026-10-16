@@ -1,7 +1,3 @@
-<script module lang="ts">
-  let replaceVarSeq = 0;
-</script>
-
 <script lang="ts">
   import { untrack } from 'svelte';
   import { get } from 'svelte/store';
@@ -18,8 +14,6 @@
     setCustomColor,
     removeCustomColor,
     customColorUsages,
-    describeCustomColorUsages,
-    nearestColorToken,
     replaceAndRemoveCustomColor,
     type Scope,
   } from '../core/store/editorStore';
@@ -31,7 +25,7 @@
   import UITokenSelector from './UITokenSelector.svelte';
   import ColorEditPanel from './ColorEditPanel.svelte';
   import UIPillButton from './UIPillButton.svelte';
-  import UIPaletteSelector from './UIPaletteSelector.svelte';
+  import CustomColorReplaceStep from './CustomColorReplaceStep.svelte';
 
   /** Honor prefers-reduced-motion: `t()` zeroes durations when the OS asks for
    *  less motion, so the detail-row enter/exit slides skip outright. Mirrors
@@ -576,22 +570,19 @@
   );
   let customOutOfFamily = $derived(familyFilter !== null && familyFilter !== CUSTOM);
 
-  /** An open add or edit of one custom colour. `replacement` is set while the
+  /** An open add or edit of one custom colour. `replacing` is set while the
    *  remove's replace step shows. */
   interface CustomSession {
     mode: 'add' | 'edit';
     variable: string;
     draft: Oklch;
-    replacement: string | null;
-    usageLine: string;
+    replacing: boolean;
   }
   let session = $state<CustomSession | null>(null);
   // Held outside $state: the store matches an open scope by identity, and a
   // proxied handle would never match.
   let sessionScope: Scope | null = null;
   let slotRawBeforeAdd = '';
-
-  const replaceVar = `--__custom-replace-${++replaceVarSeq}`;
 
   function readSlotRaw(): string {
     return document.documentElement.style.getPropertyValue(variable).trim();
@@ -631,14 +622,14 @@
     chosenStep = customNumber(added);
     selector?.writeOverride(buildValue(added));
     onchange?.();
-    session = { mode: 'add', variable: added, draft: seed, replacement: null, usageLine: '' };
+    session = { mode: 'add', variable: added, draft: seed, replacing: false };
   }
 
   function openEdit(customVar: string) {
     const token = get(editorState).customColors.tokens.find((t) => t.variable === customVar);
     if (!token) return;
     sessionScope = beginScope({ label: `edit custom colour ${customVar}`, collapseToOne: true, clipUndoFloor: true });
-    session = { mode: 'edit', variable: customVar, draft: { ...token.color }, replacement: null, usageLine: '' };
+    session = { mode: 'edit', variable: customVar, draft: { ...token.color }, replacing: false };
   }
 
   function editDraft(h: number, c: number, lPct: number) {
@@ -675,32 +666,20 @@
     initFromCurrent();
   }
 
-  async function componentLabeler(): Promise<(id: string) => string> {
-    // Loaded on demand: the registry imports every component editor, and
-    // those editors import this picker.
-    const { getComponentRegistry } = await import('../component-editor/registry');
-    const registry = getComponentRegistry();
-    return (id) => registry[id]?.label ?? id;
-  }
-
-  async function requestRemove() {
+  function requestRemove() {
     if (!session) return;
     const customVar = session.variable;
-    const usages = customColorUsages(get(editorState), customVar);
-    if (usages.length === 0) {
+    if (customColorUsages(get(editorState), customVar).length === 0) {
       cancelSession();
       removeCustomColor(customVar);
       return;
     }
-    session.replacement = nearestColorToken(session.draft, get(editorState), customVar);
-    session.usageLine = describeCustomColorUsages(usages, (id) => id);
-    const label = await componentLabeler();
-    if (session?.variable === customVar) session.usageLine = describeCustomColorUsages(usages, label);
+    session.replacing = true;
   }
 
-  function confirmReplace() {
-    if (!session?.replacement) return;
-    const { variable: customVar, replacement } = session;
+  function confirmReplace(replacement: string) {
+    if (!session) return;
+    const customVar = session.variable;
     if (sessionScope) cancelScope(sessionScope);
     sessionScope = null;
     session = null;
@@ -709,19 +688,8 @@
   }
 
   function cancelReplace() {
-    if (session) session.replacement = null;
+    if (session) session.replacing = false;
   }
-
-  function writeReplacement(value: string | null) {
-    if (session && value?.startsWith('--')) session.replacement = value;
-  }
-
-  $effect(() => {
-    const replacement = session?.replacement;
-    if (!replacement) return;
-    setCssVar(replaceVar, `var(${replacement})`);
-    return () => removeCssVar(replaceVar);
-  });
 
   // Re-derive trigger state when the bound `variable` changes (e.g. when a
   // VariantGroup tabs view reuses the same selector instance across states).
@@ -938,26 +906,13 @@
           </div>
           {#if session}
             <div class="custom-panel">
-              {#if session.replacement}
-                <div class="replace-step">
-                  <p class="replace-usage">{session.usageLine}</p>
-                  <div class="replace-pick">
-                    <span class="replace-label">Replace with</span>
-                    <div class="replace-picker">
-                      <UIPaletteSelector
-                        variable={replaceVar}
-                        replacing={session.variable}
-                        showNone={false}
-                        showOpacity={false}
-                        onwrite={writeReplacement}
-                      />
-                    </div>
-                  </div>
-                  <div class="replace-actions">
-                    <UIPillButton size="compact" variant="primary" onclick={confirmReplace}>Replace and remove</UIPillButton>
-                    <UIPillButton size="compact" variant="outline" onclick={cancelReplace}>Cancel</UIPillButton>
-                  </div>
-                </div>
+              {#if session.replacing}
+                <CustomColorReplaceStep
+                  variable={session.variable}
+                  color={session.draft}
+                  onconfirm={confirmReplace}
+                  oncancel={cancelReplace}
+                />
               {:else}
                 <ColorEditPanel
                   title="Custom › {customNumber(session.variable)}"
@@ -1422,48 +1377,6 @@
 
   .custom-panel {
     padding: 0 var(--ui-space-8) var(--ui-space-8);
-  }
-
-  .replace-step {
-    display: flex;
-    flex-direction: column;
-    gap: var(--ui-space-8);
-    padding: var(--ui-space-12);
-    background: var(--ui-surface-lowest);
-    border: 1px solid var(--ui-border-low);
-    border-radius: var(--ui-radius-md);
-  }
-
-  .replace-usage {
-    margin: 0;
-    font-size: var(--ui-font-size-sm);
-    color: var(--ui-text-primary);
-  }
-
-  .replace-pick {
-    display: flex;
-    align-items: center;
-    gap: var(--ui-space-8);
-  }
-
-  .replace-label {
-    font-size: var(--ui-font-size-xs);
-    color: var(--ui-text-secondary);
-    flex-shrink: 0;
-  }
-
-  /* The nested picker lays itself out on its parent row's subgrid; this grid
-     stands in for that row. */
-  .replace-picker {
-    flex: 1;
-    min-width: 0;
-    display: grid;
-    grid-template-columns: minmax(3rem, 1fr) auto;
-  }
-
-  .replace-actions {
-    display: flex;
-    gap: var(--ui-space-6);
   }
 
   .gradient-swatch {
