@@ -338,8 +338,17 @@ the runner's table rebuilds their report byte for byte as Wave 3 built it.
 paragraph in `CLAUDE.md` still describes the plugin-eval run and awaits the
 user, since an agent may not edit `CLAUDE.md` on a plan's say-so. A rerun of
 the token scan on 2026-10-18 read 2,320 files under `scratch/harbor/` and
-`eval-reports/`, the second smoke's included, and found no copy. The
-proposed paragraph, which replaces the one under `# Evals` whole:
+`eval-reports/`, the second smoke's included, and found no copy.
+
+The runner set one run under `--smoke` and dropped the count `--runs` gave.
+Since `81527b3` it refuses the pair, which the README, the `evaluate` skill,
+and the paragraph below already assume. The smoke then ran again
+into `scratch/harbor/jobs/2026-10-18T18-18-03/` and exited 0: the trial took
+783 s, scored 11 of 11 graders with no errors left, and left `brand.json`
+alone. The token scan of that job, its report, and the run log read 151
+files and found no copy.
+
+The proposed paragraph, which replaces the one under `# Evals` whole:
 
 ```md
 `.claude/evals/README.md` describes every eval case and how to run it.
