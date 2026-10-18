@@ -293,6 +293,23 @@ a run side by side, the page window scrolls inside itself at desktop and
 mobile width, and the means match a hand count from the seven `result.json`
 files.
 
+Result of 2026-10-18 at `4f6538b`. `node scripts/eval-check-build.mjs` read
+both Wave 2 jobs, `2026-10-18T15-33-23/` and `2026-10-18T16-45-07/`, and the
+report opened on the Unattended panel. A Playwright pass found that the seven
+tabs and the arrow keys reach every arm and wrap, Compare shows all 49 ordered
+pairs of run 1 side by side, and the run picker moves both halves. The page
+window scrolled under the wheel while the page held still, at desktop and
+mobile view and on a 390 px screen. The run, the arms, Compare, and the view
+survived a reload. Each arm's agent seconds, cost, grader score, and errors
+left match a hand count from `result.json`, for the seven smoke trials alone
+and for all ten.
+
+A Claude Code session log repeats tool calls in `api-request-blob` entries,
+which double-counted lookups, checker runs, and skills until the parser
+skipped them. On the saved plugin-eval report of 2026-10-16, blocked status
+read from the arm's grants gives the same tables as the old reading of the
+output.
+
 ## Wave 4: switch-over and docs
 
 - Point `eval:billing` at `eval-harbor.sh` per D8, with `--smoke` and a full
