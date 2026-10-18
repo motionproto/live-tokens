@@ -21,7 +21,7 @@ set -euo pipefail
 REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$REPO"
 
-# One row per arm, in the report's order; every job folder gets a copy as
+# One row per arm, in the report's order; each run's jobs folder gets a copy as
 # arms.json, which scripts/eval-check-build.mjs reads. case: the eval case the
 # arm stands for. groups: the layers isolate.mjs closes, comma-separated, or -
 # for none. skills: shipped, none, or the copy in .claude/evals/_skills/ the
