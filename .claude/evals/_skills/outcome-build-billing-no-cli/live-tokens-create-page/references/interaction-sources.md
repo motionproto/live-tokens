@@ -4,9 +4,8 @@ Read this when a Verify check or an emphasis rule in SKILL.md needs its reason.
 Each principle below is held by one of three parties. A shipped component
 holds it when the component's own design answers it, so the page's rule is
 the component. The page holds it when only the page can get it right, so
-SKILL.md states a read or the checker a rule. The product holds it when no
-page decision touches it, and the row says so to keep a later edit from
-reopening it.
+SKILL.md states a read. The product holds it when no page decision touches
+it, and the row says so to keep a later edit from reopening it.
 
 ## Jakob Nielsen, ten usability heuristics
 
@@ -14,7 +13,7 @@ reopening it.
 |---|---|---|
 | Visibility of system status | Page | Verify: an action that runs longer than a moment shows progress in a `ProgressBar` or a `Notification`. |
 | Match between system and the real world | Page | Verify: labels use the user's words. |
-| User control and freedom | Page | Verify: every row of actions holds an action that leaves without committing. Emphasis: `multiple-primary`. |
+| User control and freedom | Page | Verify: every row of actions holds an action that leaves without committing. |
 | Consistency and standards | Page | One size, one primary action, one text style per element. The components carry the rest. |
 | Error prevention | Page | Verify: every field has a default and Reset restores it. |
 | Recognition rather than recall | Component | `MenuSelect` lists the options; `Input` carries its label and hint; `Tooltip` defines in place. |
