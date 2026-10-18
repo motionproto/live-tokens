@@ -205,7 +205,7 @@
     "check:smoke-install": "bash scripts/smoke-install.sh",
     "check:smoke-create": "bash scripts/smoke-create.sh",
     "eval": "bash scripts/eval.sh",
-    "eval:billing": "bash scripts/eval-billing.sh",
+    "eval:billing": "bash scripts/eval-harbor.sh",
     "build:eval-project": "bash scripts/build-eval-project.sh",
     "check:smoke-component-tests": "bash scripts/smoke-component-tests.sh",
     "check:smoke-page-tests": "bash scripts/smoke-page-tests.sh",

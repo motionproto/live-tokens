@@ -1,18 +1,22 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Runs the billing brief under Harbor, one job per arm. Each trial gets its own
-# container, where the agent can start a dev server and Chromium, which
-# `claude plugin eval`'s sandbox refuses, and every arm is scored afterwards
-# in a fresh container from one verifier image.
+# Runs the billing brief under Harbor, one job per arm, three trials at once,
+# and writes the report. Each trial gets its own container, where the agent can
+# start a dev server and Chromium, which `claude plugin eval`'s sandbox
+# refuses, and every arm is scored afterwards in a fresh container from one
+# verifier image.
 #
-#   bash scripts/eval-harbor.sh [--runs <n>] [arm...]   run each arm's job, every arm by default
-#   bash scripts/eval-harbor.sh --prepare [arm...]      build the images and write the tasks, run nothing
+#   npm run eval:billing                          every arm, each at its run count
+#   npm run eval:billing -- --smoke [arm...]      one trial of each arm, the arm with every tool by default
+#   npm run eval:billing -- --runs <n> [arm...]   n trials of each arm, every arm by default
+#   npm run eval:billing -- --prepare [arm...]    build the images and write the tasks, run nothing
 #
 # Claude Code signs in with the subscription token `claude setup-token` prints,
 # read from $LIVE_TOKENS_EVAL_TOKEN_FILE (default
 # ~/.config/live-tokens-eval/oauth-token), so the token never reaches a command
-# line. Results land in scratch/harbor/jobs/<time>/<arm>/.
+# line. Results land in scratch/harbor/jobs/<time>/<arm>/, and the report in
+# eval-reports/<time>/index.html, or eval-reports/<time>-smoke/.
 
 REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$REPO"
@@ -22,18 +26,21 @@ cd "$REPO"
 # arm stands for. groups: the layers isolate.mjs closes, comma-separated, or -
 # for none. skills: shipped, none, or the copy in .claude/evals/_skills/ the
 # arm runs. tests: browser, or static when the image turns --tests into the
-# static checks. settings: the arm's Claude Code settings, below. name: the
-# rest of the line, the arm as the report names it.
+# static checks. settings: the arm's Claude Code settings, below. runs: the
+# arm's trials in a full run, five for the three arms the package leaves whole,
+# so their rank tests have the runs to separate them. name: the rest of the
+# line, the arm as the report names it.
 ARMS='
-unattended             outcome-build-billing-no-cli      lookup,checker  none                              browser  base  Unattended
-skills-only            outcome-build-billing-no-cli      lookup,checker  outcome-build-billing-no-cli      browser  base  Skills only
-skills-lookup          outcome-build-billing-no-checker  checker         outcome-build-billing-no-checker  browser  base  Skills, lookup
-skills-checker         outcome-build-billing-no-lookup   lookup          outcome-build-billing-no-lookup   browser  base  Skills, checker
-skills-lookup-checker  outcome-build-billing             -               shipped                           browser  base  Skills, lookup and checker
-static-loop            outcome-build-billing             -               billing-static-loop               static   base  Skills, lookup and static checker
-browser-gate           outcome-build-billing             -               billing-static-loop               static   gate  Skills, lookup, static checker and browser gate
+unattended             outcome-build-billing-no-cli      lookup,checker  none                              browser  base  3  Unattended
+skills-only            outcome-build-billing-no-cli      lookup,checker  outcome-build-billing-no-cli      browser  base  3  Skills only
+skills-lookup          outcome-build-billing-no-checker  checker         outcome-build-billing-no-checker  browser  base  3  Skills, lookup
+skills-checker         outcome-build-billing-no-lookup   lookup          outcome-build-billing-no-lookup   browser  base  3  Skills, checker
+skills-lookup-checker  outcome-build-billing             -               shipped                           browser  base  5  Skills, lookup and checker
+static-loop            outcome-build-billing             -               billing-static-loop               static   base  5  Skills, lookup and static checker
+browser-gate           outcome-build-billing             -               billing-static-loop               static   gate  5  Skills, lookup, static checker and browser gate
 '
 BRIEF_CASE=outcome-build-billing
+SMOKE_ARM=skills-lookup-checker
 ARTIFACTS='["/app/src", "/app/tests", "/app/live-tokens.config.json", "/app/live-tokens.testing.ts"]'
 FINDINGS=node_modules/@motion-proto/live-tokens/bin/lib/findings.mjs
 
@@ -60,27 +67,34 @@ arm_row() { echo "$ARMS" | awk -v arm="$1" '$1 == arm'; }
 arms_json() {
   ARMS="$ARMS" node -e '
     const rows = process.env.ARMS.split("\n").filter((line) => line.trim()).map((line) => {
-      const [arm, kase, groups, skills, tests, settings, ...name] = line.trim().split(/\s+/);
-      return { arm, name: name.join(" "), case: kase, groups: groups === "-" ? [] : groups.split(","), skills, tests, settings };
+      const [arm, kase, groups, skills, tests, settings, runs, ...name] = line.trim().split(/\s+/);
+      return { arm, name: name.join(" "), case: kase, groups: groups === "-" ? [] : groups.split(","), skills, tests, settings, runs: Number(runs) };
     });
     console.log(JSON.stringify(rows, null, 2));
   '
 }
 
 prepare=false
-runs=1
+smoke=false
+runs=""
 selected=()
 while [ $# -gt 0 ]; do
   case "$1" in
     --prepare) prepare=true ;;
+    --smoke) smoke=true ;;
     --runs) [ $# -gt 1 ] || die "--runs takes a number."; runs="$2"; shift ;;
-    -*) die "unknown option $1. Use --prepare, --runs <n>, or arm names." ;;
+    -*) die "unknown option $1. Use --smoke, --runs <n>, --prepare, or arm names." ;;
     *) [ -n "$(arm_row "$1")" ] || die "no arm named $1. The arms: $(arm_names | tr '\n' ' ')"; selected+=("$1") ;;
   esac
   shift
 done
+if $smoke; then runs=1; fi
 if [ ${#selected[@]} -eq 0 ]; then
-  while IFS= read -r arm; do selected+=("$arm"); done < <(arm_names)
+  if $smoke; then
+    selected=("$SMOKE_ARM")
+  else
+    while IFS= read -r arm; do selected+=("$arm"); done < <(arm_names)
+  fi
 fi
 
 token_file="${LIVE_TOKENS_EVAL_TOKEN_FILE:-$HOME/.config/live-tokens-eval/oauth-token}"
@@ -213,12 +227,17 @@ CLAUDE_CODE_OAUTH_TOKEN="$(cat "$token_file")"
 export CLAUDE_CODE_OAUTH_TOKEN
 export CLAUDE_FORCE_OAUTH=1 HARBOR_TELEMETRY=0
 unset ANTHROPIC_API_KEY
-jobs="scratch/harbor/jobs/$(date +%Y-%m-%dT%H-%M-%S)"
+stamp="$(date +%Y-%m-%dT%H-%M-%S)"
+jobs="scratch/harbor/jobs/$stamp"
+report="eval-reports/$stamp"
+if $smoke; then report="$report-smoke"; fi
 mkdir -p "$jobs"
 arms_json > "$jobs/arms.json"
 for arm in "${selected[@]}"; do
   harbor run -p "scratch/harbor/tasks/$arm" -a claude-code -m anthropic/claude-opus-5-5 \
-    -k "$runs" -n 3 -o "$jobs" --job-name "$arm" \
+    -k "${runs:-$(arm_row "$arm" | awk '{ print $7 }')}" -n 3 -o "$jobs" --job-name "$arm" \
     --ak max_turns=200 --ak disable_web_search=true --ak "config=$REPO/scratch/harbor/tasks/$arm/settings.json"
 done
+unset CLAUDE_CODE_OAUTH_TOKEN
 echo "eval-harbor: jobs in $jobs"
+node scripts/eval-check-build.mjs "$jobs" --out "$report"
