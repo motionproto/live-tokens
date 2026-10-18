@@ -1,26 +1,32 @@
 #!/usr/bin/env node
-// Scores each outcome-build-billing* run on accuracy, time, and loops, and
-// saves what each run built into one report for side-by-side comparison.
-// Accuracy is the runner's grader score plus the errors the full checkers find
-// in what the run left behind, so every arm meets one bar whether or not it
-// had the checker. Loops are the agent's turns and its checker runs, counted
-// from the trace. The runner has no grader that runs a command, so this reads
-// the workspaces and traces a `--keep-temp` run kept.
+// Reports each billing run on accuracy, time, and loops, and saves what each
+// run built into one report that shows one arm at a time or two side by side.
+// Accuracy is the grader score plus the errors the full checkers find in what
+// the run left behind, so every arm meets one bar whether or not it had the
+// checker. Loops are the agent's turns and its checker runs, counted from the
+// trace.
 //
+//   node scripts/eval-check-build.mjs <harbor jobs folder>... [--out <dir>]
 //   node scripts/eval-check-build.mjs <result json>... [--tests] [--out <dir>] [--clean] [--reuse]
 //
-// The report lands in <dir>/index.html (default eval-reports/<time>),
-// with each run's screenshots, sources, findings, and trace beside it.
+// A Harbor folder is scratch/harbor/jobs/<time>, which holds one job per arm,
+// or one arm's job. Harbor's verifier has already scored each trial, so the
+// report reads its files and scores nothing on the host.
+//
+// A result JSON is `claude plugin eval`'s. Its runner has no grader that runs
+// a command, so the report scores the workspaces a `--keep-temp` run kept.
 // --clean deletes each run's kept sandbox once the report holds its copies.
 // --reuse rebuilds the report from the findings, inventory, and screenshots an
 // earlier scoring saved in the same --out folder, without running the checks.
+//
+// The report lands in <dir>/index.html (default eval-reports/<time>),
+// with each run's screenshots, sources, findings, and trace beside it.
 
 import { spawn, spawnSync } from 'node:child_process';
 import { tmpdir } from 'node:os';
-import { copyFileSync, cpSync, existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { copyFileSync, cpSync, existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, statSync, writeFileSync } from 'node:fs';
 import { basename, dirname, join, resolve } from 'node:path';
 import process from 'node:process';
-import { chromium } from 'playwright';
 
 const REPO = resolve(dirname(new URL(import.meta.url).pathname), '..');
 const PROJECT = join(REPO, 'scratch/eval-project');
@@ -35,21 +41,46 @@ const TOOLS = {
   'outcome-build-billing-no-lookup': 'checker',
   'outcome-build-billing-no-cli': 'neither',
 };
+const grantsOf = (tools) => new Set(tools.split(' and ').filter((tool) => tool !== 'neither'));
+// The arms of scripts/eval-harbor.sh, keyed by its arm names, in report order.
+// grants mirror each arm's isolate.mjs groups: an arm calls a tool it lacks
+// only to be refused. The loop arms differ only in when the browser tests run.
+const HARBOR_ARMS = [
+  { id: 'unattended', name: 'Unattended', grants: [] },
+  { id: 'skills-only', name: 'Skills only', grants: [] },
+  { id: 'skills-lookup', name: 'Skills, lookup', grants: ['lookup'] },
+  { id: 'skills-checker', name: 'Skills, checker', grants: ['checker'] },
+  { id: 'skills-lookup-checker', name: 'Skills, lookup and checker', grants: ['lookup', 'checker'], loop: true },
+  { id: 'static-loop', name: 'Skills, lookup and static checker', grants: ['lookup', 'checker'], loop: true },
+  { id: 'browser-gate', name: 'Skills, lookup, static checker and browser gate', grants: ['lookup', 'checker'], loop: true, gate: true },
+];
 const ROUTE = '/billing';
 const VIEWPORTS = [
   { name: 'desktop', width: 1280, height: 900 },
   { name: 'mobile', width: 390, height: 844 },
 ];
 
+const USAGE = 'usage: node scripts/eval-check-build.mjs <harbor jobs folder>... [--out <dir>]\n'
+  + '       node scripts/eval-check-build.mjs <result json>... [--tests] [--out <dir>] [--clean] [--reuse]';
 const args = process.argv.slice(2);
 const outAt = args.indexOf('--out');
 const outArg = outAt >= 0 ? args[outAt + 1] : undefined;
-const resultPaths = args.filter((a, i) => !a.startsWith('--') && i !== outAt + 1);
+const inputs = args.filter((a, i) => !a.startsWith('--') && (outAt < 0 || i !== outAt + 1));
 const tests = args.includes('--tests') ? ['--tests'] : [];
 const clean = args.includes('--clean');
 const reuse = args.includes('--reuse');
-if (resultPaths.length === 0 || (outAt >= 0 && !outArg)) {
-  console.error('usage: node scripts/eval-check-build.mjs <result json>... [--tests] [--out <dir>] [--clean] [--reuse]');
+if (inputs.length === 0 || (outAt >= 0 && !outArg)) {
+  console.error(USAGE);
+  process.exit(1);
+}
+const folders = inputs.filter((path) => statSync(path).isDirectory());
+if (folders.length > 0 && folders.length < inputs.length) {
+  console.error(`Pass Harbor jobs folders or result JSON files, not both.\n${USAGE}`);
+  process.exit(1);
+}
+const harbor = folders.length > 0;
+if (harbor && (tests.length > 0 || clean || reuse)) {
+  console.error(`--tests, --clean, and --reuse apply to result JSON files. Harbor's verifier has already scored each trial.\n${USAGE}`);
   process.exit(1);
 }
 if (!existsSync(join(PROJECT, PKG))) {
@@ -70,7 +101,9 @@ function findWorkspace(root, depth = 2) {
   return null;
 }
 
-// Each tool call in the trace, in order, with the text it returned.
+// Each tool call in the trace, in order, with the text it returned. A Claude
+// Code session log also holds `api-request-blob` entries that repeat earlier
+// tool calls, so only the conversation's own entries count.
 function traceSteps(tracePath) {
   if (!existsSync(tracePath)) return null;
   const steps = [];
@@ -78,6 +111,7 @@ function traceSteps(tracePath) {
   for (const line of readFileSync(tracePath, 'utf8').split('\n')) {
     if (!line.trim()) continue;
     const entry = JSON.parse(line);
+    if (entry.type !== 'assistant' && entry.type !== 'user') continue;
     const content = entry.message?.content;
     if (!Array.isArray(content)) continue;
     for (const block of content) {
@@ -94,18 +128,23 @@ function traceSteps(tracePath) {
   return steps;
 }
 
-const WORKSPACE_PATH = /\/(?:private\/)?tmp\/e-[A-Za-z0-9]+\/home\/cwd\/?/g;
+// A plugin-eval sandbox's workspace, or the Harbor container's /app.
+const WORKSPACE_PATH = /\/(?:private\/)?tmp\/e-[A-Za-z0-9]+\/home\/cwd\/?|^\/app\//g;
 const SOURCE_READ = /node_modules\/@motion-proto\/live-tokens\//;
 const sourcePaths = (text) => [...new Set([...String(text).matchAll(/node_modules\/@motion-proto\/live-tokens\/([\w./-]*\w)/g)].map((m) => m[1]))];
-// A removed verb prints "Unknown command" and then the usage text, whose
-// descriptions wrap at column 30, so a call piped through `tail` can keep only
-// the usage. Calling a removed verb's module directly hits the fixture's
-// "Cannot find module" guard.
-const UNKNOWN_COMMAND = /unknown command|cannot find module|^ {30}\S/im;
 const relative = (path) => String(path).replace(WORKSPACE_PATH, '');
 
+// A call counts by the call itself. isolate.mjs refuses every call of a verb
+// the arm lacks, so the arm's grants say which calls were blocked, and a call
+// whose output went to a file still counts as a run.
+const LOOKUP_CALL = /live-tokens\s+(?:components|tokens)\b/;
+const CHECKER_CALL = /(?:live-tokens|cli\.mjs)\s+check-(?:page|component)\b|node\s+\S*bin\/check-(?:page|component)\.mjs/;
+const blockedCall = (command, grants) =>
+  (!grants.has('lookup') && LOOKUP_CALL.test(command)) || (!grants.has('checker') && CHECKER_CALL.test(command));
+
+// What the agent saw of a checker run: the report's error count when the
+// output holds one, else null, and the run shows as unread.
 function checkerResult(output) {
-  if (UNKNOWN_COMMAND.test(output)) return { failed: true };
   const json = output.match(/"errors":\s*(\d+)/);
   const text = output.match(/(\d+) error\(s\)/);
   const errors = json ? Number(json[1]) : text ? Number(text[1]) : /file\(s\) clean/.test(output) ? 0 : null;
@@ -122,7 +161,6 @@ function loopItems(command, arg) {
   return loop[1].trim().split(/\s+/).map((item) => arg.replace(variable[0], item.replace(/^["']|["']$/g, '')));
 }
 
-const BLOCKED_VERB = /live-tokens\s+(?:components|tokens|check-page|check-component)\b|node\s+\S*bin\/check-(?:page|component)\.mjs/;
 // Probing the block: reading the CLI's dispatch, or asking it for its usage.
 // Reading the checker's rules to check work by hand is what an arm without the
 // checker does instead, so it is not counted as lost.
@@ -131,11 +169,11 @@ const stepText = (input) => String(input.command ?? input.file_path ?? input.pat
 
 // What a blocked call cost: its turn and the turns of CLI probing that follow
 // it, up to the agent's next unrelated step.
-function blockedCost(steps) {
+function blockedCost(steps, grants) {
   const turns = [];
   for (const step of steps) {
     const text = stepText(step.input);
-    const blocked = BLOCKED_VERB.test(text) && UNKNOWN_COMMAND.test(step.output);
+    const blocked = step.tool === 'Bash' && blockedCall(text, grants);
     const last = turns.at(-1);
     if (last && last.id === step.turn) {
       last.blocked ||= blocked;
@@ -158,7 +196,7 @@ function blockedCost(steps) {
 
 // What the agent reached for and when: skills, lookups, checker runs and what
 // they reported, reads of the package's own source, and the files it wrote.
-function behaviour(steps) {
+function behaviour(steps, grants) {
   const timeline = [];
   const push = (entry) => {
     const last = timeline.at(-1);
@@ -178,12 +216,12 @@ function behaviour(steps) {
       const arg = m[1].replace(/\s--json\b/g, '').replace(/\s+\d$/, '').trim();
       const items = loopItems(command, arg);
       const label = items.length > 1 ? arg.replace(/\$\{?\w+\}?/, `{${items.map((i) => i.split(/\s+/).at(-1)).join(', ')}}`) : arg;
-      push({ kind: 'lookup', label, lookups: items.length, failed: UNKNOWN_COMMAND.test(output) });
+      push({ kind: 'lookup', label, lookups: items.length, failed: !grants.has('lookup') });
     }
     for (const m of command.matchAll(/(?:live-tokens|cli\.mjs)\s+(check-(?:page|component)\b[^;|&>]*)|node\s+\S*bin\/(check-(?:page|component))\.mjs\b([^;|&>]*)/g)) {
       const call = m[1] ?? `${m[2]}${m[3]}`;
       const label = call.replace(/\s--(?:json|strict|tests|no-fix)\b/g, '').replace(/\s+\d$/, '').trim();
-      push({ kind: 'checker', label, ...checkerResult(output) });
+      push({ kind: 'checker', label, ...(grants.has('checker') ? checkerResult(output) : { failed: true }) });
     }
     if (SOURCE_READ.test(command)) push({ kind: 'source', label: 'read package source', paths: sourcePaths(command) });
   }
@@ -196,9 +234,11 @@ function behaviour(steps) {
     checkerRuns: count('checker', (e) => !e.failed),
     checkerFailures: count('checker', (e) => e.failed),
     sourceReads: count('source'),
-    lost: blockedCost(steps),
+    lost: blockedCost(steps, grants),
   };
 }
+
+const NO_TRACE = { timeline: [], skills: null, checkerRuns: null, checkerFailures: null, lookups: null, lookupFailures: null, sourceReads: null, lost: null };
 
 function silencedRules(workspace) {
   const config = join(workspace, 'live-tokens.config.json');
@@ -341,15 +381,13 @@ function freshProject(workspace) {
 
 // A report keeps each run's files and trace, so scoring the same result JSON
 // into the same --out folder again works after --clean removed the sandbox.
-async function checkRun(browser, run, slug) {
+async function checkRun(browser, run, slug, grants) {
   const saved = join(reportDir, slug);
   const root = dirname(dirname(run.tracePath));
   if (existsSync(root)) unseal(root);
   const tracePath = existsSync(run.tracePath) ? run.tracePath : join(saved, 'trace.jsonl');
   const commands = traceSteps(tracePath);
-  const loops = commands
-    ? behaviour(commands)
-    : { timeline: [], skills: null, checkerRuns: null, checkerFailures: null, lookups: null, lookupFailures: null, sourceReads: null, lost: null };
+  const loops = commands ? behaviour(commands, grants) : NO_TRACE;
   const sealed = existsSync(join(root, 'sealed')) ? findWorkspace(join(root, 'sealed'), 3) : null;
   const kept = sealed ?? (existsSync(join(saved, 'workspace')) ? join(saved, 'workspace') : null);
   if (reuse && !sealed && existsSync(join(saved, 'findings.json'))) return savedScore(saved, kept, loops);
@@ -412,6 +450,115 @@ async function scoreWorkspace(browser, run, slug, workspace, commands, loops) {
   return { ...loops, errors, checks, shots, sources, notes, made };
 }
 
+const readJson = (path) => JSON.parse(readFileSync(path, 'utf8'));
+const subfolders = (dir) => readdirSync(dir, { withFileTypes: true }).filter((e) => e.isDirectory()).map((e) => join(dir, e.name));
+
+// A jobs folder holds one Harbor job per arm, and each job holds its trials.
+function harborTrials(folder) {
+  const jobs = existsSync(join(folder, 'lock.json')) ? [folder] : subfolders(folder).filter((dir) => existsSync(join(dir, 'lock.json')));
+  if (jobs.length === 0) throw new Error(`${folder} holds no Harbor job.`);
+  return jobs
+    .flatMap((job) => subfolders(job).filter((dir) => existsSync(join(dir, 'result.json'))))
+    .map((dir) => ({ dir, result: readJson(join(dir, 'result.json')) }))
+    .sort((a, b) => String(a.result.started_at).localeCompare(String(b.result.started_at)));
+}
+
+// Claude Code's stream: the init line names the session, and the result line
+// carries the turn count and why the session ended.
+function agentStream(dir) {
+  const path = join(dir, 'agent/claude-code.txt');
+  if (!existsSync(path)) return {};
+  const lines = readFileSync(path, 'utf8').split('\n').filter((line) => line.startsWith('{')).map((line) => JSON.parse(line));
+  return { init: lines.find((l) => l.type === 'system' && l.subtype === 'init'), end: lines.findLast((l) => l.type === 'result') };
+}
+
+function firstPrompt(steps, tracePath) {
+  if (!steps) return null;
+  for (const line of readFileSync(tracePath, 'utf8').split('\n')) {
+    if (!line.trim()) continue;
+    const entry = JSON.parse(line);
+    if (entry.type !== 'user') continue;
+    const c = entry.message?.content;
+    return typeof c === 'string' ? c : c.filter((b) => b.type === 'text').map((b) => b.text).join('\n');
+  }
+  return null;
+}
+
+// Each stop the browser gate saw: whether it blocked, and the rules behind it.
+function gateStops(dir) {
+  const path = join(dir, 'agent/browser-gate.jsonl');
+  if (!existsSync(path)) return null;
+  return readFileSync(path, 'utf8').split('\n').filter(Boolean).map((line) => JSON.parse(line));
+}
+
+const byRule = (findings) => {
+  const counts = new Map();
+  for (const f of findings) counts.set(f.rule, (counts.get(f.rule) ?? 0) + 1);
+  return [...counts];
+};
+
+// One trial, read from the files Harbor and the verifier wrote, and copied
+// into the report so the report outlives the jobs folder.
+function harborRun({ dir, result }, arm, slug) {
+  const out = join(reportDir, slug);
+  rmSync(out, { recursive: true, force: true });
+  mkdirSync(out, { recursive: true });
+  const { init, end } = agentStream(dir);
+  const sessions = join(dir, 'agent/sessions/projects/-app');
+  const tracePath = init ? join(sessions, `${init.session_id}.jsonl`) : null;
+  const steps = tracePath ? traceSteps(tracePath) : null;
+  if (steps) copyFileSync(tracePath, join(out, 'trace.jsonl'));
+  const loops = steps ? behaviour(steps, new Set(arm.grants)) : NO_TRACE;
+
+  const verifier = join(dir, 'verifier');
+  const verdict = existsSync(join(verifier, 'findings.json')) ? readJson(join(verifier, 'findings.json')) : null;
+  const made = existsSync(join(verifier, 'inventory.json')) ? readJson(join(verifier, 'inventory.json')) : null;
+  for (const name of ['findings.json', 'inventory.json', ...VIEWPORTS.map((v) => `${v.name}.png`)]) {
+    if (existsSync(join(verifier, name))) copyFileSync(join(verifier, name), join(out, name));
+  }
+  const workspace = join(dir, 'artifacts/app');
+  let sources = [];
+  if (existsSync(join(workspace, 'src/pages'))) {
+    cpSync(workspace, join(out, 'workspace'), { recursive: true });
+    const pages = readdirSync(join(workspace, 'src/pages'))
+      .filter((name) => name.endsWith('.svelte') && !templatePages.has(name))
+      .map((name) => join('src/pages', name));
+    sources = saveSources(workspace, out, pages);
+  }
+  const stops = arm.gate ? gateStops(dir) : null;
+  if (stops) copyFileSync(join(dir, 'agent/browser-gate.jsonl'), join(out, 'browser-gate.jsonl'));
+
+  const timing = result.agent_execution;
+  const exception = result.exception_info;
+  const run = {
+    score: result.verifier_result?.rewards?.grader_score ?? null,
+    durationSeconds: timing?.finished_at ? (Date.parse(timing.finished_at) - Date.parse(timing.started_at)) / 1000 : null,
+    turns: end?.num_turns ?? null,
+    costUsd: result.agent_result?.cost_usd ?? null,
+    graders: verdict?.graders ?? [],
+    error: exception && exception.exception_type !== 'AgentTimeoutError' ? `${exception.exception_type}: ${exception.exception_message.split('\n')[0]}` : null,
+  };
+  const maxTurns = result.config?.agent?.kwargs?.max_turns;
+  const capped =
+    end?.subtype === 'error_max_turns' ? `Hit the turn cap of ${maxTurns}.`
+    : exception?.exception_type === 'AgentTimeoutError' ? `Hit the time cap: ${exception.exception_message.split('\n')[0]}`
+    : null;
+  const notes = verdict ? [...verdict.notes] : ['the verifier wrote no findings.json'];
+  const checked = {
+    ...loops,
+    errors: verdict?.errors ?? null,
+    checks: (verdict?.checks ?? []).map((c) => ({ label: c.label, errors: c.errors, note: c.note, byRule: byRule(c.findings), findings: c.findings })),
+    shots: VIEWPORTS.map((v) => v.name).filter((name) => existsSync(join(out, `${name}.png`))),
+    sources,
+    notes,
+    made,
+    stops,
+    trial: result.trial_name,
+  };
+  const failed = run.graders.filter((g) => !g.passed).map((g) => g.name);
+  return { run, checked, failed, capped, prompt: firstPrompt(steps, tracePath) };
+}
+
 const ARM_ORDER = ['no skills|neither', 'skills|neither', 'skills|lookup', 'skills|checker', 'skills|lookup and checker'];
 function armName(skills, tools) {
   if (skills === 'no skills' && tools === 'neither') return 'Unattended';
@@ -424,44 +571,62 @@ const mean = (values) => {
   const known = values.filter((v) => v !== null && v !== undefined);
   return known.length === 0 ? null : known.reduce((a, b) => a + b, 0) / known.length;
 };
-const fmt = (n, digits = 1) => (n === null ? 'n/a' : n.toFixed(digits));
+const fmt = (n, digits = 1) => (n === null || n === undefined ? 'n/a' : n.toFixed(digits));
 
 function readPrompt(name) {
   const path = join(REPO, '.claude/evals', name, 'prompt.md');
   return existsSync(path) ? readFileSync(path, 'utf8').replace(/^---\n[\s\S]*?\n---\n/, '').trim() : null;
 }
 
-const browser = reuse ? null : await chromium.launch();
 const arms = new Map();
 const prompts = new Map();
-try {
-  for (const path of resultPaths) {
-    const result = JSON.parse(readFileSync(path, 'utf8'));
-    for (const c of result.cases.filter((c) => TOOLS[c.name])) {
-      if (!prompts.has(c.name)) prompts.set(c.name, readPrompt(c.name));
-      for (const [arm, runs] of Object.entries(c.arms)) {
-        const skills = arm === 'with' ? 'skills' : 'no skills';
-        const key = `${skills}|${TOOLS[c.name]}`;
-        const entry = arms.get(key) ?? { key, name: armName(skills, TOOLS[c.name]), runs: [] };
-        for (const run of runs) {
-          const index = entry.runs.length + 1;
-          const slug = `${key.replace(/[^a-z]+/g, '-')}-run-${index}`;
-          console.error(`checking ${entry.name}, run ${index}`);
-          const checked = await checkRun(browser, run, slug);
-          const failed = (run.graders ?? []).filter((g) => g.scored !== false && !g.passed).map((g) => g.name);
-          // A capped run stopped before the agent said it was done, so its numbers measure the cap.
-          const capped =
-            run.turns >= c.maxTurns ? `Hit the turn cap of ${c.maxTurns}.`
-            : run.durationSeconds >= c.timeoutSeconds ? `Hit the time cap of ${c.timeoutSeconds} s.`
-            : null;
-          entry.runs.push({ index, slug, run, checked, failed, capped });
-        }
-        arms.set(key, entry);
-      }
+if (harbor) {
+  for (const folder of folders) {
+    for (const trial of harborTrials(folder)) {
+      const arm = HARBOR_ARMS.find((a) => a.id === trial.result.task_name);
+      if (!arm) throw new Error(`${trial.dir}: no arm named ${trial.result.task_name} in HARBOR_ARMS.`);
+      const entry = arms.get(arm.id) ?? { key: arm.id, ...arm, runs: [] };
+      const index = entry.runs.length + 1;
+      const slug = `${arm.id}-run-${index}`;
+      console.error(`reading ${entry.name}, run ${index}`);
+      const { prompt, ...read } = harborRun(trial, arm, slug);
+      if (prompt) prompts.set(arm.id, prompt);
+      entry.runs.push({ index, slug, ...read });
+      arms.set(arm.id, entry);
     }
   }
-} finally {
-  await browser?.close();
+} else {
+  const { chromium } = await import('playwright');
+  const browser = reuse ? null : await chromium.launch();
+  try {
+    for (const path of inputs) {
+      const result = JSON.parse(readFileSync(path, 'utf8'));
+      for (const c of result.cases.filter((c) => TOOLS[c.name])) {
+        if (!prompts.has(c.name)) prompts.set(c.name, readPrompt(c.name));
+        for (const [arm, runs] of Object.entries(c.arms)) {
+          const skills = arm === 'with' ? 'skills' : 'no skills';
+          const key = `${skills}|${TOOLS[c.name]}`;
+          const entry = arms.get(key) ?? { key, name: armName(skills, TOOLS[c.name]), runs: [] };
+          for (const run of runs) {
+            const index = entry.runs.length + 1;
+            const slug = `${key.replace(/[^a-z]+/g, '-')}-run-${index}`;
+            console.error(`checking ${entry.name}, run ${index}`);
+            const checked = await checkRun(browser, run, slug, grantsOf(TOOLS[c.name]));
+            const failed = (run.graders ?? []).filter((g) => g.scored !== false && !g.passed).map((g) => g.name);
+            // A capped run stopped before the agent said it was done, so its numbers measure the cap.
+            const capped =
+              run.turns >= c.maxTurns ? `Hit the turn cap of ${c.maxTurns}.`
+              : run.durationSeconds >= c.timeoutSeconds ? `Hit the time cap of ${c.timeoutSeconds} s.`
+              : null;
+            entry.runs.push({ index, slug, run, checked, failed, capped });
+          }
+          arms.set(key, entry);
+        }
+      }
+    }
+  } finally {
+    await browser?.close();
+  }
 }
 
 // Only a directory the runner itself names `e-<id>` is removed, so a stray tracePath cannot reach anything else.
@@ -518,7 +683,9 @@ const summary = ordered.map((arm) => {
 });
 
 const lines = [
-  `Checkers restored from scratch/eval-project, run with --strict --no-fix${tests.length ? ' --tests' : ''}.`,
+  harbor
+    ? 'Scored by the Harbor verifier in a fresh container: graders, then the full checkers with --tests --strict --no-fix.'
+    : `Checkers restored from scratch/eval-project, run with --strict --no-fix${tests.length ? ' --tests' : ''}.`,
   '',
   '| Arm | Finished | Grader score | Checker errors left | Generation seconds | Turns | Skills loaded | Checker runs | Failed checker calls | Lookups | Failed lookups | Source reads | Generation cost | Shipped components | New components | New tokens | Literal values |',
   '|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|',
