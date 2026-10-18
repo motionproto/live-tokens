@@ -182,12 +182,14 @@ browser tests at the agent's checkpoints, never, and once at each stop.
   the checker enforces it.
 - **D15. Every arm gets one fixed theme, `brand`.** The base image ships
   `src/live-tokens/data/themes/brand.json`, a copy of one shipped theme whose
-  palette and geometry both differ from the default, so a new component's
-  properties move under it through the design tokens they alias. The name
-  matches the example in `references/contract-tests.md`, so the shipped skill
-  stays as it is. The run uses the theme and leaves it alone: the verifier
-  puts the image's copy back before it scores, and the report flags a run
-  that changed it.
+  palette and geometry both differ from the default. The run tests the new
+  component's adherence to the theme: its color properties move under brand
+  through the design tokens they alias, and its geometry stays on the steps
+  it was built with, since a theme assigns geometry only to the components it
+  holds a block for. The name and the color-property example both match
+  `references/contract-tests.md`. The run uses the theme and leaves it alone:
+  the verifier puts the image's copy back before it scores, and the report
+  flags a run that changed it.
 - **D16. The agent's container reaches the Anthropic API alone**, through
   `[environment].allowed_hosts`. A run that tries `npm install` or a web read
   fails at once, as it did under plugin eval. Wave 2's first trial confirms

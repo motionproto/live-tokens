@@ -143,8 +143,7 @@ export interface ThemeExpectation extends View {
    * it, not just that the alias name matches.
    */
   unchanged: string[];
-  /** Variables the theme's own component config aliases, and the design token
-   *  each must resolve to under it. */
+  /** Variables, and the design token each must resolve to under the theme. */
   aliasedTo: Record<string, string>;
   /** Where the theme's value must land in the rendered preview. */
   observe: { part: string; css: string; variable: string };

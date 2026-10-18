@@ -119,10 +119,10 @@ export const contracts: ComponentContract[] = [
     },
     theme: {
       theme: 'brand',
-      changed: ['--statcard-radius'],
-      unchanged: ['--statcard-padding'],
-      aliasedTo: { '--statcard-radius': '--radius-none' },
-      observe: { part: 'root', css: 'borderRadius', variable: '--statcard-radius' },
+      changed: ['--statcard-surface'],
+      unchanged: ['--statcard-radius', '--statcard-padding'],
+      aliasedTo: { '--statcard-surface': '--surface-neutral' },
+      observe: { part: 'root', css: 'backgroundColor', variable: '--statcard-surface' },
     },
     interaction: { applicable: false, reason: 'a stat card carries no interactive role' },
     sketch: {
@@ -145,11 +145,13 @@ Each obligation and what it needs from the project:
   forces. `applicable: false` when the editor renders no state strip.
 - `persistence`: an edit the run makes through the editor, saves, reloads, and
   reads back. `resetVariable` is a property one of the cases moves.
-- `theme`: a theme in the project's data tree whose block for the component
-  reassigns a property. Save one with the editor before the first run.
-  `changed` names the properties the theme moves, `unchanged` the ones it
-  leaves, and `aliasedTo` the design token each reassigned property resolves
-  to under it.
+- `theme`: a saved theme in the project's data tree, previewed as it stands.
+  The run checks that the component follows the theme's design tokens.
+  `changed` names the properties the theme moves through its color tokens,
+  `unchanged` the ones it leaves, and `aliasedTo` the design token each
+  changed property resolves to under it. A theme assigns geometry steps only
+  to the components it holds a block for, so a new component's radius,
+  padding, and border width belong in `unchanged`.
 - `interaction`: the interactive part's role and its cases. `applicable:
   false` for a component with no interactive role.
 - `behavior`: what a callback prop does. See Behavior below.
