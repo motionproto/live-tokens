@@ -17,8 +17,10 @@ WORKDIR /app
 RUN npm install --no-audit --no-fund --loglevel=error && rm -rf /app/.claude
 
 # The component theme contract previews a saved theme, and the skill's example
-# names it brand. Spring Meadow moves every palette seed and the geometry
-# aliases off the default, so a new component's properties move under it.
+# names it brand. Spring Meadow moves every palette seed off the default, so a
+# new component's color properties move under it through their design tokens.
+# Its geometry reaches only the shipped components it holds a block for, so a
+# new component's geometry stays where the run built it.
 RUN node -e " \
   const fs = require('fs'); \
   const theme = JSON.parse(fs.readFileSync('node_modules/@motion-proto/live-tokens/src/live-tokens/data/themes/spring-meadow.json', 'utf8')); \
