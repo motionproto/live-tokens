@@ -42,17 +42,8 @@ const TOOLS = {
   'outcome-build-billing-no-cli': 'neither',
 };
 const grantsOf = (tools) => new Set(tools.split(' and ').filter((tool) => tool !== 'neither'));
-// The arms of scripts/eval-harbor.sh, keyed by its arm names, in report order.
-// grants mirror each arm's isolate.mjs groups.
-const HARBOR_ARMS = [
-  { id: 'unattended', name: 'Unattended', grants: [] },
-  { id: 'skills-only', name: 'Skills only', grants: [] },
-  { id: 'skills-lookup', name: 'Skills, lookup', grants: ['lookup'] },
-  { id: 'skills-checker', name: 'Skills, checker', grants: ['checker'] },
-  { id: 'skills-lookup-checker', name: 'Skills, lookup and checker', grants: ['lookup', 'checker'], loop: true },
-  { id: 'static-loop', name: 'Skills, lookup and static checker', grants: ['lookup', 'checker'], loop: true },
-  { id: 'browser-gate', name: 'Skills, lookup, static checker and browser gate', grants: ['lookup', 'checker'], loop: true, gate: true },
-];
+// isolate.mjs closes each tool under its group of the same name.
+const ISOLATE_GROUPS = ['lookup', 'checker'];
 const ROUTE = '/billing';
 const VIEWPORTS = [
   { name: 'desktop', width: 1280, height: 900 },
@@ -452,13 +443,30 @@ async function scoreWorkspace(browser, run, slug, workspace, commands, loops) {
 const readJson = (path) => JSON.parse(readFileSync(path, 'utf8'));
 const subfolders = (dir) => readdirSync(dir, { withFileTypes: true }).filter((e) => e.isDirectory()).map((e) => join(dir, e.name));
 
+// scripts/eval-harbor.sh writes its arms table, in report order, beside the jobs.
+function armsTable(folder) {
+  const path = join(folder, 'arms.json');
+  if (!existsSync(path)) throw new Error(`${folder} holds no arms.json, the arms table scripts/eval-harbor.sh writes beside its jobs.`);
+  return readJson(path).map((row) => ({
+    id: row.arm,
+    name: row.name,
+    grants: ISOLATE_GROUPS.filter((group) => !row.groups.includes(group)),
+    // The arms the package leaves whole differ only in where the browser tests run.
+    loop: row.groups.length === 0,
+    gate: row.settings === 'gate',
+  }));
+}
+
 // A jobs folder holds one Harbor job per arm, and each job holds its trials.
 function harborTrials(folder) {
   const jobs = existsSync(join(folder, 'lock.json')) ? [folder] : subfolders(folder).filter((dir) => existsSync(join(dir, 'lock.json')));
   if (jobs.length === 0) throw new Error(`${folder} holds no Harbor job.`);
   return jobs
-    .flatMap((job) => subfolders(job).filter((dir) => existsSync(join(dir, 'result.json'))))
-    .map((dir) => ({ dir, result: readJson(join(dir, 'result.json')) }))
+    .flatMap((job) => {
+      const table = armsTable(dirname(job));
+      return subfolders(job).filter((dir) => existsSync(join(dir, 'result.json'))).map((dir) => ({ dir, table }));
+    })
+    .map((trial) => ({ ...trial, result: readJson(join(trial.dir, 'result.json')) }))
     .sort((a, b) => String(a.result.started_at).localeCompare(String(b.result.started_at)));
 }
 
@@ -577,11 +585,13 @@ function readPrompt(name) {
 
 const arms = new Map();
 const prompts = new Map();
+const harborOrder = [];
 if (harbor) {
   for (const folder of folders) {
     for (const trial of harborTrials(folder)) {
-      const arm = HARBOR_ARMS.find((a) => a.id === trial.result.task_name);
-      if (!arm) throw new Error(`${trial.dir}: no arm named ${trial.result.task_name} in HARBOR_ARMS.`);
+      for (const { id } of trial.table) if (!harborOrder.includes(id)) harborOrder.push(id);
+      const arm = trial.table.find((a) => a.id === trial.result.task_name);
+      if (!arm) throw new Error(`${trial.dir}: arms.json has no arm named ${trial.result.task_name}.`);
       const entry = arms.get(arm.id) ?? { key: arm.id, ...arm, runs: [] };
       const index = entry.runs.length + 1;
       const slug = `${arm.id}-run-${index}`;
@@ -640,7 +650,7 @@ if (clean) {
 }
 
 const rank = (arm) => {
-  const order = harbor ? HARBOR_ARMS.map((a) => a.id) : ARM_ORDER;
+  const order = harbor ? harborOrder : ARM_ORDER;
   return order.indexOf(arm.key) === -1 ? order.length : order.indexOf(arm.key);
 };
 const ordered = [...arms.values()].sort((a, b) => rank(a) - rank(b));

@@ -17,19 +17,21 @@ set -euo pipefail
 REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$REPO"
 
-# One row per arm. case: the eval case the arm stands for. groups: the layers
-# isolate.mjs closes, comma-separated, or - for none. skills: shipped, none, or
-# the copy in .claude/evals/_skills/ the arm runs. tests: browser, or static
-# when the image turns --tests into the static checks. settings: the arm's
-# Claude Code settings, below.
+# One row per arm, in the report's order; every job folder gets a copy as
+# arms.json, which scripts/eval-check-build.mjs reads. case: the eval case the
+# arm stands for. groups: the layers isolate.mjs closes, comma-separated, or -
+# for none. skills: shipped, none, or the copy in .claude/evals/_skills/ the
+# arm runs. tests: browser, or static when the image turns --tests into the
+# static checks. settings: the arm's Claude Code settings, below. name: the
+# rest of the line, the arm as the report names it.
 ARMS='
-skills-lookup-checker  outcome-build-billing             -               shipped                           browser  base
-skills-lookup          outcome-build-billing-no-checker  checker         outcome-build-billing-no-checker  browser  base
-skills-checker         outcome-build-billing-no-lookup   lookup          outcome-build-billing-no-lookup   browser  base
-skills-only            outcome-build-billing-no-cli      lookup,checker  outcome-build-billing-no-cli      browser  base
-unattended             outcome-build-billing-no-cli      lookup,checker  none                              browser  base
-static-loop            outcome-build-billing             -               billing-static-loop               static   base
-browser-gate           outcome-build-billing             -               billing-static-loop               static   gate
+unattended             outcome-build-billing-no-cli      lookup,checker  none                              browser  base  Unattended
+skills-only            outcome-build-billing-no-cli      lookup,checker  outcome-build-billing-no-cli      browser  base  Skills only
+skills-lookup          outcome-build-billing-no-checker  checker         outcome-build-billing-no-checker  browser  base  Skills, lookup
+skills-checker         outcome-build-billing-no-lookup   lookup          outcome-build-billing-no-lookup   browser  base  Skills, checker
+skills-lookup-checker  outcome-build-billing             -               shipped                           browser  base  Skills, lookup and checker
+static-loop            outcome-build-billing             -               billing-static-loop               static   base  Skills, lookup and static checker
+browser-gate           outcome-build-billing             -               billing-static-loop               static   gate  Skills, lookup, static checker and browser gate
 '
 BRIEF_CASE=outcome-build-billing
 ARTIFACTS='["/app/src", "/app/tests", "/app/live-tokens.config.json", "/app/live-tokens.testing.ts"]'
@@ -55,6 +57,15 @@ EOF
 die() { echo "eval-harbor: $*" >&2; exit 1; }
 arm_names() { echo "$ARMS" | awk 'NF { print $1 }'; }
 arm_row() { echo "$ARMS" | awk -v arm="$1" '$1 == arm'; }
+arms_json() {
+  ARMS="$ARMS" node -e '
+    const rows = process.env.ARMS.split("\n").filter((line) => line.trim()).map((line) => {
+      const [arm, kase, groups, skills, tests, settings, ...name] = line.trim().split(/\s+/);
+      return { arm, name: name.join(" "), case: kase, groups: groups === "-" ? [] : groups.split(","), skills, tests, settings };
+    });
+    console.log(JSON.stringify(rows, null, 2));
+  '
+}
 
 prepare=false
 runs=1
@@ -203,6 +214,8 @@ export CLAUDE_CODE_OAUTH_TOKEN
 export CLAUDE_FORCE_OAUTH=1 HARBOR_TELEMETRY=0
 unset ANTHROPIC_API_KEY
 jobs="scratch/harbor/jobs/$(date +%Y-%m-%dT%H-%M-%S)"
+mkdir -p "$jobs"
+arms_json > "$jobs/arms.json"
 for arm in "${selected[@]}"; do
   harbor run -p "scratch/harbor/tasks/$arm" -a claude-code -m anthropic/claude-opus-5-5 \
     -k "$runs" -n 3 -o "$jobs" --job-name "$arm" \
