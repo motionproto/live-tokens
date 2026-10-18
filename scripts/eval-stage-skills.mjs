@@ -1,11 +1,13 @@
 #!/usr/bin/env node
-// Stages the skills one eval case runs with. A case without a tool runs a copy
-// of the skills that never names it, kept in .claude/evals/_skills/<case>/:
-// the files it changes, and skills.json listing what the case goes without and
-// the hash of each shipped file a copy was made from.
+// Stages the skills one eval arm runs with. An arm without a tool, or without
+// a use of one, runs a copy of the skills that never names it, kept in
+// .claude/evals/_skills/<copy>/: the files it changes, and skills.json listing
+// what the arm goes without and the hash of each shipped file a copy was made
+// from. A plugin-eval case names its copy after itself; a Harbor arm names its
+// copy in the arms table of scripts/eval-harbor.sh.
 //
-//   node scripts/eval-stage-skills.mjs <case> <skills dir>   apply the case's copy
-//   node scripts/eval-stage-skills.mjs --rehash <case>      record the current shipped hashes
+//   node scripts/eval-stage-skills.mjs <copy> <skills dir>   apply the copy
+//   node scripts/eval-stage-skills.mjs --rehash <copy>      record the current shipped hashes
 //
 // A shipped skill edited after its copy was made stops the stage, so a copy
 // cannot fall behind the skill it stands in for.
@@ -22,7 +24,7 @@ const hash = (path) => createHash('sha256').update(readFileSync(path)).digest('h
 const rehash = process.argv[2] === '--rehash';
 const [name, dest] = rehash ? process.argv.slice(3) : process.argv.slice(2);
 if (!name || (!rehash && !dest)) {
-  console.error('usage: node scripts/eval-stage-skills.mjs <case> <skills dir> | --rehash <case>');
+  console.error('usage: node scripts/eval-stage-skills.mjs <copy> <skills dir> | --rehash <copy>');
   process.exit(1);
 }
 const copy = join(REPO, '.claude/evals/_skills', name);
