@@ -312,6 +312,9 @@ output.
 
 ## Wave 4: switch-over and docs
 
+- Make the arms table in `eval-harbor.sh` the only one, per D1: the runner
+  writes it into each job folder, and `eval-check-build.mjs` reads each arm's
+  name and grants from there in place of its own `HARBOR_ARMS` list.
 - Point `eval:billing` at `eval-harbor.sh` per D8, with `--smoke` and a full
   run that takes the run counts from D12 and the concurrency from D11.
 - Rewrite the billing sections of `.claude/evals/README.md`, the `evaluate`
