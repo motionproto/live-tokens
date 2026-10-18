@@ -6,17 +6,25 @@
 //   node isolate.mjs checker         the checker: check-page, check-component, report, the build's
 //                                    checks, the checker modules, and the contract suites
 //
-// The README and the editor docs stay in every arm. They summarise the skills
-// and commands, and a user without the plugin has them too.
+// The editor docs stay in every arm, and so does the README less its passages
+// on a removed command. They summarise the skills and commands, and a user
+// without the plugin has them too.
 import { existsSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import process from 'node:process';
 
 const PKG = 'node_modules/@motion-proto/live-tokens';
 const CLI = `${PKG}/bin/cli.mjs`;
+const README = `${PKG}/README.md`;
 const ANCHOR = 'const [, , command, ...rest] = process.argv;';
 const GROUPS = {
   lookup: ['components', 'tokens'],
   checker: ['check-page', 'check-component', 'report'],
+};
+// The README passages that exist to run a group's commands, each cut from its
+// first line to the next heading.
+const README_PASSAGES = {
+  lookup: ['### `live-tokens-pick-component`'],
+  checker: ['Verify the result:', '### `live-tokens-check-compliance`'],
 };
 
 const groups = process.argv.slice(2);
@@ -57,6 +65,28 @@ function stripUsage(source, commands) {
   const usage = kept.flat().join('\n').replace(/\n\n+(?= {2}\S)/g, '\n');
   const header = new RegExp(`^//   (${commands.join('|')}) .*\\n`, 'gm');
   return (source.slice(0, start) + usage + source.slice(end)).replace(header, '');
+}
+
+function closeReadme(groups) {
+  const commands = groups.flatMap((g) => GROUPS[g]);
+  edit(README, (text) => {
+    let out = text;
+    for (const command of commands) {
+      const row = new RegExp(`^\\| \`${command}[ \`].*\\n`, 'm');
+      if (!row.test(out)) throw new Error(`${README} no longer lists ${command} in its CLI table. Update isolate.mjs.`);
+      out = out.replace(row, '');
+    }
+    for (const anchor of groups.flatMap((g) => README_PASSAGES[g])) {
+      const start = out.indexOf(`\n${anchor}\n`) + 1;
+      if (start === 0) throw new Error(`${README} no longer holds "${anchor}". Update isolate.mjs.`);
+      const body = start + anchor.length + 1;
+      const next = out.slice(body).search(/^#{2,3} /m);
+      out = out.slice(0, start) + out.slice(next < 0 ? out.length : body + next);
+    }
+    const left = out.match(new RegExp(`\`(${commands.join('|')})[ \`]|live-tokens (${commands.join('|')})\\b`));
+    if (left) throw new Error(`${README} still names ${left[1] ?? left[2]} after the cut. Update isolate.mjs.`);
+    return out;
+  }, 'the README cut did not apply');
 }
 
 function closeSkills() {
@@ -124,6 +154,9 @@ function closeChecker() {
 }
 
 closeSkills();
-if (groups.length > 0) closeCommands(groups.flatMap((g) => GROUPS[g]));
+if (groups.length > 0) {
+  closeCommands(groups.flatMap((g) => GROUPS[g]));
+  closeReadme(groups);
+}
 if (groups.includes('lookup')) closeCatalogue();
 if (groups.includes('checker')) closeChecker();

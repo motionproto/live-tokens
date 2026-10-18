@@ -175,7 +175,6 @@ Open the page at the width it is built for and check each line below.
 - The containers in a section align at the bottom.
 - The actions sit where the eye goes last, with the one primary at the end.
 - Every row of actions holds an action that leaves without committing.
-- Every action that destroys saved work meets the Button constraint `danger-without-dialog`.
 - An action that runs longer than a moment shows progress in a `ProgressBar` or a `Notification`.
 - Every field has a default, and Reset restores it.
 - Secondary settings sit in a `CollapsibleSection`. Every control is in view.
