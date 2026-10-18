@@ -261,7 +261,13 @@ so the refusal went untested. Costs are list price.
 | static-loop | 441 | $2.04 | 11/11 | 2 |
 | browser-gate | 506 | $2.34 | 11/11 | 0 |
 
-The gate blocked once, on a `page-overflow`, and passed at the next stop.
+The gate blocked once, on two `page-overflow` errors from `check-page` and
+two `contract-render` errors from `check-component`, and passed at the next
+stop.
+
+Every trial's `artifacts/manifest.json` marks `/app/live-tokens.config.json`
+as `failed`, because the base project has no such file. The job-folder
+reader treats that entry as absent, as `grade.mjs` does.
 
 `scratch/harbor/jobs/2026-10-18T16-45-07/` holds the D11 job: three trials of
 the arm with every tool at `-n 3`. The job took 661 s of wall time against
