@@ -243,6 +243,35 @@ each verifier writes a reward,
 findings, inventory, and two screenshots, and the token scan of
 `scratch/harbor/` finds nothing.
 
+Result of 2026-10-18 at `5af0322`. `scratch/harbor/jobs/2026-10-18T15-33-23/`
+holds one trial of each arm. All seven finished with no exception under
+`allowed_hosts = ["api.anthropic.com"]`, and Claude Code needed no other
+host. Each verifier ran in separate mode and wrote `reward.json`,
+`findings.json`, `inventory.json`, `desktop.png`, and `mobile.png`. No run
+turned a rule off or changed `brand.json`. No agent tried npm or a web read,
+so the refusal went untested. Costs are list price.
+
+| Arm | Agent s | Cost | Graders | Errors left |
+|---|---|---|---|---|
+| skills-lookup-checker | 669 | $2.61 | 11/11 | 0 |
+| skills-lookup | 470 | $2.05 | 11/11 | 9 |
+| skills-checker | 635 | $2.39 | 11/11 | 0 |
+| skills-only | 350 | $2.10 | 10/11, `uses-radiobutton` failed | 12 |
+| unattended | 546 | $3.42 | 11/11 | 4 |
+| static-loop | 441 | $2.04 | 11/11 | 2 |
+| browser-gate | 506 | $2.34 | 11/11 | 0 |
+
+The gate blocked once, on a `page-overflow`, and passed at the next stop.
+
+`scratch/harbor/jobs/2026-10-18T16-45-07/` holds the D11 job: three trials of
+the arm with every tool at `-n 3`. The job took 661 s of wall time against
+734 s for the single trial above. Its agent times were 445, 587, and 603 s
+against 669 s, and its `--tests` calls took 15 to 56 s each against 13 to
+84 s alone. The containers peaked at 3.9 GiB of Docker's 7.7 GiB. All three
+trials scored 11 of 11 with no errors left, so three at once slowed no trial.
+
+The token scan of `scratch/harbor/` found no copy.
+
 ## Wave 3: the report
 
 - Add the job-folder reader per D5 and the parser change per D6. The report
