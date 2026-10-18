@@ -88,7 +88,10 @@ while [ $# -gt 0 ]; do
   esac
   shift
 done
-if $smoke; then runs=1; fi
+if $smoke; then
+  [ -z "$runs" ] || die "--smoke runs one trial of each arm and takes no --runs. Drop --smoke to run each arm n times."
+  runs=1
+fi
 if [ ${#selected[@]} -eq 0 ]; then
   if $smoke; then
     selected=("$SMOKE_ARM")
