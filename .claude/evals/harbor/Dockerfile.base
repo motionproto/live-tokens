@@ -5,9 +5,9 @@
 FROM mcr.microsoft.com/playwright:v1.64.1-noble
 
 # The agent's container reaches the Anthropic API alone, so Harbor's install
-# step, which downloads Claude Code, would fail there. Installed here, every
-# arm also runs the same Claude Code.
-RUN curl -fsSL https://downloads.claude.ai/claude-code-releases/bootstrap.sh | bash
+# step, which downloads Claude Code, would fail there. The pin keeps every arm
+# on one Claude Code across rebuilds.
+RUN curl -fsSL https://downloads.claude.ai/claude-code-releases/bootstrap.sh | bash -s -- 2.1.302
 
 COPY live-tokens.tgz /opt/live-tokens.tgz
 COPY project/ /app/
