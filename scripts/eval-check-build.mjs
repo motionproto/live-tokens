@@ -748,7 +748,7 @@ const rankRows = loopArms.flatMap((first, i) => loopArms.slice(i + 1).flatMap((s
   const b = values(second);
   const test = a.length > 0 && b.length > 0 ? rankTest(a, b) : null;
   const shown = (v) => (v === null ? 'n/a' : `${measure.unit ?? ''}${v.toFixed(measure.digits)}`);
-  return { first, second, measure: measure.label, runs: `${a.length} and ${b.length}`, medians: `${shown(median(a))} and ${shown(median(b))}`, test };
+  return { first, second, measure: measure.label, runs: `${a.length} and ${b.length}`, medians: `${shown(median(a))} and ${shown(median(b))}`, test, ma: median(a), mb: median(b), shown };
 })));
 
 const gateRows = perRun.filter(({ arm }) => arm.gate).map(({ arm, r }) => {
@@ -756,6 +756,172 @@ const gateRows = perRun.filter(({ arm }) => arm.gate).map(({ arm, r }) => {
   const blocks = (stops ?? []).filter((s) => s.blocked).map((s) => [...new Set(s.checks.flatMap((c) => c.rules))]);
   return { arm, r, stops: stops?.length ?? null, blocks, capped: (stops ?? []).some((s) => s.capped) };
 });
+
+const esc = (s) => String(s).replace(/[&<>"]/g, (ch) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[ch]);
+const slugOf = (s) => String(s).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+const rankId = (row) => `rank-${slugOf(row.first.key)}-${slugOf(row.second.key)}-${slugOf(row.measure)}`;
+const grantsFor = (arm) => (arm.grants ? new Set(arm.grants) : grantsOf(arm.key.split('|')[1] ?? 'neither'));
+const finishedOf = (arm) => arm.runs.filter(isFinished);
+const finishedMean = (arm, pick) => mean(finishedOf(arm).map(pick));
+const rulesOf = (r) => new Set(r.checked.checks.flatMap((c) => c.byRule.map(([rule]) => rule)));
+const listed = (items) => (items.length < 2 ? items.join('') : `${items.slice(0, -1).join(', ')} and ${items.at(-1)}`);
+const span = (values, digits) => {
+  const known = values.filter((v) => v !== null && v !== undefined);
+  const lo = Math.min(...known);
+  const hi = Math.max(...known);
+  return lo === hi ? fmt(lo, digits) : `${fmt(lo, digits)} to ${fmt(hi, digits)}`;
+};
+const choose = (n, k) => (k === 0 ? 1 : (choose(n - 1, k - 1) * n) / k);
+
+const link = {
+  run: (arm, r, label = `run ${r.index}`) => `<a href="#arm=${encodeURIComponent(arm.key)}&amp;run=${r.index}">${esc(label)}</a>`,
+  arm: (arm) => `<a href="#arm=${encodeURIComponent(arm.key)}&amp;run=1">${esc(arm.name)}</a>`,
+  compare: (a, b) => `<a href="#arm=${encodeURIComponent(a.key)}&amp;vs=${encodeURIComponent(b.key)}&amp;run=1">compare ${esc(a.name)} with ${esc(b.name)}</a>`,
+  table: (id, label) => `<a href="#${id}">${esc(label)}</a>`,
+};
+const runsOf = (arm, rs) => `${esc(arm.name)} ${listed(rs.map((r) => link.run(arm, r, String(r.index))))}`;
+const worstRun = (arm) => [...finishedOf(arm)].sort((a, b) => (b.checked.errors ?? 0) - (a.checked.errors ?? 0))[0];
+
+// Each insight is a rule over the runs, so a new report states only what its own data shows.
+const insights = [];
+const say = (head, text, see) => insights.push({ head, text, see });
+
+const checkerArms = ordered.filter((arm) => grantsFor(arm).has('checker'));
+const plainArms = ordered.filter((arm) => !grantsFor(arm).has('checker'));
+const errorsOf = (arm) => finishedMean(arm, (r) => r.checked.errors);
+if (checkerArms.length && plainArms.length) {
+  say(
+    'Checker',
+    `Arms with the checker left ${span(checkerArms.map(errorsOf))} errors a run on average. Arms without it left ${span(plainArms.map(errorsOf))}.`,
+    [link.table('means', 'Means per arm'), ...plainArms.filter(worstRun).map((arm) => link.run(arm, worstRun(arm), `${arm.name}, run ${worstRun(arm).index}`))],
+  );
+  const plainRuns = plainArms.flatMap((arm) => finishedOf(arm).map((r) => ({ arm, r })));
+  const counts = new Map();
+  for (const { r } of plainRuns) for (const rule of rulesOf(r)) counts.set(rule, (counts.get(rule) ?? 0) + 1);
+  const common = [...counts].filter(([, n]) => n >= plainRuns.length / 2).sort((a, b) => b[1] - a[1]).slice(0, 4);
+  if (common.length) {
+    say(
+      'Errors without the checker',
+      `The same rules recur across ${plainRuns.length} runs: ${listed(common.map(([rule, n]) => `<code>${esc(rule)}</code> in ${n}`))}.`,
+      plainArms.filter(worstRun).map((arm) => link.run(arm, worstRun(arm), `${arm.name}, run ${worstRun(arm).index}`)),
+    );
+  }
+}
+
+for (const arm of checkerArms) {
+  const left = finishedOf(arm).filter((r) => r.checked.errors > 0);
+  if (!left.length) continue;
+  const always = [...rulesOf(left[0])].filter((rule) => left.every((r) => rulesOf(r).has(rule)));
+  say(
+    `Errors left by ${arm.name}`,
+    `${left.length} of ${finishedOf(arm).length} runs left errors${always.length ? `, and every one of them left ${listed(always.map((rule) => `<code>${esc(rule)}</code>`))}` : ''}.`,
+    [runsOf(arm, left)],
+  );
+}
+
+if (rankRows.length) {
+  const VERB = { 'Errors left': 'left fewer errors', 'Generation seconds': 'finished faster', 'Generation cost': 'cost less' };
+  const tested = rankRows.filter((row) => row.test && row.ma !== null && row.mb !== null);
+  const order = (row) => (row.ma <= row.mb ? [row.first, row.second, row.ma, row.mb] : [row.second, row.first, row.mb, row.ma]);
+  for (const row of tested.filter((row) => row.test.p < 0.1 && row.ma !== row.mb)) {
+    const [low, high, a, b] = order(row);
+    const margin = row.test.p < 0.05 ? '' : ', short of the 0.05 mark';
+    say(
+      'Browser tests',
+      `${esc(low.name)} ${VERB[row.measure]} than ${esc(high.name)}: median ${row.shown(a)} against ${row.shown(b)}, p = ${row.test.p.toFixed(3)}${margin}.`,
+      [link.table(rankId(row), 'the rank test'), link.compare(low, high)],
+    );
+  }
+  const even = tested.filter((row) => row.test.p >= 0.1);
+  if (even.length) {
+    say(
+      'Browser tests',
+      `The other ${even.length} rank tests between these arms found no measurable difference, with p from ${span(even.map((row) => row.test.p), 3)}.`,
+      [link.table('rank-tests', 'Rank tests between loop arms')],
+    );
+  }
+}
+
+const gateArmsOf = (rows) => ordered.map((arm) => [arm, rows.filter((g) => g.arm === arm).map((g) => g.r)]).filter(([, rs]) => rs.length);
+if (gateRows.length) {
+  const blocked = gateRows.filter((g) => g.blocks.length);
+  const rules = [...new Set(blocked.flatMap((g) => g.blocks.flat()))];
+  const left = gateRows.map((g) => g.r.checked.errors);
+  say(
+    'Browser gate',
+    `The gate blocked ${blocked.length} of ${gateRows.length} runs at least once, ${blocked.reduce((n, g) => n + g.blocks.length, 0)} blocks in all${rules.length ? `, on ${listed(rules.map((rule) => `<code>${esc(rule)}</code>`))}` : ''}. ${left.every((n) => n === 0) ? 'Every gate run then finished with no errors left.' : `Its runs finished with ${span(left, 0)} errors left.`}`,
+    [link.table('gate', 'Browser gate'), ...gateArmsOf(blocked).map(([arm, rs]) => `${runsOf(arm, rs)}`)],
+  );
+}
+
+const graderFails = new Map();
+for (const { arm, r } of perRun) for (const grader of r.failed) graderFails.set(grader, [...(graderFails.get(grader) ?? []), { arm, r }]);
+if (graderFails.size) {
+  const where = (hits) => listed(ordered.filter((arm) => hits.some((h) => h.arm === arm)).map((arm) => runsOf(arm, hits.filter((h) => h.arm === arm).map((h) => h.r))));
+  say(
+    'Graders',
+    `${listed([...graderFails].map(([grader, hits]) => `<code>${esc(grader)}</code> failed in ${where(hits)}`))}. Every other run passed every grader.`,
+    [link.table('per-run', 'Per run')],
+  );
+} else if (perRun.length) {
+  say('Graders', 'Every run passed every grader.', [link.table('per-run', 'Per run')]);
+}
+
+const priced = ordered.map((arm) => ({ arm, cost: finishedMean(arm, (r) => r.run.costUsd), reads: finishedMean(arm, (r) => r.checked.sourceReads) })).filter((p) => p.cost !== null);
+if (priced.length > 1) {
+  const byCost = [...priced].sort((a, b) => a.cost - b.cost);
+  const dear = byCost.at(-1);
+  const cheap = byCost[0];
+  const otherReads = priced.filter((p) => p !== dear).map((p) => p.reads ?? 0);
+  const reads = dear.reads !== null && dear.reads > 1.5 * Math.max(...otherReads)
+    ? ` It also read the package's own source ${fmt(dear.reads)} times a run, against at most ${fmt(Math.max(...otherReads))} for any other arm.`
+    : '';
+  say(
+    'Cost',
+    `${esc(dear.arm.name)} cost the most, $${fmt(dear.cost, 2)} a run, and ${esc(cheap.arm.name)} the least, $${fmt(cheap.cost, 2)}.${reads}`,
+    [link.table('means', 'Means per arm'), link.arm(dear.arm)],
+  );
+}
+
+const lostShares = summary.map((s) => (s.turns && s.lostTurns !== null ? s.lostTurns / s.turns : null)).filter((v) => v !== null);
+if (lostShares.length && Math.max(...lostShares) > 0) {
+  say(
+    'Blocked calls',
+    `An arm lost at most ${Math.round(Math.max(...lostShares) * 100)}% of its turns to calls its tools could not make, and at most $${fmt(Math.max(...summary.map((s) => s.lostCost ?? 0)), 2)} a run.`,
+    [link.table('blocked', 'Blocked calls'), link.table('kept', 'Means without blocked calls')],
+  );
+}
+
+const unfinished = perRun.filter(({ r }) => !isFinished(r));
+const runCounts = ordered.map((arm) => arm.runs.length);
+const loopRuns = loopArms.map((arm) => finishedOf(arm).length);
+say(
+  'Sample size',
+  [
+    unfinished.length
+      ? `${unfinished.length} runs did not finish, and the insights above leave them out.`
+      : 'Every run finished, so every number above measures a completed task.',
+    `Arms ran ${span(runCounts, 0)} times on one brief.`,
+    loopRuns.length > 1 ? `With ${Math.min(...loopRuns)} runs a side, an exact rank test can reach p = ${(2 / choose(Math.min(...loopRuns) * 2, Math.min(...loopRuns))).toFixed(3)} at the lowest.` : '',
+  ].filter(Boolean).join(' '),
+  [link.table('per-run', 'Per run')],
+);
+
+const grouped = [];
+for (const insight of insights) {
+  const last = grouped.at(-1);
+  if (last?.head === insight.head) last.parts.push(insight);
+  else grouped.push({ head: insight.head, parts: [insight] });
+}
+const insightsBlock = `<section class="block insights" id="insights">
+  <h2>Insights</h2>
+  <ul>${grouped.map((i) => {
+    const part = (p) => `${p.text}${p.see.length ? ` <span class="see">See ${listed(p.see)}.</span>` : ''}`;
+    return i.parts.length === 1
+      ? `<li><b>${esc(i.head)}.</b> ${part(i.parts[0])}</li>`
+      : `<li><b>${esc(i.head)}.</b><ul class="parts">${i.parts.map((p) => `<li>${part(p)}</li>`).join('')}</ul></li>`;
+  }).join('')}</ul>
+</section>`;
 
 const lines = [
   harbor
@@ -798,7 +964,6 @@ const lines = [
 ];
 console.log(lines.join('\n'));
 
-const esc = (s) => String(s).replace(/[&<>"]/g, (ch) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[ch]);
 const maxRuns = Math.max(...ordered.map((a) => a.runs.length));
 
 function made({ used, created, addedTokens, changedTokens, customProperties, literals }) {
@@ -913,29 +1078,29 @@ const lede = [
 ].join(' ');
 
 const td = (value) => `<td>${value}</td>`;
-const perRunTable = `<section class="block">
+const perRunTable = `<section class="block" id="per-run">
   <h2>Per run</h2>
   <div class="table-scroll"><table>
     <thead><tr><th>Arm</th><th>Run</th>${harbor ? '<th>Trial</th>' : ''}<th>Finished</th><th>Grader score</th><th>Errors left</th><th>Generation seconds</th><th>Turns</th><th>Generation cost</th><th>Checker runs</th>${hasGate ? '<th>Gate blocks</th>' : ''}<th>Notes</th></tr></thead>
-    <tbody>${perRun.map(({ arm, r }) => `<tr>${td(esc(arm.name))}${td(r.index)}${harbor ? td(esc(r.checked.trial)) : ''}${td(isFinished(r) ? 'yes' : '<span class="bad">no</span>')}${td(fmt(r.run.score, 2))}${td(r.checked.errors ?? 'n/a')}${td(fmt(r.run.durationSeconds, 0))}${td(r.run.turns ?? 'n/a')}${td(`$${fmt(r.run.costUsd, 2)}`)}${td(r.checked.checkerRuns ?? 'n/a')}${hasGate ? td(gateBlocks(r) ?? '') : ''}<td class="notes">${runNotes(r).map(esc).join('<br>')}</td></tr>`).join('')}</tbody>
+    <tbody>${perRun.map(({ arm, r }) => `<tr id="row-${r.slug}">${td(esc(arm.name))}${td(link.run(arm, r, String(r.index)))}${harbor ? td(esc(r.checked.trial)) : ''}${td(isFinished(r) ? 'yes' : '<span class="bad">no</span>')}${td(fmt(r.run.score, 2))}${td(r.checked.errors ?? 'n/a')}${td(fmt(r.run.durationSeconds, 0))}${td(r.run.turns ?? 'n/a')}${td(`$${fmt(r.run.costUsd, 2)}`)}${td(r.checked.checkerRuns ?? 'n/a')}${hasGate ? td(gateBlocks(r) ?? '') : ''}<td class="notes">${runNotes(r).map(esc).join('<br>')}</td></tr>`).join('')}</tbody>
   </table></div>
   <p class="table-note">One row per run. Errors left are the full checkers' count on what the run left behind.</p>
 </section>`;
 
-const rankTable = rankRows.length ? `<section class="block">
+const rankTable = rankRows.length ? `<section class="block" id="rank-tests">
   <h2>Rank tests between loop arms</h2>
   <div class="table-scroll"><table>
     <thead><tr><th>First arm</th><th>Second arm</th><th>Measure</th><th>Runs</th><th>Medians</th><th>U</th><th>p</th></tr></thead>
-    <tbody>${rankRows.map((row) => `<tr>${td(esc(row.first.name))}<td class="lead">${esc(row.second.name)}</td>${td(row.measure)}${td(row.runs)}${td(row.medians)}${td(row.test ? fmt(row.test.u) : 'n/a')}${td(row.test ? row.test.p.toFixed(3) : 'n/a')}</tr>`).join('')}</tbody>
+    <tbody>${rankRows.map((row) => `<tr id="${rankId(row)}">${td(esc(row.first.name))}<td class="lead">${esc(row.second.name)}</td>${td(row.measure)}${td(row.runs)}${td(row.medians)}${td(row.test ? fmt(row.test.u) : 'n/a')}${td(row.test ? row.test.p.toFixed(3) : 'n/a')}</tr>`).join('')}</tbody>
   </table></div>
   <p class="table-note">The loop arms differ only in when the browser tests run: at the agent's checkpoints, never, or at each stop through the gate. Each row is an exact two-sided Mann-Whitney test on the two arms' finished runs. U counts the pairs of runs in which the first arm's value is higher, a tie as half; p is the share of all splits of the pooled runs at least as far from an even split.</p>
 </section>` : '';
 
-const gateTable = gateRows.length ? `<section class="block">
+const gateTable = gateRows.length ? `<section class="block" id="gate">
   <h2>Browser gate</h2>
   <div class="table-scroll"><table>
     <thead><tr><th>Arm</th><th>Run</th><th>Stops</th><th>Blocks</th><th>Rules behind each block</th></tr></thead>
-    <tbody>${gateRows.map(({ arm, r, stops, blocks, capped }) => `<tr>${td(esc(arm.name))}${td(r.index)}${td(stops ?? 'n/a')}${td(`${blocks.length}${capped ? ', then let the run end' : ''}`)}<td class="notes">${blocks.map((rules, i) => `${i + 1}: ${rules.map(esc).join(', ')}`).join('<br>')}</td></tr>`).join('')}</tbody>
+    <tbody>${gateRows.map(({ arm, r, stops, blocks, capped }) => `<tr>${td(esc(arm.name))}${td(link.run(arm, r, String(r.index)))}${td(stops ?? 'n/a')}${td(`${blocks.length}${capped ? ', then let the run end' : ''}`)}<td class="notes">${blocks.map((rules, i) => `${i + 1}: ${rules.map(esc).join(', ')}`).join('<br>')}</td></tr>`).join('')}</tbody>
   </table></div>
   <p class="table-note">At each stop the gate runs the full checkers with --tests on the run's new page and components, and blocks the stop while either reports an error. After three blocks it lets the run end.</p>
 </section>` : '';
@@ -981,6 +1146,12 @@ const html = `<!doctype html>
   th:first-child, td:first-child, td.lead { text-align: left; font-family: inherit; font-size: 14px; font-weight: 600; }
   td.notes { text-align: left; white-space: normal; min-width: 24ch; max-width: 60ch; color: var(--muted); }
   .table-scroll { overflow-x: auto; }
+  tr:target td { background: var(--sunken); }
+  .insights ul { max-width: 90ch; padding-left: 20px; }
+  .insights li { margin: 10px 0; }
+  .insights .parts li { margin: 6px 0; }
+  .insights a { text-underline-offset: 2px; }
+  .see { color: var(--muted); font-size: 13px; }
   .table-note { margin: 10px 0 0; max-width: 80ch; font-size: 13px; color: var(--muted); }
 
   .bar { position: sticky; top: 0; z-index: 2; display: flex; flex-direction: column; gap: 8px; padding: 12px 32px 0; background: var(--bg); border-bottom: 1px solid var(--line); }
@@ -1062,11 +1233,12 @@ const html = `<!doctype html>
   <h1>Billing eval report</h1>
   <p class="lede">${esc(lede)}</p>
 </header>
+${insightsBlock}
 <section class="block">
   <h2>Brief</h2>
   ${brief || '<p class="none">No prompt file found.</p>'}
 </section>
-<section class="block">
+<section class="block" id="means">
   <h2>Means per arm</h2>
   <div class="table-scroll"><table>
     <thead><tr><th>Arm</th><th>Finished</th><th>Grader score</th><th>Errors left</th><th>Generation seconds</th><th>Turns</th><th>Skills loaded</th><th>Checker runs</th><th>Failed checker calls</th><th>Lookups</th><th>Failed lookups</th><th>Source reads</th><th>Generation cost</th><th>Shipped components</th><th>New components</th><th>New tokens</th><th>Literal values</th></tr></thead>
@@ -1074,7 +1246,7 @@ const html = `<!doctype html>
   </table></div>
   <p class="table-note">Lookups count each component and scale looked up, including each item of a shell loop. A checker run counts each call the arm could make, whether or not the agent read its output. An arm without a tool runs none; its calls to the tool are blocked and counted as failed.</p>
 </section>
-<section class="block">
+<section class="block" id="blocked">
   <h2>Blocked calls</h2>
   <div class="table-scroll"><table>
     <thead><tr><th>Arm</th><th>Failed checker calls</th><th>Failed lookups</th><th>Turns lost</th><th>Seconds lost</th><th>Source reads lost</th><th>Cost lost</th></tr></thead>
@@ -1082,7 +1254,7 @@ const html = `<!doctype html>
   </table></div>
   <p class="table-note">The skills name both tools, so an arm without one still calls it. A blocked call loses its own turn and the turns the agent spends probing the CLI afterwards, up to its next unrelated step. Cost lost is the run's cost times its share of turns lost.</p>
 </section>
-<section class="block">
+<section class="block" id="kept">
   <h2>Means without blocked calls</h2>
   <div class="table-scroll"><table>
     <thead><tr><th>Arm</th><th>Grader score</th><th>Errors left</th><th>Generation seconds</th><th>Turns</th><th>Checker runs</th><th>Lookups</th><th>Source reads</th><th>Generation cost</th><th>New tokens</th></tr></thead>
@@ -1223,6 +1395,30 @@ ${ordered.map((arm, a) => Array.from({ length: maxRuns }, (_, i) => column(arm, 
   viewButtons.forEach((b) => b.addEventListener('click', () => setView(b.dataset.setView)));
   if (store.get('eval-report-view') === 'mobile') setView('mobile');
   render();
+
+  // An insight links to #arm=<key>&run=<n>, optionally &vs=<key> for Compare.
+  const bar = document.querySelector('.bar');
+  function follow() {
+    const params = new URLSearchParams(location.hash.slice(1));
+    const arm = params.get('arm');
+    if (!keys.includes(arm)) return;
+    const run = Number(params.get('run')) - 1;
+    if (Number.isInteger(run) && run >= 0 && run < runButtons.length) state.run = run;
+    const vs = params.get('vs');
+    state.compare = keys.includes(vs) && vs !== arm;
+    state.arms[0] = keys.indexOf(arm);
+    if (state.compare) state.arms[1] = keys.indexOf(vs);
+    state.active = 0;
+    render();
+    window.scrollTo({ top: panels.getBoundingClientRect().top + window.scrollY - bar.offsetHeight });
+  }
+  window.addEventListener('hashchange', follow);
+  // A second click on the same link changes no hash, so it fires no hashchange.
+  document.addEventListener('click', (event) => {
+    const a = event.target.closest?.('a[href^="#arm="]');
+    if (a && a.getAttribute('href') === location.hash) follow();
+  });
+  follow();
 
   const img = box.querySelector('img');
   const caption = box.querySelector('.lightbox-caption');

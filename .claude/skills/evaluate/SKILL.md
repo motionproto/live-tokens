@@ -62,8 +62,10 @@ not poll it.
 
 The command ends by printing a table of means per arm and the report path,
 `eval-reports/<time>/index.html`, or `eval-reports/<time>-smoke/` for a
-smoke run. Give the user the table and the path, then name what separates
-the arms:
+smoke run. The report opens with Insights: findings the builder derives
+from the runs by fixed rules, each linked to the table row or the run panel
+that supports it. Give the user the table and the path, then name what
+separates the arms:
 
 - **Grader score**: the share of component-choice graders that pass.
 - **Checker errors left**: what the full checkers find in the finished page
