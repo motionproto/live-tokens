@@ -10,6 +10,12 @@
   phone failed against the Table's own `overflow-x: auto` wrapper. An
   ancestor that scrolls sideways now keeps the component in reach, and only
   one that hides overflow without scrolling clips it.
+- **The theme contract example tests adherence to a saved theme.** The
+  example in `live-tokens-create-component`'s `references/contract-tests.md`
+  expected a theme to move a new component's radius, which only a theme block
+  for that component can do, and told the agent to save one first. The
+  example now expects the theme to move a color property through its design
+  tokens and lists the component's radius and padding as unchanged.
 
 ## 0.97.0 — Custom colors
 
