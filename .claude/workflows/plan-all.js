@@ -38,6 +38,10 @@ const PLANS = {
     order: ['1', '2', '3', '4'],
     after: 'Do the Wave 5 visual pass in docs/plans/custom-colors.md by hand.',
   },
+  'harbor-arms': {
+    order: ['1', '2', '3', '4'],
+    after: 'Run `npm run eval:billing -- --runs <n>` for the full comparison, then read the report.',
+  },
 }
 
 const CLEAN = {

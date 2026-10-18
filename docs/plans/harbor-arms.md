@@ -191,7 +191,7 @@ browser tests at the agent's checkpoints, never, and once at each stop.
 
 ## Waves
 
-### Wave 1: seven tasks and the separate verifier
+## Wave 1: seven tasks and the separate verifier
 
 - Extend `eval-harbor.sh` to take an arm list (default all five), build the
   base image once, and write each task from the arms table: the arm's
@@ -225,7 +225,7 @@ verifier image on the trial's saved files reproduces 11 of 11 graders, and
 `contract-theme` finds the `brand` theme in the Theme Picker. A run that edits
 `brand.json` is scored against the image's copy and flagged.
 
-### Wave 2: smoke of every arm
+## Wave 2: smoke of every arm
 
 - One trial of each arm, run one after another.
 - One job of the arm with every tool at three trials and `-n 3`, timed against
@@ -236,7 +236,7 @@ each verifier writes a reward,
 findings, inventory, and two screenshots, and the token scan of
 `scratch/harbor/` finds nothing.
 
-### Wave 3: the report
+## Wave 3: the report
 
 - Add the job-folder reader per D5 and the parser change per D6. The report
   keeps its tables: means per arm, blocked calls, and means without blocked
@@ -251,7 +251,7 @@ a run side by side, the page window scrolls inside itself at desktop and
 mobile width, and the means match a hand count from the seven `result.json`
 files.
 
-### Wave 4: switch-over and docs
+## Wave 4: switch-over and docs
 
 - Point `eval:billing` at `eval-harbor.sh` per D8, with `--smoke` and a full
   run that takes the run counts from D12 and the concurrency from D11.

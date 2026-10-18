@@ -227,6 +227,13 @@ const CUSTOM_COLORS_WAVES = {
   '4': { executor: 'wave-executor', verify: true, reviewModel: 'sonnet' },
 }
 
+const HARBOR_ARMS_WAVES = {
+  '1': { executor: 'wave-executor', verify: true },
+  '2': { executor: 'wave-executor', verify: true },
+  '3': { executor: 'wave-executor', verify: true },
+  '4': { executor: 'wave-executor', verify: true, reviewModel: 'sonnet' },
+}
+
 // executeModel and escalateModel override the agent definition's model. A plan without them runs each agent as defined.
 // root is a worktree, relative to the repository root, that every agent works in; the setup wave creates it.
 // An unattended plan settles judgment calls with its review rules and logs them, so no step waits on the user.
@@ -272,6 +279,11 @@ const PLANS = {
     file: 'docs/plans/custom-colors.md',
     prefix: 'Custom-colors',
     waves: CUSTOM_COLORS_WAVES,
+  },
+  'harbor-arms': {
+    file: 'docs/plans/harbor-arms.md',
+    prefix: 'Harbor-arms',
+    waves: HARBOR_ARMS_WAVES,
   },
 }
 
