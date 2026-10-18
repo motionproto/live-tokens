@@ -20,6 +20,9 @@ test-results/
 scratch/
 .claude/evals/results/
 
+# Eval reports: kept for comparison, too large to track
+eval-reports/
+
 # Staged by the shipped-theme fallback tests; a killed run leaves it behind
 src/live-tokens/data/themes/package-fixture-look.json
 

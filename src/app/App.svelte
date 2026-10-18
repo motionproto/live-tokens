@@ -79,6 +79,10 @@
             lazy: () => import('../../tests/e2e/page-defects/ScrollingCode.svelte'),
             source: 'tests/e2e/page-defects/ScrollingCode.svelte',
           },
+          '/page-defects/scrolling-table': {
+            lazy: () => import('../../tests/e2e/page-defects/ScrollingTable.svelte'),
+            source: 'tests/e2e/page-defects/ScrollingTable.svelte',
+          },
           '/page-defects/local-grid': {
             lazy: () => import('../../tests/e2e/page-defects/LocalGrid.svelte'),
             source: 'tests/e2e/page-defects/LocalGrid.svelte',

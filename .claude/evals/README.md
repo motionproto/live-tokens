@@ -218,9 +218,19 @@ so each arm reaches only the knowledge its own layers give it, by any route:
   behaviour timeline shows any read of it.
 
 A removed command leaves the usage text too, and running it fails as an
-unknown command. The skills keep the same text in every arm, so an arm
-without a tool still meets the instruction to run it, and the trace counts
-those failed calls. The README and the editor docs stay in every arm. They
+unknown command. An arm without a tool also runs a copy of the skills that
+never names it, so it looks like a package that shipped without the tool.
+Each copy lives in `_skills/<case>/`: the skill files it changes, and
+`skills.json`, which lists the skills and references the case goes without
+and the hash of each shipped file a copy was made from.
+`scripts/eval.sh` stages the shipped skills, then applies the case's copy
+with `scripts/eval-stage-skills.mjs`. A shipped skill edited after its copy
+was made stops the stage; carry the edit into the copy, then record the new
+hashes with `node scripts/eval-stage-skills.mjs --rehash <case>`. The arm
+without the checker drops `live-tokens-check-compliance` and the contract
+reference; the arm without the lookup drops `live-tokens-pick-component`,
+which reads only the catalogue the lookup prints. A call to a removed tool
+still counts as failed in the trace. The README and the editor docs stay in every arm. They
 summarise the skills and commands, and a user without the plugin has them
 too. Scoring runs on a fresh copy of the project with every layer in place.
 
@@ -265,8 +275,10 @@ Each case measures four things:
 
 The eval sandbox refuses to let a process listen on a local port, so
 Playwright and Vite cannot start inside a run, and `--tests` would report
-`tests-setup` until the turn cap (a probe on 2026-10-15 confirmed it; the
-runner writes the sandbox settings itself and offers no way to allow it).
+`tests-setup` until the turn cap (a probe on 2026-10-15 confirmed it, and one on 2026-10-16 found that
+headless Chromium cannot start either, even with the browser copied into the
+run's home; the runner writes the sandbox settings itself and offers no way
+to allow it).
 Every fixture therefore runs `_scaffold/static-checks.mjs`, which makes
 `--tests` run the static checks and say why. The browser rules are scored
 afterwards for every arm. The same limit reaches the component contract:
@@ -289,10 +301,11 @@ npm run eval:billing -- --runs 3    # all five arms, three runs each
 
 `scripts/eval-billing.sh` refuses to start while a Docker container runs,
 builds the eval project, runs the cases one at a time with `--keep-temp`,
-and keeps each case's result and log in `scratch/eval-billing/<time>/`.
+and keeps each case's result and log in `eval-reports/<time>/`.
 It then runs `scripts/eval-check-build.mjs` over the results, which writes
 the report to `report/index.html` in that folder and deletes the kept
-sandboxes once the report holds its copies.
+sandboxes once the report holds its copies. `--reuse` rebuilds a report from
+the findings and screenshots saved in its folder, without running the checks.
 
 
 Each run is a fresh `claude` session given the same prompt file in a freshly
@@ -303,7 +316,9 @@ fresh copy of the eval project. There it runs the full checkers with
 `--strict --no-fix`, browser tests included. It then serves that copy with
 its own Vite dev server and screenshots `/billing` at 1280 and 390 pixels wide, with the
 router's overlay hidden. It prints a table of means per arm and writes
-`scratch/eval-reports/<time>/index.html`: the brief, the means, then one tab
+`eval-reports/<time>/index.html`: the brief, the means, the calls each arm's
+patched CLI blocked with the turns, seconds, and cost they took, the means
+with those taken out, then one tab
 per run holding every arm side by side, each with its metrics, a screenshot
 that a switch sets to desktop or mobile, its behaviour, failed graders,
 checker findings by rule, and links to the saved page and component sources. Each

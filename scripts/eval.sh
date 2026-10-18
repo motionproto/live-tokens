@@ -67,7 +67,15 @@ plugin="$(mktemp -d "${TMPDIR:-/tmp}/live-tokens-plugin.XXXXXX")"
 mkdir "$plugin/skills"
 cp -R .claude/.claude-plugin "$plugin/"
 cp -R .claude/skills/live-tokens-* "$plugin/skills/"
-rsync -a --exclude results .claude/evals/ "$plugin/evals/"
+# A case without a tool runs a copy of the skills that never names it.
+case_name=""
+previous=""
+for arg in "$@"; do
+  if [ "$previous" = "--case" ]; then case_name="$arg"; fi
+  previous="$arg"
+done
+if [ -n "$case_name" ]; then node scripts/eval-stage-skills.mjs "$case_name" "$plugin/skills"; fi
+rsync -a --exclude results --exclude _skills .claude/evals/ "$plugin/evals/"
 printf '%s\n' "$REPO" > "$plugin/evals/_scaffold/repo"
 
 status=0

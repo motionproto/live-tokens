@@ -868,14 +868,16 @@ export class PageHarness {
         }
       }
 
-      const clips = (style: CSSStyleDeclaration) =>
-        style.overflowX !== 'visible' || style.overflowY !== 'visible';
       for (const spec of list) {
         for (const instance of root.querySelectorAll(spec.root)) {
           if (instance.closest(chrome)) continue;
+          // An ancestor that scrolls sideways keeps the instance in reach, as a
+          // table wrapper does on a phone, so only one that hides it clips it.
           let clipper: Element | null = null;
           for (let node = instance.parentElement; node; node = node.parentElement) {
-            if (clips(getComputedStyle(node))) { clipper = node; break; }
+            const overflowX = getComputedStyle(node).overflowX;
+            if (overflowX === 'auto' || overflowX === 'scroll') break;
+            if (overflowX !== 'visible') { clipper = node; break; }
           }
           if (!clipper) continue;
           const box = instance.getBoundingClientRect();

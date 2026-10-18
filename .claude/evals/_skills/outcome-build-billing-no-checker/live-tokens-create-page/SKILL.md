@@ -1,0 +1,190 @@
+---
+name: live-tokens-create-page
+description: Create a page in a @motion-proto/live-tokens project from the shipped components at their defaults and the theme's text styles. Use when the user asks for a page or a route. Use when the user asks to change the layout of a page. Edits page files and the route table. For a choice between two components, read live-tokens-pick-component. For a component the catalogue lacks, read live-tokens-create-component. For a theme change, read live-tokens-create-theme.
+---
+
+# Creating a page in a live-tokens project
+
+Assemble the page from the shipped components at their defaults and the theme's text styles. A change to a component is made in the components editor at `/live-tokens/components` and reaches every page. A change to the theme is made with **live-tokens-create-theme**.
+
+## Workflow
+
+1. Read the project first: the existing pages and where they live, how `App.svelte` wires routes, `--columns-count` in `tokens.css`, and the catalogue from `npx live-tokens components`.
+2. Read the page top to bottom and name each section by its purpose. Take each section's column spans from the Page layouts table.
+3. Build the page grid and place each section on it. Separate the sections with the smallest difference that separates them.
+4. Give each section its container. `npx live-tokens components <id>` prints a component's constraints.
+5. Match a shipped component to each need. When two could fit, read **live-tokens-pick-component**. When nothing in the catalogue fits, read **live-tokens-create-component**.
+6. Write the page CSS in design tokens.
+7. Set the hierarchy: one text style per element, the shipped size on every control, one primary action, and one space step per position.
+8. Add the route, with a lazy import and the source path.
+9. Check the rendered page against the Verify list.
+10. Reply with the sections and the layout each took, the components placed, and the route.
+
+## Layout
+
+### Page layouts
+
+Decide the sections before the columns. Read the page top to bottom and name each section by its purpose: what the user reads, types into, or presses. Each section is a row of the page grid. Take the column spans from the layout that matches the reader's task.
+
+| Layout | Use when | Column spans |
+|---|---|---|
+| Stacked sections | The reader moves top to bottom: an opening, one section per topic, a close; or a stage, its inputs, and a toolbar. | Each section spans all columns. Copy spans half (6 of 12). |
+| Main with a supporting pane | One region is the work and the other adjusts or describes it. | Main two thirds (8), pane one third (4). |
+| List with detail | The reader picks an item from a list and inspects it. | List one third (4), detail two thirds (8). |
+| Grid of equals | The reader compares or scans items of one kind. | Equal spans. Up to seven per section. |
+| Single column | The reader fills a form or reads at length. | Half the columns (6), centered. |
+
+The stage is the canvas, player, or strip the work is about. Stretch a section's containers to one height (`align-items: stretch`) so their bottom edges align.
+
+### Grid
+
+The page is the column grid: `display: grid`, `grid-template-columns: repeat(var(--columns-count), 1fr)`, `column-gap: var(--columns-gutter)`, `box-sizing: content-box`, `max-width: var(--columns-max-width)`, `margin: 0 auto`, and `padding-inline: var(--columns-margin)`. Each section spans it with `grid-column: 1 / -1`. The page sets its top and bottom space with `padding-block`.
+
+The columns span `--columns-max-width`, and the margin sits outside them, where `ColumnsOverlay` draws it. `box-sizing: content-box` keeps a project-wide `border-box` reset from narrowing the columns.
+
+The page keeps the grid at every width. `tokens.css` narrows `--columns-gutter` and `--columns-margin` at 767px and again at 480px, and `--columns-count` holds at every width, so the page grid itself takes no `@media` rule.
+
+To place a section's children at page-column positions:
+
+1. Read `--columns-count` in the project's `tokens.css`.
+2. Span the parent grid with `grid-column: 1 / -1`.
+3. Redeclare `repeat(var(--columns-count), 1fr)` with `column-gap: var(--columns-gutter)`.
+4. Place each child by page-column numbers.
+
+A grid that follows the page columns takes `var(--columns-count)` or a `calc()` of it as its count, so it stays in step with `ColumnsOverlay`. A local grid of two or three equal columns writes its own count. A column number in `grid-column` is fixed to the count read in step 1.
+
+Spans count twelfths of the page at every width, so `span 6` is half the page on a desktop and on a phone. Widen the spans on a narrow screen. In a `@media (max-width: 767px)` rule, give a child that spans 4 on a desktop `span 6`, or give each child `grid-column: 1 / -1` to stack the section in reading order. A column at 390px is about 15px wide, so in a `@media (max-width: 480px)` rule each child spans 12, 6, or 4 columns.
+
+### Separation
+
+The page shows one thing, and every other element stays out of its way. Each element that is not content costs attention: a hairline, a border, a header bar, a shadow. Keep an element only when it serves a purpose no other element serves.
+
+Separate elements with the smallest difference that separates them: space first, then a hairline, then a second surface. Use one separator at a time. Two heavy borders side by side make a third shape between them, and a section of containers with borders and header bars reads as a set of posters.
+
+Color each element by its layer.
+
+| Layer | Color |
+|---|---|
+| Content | `--text-primary`, or the color `site.css` gives the element |
+| Label | `--text-secondary` |
+| Chrome | `--border-neutral` |
+| Overlay on content, such as a grid or a selection | `--border-brand`, which stays visible on any pixel |
+
+Show related items side by side when the width permits. A line of copy runs 45 to 90 characters; the copy span in Page layouts holds that at body size. On a tool page the stage is the content and each control is chrome, so the stage takes the space.
+
+`references/layout-sources.md` names the sources for these laws.
+
+## Components
+
+- Use a shipped component when one fits. Import it from `@motion-proto/live-tokens/components/<Name>.svelte`.
+- `npx live-tokens components <id>` prints a component's declared props, the values each union accepts, and its catalogue entry, including its constraints and when not to use it. `--json` prints the same as data. The list includes the project's own components.
+- Pass only the props a component declares.
+- A shipped component fills its parent. To size one, size the element the page wraps it in.
+- A native element with no chrome of its own needs no component: an `<input type="file">` behind a Button, a `<canvas>`, an `<img>` inside a stage.
+- Text inside a `Card` or a `CollapsibleSection` takes the container's type on nested `p`, `ul`, `ol`, and `li`. When the page owns that type, as full-bleed media does, pass `prose={false}`.
+- An empty stage shows a heading that names the condition and one `secondary` Button that fills it. An error goes in a `Callout variant="danger"`.
+- A container in a tool UI labels itself: `Card variant="bare"` with the label in the body as `.body-sm` in `--text-secondary`.
+- A row of fields is a flex row with `gap: var(--space-20)`; each field's wrapper takes `flex: 1`.
+- A toolbar is a flex row of Buttons on the section's bottom edge, with no container around it. Group the Buttons left and right with `justify-content: space-between`. A `danger` Button sits apart from the group it could be mistaken for. A vertical stack of Buttons sets `fullWidth` on each Button; a row omits it.
+- For a `MenuSelect` picker, toggle it from a Button with a trailing chevron (`icon="fa-solid fa-chevron-down" iconPosition="right"`) and position the list under the Button at `top: 100%` with a `--space-*` margin.
+
+## Tokens
+
+- When a design token exists for a value, page CSS takes the token as `var(--token)`. That holds in the `<style>` block, an inline `style=` attribute, and a `style:` directive.
+- A width is a span of page columns. The Layout section gives the grid.
+- A height follows the content. A stage's `minHeight` is the one fixed height, set from what the stage must show.
+- A value that comes from data, such as a sheet's padding in pixels or a chart's scale, is set through a `{}` expression.
+
+## Hierarchy
+
+### Type
+
+One text style per element. A text style has five axes: `-font-family`, `-font-size`, `-font-weight`, `-line-height`, and `-letter-spacing`. Set all five from the one style.
+
+The text styles fall into five usages, each a scale of seven steps from `2xs` to `2xl`: display for type outside the page outline, heading for the outline, body for interface text and short copy, editorial for long reading, and code. Each step is a style named `--{usage}-{step}-*`, such as `--body-sm-*`. Headings use the whole set. The other usages mostly take `md` and `sm`.
+
+| Element | Style |
+|---|---|
+| Page title | `h1` in `--heading-xl-*` |
+| Section title | `h2` in `--heading-lg-*`, or `SectionDivider variant="sm"` |
+| Title inside a section | `h3` to `h6` in `--heading-md-*` to `--heading-2xs-*` |
+| Card title | the Card `title` prop |
+| Hero title | `--display-xl-*` |
+| Big number | `--display-md-*` |
+| Label above a group | `--body-sm-*` in `--text-secondary` |
+| Body | `p` in `--body-md-*` |
+| Secondary line | `--body-sm-*` in `--text-secondary` |
+| Count, status, read-out | `--body-sm-*` in `--text-primary` |
+| Article copy | `p` in `--editorial-md-*` |
+| Code block | `pre` in `--code-md-*` |
+| Command or value in a line | `code`, at `0.875em` of the text around it |
+
+Use the semantic element for each place: one `h1`, an `h2` for each section, `h3` inside a section, `p` for copy. Heading levels run in order with no skipped level. `site.css` types bare `h1` to `h6`, `p`, `small`, `code`, `pre`, and list items from these styles, so the tag carries the style. It also gives every step a class of the same name, such as `.display-md` or `.body-sm`, that sets all five axes. Type an element only when the table gives its tag a different style, and type it with the step's class. A weight alone, on `strong` or a list marker, is the one axis a page sets by itself. A page shows at most two weights.
+
+### Size
+
+Omit `size` on every control and container.
+
+### Emphasis
+
+`npx live-tokens components button` names each `variant` and the role it carries.
+
+In a row of actions the primary sits last, on the right. Up to four actions are individual Buttons. Five or more collapse into a `MenuSelect` behind one Button.
+
+### Spacing
+
+Each position takes one step of the `--space-*` scale. Space inside a group is smaller than space between groups. A shipped component carries its own inner spacing; the table names the space the page draws.
+
+| Position | Step |
+|---|---|
+| Between controls in a row | `--space-8` |
+| Inside a wrapper the page draws | `--space-16` |
+| Between fields in a form | `--space-20` |
+| Between containers in a section | `--columns-gutter` across, `--space-24` down |
+| Between sections | `--space-16` above a hairline |
+| Page title to first section | `--space-24`, no hairline |
+| Page margin | `--columns-margin`, as the page grid's `padding-inline` |
+
+Every section after the first opens with a hairline: `padding-top: var(--space-16)` and `border-top: var(--border-width-1) solid var(--border-neutral)`. The hairline separates, so the gap between sections is smaller than the gap between the containers inside them. A section's edge is the hairline alone.
+
+## Routing
+
+Add the route the way `App.svelte` already wires routes.
+
+- `<LiveTokensRouter pages={...}>`: add a `pages` entry with `lazy: () => import('./YourPage.svelte')` and `source: 'src/...'`. Add `label` and `icon` to show the page in the nav rail; omit `label` to keep the route reachable by URL alone. For a `/:id`, a path prefix, or a gated page, add `resolve(path) => RouteEntry | null` beside `pages`. The entry fields are the same.
+- Manual `<LiveEditorOverlay>`: dispatch with `$derived.by(() => import(...))` and register the route's source in `pageSources={...}`.
+
+Import the page with `lazy`, so page CSS stays off the editor routes. Import `site.css` from each page's `<script>` block for the same reason. `source` is what makes Page Source work. A page route sits outside `/live-tokens/*`, the namespace of the package's own routes, where `Editor` and `ComponentEditorPage` mount.
+
+```svelte
+const pages = {
+  '/pricing': {
+    lazy: () => import('./pages/Pricing.svelte'),
+    source: 'src/pages/Pricing.svelte',
+    label: 'Pricing',
+    icon: 'fa-tag',
+  },
+};
+```
+
+## Verify
+
+Open the page at the width it is built for and check each line below.
+
+- The first section holds what the user came for.
+- One `h1`. Heading levels run in order with no skipped level.
+- No label is larger than the page's body copy.
+- A line of copy runs 45 to 90 characters.
+- The containers in a section align at the bottom.
+- The actions sit where the eye goes last, with the one primary at the end.
+- Every row of actions holds an action that leaves without committing.
+- Every action that destroys saved work meets the Button constraint `danger-without-dialog`.
+- An action that runs longer than a moment shows progress in a `ProgressBar` or a `Notification`.
+- Every field has a default, and Reset restores it.
+- Secondary settings sit in a `CollapsibleSection`. Every control is in view.
+- Labels use the user's words, such as "Export slices".
+- Every `img` has `alt` text. Focus order follows the reading order.
+
+`references/interaction-sources.md` names the sources for these checks.
+
+Then read the page from a distance: the sections and their edges are the only shapes that show. Then read it closely. For each border, header bar, and container, ask whether the page loses information when the element is removed. When the answer is no, remove the element. Find the element a reader sees first, second, and third, and confirm that is the reading order the page needs.

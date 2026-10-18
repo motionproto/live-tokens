@@ -1,0 +1,12 @@
+{
+  "without": [
+    "live-tokens-check-compliance",
+    "live-tokens-pick-component",
+    "live-tokens-create-component/references/contract-tests.md"
+  ],
+  "copiedFrom": {
+    "live-tokens-create-page/SKILL.md": "a3d5c66949b280b6b0c2f666a4fdcbb0b50f0a7922dcfd7e3317e50247135b0d",
+    "live-tokens-create-component/SKILL.md": "c23a0888aaf81681132fd483052140bd2f82af8277ca2bdc0c3b7b1251a89834",
+    "live-tokens-create-component/references/token-naming.md": "41694fed21620b9838bb465f3f34c60e747026aa661084d2daf4751f4048be1d"
+  }
+}

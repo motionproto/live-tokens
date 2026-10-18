@@ -37,7 +37,7 @@ npm run build:eval-project
 
 suffix=""
 if $smoke; then suffix="-smoke"; fi
-out="$REPO/scratch/eval-billing/$(date +%Y-%m-%dT%H-%M-%S)$suffix"
+out="$REPO/eval-reports/$(date +%Y-%m-%dT%H-%M-%S)$suffix"
 mkdir -p "$out"
 
 run_case() {

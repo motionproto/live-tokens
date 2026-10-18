@@ -7,11 +7,13 @@
 // from the trace. The runner has no grader that runs a command, so this reads
 // the workspaces and traces a `--keep-temp` run kept.
 //
-//   node scripts/eval-check-build.mjs <result json>... [--tests] [--out <dir>] [--clean]
+//   node scripts/eval-check-build.mjs <result json>... [--tests] [--out <dir>] [--clean] [--reuse]
 //
-// The report lands in <dir>/index.html (default scratch/eval-reports/<time>),
+// The report lands in <dir>/index.html (default eval-reports/<time>),
 // with each run's screenshots, sources, findings, and trace beside it.
 // --clean deletes each run's kept sandbox once the report holds its copies.
+// --reuse rebuilds the report from the findings, inventory, and screenshots an
+// earlier scoring saved in the same --out folder, without running the checks.
 
 import { spawn, spawnSync } from 'node:child_process';
 import { tmpdir } from 'node:os';
@@ -45,8 +47,9 @@ const outArg = outAt >= 0 ? args[outAt + 1] : undefined;
 const resultPaths = args.filter((a, i) => !a.startsWith('--') && i !== outAt + 1);
 const tests = args.includes('--tests') ? ['--tests'] : [];
 const clean = args.includes('--clean');
+const reuse = args.includes('--reuse');
 if (resultPaths.length === 0 || (outAt >= 0 && !outArg)) {
-  console.error('usage: node scripts/eval-check-build.mjs <result json>... [--tests] [--out <dir>] [--clean]');
+  console.error('usage: node scripts/eval-check-build.mjs <result json>... [--tests] [--out <dir>] [--clean] [--reuse]');
   process.exit(1);
 }
 if (!existsSync(join(PROJECT, PKG))) {
@@ -54,7 +57,7 @@ if (!existsSync(join(PROJECT, PKG))) {
   process.exit(1);
 }
 const templatePages = new Set(readdirSync(join(PROJECT, 'src/pages')));
-const reportDir = outArg ? resolve(outArg) : join(REPO, 'scratch/eval-reports', new Date().toISOString().replace(/[:.]/g, '-'));
+const reportDir = outArg ? resolve(outArg) : join(REPO, 'eval-reports', new Date().toISOString().replace(/[:.]/g, '-'));
 
 function findWorkspace(root, depth = 2) {
   if (existsSync(join(root, 'src/App.svelte'))) return root;
@@ -74,11 +77,12 @@ function traceSteps(tracePath) {
   const byId = new Map();
   for (const line of readFileSync(tracePath, 'utf8').split('\n')) {
     if (!line.trim()) continue;
-    const content = JSON.parse(line).message?.content;
+    const entry = JSON.parse(line);
+    const content = entry.message?.content;
     if (!Array.isArray(content)) continue;
     for (const block of content) {
       if (block.type === 'tool_use') {
-        const step = { tool: block.name, input: block.input ?? {}, output: '' };
+        const step = { tool: block.name, input: block.input ?? {}, output: '', turn: entry.message.id, time: Date.parse(entry.timestamp) };
         byId.set(block.id, step);
         steps.push(step);
       } else if (block.type === 'tool_result' && byId.has(block.tool_use_id)) {
@@ -93,7 +97,11 @@ function traceSteps(tracePath) {
 const WORKSPACE_PATH = /\/(?:private\/)?tmp\/e-[A-Za-z0-9]+\/home\/cwd\/?/g;
 const SOURCE_READ = /node_modules\/@motion-proto\/live-tokens\//;
 const sourcePaths = (text) => [...new Set([...String(text).matchAll(/node_modules\/@motion-proto\/live-tokens\/([\w./-]*\w)/g)].map((m) => m[1]))];
-const UNKNOWN_COMMAND = /unknown command/i;
+// A removed verb prints "Unknown command" and then the usage text, whose
+// descriptions wrap at column 30, so a call piped through `tail` can keep only
+// the usage. Calling a removed verb's module directly hits the fixture's
+// "Cannot find module" guard.
+const UNKNOWN_COMMAND = /unknown command|cannot find module|^ {30}\S/im;
 const relative = (path) => String(path).replace(WORKSPACE_PATH, '');
 
 function checkerResult(output) {
@@ -103,6 +111,49 @@ function checkerResult(output) {
   const errors = json ? Number(json[1]) : text ? Number(text[1]) : /file\(s\) clean/.test(output) ? 0 : null;
   const rules = new Set([...output.matchAll(/"rule":\s*"([\w-]+)"/g), ...output.matchAll(/\[([a-z][\w-]*)\]$/gm)].map((m) => m[1]));
   return { errors, rules: [...rules] };
+}
+
+// `for c in card button; do npx live-tokens components $c; done` is one call
+// that looks up two components, so each loop item counts as a lookup.
+function loopItems(command, arg) {
+  const variable = arg.match(/\$\{?(\w+)\}?/);
+  const loop = variable && command.match(new RegExp(`for\\s+${variable[1]}\\s+in\\s+([^;\\n]+?)\\s*[;\\n]\\s*do\\b`));
+  if (!loop) return [arg];
+  return loop[1].trim().split(/\s+/).map((item) => arg.replace(variable[0], item.replace(/^["']|["']$/g, '')));
+}
+
+const BLOCKED_VERB = /live-tokens\s+(?:components|tokens|check-page|check-component)\b|node\s+\S*bin\/check-(?:page|component)\.mjs/;
+// Probing the block: reading the CLI's dispatch, or asking it for its usage.
+// Reading the checker's rules to check work by hand is what an arm without the
+// checker does instead, so it is not counted as lost.
+const CLI_PROBE = /bin\/cli\.mjs|live-tokens\s+(?:--help|-h)\b|(?:npx\s+(?:@motion-proto\/)?live-tokens|\.bin\/live-tokens)\s*(?:$|[;|&])/m;
+const stepText = (input) => String(input.command ?? input.file_path ?? input.path ?? input.pattern ?? '');
+
+// What a blocked call cost: its turn and the turns of CLI probing that follow
+// it, up to the agent's next unrelated step.
+function blockedCost(steps) {
+  const turns = [];
+  for (const step of steps) {
+    const text = stepText(step.input);
+    const blocked = BLOCKED_VERB.test(text) && UNKNOWN_COMMAND.test(step.output);
+    const last = turns.at(-1);
+    if (last && last.id === step.turn) {
+      last.blocked ||= blocked;
+      last.waste &&= blocked || CLI_PROBE.test(text);
+      last.reads += SOURCE_READ.test(text) ? 1 : 0;
+    } else turns.push({ id: step.turn, time: step.time, blocked, waste: blocked || CLI_PROBE.test(text), reads: SOURCE_READ.test(text) ? 1 : 0 });
+  }
+  const lost = { turns: 0, seconds: 0, sourceReads: 0 };
+  for (let i = 0; i < turns.length; i++) {
+    if (!turns[i].blocked) continue;
+    let j = i;
+    while (j + 1 < turns.length && turns[j + 1].waste) j++;
+    lost.turns += j - i + 1;
+    lost.seconds += ((turns[j + 1]?.time ?? turns[j].time) - turns[i].time) / 1000;
+    lost.sourceReads += turns.slice(i, j + 1).reduce((n, t) => n + t.reads, 0);
+    i = j;
+  }
+  return lost;
 }
 
 // What the agent reached for and when: skills, lookups, checker runs and what
@@ -124,21 +175,28 @@ function behaviour(steps) {
     if (tool !== 'Bash') continue;
     const command = String(input.command);
     for (const m of command.matchAll(/live-tokens\s+((?:components|tokens)\b[^;|&>]*)/g)) {
-      push({ kind: 'lookup', label: m[1].replace(/\s+\d$/, '').trim(), failed: UNKNOWN_COMMAND.test(output) });
+      const arg = m[1].replace(/\s--json\b/g, '').replace(/\s+\d$/, '').trim();
+      const items = loopItems(command, arg);
+      const label = items.length > 1 ? arg.replace(/\$\{?\w+\}?/, `{${items.map((i) => i.split(/\s+/).at(-1)).join(', ')}}`) : arg;
+      push({ kind: 'lookup', label, lookups: items.length, failed: UNKNOWN_COMMAND.test(output) });
     }
-    for (const m of command.matchAll(/(?:live-tokens|cli\.mjs)\s+(check-(?:page|component)\b[^;|&>]*)/g)) {
-      const label = m[1].replace(/\s--(?:json|strict|tests|no-fix)\b/g, '').replace(/\s+\d$/, '').trim();
+    for (const m of command.matchAll(/(?:live-tokens|cli\.mjs)\s+(check-(?:page|component)\b[^;|&>]*)|node\s+\S*bin\/(check-(?:page|component))\.mjs\b([^;|&>]*)/g)) {
+      const call = m[1] ?? `${m[2]}${m[3]}`;
+      const label = call.replace(/\s--(?:json|strict|tests|no-fix)\b/g, '').replace(/\s+\d$/, '').trim();
       push({ kind: 'checker', label, ...checkerResult(output) });
     }
     if (SOURCE_READ.test(command)) push({ kind: 'source', label: 'read package source', paths: sourcePaths(command) });
   }
-  const count = (kind) => timeline.filter((e) => e.kind === kind).reduce((n, e) => n + (kind === 'source' ? e.count : 1), 0);
+  const count = (kind, keep = () => true) => timeline.filter((e) => e.kind === kind && keep(e)).reduce((n, e) => n + (kind === 'source' ? e.count : e.lookups ?? 1), 0);
   return {
     timeline,
     skills: count('skill'),
-    lookupRuns: count('lookup'),
-    checkerRuns: count('checker'),
+    lookups: count('lookup', (e) => !e.failed),
+    lookupFailures: count('lookup', (e) => e.failed),
+    checkerRuns: count('checker', (e) => !e.failed),
+    checkerFailures: count('checker', (e) => e.failed),
     sourceReads: count('source'),
+    lost: blockedCost(steps),
   };
 }
 
@@ -291,9 +349,10 @@ async function checkRun(browser, run, slug) {
   const commands = traceSteps(tracePath);
   const loops = commands
     ? behaviour(commands)
-    : { timeline: [], skills: null, checkerRuns: null, lookupRuns: null, sourceReads: null };
+    : { timeline: [], skills: null, checkerRuns: null, checkerFailures: null, lookups: null, lookupFailures: null, sourceReads: null, lost: null };
   const sealed = existsSync(join(root, 'sealed')) ? findWorkspace(join(root, 'sealed'), 3) : null;
   const kept = sealed ?? (existsSync(join(saved, 'workspace')) ? join(saved, 'workspace') : null);
+  if (reuse && !sealed && existsSync(join(saved, 'findings.json'))) return savedScore(saved, kept, loops);
   if (!kept) return { ...loops, errors: null, checks: [], shots: [], sources: [], notes: [`no kept workspace under ${root}; run the eval with --keep-temp`] };
   if (sealed) {
     rmSync(join(saved, 'workspace'), { recursive: true, force: true });
@@ -309,6 +368,21 @@ async function checkRun(browser, run, slug) {
   }
 }
 
+function savedScore(saved, workspace, loops) {
+  const checks = JSON.parse(readFileSync(join(saved, 'findings.json'), 'utf8'));
+  const made = JSON.parse(readFileSync(join(saved, 'inventory.json'), 'utf8'));
+  const pages = checks.some((c) => c.label.startsWith('check-page'));
+  const errors = !pages || checks.some((c) => c.errors === null) ? null : checks.reduce((n, c) => n + c.errors, 0);
+  const sources = [
+    ...readdirSync(saved).filter((name) => name.endsWith('.svelte')),
+    ...(existsSync(join(saved, 'components')) ? readdirSync(join(saved, 'components')).map((name) => `components/${name}`) : []),
+  ];
+  const shots = VIEWPORTS.map((v) => v.name).filter((name) => existsSync(join(saved, `${name}.png`)));
+  const silenced = workspace ? silencedRules(workspace) : [];
+  const notes = silenced.length > 0 ? [`live-tokens.config.json turns off: ${silenced.join(', ')}`] : [];
+  return { ...loops, errors, checks, shots, sources, notes, made };
+}
+
 async function scoreWorkspace(browser, run, slug, workspace, commands, loops) {
   const outDir = join(reportDir, slug);
   mkdirSync(outDir, { recursive: true });
@@ -317,18 +391,19 @@ async function scoreWorkspace(browser, run, slug, workspace, commands, loops) {
     .filter((name) => name.endsWith('.svelte') && !templatePages.has(name))
     .map((name) => join('src/pages', name));
   if (pages.length === 0) notes.push('no new page under src/pages');
-  // The template authors no component, so every authored one is the run's own.
-  const authored = existsSync(join(workspace, 'src/system/components'));
-  if (!authored) notes.push('no component authored');
+  const found = inventory(workspace, pages);
+  if (found.created.length === 0) notes.push('no component authored');
+  // Without an id, --tests reruns every shipped component's contract suite,
+  // which no run can change, so each authored component is checked by its id.
   const checks = [
     ...(pages.length > 0 ? [runChecker(workspace, `check-page ${pages.join(' ')}`, ['check-page', ...pages])] : []),
-    ...(authored ? [runChecker(workspace, 'check-component', ['check-component'])] : []),
+    ...found.created.map((c) => runChecker(workspace, `check-component ${c.id}`, ['check-component', c.id])),
   ];
   const errors = pages.length === 0 || checks.some((c) => c.errors === null) ? null : checks.reduce((n, c) => n + c.errors, 0);
   const silenced = silencedRules(workspace);
   if (silenced.length > 0) notes.push(`live-tokens.config.json turns off: ${silenced.join(', ')}`);
   writeFileSync(join(outDir, 'findings.json'), JSON.stringify(checks, null, 2));
-  const made = { ...inventory(workspace, pages), literals: checks.flatMap((c) => c.findings).filter((f) => LITERAL_RULES.has(f.rule)).map((f) => `${f.file}:${f.line} ${f.message.replace(/\. Use .*$/s, '')}`) };
+  const made = { ...found, literals: checks.flatMap((c) => c.findings).filter((f) => LITERAL_RULES.has(f.rule)).map((f) => `${f.file}:${f.line} ${f.message.replace(/\. Use .*$/s, '')}`) };
   writeFileSync(join(outDir, 'inventory.json'), JSON.stringify(made, null, 2));
   const sources = saveSources(workspace, outDir, pages);
   if (commands && resolve(run.tracePath) !== resolve(join(outDir, 'trace.jsonl'))) copyFileSync(run.tracePath, join(outDir, 'trace.jsonl'));
@@ -356,7 +431,7 @@ function readPrompt(name) {
   return existsSync(path) ? readFileSync(path, 'utf8').replace(/^---\n[\s\S]*?\n---\n/, '').trim() : null;
 }
 
-const browser = await chromium.launch();
+const browser = reuse ? null : await chromium.launch();
 const arms = new Map();
 const prompts = new Map();
 try {
@@ -386,7 +461,7 @@ try {
     }
   }
 } finally {
-  await browser.close();
+  await browser?.close();
 }
 
 // Only a directory the runner itself names `e-<id>` is removed, so a stray tracePath cannot reach anything else.
@@ -407,6 +482,9 @@ const ordered = [...arms.values()].sort((a, b) => {
   return rank(a.key) - rank(b.key);
 });
 const newTokenCount = (made) => made.addedTokens.length + made.changedTokens.length + made.customProperties.filter((p) => !p.component).length;
+// Cost is per session, not per turn, so a blocked call's cost is estimated as
+// its share of the run's turns.
+const lostShare = (r) => (r.run.turns ? r.checked.lost.turns / r.run.turns : 0);
 const summary = ordered.map((arm) => {
   const avg = (pick) => mean(arm.runs.map(pick));
   return {
@@ -419,9 +497,19 @@ const summary = ordered.map((arm) => {
     turns: avg((r) => r.run.turns),
     skills: avg((r) => r.checked.skills),
     checkerRuns: avg((r) => r.checked.checkerRuns),
-    lookupRuns: avg((r) => r.checked.lookupRuns),
+    checkerFailures: avg((r) => r.checked.checkerFailures),
+    lookups: avg((r) => r.checked.lookups),
+    lookupFailures: avg((r) => r.checked.lookupFailures),
     sourceReads: avg((r) => r.checked.sourceReads),
     cost: avg((r) => r.run.costUsd),
+    lostTurns: avg((r) => r.checked.lost?.turns),
+    lostSeconds: avg((r) => r.checked.lost?.seconds),
+    lostSourceReads: avg((r) => r.checked.lost?.sourceReads),
+    lostCost: avg((r) => r.checked.lost && r.run.costUsd * lostShare(r)),
+    keptSeconds: avg((r) => r.checked.lost && r.run.durationSeconds - r.checked.lost.seconds),
+    keptTurns: avg((r) => r.checked.lost && r.run.turns - r.checked.lost.turns),
+    keptSourceReads: avg((r) => r.checked.lost && r.checked.sourceReads - r.checked.lost.sourceReads),
+    keptCost: avg((r) => r.checked.lost && r.run.costUsd * (1 - lostShare(r))),
     shippedUsed: avg((r) => r.checked.made?.used.filter((c) => c.origin === 'shipped').length),
     created: avg((r) => r.checked.made?.created.length),
     newTokens: avg((r) => r.checked.made && newTokenCount(r.checked.made)),
@@ -432,9 +520,21 @@ const summary = ordered.map((arm) => {
 const lines = [
   `Checkers restored from scratch/eval-project, run with --strict --no-fix${tests.length ? ' --tests' : ''}.`,
   '',
-  '| Arm | Finished | Grader score | Checker errors left | Generation seconds | Turns | Skills loaded | Checker runs | Lookup runs | Source reads | Generation cost | Shipped components | New components | New tokens | Literal values |',
-  '|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|',
-  ...summary.map((s) => `| ${s.name} | ${s.finished} of ${s.runs} | ${fmt(s.score, 2)} | ${fmt(s.errors)} | ${fmt(s.seconds, 0)} | ${fmt(s.turns)} | ${fmt(s.skills)} | ${fmt(s.checkerRuns)} | ${fmt(s.lookupRuns)} | ${fmt(s.sourceReads)} | $${fmt(s.cost, 2)} | ${fmt(s.shippedUsed)} | ${fmt(s.created)} | ${fmt(s.newTokens)} | ${fmt(s.literals)} |`),
+  '| Arm | Finished | Grader score | Checker errors left | Generation seconds | Turns | Skills loaded | Checker runs | Failed checker calls | Lookups | Failed lookups | Source reads | Generation cost | Shipped components | New components | New tokens | Literal values |',
+  '|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|',
+  ...summary.map((s) => `| ${s.name} | ${s.finished} of ${s.runs} | ${fmt(s.score, 2)} | ${fmt(s.errors)} | ${fmt(s.seconds, 0)} | ${fmt(s.turns)} | ${fmt(s.skills)} | ${fmt(s.checkerRuns)} | ${fmt(s.checkerFailures)} | ${fmt(s.lookups)} | ${fmt(s.lookupFailures)} | ${fmt(s.sourceReads)} | $${fmt(s.cost, 2)} | ${fmt(s.shippedUsed)} | ${fmt(s.created)} | ${fmt(s.newTokens)} | ${fmt(s.literals)} |`),
+  '',
+  'Blocked calls:',
+  '',
+  '| Arm | Failed checker calls | Failed lookups | Turns lost | Seconds lost | Source reads lost | Cost lost |',
+  '|---|---|---|---|---|---|---|',
+  ...summary.map((s) => `| ${s.name} | ${fmt(s.checkerFailures)} | ${fmt(s.lookupFailures)} | ${fmt(s.lostTurns)} of ${fmt(s.turns)} | ${fmt(s.lostSeconds, 0)} of ${fmt(s.seconds, 0)} | ${fmt(s.lostSourceReads)} | $${fmt(s.lostCost, 2)} of $${fmt(s.cost, 2)} |`),
+  '',
+  'Means without blocked calls:',
+  '',
+  '| Arm | Grader score | Checker errors left | Generation seconds | Turns | Checker runs | Lookups | Source reads | Generation cost | New tokens |',
+  '|---|---|---|---|---|---|---|---|---|---|',
+  ...summary.map((s) => `| ${s.name} | ${fmt(s.score, 2)} | ${fmt(s.errors)} | ${fmt(s.keptSeconds, 0)} | ${fmt(s.keptTurns)} | ${fmt(s.checkerRuns)} | ${fmt(s.lookups)} | ${fmt(s.keptSourceReads)} | $${fmt(s.keptCost, 2)} | ${fmt(s.newTokens)} |`),
   '',
   `Report: ${join(reportDir, 'index.html')}`,
 ];
@@ -468,9 +568,9 @@ const STEP_KIND = { skill: 'Skill', lookup: 'Lookup', checker: 'Checker', source
 function step(e) {
   const times = e.count > 1 ? ` <b>×${e.count}</b>` : '';
   const result =
-    e.kind === 'lookup' && e.failed ? ' <span class="bad">unknown command</span>'
+    e.kind === 'lookup' && e.failed ? ' <span class="bad">blocked</span>'
     : e.kind !== 'checker' ? ''
-    : e.failed ? ' <span class="bad">unknown command</span>'
+    : e.failed ? ' <span class="bad">blocked</span>'
     : e.errors === null ? ' <span class="muted">result not read</span>'
     : e.errors === 0 ? ' <span class="good">clean</span>'
     : ` <span class="bad">${e.errors} error${e.errors === 1 ? '' : 's'}</span>${e.rules.length ? ` <span class="muted">${e.rules.map(esc).join(', ')}</span>` : ''}`;
@@ -499,7 +599,9 @@ function column(arm, r) {
     ${metric('Turns', run.turns)}
     ${metric('Skills loaded', checked.skills ?? 'n/a')}
     ${metric('Checker runs', checked.checkerRuns ?? 'n/a')}
-    ${metric('Lookup runs', checked.lookupRuns ?? 'n/a')}
+    ${metric('Failed checker calls', checked.checkerFailures ?? 'n/a')}
+    ${metric('Lookups', checked.lookups ?? 'n/a')}
+    ${metric('Failed lookups', checked.lookupFailures ?? 'n/a')}
     ${metric('Source reads', checked.sourceReads ?? 'n/a')}
     ${metric('Generation cost', `$${run.costUsd.toFixed(2)}`)}
   </dl>
@@ -556,6 +658,7 @@ const html = `<!doctype html>
   th { font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); font-weight: 600; }
   th:first-child, td:first-child { text-align: left; font-family: inherit; font-size: 14px; font-weight: 600; }
   .table-scroll { overflow-x: auto; }
+  .table-note { margin: 10px 0 0; max-width: 80ch; font-size: 13px; color: var(--muted); }
 
   .bar { position: sticky; top: 0; z-index: 2; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 32px; background: var(--bg); border-bottom: 1px solid var(--line); }
   .tabs { display: flex; flex-wrap: wrap; gap: 4px; }
@@ -632,9 +735,26 @@ const html = `<!doctype html>
 <section class="block">
   <h2>Means per arm</h2>
   <div class="table-scroll"><table>
-    <thead><tr><th>Arm</th><th>Finished</th><th>Grader score</th><th>Errors left</th><th>Generation seconds</th><th>Turns</th><th>Skills loaded</th><th>Checker runs</th><th>Lookup runs</th><th>Source reads</th><th>Generation cost</th><th>Shipped components</th><th>New components</th><th>New tokens</th><th>Literal values</th></tr></thead>
-    <tbody>${summary.map((s) => `<tr><td>${esc(s.name)}</td><td>${s.finished} of ${s.runs}</td><td>${fmt(s.score, 2)}</td><td>${fmt(s.errors)}</td><td>${fmt(s.seconds, 0)}</td><td>${fmt(s.turns)}</td><td>${fmt(s.skills)}</td><td>${fmt(s.checkerRuns)}</td><td>${fmt(s.lookupRuns)}</td><td>${fmt(s.sourceReads)}</td><td>$${fmt(s.cost, 2)}</td><td>${fmt(s.shippedUsed)}</td><td>${fmt(s.created)}</td><td>${fmt(s.newTokens)}</td><td>${fmt(s.literals)}</td></tr>`).join('')}</tbody>
+    <thead><tr><th>Arm</th><th>Finished</th><th>Grader score</th><th>Errors left</th><th>Generation seconds</th><th>Turns</th><th>Skills loaded</th><th>Checker runs</th><th>Failed checker calls</th><th>Lookups</th><th>Failed lookups</th><th>Source reads</th><th>Generation cost</th><th>Shipped components</th><th>New components</th><th>New tokens</th><th>Literal values</th></tr></thead>
+    <tbody>${summary.map((s) => `<tr><td>${esc(s.name)}</td><td>${s.finished} of ${s.runs}</td><td>${fmt(s.score, 2)}</td><td>${fmt(s.errors)}</td><td>${fmt(s.seconds, 0)}</td><td>${fmt(s.turns)}</td><td>${fmt(s.skills)}</td><td>${fmt(s.checkerRuns)}</td><td>${fmt(s.checkerFailures)}</td><td>${fmt(s.lookups)}</td><td>${fmt(s.lookupFailures)}</td><td>${fmt(s.sourceReads)}</td><td>$${fmt(s.cost, 2)}</td><td>${fmt(s.shippedUsed)}</td><td>${fmt(s.created)}</td><td>${fmt(s.newTokens)}</td><td>${fmt(s.literals)}</td></tr>`).join('')}</tbody>
   </table></div>
+  <p class="table-note">Lookups count each component and scale looked up, including each item of a shell loop. An arm without a tool runs none; its calls to the tool are blocked and counted as failed.</p>
+</section>
+<section class="block">
+  <h2>Blocked calls</h2>
+  <div class="table-scroll"><table>
+    <thead><tr><th>Arm</th><th>Failed checker calls</th><th>Failed lookups</th><th>Turns lost</th><th>Seconds lost</th><th>Source reads lost</th><th>Cost lost</th></tr></thead>
+    <tbody>${summary.map((s) => `<tr><td>${esc(s.name)}</td><td>${fmt(s.checkerFailures)}</td><td>${fmt(s.lookupFailures)}</td><td>${fmt(s.lostTurns)} of ${fmt(s.turns)}</td><td>${fmt(s.lostSeconds, 0)} of ${fmt(s.seconds, 0)}</td><td>${fmt(s.lostSourceReads)}</td><td>$${fmt(s.lostCost, 2)} of $${fmt(s.cost, 2)}</td></tr>`).join('')}</tbody>
+  </table></div>
+  <p class="table-note">The skills name both tools, so an arm without one still calls it. A blocked call loses its own turn and the turns the agent spends probing the CLI afterwards, up to its next unrelated step. Cost lost is the run's cost times its share of turns lost.</p>
+</section>
+<section class="block">
+  <h2>Means without blocked calls</h2>
+  <div class="table-scroll"><table>
+    <thead><tr><th>Arm</th><th>Grader score</th><th>Errors left</th><th>Generation seconds</th><th>Turns</th><th>Checker runs</th><th>Lookups</th><th>Source reads</th><th>Generation cost</th><th>New tokens</th></tr></thead>
+    <tbody>${summary.map((s) => `<tr><td>${esc(s.name)}</td><td>${fmt(s.score, 2)}</td><td>${fmt(s.errors)}</td><td>${fmt(s.keptSeconds, 0)}</td><td>${fmt(s.keptTurns)}</td><td>${fmt(s.checkerRuns)}</td><td>${fmt(s.lookups)}</td><td>${fmt(s.keptSourceReads)}</td><td>$${fmt(s.keptCost, 2)}</td><td>${fmt(s.newTokens)}</td></tr>`).join('')}</tbody>
+  </table></div>
+  <p class="table-note">The means above with every blocked call and the probing after it taken out of the time, turns, source reads, and cost. Grader score, errors, and new tokens measure what the run built, so they keep their values.</p>
 </section>
 <div class="bar">
   <div class="tabs" role="tablist" aria-label="Runs">

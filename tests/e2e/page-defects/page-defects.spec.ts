@@ -128,6 +128,11 @@ test('a code block that scrolls passes page-overflow', async ({ page }) => {
   }
 });
 
+test('a badge at the end of a scrolling table row passes page-overflow', async ({ page }) => {
+  const harness = await open(page, 'ScrollingTable', 'scrolling-table', PHONE);
+  expect(await harness.assertOverflow(await paintSpecs())).toBeNull();
+});
+
 test('a grid of its own inside a section passes page-grid', async ({ page }) => {
   const harness = await open(page, 'LocalGrid', 'local-grid', DESKTOP);
   expect(await harness.assertGrid()).toBeNull();

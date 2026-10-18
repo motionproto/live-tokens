@@ -1,5 +1,16 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+
+- **`page-overflow` passes a component inside a scrolling ancestor.** The
+  check reported a component as clipped by the nearest ancestor with any
+  overflow other than `visible`, so a Badge at the end of a Table row on a
+  phone failed against the Table's own `overflow-x: auto` wrapper. An
+  ancestor that scrolls sideways now keeps the component in reach, and only
+  one that hides overflow without scrolling clips it.
+
 ## 0.97.0 — Custom colors
 
 ### Added

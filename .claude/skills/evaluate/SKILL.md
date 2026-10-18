@@ -49,7 +49,7 @@ not poll it.
 ## Reading the result
 
 The command ends by printing a table of means per arm and the report path,
-`scratch/eval-billing/<time>/report/index.html`. Give the user the table and
+`eval-reports/<time>/report/index.html`. Give the user the table and
 the path, then name what separates the arms:
 
 - **Grader score**: the share of component-choice graders that pass.
@@ -62,8 +62,14 @@ the path, then name what separates the arms:
   prompt to final answer, page and components included. Cost is the
   list-price value of the tokens; the subscription covers it. Scoring time is
   not counted.
-- **Checker runs, lookup runs**: counted from the trace. In an arm without the
-  tool, these are failed attempts.
+- **Checker runs, lookups**: counted from the trace. Lookups count each
+  component and scale looked up, each item of a shell loop included. An arm
+  without the tool has none.
+- **Failed checker calls, failed lookups**: calls the arm's patched CLI
+  blocked. The skills name both tools, so an arm without one tries it and
+  spends a turn or two finding it gone. The report's "Blocked calls" table
+  gives the turns, seconds, and cost that took, and "Means without blocked
+  calls" gives the means with it taken out. Compare arms on that table.
 - **Skills loaded, source reads**: the skills the agent invoked, and its reads
   of the package's own source in `node_modules`. Source reads stand in for a
   missing lookup, or for an argument with a checker rule.
@@ -89,6 +95,14 @@ Tell an eval fault from an agent fault before drawing conclusions:
 
 Fix eval faults in the case files or `scripts/eval-check-build.mjs`, then run
 the smoke run again before a full run.
+
+A change to how the scorer reads traces or lays out the report needs no new
+runs. Rebuild an existing report from its saved findings in seconds:
+
+```sh
+out=eval-reports/<time>
+node scripts/eval-check-build.mjs "$out"/*.json --tests --out "$out/report" --reuse
+```
 
 ## Changing the brief
 

@@ -1,0 +1,12 @@
+# The consumer project every billing arm starts from, installed for Linux, with
+# the Chromium that Playwright drives. scripts/eval-harbor.sh assembles the
+# build context: the packed package as live-tokens.tgz and the project, its
+# dependency repointed at /opt/live-tokens.tgz.
+FROM mcr.microsoft.com/playwright:v1.64.1-noble
+
+COPY live-tokens.tgz /opt/live-tokens.tgz
+COPY project/ /app/
+WORKDIR /app
+# The postinstall writes the package's skills into .claude; the arm's skills
+# come from the task alone.
+RUN npm install --no-audit --no-fund --loglevel=error && rm -rf /app/.claude
