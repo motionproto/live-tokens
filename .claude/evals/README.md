@@ -197,14 +197,17 @@ A first attempt at 40 turns cut both arms off before they finished.
 
 ## `outcome-build-billing`: lookup and checker
 
-The four cases give one brief, a `/billing` page, and differ
-only in their fixtures. Each seeds the full consumer project, and
-`_scaffold/isolate.mjs` closes every copy of the layers the arm runs without,
+The four cases give one brief, a `/billing` page, and one set of graders.
+`npm run eval:billing` runs the brief under Harbor as seven arms. Each trial
+gets its own Docker container, and a fresh container from one verifier image
+scores every arm, so every arm meets one bar whatever it could run itself.
+`_scaffold/isolate.mjs` closes every copy of the layers an arm runs without,
 so each arm reaches only the knowledge its own layers give it, by any route:
 
-- **Skills.** Every fixture deletes the skills the package bundles, the Skill
-  Atlas, which embeds each skill's text, and the Testing Loops demo page. The
-  plugin under test is the only source.
+- **Skills.** The base image deletes the skills the package's postinstall
+  writes into `.claude`, and `isolate.mjs` deletes the skills the package
+  bundles, the Skill Atlas, which embeds each skill's text, and the Testing
+  Loops demo page. The skills the arm's image stages are its only source.
 - **Lookup.** The `lookup` group removes `components` and `tokens` and blanks
   the catalogue entry in every shipped component, so the reasons to pick or
   reject a component go with the command. Props and variants stay, because
@@ -217,29 +220,57 @@ so each arm reaches only the knowledge its own layers give it, by any route:
   `bin/rules/` stays readable, because other commands import it; the
   behaviour timeline shows any read of it.
 
-A removed command leaves the usage text too, and running it fails as an
-unknown command. An arm without a tool also runs a copy of the skills that
-never names it, so it looks like a package that shipped without the tool.
-Each copy lives in `_skills/<case>/`: the skill files it changes, and
-`skills.json`, which lists the skills and references the case goes without
-and the hash of each shipped file a copy was made from.
-`scripts/eval.sh` stages the shipped skills, then applies the case's copy
-with `scripts/eval-stage-skills.mjs`. A shipped skill edited after its copy
-was made stops the stage; carry the edit into the copy, then record the new
-hashes with `node scripts/eval-stage-skills.mjs --rehash <case>`. The arm
-without the checker drops `live-tokens-check-compliance` and the contract
-reference; the arm without the lookup drops `live-tokens-pick-component`,
-which reads only the catalogue the lookup prints. A call to a removed tool
-still counts as failed in the trace. The README and the editor docs stay in every arm. They
-summarise the skills and commands, and a user without the plugin has them
-too. Scoring runs on a fresh copy of the project with every layer in place.
+A removed command leaves the usage text and the package README too, and
+running it fails as an unknown command. An arm without a tool also runs a copy
+of the skills that never names it, so it looks like a package that shipped
+without the tool. Each copy lives in `_skills/<copy>/`: the skill files it
+changes, and `skills.json`, which lists the skills and references the copy
+goes without and the hash of each shipped file it was made from. The arms
+table names each arm's copy. The three cases without a tool keep their
+copies under the case's name, and `billing-static-loop` serves the two arms
+that keep the checker to its static rules. `scripts/eval-harbor.sh` stages
+the shipped skills into each arm's image at `/opt/skills`, then applies the
+copy with `scripts/eval-stage-skills.mjs`. A shipped skill edited after its
+copy was made stops the stage; carry the edit into the copy, then record the
+new hashes with `node scripts/eval-stage-skills.mjs --rehash <copy>`. The
+copies without the checker drop `live-tokens-check-compliance` and the
+contract reference; the copies without the lookup drop
+`live-tokens-pick-component`, which reads only the catalogue the lookup
+prints. A call to a removed tool still counts as failed in the trace. The
+editor docs stay in every arm. They summarise the skills and commands, and a
+user without the plugin has them too.
 
-A run's sandbox can read its plugin's skills and nothing else on the machine:
-a probe on 2026-10-16 found the repository, the home folder, and the
-plugin's own `evals` folder all denied. `scripts/eval.sh` therefore stages
-the plugin under test in a temporary folder that holds only the
-`live-tokens-*` skills, so a repo-only skill such as `evaluate` never reaches
-an arm, and copies the results back into `.claude/evals/results/`.
+### Arms
+
+| Arm | Case for graders and copy | `isolate.mjs` groups | Skills | Trials in a full run |
+|---|---|---|---|---|
+| Unattended | `outcome-build-billing-no-cli` | `lookup checker` | none | 3 |
+| Skills only | `outcome-build-billing-no-cli` | `lookup checker` | the case's copy | 3 |
+| Skills, lookup | `outcome-build-billing-no-checker` | `checker` | the case's copy | 3 |
+| Skills, checker | `outcome-build-billing-no-lookup` | `lookup` | the case's copy | 3 |
+| Skills, lookup and checker | `outcome-build-billing` | none | shipped | 5 |
+| Skills, lookup and static checker | `outcome-build-billing` | none | `billing-static-loop` | 5 |
+| Skills, lookup, static checker and browser gate | `outcome-build-billing` | none | `billing-static-loop` | 5 |
+
+The arms table in `scripts/eval-harbor.sh` defines them. The runner writes
+it into each jobs folder as `arms.json`, and the report reads each arm's
+name, grants, and order from there.
+
+The last three arms keep every tool and differ in where the browser tests
+run. The first runs them whenever the agent passes `--tests`. The static-loop
+arm's skill copy runs the checkers without `--tests`, and its image applies
+`_scaffold/static-checks.mjs`, so a `--tests` the agent passes anyway runs
+the static checks and says so. The gate arm adds a `Stop` hook,
+`harbor/browser-gate.mjs`. Each time the agent stops, the hook runs
+`check-page` and `check-component` with `--tests` on the run's new page and
+components and blocks the stop while either reports an error. On its fourth
+stop it lets the run end, so a finding the agent cannot fix ends the run
+before the turn cap. Each arm's Claude Code settings file stays outside
+`/app`, so the agent never edits its own hooks. These three arms run five
+trials each: an exact rank test of three runs against three can reach no p
+below 0.1, and five against five reaches 0.008.
+
+### Brief and measures
 
 The brief reads like a client's request and avoids the catalogue's own
 wording, so the lookup has to earn its picks. For the lookup, each
@@ -255,15 +286,15 @@ smaller toolbar buttons (`control-size`), four plans side by side
 (`color-literal`, `page-contrast`), a way to pick every plan
 (`multiple-primary`), and a permanent cancel (`danger-without-dialog`).
 
-Each case measures four things:
+Each arm is measured on four things:
 
-- **Accuracy.** The runner's graders check the component each requirement
-  takes, that no `MenuSelect` stands in for the calendar, that a new
-  component is registered, and the route. Afterwards the full checkers count
-  the errors the run left in its page and components.
+- **Accuracy.** The graders check the component each requirement takes, that
+  no `MenuSelect` stands in for the calendar, that a new component is
+  registered, and the route. The full checkers then count the errors the run
+  left in its page and components.
 - **Time.** The agent's session from prompt to final answer, page and
   components included, in seconds, and its cost: the list-price value of its
-  tokens, which the subscription covers. Scoring afterwards is not counted.
+  tokens, which the subscription covers. Neither includes the scoring.
 - **Loops.** The agent's turns, and its `check-page` and `check-component`
   runs, counted from the trace.
 - **Behaviour.** The trace also gives each run a timeline: the skills it
@@ -273,63 +304,120 @@ Each case measures four things:
   lookup or the checker shows how the agent went without: failed calls, or
   more source reads.
 
-The eval sandbox refuses to let a process listen on a local port, so
-Playwright and Vite cannot start inside a run, and `--tests` would report
-`tests-setup` until the turn cap (a probe on 2026-10-15 confirmed it, and one on 2026-10-16 found that
-headless Chromium cannot start either, even with the browser copied into the
-run's home; the runner writes the sandbox settings itself and offers no way
-to allow it).
-Every fixture therefore runs `_scaffold/static-checks.mjs`, which makes
-`--tests` run the static checks and say why. The browser rules are scored
-afterwards for every arm. The same limit reaches the component contract:
-its `theme` case wants a theme saved with the editor, which cannot start. The
-first run that wrote a contract, on 2026-10-15, named a theme the project
-lacks, and `contract-theme` failed at scoring. The runner caps each run at
-200 turns and one hour, its maximums, and the report flags any run that hit
-a cap.
+### Containers
 
-Five arms answer the question. The case with neither runs with the runner's
-baseline, which gives the unattended model and the skills alone. The other
-three run with `--ablation none`, since a no-plugin arm there adds only a
-model that may stumble on the commands.
+Every arm's image derives from `live-tokens-eval-base`
+(`harbor/Dockerfile.base`): Playwright's image with its Chromium, a pinned
+Claude Code, and the consumer project installed from the packed package.
+Inside its container the agent can start Vite and Chromium, so `--tests`
+runs the browser tests. The container reaches `api.anthropic.com` alone, so
+an `npm install` or a web read fails at once. The runner caps each trial at
+200 turns and an hour of agent time, and the report flags any run that hit a
+cap.
+
+The component contract's `theme` case previews a saved theme, and the
+skill's example names it `brand`. The base image ships
+`src/live-tokens/data/themes/brand.json`, a copy of Spring Meadow, whose
+palette and geometry both differ from the default. A new component's color
+properties move under it through the design tokens they alias, and its
+geometry stays on the steps the run built it with. The verifier restores the
+image's copy before it scores, and the report flags a run that changed it.
+
+Billing ran under `claude plugin eval` until 2026-10-18. That runner's
+sandbox refuses to let a process listen on a local port, and headless
+Chromium cannot start in it (probes on 2026-10-15 and 2026-10-16), so no arm
+could run the browser tests and the checker arms saw the static rules alone.
+The four cases still run there with `npm run eval -- --case <case>`, and
+every fixture applies `static-checks.mjs` for that reason.
+
+### Running
+
+A run needs three things:
+
+- **Docker running.** Three trials at once peaked at 3.9 GiB of the 7.7 GiB
+  Docker Desktop gave its VM.
+- **Harbor**, installed with `uv tool install harbor`. The runner was built
+  against Harbor 0.24.0.
+- **The token file.** `claude setup-token` prints a subscription token. Save
+  it in `~/.config/live-tokens-eval/oauth-token`, or point
+  `LIVE_TOKENS_EVAL_TOKEN_FILE` at another file. The runner reads the file
+  into Claude Code's environment, so the token never reaches a command line,
+  a task file, or the job output. It unsets `ANTHROPIC_API_KEY` and sets
+  `HARBOR_TELEMETRY=0`.
 
 ```
-npm run eval:billing -- --smoke     # one run of the case with every tool
-npm run eval:billing -- --smoke outcome-build-billing-no-cli   # one run of another case, with the plugin
-npm run eval:billing -- --runs 3    # all five arms, three runs each
+npm run eval:billing -- --smoke               # one trial of the arm with every tool
+npm run eval:billing                          # every arm at its trial count, 27 trials
+npm run eval:billing -- --smoke static-loop   # one trial of another arm
+npm run eval:billing -- --runs 1              # one trial of every arm
+npm run eval:billing -- --prepare             # build the images and write the tasks, run nothing
 ```
 
-`scripts/eval-billing.sh` refuses to start while a Docker container runs,
-builds the eval project, runs the cases one at a time with `--keep-temp`,
-and keeps each case's result and log in `eval-reports/<time>/`.
-It then runs `scripts/eval-check-build.mjs` over the results, which writes
-the report to `report/index.html` in that folder and deletes the kept
-sandboxes once the report holds its copies. `--reuse` rebuilds a report from
-the findings and screenshots saved in its folder, without running the checks.
+A trial took 7 to 12 minutes on 2026-10-18, about a minute of it scoring,
+and a smoke run takes about a quarter of an hour with the image builds. Each
+job runs three trials at once, so an arm of three trials takes about as long
+as one trial and an arm of five about twice that: a full run takes about two
+hours. A trial can run to an hour of agent time and half an hour of scoring
+before Harbor stops it. The arms run one after another, and a run stalls if
+the Mac sleeps.
 
+The runner builds the eval project, packs the package, builds the base and
+verifier images, writes each arm's task in `scratch/harbor/tasks/<arm>/`,
+builds the arm's image, and runs one Harbor job per arm into
+`scratch/harbor/jobs/<time>/<arm>/`. It ends by writing the report to
+`eval-reports/<time>/index.html`, or `eval-reports/<time>-smoke/` for a
+smoke run.
 
-Each run is a fresh `claude` session given the same prompt file in a freshly
-copied project, so no arm sees another's work. The runner seals each kept
-workspace read-only and warns against running anything in it, so the script
-unseals it and copies the run's `src/`, `tests/`, and checker settings into a
-fresh copy of the eval project. There it runs the full checkers with
-`--strict --no-fix`, browser tests included. It then serves that copy with
-its own Vite dev server and screenshots `/billing` at 1280 and 390 pixels wide, with the
-router's overlay hidden. It prints a table of means per arm and writes
-`eval-reports/<time>/index.html`: the brief, the means, the calls each arm's
-patched CLI blocked with the turns, seconds, and cost they took, the means
-with those taken out, then one tab
-per run holding every arm side by side, each with its metrics, a screenshot
-that a switch sets to desktop or mobile, its behaviour, failed graders,
-checker findings by rule, and links to the saved page and component sources. Each
-column also lists the components the page renders, the components the run
-authored, the tokens it added or changed in `tokens.css`, the custom
+### Scoring and the report
+
+Harbor stops the agent's container and starts the verifier from
+`live-tokens-eval-verifier`, the base project with every layer in place and
+the graders at `/tests`. It uploads the run's `src/`, `tests/`,
+`live-tokens.config.json`, and `live-tokens.testing.ts` over the base
+project. `harbor/grade.mjs` restores `brand.json`, runs the graders, runs the
+full checkers with `--tests --strict --no-fix` on the run's new page and
+components, takes the inventory from `report --json`, and screenshots
+`/billing` at 1280 and 390 pixels wide. It writes the reward, the findings,
+the inventory, and the screenshots to `/logs/verifier/`. The host scores
+nothing.
+
+`scripts/eval-check-build.mjs` reads the jobs folder: each trial's
+`result.json` for time, cost, and reward, the Claude Code session log for the
+trace, and the verifier's files. It prints the means per arm and writes the
+report: the brief, the means, the calls each arm's patched CLI blocked with
+the turns, seconds, and cost they took, the means with those taken out, each
+run's values, rank tests between the three loop arms on errors left,
+generation seconds, and cost, and each gate run's blocks with the rules
+behind each. A checker run counts by its call; when the agent kept its output
+out of the trace, the timeline shows the result as unread.
+
+Below the tables, a run picker and a tab strip show one arm's panel: its
+metrics, behaviour, failed graders, checker findings by rule, links to the
+saved page and component sources, and its page in a window that scrolls
+inside itself, with a desktop and mobile switch. The arrow keys step through
+the arms, and the selection survives a reload. Compare splits the panel into
+two halves, each with its own arm picker. A click on a page opens it full
+size, in a lightbox whose arrow keys step through the arms of the open run.
+Each panel also lists the components the page renders, the components the
+run authored, the tokens it added or changed in `tokens.css`, the custom
 properties its page and components declare beyond a new component's own
 `--<id>-*` properties and the `--sketch-*` hooks sketch mode prescribes, and
-the literal values the checker found. The
-screenshots are captured at twice their pixel density and open in a lightbox
-whose arrow keys step through the arms of the open run. It names
-any rule a run turned off in `live-tokens.config.json`. The report keeps its
-own copies of the screenshots, sources, findings, trace, and the run's files
-in `workspace/`. Scoring the same result JSON again with `--out` set to the
-same report folder works after the sandboxes are gone.
+the literal values the checker found. It names any rule a run turned off in
+`live-tokens.config.json`. The report keeps its own copies of the
+screenshots, sources, findings, trace, and the run's files in `workspace/`,
+so it outlives the jobs folder.
+
+A change to the reader or the layout needs no new runs. Rebuild the report
+from the jobs folder, or pass several to pool their trials:
+
+```sh
+node scripts/eval-check-build.mjs scratch/harbor/jobs/<time> --out eval-reports/<time>
+```
+
+The reports of the plugin-eval runs before 2026-10-18 rebuild from the
+findings saved beside them:
+
+```sh
+out=eval-reports/<time>
+node scripts/eval-check-build.mjs "$out"/*.json --tests --out "$out/report" --reuse
+```
