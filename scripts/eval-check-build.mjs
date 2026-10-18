@@ -43,8 +43,7 @@ const TOOLS = {
 };
 const grantsOf = (tools) => new Set(tools.split(' and ').filter((tool) => tool !== 'neither'));
 // The arms of scripts/eval-harbor.sh, keyed by its arm names, in report order.
-// grants mirror each arm's isolate.mjs groups: an arm calls a tool it lacks
-// only to be refused. The loop arms differ only in when the browser tests run.
+// grants mirror each arm's isolate.mjs groups.
 const HARBOR_ARMS = [
   { id: 'unattended', name: 'Unattended', grants: [] },
   { id: 'skills-only', name: 'Skills only', grants: [] },
@@ -484,7 +483,6 @@ function firstPrompt(steps, tracePath) {
   return null;
 }
 
-// Each stop the browser gate saw: whether it blocked, and the rules behind it.
 function gateStops(dir) {
   const path = join(dir, 'agent/browser-gate.jsonl');
   if (!existsSync(path)) return null;
@@ -497,8 +495,7 @@ const byRule = (findings) => {
   return [...counts];
 };
 
-// One trial, read from the files Harbor and the verifier wrote, and copied
-// into the report so the report outlives the jobs folder.
+// Copies the trial's files into the report, so the report outlives the jobs folder.
 function harborRun({ dir, result }, arm, slug) {
   const out = join(reportDir, slug);
   rmSync(out, { recursive: true, force: true });
@@ -642,20 +639,23 @@ if (clean) {
   }
 }
 
-const ordered = [...arms.values()].sort((a, b) => {
-  const rank = (k) => (ARM_ORDER.indexOf(k) === -1 ? ARM_ORDER.length : ARM_ORDER.indexOf(k));
-  return rank(a.key) - rank(b.key);
-});
+const rank = (arm) => {
+  const order = harbor ? HARBOR_ARMS.map((a) => a.id) : ARM_ORDER;
+  return order.indexOf(arm.key) === -1 ? order.length : order.indexOf(arm.key);
+};
+const ordered = [...arms.values()].sort((a, b) => rank(a) - rank(b));
+const isFinished = (r) => !r.capped && !r.run.error;
 const newTokenCount = (made) => made.addedTokens.length + made.changedTokens.length + made.customProperties.filter((p) => !p.component).length;
 // Cost is per session, not per turn, so a blocked call's cost is estimated as
 // its share of the run's turns.
 const lostShare = (r) => (r.run.turns ? r.checked.lost.turns / r.run.turns : 0);
+const gateBlocks = (r) => (r.checked.stops ? r.checked.stops.filter((s) => s.blocked).length : null);
 const summary = ordered.map((arm) => {
   const avg = (pick) => mean(arm.runs.map(pick));
   return {
     name: arm.name,
     runs: arm.runs.length,
-    finished: arm.runs.filter((r) => !r.capped && !r.run.error).length,
+    finished: arm.runs.filter(isFinished).length,
     score: avg((r) => r.run.score),
     errors: avg((r) => r.checked.errors),
     seconds: avg((r) => r.run.durationSeconds),
@@ -682,6 +682,71 @@ const summary = ordered.map((arm) => {
   };
 });
 
+const runNotes = (r) => [r.capped, r.run.error && `Did not finish: ${r.run.error}`, ...r.checked.notes].filter(Boolean);
+const perRun = ordered.flatMap((arm) => arm.runs.map((r) => ({ arm, r })));
+const hasGate = ordered.some((arm) => arm.gate);
+
+function midranks(values) {
+  const order = values.map((value, i) => [value, i]).sort((a, b) => a[0] - b[0]);
+  const ranks = new Array(values.length);
+  for (let i = 0; i < order.length; ) {
+    let j = i;
+    while (j + 1 < order.length && order[j + 1][0] === order[i][0]) j++;
+    for (let k = i; k <= j; k++) ranks[order[k][1]] = (i + j) / 2 + 1;
+    i = j + 1;
+  }
+  return ranks;
+}
+
+// The exact two-sided Mann-Whitney test, over every split of the pooled runs,
+// so ties and five runs a side need no normal approximation.
+function rankTest(a, b) {
+  const n = a.length;
+  const total = n + b.length;
+  const ranks = midranks([...a, ...b]);
+  const uOf = (picked) => picked.reduce((sum, i) => sum + ranks[i], 0) - (n * (n + 1)) / 2;
+  const u = uOf([...Array(n).keys()]);
+  const centre = (n * b.length) / 2;
+  let splits = 0;
+  let extreme = 0;
+  const pick = (start, chosen) => {
+    if (chosen.length === n) {
+      splits++;
+      if (Math.abs(uOf(chosen) - centre) >= Math.abs(u - centre) - 1e-9) extreme++;
+      return;
+    }
+    for (let i = start; i <= total - (n - chosen.length); i++) pick(i + 1, [...chosen, i]);
+  };
+  pick(0, []);
+  return { u, p: extreme / splits };
+}
+
+const median = (values) => {
+  const sorted = [...values].sort((a, b) => a - b);
+  const mid = Math.floor(sorted.length / 2);
+  return sorted.length === 0 ? null : sorted.length % 2 ? sorted[mid] : (sorted[mid - 1] + sorted[mid]) / 2;
+};
+const RANKED = [
+  { label: 'Errors left', pick: (r) => r.checked.errors, digits: 1 },
+  { label: 'Generation seconds', pick: (r) => r.run.durationSeconds, digits: 0 },
+  { label: 'Generation cost', pick: (r) => r.run.costUsd, digits: 2, unit: '$' },
+];
+const loopArms = ordered.filter((arm) => arm.loop);
+const rankRows = loopArms.flatMap((first, i) => loopArms.slice(i + 1).flatMap((second) => RANKED.map((measure) => {
+  const values = (arm) => arm.runs.filter(isFinished).map(measure.pick).filter((v) => v !== null && v !== undefined);
+  const a = values(first);
+  const b = values(second);
+  const test = a.length > 0 && b.length > 0 ? rankTest(a, b) : null;
+  const shown = (v) => (v === null ? 'n/a' : `${measure.unit ?? ''}${v.toFixed(measure.digits)}`);
+  return { first, second, measure: measure.label, runs: `${a.length} and ${b.length}`, medians: `${shown(median(a))} and ${shown(median(b))}`, test };
+})));
+
+const gateRows = perRun.filter(({ arm }) => arm.gate).map(({ arm, r }) => {
+  const stops = r.checked.stops;
+  const blocks = (stops ?? []).filter((s) => s.blocked).map((s) => [...new Set(s.checks.flatMap((c) => c.rules))]);
+  return { arm, r, stops: stops?.length ?? null, blocks, capped: (stops ?? []).some((s) => s.capped) };
+});
+
 const lines = [
   harbor
     ? 'Scored by the Harbor verifier in a fresh container: graders, then the full checkers with --tests --strict --no-fix.'
@@ -702,6 +767,22 @@ const lines = [
   '| Arm | Grader score | Checker errors left | Generation seconds | Turns | Checker runs | Lookups | Source reads | Generation cost | New tokens |',
   '|---|---|---|---|---|---|---|---|---|---|',
   ...summary.map((s) => `| ${s.name} | ${fmt(s.score, 2)} | ${fmt(s.errors)} | ${fmt(s.keptSeconds, 0)} | ${fmt(s.keptTurns)} | ${fmt(s.checkerRuns)} | ${fmt(s.lookups)} | ${fmt(s.keptSourceReads)} | $${fmt(s.keptCost, 2)} | ${fmt(s.newTokens)} |`),
+  '',
+  'Per run:',
+  '',
+  `| Arm | Run | Finished | Grader score | Checker errors left | Generation seconds | Turns | Generation cost | Checker runs${hasGate ? ' | Gate blocks' : ''} |`,
+  `|---|---|---|---|---|---|---|---|---${hasGate ? '|---' : ''}|`,
+  ...perRun.map(({ arm, r }) => `| ${arm.name} | ${r.index} | ${isFinished(r) ? 'yes' : 'no'} | ${fmt(r.run.score, 2)} | ${r.checked.errors ?? 'n/a'} | ${fmt(r.run.durationSeconds, 0)} | ${r.run.turns ?? 'n/a'} | $${fmt(r.run.costUsd, 2)} | ${r.checked.checkerRuns ?? 'n/a'}${hasGate ? ` | ${gateBlocks(r) ?? ''}` : ''} |`),
+  ...(rankRows.length
+    ? [
+        '',
+        'Rank tests between loop arms (exact two-sided Mann-Whitney, finished runs):',
+        '',
+        '| First arm | Second arm | Measure | Runs | Medians | U | p |',
+        '|---|---|---|---|---|---|---|',
+        ...rankRows.map((row) => `| ${row.first.name} | ${row.second.name} | ${row.measure} | ${row.runs} | ${row.medians} | ${row.test ? fmt(row.test.u) : 'n/a'} | ${row.test ? row.test.p.toFixed(3) : 'n/a'} |`),
+      ]
+    : []),
   '',
   `Report: ${join(reportDir, 'index.html')}`,
 ];
@@ -745,8 +826,16 @@ function step(e) {
   return `<li class="${e.kind}"><span class="kind">${STEP_KIND[e.kind]}</span> <code>${esc(e.label)}</code>${times}${result}${paths}</li>`;
 }
 
-function column(arm, r) {
-  if (!r) return `<article class="col empty"><h3>${esc(arm.name)}</h3><p class="note">This arm has no run here.</p></article>`;
+const errorCount = (n) => (n === null ? 'printed no report' : `${n} error${n === 1 ? '' : 's'}`);
+function stop(s) {
+  if (s.capped) return `<li><span class="muted">Let the run end after ${s.blocks} blocks.</span></li>`;
+  if (!s.blocked) return `<li><span class="good">passed</span> <span class="muted">${s.checks.map(esc).join(', ')}</span></li>`;
+  return `<li><span class="bad">blocked</span> ${s.checks.map((c) => `<code>${esc(c.label)}</code> ${errorCount(c.errors)}${c.rules.length ? ` <span class="muted">${c.rules.map(esc).join(', ')}</span>` : ''}`).join('; ')}</li>`;
+}
+
+function column(arm, r, armIndex, runIndex) {
+  const at = `data-arm="${armIndex}" data-run="${runIndex}"`;
+  if (!r) return `<article class="col empty" ${at}><h3>${esc(arm.name)}</h3><p class="note">This arm has no run ${runIndex + 1}.</p></article>`;
   const { run, checked, failed, slug } = r;
   const metric = (label, value) => `<div><dt>${label}</dt><dd>${value}</dd></div>`;
   const shot = (name) =>
@@ -756,40 +845,96 @@ function column(arm, r) {
   const rules = checked.checks
     .map((c) => `<li><span class="check">${esc(c.label)}</span> ${c.note ? esc(c.note) : `${c.errors} errors`}${c.byRule.length ? `<ul class="rules">${c.byRule.map(([rule, n]) => `<li><code>${esc(rule)}</code> ${n}</li>`).join('')}</ul>` : ''}</li>`)
     .join('');
-  const status = r.capped || run.error ? '<span class="pill bad">Did not finish</span>' : '<span class="pill good">Finished</span>';
-  return `<article class="col">
-  <header class="col-head"><h3>${esc(arm.name)}</h3>${status}</header>
+  const status = isFinished(r) ? '<span class="pill good">Finished</span>' : '<span class="pill bad">Did not finish</span>';
+  const files = [
+    ...checked.sources.map((s) => [s, s]),
+    ...(existsSync(join(reportDir, slug, 'findings.json')) ? [['findings.json', 'findings.json']] : []),
+    ...(existsSync(join(reportDir, slug, 'inventory.json')) ? [['inventory.json', 'inventory.json']] : []),
+    ...(existsSync(join(reportDir, slug, 'workspace')) ? [['workspace/', 'workspace']] : []),
+    ...(checked.checkerRuns !== null ? [['trace.jsonl', 'trace.jsonl']] : []),
+    ...(checked.stops ? [['browser-gate.jsonl', 'browser-gate.jsonl']] : []),
+  ];
+  return `<article class="col" ${at}>
+  <header class="col-head"><h3>${esc(arm.name)}, run ${r.index}</h3>${status}</header>
+  ${checked.trial ? `<p class="trial">${esc(checked.trial)}</p>` : ''}
   <dl class="metrics">
     ${metric('Grader score', fmt(run.score, 2))}
     ${metric('Errors left', checked.errors ?? 'n/a')}
-    ${metric('Generation seconds', run.durationSeconds)}
-    ${metric('Turns', run.turns)}
+    ${metric('Generation seconds', fmt(run.durationSeconds, 0))}
+    ${metric('Turns', run.turns ?? 'n/a')}
     ${metric('Skills loaded', checked.skills ?? 'n/a')}
     ${metric('Checker runs', checked.checkerRuns ?? 'n/a')}
     ${metric('Failed checker calls', checked.checkerFailures ?? 'n/a')}
     ${metric('Lookups', checked.lookups ?? 'n/a')}
     ${metric('Failed lookups', checked.lookupFailures ?? 'n/a')}
     ${metric('Source reads', checked.sourceReads ?? 'n/a')}
-    ${metric('Generation cost', `$${run.costUsd.toFixed(2)}`)}
+    ${metric('Generation cost', `$${fmt(run.costUsd, 2)}`)}
+    ${arm.gate ? metric('Gate blocks', gateBlocks(r) ?? 'n/a') : ''}
   </dl>
   ${r.capped ? `<p class="note">${esc(r.capped)} The agent never said it was done, so read this run's numbers as a floor.</p>` : ''}
   ${run.error ? `<p class="note">Did not finish: ${esc(run.error)}</p>` : ''}
   ${checked.notes.map((n) => `<p class="note">${esc(n)}</p>`).join('')}
   <div class="frame">${shot('desktop')}${shot('mobile')}</div>
+  ${arm.gate ? `<h4>Browser gate</h4>${checked.stops ? `<ol class="stops">${checked.stops.map(stop).join('')}</ol>` : '<p class="none">The gate left no log.</p>'}` : ''}
   ${checked.timeline.length ? `<h4>Behaviour</h4><ol class="timeline">${checked.timeline.map(step).join('')}</ol>` : ''}
   ${checked.made ? made(checked.made) : ''}
   ${failed.length ? `<h4>Failed graders</h4><ul class="graders">${failed.map((g) => `<li><code>${esc(g)}</code></li>`).join('')}</ul>` : (run.graders ?? []).length ? '<h4>Every grader passed</h4>' : ''}
   ${rules ? `<h4>Checker findings</h4><ul class="checks">${rules}</ul>` : ''}
-  ${checked.sources.length ? `<h4>Sources</h4><ul class="sources">${checked.sources.map((s) => `<li><a href="${slug}/${esc(s)}" target="_blank">${esc(s)}</a></li>`).join('')}<li><a href="${slug}/findings.json" target="_blank">findings.json</a></li><li><a href="${slug}/inventory.json" target="_blank">inventory.json</a></li><li><a href="${slug}/workspace/" target="_blank">workspace</a></li>${checked.checkerRuns !== null ? `<li><a href="${slug}/trace.jsonl" target="_blank">trace.jsonl</a></li>` : ''}</ul>` : ''}
+  ${files.length ? `<h4>Files</h4><ul class="sources">${files.map(([href, label]) => `<li><a href="${slug}/${esc(href)}" target="_blank">${esc(label)}</a></li>`).join('')}</ul>` : ''}
 </article>`;
 }
 
 const prose = (text) =>
   text.split(/\n\s*\n/).map((para) => `<p>${esc(para.trim()).replace(/`([^`]+)`/g, '<code>$1</code>')}</p>`).join('');
+const nameOfPrompt = (key) => (harbor ? arms.get(key)?.name ?? key : key);
 const distinctPrompts = [...new Set([...prompts.values()].filter(Boolean))];
 const brief = distinctPrompts.length === 1
   ? `<div class="brief">${prose(distinctPrompts[0])}</div>`
-  : [...prompts].filter(([, text]) => text).map(([name, text]) => `<h3><code>${esc(name)}</code></h3><div class="brief">${prose(text)}</div>`).join('');
+  : [...prompts].filter(([, text]) => text).map(([key, text]) => `<h3><code>${esc(nameOfPrompt(key))}</code></h3><div class="brief">${prose(text)}</div>`).join('');
+
+const lede = [
+  'Every run gets the same brief in a fresh session.',
+  harbor
+    ? 'Each agent works in its own container, built from its arm\'s image. The verifier then scores every arm the same way: in a fresh container from one image, it puts the run\'s files over the base project and runs the graders and the full checkers with --tests --strict --no-fix.'
+    : `Inside the eval, --tests ran the static checks only, because the sandbox cannot start a browser. Checker errors come from the full checkers run afterwards on a fresh copy of each run's files, with --strict --no-fix${tests.length ? ' --tests' : ''}, the same for every arm.`,
+  'Generation seconds and cost cover the agent\'s session from prompt to its final answer, page and components included. Cost is the list-price value of the tokens.',
+  'Below the tables, the run picker and the arm tabs choose one arm\'s panel, and the arrow keys step through the arms. Compare sets two arms of the same run side by side, each half with its own arm picker; the arrow keys then step the half you last used. The switch shows the page at 1280 or 390 pixels wide, and a click opens it full size, where the arrow keys step through every arm\'s page for that run.',
+  'Each run\'s behaviour lists, in order, the skills it loaded, its lookups, its checker runs and what they reported, its reads of the package\'s own source, and the files it wrote.',
+].join(' ');
+
+const td = (value) => `<td>${value}</td>`;
+const perRunTable = `<section class="block">
+  <h2>Per run</h2>
+  <div class="table-scroll"><table>
+    <thead><tr><th>Arm</th><th>Run</th>${harbor ? '<th>Trial</th>' : ''}<th>Finished</th><th>Grader score</th><th>Errors left</th><th>Generation seconds</th><th>Turns</th><th>Generation cost</th><th>Checker runs</th>${hasGate ? '<th>Gate blocks</th>' : ''}<th>Notes</th></tr></thead>
+    <tbody>${perRun.map(({ arm, r }) => `<tr>${td(esc(arm.name))}${td(r.index)}${harbor ? td(esc(r.checked.trial)) : ''}${td(isFinished(r) ? 'yes' : '<span class="bad">no</span>')}${td(fmt(r.run.score, 2))}${td(r.checked.errors ?? 'n/a')}${td(fmt(r.run.durationSeconds, 0))}${td(r.run.turns ?? 'n/a')}${td(`$${fmt(r.run.costUsd, 2)}`)}${td(r.checked.checkerRuns ?? 'n/a')}${hasGate ? td(gateBlocks(r) ?? '') : ''}<td class="notes">${runNotes(r).map(esc).join('<br>')}</td></tr>`).join('')}</tbody>
+  </table></div>
+  <p class="table-note">One row per run. Errors left are the full checkers' count on what the run left behind.</p>
+</section>`;
+
+const rankTable = rankRows.length ? `<section class="block">
+  <h2>Rank tests between loop arms</h2>
+  <div class="table-scroll"><table>
+    <thead><tr><th>First arm</th><th>Second arm</th><th>Measure</th><th>Runs</th><th>Medians</th><th>U</th><th>p</th></tr></thead>
+    <tbody>${rankRows.map((row) => `<tr>${td(esc(row.first.name))}<td class="lead">${esc(row.second.name)}</td>${td(row.measure)}${td(row.runs)}${td(row.medians)}${td(row.test ? fmt(row.test.u) : 'n/a')}${td(row.test ? row.test.p.toFixed(3) : 'n/a')}</tr>`).join('')}</tbody>
+  </table></div>
+  <p class="table-note">The loop arms differ only in when the browser tests run: at the agent's checkpoints, never, or at each stop through the gate. Each row is an exact two-sided Mann-Whitney test on the two arms' finished runs. U counts the pairs of runs in which the first arm's value is higher, a tie as half; p is the share of all splits of the pooled runs at least as far from an even split.</p>
+</section>` : '';
+
+const gateTable = gateRows.length ? `<section class="block">
+  <h2>Browser gate</h2>
+  <div class="table-scroll"><table>
+    <thead><tr><th>Arm</th><th>Run</th><th>Stops</th><th>Blocks</th><th>Rules behind each block</th></tr></thead>
+    <tbody>${gateRows.map(({ arm, r, stops, blocks, capped }) => `<tr>${td(esc(arm.name))}${td(r.index)}${td(stops ?? 'n/a')}${td(`${blocks.length}${capped ? ', then let the run end' : ''}`)}<td class="notes">${blocks.map((rules, i) => `${i + 1}: ${rules.map(esc).join(', ')}`).join('<br>')}</td></tr>`).join('')}</tbody>
+  </table></div>
+  <p class="table-note">At each stop the gate runs the full checkers with --tests on the run's new page and components, and blocks the stop while either reports an error. After three blocks it lets the run end.</p>
+</section>` : '';
+
+const armOptions = ordered.map((arm, i) => `<option value="${i}">${esc(arm.name)}</option>`).join('');
+const half = (h) => `<div class="half" data-half="${h}"${h === 1 ? ' hidden' : ''}>
+    <label class="picker">${h === 0 ? 'Left' : 'Right'} arm <select data-pick="${h}">${armOptions}</select></label>
+    <div class="slot"></div>
+  </div>`;
 
 const html = `<!doctype html>
 <html lang="en">
@@ -823,32 +968,42 @@ const html = `<!doctype html>
   table { border-collapse: collapse; background: var(--surface); border: 1px solid var(--line); }
   th, td { padding: 8px 12px; border-bottom: 1px solid var(--line); text-align: right; white-space: nowrap; }
   th { font-size: 12px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); font-weight: 600; }
-  th:first-child, td:first-child { text-align: left; font-family: inherit; font-size: 14px; font-weight: 600; }
+  th:first-child, td:first-child, td.lead { text-align: left; font-family: inherit; font-size: 14px; font-weight: 600; }
+  td.notes { text-align: left; white-space: normal; min-width: 24ch; max-width: 60ch; color: var(--muted); }
   .table-scroll { overflow-x: auto; }
   .table-note { margin: 10px 0 0; max-width: 80ch; font-size: 13px; color: var(--muted); }
 
-  .bar { position: sticky; top: 0; z-index: 2; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 32px; background: var(--bg); border-bottom: 1px solid var(--line); }
+  .bar { position: sticky; top: 0; z-index: 2; display: flex; flex-direction: column; gap: 8px; padding: 12px 32px 0; background: var(--bg); border-bottom: 1px solid var(--line); }
+  .bar-row { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
+  .bar-label { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); }
+  .bar-gap { flex: 1; }
   .tabs { display: flex; flex-wrap: wrap; gap: 4px; }
   .tabs button { font: inherit; font-weight: 600; color: var(--muted); background: none; border: 0; border-bottom: 2px solid transparent; padding: 6px 12px; cursor: pointer; }
   .tabs button[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--ink); }
-  .segmented { display: inline-flex; padding: 3px; background: var(--sunken); border: 1px solid var(--line); border-radius: 999px; }
+  .segmented { display: inline-flex; flex-wrap: wrap; padding: 3px; background: var(--sunken); border: 1px solid var(--line); border-radius: 999px; }
   .segmented button { font: inherit; font-size: 13px; font-weight: 600; color: var(--muted); background: none; border: 0; border-radius: 999px; padding: 4px 14px; cursor: pointer; }
   .segmented button[aria-pressed="true"] { color: var(--ink); background: var(--surface); box-shadow: 0 1px 2px rgb(0 0 0 / 0.15); }
-  .tabs button:focus-visible, .segmented button:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+  .switch { font: inherit; font-size: 13px; font-weight: 600; color: var(--muted); background: var(--sunken); border: 1px solid var(--line); border-radius: 999px; padding: 4px 14px; cursor: pointer; }
+  .switch[aria-pressed="true"] { color: var(--ink); background: var(--surface); border-color: var(--ink); }
+  .tabs button:focus-visible, .segmented button:focus-visible, .switch:focus-visible, .picker select:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
 
-  .strip { display: grid; grid-auto-flow: column; gap: 16px; overflow-x: auto; padding: 24px 32px 32px; scroll-padding-inline: 32px; scroll-snap-type: x proximity; }
-  body[data-view="desktop"] .strip { grid-auto-columns: minmax(720px, 880px); }
-  body[data-view="mobile"] .strip { grid-auto-columns: 440px; }
-  .col { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 16px; min-width: 0; scroll-snap-align: start; }
+  .panels { display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; padding: 24px 32px 32px; }
+  .panels[data-compare="true"] { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .picker { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; font-size: 13px; font-weight: 600; color: var(--muted); }
+  .picker select { font: inherit; font-weight: 600; color: var(--ink); background: var(--surface); border: 1px solid var(--line); border-radius: 999px; padding: 4px 12px; }
+  .panels[data-compare="false"] .picker { display: none; }
+  .col { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 16px; min-width: 0; }
+  .half[data-active="true"] .col { border-color: var(--ink); }
   .col.empty { opacity: 0.5; }
-  .col-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 12px; }
+  .col-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+  .trial { margin: 2px 0 0; font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 12px; color: var(--muted); }
   .pill { font-size: 12px; font-weight: 600; padding: 2px 10px; border-radius: 999px; border: 1px solid currentColor; }
-  .metrics { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 6px 16px; margin: 0; }
+  .metrics { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 6px 16px; margin: 12px 0 0; }
   .metrics div { display: flex; justify-content: space-between; border-bottom: 1px dotted var(--line); }
   dt { color: var(--muted); font-size: 13px; }
   dd { margin: 0; }
 
-  .frame { margin-top: 16px; height: 75vh; overflow: auto; background: var(--sunken); border: 1px solid var(--line); border-radius: 8px; }
+  .frame { margin-top: 16px; height: 70vh; overflow: auto; overscroll-behavior: contain; background: var(--sunken); border: 1px solid var(--line); border-radius: 8px; }
   .shot { display: block; cursor: zoom-in; }
   .shot img { display: block; width: 100%; height: auto; }
   .shot[data-view="mobile"] img { width: 390px; max-width: 100%; margin: 0 auto; }
@@ -874,26 +1029,28 @@ const html = `<!doctype html>
   .chip.custom { border-color: var(--ink); }
   .made { font-size: 13px; }
   .none { margin: 0; font-size: 13px; color: var(--muted); }
-  .timeline { font-size: 13px; padding-left: 22px; }
-  .timeline li { margin: 2px 0; overflow-wrap: anywhere; }
+  .timeline, .stops { font-size: 13px; padding-left: 22px; }
+  .timeline li, .stops li { margin: 2px 0; overflow-wrap: anywhere; }
   .timeline .kind { display: inline-block; min-width: 58px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); }
   .timeline .write, .timeline .source { color: var(--muted); }
   .timeline b { font-weight: 600; }
   .bad { color: var(--bad); }
   .good { color: var(--good); }
   .muted { color: var(--muted); }
+  @media (max-width: 900px) {
+    .panels[data-compare="true"] { grid-template-columns: minmax(0, 1fr); }
+  }
   @media (max-width: 720px) {
     .page-head, .block { padding: 16px; }
-    .bar { padding: 10px 16px; }
-    .strip { padding: 16px; scroll-padding-inline: 16px; }
-    body[data-view="desktop"] .strip, body[data-view="mobile"] .strip { grid-auto-columns: calc(100vw - 32px); }
+    .bar { padding: 10px 16px 0; }
+    .panels { padding: 16px; }
   }
 </style>
 </head>
 <body data-view="desktop">
 <header class="page-head">
   <h1>Billing eval report</h1>
-  <p class="lede">Every run gets the same brief in a fresh session and a freshly copied project. Each tab holds one run of every arm, side by side; the switch shows the page at 1280 or 390 pixels wide, and a click opens the screenshot full size, where the arrow keys step through the arms. Each run's behaviour lists, in order, the skills it loaded, its lookups, its checker runs and what they reported, its reads of the package's own source, and the files it wrote. Generation seconds and cost cover the agent's session from prompt to its final answer, page and components included; cost is the list-price value of the tokens, not a charge. Inside the eval, --tests ran the static checks only, because the sandbox cannot start a browser. Checker errors come from the full checkers run afterwards on a fresh copy of each run's files, with --strict --no-fix${tests.length ? ' --tests' : ''}, the same for every arm.</p>
+  <p class="lede">${esc(lede)}</p>
 </header>
 <section class="block">
   <h2>Brief</h2>
@@ -905,7 +1062,7 @@ const html = `<!doctype html>
     <thead><tr><th>Arm</th><th>Finished</th><th>Grader score</th><th>Errors left</th><th>Generation seconds</th><th>Turns</th><th>Skills loaded</th><th>Checker runs</th><th>Failed checker calls</th><th>Lookups</th><th>Failed lookups</th><th>Source reads</th><th>Generation cost</th><th>Shipped components</th><th>New components</th><th>New tokens</th><th>Literal values</th></tr></thead>
     <tbody>${summary.map((s) => `<tr><td>${esc(s.name)}</td><td>${s.finished} of ${s.runs}</td><td>${fmt(s.score, 2)}</td><td>${fmt(s.errors)}</td><td>${fmt(s.seconds, 0)}</td><td>${fmt(s.turns)}</td><td>${fmt(s.skills)}</td><td>${fmt(s.checkerRuns)}</td><td>${fmt(s.checkerFailures)}</td><td>${fmt(s.lookups)}</td><td>${fmt(s.lookupFailures)}</td><td>${fmt(s.sourceReads)}</td><td>$${fmt(s.cost, 2)}</td><td>${fmt(s.shippedUsed)}</td><td>${fmt(s.created)}</td><td>${fmt(s.newTokens)}</td><td>${fmt(s.literals)}</td></tr>`).join('')}</tbody>
   </table></div>
-  <p class="table-note">Lookups count each component and scale looked up, including each item of a shell loop. An arm without a tool runs none; its calls to the tool are blocked and counted as failed.</p>
+  <p class="table-note">Lookups count each component and scale looked up, including each item of a shell loop. A checker run counts each call the arm could make, whether or not the agent read its output. An arm without a tool runs none; its calls to the tool are blocked and counted as failed.</p>
 </section>
 <section class="block">
   <h2>Blocked calls</h2>
@@ -923,18 +1080,33 @@ const html = `<!doctype html>
   </table></div>
   <p class="table-note">The means above with every blocked call and the probing after it taken out of the time, turns, source reads, and cost. Grader score, errors, and new tokens measure what the run built, so they keep their values.</p>
 </section>
+${perRunTable}
+${rankTable}
+${gateTable}
 <div class="bar">
-  <div class="tabs" role="tablist" aria-label="Runs">
-    ${Array.from({ length: maxRuns }, (_, i) => `<button type="button" role="tab" id="tab-${i + 1}" aria-controls="run-${i + 1}" aria-selected="${i === 0}" tabindex="${i === 0 ? 0 : -1}">Run ${i + 1}</button>`).join('')}
+  <div class="bar-row">
+    <span class="bar-label">Run</span>
+    <div class="segmented" role="group" aria-label="Run">
+      ${Array.from({ length: maxRuns }, (_, i) => `<button type="button" data-run-pick="${i}" aria-pressed="${i === 0}">Run ${i + 1}</button>`).join('')}
+    </div>
+    <button type="button" class="switch" data-compare aria-pressed="false">Compare</button>
+    <span class="bar-gap"></span>
+    <div class="segmented" role="group" aria-label="Screenshot width">
+      <button type="button" data-set-view="desktop" aria-pressed="true">Desktop</button>
+      <button type="button" data-set-view="mobile" aria-pressed="false">Mobile</button>
+    </div>
   </div>
-  <div class="segmented" role="group" aria-label="Screenshot width">
-    <button type="button" data-set-view="desktop" aria-pressed="true">Desktop</button>
-    <button type="button" data-set-view="mobile" aria-pressed="false">Mobile</button>
+  <div class="tabs" role="tablist" aria-label="Arms">
+    ${ordered.map((arm, i) => `<button type="button" role="tab" data-key="${esc(arm.key)}" aria-controls="arm-panels" aria-selected="${i === 0}" tabindex="${i === 0 ? 0 : -1}">${esc(arm.name)}</button>`).join('')}
   </div>
 </div>
-${Array.from({ length: maxRuns }, (_, i) => `<section class="strip" role="tabpanel" id="run-${i + 1}" aria-labelledby="tab-${i + 1}"${i === 0 ? '' : ' hidden'}>
-  ${ordered.map((arm) => column(arm, arm.runs[i])).join('\n')}
-</section>`).join('\n')}
+<section class="panels" id="arm-panels" role="tabpanel" aria-label="Selected arms" data-compare="false">
+  ${half(0)}
+  ${half(1)}
+</section>
+<div class="pool" hidden>
+${ordered.map((arm, a) => Array.from({ length: maxRuns }, (_, i) => column(arm, arm.runs[i], a, i)).join('\n')).join('\n')}
+</div>
 <dialog class="lightbox" aria-label="Screenshot">
   <div class="lightbox-bar">
     <span class="lightbox-caption"></span>
@@ -949,23 +1121,87 @@ ${Array.from({ length: maxRuns }, (_, i) => `<section class="strip" role="tabpan
     get(key) { try { return localStorage.getItem(key); } catch { return null; } },
     set(key, value) { try { localStorage.setItem(key, value); } catch {} },
   };
-  const tabs = [...document.querySelectorAll('[role="tab"]')];
-  const panels = [...document.querySelectorAll('[role="tabpanel"]')];
-  function selectTab(index, focus) {
-    tabs.forEach((tab, i) => {
-      tab.setAttribute('aria-selected', String(i === index));
-      tab.tabIndex = i === index ? 0 : -1;
-      panels[i].hidden = i !== index;
+  const box = document.querySelector('.lightbox');
+  const pool = document.querySelector('.pool');
+  const panels = document.querySelector('.panels');
+  const halves = [...panels.querySelectorAll('.half')];
+  const pickers = halves.map((half) => half.querySelector('select'));
+  const armTabs = [...document.querySelectorAll('[role="tab"]')];
+  const runButtons = [...document.querySelectorAll('[data-run-pick]')];
+  const compareButton = document.querySelector('[data-compare]');
+  const keys = armTabs.map((tab) => tab.dataset.key);
+  const armCount = keys.length;
+
+  // Arms are saved by key, so a report with other arms still opens on a real one.
+  let saved = {};
+  try { saved = JSON.parse(store.get('eval-report-selection') ?? '{}'); } catch {}
+  const armAt = (key, fallback) => (keys.includes(key) ? keys.indexOf(key) : fallback);
+  const state = {
+    run: Number.isInteger(saved.run) && saved.run < runButtons.length ? saved.run : 0,
+    arms: [armAt(saved.arms?.[0], 0), armAt(saved.arms?.[1], Math.min(1, armCount - 1))],
+    compare: saved.compare === true,
+    active: saved.compare === true && saved.active === 1 ? 1 : 0,
+  };
+  const shown = [null, null];
+  const current = () => (state.compare ? state.active : 0);
+
+  function render() {
+    panels.dataset.compare = String(state.compare);
+    halves[1].hidden = !state.compare;
+    halves.forEach((half, h) => {
+      half.dataset.active = String(state.compare && h === state.active);
+      pickers[h].value = String(state.arms[h]);
+      if (h === 1 && !state.compare) return;
+      const id = state.arms[h] + ':' + state.run;
+      if (shown[h] === id) return;
+      shown[h] = id;
+      const article = pool.querySelector('[data-arm="' + state.arms[h] + '"][data-run="' + state.run + '"]');
+      half.querySelector('.slot').replaceChildren(article.cloneNode(true));
     });
-    if (focus) tabs[index].focus();
-    store.set('eval-report-run', String(index));
+    const selected = state.arms[current()];
+    armTabs.forEach((tab, i) => {
+      tab.setAttribute('aria-selected', String(i === selected));
+      tab.tabIndex = i === selected ? 0 : -1;
+    });
+    runButtons.forEach((button, i) => button.setAttribute('aria-pressed', String(i === state.run)));
+    compareButton.setAttribute('aria-pressed', String(state.compare));
+    store.set('eval-report-selection', JSON.stringify({ run: state.run, arms: state.arms.map((a) => keys[a]), compare: state.compare, active: state.active }));
   }
-  tabs.forEach((tab, i) => {
-    tab.addEventListener('click', () => selectTab(i));
-    tab.addEventListener('keydown', (event) => {
-      const step = event.key === 'ArrowRight' ? 1 : event.key === 'ArrowLeft' ? -1 : 0;
-      if (step) selectTab((i + step + tabs.length) % tabs.length, true);
-    });
+
+  function pickArm(index, focus) {
+    state.arms[current()] = (index + armCount) % armCount;
+    render();
+    if (focus) armTabs[state.arms[current()]].focus();
+  }
+  armTabs.forEach((tab, i) => tab.addEventListener('click', () => pickArm(i)));
+  runButtons.forEach((button, i) => button.addEventListener('click', () => { state.run = i; render(); }));
+  compareButton.addEventListener('click', () => {
+    if (state.compare) {
+      state.arms[0] = state.arms[state.active];
+      state.compare = false;
+    } else {
+      state.compare = true;
+      if (state.arms[1] === state.arms[0]) state.arms[1] = (state.arms[0] + 1) % armCount;
+    }
+    state.active = 0;
+    render();
+  });
+  pickers.forEach((select, h) => select.addEventListener('change', () => {
+    state.active = h;
+    state.arms[h] = Number(select.value);
+    render();
+  }));
+  halves.forEach((half, h) => half.addEventListener('pointerdown', () => {
+    if (state.compare && state.active !== h) { state.active = h; render(); }
+  }));
+  document.addEventListener('keydown', (event) => {
+    if (box.open || event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) return;
+    if (event.target.closest?.('select, input, textarea')) return;
+    const step = event.key === 'ArrowRight' ? 1 : event.key === 'ArrowLeft' ? -1 : 0;
+    if (!step) return;
+    event.preventDefault();
+    const tab = event.target.closest?.('[role="tab"]');
+    pickArm((tab ? armTabs.indexOf(tab) : state.arms[current()]) + step, Boolean(tab));
   });
 
   const viewButtons = [...document.querySelectorAll('[data-set-view]')];
@@ -975,39 +1211,39 @@ ${Array.from({ length: maxRuns }, (_, i) => `<section class="strip" role="tabpan
     store.set('eval-report-view', view);
   }
   viewButtons.forEach((b) => b.addEventListener('click', () => setView(b.dataset.setView)));
-  const savedRun = Number(store.get('eval-report-run'));
-  if (savedRun > 0 && savedRun < tabs.length) selectTab(savedRun);
   if (store.get('eval-report-view') === 'mobile') setView('mobile');
+  render();
 
-  const box = document.querySelector('.lightbox');
   const img = box.querySelector('img');
   const caption = box.querySelector('.lightbox-caption');
   const stage = box.querySelector('.lightbox-stage');
   let shots = [];
-  let current = 0;
+  let at = 0;
   // Shots are captured at 2x, so the CSS width is the viewport the page was rendered at.
   function show(i) {
-    current = (i + shots.length) % shots.length;
-    const shot = shots[current];
+    at = (i + shots.length) % shots.length;
+    const shot = shots[at];
     img.src = shot.getAttribute('href');
     img.alt = shot.dataset.caption;
     img.style.width = shot.dataset.width + 'px';
-    caption.textContent = shot.dataset.caption + ' (' + (current + 1) + ' of ' + shots.length + ')';
+    caption.textContent = shot.dataset.caption + ' (' + (at + 1) + ' of ' + shots.length + ')';
     stage.scrollTop = 0;
     if (!box.open) box.showModal();
   }
-  document.querySelectorAll('.shot').forEach((shot) => shot.addEventListener('click', (event) => {
+  panels.addEventListener('click', (event) => {
+    const shot = event.target.closest('.shot');
+    if (!shot) return;
     event.preventDefault();
-    const panel = shot.closest('[role="tabpanel"]');
-    shots = [...panel.querySelectorAll('.shot[data-view="' + document.body.dataset.view + '"]')];
-    show(shots.indexOf(shot));
-  }));
-  box.querySelectorAll('[data-step]').forEach((b) => b.addEventListener('click', () => show(current + Number(b.dataset.step))));
+    shots = [...pool.querySelectorAll('[data-run="' + state.run + '"] .shot[data-view="' + document.body.dataset.view + '"]')];
+    const arm = shot.closest('article').dataset.arm;
+    show(shots.findIndex((s) => s.closest('article').dataset.arm === arm));
+  });
+  box.querySelectorAll('[data-step]').forEach((b) => b.addEventListener('click', () => show(at + Number(b.dataset.step))));
   box.querySelector('[data-close]').addEventListener('click', () => box.close());
   img.addEventListener('click', () => box.close());
   box.addEventListener('keydown', (event) => {
-    if (event.key === 'ArrowRight') show(current + 1);
-    if (event.key === 'ArrowLeft') show(current - 1);
+    if (event.key === 'ArrowRight') show(at + 1);
+    if (event.key === 'ArrowLeft') show(at - 1);
   });
 </script>
 </body>
