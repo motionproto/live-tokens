@@ -40,7 +40,7 @@ const PLANS = {
   },
   'harbor-arms': {
     order: ['1', '2', '3', '4'],
-    after: 'Run `npm run eval:billing -- --runs <n>` for the full comparison, then read the report.',
+    after: 'Run `npm run eval:billing` for the full comparison, then read the report.',
   },
 }
 
