@@ -324,6 +324,20 @@ output.
 Verify: `npm run eval:billing -- --smoke` runs the arm with every tool end to
 end and writes the report.
 
+Result of 2026-10-18 at `a1d25f3`. `npm run eval:billing -- --smoke` ran one
+trial of `skills-lookup-checker` into `scratch/harbor/jobs/2026-10-18T17-33-25/`
+and exited 0 after 10 min 47 s, with the images cached. The trial took 605 s,
+scored 11 of 11 graders with no errors left, and left `brand.json` alone. The
+runner wrote `arms.json` beside the job, and the report at
+`eval-reports/2026-10-18T17-33-25-smoke/index.html` took the arm's name from
+it. The token scan of `scratch/harbor/` and the report found no copy.
+
+Wave 2's two jobs folders predate `arms.json`. A copy written into each from
+the runner's table rebuilds their report byte for byte as Wave 3 built it.
+`scripts/eval-billing.sh`, the plugin-eval runner, is gone. The eval
+paragraph in `CLAUDE.md` still describes the plugin-eval run and awaits the
+user.
+
 ## Invariants
 
 - Each arm reaches only the layers its row grants: `isolate.mjs` closes the
