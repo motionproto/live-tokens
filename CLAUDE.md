@@ -38,12 +38,14 @@ npm run sync:skill-sources
 fail on drift, so skipping either sync surfaces at release rather than at
 commit.
 
-The billing evals run copies of `live-tokens-create-page` and
-`live-tokens-create-component` with the tool passages removed, in
-`.claude/evals/_skills/<case>/`. An edit to either skill, or to
-`references/token-naming.md`, stops the next eval until the edit is carried
-into each copy and `node scripts/eval-stage-skills.mjs --rehash <case>` has
-run. The atlas sync repairs a range that moved; it refuses a range whose
+The billing evals run copies of skill files with the tool passages removed,
+in `.claude/evals/_skills/<case>/`. Each case's `skills.json` lists the files
+it copies: today the `SKILL.md` of `live-tokens-create-page`,
+`live-tokens-create-component`, and `live-tokens-check-compliance`, and the
+references `token-naming.md`, `contract-tests.md`, and
+`interaction-sources.md`. An edit to any of them stops the next eval until
+the edit is carried into each copy and
+`node scripts/eval-stage-skills.mjs --rehash <case>` has run. The atlas sync repairs a range that moved; it refuses a range whose
 anchor text is gone, which means that node has to be re-pointed by hand.
 
 Renaming or moving a node also needs a look at the rendered card. A title and

@@ -147,8 +147,8 @@ Each obligation and what it needs from the project:
   reads back. `resetVariable` is a property one of the cases moves.
 - `theme`: a saved theme in the project's data tree, previewed as it stands.
   The run checks that the component follows the theme's design tokens.
-  `changed` names the properties the theme moves through its color tokens,
-  `unchanged` the ones it leaves, and `aliasedTo` the design token each
+  `changed` names the properties the theme moves through its design tokens,
+  such as colors, shadows, and fonts, `unchanged` the ones it leaves, and `aliasedTo` the design token each
   changed property resolves to under it. A theme assigns geometry steps only
   to the components it holds a block for, so a new component's radius,
   padding, and border width belong in `unchanged`.
