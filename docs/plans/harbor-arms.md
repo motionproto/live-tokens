@@ -113,14 +113,19 @@ browser tests at the agent's checkpoints, never, and once at each stop.
   table above and writes one task per arm under `scratch/harbor/tasks/<arm>/`.
   No arm has hand-written files.
 - **D2. Every arm scores in a fresh container.** Each task sets
-  `environment_mode = "separate"` with `docker_image = "live-tokens-eval-base"`,
-  the project as installed with every layer in place. The same rule scores the
-  arm that keeps the checker, so all five meet one bar.
+  `environment_mode = "separate"` with
+  `docker_image = "live-tokens-eval-verifier"`: the base image, the project as
+  installed with every layer in place, plus the graders at `/tests`. Harbor
+  uploads no tests into a verifier that names its own image
+  (`models/task/verifier_mode.py:103-108`, `trial/trial.py:949`), and the
+  graders cannot sit in the base image every arm derives from. The same rule
+  scores the arm that keeps the checker, so all seven meet one bar.
 - **D3. The run's own files are the artifacts.** The task declares
   `/app/src`, `/app/tests`, `/app/live-tokens.config.json`, and
   `/app/live-tokens.testing.ts`, the files `eval-check-build.mjs` carries into
-  its fresh project today (`RUN_FILES`). The verifier copies them over the
-  base project before it grades.
+  its fresh project today (`RUN_FILES`). Harbor uploads each one into the
+  verifier at its own path, over the base project, before the verifier grades
+  (`trial/artifact_handler.py:169-212`).
 - **D4. The verifier does all the scoring.** `grade.mjs` runs the graders, the
   full checkers with `--tests`, the inventory from `report --json`, and the
   two screenshots, and writes them to `/logs/verifier/`. The host does no
@@ -193,12 +198,12 @@ browser tests at the agent's checkpoints, never, and once at each stop.
 
 ## Wave 1: seven tasks and the separate verifier
 
-- Extend `eval-harbor.sh` to take an arm list (default all five), build the
+- Extend `eval-harbor.sh` to take an arm list (default all seven), build the
   base image once, and write each task from the arms table: the arm's
   Dockerfile (`FROM live-tokens-eval-base`, run `isolate.mjs <groups>`, copy
   the staged skills to `/opt/skills`), `task.toml` with `skills_dir` per D1,
   the separate verifier per D2, and the artifacts per D3.
-- Move `grade.mjs` to copy the artifacts into `/app`, then score per D4.
+- Move `grade.mjs` to score per D4 the artifacts Harbor put into `/app`.
 - Write the static-loop copy per D7: `create-page` and `create-component`
   with `--tests` and the browser-only sentences of their Verify sections
   removed, and the `contract-tests.md` lines that call `--tests`.
