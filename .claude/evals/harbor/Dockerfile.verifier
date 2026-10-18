@@ -1,0 +1,6 @@
+# The one image that scores every arm: the base project with every layer in
+# place, and the graders bundled at /tests. Harbor uploads no tests into a
+# verifier that names its own image, and the graders cannot sit in the base
+# image, where every arm's agent could read them.
+FROM live-tokens-eval-base
+COPY tests/ /tests/

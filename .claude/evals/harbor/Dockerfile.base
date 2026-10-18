@@ -4,9 +4,29 @@
 # dependency repointed at /opt/live-tokens.tgz.
 FROM mcr.microsoft.com/playwright:v1.64.1-noble
 
+# The agent's container reaches the Anthropic API alone, so Harbor's install
+# step, which downloads Claude Code, would fail there. Installed here, every
+# arm also runs the same Claude Code.
+RUN curl -fsSL https://downloads.claude.ai/claude-code-releases/bootstrap.sh | bash
+
 COPY live-tokens.tgz /opt/live-tokens.tgz
 COPY project/ /app/
 WORKDIR /app
 # The postinstall writes the package's skills into .claude; the arm's skills
 # come from the task alone.
 RUN npm install --no-audit --no-fund --loglevel=error && rm -rf /app/.claude
+
+# The component theme contract previews a saved theme, and the skill's example
+# names it brand. Spring Meadow moves every palette seed and the geometry
+# aliases off the default, so a new component's properties move under it.
+RUN node -e " \
+  const fs = require('fs'); \
+  const theme = JSON.parse(fs.readFileSync('node_modules/@motion-proto/live-tokens/src/live-tokens/data/themes/spring-meadow.json', 'utf8')); \
+  theme.name = 'Brand'; \
+  fs.mkdirSync('src/live-tokens/data/themes', { recursive: true }); \
+  fs.writeFileSync('src/live-tokens/data/themes/brand.json', JSON.stringify(theme, null, 2) + '\n'); \
+"
+
+# The run's starting files, kept outside /app: the verifier and the browser
+# gate tell what a run added from them, and the verifier restores brand.json.
+RUN mkdir -p /opt/eval/base && cp -R src tests live-tokens.testing.ts /opt/eval/base/
