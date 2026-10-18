@@ -54,8 +54,14 @@ check passes on that.
 
 `.claude/evals/README.md` describes every eval case and how to run it.
 The `evaluate` skill runs the billing comparison and reads its report.
-`npm run eval:billing -- --smoke` runs one billing case end to end;
-`--runs <n>` runs all five arms (unattended, skills only, lookup, checker,
-both) and writes a comparison report under `eval-reports/`. A run
-takes up to an hour per arm. Stop Docker containers first: the eval script
-quits Docker Desktop for the length of the run.
+`npm run eval:billing` runs the billing brief under Harbor as seven arms,
+each trial in its own Docker container: five trials for each of the three
+loop arms and three for the other four, 27 in all, in about two hours.
+`--smoke` runs one trial of the arm with every tool in about a quarter of an
+hour, and `--runs <n>` runs every arm n times. The report lands in
+`eval-reports/<time>/`. A billing run needs Docker running, Harbor
+(`uv tool install harbor`), and the subscription token `claude setup-token`
+prints, saved in `~/.config/live-tokens-eval/oauth-token`. The other cases
+run under `claude plugin eval` with `npm run eval -- --case <case>`, which
+quits Docker Desktop for the length of the run, so never run the two at
+once.

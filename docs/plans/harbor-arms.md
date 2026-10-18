@@ -334,9 +334,10 @@ it. The token scan of `scratch/harbor/` and the report found no copy.
 
 Wave 2's two jobs folders predate `arms.json`. A copy written into each from
 the runner's table rebuilds their report byte for byte as Wave 3 built it.
-`scripts/eval-billing.sh`, the plugin-eval runner, is gone. The eval
-paragraph in `CLAUDE.md` still describes the plugin-eval run and awaits the
-user, since an agent may not edit `CLAUDE.md` on a plan's say-so. A rerun of
+`scripts/eval-billing.sh`, the plugin-eval runner, is gone. The user
+approved the eval paragraph below for `CLAUDE.md` on 2026-10-18, kept the
+old runner deleted, and accepted that the 2026-10-17 trial folder, which has
+no `arms.json`, no longer reads. A rerun of
 the token scan on 2026-10-18 read 2,320 files under `scratch/harbor/` and
 `eval-reports/`, the second smoke's included, and found no copy.
 
@@ -348,7 +349,7 @@ into `scratch/harbor/jobs/2026-10-18T18-18-03/` and exited 0: the trial took
 alone. The token scan of that job, its report, and the run log read 151
 files and found no copy.
 
-The proposed paragraph, which replaces the one under `# Evals` whole:
+The paragraph that replaced the one under `# Evals` whole:
 
 ```md
 `.claude/evals/README.md` describes every eval case and how to run it.
