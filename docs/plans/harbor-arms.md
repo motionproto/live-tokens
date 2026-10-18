@@ -336,7 +336,26 @@ Wave 2's two jobs folders predate `arms.json`. A copy written into each from
 the runner's table rebuilds their report byte for byte as Wave 3 built it.
 `scripts/eval-billing.sh`, the plugin-eval runner, is gone. The eval
 paragraph in `CLAUDE.md` still describes the plugin-eval run and awaits the
-user.
+user, since an agent may not edit `CLAUDE.md` on a plan's say-so. A rerun of
+the token scan on 2026-10-18 read 2,320 files under `scratch/harbor/` and
+`eval-reports/`, the second smoke's included, and found no copy. The
+proposed paragraph, which replaces the one under `# Evals` whole:
+
+```md
+`.claude/evals/README.md` describes every eval case and how to run it.
+The `evaluate` skill runs the billing comparison and reads its report.
+`npm run eval:billing` runs the billing brief under Harbor as seven arms,
+each trial in its own Docker container: five trials for each of the three
+loop arms and three for the other four, 27 in all, in about two hours.
+`--smoke` runs one trial of the arm with every tool in about a quarter of an
+hour, and `--runs <n>` runs every arm n times. The report lands in
+`eval-reports/<time>/`. A billing run needs Docker running, Harbor
+(`uv tool install harbor`), and the subscription token `claude setup-token`
+prints, saved in `~/.config/live-tokens-eval/oauth-token`. The other cases
+run under `claude plugin eval` with `npm run eval -- --case <case>`, which
+quits Docker Desktop for the length of the run, so never run the two at
+once.
+```
 
 ## Invariants
 
