@@ -454,6 +454,9 @@ function armsTable(folder) {
     // The arms the package leaves whole differ only in where the browser tests run.
     loop: row.groups.length === 0,
     gate: row.settings === 'gate',
+    skills: row.skills !== 'none',
+    tests: row.tests,
+    settings: row.settings,
   }));
 }
 
@@ -736,20 +739,50 @@ const median = (values) => {
   const mid = Math.floor(sorted.length / 2);
   return sorted.length === 0 ? null : sorted.length % 2 ? sorted[mid] : (sorted[mid - 1] + sorted[mid]) / 2;
 };
+const grantsFor = (arm) => (arm.grants ? new Set(arm.grants) : grantsOf(arm.key.split('|')[1] ?? 'neither'));
 const RANKED = [
   { label: 'Errors left', pick: (r) => r.checked.errors, digits: 1 },
   { label: 'Generation seconds', pick: (r) => r.run.durationSeconds, digits: 0 },
   { label: 'Generation cost', pick: (r) => r.run.costUsd, digits: 2, unit: '$' },
+  { label: 'Checker runs', pick: (r) => r.checked.checkerRuns, digits: 1, both: 'checker' },
+  { label: 'Source reads', pick: (r) => r.checked.sourceReads, digits: 1 },
 ];
 const loopArms = ordered.filter((arm) => arm.loop);
-const rankRows = loopArms.flatMap((first, i) => loopArms.slice(i + 1).flatMap((second) => RANKED.map((measure) => {
+const factorsOf = (arm) => {
+  const grants = grantsFor(arm);
+  return {
+    skills: arm.skills ?? !arm.key.startsWith('no skills'),
+    lookup: grants.has('lookup'),
+    checker: grants.has('checker'),
+    tests: arm.tests ?? 'browser',
+    settings: arm.settings ?? 'base',
+  };
+};
+const differences = (a, b) => {
+  const fa = factorsOf(a);
+  const fb = factorsOf(b);
+  return Object.keys(fa).filter((factor) => fa[factor] !== fb[factor]);
+};
+// The loop arms differ only in when the browser tests run; every other pair is
+// tested only when one tool or setting separates the two arms.
+const rankPairs = ordered.flatMap((first, i) => ordered.slice(i + 1)
+  .filter((second) => (first.loop && second.loop) || differences(first, second).length === 1)
+  .map((second) => [first, second]));
+const FACTOR_HEAD = { skills: 'Skills', lookup: 'Lookup', checker: 'Checker' };
+const pairHead = (a, b) => {
+  const diff = differences(a, b);
+  return diff.length === 1 && FACTOR_HEAD[diff[0]] ? FACTOR_HEAD[diff[0]] : 'Browser tests';
+};
+const rankRows = rankPairs.flatMap(([first, second]) => RANKED
+  .filter((measure) => !measure.both || (grantsFor(first).has(measure.both) && grantsFor(second).has(measure.both)))
+  .map((measure) => {
   const values = (arm) => arm.runs.filter(isFinished).map(measure.pick).filter((v) => v !== null && v !== undefined);
   const a = values(first);
   const b = values(second);
   const test = a.length > 0 && b.length > 0 ? rankTest(a, b) : null;
   const shown = (v) => (v === null ? 'n/a' : `${measure.unit ?? ''}${v.toFixed(measure.digits)}`);
-  return { first, second, measure: measure.label, runs: `${a.length} and ${b.length}`, medians: `${shown(median(a))} and ${shown(median(b))}`, test, ma: median(a), mb: median(b), shown };
-})));
+  return { first, second, measure: measure.label, runs: `${a.length} and ${b.length}`, medians: `${shown(median(a))} and ${shown(median(b))}`, test, ma: median(a), mb: median(b), shown, head: pairHead(first, second) };
+}));
 
 const gateRows = perRun.filter(({ arm }) => arm.gate).map(({ arm, r }) => {
   const stops = r.checked.stops;
@@ -760,7 +793,6 @@ const gateRows = perRun.filter(({ arm }) => arm.gate).map(({ arm, r }) => {
 const esc = (s) => String(s).replace(/[&<>"]/g, (ch) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[ch]);
 const slugOf = (s) => String(s).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
 const rankId = (row) => `rank-${slugOf(row.first.key)}-${slugOf(row.second.key)}-${slugOf(row.measure)}`;
-const grantsFor = (arm) => (arm.grants ? new Set(arm.grants) : grantsOf(arm.key.split('|')[1] ?? 'neither'));
 const finishedOf = (arm) => arm.runs.filter(isFinished);
 const finishedMean = (arm, pick) => mean(finishedOf(arm).map(pick));
 const rulesOf = (r) => new Set(r.checked.checks.flatMap((c) => c.byRule.map(([rule]) => rule)));
@@ -819,15 +851,21 @@ for (const arm of checkerArms) {
   );
 }
 
-if (rankRows.length) {
-  const VERB = { 'Errors left': 'left fewer errors', 'Generation seconds': 'finished faster', 'Generation cost': 'cost less' };
-  const tested = rankRows.filter((row) => row.test && row.ma !== null && row.mb !== null);
+const VERB = {
+  'Errors left': 'left fewer errors',
+  'Generation seconds': 'finished faster',
+  'Generation cost': 'cost less',
+  'Checker runs': 'ran the checker less often',
+  'Source reads': "read the package's source less often",
+};
+const rankInsights = (head) => {
+  const tested = rankRows.filter((row) => row.head === head && row.test && row.ma !== null && row.mb !== null);
   const order = (row) => (row.ma <= row.mb ? [row.first, row.second, row.ma, row.mb] : [row.second, row.first, row.mb, row.ma]);
   for (const row of tested.filter((row) => row.test.p < 0.1 && row.ma !== row.mb)) {
     const [low, high, a, b] = order(row);
     const margin = row.test.p < 0.05 ? '' : ', short of the 0.05 mark';
     say(
-      'Browser tests',
+      head,
       `${esc(low.name)} ${VERB[row.measure]} than ${esc(high.name)}: median ${row.shown(a)} against ${row.shown(b)}, p = ${row.test.p.toFixed(3)}${margin}.`,
       [link.table(rankId(row), 'the rank test'), link.compare(low, high)],
     );
@@ -835,12 +873,15 @@ if (rankRows.length) {
   const even = tested.filter((row) => row.test.p >= 0.1);
   if (even.length) {
     say(
-      'Browser tests',
-      `The other ${even.length} rank tests between these arms found no measurable difference, with p from ${span(even.map((row) => row.test.p), 3)}.`,
-      [link.table('rank-tests', 'Rank tests between loop arms')],
+      head,
+      `${even.length === tested.length ? 'The' : 'The other'} ${even.length} rank tests of these arms found no measurable difference, with p from ${span(even.map((row) => row.test.p), 3)}.`,
+      [link.table('rank-tests', 'Rank tests')],
     );
   }
-}
+};
+rankInsights('Checker');
+
+for (const head of ['Skills', 'Lookup', 'Browser tests']) rankInsights(head);
 
 const gateArmsOf = (rows) => ordered.map((arm) => [arm, rows.filter((g) => g.arm === arm).map((g) => g.r)]).filter(([, rs]) => rs.length);
 if (gateRows.length) {
@@ -887,14 +928,13 @@ const lostShares = summary.map((s) => (s.turns && s.lostTurns !== null ? s.lostT
 if (lostShares.length && Math.max(...lostShares) > 0) {
   say(
     'Blocked calls',
-    `An arm lost at most ${Math.round(Math.max(...lostShares) * 100)}% of its turns to calls its tools could not make, and at most $${fmt(Math.max(...summary.map((s) => s.lostCost ?? 0)), 2)} a run.`,
+    `An arm lost ${Math.max(...lostShares) < 0.01 ? 'under 1%' : `at most ${Math.round(Math.max(...lostShares) * 100)}%`} of its turns to calls its tools could not make${Math.max(...summary.map((s) => s.lostCost ?? 0)) >= 0.005 ? `, and at most $${fmt(Math.max(...summary.map((s) => s.lostCost ?? 0)), 2)} a run` : ''}.`,
     [link.table('blocked', 'Blocked calls'), link.table('kept', 'Means without blocked calls')],
   );
 }
 
 const unfinished = perRun.filter(({ r }) => !isFinished(r));
 const runCounts = ordered.map((arm) => arm.runs.length);
-const loopRuns = loopArms.map((arm) => finishedOf(arm).length);
 say(
   'Sample size',
   [
@@ -902,26 +942,48 @@ say(
       ? `${unfinished.length} runs did not finish, and the insights above leave them out.`
       : 'Every run finished, so every number above measures a completed task.',
     `Arms ran ${span(runCounts, 0)} times on one brief.`,
-    loopRuns.length > 1 ? `With ${Math.min(...loopRuns)} runs a side, an exact rank test can reach p = ${(2 / choose(Math.min(...loopRuns) * 2, Math.min(...loopRuns))).toFixed(3)} at the lowest.` : '',
+    (() => {
+      const sizes = [...new Set(rankPairs.map(([a, b]) => [finishedOf(a).length, finishedOf(b).length].sort((x, y) => y - x).join(' against ')))]
+        .map((pair) => pair.split(' against ').map(Number))
+        .filter(([n, m]) => n > 0 && m > 0)
+        .sort((x, y) => x[0] * x[1] - y[0] * y[1]);
+      if (!sizes.length) return '';
+      const floor = ([n, m]) => {
+        const p = 2 / choose(n + m, m);
+        return p < 0.001 ? `below 0.001 for ${n} runs against ${m}` : `${p.toFixed(3)} for ${n} runs against ${m}`;
+      };
+      return `The lowest p an exact rank test can reach is ${listed(sizes.map(floor))}.`;
+    })(),
   ].filter(Boolean).join(' '),
   [link.table('per-run', 'Per run')],
 );
 
 const grouped = [];
 for (const insight of insights) {
-  const last = grouped.at(-1);
-  if (last?.head === insight.head) last.parts.push(insight);
+  const group = grouped.find((g) => g.head === insight.head);
+  if (group) group.parts.push(insight);
   else grouped.push({ head: insight.head, parts: [insight] });
 }
 const insightsBlock = `<section class="block insights" id="insights">
   <h2>Insights</h2>
   <ul>${grouped.map((i) => {
     const part = (p) => `${p.text}${p.see.length ? ` <span class="see">See ${listed(p.see)}.</span>` : ''}`;
+    const id = `insight-${slugOf(i.head)}`;
     return i.parts.length === 1
-      ? `<li><b>${esc(i.head)}.</b> ${part(i.parts[0])}</li>`
-      : `<li><b>${esc(i.head)}.</b><ul class="parts">${i.parts.map((p) => `<li>${part(p)}</li>`).join('')}</ul></li>`;
+      ? `<li id="${id}"><b>${esc(i.head)}.</b> ${part(i.parts[0])}</li>`
+      : `<li id="${id}"><b>${esc(i.head)}.</b><ul class="parts">${i.parts.map((p) => `<li>${part(p)}</li>`).join('')}</ul></li>`;
   }).join('')}</ul>
 </section>`;
+
+// Conclusions are judgment, so they come from a hand-written file kept beside
+// the report, which a rebuild leaves in place.
+const conclusionsPath = join(reportDir, 'conclusions.md');
+const conclusionsBlock = existsSync(conclusionsPath)
+  ? `<section class="block conclusions" id="conclusions">
+  <h2>Conclusions</h2>
+  ${(await import('marked')).marked.parse(readFileSync(conclusionsPath, 'utf8'))}
+</section>`
+  : '';
 
 const lines = [
   harbor
@@ -952,7 +1014,7 @@ const lines = [
   ...(rankRows.length
     ? [
         '',
-        'Rank tests between loop arms (exact two-sided Mann-Whitney, finished runs):',
+        'Rank tests (exact two-sided Mann-Whitney, finished runs):',
         '',
         '| First arm | Second arm | Measure | Runs | Medians | U | p |',
         '|---|---|---|---|---|---|---|',
@@ -1088,12 +1150,12 @@ const perRunTable = `<section class="block" id="per-run">
 </section>`;
 
 const rankTable = rankRows.length ? `<section class="block" id="rank-tests">
-  <h2>Rank tests between loop arms</h2>
+  <h2>Rank tests</h2>
   <div class="table-scroll"><table>
     <thead><tr><th>First arm</th><th>Second arm</th><th>Measure</th><th>Runs</th><th>Medians</th><th>U</th><th>p</th></tr></thead>
     <tbody>${rankRows.map((row) => `<tr id="${rankId(row)}">${td(esc(row.first.name))}<td class="lead">${esc(row.second.name)}</td>${td(row.measure)}${td(row.runs)}${td(row.medians)}${td(row.test ? fmt(row.test.u) : 'n/a')}${td(row.test ? row.test.p.toFixed(3) : 'n/a')}</tr>`).join('')}</tbody>
   </table></div>
-  <p class="table-note">The loop arms differ only in when the browser tests run: at the agent's checkpoints, never, or at each stop through the gate. Each row is an exact two-sided Mann-Whitney test on the two arms' finished runs. U counts the pairs of runs in which the first arm's value is higher, a tie as half; p is the share of all splits of the pooled runs at least as far from an even split.</p>
+  <p class="table-note">The table pairs the loop arms, which differ only in when the browser tests run, and every other two arms that one tool or setting separates. Checker runs are compared only between arms that both have the checker. Each row is an exact two-sided Mann-Whitney test on the two arms' finished runs. U counts the pairs of runs in which the first arm's value is higher, a tie as half; p is the share of all splits of the pooled runs at least as far from an even split.</p>
 </section>` : '';
 
 const gateTable = gateRows.length ? `<section class="block" id="gate">
@@ -1152,6 +1214,11 @@ const html = `<!doctype html>
   .insights .parts li { margin: 6px 0; }
   .insights a { text-underline-offset: 2px; }
   .see { color: var(--muted); font-size: 13px; }
+  .insights li:target, .conclusions li:target { background: var(--sunken); }
+  .conclusions > * { max-width: 90ch; }
+  .conclusions ul, .conclusions ol { padding-left: 20px; }
+  .conclusions li { margin: 10px 0; }
+  .conclusions a { text-underline-offset: 2px; }
   .table-note { margin: 10px 0 0; max-width: 80ch; font-size: 13px; color: var(--muted); }
 
   .bar { position: sticky; top: 0; z-index: 2; display: flex; flex-direction: column; gap: 8px; padding: 12px 32px 0; background: var(--bg); border-bottom: 1px solid var(--line); }
@@ -1233,6 +1300,7 @@ const html = `<!doctype html>
   <h1>Billing eval report</h1>
   <p class="lede">${esc(lede)}</p>
 </header>
+${conclusionsBlock}
 ${insightsBlock}
 <section class="block">
   <h2>Brief</h2>

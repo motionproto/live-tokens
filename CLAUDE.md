@@ -60,7 +60,7 @@ The `evaluate` skill runs the billing comparison and reads its report.
 each trial in its own Docker container: five trials for each of the three
 loop arms and three for the other four, 27 in all, in about two hours.
 `--smoke` runs one trial of the arm with every tool in about a quarter of an
-hour, and `--runs <n>` runs every arm n times. The report lands in
+hour, and `--runs <n>` runs every arm n times, or only the arms named after it. The report lands in
 `eval-reports/<time>/`. A billing run needs Docker running, Harbor
 (`uv tool install harbor`), and the subscription token `claude setup-token`
 prints, saved in `~/.config/live-tokens-eval/oauth-token`. The other cases

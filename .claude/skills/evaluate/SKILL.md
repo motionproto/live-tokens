@@ -45,6 +45,10 @@ The argument is `$ARGUMENTS`.
 - **Even run**, `npm run eval:billing -- --runs <n>`: every arm, `n` trials
   each. Run it when the argument is `runs <n>`. When the user asks for a
   full run with a number, use this and say how many trials that makes.
+- **Chosen arms**, `npm run eval:billing -- --runs <n> <arm>...`: only the
+  named arms, `n` trials each. Use it when the user asks to run some arms
+  or to firm up one comparison, and say how many trials that makes. The
+  report and its rank tests cover the arms that ran.
 
 Before starting, tell the user how long to expect. A trial took 7 to 12
 minutes on 2026-10-18, scoring included, and each arm runs three trials at
@@ -93,8 +97,9 @@ separates the arms:
 - **Gate blocks**: how often the browser gate held the gate arm's run open,
   and the rules behind each block. The gate lets a run end on its fourth
   stop.
-- **Rank tests**: for each pair of the three loop arms, an exact
-  Mann-Whitney test on errors left, generation seconds, and cost over
+- **Rank tests**: for each pair of the three loop arms, and each pair of
+  arms one tool or setting separates, an exact Mann-Whitney test on errors
+  left, generation seconds, cost, checker runs, and source reads over
   finished runs. Give the p value with the medians.
 - **Behaviour**: each run's timeline in the arm's panel. Compare two arms
   with Compare: which skill each loaded first, when it looked components up,
@@ -123,6 +128,18 @@ Fix eval faults in the case files, the Harbor files in
 `.claude/evals/harbor/`, `scripts/eval-harbor.sh`, or
 `scripts/eval-check-build.mjs`, then run the smoke run again before a full
 run.
+
+## Writing the conclusions
+
+After reading the report, write `conclusions.md` beside its `index.html`
+and rebuild the report, which renders the file above the Insights. Number
+each conclusion and open it with a bold sentence that states it. Back each
+one with the insight or rank test it rests on, linked by the report's own
+anchors: `#insight-<head>` for an insight, `#rank-<arm>-<arm>-<measure>` for
+a rank test, and `#arm=<arm>&run=<n>` for a run. Where the run confirms or
+revises an earlier report, link that report's conclusions with a relative
+path. Close with what the run leaves to do next. A rebuild leaves the file
+in place.
 
 A change to how the scorer reads traces or lays out the report needs no new
 runs. Rebuild a report from its jobs folder in seconds:

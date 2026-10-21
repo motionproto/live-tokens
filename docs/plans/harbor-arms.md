@@ -367,6 +367,136 @@ quits Docker Desktop for the length of the run, so never run the two at
 once.
 ```
 
+## Full run
+
+Result of 2026-10-18 at `6d72fb1`. `npm run eval:billing` ran all 27 trials
+into `scratch/harbor/jobs/2026-10-18T19-08-29/`, and the report is
+`eval-reports/2026-10-18T19-08-29/index.html`. Every trial finished, none
+hit a cap, and none changed `brand.json`.
+
+| Arm | Runs | Grader score | Errors left | Seconds | Cost | Source reads |
+|---|---|---|---|---|---|---|
+| Unattended | 3 | 0.91 | 10.3 | 596 | $3.72 | 24.0 |
+| Skills only | 3 | 0.97 | 12.3 | 433 | $2.20 | 8.0 |
+| Skills, lookup | 3 | 1.00 | 15.3 | 379 | $1.99 | 9.3 |
+| Skills, checker | 3 | 1.00 | 0.0 | 516 | $2.32 | 11.3 |
+| Skills, lookup and checker | 5 | 1.00 | 0.0 | 474 | $2.23 | 8.2 |
+| Static loop | 5 | 1.00 | 1.8 | 436 | $2.46 | 10.0 |
+| Browser gate | 5 | 0.98 | 0.0 | 610 | $2.55 | 9.4 |
+
+The means are per run. The rank tests between the three loop arms, with
+medians:
+
+| Pair | Errors left | Seconds | Cost |
+|---|---|---|---|
+| Lookup and checker, static loop | 0 and 1, p = 0.008 | 480 and 449, p = 0.421 | $2.24 and $2.37, p = 0.421 |
+| Lookup and checker, browser gate | 0 and 0, p = 1.000 | 480 and 615, p = 0.056 | $2.24 and $2.41, p = 0.421 |
+| Static loop, browser gate | 1 and 0, p = 0.008 | 449 and 615, p = 0.008 | $2.37 and $2.41, p = 0.841 |
+
+The static loop left `contract-render` in all five runs. The gate blocked
+each of its five runs at least once, six blocks in all, on `page-text-style`
+and `contract-render`, and every gate run then finished with no errors.
+Without a checker, `control-size` and `page-component-paint` turned up in
+all nine runs, and `page-text-style` and `contract-render` in eight. The
+only grader to fail was `uses-radiobutton`: in all three Unattended runs,
+Skills only run 1, and browser gate run 5.
+
+### Conclusions
+
+The run answers the plan's question. Browser tests in the agent's loop
+remove the faults the static checks cannot see, for no time the run could
+measure. The full checker left a median of 0 errors against the static
+loop's 1, at p = 0.008, and took a median 31 s longer, at p = 0.421. The
+time the browser calls take in a trial is real, but the run's spread
+between trials hides it.
+
+- **The checker produces compliance.** Every arm with the full checker
+  finished at 0 errors, and every arm without one left 10 to 15. The skills
+  alone left as many as no skills: 12.3 and 15.3 against Unattended's 10.3.
+  The agent learns the rules from the checker's findings.
+- **The static checks miss a class of fault the agent never fixes unseen.**
+  The static loop left `contract-render` in every run.
+- **Running the browser tests during the work beats holding them for a gate
+  at the end.** Both reach 0 errors, but the gate took a median 615 s
+  against 480 and ran the checker 11 times a run against 5.6. At p = 0.056
+  this misses the 0.05 mark. The likely cause is late discovery: the agent
+  declares the work done, the gate sends it back, and it reopens finished
+  work. The run timelines can confirm this.
+- **The skills help choose components and cut source reads.** Unattended
+  scored 0.91 on the graders and read the package's source 24 times a run.
+  The skills arms scored 0.97 to 1.00 and read it 8 to 11 times. This fits
+  Unattended's higher cost, $3.72 against $1.99 to $2.55.
+- **The lookup cuts checker rounds, and may save time.** Skills, lookup left
+  the most errors of any arm, 15.3 a run, so without a checker it does not
+  lift quality. With the checker, the lookup arm ran it 5, 7, 6, 5, and 5
+  times, and Skills, checker 8, 7, and 8, at p near 0.04, close to the 0.036
+  floor of a test of five runs against three. The agent finds the right
+  component and scale before it writes, so the checker sends less back. The
+  medians suggest a saving of about 30 s, 480 against 510 with the checker
+  and 398 against 426 without, at p = 0.39 and p = 0.70. One 264 s run
+  carries most of the gap between the means without the checker.
+- **Blocked calls did not skew the comparison.** They took at most 6% of an
+  arm's turns.
+
+### Next steps
+
+- Keep the full checker, browser tests included, as the loop the skills
+  teach, and drop the gate design.
+- Fix the four rules that recur without a checker at their source, in the
+  skill guidance or the component defaults, since each one costs a checker
+  round in every run.
+- Look into whether a static rule can catch most `contract-render` faults.
+- Firm up the gate's time cost and the lookup's effect with
+  `npm run eval:billing -- --runs 10 skills-lookup-checker skills-checker browser-gate`,
+  30 trials in about two and a quarter hours. A simulation that redraws runs
+  like these puts the chance of p below 0.05 for the gate's time at about 85
+  to 90% with ten runs a side. Ten runs should settle the lookup's checker
+  rounds, and its time saving will likely stay short of 0.05. The 31 s gap
+  between the full checker and the static loop would need more than 20 runs
+  a side to clear 0.05 even half the time, so the run leaves the static loop
+  out, along with the three arms without a checker, whose question is
+  settled.
+
+### Ten-run follow-up
+
+Result of 2026-10-19. `npm run eval:billing -- --runs 10
+skills-lookup-checker skills-checker browser-gate` ran 30 trials into
+`scratch/harbor/jobs/2026-10-19T20-28-20/`, and the report is
+`eval-reports/2026-10-19T20-28-20/index.html`. Every trial finished with no
+errors left, and none changed `brand.json`.
+
+| Arm | Grader score | Seconds | Cost | Checker runs | Source reads |
+|---|---|---|---|---|---|
+| Skills, checker | 0.99 | 523 | $2.33 | 6.4 | 13.8 |
+| Skills, lookup and checker | 1.00 | 479 | $2.23 | 6.6 | 9.7 |
+| Browser gate | 1.00 | 516 | $2.43 | 8.9 | 8.8 |
+
+Rank tests on medians, for this run and pooled with the full run's runs of
+the same arms:
+
+| Pair | Measure | This run | Pooled |
+|---|---|---|---|
+| Lookup and checker, browser gate | Seconds | 468 and 493, p = 0.579 | 468 and 531, p = 0.089 |
+| Lookup and checker, browser gate | Cost | $2.20 and $2.34, p = 0.052 | $2.22 and $2.36, p = 0.021 |
+| Lookup and checker, Skills, checker | Seconds | 468 and 529, p = 0.143 | 468 and 513, p = 0.080 |
+| Lookup and checker, Skills, checker | Cost | $2.20 and $2.28, p = 0.353 | $2.22 and $2.28, p = 0.274 |
+| Lookup and checker, Skills, checker | Checker runs | 6 and 6.5, p = 0.912 | 6 and 7, p = 0.440 |
+
+The run revises two conclusions above.
+
+- **The gate costs money more than time.** Its first five runs overstated
+  the time gap, and the simulation that drew from them overstated the
+  chance of confirming it. Pooled, the gate took a median 63 s longer, at
+  p = 0.089, and cost $0.14 more a run, at p = 0.021. The full checker
+  matches the gate on errors and costs less, so the recommendation to drop
+  the gate stands.
+- **The lookup saves time and source reads, and leaves checker rounds
+  alone.** The fewer checker rounds of the full run did not recur: 6.6 a
+  run with the lookup against 6.4 without. The lookup arm ran a median 45 s
+  faster pooled, at p = 0.080, and read the package's source 9.7 times a
+  run against 13.8, medians 10.5 and 13.5 at p = 0.006. Ten runs left the time saving short of 0.05, as
+  expected.
+
 ## Invariants
 
 - Each arm reaches only the layers its row grants: `isolate.mjs` closes the
