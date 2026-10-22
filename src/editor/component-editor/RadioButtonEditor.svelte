@@ -1,6 +1,7 @@
 <script module lang="ts">
   import { buildTypeGroupColorTokens } from './scaffolding/buildTypeGroupTokens';
   import type { Token, TypeGroupConfig } from './scaffolding/types';
+  import type { ContrastPair } from '../core/palettes/contrastPairs';
 
   export const component = 'radiobutton';
 
@@ -79,6 +80,24 @@
     ...buildTypeGroupColorTokens(typeGroups, { component, variants: Object.keys(states) }),
     ...typeGroupTokens,
   ];
+
+  // The button paints no surface without the `color` prop, and the default dot
+  // stays hidden.
+  function stateContrastPairs(s: 'default' | 'hover' | 'selected'): ContrastPair[] {
+    const marks = s === 'default' ? ['--radiobutton-default-dot-border-color'] : [`--radiobutton-${s}-dot-border-color`, `--radiobutton-${s}-dot-fill`];
+    return [
+      ...typeGroups[s].map((g): ContrastPair => ({
+        foreground: g.colorVariable,
+        backdrop: [],
+        role: 'text',
+        fontSize: g.sizeVariable,
+        fontWeight: g.weightVariable,
+      })),
+      ...marks.map((foreground): ContrastPair => ({ foreground, backdrop: [], role: 'non-text' })),
+    ];
+  }
+
+  export const contrastPairs: ContrastPair[] = (['default', 'hover', 'selected'] as const).flatMap(stateContrastPairs);
 </script>
 
 <script lang="ts">

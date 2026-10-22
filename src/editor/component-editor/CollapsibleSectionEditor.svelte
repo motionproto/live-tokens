@@ -1,6 +1,7 @@
 <script module lang="ts">
   import { buildTypeGroupColorTokens } from './scaffolding/buildTypeGroupTokens';
   import type { Token, TypeGroupConfig } from './scaffolding/types';
+  import type { ContrastPair } from '../core/palettes/contrastPairs';
 
   export const component = 'collapsiblesection';
 
@@ -117,6 +118,22 @@
   ]);
 
   const variantOptions = VARIANTS.map((v) => ({ value: v, label: VARIANT_LABELS[v] }));
+
+  function headerContrastPairs(v: Variant, s: HeaderState): ContrastPair[] {
+    const backdrop = [`--collapsiblesection-${v}-${s}-surface`];
+    return [
+      ...variantTypeGroups(v)[`Header / ${HEADER_STATE_LABELS[s]}`].map((g): ContrastPair => ({
+        foreground: g.colorVariable,
+        backdrop,
+        role: 'text',
+        fontSize: g.sizeVariable,
+        fontWeight: g.weightVariable,
+      })),
+      { foreground: `--collapsiblesection-${v}-${s}-icon`, backdrop, role: 'non-text' },
+    ];
+  }
+
+  export const contrastPairs: ContrastPair[] = VARIANTS.flatMap((v) => HEADER_STATES.flatMap((s) => headerContrastPairs(v, s)));
 </script>
 
 <script lang="ts">

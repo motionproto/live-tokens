@@ -1,6 +1,7 @@
 <script module lang="ts">
   import { buildSiblings } from './scaffolding/siblings';
   import type { Token, IntrinsicSpec } from './scaffolding/types';
+  import type { ContrastPair } from '../core/palettes/contrastPairs';
 
   export const component = 'button';
 
@@ -120,6 +121,35 @@
       default: { default: 'var(--color-transparent)' },
     },
   ];
+
+  // The small size keeps each variant's colors, and it is the smaller of the two text sizes.
+  const pairFont = { fontSize: '--button-small-text-font-size', fontWeight: '--button-small-text-font-weight' } as const;
+
+  function variantContrastPairs(v: Variant): ContrastPair[] {
+    const text = (s: StateName) => `${statePrefix(v, s)}-text`;
+    const surface = (s: StateName) => `${statePrefix(v, s)}-surface`;
+    const hoverStack = ['--button-hover-tint-enabled', surface('hover')];
+    const disabled: ContrastPair = { foreground: text('disabled'), backdrop: [surface('disabled')], role: 'text', ...pairFont, inactive: true };
+    if (v !== 'outline') {
+      return [
+        { foreground: text('default'), backdrop: [surface('default')], role: 'text', ...pairFont },
+        { foreground: text('hover'), backdrop: hoverStack, role: 'text', ...pairFont },
+        disabled,
+      ];
+    }
+    // `:active` repaints the surface without the tint. A pointer press keeps the
+    // hover text color, and a key press keeps the default one.
+    const active = ['--button-outline-active-surface'];
+    return [
+      { foreground: text('default'), backdrop: [surface('default')], role: 'text', ...pairFont, context: 'default' },
+      { foreground: text('default'), backdrop: active, role: 'text', ...pairFont, context: 'active' },
+      { foreground: text('hover'), backdrop: hoverStack, role: 'text', ...pairFont, context: 'hover' },
+      { foreground: text('hover'), backdrop: active, role: 'text', ...pairFont, context: 'active' },
+      disabled,
+    ];
+  }
+
+  export const contrastPairs: ContrastPair[] = variants.flatMap(variantContrastPairs);
 </script>
 
 <script lang="ts">

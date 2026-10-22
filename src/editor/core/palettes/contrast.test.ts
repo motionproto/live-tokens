@@ -5,6 +5,8 @@ import {
   findLForContrast,
   AA_BODY,
   AA_LARGE,
+  isLargeText,
+  floorFor,
 } from './contrast';
 
 describe('WCAG relative luminance + contrast', () => {
@@ -25,6 +27,36 @@ describe('WCAG relative luminance + contrast', () => {
     expect(relativeLuminance('#ffffff')).toBeCloseTo(1, 6);
     expect(AA_BODY).toBe(4.5);
     expect(AA_LARGE).toBe(3.0);
+  });
+});
+
+describe('isLargeText', () => {
+  it('holds at 24px in normal weight', () => {
+    expect(isLargeText(24, 400)).toBe(true);
+  });
+
+  it('fails just under 24px in normal weight', () => {
+    expect(isLargeText(23.9, 400)).toBe(false);
+  });
+
+  it('holds at 18.66px bold', () => {
+    expect(isLargeText(18.66, 700)).toBe(true);
+  });
+
+  it('fails at 18.66px below bold', () => {
+    expect(isLargeText(18.66, 600)).toBe(false);
+  });
+});
+
+describe('floorFor', () => {
+  it('gives text 4.5:1, or 3:1 when large', () => {
+    expect(floorFor('text', false)).toBe(4.5);
+    expect(floorFor('text', true)).toBe(3);
+  });
+
+  it('gives non-text 3:1 at any size', () => {
+    expect(floorFor('non-text', false)).toBe(3);
+    expect(floorFor('non-text', true)).toBe(3);
   });
 });
 

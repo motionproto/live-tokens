@@ -417,8 +417,275 @@ Commit with the subject `Contrast W6: report`.
 
 ### Summary
 
+`/plan-all contrast` ran Waves 0 to 6 on 2026-10-10 in
+`../live-tokens-contrast`, on the branch `contrast-checker` from `ab02b35`.
+The branch stays unmerged and unreleased.
+
+**Commits.** `git log --grep "Contrast W" --oneline` lists 20 commits before
+this report:
+
+- W0: `ddf7df1` baseline. `HEAD` already held the plan, audit and inventory,
+  so the step 3 commit does not exist.
+- W1: `914a64e` large-text constants and contrast rules in contrast.ts,
+  `9e1b05d` pair declarations and measurement, `6eb8386` DOM color resolver,
+  `db6c88f` type splitTopLevel's separator as a plain predicate.
+- W2: `e86ab13` contrast pair registry and the contrastPairs entry field,
+  `03296ba` pairs for Button through Notification, `cda716c` pairs for Input
+  through CodeSnippet, `188a1b5` pairs for Dialog through ProgressBar,
+  `bc90396` pairs for ImageLightbox, VideoLightbox and VideoFrame, `223febf`
+  contrast pair contract test, `cd663cc` defer the ContrastPair type export.
+- W3: `52a4b6b` trigger snippet on UIInfoPopover, `50dd594` contrast readout
+  helpers, `06f7f8b` contrast readout beside foreground color rows, `4129c52`
+  changelog for the contrast readout.
+- W4: `6ea3f10` contrastPairs step in create-component, `bcfcac9` contrast
+  readout section in Editing tokens.
+- W5: `cb2b20e` browser check for the contrast readout, `2a8384a` report of
+  the shipped default pairs.
+- W6: `Contrast W6: report`, the commit that carries this Summary.
+
+**Judgment calls.** Calls holds 33 entries, each settled by its wave's Review
+rule or step text.
+
+**Deferred questions.** Deferred holds 10 entries, which raise 8 questions:
+
+1. `ContrastPair` export (W2 step 2, W3 step 5, W4 step 1). The type stays out
+   of the public `component-editor` index. A consumer's untyped
+   `contrastPairs` literal widens `role` to `string`, which
+   `registerComponent()` rejects under the Svelte check. Should the index
+   export it beside `IntrinsicSpec`, with a changelog line and a typed export
+   in the skill step?
+2. W1 step 1. `pageHarness.ts` imports `isLargeText` alone. Should it import
+   `LARGE_TEXT_PX`, `LARGE_BOLD_PX` and `BOLD` literally as well?
+3. W1 step 3. `closestToFailing` ranks active measures before inactive ones,
+   so an inactive pair never hides a failing active pair. Should it take the
+   step's literal "lowest ratio over its floor" instead?
+4. W3 step 4. `UITokenSelector` adds the `.ui-ts-meta` wrapper only when
+   `metaAfter` is set. Should every row carry the wrapper?
+5. W3 step 3. After a VariantGroup tab switch the readout shows the previous
+   variable's measure for one frame. Should it hide until the new measure
+   lands, at the cost of a one-frame row shift?
+6. W3 autofixer. `UIPaletteSelector.svelte` (8) and `TokenLayout.svelte` (2)
+   lack `{#each}` keys on lines the wave left untouched. Should a separate
+   change add them?
+7. W4 step 1. The Skill Atlas `cc-editor` chipset keeps its four chips.
+   Should it gain one for contrast pairs?
+8. W4 step 2. `editing-tokens.md` opens with "This page covers **Tokens**"
+   and now holds a Components view section. Should the intro name the
+   readout?
+
+Audit decision 6, the preview backdrop, stays open and out of scope.
+
+**Failing defaults.** In the shipped default theme, Motion Proto, 30 of 205
+active pairs in 12 components fall below their floor, 175 pass, and 31
+inactive pairs pass as exempt. `temp/contrast-checker-defaults.md` lists
+every failing pair. The run changed no default.
+
+**Repository checkout.** `git status --short` in the repository's checkout
+prints nothing, at `ab02b35` on `main`, which matches the Wave 0 snapshot.
+The comparison shows no write outside the worktree.
+
+**Review.** `git -C ../live-tokens-contrast log --oneline main..contrast-checker`
+
 ### Baseline
+
+Snapshot of the repository's checkout, taken 2026-10-10 before the worktree
+existed:
+
+- `git rev-parse HEAD`: `ab02b35a6d967605b0a7baa11419d7064fbb4e51` on `main`.
+- `git status --short`: empty.
+
+Gates run in the worktree on `contrast-checker` at `ab02b35`, with
+`node_modules` from `npm ci` and no `dist-plugin/`. Every gate passes, so no
+failure predates the run:
+
+- `npx vitest run src/editor bin`: 97 files, 4349 tests passed.
+- `npm run check`: 1321 files, 0 errors, 0 warnings.
+- `npm run check:editor-font-isolation`: OK.
+- `npm run check:skills`: OK, 8 skills.
+- `npm run check:skill-atlas`: OK.
+- `npm run check:skill-sources`: current, 8 skills, 20 files.
+- `npm run check:docs-content`: current, 8 chapters.
 
 ### Calls
 
+- W0 step 3: `HEAD` already tracks the plan, both `temp/contrast-checker-*.md`
+  files and both workflow scripts, byte-identical to the checkout, so the
+  worktree copied nothing and the `Contrast W0: plan, audit and inventory`
+  commit does not exist.
+- W1 Review rule: `aaFloor` now returns `isLargeText(...) ? AA_LARGE : AA_BODY`,
+  the same expression the local constants formed. A one-off comparison of the
+  old and new forms over every size from 0 to 40px in 0.01px steps, the
+  thresholds plus and minus 0.01, and 14 weights from 0 to 1000 found no
+  difference.
+- W2 step 3, editor count: 27 registry entries hold `text-color` tokens, every
+  editor except Panel and Image, as the inventory's tables list. The plan's 24
+  repeats the audit's count. Step 4's first assertion requires a pair for each,
+  so all 27 editors declare pairs.
+- W2 step 3, tint gates: the gates are intrinsics the editors already export
+  but `registry.ts` never wired. Step 4 admits a backdrop variable only from the
+  schema or an intrinsic, so each entry whose pairs name a gate now carries its
+  editor's `intrinsics` (Button, IconButton, SegmentedControl, TabBar,
+  MenuSelect, SideNavigation). `intrinsicsContract.test.ts` covers and passes
+  them. ImageLightbox's `tile-fit` stays unwired because no pair names it.
+- W2 Button: the text renders at the variant size and at the shared small size,
+  so every Button text pair names `--button-small-text-font-size` and
+  `--button-small-text-font-weight`, the smaller size by default (sm against lg).
+- W2 Button and IconButton outline `:active`: the CSS repaints with the
+  `background` shorthand, which drops the tint layer, and sets no color. A
+  pointer press keeps the hover color and a key press or `force-active` keeps
+  the default one, so both colors gain a pair on the active surface, with
+  contexts `default`, `hover` and `active`.
+- W2 InlineEditActions: each `-text` color paints a lone glyph (`fa-check`,
+  `fa-times`) and no text, so the CSS makes its pairs `non-text`.
+- W2 Notification body: `size="small"` sets `.notification-description` in
+  `--font-size-sm`, the smaller of its two sizes, so the body pair names it
+  with the variant's weight. The dismiss pair takes the context
+  `dismiss button` and the body pair `body`.
+- W2 Input: the CSS colors the icon button's glyph with `--input-focused-icon`
+  on hover and on `:focus-within` while the field stays unfocused, so that
+  color gains a second pair on the default surface (contexts `focused` and
+  `icon button`). Each placeholder pair names its state's text size and weight.
+- W2 SegmentedControl and MenuSelect: every option sits inside the bar and
+  every item inside the menu, so the bar or menu surface closes every state's
+  stack, the opaque hover and selected surfaces included. `.segment` hard-codes
+  a transparent background, so the default option's stack is the bar alone.
+- W2 SegmentedControl text: `.small` rebinds every state's text size to
+  `--segmentedcontrol-option-small-text-font-size`, so each text pair names it
+  with its own state's weight.
+- W2 TabBar indicators: the inventory marks `--tabbar-<state>-border` as a
+  `mark` in all four states, so each takes a non-text pair on its tab's stack.
+  The default and hover indicators ship transparent and measure 1:1.
+- W2 Card: `size="small"` sets the title in `--font-size-md` and the body in
+  `--font-size-sm`, the smaller of each one's two sizes, so the pairs name
+  those with the Card's own weights.
+- W2 Table header: the inventory lists the header surface alone, but `th`
+  sits inside `.table-wrapper`, which paints `--table-default-surface`, so the
+  CSS puts the wrapper under the header surface.
+- W2 Dialog: the inventory lists the header surface and the dialog surface
+  alone, but the CSS nests the header and body in `.dialog` and `.dialog` in
+  `.dialog-backdrop`, which paints the scrim. The title and close icon stack
+  header, dialog and scrim; the body stacks dialog and scrim.
+- W2 SlidePager controls: the inventory lists the control surface alone, but
+  the zoomed bar sits on `.slidepager-modal`, which paints the scrim. Each
+  control color takes an `inline` pair on its surface and a `zoomed` pair on
+  its surface over the scrim. The counter follows the Review rule.
+- W2 SideNavigation: the title label stacks the label surface, the title state
+  and the panel. A pointer on the toggle also hovers `.sn-title`, and a
+  selected title has no hover rule, so the default toggle icon takes one pair
+  per title state and the hover icon one per hovered and selected title, with
+  contexts `title <state>`. The `-indicator` colors are absent from the
+  inventory and take no pair.
+- W2 Slider: the default, hover and disabled thumbs each take a `fill` pair and
+  a `track` pair per the Review rule, the disabled ones `inactive`. The shared
+  label and value take one pair each on the page.
+- W2 RadioButton: the ring and the hover and selected dot fills are marks on
+  the page. The default dot renders at opacity 0 and takes no pair.
+- W2 ImageLightbox: per the Review rule, `--imagelightbox-chrome-icon` takes an
+  `icons` pair and a `counter` text pair at `--font-size-xs`, both on the chrome
+  surface over the scrim, as the inventory's stack runs. The close and gallery
+  buttons repaint with `--imagelightbox-chrome-hover-surface` on hover, so a
+  third `hovered icons` pair sits on that surface over the scrim.
+- W2 VideoLightbox and VideoFrame: a stack drops the footage, which is no
+  variable, and keeps the component's layers under it. The VideoLightbox badge
+  sits on `--videolightbox-tile-surface`, which `.videolightbox` paints behind
+  the poster and the inventory omits; the VideoFrame badge sits on the clip and
+  frame surfaces, as the inventory lists. The close button takes `default` and
+  `hover` pairs over the scrim.
+- W2 step 4, token kind: `rawKind` sends the hidden per-side padding rows
+  (`-padding-top` and the rest) to `text-color` by fall-through, so the first
+  assertion classifies each schema token by `rawKind(stripSide(variable))`,
+  the side-aware reading `matchesKind` already uses.
+- W3 Review rule: TokenLayout's 380px query wraps `.ui-ts-meta` and gives the
+  value name a full line, so the readout takes a line of its own under it. A
+  headless probe of Button's text color row found the readout below the value
+  name at variant-group widths of 321 and 381px and beside it at 441px, with no
+  horizontal overflow of the token grid or the variant group.
+- W3 step 3, popover: a failing pair's measured ratio in the popover carries
+  the readout's amber exclamation mark, which Invariant 6 allows on a failing
+  pair. Passing and inactive pairs stay grey.
+- W3 step 5, Invariant 11: `src/editor/ui/index.ts` exports `UITokenSelector`,
+  so its `metaAfter` snippet is a public addition and takes a third
+  `### Added` entry. The index exports neither `UIInfoPopover` nor
+  `UIContrastReadout`, so the `trigger` snippet and the readout take none.
+- W4 step 1, placement: `SKILL.md` held 249 lines against the 250-line ceiling
+  `check:skills` enforces, so the step is one line, a fourth item in the
+  editor file's list, and the list's intro reads "four parts". The skill now
+  sits at the ceiling.
+- W4 step 1, Review rule: the step states the contract test's four assertions
+  (every `allTokens` text or icon color is a foreground, pairs name only schema
+  and intrinsic variables, every text pair names `fontSize`, and no two pairs
+  share foreground, backdrop and context) and the `ContrastPair` fields. Its
+  top-first order, `fontWeight` and smaller-size guidance go past the test and
+  contradict none of it.
+- W4 step 1, registration: `registerComponent()` registers only the pairs its
+  entry carries, and the contract test reads `entry.contrastPairs`, so the step
+  adds that the registration passes the export as `contrastPairs`.
+- W5 step 1, independent ratio: the test paints each color through its own
+  canvas and applies its own sRGB luminance, then asserts both colors are
+  opaque, so the page background drops out of the two-color comparison. The
+  shipped default passes at 9.66:1, so the test keeps Button primary.
+- W5 step 1, Notification: the test opens the Info variant's `colors` part,
+  where `--notification-info-text` lists its `dismiss button` and `body` pairs.
+- W5 Review rule, Toggle: `--toggle-thumb-surface` fails in the shipped default
+  at 2.93:1, and its test asserts only the popover's criterion and link, so the
+  test keeps the thumb and the report lists the failure.
+- W5 step 2, script: a scratch Playwright config built on
+  `createPlaywrightConfig` ran one scratch spec, so the dev server took a free
+  port and the isolated data copy. The copy drops `_active.json`, so the editor
+  opened the default theme, Motion Proto. The config, spec and generator are
+  deleted.
+- W5 step 2, report shape: the table sorts by ratio divided by floor, lowest
+  first, and adds Context and Role columns to the step's five, so two pairs on
+  one foreground stay distinct and a 3:1 floor reads as non-text or large text.
+
 ### Deferred
+
+- W1 step 1: `pageHarness.ts` imports `isLargeText` alone. `aaFloor` was the
+  only reader of the large-text constants, so importing `LARGE_TEXT_PX`,
+  `LARGE_BOLD_PX` and `BOLD` as well would add unused bindings. The Done-when
+  line "imports the large-text constants" reads as met through `isLargeText`;
+  the reviewer may prefer the literal import.
+- W1 step 3: `closestToFailing` ranks active measures before inactive ones and
+  falls back to the inactive ones only when no active pair exists. The step's
+  literal "lowest ratio over its floor" would let an inactive pair hide a
+  failing active pair on the same foreground, such as Input's placeholder on
+  its disabled surface, and the readout would then skip the amber mark this
+  plan promises for every pair below its floor. The audit states that an
+  inactive pair applies no floor, which supports the ranking. The reviewer may
+  prefer the literal reading.
+- W2 step 2: `RegisterComponentEntry` gains `contrastPairs` through
+  `RegistryEntry`, but the `ContrastPair` type stays out of the public
+  `component-editor` index, which exports `Token` and `IntrinsicSpec`. A
+  consumer can pass pairs without the type. No step names the export, so the
+  wave adds none; Wave 3 or 4 may export it beside `IntrinsicSpec`.
+- W3 step 4: `UITokenSelector` wraps the value name and the snippet in
+  `.ui-ts-meta` only when `metaAfter` is set. A row without a readout keeps its
+  markup, so the four parents that restyle `.ui-ts-meta-text` (GradientEditor,
+  ControlBody, VariantGroup, ShadowBackdropControls) see no change. The
+  reviewer may prefer one wrapper on every row.
+- W3 step 3: a VariantGroup tab reuses one selector across states, so after a
+  tab switch the readout shows the previous variable's measure for one frame.
+  Hiding the readout until the new measure lands would shift the row for that
+  frame instead, so the wave keeps the lag.
+- W3 autofixer: `svelte-autofixer` reports missing `{#each}` keys in
+  `UIPaletteSelector.svelte` (8) and `TokenLayout.svelte` (2), all on lines the
+  wave leaves untouched. A key on TokenLayout's entry loop could remount its
+  selectors, so the wave adds none.
+- W3 step 5: the changelog names the `contrastPairs` field, and the
+  `ContrastPair` type stays out of the public `component-editor` index, as W2
+  left it. No Wave 3 step names the export, so Wave 4 or the reviewer may add
+  it beside `IntrinsicSpec`.
+- W4 step 1: the `ContrastPair` type stays out of the public
+  `component-editor` index, so the skill step names no type and shows no code.
+  A consumer's untyped `contrastPairs` literal widens `role` to `string`, which
+  `registerComponent()` rejects under the Svelte check. Exporting the type
+  beside `IntrinsicSpec`, with a changelog line, would let the step type the
+  export. No Wave 4 step names the export, so the wave adds none.
+- W4 step 1: the Skill Atlas `cc-editor` chipset keeps its four chips and gains
+  none for contrast pairs. No step names a chip, so the sync only re-pointed
+  the moved ranges.
+- W4 step 2: `editing-tokens.md` opens with "This page covers **Tokens**",
+  and the readout lives in the Components view. The new section sits after
+  Columns, before Saving, opens with "In the **Components** view", and spells
+  "colour" as the chapter does. The intro stays unchanged; the reviewer may
+  extend it to name the readout.

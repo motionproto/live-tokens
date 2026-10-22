@@ -1,5 +1,6 @@
 <script module lang="ts">
   import type { Token, IntrinsicSpec } from './scaffolding/types';
+  import type { ContrastPair } from '../core/palettes/contrastPairs';
 
   export const component = 'imagelightbox';
 
@@ -38,6 +39,15 @@
       values: ['contain', 'cover'],
       default: { default: 'contain' },
     },
+  ];
+
+  // One color paints the chrome's icons and its extra-small counter text. The
+  // chrome floats on the scrim.
+  const scrim = '--imagelightbox-scrim-surface';
+  export const contrastPairs: ContrastPair[] = [
+    { foreground: '--imagelightbox-chrome-icon', backdrop: ['--imagelightbox-chrome-surface', scrim], role: 'non-text', context: 'icons' },
+    { foreground: '--imagelightbox-chrome-icon', backdrop: ['--imagelightbox-chrome-hover-surface', scrim], role: 'non-text', context: 'hovered icons' },
+    { foreground: '--imagelightbox-chrome-icon', backdrop: ['--imagelightbox-chrome-surface', scrim], role: 'text', fontSize: '--font-size-xs', context: 'counter' },
   ];
 </script>
 

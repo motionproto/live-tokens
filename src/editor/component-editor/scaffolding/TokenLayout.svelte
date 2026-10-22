@@ -439,6 +439,9 @@
       grid-template-columns: max-content var(--token-selector-w) minmax(0, 1fr);
       column-gap: var(--ui-space-6);
     }
+    /* A contrast readout wraps onto a line of its own below the value name. */
+    .token-grid :global(.ui-ts-meta) { flex-wrap: wrap; }
+    .token-grid :global(.ui-ts-meta > .ui-ts-meta-text) { flex-basis: 100%; }
   }
 
   .zone-divider {

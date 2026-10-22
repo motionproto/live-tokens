@@ -1,5 +1,6 @@
 <script module lang="ts">
   import type { Token } from './scaffolding/types';
+  import type { ContrastPair } from '../core/palettes/contrastPairs';
 
   export const component = 'videolightbox';
 
@@ -37,6 +38,15 @@
   };
 
   export const allTokens: Token[] = Object.values(states).flat();
+
+  // The badge sits over the poster on the tile, and the close button on the scrim.
+  const scrim = '--videolightbox-scrim-surface';
+  export const contrastPairs: ContrastPair[] = [
+    { foreground: '--videolightbox-badge-default-icon', backdrop: ['--videolightbox-badge-default-surface', '--videolightbox-tile-surface'], role: 'non-text' },
+    { foreground: '--videolightbox-badge-hover-icon', backdrop: ['--videolightbox-badge-hover-surface', '--videolightbox-tile-surface'], role: 'non-text' },
+    { foreground: '--videolightbox-chrome-icon', backdrop: ['--videolightbox-chrome-surface', scrim], role: 'non-text', context: 'default' },
+    { foreground: '--videolightbox-chrome-icon', backdrop: ['--videolightbox-chrome-hover-surface', scrim], role: 'non-text', context: 'hover' },
+  ];
 </script>
 
 <script lang="ts">

@@ -102,6 +102,31 @@ and the grid takes the tablet values at 767px and narrower and the phone values
 at 480px and narrower. The columns button in the editor bar draws the grid over
 the page, and a page on the grid reflows as you edit.
 
+## Contrast readout
+
+In the **Components** view, every colour row that paints text, an icon, or
+another foreground mark shows its WCAG contrast ratio beside the colour's name.
+The readout measures the colour against the layers the component paints behind
+it. Each edit and each theme load updates it, and the rows keep their places.
+
+- **Value.** The ratio shows on every foreground row, in grey while it meets
+  its floor. It truncates to two decimals, so 4.499 reads `4.49:1`, below the
+  4.5:1 floor. Text needs 4.5:1, or 3:1 at 24px or 18.66px bold. An icon or
+  another mark needs 3:1.
+- **Amber mark.** A ratio below its floor turns amber and gains an exclamation
+  mark.
+- **Popover.** Click the ratio to open it. For each pair the colour forms, it
+  names the WCAG rule and its floor, the measured ratio, and the layers behind
+  the colour, top first, with a link to the success criterion. A colour over
+  several backgrounds forms one pair per background, and the row shows the pair
+  closest to failing. Notification's body colour paints the dismiss icon on the
+  header and the body text on the page, so its popover lists two pairs.
+- **Disabled states.** WCAG exempts disabled controls, so a disabled state's
+  ratio shows in a dimmer grey, whatever its value.
+- **Page background.** Every stack ends on the page background, `--page-bg`.
+  A translucent layer blends into the layers beneath it, and the readout
+  measures the blend. A gradient layer counts its worst stop.
+
 ## Saving
 
 The editor saves to your browser continuously, so work survives a reload

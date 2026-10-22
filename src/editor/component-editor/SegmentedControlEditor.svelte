@@ -1,6 +1,7 @@
 <script module lang="ts">
   import { buildTypeGroupTokens, buildTypeGroupShareableContexts } from './scaffolding/buildTypeGroupTokens';
   import type { Token, TypeGroupConfig, IntrinsicSpec } from './scaffolding/types';
+  import type { ContrastPair } from '../core/palettes/contrastPairs';
 
   export const component = 'segmentedcontrol';
 
@@ -139,6 +140,32 @@
       values: ['var(--color-transparent)', 'var(--segmentedcontrol-hover-tint)'],
       default: { default: 'var(--color-transparent)' },
     },
+  ];
+
+  // Every option sits on the bar, and the default option paints no surface of
+  // its own. The small size sets every option's text in
+  // --segmentedcontrol-option-small-text-font-size, the smaller of its two sizes.
+  function optionContrastPairs(state: string, icon: string, backdrop: string[]): ContrastPair[] {
+    const inactive = state === 'disabled option' ? { inactive: true } : {};
+    return [
+      ...typeGroups[state].map((g): ContrastPair => ({
+        foreground: g.colorVariable,
+        backdrop,
+        role: 'text',
+        fontSize: '--segmentedcontrol-option-small-text-font-size',
+        fontWeight: g.weightVariable,
+        ...inactive,
+      })),
+      { foreground: icon, backdrop, role: 'non-text', ...inactive },
+    ];
+  }
+
+  const bar = '--segmentedcontrol-bar-surface';
+  export const contrastPairs: ContrastPair[] = [
+    ...optionContrastPairs('default option', '--segmentedcontrol-option-icon', [bar]),
+    ...optionContrastPairs('hover option', '--segmentedcontrol-option-hover-icon', ['--segmentedcontrol-hover-tint-enabled', '--segmentedcontrol-option-hover-surface', bar]),
+    ...optionContrastPairs('selected option', '--segmentedcontrol-selected-icon', ['--segmentedcontrol-selected-surface', bar]),
+    ...optionContrastPairs('disabled option', '--segmentedcontrol-disabled-icon', ['--segmentedcontrol-disabled-surface', bar]),
   ];
 </script>
 

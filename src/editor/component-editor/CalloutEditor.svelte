@@ -1,6 +1,7 @@
 <script module lang="ts">
   import { buildTypeGroupColorTokens } from './scaffolding/buildTypeGroupTokens';
   import type { Token, TypeGroupConfig } from './scaffolding/types';
+  import type { ContrastPair } from '../core/palettes/contrastPairs';
   import { calloutVariants } from '../../system/components/Callout.svelte';
 
   export const component = 'callout';
@@ -68,6 +69,18 @@
   );
 
   const variantOptions = variants.map((v) => ({ value: v, label: v.charAt(0).toUpperCase() + v.slice(1) }));
+
+  function variantContrastPairs(v: Variant): ContrastPair[] {
+    return variantTypeGroups(v).map((g) => ({
+      foreground: g.colorVariable,
+      backdrop: [`--callout-${v}-surface`],
+      role: 'text',
+      fontSize: g.sizeVariable,
+      fontWeight: g.weightVariable,
+    }));
+  }
+
+  export const contrastPairs: ContrastPair[] = variants.flatMap(variantContrastPairs);
 </script>
 
 <script lang="ts">

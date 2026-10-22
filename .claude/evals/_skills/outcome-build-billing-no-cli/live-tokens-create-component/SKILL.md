@@ -160,11 +160,12 @@ The excerpt shows the chain for part of the property map. Every editable value r
 
 ## Component editor
 
-Create `src/system/components/StatCardEditor.svelte` beside the runtime file. The editor has three parts.
+Create `src/system/components/StatCardEditor.svelte` beside the runtime file. The editor has four parts.
 
 1. A `<script module>` block exports `component`, the id, and `allTokens`, one row per property in the map. A row is `{ label, variable, element? }`; `element` groups rows in the panel by part, and `label` names the property in the row.
 2. The instance script imports the runtime component and the editor primitives from the package's public paths, and maps the state being edited to preview props.
 3. The markup mounts `ComponentEditorBase` with one `VariantGroup` per variant, each rendering a preview.
+4. The same `<script module>` block exports `contrastPairs`, one pair for each foreground color and each backdrop it sits on, and the registration passes it as `contrastPairs`. Every `allTokens` color with a text or icon suffix (`-text`, `-label`, `-icon`, `-title`, `-body`, `-value`, and the other text roles in `references/token-naming.md`) is the foreground of at least one pair. A pair is `{ foreground, backdrop, role, fontSize?, fontWeight?, inactive?, context? }`. `backdrop` lists the properties the runtime paints behind the foreground, top layer first, and leaves out `--page-bg`, which the editor puts under the last layer. `role` is `'text'`, or `'non-text'` for an icon or another mark. A text pair names its `-font-size` property as `fontSize`, the smaller one when the text renders at two sizes, and its `-font-weight` property as `fontWeight`. A disabled state's pair sets `inactive: true`, because WCAG exempts disabled controls. A foreground over several backdrops takes one pair per backdrop, each with its own `context`. A pair names only properties in `allTokens` and intrinsic variables, and no two pairs share a foreground, a backdrop, and a context.
 
 ```svelte
 <script module lang="ts">

@@ -1,6 +1,7 @@
 <script module lang="ts">
   import { buildTypeGroupColorTokens } from './scaffolding/buildTypeGroupTokens';
   import type { Token, TypeGroupConfig, IntrinsicSpec } from './scaffolding/types';
+  import type { ContrastPair } from '../core/palettes/contrastPairs';
 
   export const component = 'card';
 
@@ -103,6 +104,13 @@
       values: [HOVER_OFF.shadow, HOVER_ON.shadow],
       default: { default: HOVER_OFF.shadow },
     },
+  ];
+
+  // size="small" sets the title in --font-size-md and the body in
+  // --font-size-sm, the smaller of each one's two sizes.
+  export const contrastPairs: ContrastPair[] = [
+    { foreground: '--card-default-title', backdrop: ['--card-default-header-surface', '--card-default-surface'], role: 'text', fontSize: '--font-size-md', fontWeight: '--card-default-title-font-weight' },
+    { foreground: '--card-default-body', backdrop: ['--card-default-surface'], role: 'text', fontSize: '--font-size-sm', fontWeight: '--card-default-body-font-weight' },
   ];
 </script>
 

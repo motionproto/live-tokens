@@ -10,6 +10,50 @@ import { hexToOklch, oklchToHex, gamutClamp } from './oklch';
 export const AA_BODY = 4.5;
 export const AA_LARGE = 3.0;
 
+/** WCAG's large-text sizes: the AA floor drops to 3:1 at either. */
+export const LARGE_TEXT_PX = 24;
+export const LARGE_BOLD_PX = 18.66;
+export const BOLD = 700;
+
+export function isLargeText(px: number, weight: number): boolean {
+  return px >= LARGE_TEXT_PX || (px >= LARGE_BOLD_PX && weight >= BOLD);
+}
+
+export type ContrastRole = 'text' | 'non-text';
+
+export interface ContrastRule {
+  criterion: string;
+  name: string;
+  level: 'AA';
+  floor: number;
+  /** Text only: the floor once `isLargeText` holds. */
+  largeFloor?: number;
+  url: string;
+}
+
+export const CONTRAST_RULES: Record<ContrastRole, ContrastRule> = {
+  text: {
+    criterion: '1.4.3',
+    name: 'Contrast (Minimum)',
+    level: 'AA',
+    floor: AA_BODY,
+    largeFloor: AA_LARGE,
+    url: 'https://www.w3.org/TR/WCAG22/#contrast-minimum',
+  },
+  'non-text': {
+    criterion: '1.4.11',
+    name: 'Non-text Contrast',
+    level: 'AA',
+    floor: 3,
+    url: 'https://www.w3.org/TR/WCAG22/#non-text-contrast',
+  },
+};
+
+export function floorFor(role: ContrastRole, large: boolean): number {
+  const rule = CONTRAST_RULES[role];
+  return large && rule.largeFloor !== undefined ? rule.largeFloor : rule.floor;
+}
+
 function linearizeChannel(v8: number): number {
   const s = v8 / 255;
   return s <= 0.03928 ? s / 12.92 : Math.pow((s + 0.055) / 1.055, 2.4);

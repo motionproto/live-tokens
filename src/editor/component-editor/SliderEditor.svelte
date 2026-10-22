@@ -1,6 +1,7 @@
 <script module lang="ts">
   import { buildTypeGroupColorTokens } from './scaffolding/buildTypeGroupTokens';
   import type { Token, TypeGroupConfig } from './scaffolding/types';
+  import type { ContrastPair } from '../core/palettes/contrastPairs';
   import { sliderVariants } from '../../system/components/Slider.svelte';
 
   export const component = 'slider';
@@ -109,6 +110,38 @@
   ]);
 
   const variantOptions = variants.map((v) => ({ value: v, label: v.charAt(0).toUpperCase() + v.slice(1) }));
+
+  // The fill paints on the track, and the thumb straddles the fill and the track.
+  function variantContrastPairs(v: Variant): ContrastPair[] {
+    const thumbPairs = (thumb: string, fill: string, track: string, inactive: boolean): ContrastPair[] => {
+      const flag = inactive ? { inactive } : {};
+      return [
+        { foreground: thumb, backdrop: [fill, track], role: 'non-text', context: 'fill', ...flag },
+        { foreground: thumb, backdrop: [track], role: 'non-text', context: 'track', ...flag },
+      ];
+    };
+    const track = `--slider-${v}-track-surface`;
+    const disabledTrack = `--slider-${v}-disabled-track-surface`;
+    return [
+      { foreground: `--slider-${v}-fill`, backdrop: [track], role: 'non-text' },
+      ...thumbPairs(`--slider-${v}-thumb-surface`, `--slider-${v}-fill`, track, false),
+      ...thumbPairs(`--slider-${v}-hover-thumb-surface`, `--slider-${v}-fill`, track, false),
+      { foreground: `--slider-${v}-disabled-fill`, backdrop: [disabledTrack], role: 'non-text', inactive: true },
+      ...thumbPairs(`--slider-${v}-disabled-thumb-surface`, `--slider-${v}-disabled-fill`, disabledTrack, true),
+    ];
+  }
+
+  // Both variants share the label and value, which sit on no surface.
+  export const contrastPairs: ContrastPair[] = [
+    ...typeGroups.default.map((g): ContrastPair => ({
+      foreground: g.colorVariable,
+      backdrop: [],
+      role: 'text',
+      fontSize: g.sizeVariable,
+      fontWeight: g.weightVariable,
+    })),
+    ...variants.flatMap(variantContrastPairs),
+  ];
 </script>
 
 <script lang="ts">

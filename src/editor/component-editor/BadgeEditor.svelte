@@ -1,5 +1,6 @@
 <script module lang="ts">
   import type { Token } from './scaffolding/types';
+  import type { ContrastPair } from '../core/palettes/contrastPairs';
   import { badgeVariants } from '../../system/components/Badge.svelte';
 
   export const component = 'badge';
@@ -57,6 +58,18 @@
   );
 
   const variantOptions = variants.map((v) => ({ value: v, label: v.charAt(0).toUpperCase() + v.slice(1) }));
+
+  function variantContrastPairs(v: Variant): ContrastPair[] {
+    return [{
+      foreground: `--badge-${v}-text`,
+      backdrop: [`--badge-${v}-surface`],
+      role: 'text',
+      fontSize: `--badge-${v}-text-font-size`,
+      fontWeight: `--badge-${v}-text-font-weight`,
+    }];
+  }
+
+  export const contrastPairs: ContrastPair[] = variants.flatMap(variantContrastPairs);
 </script>
 
 <script lang="ts">

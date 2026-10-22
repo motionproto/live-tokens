@@ -1,6 +1,7 @@
 <script module lang="ts">
   import { buildTypeGroupTokens, buildTypeGroupShareableContexts } from './scaffolding/buildTypeGroupTokens';
   import type { Token, TypeGroupConfig, IntrinsicSpec } from './scaffolding/types';
+  import type { ContrastPair } from '../core/palettes/contrastPairs';
 
   export const component = 'menuselect';
 
@@ -106,6 +107,29 @@
       default: { default: 'var(--color-transparent)' },
     },
   ];
+
+  // Every item sits on the menu surface. The check mark paints on the selected item alone.
+  const menu = '--menuselect-menu-surface';
+  function itemContrastPairs(s: 'default' | 'hover' | 'selected' | 'disabled'): ContrastPair[] {
+    const backdrop = s === 'hover'
+      ? ['--menuselect-hover-tint-enabled', '--menuselect-hover-surface', menu]
+      : [`--menuselect-${s}-surface`, menu];
+    const inactive = s === 'disabled' ? { inactive: true } : {};
+    const marks = s === 'selected' ? ['--menuselect-selected-icon', '--menuselect-selected-indicator'] : [`--menuselect-${s}-icon`];
+    return [
+      ...typeGroups[`${s} item`].map((g): ContrastPair => ({
+        foreground: g.colorVariable,
+        backdrop,
+        role: 'text',
+        fontSize: g.sizeVariable,
+        fontWeight: g.weightVariable,
+        ...inactive,
+      })),
+      ...marks.map((foreground): ContrastPair => ({ foreground, backdrop, role: 'non-text', ...inactive })),
+    ];
+  }
+
+  export const contrastPairs: ContrastPair[] = (['default', 'hover', 'selected', 'disabled'] as const).flatMap(itemContrastPairs);
 </script>
 
 <script lang="ts">

@@ -1,5 +1,6 @@
 <script module lang="ts">
   import type { Token } from './scaffolding/types';
+  import type { ContrastPair } from '../core/palettes/contrastPairs';
 
   export const component = 'videoframe';
 
@@ -27,6 +28,13 @@
   };
 
   export const allTokens: Token[] = Object.values(states).flat();
+
+  // The badge sits over the footage, which sits on the clip and the frame.
+  const frameStack = ['--videoframe-clip-surface', '--videoframe-frame-surface'];
+  export const contrastPairs: ContrastPair[] = [
+    { foreground: '--videoframe-badge-default-icon', backdrop: ['--videoframe-badge-default-surface', ...frameStack], role: 'non-text' },
+    { foreground: '--videoframe-badge-hover-icon', backdrop: ['--videoframe-badge-hover-surface', ...frameStack], role: 'non-text' },
+  ];
 </script>
 
 <script lang="ts">

@@ -1,6 +1,7 @@
 <script module lang="ts">
   import { buildTypeGroupColorTokens, buildTypeGroupFontTokens } from './scaffolding/buildTypeGroupTokens';
   import type { Token, TypeGroupConfig } from './scaffolding/types';
+  import type { ContrastPair } from '../core/palettes/contrastPairs';
 
   export const component = 'table';
 
@@ -71,6 +72,19 @@
     ...Object.values(states).flat(),
     ...buildTypeGroupColorTokens(typeGroups, derivation),
     ...buildTypeGroupFontTokens(typeGroups, derivation),
+  ];
+
+  // Every cell sits on the wrapper. Even rows lay the stripe over the row surface.
+  const wrapper = '--table-default-surface';
+  const textPair = (state: string, backdrop: string[]): ContrastPair => {
+    const g = typeGroups[state][0];
+    return { foreground: g.colorVariable, backdrop, role: 'text', fontSize: g.sizeVariable, fontWeight: g.weightVariable };
+  };
+
+  export const contrastPairs: ContrastPair[] = [
+    textPair('header', ['--table-default-header-surface', wrapper]),
+    { ...textPair('cell', ['--table-default-row-surface', wrapper]), context: 'odd rows' },
+    { ...textPair('cell', ['--table-default-row-stripe-surface', '--table-default-row-surface', wrapper]), context: 'even rows' },
   ];
 </script>
 

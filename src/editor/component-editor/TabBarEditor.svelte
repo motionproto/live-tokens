@@ -1,6 +1,7 @@
 <script module lang="ts">
   import { buildTypeGroupColorTokens } from './scaffolding/buildTypeGroupTokens';
   import type { Token, TypeGroupConfig, IntrinsicSpec } from './scaffolding/types';
+  import type { ContrastPair } from '../core/palettes/contrastPairs';
 
   export const component = 'tabbar';
 
@@ -93,6 +94,25 @@
       default: { default: 'var(--color-transparent)' },
     },
   ];
+
+  // The bottom indicator paints over its own tab's surface.
+  function tabContrastPairs(s: TabState): ContrastPair[] {
+    const backdrop = s === 'hover' ? ['--tabbar-hover-tint-enabled', '--tabbar-hover-surface'] : [`--tabbar-${s}-surface`];
+    const inactive = s === 'disabled' ? { inactive: true } : {};
+    return [
+      ...tabStateTypeGroups(s).map((g): ContrastPair => ({
+        foreground: g.colorVariable,
+        backdrop,
+        role: 'text',
+        fontSize: g.sizeVariable,
+        fontWeight: g.weightVariable,
+        ...inactive,
+      })),
+      { foreground: `--tabbar-${s}-border`, backdrop, role: 'non-text', ...inactive },
+    ];
+  }
+
+  export const contrastPairs: ContrastPair[] = tabStateNames.flatMap(tabContrastPairs);
 </script>
 
 <script lang="ts">

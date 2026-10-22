@@ -1,6 +1,7 @@
 <script module lang="ts">
   import { buildTypeGroupColorTokens } from './scaffolding/buildTypeGroupTokens';
   import type { Token, TypeGroupConfig } from './scaffolding/types';
+  import type { ContrastPair } from '../core/palettes/contrastPairs';
 
   export const component = 'dialog';
 
@@ -85,6 +86,20 @@
   function variantLabel(v: ButtonVariant): string {
     return v.charAt(0).toUpperCase() + v.slice(1);
   }
+
+  // The header and body sit on the dialog box, and the box sits on the scrim.
+  const boxStack = ['--dialog-surface', '--dialog-scrim-surface'];
+  const headerStack = ['--dialog-header-surface', ...boxStack];
+  const textPair = (part: string, backdrop: string[]): ContrastPair => {
+    const g = frameTypeGroups[part][0];
+    return { foreground: g.colorVariable, backdrop, role: 'text', fontSize: g.sizeVariable, fontWeight: g.weightVariable };
+  };
+
+  export const contrastPairs: ContrastPair[] = [
+    textPair('header', headerStack),
+    { foreground: '--dialog-close-icon', backdrop: headerStack, role: 'non-text' },
+    textPair('body', boxStack),
+  ];
 </script>
 
 <script lang="ts">

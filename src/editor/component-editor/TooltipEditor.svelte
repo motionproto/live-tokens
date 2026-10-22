@@ -1,6 +1,7 @@
 <script module lang="ts">
   import { buildTypeGroupColorTokens } from './scaffolding/buildTypeGroupTokens';
   import type { Token, TypeGroupConfig } from './scaffolding/types';
+  import type { ContrastPair } from '../core/palettes/contrastPairs';
 
   export const component = 'tooltip';
 
@@ -38,6 +39,14 @@
     ...buildTypeGroupColorTokens(typeGroups, { component }),
     ...typeGroupTokens,
   ];
+
+  export const contrastPairs: ContrastPair[] = typeGroups.tooltip.map((g) => ({
+    foreground: g.colorVariable,
+    backdrop: ['--tooltip-surface'],
+    role: 'text',
+    fontSize: g.sizeVariable,
+    fontWeight: g.weightVariable,
+  }));
 </script>
 
 <script lang="ts">

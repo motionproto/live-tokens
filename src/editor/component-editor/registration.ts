@@ -21,7 +21,8 @@ let sink: Sink | null = null;
  * the rest of the session).
  *
  * Side effect: registers the schema with the editor store so reset-to-default
- * and sibling-group resolution work for the new component.
+ * and sibling-group resolution work for the new component, and registers its
+ * contrast pairs, which replace a built-in's pairs on an id collision.
  */
 export function registerComponent(entry: RegisterComponentEntry): void {
   if (sink) sink(entry);

@@ -2,6 +2,25 @@
 
 ## Unreleased
 
+### Added
+
+- **Component editors show the contrast ratio of every foreground color.** A
+  color row whose variable paints text, an icon or another foreground mark
+  shows the WCAG ratio between that color and the layers behind it, down to the
+  page background. A pair below its floor turns amber and gains an exclamation
+  mark. Click the ratio to open the rule it tracks, each pair's measured ratio
+  and layers, and a link to the success criterion. A disabled state shows its
+  ratio in a dimmer gray, because WCAG exempts disabled controls. The readout
+  recomputes after every edit and theme load, and the rows keep their places.
+- **Editor modules and `registerComponent()` take `contrastPairs`.** Each pair
+  names a foreground variable, the variables that paint behind it top first, its
+  role (`text` or `non-text`), and for text its font size and weight. A pair
+  for a disabled state sets `inactive`. A foreground over several backdrops
+  takes one pair per backdrop, each with a `context`, and the readout shows the
+  pair closest to failing.
+- **`UITokenSelector` takes a `metaAfter` snippet.** It renders after the value
+  name in the same column, and the value name truncates first.
+
 ### Fixed
 
 - **`page-overflow` passes a component inside a scrolling ancestor.** The
