@@ -29,6 +29,6 @@ RUN node -e " \
   fs.writeFileSync('src/live-tokens/data/themes/brand.json', JSON.stringify(theme, null, 2) + '\n'); \
 "
 
-# The run's starting files, kept outside /app: the verifier and the browser
-# gate tell what a run added from them, and the verifier restores brand.json.
+# The run's starting files, kept outside /app: the verifier tells what a run
+# added from them and restores brand.json.
 RUN mkdir -p /opt/eval/base && cp -R src tests live-tokens.testing.ts /opt/eval/base/

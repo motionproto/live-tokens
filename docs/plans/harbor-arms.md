@@ -497,6 +497,22 @@ The run revises two conclusions above.
   run against 13.8, medians 10.5 and 13.5 at p = 0.006. Ten runs left the time saving short of 0.05, as
   expected.
 
+### Decision
+
+On 2026-10-22 the user adopted the recommended approach: the skills, the
+lookup, and the full checker, with browser tests at every check. The shipped
+skills already teach it. `live-tokens-create-page` and
+`live-tokens-create-component` look components and scales up first and run
+`check-page` or `check-component` with `--tests` until it exits 0. The
+package therefore stays as it is.
+
+The same day the static-loop and browser-gate arms were retired. Their
+questions are answered, and dropping them cuts a full run from 27 trials to
+17. The runner lost its `tests` and `settings` columns, the gate's hook and
+browser-test loader, and the `billing-static-loop` skill copy. The report
+builder still reads their trials, so the reports of 2026-10-18 and
+2026-10-19 rebuild as before.
+
 ## Invariants
 
 - Each arm reaches only the layers its row grants: `isolate.mjs` closes the

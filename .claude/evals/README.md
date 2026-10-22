@@ -198,7 +198,7 @@ A first attempt at 40 turns cut both arms off before they finished.
 ## `outcome-build-billing`: lookup and checker
 
 The four cases give one brief, a `/billing` page, and one set of graders.
-`npm run eval:billing` runs the brief under Harbor as seven arms. Each trial
+`npm run eval:billing` runs the brief under Harbor as five arms. Each trial
 gets its own Docker container, and a fresh container from one verifier image
 scores every arm, so every arm meets one bar whatever it could run itself.
 `_scaffold/isolate.mjs` closes every copy of the layers an arm runs without,
@@ -227,8 +227,7 @@ without the tool. Each copy lives in `_skills/<copy>/`: the skill files it
 changes, and `skills.json`, which lists the skills and references the copy
 goes without and the hash of each shipped file it was made from. The arms
 table names each arm's copy. The three cases without a tool keep their
-copies under the case's name, and `billing-static-loop` serves the two arms
-that keep the checker to its static rules. `scripts/eval-harbor.sh` stages
+copies under the case's name. `scripts/eval-harbor.sh` stages
 the shipped skills into each arm's image at `/opt/skills`, then applies the
 copy with `scripts/eval-stage-skills.mjs`. A shipped skill edited after its
 copy was made stops the stage; carry the edit into the copy, then record the
@@ -249,26 +248,19 @@ user without the plugin has them too.
 | Skills, lookup | `outcome-build-billing-no-checker` | `checker` | the case's copy | 3 |
 | Skills, checker | `outcome-build-billing-no-lookup` | `lookup` | the case's copy | 3 |
 | Skills, lookup and checker | `outcome-build-billing` | none | shipped | 5 |
-| Skills, lookup and static checker | `outcome-build-billing` | none | `billing-static-loop` | 5 |
-| Skills, lookup, static checker and browser gate | `outcome-build-billing` | none | `billing-static-loop` | 5 |
 
 The arms table in `scripts/eval-harbor.sh` defines them. The runner writes
 it into each jobs folder as `arms.json`, and the report reads each arm's
 name, grants, and order from there.
 
-The last three arms keep every tool and differ in where the browser tests
-run. The first runs them whenever the agent passes `--tests`. The static-loop
-arm's skill copy runs the checkers without `--tests`, and its image applies
-`_scaffold/static-checks.mjs`, so a `--tests` the agent passes anyway runs
-the static checks and says so. The gate arm adds a `Stop` hook,
-`harbor/browser-gate.mjs`. Each time the agent stops, the hook runs
-`check-page` and `check-component` with `--tests` on the run's new page and
-components and blocks the stop while either reports an error. On its fourth
-stop it lets the run end, so a finding the agent cannot fix ends the run
-before the turn cap. Each arm's Claude Code settings file stays outside
-`/app`, so the agent never edits its own hooks. These three arms run five
-trials each: an exact rank test of three runs against three can reach no p
-below 0.1, and five against five reaches 0.008.
+The arm with every tool runs five trials, since every other arm is compared
+against it: an exact rank test of three runs against three can reach no p
+below 0.1, and five against three reaches 0.036. The runs of 2026-10-18 and
+2026-10-19 also tried two arms that kept every tool and moved the browser
+tests: one ran only the static checks, and one added a `Stop` hook that ran
+the browser tests at each stop. The full checker matched or beat both, so
+they were retired on 2026-10-22; `docs/plans/harbor-arms.md` records the
+results.
 
 ### Brief and measures
 
@@ -347,8 +339,8 @@ A run needs three things:
 
 ```
 npm run eval:billing -- --smoke               # one trial of the arm with every tool
-npm run eval:billing                          # every arm at its trial count, 27 trials
-npm run eval:billing -- --smoke static-loop   # one trial of another arm
+npm run eval:billing                          # every arm at its trial count, 17 trials
+npm run eval:billing -- --smoke skills-only   # one trial of another arm
 npm run eval:billing -- --runs 1              # one trial of every arm
 npm run eval:billing -- --prepare             # build the images and write the tasks, run nothing
 ```
@@ -356,8 +348,8 @@ npm run eval:billing -- --prepare             # build the images and write the t
 A trial took 7 to 12 minutes on 2026-10-18, about a minute of it scoring,
 and a smoke run takes about a quarter of an hour with the image builds. Each
 job runs three trials at once, so an arm of three trials takes about as long
-as one trial and an arm of five about twice that: a full run takes about two
-hours. A trial can run to an hour of agent time and half an hour of scoring
+as one trial and an arm of five about twice that: a full run takes about an
+hour and a quarter. A trial can run to an hour of agent time and half an hour of scoring
 before Harbor stops it. The arms run one after another, and a run stalls if
 the Mac sleeps.
 
@@ -386,9 +378,8 @@ nothing.
 trace, and the verifier's files. It prints the means per arm and writes the
 report: the brief, the means, the calls each arm's patched CLI blocked with
 the turns, seconds, and cost they took, the means with those taken out, each
-run's values, rank tests between the three loop arms on errors left,
-generation seconds, and cost, and each gate run's blocks with the rules
-behind each. A checker run counts by its call; when the agent kept its output
+run's values, and rank tests between every two arms one tool separates, on
+errors left, generation seconds, cost, checker runs, and source reads. A checker run counts by its call; when the agent kept its output
 out of the trace, the timeline shows the result as unread.
 
 Below the tables, a run picker and a tab strip show one arm's panel: its

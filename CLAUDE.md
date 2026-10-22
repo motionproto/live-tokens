@@ -56,9 +56,10 @@ check passes on that.
 
 `.claude/evals/README.md` describes every eval case and how to run it.
 The `evaluate` skill runs the billing comparison and reads its report.
-`npm run eval:billing` runs the billing brief under Harbor as seven arms,
-each trial in its own Docker container: five trials for each of the three
-loop arms and three for the other four, 27 in all, in about two hours.
+`npm run eval:billing` runs the billing brief under Harbor as five arms,
+each trial in its own Docker container: five trials for the arm with every
+tool and three for the other four, 17 in all, in about an hour and a
+quarter.
 `--smoke` runs one trial of the arm with every tool in about a quarter of an
 hour, and `--runs <n>` runs every arm n times, or only the arms named after it. The report lands in
 `eval-reports/<time>/`. A billing run needs Docker running, Harbor

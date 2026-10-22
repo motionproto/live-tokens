@@ -1155,7 +1155,7 @@ const rankTable = rankRows.length ? `<section class="block" id="rank-tests">
     <thead><tr><th>First arm</th><th>Second arm</th><th>Measure</th><th>Runs</th><th>Medians</th><th>U</th><th>p</th></tr></thead>
     <tbody>${rankRows.map((row) => `<tr id="${rankId(row)}">${td(esc(row.first.name))}<td class="lead">${esc(row.second.name)}</td>${td(row.measure)}${td(row.runs)}${td(row.medians)}${td(row.test ? fmt(row.test.u) : 'n/a')}${td(row.test ? row.test.p.toFixed(3) : 'n/a')}</tr>`).join('')}</tbody>
   </table></div>
-  <p class="table-note">The table pairs the loop arms, which differ only in when the browser tests run, and every other two arms that one tool or setting separates. Checker runs are compared only between arms that both have the checker. Each row is an exact two-sided Mann-Whitney test on the two arms' finished runs. U counts the pairs of runs in which the first arm's value is higher, a tie as half; p is the share of all splits of the pooled runs at least as far from an even split.</p>
+  <p class="table-note">The table pairs every two arms that one tool or setting separates${loopArms.length > 1 ? ', and the arms with every tool, which differ only in when the browser tests run' : ''}. Checker runs are compared only between arms that both have the checker. Each row is an exact two-sided Mann-Whitney test on the two arms' finished runs. U counts the pairs of runs in which the first arm's value is higher, a tie as half; p is the share of all splits of the pooled runs at least as far from an even split.</p>
 </section>` : '';
 
 const gateTable = gateRows.length ? `<section class="block" id="gate">

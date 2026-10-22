@@ -25,41 +25,19 @@ cd "$REPO"
 # arms.json, which scripts/eval-check-build.mjs reads. case: the eval case the
 # arm stands for. groups: the layers isolate.mjs closes, comma-separated, or -
 # for none. skills: shipped, none, or the copy in .claude/evals/_skills/ the
-# arm runs. tests: browser, or static when the image turns --tests into the
-# static checks. settings: the arm's Claude Code settings, below. runs: the
-# arm's trials in a full run, five for the three arms the package leaves whole,
-# so their rank tests have the runs to separate them. name: the rest of the
-# line, the arm as the report names it.
+# arm runs. runs: the arm's trials in a full run, five for the arm the package
+# leaves whole, since every other arm is compared against it. name: the rest
+# of the line, the arm as the report names it.
 ARMS='
-unattended             outcome-build-billing-no-cli      lookup,checker  none                              browser  base  3  Unattended
-skills-only            outcome-build-billing-no-cli      lookup,checker  outcome-build-billing-no-cli      browser  base  3  Skills only
-skills-lookup          outcome-build-billing-no-checker  checker         outcome-build-billing-no-checker  browser  base  3  Skills, lookup
-skills-checker         outcome-build-billing-no-lookup   lookup          outcome-build-billing-no-lookup   browser  base  3  Skills, checker
-skills-lookup-checker  outcome-build-billing             -               shipped                           browser  base  5  Skills, lookup and checker
-static-loop            outcome-build-billing             -               billing-static-loop               static   base  5  Skills, lookup and static checker
-browser-gate           outcome-build-billing             -               billing-static-loop               static   gate  5  Skills, lookup, static checker and browser gate
+unattended             outcome-build-billing-no-cli      lookup,checker  none                              3  Unattended
+skills-only            outcome-build-billing-no-cli      lookup,checker  outcome-build-billing-no-cli      3  Skills only
+skills-lookup          outcome-build-billing-no-checker  checker         outcome-build-billing-no-checker  3  Skills, lookup
+skills-checker         outcome-build-billing-no-lookup   lookup          outcome-build-billing-no-lookup   3  Skills, checker
+skills-lookup-checker  outcome-build-billing             -               shipped                           5  Skills, lookup and checker
 '
 BRIEF_CASE=outcome-build-billing
 SMOKE_ARM=skills-lookup-checker
 ARTIFACTS='["/app/src", "/app/tests", "/app/live-tokens.config.json", "/app/live-tokens.testing.ts"]'
-FINDINGS=node_modules/@motion-proto/live-tokens/bin/lib/findings.mjs
-
-settings_json() {
-  case "$1" in
-    base) echo '{}' ;;
-    gate) cat <<'EOF'
-{
-  "hooks": {
-    "Stop": [
-      { "hooks": [{ "type": "command", "command": "node /opt/eval/browser-gate.mjs", "timeout": 900 }] }
-    ]
-  }
-}
-EOF
-      ;;
-    *) echo "eval-harbor: no settings named $1." >&2; exit 1 ;;
-  esac
-}
 
 die() { echo "eval-harbor: $*" >&2; exit 1; }
 arm_names() { echo "$ARMS" | awk 'NF { print $1 }'; }
@@ -67,8 +45,8 @@ arm_row() { echo "$ARMS" | awk -v arm="$1" '$1 == arm'; }
 arms_json() {
   ARMS="$ARMS" node -e '
     const rows = process.env.ARMS.split("\n").filter((line) => line.trim()).map((line) => {
-      const [arm, kase, groups, skills, tests, settings, runs, ...name] = line.trim().split(/\s+/);
-      return { arm, name: name.join(" "), case: kase, groups: groups === "-" ? [] : groups.split(","), skills, tests, settings, runs: Number(runs) };
+      const [arm, kase, groups, skills, runs, ...name] = line.trim().split(/\s+/);
+      return { arm, name: name.join(" "), case: kase, groups: groups === "-" ? [] : groups.split(","), skills, runs: Number(runs) };
     });
     console.log(JSON.stringify(rows, null, 2));
   '
@@ -146,29 +124,21 @@ brief="scratch/harbor/instruction.md"
 awk 'NR == 1 && /^---$/ { front = 1; next } front && /^---$/ { front = 0; next } !front' ".claude/evals/$BRIEF_CASE/prompt.md" > "$brief"
 
 write_task() {
-  local arm="$1" case="$2" groups="$3" skills="$4" tests="$5" settings="$6"
+  local arm="$1" case="$2" groups="$3" skills="$4"
   local task="scratch/harbor/tasks/$arm"
   local env="$task/environment"
   rm -rf "$task"
   mkdir -p "$env"
   cp "$brief" "$task/instruction.md"
-  # Harbor uploads this as Claude's --settings layer, outside /app, so the
-  # agent never edits its own hooks.
-  settings_json "$settings" > "$task/settings.json"
 
-  cp .claude/evals/_scaffold/isolate.mjs .claude/evals/_scaffold/static-checks.mjs "$env/"
+  cp .claude/evals/_scaffold/isolate.mjs "$env/"
   local close="node /tmp/eval/isolate.mjs"
   [ "$groups" = "-" ] || close="$close ${groups//,/ }"
-  # The gate's checker runs read the original findings.mjs, saved before
-  # static-checks.mjs rewrites it.
-  [ "$settings" != gate ] || close="$close && cp $FINDINGS /opt/eval/findings.mjs"
-  [ "$tests" != static ] || close="$close && node /tmp/eval/static-checks.mjs"
   {
     echo "FROM live-tokens-eval-base"
-    echo "COPY isolate.mjs static-checks.mjs /tmp/eval/"
+    echo "COPY isolate.mjs /tmp/eval/"
     echo "RUN $close && rm -rf /tmp/eval"
     [ "$skills" = none ] || echo "COPY skills /opt/skills"
-    [ "$settings" != gate ] || echo "COPY gate/ /opt/eval/"
   } > "$env/Dockerfile"
 
   if [ "$skills" != none ]; then
@@ -178,10 +148,6 @@ write_task() {
       [ -f ".claude/evals/_skills/$skills/skills.json" ] || die "$arm runs the copy $skills, which .claude/evals/_skills/ does not hold."
       node scripts/eval-stage-skills.mjs "$skills" "$env/skills"
     fi
-  fi
-  if [ "$settings" = gate ]; then
-    mkdir -p "$env/gate"
-    cp .claude/evals/harbor/browser-gate.mjs .claude/evals/harbor/browser-tests.mjs .claude/evals/harbor/checks.mjs "$env/gate/"
   fi
 
   {
@@ -193,8 +159,6 @@ write_task() {
     echo "case = \"$case\""
     echo "groups = \"$groups\""
     echo "skills = \"$skills\""
-    echo "tests = \"$tests\""
-    echo "settings = \"$settings\""
     echo
     echo '[agent]'
     echo 'timeout_sec = 3600'
@@ -238,8 +202,8 @@ mkdir -p "$jobs"
 arms_json > "$jobs/arms.json"
 for arm in "${selected[@]}"; do
   harbor run -p "scratch/harbor/tasks/$arm" -a claude-code -m anthropic/claude-opus-5-5 \
-    -k "${runs:-$(arm_row "$arm" | awk '{ print $7 }')}" -n 3 -o "$jobs" --job-name "$arm" \
-    --ak max_turns=200 --ak disable_web_search=true --ak "config=$REPO/scratch/harbor/tasks/$arm/settings.json"
+    -k "${runs:-$(arm_row "$arm" | awk '{ print $5 }')}" -n 3 -o "$jobs" --job-name "$arm" \
+    --ak max_turns=200 --ak disable_web_search=true
 done
 unset CLAUDE_CODE_OAUTH_TOKEN
 echo "eval-harbor: jobs in $jobs"

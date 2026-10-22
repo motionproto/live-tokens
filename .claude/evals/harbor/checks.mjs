@@ -1,6 +1,5 @@
-// What a billing run made and the full checkers' verdict on it. The verifier
-// and the browser gate both read the run through this module, so the gate
-// blocks on exactly what the verifier will count.
+// What a billing run made and the full checkers' verdict on it, as the
+// verifier counts them.
 import { spawnSync } from 'node:child_process';
 import { existsSync, readdirSync } from 'node:fs';
 import process from 'node:process';
@@ -29,16 +28,16 @@ export function authoredIds(report) {
 
 // Without an id, check-component --tests reruns every shipped component's
 // suites, which no run can change, so each authored component is checked by id.
-export function checkRun(pages, ids, nodeArgs = []) {
+export function checkRun(pages, ids) {
   return [
-    ...(pages.length > 0 ? [check(['check-page', ...pages], nodeArgs)] : []),
-    ...ids.map((id) => check(['check-component', id], nodeArgs)),
+    ...(pages.length > 0 ? [check(['check-page', ...pages])] : []),
+    ...ids.map((id) => check(['check-component', id])),
   ];
 }
 
-function check(args, nodeArgs) {
+function check(args) {
   const label = args.join(' ');
-  const out = spawnSync(process.execPath, [...nodeArgs, CLI, ...args, '--tests', '--strict', '--json', '--no-fix'], { encoding: 'utf8', maxBuffer: BUFFER });
+  const out = spawnSync(process.execPath, [CLI, ...args, '--tests', '--strict', '--json', '--no-fix'], { encoding: 'utf8', maxBuffer: BUFFER });
   try {
     return { label, ...JSON.parse(out.stdout) };
   } catch {

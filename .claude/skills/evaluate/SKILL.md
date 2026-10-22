@@ -1,12 +1,12 @@
 ---
 name: evaluate
-description: "Run and read this repository's billing eval under Harbor. With no argument, one smoke trial of about a quarter of an hour checks that the eval works. With `full`, all seven arms run, five trials for each of the three loop arms and three for the rest, about two hours. With `runs <n>`, every arm runs n trials. Use when the user asks to run the evals, test whether the skills or the CLI help, compare eval arms, or read an eval report. Only for the live-tokens repository."
+description: "Run and read this repository's billing eval under Harbor. With no argument, one smoke trial of about a quarter of an hour checks that the eval works. With `full`, all five arms run, five trials for the arm with every tool and three for the rest, about an hour and a quarter. With `runs <n>`, every arm runs n trials. Use when the user asks to run the evals, test whether the skills or the CLI help, compare eval arms, or read an eval report. Only for the live-tokens repository."
 argument-hint: "[full | runs <n>]"
 ---
 
 # Evaluate
 
-The eval gives one brief to seven arms and compares what each builds. The
+The eval gives one brief to five arms and compares what each builds. The
 cases live in `.claude/evals/outcome-build-billing*/`, and the
 "`outcome-build-billing`: lookup and checker" section of
 `.claude/evals/README.md` describes the brief, its traps, the graders, and
@@ -40,8 +40,8 @@ The argument is `$ARGUMENTS`.
   touches one arm, `--smoke <arm>` runs that arm once; the arm names are the
   first column of the arms table in `scripts/eval-harbor.sh`.
 - **Full run**, `npm run eval:billing`: every arm at its trial count, five
-  for the three loop arms and three for the other four, 27 trials. Run it
-  when the argument is `full`.
+  for the arm with every tool and three for the other four, 17 trials. Run
+  it when the argument is `full`.
 - **Even run**, `npm run eval:billing -- --runs <n>`: every arm, `n` trials
   each. Run it when the argument is `runs <n>`. When the user asks for a
   full run with a number, use this and say how many trials that makes.
@@ -53,8 +53,8 @@ The argument is `$ARGUMENTS`.
 Before starting, tell the user how long to expect. A trial took 7 to 12
 minutes on 2026-10-18, scoring included, and each arm runs three trials at
 once. A smoke run takes about a quarter of an hour with the image builds. A
-full run takes about two hours: an arm of three trials takes about as long
-as one trial, and an arm of five about twice that. A trial can run to an
+full run takes about an hour and a quarter: an arm of three trials takes
+about as long as one trial, and an arm of five about twice that. A trial can run to an
 hour of agent time and half an hour of scoring before Harbor stops it. The
 run lasts only as long as this session, and it stalls if the Mac sleeps, so
 say both.
@@ -74,9 +74,7 @@ separates the arms:
 - **Grader score**: the share of component-choice graders that pass.
 - **Checker errors left**: what the full checkers find in the finished page
   and new component, browser tests included. A fresh verifier container
-  checks every arm the same way. The static-loop and gate arms ran only the
-  static checks while they worked; the gate arm met the browser tests at
-  each stop.
+  checks every arm the same way.
 - **Generation seconds, turns, generation cost**: the agent's session from
   prompt to final answer, page and components included. Cost is the
   list-price value of the tokens; the subscription covers it. Scoring time is
@@ -94,11 +92,7 @@ separates the arms:
 - **Skills loaded, source reads**: the skills the agent invoked, and its reads
   of the package's own source in `node_modules`. Source reads stand in for a
   missing lookup, or for an argument with a checker rule.
-- **Gate blocks**: how often the browser gate held the gate arm's run open,
-  and the rules behind each block. The gate lets a run end on its fourth
-  stop.
-- **Rank tests**: for each pair of the three loop arms, and each pair of
-  arms one tool or setting separates, an exact Mann-Whitney test on errors
+- **Rank tests**: for each pair of arms one tool separates, an exact Mann-Whitney test on errors
   left, generation seconds, cost, checker runs, and source reads over
   finished runs. Give the p value with the medians.
 - **Behaviour**: each run's timeline in the arm's panel. Compare two arms
