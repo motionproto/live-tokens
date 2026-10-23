@@ -13,6 +13,10 @@ export interface TraceAxes {
 }
 
 const BOX_SIZE = ['width', 'height', 'min-*', 'inline-size', 'block-size', 'padding*'];
+const FOCUS = ['focus', 'focus-visible'];
+// Every border property but the radii, which carry no colour or width.
+const BORDER_PAINT = ['border-block*', 'border-inline*', ...['', '-top', '-right', '-bottom', '-left']
+  .flatMap((side) => [`border${side}`, `border${side}-color`, `border${side}-width`, `border${side}-style`])];
 
 /** Decision 2 of docs/plans/a11y-property-marks.md, keyed by engine rule. An
  *  engine rule absent here traces nothing. */
@@ -26,9 +30,16 @@ export const TRACE_AXES: Readonly<Record<string, TraceAxes>> = {
     target: ['outline*', 'box-shadow', 'border*', 'background*', 'color', 'text-decoration*'],
     pseudoElements: [],
     ancestors: [],
-    force: ['focus', 'focus-visible'],
+    force: FOCUS,
   },
   'target-size': { target: BOX_SIZE, pseudoElements: BOX_SIZE, ancestors: [] },
+  'focus-indicator-contrast': {
+    target: ['outline*', 'box-shadow', ...BORDER_PAINT, 'background*', 'color'],
+    pseudoElements: [],
+    ancestors: ['background*'],
+    force: FOCUS,
+  },
+  'control-boundary-contrast': { target: [...BORDER_PAINT, 'background*'], pseudoElements: [], ancestors: ['background*'] },
 };
 
 interface Declaration {
@@ -57,7 +68,8 @@ interface ElementStyles {
 
 const sessions = new WeakMap<Page, Promise<CDPSession>>();
 
-function sessionFor(page: Page): Promise<CDPSession> {
+/** One DevTools session per page, with `DOM` and `CSS` enabled. */
+export function cdpSession(page: Page): Promise<CDPSession> {
   let session = sessions.get(page);
   if (!session) {
     session = (async () => {
@@ -148,31 +160,38 @@ function scopeDepths(page: Page, selector: string, scope: string): Promise<numbe
   }), { selector, scope });
 }
 
-async function matchedStyles(cdp: CDPSession, nodeId: number, force: string[] = []) {
-  const forcePseudoState = (forcedPseudoClasses: string[]) => cdp.send('CSS.forcePseudoState', { nodeId, forcedPseudoClasses });
+async function matchedStyles(cdp: CDPSession, nodeId: number, force: string[] = [], forceNodeId = nodeId) {
+  const forcePseudoState = (forcedPseudoClasses: string[]) => cdp.send('CSS.forcePseudoState', { nodeId: forceNodeId, forcedPseudoClasses });
   if (force.length === 0) return cdp.send('CSS.getMatchedStylesForNode', { nodeId });
   await forcePseudoState(force);
   return cdp.send('CSS.getMatchedStylesForNode', { nodeId }).finally(() => forcePseudoState([]));
 }
 
+interface TraceNode {
+  nodeId: number;
+  depth: number;
+  forceNodeId?: number;
+  ancestorsFrom: number;
+}
+
 async function traceNode(
   cdp: CDPSession,
-  nodeId: number,
-  depth: number,
+  node: TraceNode,
   axes: TraceAxes,
   known: ReadonlySet<string>,
   longhands: Longhands,
 ): Promise<string[]> {
-  const matched = await matchedStyles(cdp, nodeId, axes.force);
+  const matched = await matchedStyles(cdp, node.nodeId, axes.force, node.forceNodeId);
   const own = axes.force
-    ? await forcedDeclarations(await matchedStyles(cdp, nodeId), matched, longhands)
+    ? await forcedDeclarations(await matchedStyles(cdp, node.nodeId), matched, longhands)
     : declarations(matched);
   const pseudo = (matched.pseudoElements ?? []).flatMap(({ matches }) => declarations({ matchedCSSRules: matches }));
-  const ancestors = (matched.inherited ?? []).slice(0, depth).flatMap(declarations);
+  const chain = (matched.inherited ?? []).slice(0, node.depth);
+  const ancestors = chain.flatMap(declarations);
   const pending = [
     ...own.filter((d) => onAxis(d.name, axes.target)),
     ...pseudo.filter((d) => onAxis(d.name, axes.pseudoElements)),
-    ...ancestors.filter((d) => onAxis(d.name, axes.ancestors)),
+    ...chain.slice(Math.max(node.ancestorsFrom - 1, 0)).flatMap(declarations).filter((d) => onAxis(d.name, axes.ancestors)),
   ].flatMap((d) => references(d.value));
 
   const custom = [...declarations(matched), ...pseudo, ...ancestors].filter((d) => d.name.startsWith('--'));
@@ -188,6 +207,17 @@ async function traceNode(
   return [...found];
 }
 
+/** The element a trace reads, inside `scope`. `forceOn`, when set, names the
+ *  element `axes.force` applies to, for a focus style drawn on another
+ *  element. `ancestorsFrom` is the nearest ancestor whose `axes.ancestors`
+ *  declarations count, 1 being the parent and the default. */
+export interface TraceTarget {
+  selector: string;
+  scope: string;
+  forceOn?: string;
+  ancestorsFrom?: number;
+}
+
 /**
  * The component properties `axes` reads on the element `target.selector`
  * names inside `target.scope` (decisions 1 to 3): each matched declaration on
@@ -198,25 +228,33 @@ async function traceNode(
  */
 export async function traceProperties(
   page: Page,
-  target: { selector: string; scope: string },
+  target: TraceTarget,
   axes: TraceAxes,
   known: ReadonlySet<string>,
 ): Promise<string[]> {
   let depths: number[];
+  let forceDepths: number[] = [];
   try {
     depths = await scopeDepths(page, target.selector, target.scope);
+    if (target.forceOn) forceDepths = await scopeDepths(page, target.forceOn, target.scope);
   } catch {
     // An Alfa label or an axe frame path need not parse as one selector.
     return [];
   }
-  const cdp = await sessionFor(page);
+  const cdp = await cdpSession(page);
   const { root } = await cdp.send('DOM.getDocument', { depth: 0 });
-  const { nodeIds } = await cdp.send('DOM.querySelectorAll', { nodeId: root.nodeId, selector: target.selector });
+  const query = async (selector: string) => (await cdp.send('DOM.querySelectorAll', { nodeId: root.nodeId, selector })).nodeIds;
+  const nodeIds = await query(target.selector);
+  const forceNodeId = target.forceOn
+    ? (await query(target.forceOn)).find((_, index) => forceDepths[index] >= 0)
+    : undefined;
+  if (target.forceOn && forceNodeId === undefined) return [];
   const longhands = longhandsIn(page);
   const found = new Set<string>();
   for (const [index, nodeId] of nodeIds.entries()) {
     if (depths[index] < 0) continue;
-    for (const name of await traceNode(cdp, nodeId, depths[index], axes, known, longhands)) found.add(name);
+    const node = { nodeId, depth: depths[index], forceNodeId, ancestorsFrom: target.ancestorsFrom ?? 1 };
+    for (const name of await traceNode(cdp, node, axes, known, longhands)) found.add(name);
   }
   return [...found].sort();
 }

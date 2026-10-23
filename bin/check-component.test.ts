@@ -1479,9 +1479,9 @@ describe('contractRunner: runContractTests, end to end', () => {
   // from-scratch fixture project able to boot its own dev server belongs to
   // Wave 5a's consumer acceptance gate.
   it.skipIf(!hasChromium)('passes clean for a real shipped component, here, with the real tools', async () => {
-    const result = await runContractTests('toggle', { root: process.cwd() });
+    const result = await runContractTests('iconbutton', { root: process.cwd() });
     expect(result.findings).toEqual([]);
-    expect(result.coverage.toggle).toEqual({
+    expect(result.coverage.iconbutton).toEqual({
       'contract-registry': { status: 'passed' },
       'contract-behavior': { status: 'passed' },
       'contract-listed': { status: 'passed' },
@@ -1507,25 +1507,25 @@ describe('contractRunner: runContractTests, end to end', () => {
 
     const scratchDataDir = mkdtempSync(join(tmpdir(), 'lt-defect-data-'));
     cpSync(trackedDataDir, scratchDataDir, { recursive: true });
-    const configPath = join(scratchDataDir, 'component-configs/toggle/default.json');
+    const configPath = join(scratchDataDir, 'component-configs/iconbutton/default.json');
     const data = JSON.parse(readFileSync(configPath, 'utf8'));
-    data.aliases['--toggle-track-surface'] = '--nonexistent-token-xyz';
+    data.aliases['--iconbutton-primary-surface'] = '--nonexistent-token-xyz';
     writeFileSync(configPath, JSON.stringify(data, null, 2));
 
     const testResultsDir = join(root, 'test-results');
     const beforeArtifacts = existsSync(testResultsDir) ? new Set(readdirSync(testResultsDir)) : null;
     try {
-      const result = await runContractTests('toggle', { root, dataDir: scratchDataDir });
+      const result = await runContractTests('iconbutton', { root, dataDir: scratchDataDir });
       expect(result.findings).toHaveLength(1);
       expect(result.findings[0]).toEqual(
         expect.objectContaining({
           rule: 'contract-alias',
           file: relative(root, configPath),
-          line: 7,
+          line: 9,
         }),
       );
       for (const rule of ['contract-states', 'contract-interaction', 'contract-persist', 'contract-theme', 'contract-sketch']) {
-        expect(result.coverage.toggle[rule]).toEqual({ status: 'incomplete' });
+        expect(result.coverage.iconbutton[rule]).toEqual({ status: 'incomplete' });
       }
     } finally {
       rmSync(scratchDataDir, { recursive: true, force: true });

@@ -13,6 +13,7 @@ import { A11Y_THEMES_ENV, UPDATE_ARIA_ENV } from './config';
 import { selectedContracts } from './contracts';
 import { missingEngine, recordA11y, scanAxe, scanFocusVisible, type A11yResult } from './support/a11y';
 import { ContractHarness } from './support/contractHarness';
+import { scanBoundaries, scanFocusIndicators, type CheckedResult, type TraceRequest } from './support/nonTextContrast';
 import { TRACE_AXES, traceProperties } from './support/traceProperties';
 
 // Each test opens its own editor and only reads the preview, so the
@@ -27,7 +28,8 @@ const SCOPE = `[${STAGE_ATTR}]`;
 const EXCLUDE = [`${SCOPE} .canvas-toolbar`, '[data-preview-demo]'];
 
 // The Wave 0 probe found every other axe rule, and SIA-R65, reporting the
-// same nodes under all nine themes.
+// same nodes under all nine themes. The non-text contrast checks measure
+// colour, so they run under each preset too.
 const PRESET_RULES = ['color-contrast'];
 
 const VIEW_LIMIT = 4;
@@ -232,14 +234,15 @@ function compareTrees(id: string, trees: Map<string, string>): A11yResult[] {
 class Occurrences {
   private readonly entries = new Map<string, { result: A11yResult; views: string[] }>();
 
-  constructor(private readonly trace: (result: A11yResult) => Promise<string[]>) {}
+  constructor(private readonly trace: (result: A11yResult, request?: TraceRequest) => Promise<string[]>) {}
 
-  async add(view: string, results: A11yResult[]): Promise<void> {
-    for (const result of results) {
+  async add(view: string, results: (A11yResult | CheckedResult)[]): Promise<void> {
+    for (const item of results) {
+      const { result, trace } = 'result' in item ? item : { result: item, trace: undefined };
       const key = [result.rule, result.engineRule, result.target].join('\n');
       let entry = this.entries.get(key);
       if (!entry) {
-        const variables = await this.trace(result);
+        const variables = await this.trace(result, trace);
         this.entries.set(key, (entry = { result: variables.length > 0 ? { ...result, variables } : result, views: [] }));
       }
       if (!entry.views.includes(view)) entry.views.push(view);
@@ -266,10 +269,16 @@ for (const contract of await selectedContracts()) {
     const portals = portalSelectors(contract);
     const presets = process.env[A11Y_THEMES_ENV] === 'all' ? PRESETS : [];
     const known = await harness.propertyVariables();
-    const found = new Occurrences(async (result) => {
+    const boundaries = (contract.boundaries ?? []).map(({ part, label }) => ({ selector: partLocator(contract, part).selector, label }));
+    const root = partLocator(contract, contract.root).selector;
+    const found = new Occurrences(async (result, request) => {
       const axes = TRACE_AXES[result.engineRule];
-      return axes ? traceProperties(page, { selector: result.target, scope: SCOPE }, axes, known) : [];
+      return axes ? traceProperties(page, { selector: result.target, scope: SCOPE, ...request }, axes, known) : [];
     });
+    const scanNonText = async (view: string) => {
+      await found.add(view, await scanFocusIndicators(page, SCOPE, EXCLUDE));
+      await found.add(view, await scanBoundaries(page, SCOPE, EXCLUDE, boundaries, root));
+    };
     const trees = new Map<string, string>();
 
     const scan = async ({ label, view }: ScanView) => {
@@ -277,11 +286,13 @@ for (const contract of await selectedContracts()) {
       await markStage(page, portals);
       await found.add(label, await scanAxe(page, SCOPE, EXCLUDE, 'a11y-component'));
       await found.add(label, await scanFocusVisible(page, SCOPE, EXCLUDE));
+      await scanNonText(label);
       trees.set(label, await readTree(page));
     };
     const scanContrast = async (label: string, theme: string) => {
       await markStage(page, portals);
       await found.add(`${label} under ${theme}`, await scanAxe(page, SCOPE, EXCLUDE, 'a11y-component', PRESET_RULES));
+      await scanNonText(`${label} under ${theme}`);
     };
 
     for (const scanView of plain) await scan(scanView);

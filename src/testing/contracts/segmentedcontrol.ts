@@ -168,6 +168,7 @@ export const segmentedControlContract: ComponentContract = {
     },
     observe: { part: 'root', css: 'borderTopWidth', variable: '--segmentedcontrol-bar-border-width' },
   },
+  boundaries: [{ part: 'root', label: 'Bar' }],
   interaction: {
     part: 'segment',
     role: 'radio',

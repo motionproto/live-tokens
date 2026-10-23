@@ -139,6 +139,10 @@ export const sliderContract: ComponentContract = {
     },
     observe: { part: 'track', css: 'backgroundColor', variable: '--slider-single-track-surface' },
   },
+  boundaries: [
+    { part: 'track', label: 'Track' },
+    { part: 'thumb', label: 'Thumb' },
+  ],
   interaction: {
     part: 'input',
     role: 'slider',

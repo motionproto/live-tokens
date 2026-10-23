@@ -80,6 +80,7 @@ export const radioButtonContract: ComponentContract = {
     },
     observe: { part: 'dot', css: 'borderTopWidth', variable: '--radiobutton-default-dot-border-width' },
   },
+  boundaries: [{ part: 'dot', label: 'Circle' }],
   interaction: {
     part: 'root',
     role: 'button',

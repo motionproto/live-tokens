@@ -224,6 +224,11 @@ export interface SketchExpectation extends View {
   parts: SketchPartExpectation[];
 }
 
+export interface BoundaryExpectation {
+  part: string;
+  label: string;
+}
+
 export interface ComponentContract {
   id: string;
   origin: 'system' | 'custom';
@@ -250,6 +255,10 @@ export interface ComponentContract {
   persistence: PersistenceExpectation;
   theme: ThemeExpectation;
   interaction: InteractionExpectation | Inapplicable;
+  /** The parts whose border or surface draws the control's visible edge.
+   *  The accessibility suite measures each against the backdrop behind it,
+   *  at 3:1 under WCAG 2.2 SC 1.4.11. `label` names the part in a finding. */
+  boundaries?: BoundaryExpectation[];
   /** What the component does when it is driven, proven under happy-dom. */
   behavior: BehaviorExpectation | Inapplicable;
   sketch: SketchExpectation | Inapplicable;

@@ -93,6 +93,10 @@ export const toggleContract: ComponentContract = {
     },
     observe: { part: 'track', css: 'borderTopWidth', variable: '--toggle-track-border-width' },
   },
+  boundaries: [
+    { part: 'track', label: 'Track' },
+    { part: 'thumb', label: 'Thumb' },
+  ],
   interaction: {
     part: 'root',
     role: 'switch',

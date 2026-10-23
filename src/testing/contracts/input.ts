@@ -156,6 +156,7 @@ export const inputContract: ComponentContract = {
     },
     observe: { part: 'field', css: 'borderTopWidth', variable: '--input-border-width' },
   },
+  boundaries: [{ part: 'field', label: 'Field' }],
   interaction: {
     part: 'field',
     role: 'textbox',
