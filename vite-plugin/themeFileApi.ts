@@ -36,7 +36,7 @@ import { detectLegacyLayout, type LegacyLayout } from './files/legacyLayout';
 import { validateTokensCss, runAdditiveTokensCssMigrations } from './tokensCssMigrations';
 import { checkBeforeBuild } from './buildChecks';
 import { formatReport, rewriteBundle, type ProductionCssOptions } from './productionCss';
-import { a11yRunServer, spawnCli } from './a11y/a11yRunServer';
+import { A11Y_REPORT_PATH, a11yRunServer, spawnCli } from './a11y/a11yRunServer';
 import { A11Y_EVENT } from '../src/editor/core/a11y/a11yReportTypes';
 import { fileURLToPath } from 'node:url';
 
@@ -153,10 +153,11 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
   const THEMES_DIR = dataDirs.themesDir;
   const SKETCH_STYLES_DIR = dataDirs.sketchStylesDir;
   const CSS_PATH = path.resolve(opts.tokensCssPath);
-  // Under `LIVE_TOKENS_TEST_DATA_DIR` the two editor-owned stylesheets follow
-  // the data tree into the copy. Both default to a path outside it — one beside
-  // `tokensCssPath`, one in the consumer's own data dir — so leaving them on the
-  // configured value would let Adopt rewrite the real files mid-run.
+  // Under `LIVE_TOKENS_TEST_DATA_DIR` the two editor-owned stylesheets and the
+  // accessibility report follow the data tree into the copy. Each defaults to a
+  // path outside it, so leaving them there would let Adopt rewrite the real
+  // stylesheets mid-run and let the developer's last report mark the editor
+  // under test.
   const ISOLATED_DATA_DIR = testDataDir();
   const GENERATED_CSS_PATH = ISOLATED_DATA_DIR
     ? path.join(ISOLATED_DATA_DIR, 'tokens.generated.css')
@@ -168,6 +169,9 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
     : opts.fontsCssPath
       ? path.resolve(opts.fontsCssPath)
       : path.join(path.dirname(CSS_PATH), 'fonts.css');
+  const A11Y_REPORT_FILE = ISOLATED_DATA_DIR
+    ? path.join(ISOLATED_DATA_DIR, path.basename(A11Y_REPORT_PATH))
+    : path.join(process.cwd(), A11Y_REPORT_PATH);
   // Default keeps live-tokens' REST routes under a single namespace so they
   // can't collide with the consumer's own `/api/themes` or `/api/components`.
   // The client side reads the same value via the `__LIVE_TOKENS_API_BASE__`
@@ -1841,6 +1845,7 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
   const eventClients = new Set<any>();
   const a11yRuns = a11yRunServer({
     root: process.cwd(),
+    reportFile: A11Y_REPORT_FILE,
     runCli: spawnCli(PACKAGE_CLI_PATH),
     broadcast: (report) => {
       const frame = `event: ${A11Y_EVENT}\ndata: ${JSON.stringify(report)}\n\n`;

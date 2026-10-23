@@ -85,12 +85,12 @@ function parseCliReport(stdout: string): { theme?: string; findings: A11yFinding
  * A run lives in memory while it goes; the file holds the last settled report,
  * so a dev-server restart never reads back a run nobody is still waiting on.
  */
-export function a11yRunServer({ root, runCli, broadcast }: {
+export function a11yRunServer({ root, reportFile, runCli, broadcast }: {
   root: string;
+  reportFile: string;
   runCli: RunCli;
   broadcast: (report: A11yReport) => void;
 }) {
-  const reportFile = path.join(root, A11Y_REPORT_PATH);
   let running: { report: A11yRunningReport; stop(): void } | null = null;
 
   function current(): A11yReport | null {

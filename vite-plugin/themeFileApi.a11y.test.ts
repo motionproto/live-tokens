@@ -112,6 +112,7 @@ beforeEach(() => {
 });
 
 afterEach(() => {
+  delete process.env.LIVE_TOKENS_TEST_DATA_DIR;
   fs.rmSync(tmp, { recursive: true, force: true });
 });
 
@@ -169,5 +170,22 @@ describe('the a11y routes', () => {
     stream.close();
     await request('POST', `${API}/a11y/run`, { contrast: [] });
     expect(stream.frames()).toEqual([]);
+  });
+
+  it('keep the report inside the isolated copy under test isolation', async () => {
+    const projectReport = path.join(tmp, 'test-results/live-tokens/a11y-report.json');
+    const seeded = `${JSON.stringify({ state: 'finished', startedAt: '', finishedAt: '', contrast: [], findings: [] })}\n`;
+    fs.mkdirSync(path.dirname(projectReport), { recursive: true });
+    fs.writeFileSync(projectReport, seeded);
+    const isolated = path.join(tmp, 'isolated');
+    fs.mkdirSync(isolated);
+    process.env.LIVE_TOKENS_TEST_DATA_DIR = isolated;
+    bootPlugin();
+
+    expect((await request('GET', `${API}/a11y/report`)).json).toEqual({ report: null });
+    await request('POST', `${API}/a11y/run`, { contrast: [] });
+    cli.runs[0].finish({ code: 0, stdout: FINISHED_CLI, stderr: '' });
+    await vi.waitFor(() => expect(fs.existsSync(path.join(isolated, 'a11y-report.json'))).toBe(true));
+    expect(fs.readFileSync(projectReport, 'utf-8')).toBe(seeded);
   });
 });

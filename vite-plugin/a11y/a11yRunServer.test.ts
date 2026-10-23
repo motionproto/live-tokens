@@ -57,7 +57,12 @@ function stubCli() {
 
 function serverWith(runCli: RunCli) {
   const frames: A11yReport[] = [];
-  const server = a11yRunServer({ root, runCli, broadcast: (report) => frames.push(report) });
+  const server = a11yRunServer({
+    root,
+    reportFile: path.join(root, A11Y_REPORT_PATH),
+    runCli,
+    broadcast: (report) => frames.push(report),
+  });
   const settled = () => vi.waitFor(() => expect(frames.at(-1)?.state).not.toBe('running'), { timeout: 10_000 });
   return { server, frames, settled };
 }
