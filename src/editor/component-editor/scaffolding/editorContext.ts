@@ -20,6 +20,8 @@ export type EditorContext = {
       on context (not local to CopyFromMenu) so it survives VariantGroup remounts
       when the user changes which variant is focused. */
   preserveColorFamily: Writable<boolean>;
+  /** Rebuilt per request. The VariantGroup holding the variable focuses its variant and opens its tab. */
+  revealVariable: Writable<{ variable: string } | null>;
 };
 
 /** Mutable handle for ComponentEditorBase. */
@@ -35,6 +37,7 @@ export function createEditorContext(): EditorContextInternal {
   const focusedState = writable<string | null>(null);
   const hoveredLinkedVariable = writable<string | null>(null);
   const preserveColorFamily = writable<boolean>(false);
+  const revealVariable = writable<{ variable: string } | null>(null);
   const ctx: EditorContextInternal = {
     linkedOrder: _linkedOrder,
     focusedVariant,
@@ -42,6 +45,7 @@ export function createEditorContext(): EditorContextInternal {
     focusedState,
     hoveredLinkedVariable,
     preserveColorFamily,
+    revealVariable,
     _linkedOrder,
     _variants,
   };

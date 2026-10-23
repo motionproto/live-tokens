@@ -1,6 +1,6 @@
 <script lang="ts">
   import { writable } from 'svelte/store';
-  import type { Snippet } from 'svelte';
+  import { untrack, type Snippet } from 'svelte';
   import TokenLayout from './TokenLayout.svelte';
   import StateBlock from './StateBlock.svelte';
   import CopyFromMenu from './CopyFromMenu.svelte';
@@ -101,6 +101,7 @@
   const focusedStateStore = editorCtx?.focusedState ?? writable<string | null>(null);
   const variantsStore = editorCtx?.variants ?? writable<{ value: string; label: string }[]>([]);
   const preserveColorFamilyStore = editorCtx?.preserveColorFamily ?? writable(false);
+  const revealVariableStore = editorCtx?.revealVariable ?? writable<{ variable: string } | null>(null);
   let linkedOrder = $derived($linkedOrderStore ?? undefined);
 
   let activeTab: string = $state('');
@@ -372,6 +373,33 @@
   let amIFocused = $derived($focusedVariantStore === name);
   let shouldRender = $derived(!inFocusMode || amIFocused);
   let showVariantTabs = $derived(inFocusMode && $variantsStore.length >= 2);
+
+  const holds = (list: Token[] | undefined, variable: string) =>
+    !!list?.some((t) => !t.hidden && (t.variable === variable || t.mergeVariables?.includes(variable)));
+  const typeGroupHolds = (groups: TypeGroupConfig[] | undefined, variable: string) =>
+    !!groups?.some((tg) => TYPE_PROPS.some((prop) => tg[prop] === variable));
+
+  /** The tab whose rows include `variable`: '' for a group without tabs, null when it holds none. */
+  function tabHolding(variable: string): string | null {
+    if (!states) return holds(tokens, variable) ? '' : null;
+    return stateNames.find((s) => holds(states[s], variable) || typeGroupHolds(typeGroups[s], variable)) ?? null;
+  }
+
+  // Untracked so a later edit, which rebuilds `states`, never pulls the tabs back to an old request.
+  $effect(() => {
+    const request = $revealVariableStore;
+    if (!request) return;
+    untrack(() => {
+      const tab = tabHolding(request.variable);
+      if (tab === null) return;
+      if (inFocusMode) focusedVariantStore.set(name);
+      if (tab) {
+        activeTab = tab;
+        focusedStateStore.set(tab);
+      }
+    });
+  });
+
   // Mirror state-tab clicks to the shared store so linked-block + chart track them.
   $effect(() => {
     if (amIFocused && activeTab && stateNames.includes(activeTab) && $focusedStateStore !== activeTab) {
