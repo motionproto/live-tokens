@@ -23,7 +23,10 @@ const MAX_FENCE_LINES = 40;
 
 // A flag whose owning skill leaves it out on purpose, keyed `verb --flag`, with
 // the reason. Declaring one keeps the check honest; deleting the check does not.
-const OMITTED_FLAGS = new Map();
+const OMITTED_FLAGS = new Map([
+  ['check-component --a11y', "runs the editor's accessibility-only check, which skips the static checks a skill must bring to exit 0"],
+  ['check-component --open-theme', 'serves the editor, whose run tests the open theme; a skill tests the theme the CLI resolves'],
+]);
 // A flag the CLI used to take. Nothing dispatches it, so USAGE cannot say it is
 // gone and the flag rule below has nothing to compare against; a skill still
 // naming one hands the model a command that exits 1.
@@ -174,7 +177,7 @@ export function checkSkills({
     // verb actually offers can trip this.
     if (runs.size > 0) {
       const ran = [...runs].map((v) => `\`${v}\``).join(', ');
-      for (const flag of new Set([...text.matchAll(/--[a-z][a-z-]+/g)].map((m) => m[0]))) {
+      for (const flag of new Set([...text.matchAll(/--[a-z][a-z0-9-]+/g)].map((m) => m[0]))) {
         if ([...runs].some((verb) => (cliFlags.get(verb) ?? []).includes(flag))) continue;
         const owner = [...cliFlags].find(([, flags]) => flags.includes(flag))?.[0];
         if (owner) {

@@ -26,7 +26,7 @@ export function usageFlags(cli) {
   const flags = new Map();
   const record = (verb, text) => {
     const owned = flags.get(verb) ?? [];
-    for (const [flag] of text.matchAll(/--[a-z-]+/g)) if (!owned.includes(flag)) owned.push(flag);
+    for (const [flag] of text.matchAll(/--[a-z][a-z0-9-]*/g)) if (!owned.includes(flag)) owned.push(flag);
     flags.set(verb, owned);
   };
 

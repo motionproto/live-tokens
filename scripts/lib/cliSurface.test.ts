@@ -35,6 +35,11 @@ describe('flags USAGE offers', () => {
     expect(usageFlags(CHECKERS).get('set-type')).toEqual(['--dry-run', '--no-verify']);
   });
 
+  it('keeps the digits in a flag name', () => {
+    expect(usageFlags(cli('  check-component [id] [--tests] [--a11y]\n                              Validate one component.\n')).get('check-component'))
+      .toEqual(['--tests', '--a11y']);
+  });
+
   it('gives a shared block to every verb its heading names', () => {
     const flags = usageFlags(CHECKERS);
 
