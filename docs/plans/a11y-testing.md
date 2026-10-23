@@ -477,6 +477,29 @@ code.
 **Done when** every listed component declares at least one `press` case and
 the contract run passes with any keyboard gaps reported at `warn`.
 
+**Built.** Wave 6 documents these:
+
+- `InteractionCase.rule: 'a11y-keyboard'` routes a case. When its outcome
+  disagrees, `runInteraction` records one `A11yResult` (engine rule = case
+  name, target = the outcome's part, help = observed against expected, help
+  URL = the WAI-ARIA patterns index) and the test passes. A case without
+  `rule` fails as `contract-interaction`, as before.
+- `InteractionOutcome` gains `activated` (the key fired a click on the part,
+  how a native button reports Enter or Space) and `present` (whether the
+  part is in the document). A `press` action may omit `part`; the key then
+  goes to whatever holds focus, such as an overlay that focused itself.
+- The 15 components carry 27 keyboard cases. RadioButton, SegmentedControl,
+  TabBar, and MenuSelect gain position-stable parts (`secondOption`,
+  `secondSegment`, `firstTab`, `secondItem`) for the arrow cases.
+- The default theme run reports five gaps: arrow keys move no focus in
+  RadioButton, SegmentedControl, TabBar, and MenuSelect, and Escape leaves
+  Dialog open. MenuSelect has no Escape case: it renders its list open and
+  holds no open state for a key to close.
+- `ALL_CONTRACT_RULES` leaves `a11y-keyboard` out. The cases run inside the
+  interaction obligation, which reconciles as `contract-interaction`.
+- A component accessibility test that throws now reports `tests-setup` and
+  marks `a11y-component` failed in coverage (D3).
+
 ## Wave 6: skills and docs
 
 - `live-tokens-check-compliance`: the seven `a11y-*` rules appear in its
