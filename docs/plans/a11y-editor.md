@@ -431,3 +431,24 @@ Playwright test.
   `--open-theme`.
 
 **Verify.** `npm run check:docs-content`, `npm run check:cli-strings`.
+
+**Built.**
+
+- A dev server under `LIVE_TOKENS_TEST_DATA_DIR` keeps its accessibility
+  report at `<copy>/a11y-report.json`, beside the two editor-owned
+  stylesheets the same branch in `themeFileApi.ts` redirects, so a contract
+  run starts with no report. `a11yRunServer` now takes the report path from
+  its caller. A test in `themeFileApi.a11y.test.ts` seeds a project report,
+  boots under isolation, reads none, and finds a finished run's report in the
+  copy. A contract run with a seeded project report passed 321 of 321 in
+  5.6 min, while its server answered `{"report":null}` and the project's own
+  server answered the seed.
+- `accessibility.md` gains an "Accessibility view" section; the CHANGELOG
+  records the view, the marks and panel, both flags, the additive `--json`
+  fields and the pipe fix; the README's `check-component` row names `--a11y`
+  and `--open-theme`.
+- `check:skills` read `--a11y` as `--a`: both flag patterns now take digits.
+  Judgment call: the two flags join `OMITTED_FLAGS` with reasons instead of
+  entering a skill. `--a11y` skips the static checks a skill must bring to
+  exit 0, and `--open-theme` ties a run to the theme the editor has open,
+  which CLI runs avoid. No skill changed, so no eval case needed a rehash.
