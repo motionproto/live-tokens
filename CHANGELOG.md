@@ -169,6 +169,15 @@
 - **TabBar's selected indicator meets 3:1.** `--tabbar-selected-border` maps
   to `--border-brand-medium` in place of `--color-brand-500`, which lifts the
   underline from 2.96:1 to 3.47:1 against the default theme's page.
+- **SegmentedControl follows the WAI-ARIA radio group pattern.** Tab reaches
+  the checked option alone, and the arrow keys move focus and selection to
+  the next or previous enabled option and wrap. A focused option shows a ring
+  outside its box in `--border-neutral-strong`, so focus on the selected
+  option reads apart from its brand outline.
+- **SegmentedControl's selected outline meets 3:1.**
+  `--segmentedcontrol-selected-border` maps to `--border-brand-medium` in
+  place of `--border-brand`, which lifts the outline from 2.67:1 to 4.31:1
+  against the default theme's bar.
 
 ## 0.97.0 — Custom colors
 

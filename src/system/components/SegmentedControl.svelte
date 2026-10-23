@@ -59,6 +59,29 @@
     onchange?.(v);
     dispatch('change', v);
   }
+
+  const buttons: HTMLButtonElement[] = $state([]);
+
+  // Roving tab stop: the group takes one Tab press, on the checked segment.
+  let tabStop = $derived(
+    segments.find((s) => s.value === value && !s.disabled)?.value ?? segments.find((s) => !s.disabled)?.value,
+  );
+
+  const ARROW_STEPS: Record<string, number> = { ArrowRight: 1, ArrowDown: 1, ArrowLeft: -1, ArrowUp: -1 };
+
+  function moveSelection(event: KeyboardEvent, from: number) {
+    const step = ARROW_STEPS[event.key];
+    if (step === undefined) return;
+    event.preventDefault();
+    const count = segments.length;
+    for (let n = 1; n < count; n++) {
+      const i = (((from + step * n) % count) + count) % count;
+      if (segments[i].disabled) continue;
+      buttons[i].focus();
+      select(segments[i].value);
+      return;
+    }
+  }
 </script>
 
 <div
@@ -77,7 +100,10 @@
       disabled={disabled || seg.disabled}
       role="radio"
       aria-checked={value === seg.value}
+      tabindex={seg.value === tabStop ? 0 : -1}
+      bind:this={buttons[i]}
       onclick={() => select(seg.value)}
+      onkeydown={(event) => moveSelection(event, i)}
     >
       {#if seg.icon}<i class={seg.icon}></i>{/if}
       <span>{seg.label}</span>
@@ -138,7 +164,7 @@
     --segmentedcontrol-selected-text-font-weight: var(--font-weight-normal);
     --segmentedcontrol-selected-text-line-height: var(--line-height-normal);
     --segmentedcontrol-selected-icon: var(--text-secondary);
-    --segmentedcontrol-selected-border: var(--border-brand);
+    --segmentedcontrol-selected-border: var(--border-brand-medium);
     --segmentedcontrol-selected-border-width: var(--border-width-1);
     --segmentedcontrol-selected-radius: var(--radius-md);
 
@@ -245,6 +271,7 @@
     @include themed-padding(--segmentedcontrol-option-padding, $h: 2);
     background: transparent;
     border: 0;
+    outline: none;
     border-radius: var(--segmentedcontrol-selected-radius);
     color: var(--_text-color);
     font-family: var(--_text-family);
@@ -306,6 +333,13 @@
     background: var(--segmentedcontrol-selected-surface);
     outline: var(--segmentedcontrol-selected-border-width) solid var(--segmentedcontrol-selected-border);
     outline-offset: calc(var(--segmentedcontrol-selected-border-width) * -1);
+  }
+
+  /* A ring outside the box, in a neutral that reads apart from the selected
+     option's brand outline. It is a shadow because the selected option
+     already owns the outline. */
+  .segment:focus-visible {
+    box-shadow: 0 0 0 var(--border-width-2) var(--border-neutral-strong);
   }
 
   .segment:disabled {

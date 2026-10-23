@@ -38,7 +38,7 @@
     "--segmentedcontrol-selected-text-font-weight": "--font-weight-normal",
     "--segmentedcontrol-selected-text-line-height": "--line-height-normal",
     "--segmentedcontrol-selected-icon": "--text-secondary",
-    "--segmentedcontrol-selected-border": "--border-brand",
+    "--segmentedcontrol-selected-border": "--border-brand-medium",
     "--segmentedcontrol-selected-border-width": "--border-width-1",
     "--segmentedcontrol-selected-radius": "--radius-md",
     "--segmentedcontrol-disabled-surface": "--color-transparent",
