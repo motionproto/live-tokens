@@ -187,6 +187,14 @@
   from 2.42:1 to 3.97:1, Slider's track from 1.45:1, and Toggle's on track
   from 2.14:1 to 3.47:1. Slider's focus ring, drawn in the thumb's border
   colour, rises from 2.14:1 to 3.47:1.
+- **The preset themes carry the 3:1 control edges.** Each preset holds its
+  own copy of the component mappings, so the eight presets now carry the new
+  edges above and TabBar's and SegmentedControl's selected borders. In
+  autumn, ocean, royal-velvet, sketchy and spring-meadow every control edge
+  and selected indicator now measures 3:1 or more, where autumn's Slider
+  track measured 1.4:1 and its selected tab 2.47:1. Halloween,
+  midnight-study and sunset paint a gradient page, so their edges stay a
+  check by eye.
 
 ## 0.97.0 — Custom colors
 
