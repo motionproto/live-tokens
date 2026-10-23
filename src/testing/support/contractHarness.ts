@@ -22,6 +22,7 @@ import { openComponentsEditor } from './editor';
 const STAGE_GROUP = '.variant-group';
 const STAGE_SCOPE = '.sketch-scope';
 const STAGE = `${STAGE_GROUP}:visible ${STAGE_SCOPE}`;
+const THEME_PICKER = '[role="dialog"][aria-label="Theme Picker"]';
 
 /** A save or a reset is one file write on the dev server. Left implicit these
  *  waits inherit the run's action timeout, which is sized for a click, and a
@@ -759,7 +760,7 @@ export class ContractHarness {
    *  follows lands after the repaint. */
   async previewTheme(slug: string, settleOn?: { variable: string; from: string }): Promise<void> {
     await this.page.locator('.theme-name-trigger').click();
-    await this.page.locator('[role="dialog"][aria-label="Theme Picker"]').waitFor();
+    await this.page.locator(THEME_PICKER).waitFor();
     const row = this.page.locator(`.load-item[data-file-name="theme:${slug}"] .load-name-btn`);
     if (await row.count() === 0) this.fail('contract-theme', `the Theme Picker has no theme "${slug}"`);
     await Promise.all([
@@ -772,11 +773,43 @@ export class ContractHarness {
   }
 
   async cancelThemePreview(settleOn?: { variable: string; from: string }): Promise<void> {
-    const dialog = this.page.locator('[role="dialog"][aria-label="Theme Picker"]');
+    const dialog = this.page.locator(THEME_PICKER);
     await dialog.getByRole('button', { name: 'Cancel', exact: true }).click();
     await dialog.waitFor({ state: 'detached' });
     await settle(this.page);
     if (settleOn) await this.awaitRootChange(settleOn.variable, settleOn.from);
+  }
+
+  /** A theme preview that leaves the stage in view, for a check that reads the
+   *  stage's own paint: the Theme Picker's backdrop covers it while the
+   *  preview lasts. Each click is dispatched on its element, because a
+   *  portaled overlay such as ImageLightbox's sits over the picker trigger. */
+  async previewThemeUncovered(slug: string): Promise<void> {
+    await this.page.locator('.theme-name-trigger').dispatchEvent('click');
+    await this.page.locator(THEME_PICKER).waitFor();
+    const row = this.page.locator(`.load-item[data-file-name="theme:${slug}"] .load-name-btn`);
+    if (await row.count() === 0) this.fail('contract-theme', `the Theme Picker has no theme "${slug}"`);
+    await Promise.all([
+      this.page.waitForResponse((response) => response.url().includes('/themes/') && response.ok(),
+        { timeout: SERVER_WRITE_TIMEOUT_MS }),
+      row.dispatchEvent('click'),
+    ]);
+    await settle(this.page);
+    await this.showThemePicker(false);
+  }
+
+  async cancelUncoveredPreview(): Promise<void> {
+    await this.showThemePicker(true);
+    const dialog = this.page.locator(THEME_PICKER);
+    await dialog.getByRole('button', { name: 'Cancel', exact: true }).dispatchEvent('click');
+    await dialog.waitFor({ state: 'detached' });
+    await settle(this.page);
+  }
+
+  private async showThemePicker(shown: boolean): Promise<void> {
+    await this.page.locator(THEME_PICKER).evaluate((dialog, visible) => {
+      dialog.closest<HTMLElement>('.ui-dialog-backdrop')!.style.visibility = visible ? '' : 'hidden';
+    }, shown);
   }
 
   async rootValues(names: string[]): Promise<Record<string, string>> {
