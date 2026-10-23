@@ -30,7 +30,15 @@ const PAGE_SOURCE = 'src/pages/Home.svelte';
 // bin/contractRunner.mjs's own PAGE_RUNTIME_RULES: the fixed set every
 // viewport's coverage owes a status for, so a rule that silently stops
 // reaching coverage (rather than reporting a status) cannot pass this gate.
-const PAGE_RUNTIME_RULES = ['page-component-paint', 'page-text-style', 'page-contrast', 'page-grid', 'page-overflow'];
+const PAGE_RUNTIME_RULES = [
+  'page-component-paint', 'page-text-style', 'page-contrast', 'page-grid', 'page-overflow',
+  'a11y-page', 'a11y-text-spacing', 'a11y-reduced-motion',
+];
+
+// Accessibility findings alert at `warn` and leave the exit status alone
+// (decision 2 of docs/plans/a11y-testing.md), so the template's own page may
+// carry them until a later plan fixes the baseline.
+const isA11y = (finding) => finding.rule.startsWith('a11y-');
 
 // Bounds the whole gate rather than any one child process: a hung `npm
 // install` or a webServer that never becomes ready would otherwise hold a
@@ -200,7 +208,15 @@ function runFixtureScenarios(dir) {
     clearTestResults(dir);
     check(before === after, 'source data (src/live-tokens/data) unchanged across a passing run');
     check(result.status === 0, `check-page --tests exits 0 (was ${result.status})`);
-    check((result.json?.findings ?? []).length === 0, 'check-page --tests reports no findings');
+    const findings = result.json?.findings ?? [];
+    check(
+      findings.filter((f) => !isA11y(f)).length === 0,
+      `check-page --tests reports no finding outside the a11y rules (got ${JSON.stringify(findings.map((f) => f.rule))})`,
+    );
+    check(
+      findings.filter(isA11y).every((f) => f.severity === 'warn'),
+      'every a11y finding reports at warn',
+    );
     const coverage = result.json?.coverage ?? {};
     const keys = Object.keys(coverage);
     check(keys.length === 2, `coverage names the page at both viewports (has ${JSON.stringify(keys)})`);
@@ -208,7 +224,7 @@ function runFixtureScenarios(dir) {
       const ruleIds = Object.keys(coverage[key] ?? {}).sort();
       check(
         JSON.stringify(ruleIds) === JSON.stringify([...PAGE_RUNTIME_RULES].sort()),
-        `${key}: coverage names all 5 runtime rules (has ${JSON.stringify(ruleIds)})`,
+        `${key}: coverage names all ${PAGE_RUNTIME_RULES.length} runtime rules (has ${JSON.stringify(ruleIds)})`,
       );
     }
     const statuses = Object.values(coverage).flatMap((rules) => Object.values(rules).map((r) => r.status));
@@ -237,7 +253,7 @@ function runFixtureScenarios(dir) {
     }
     check(before === after, 'source data unchanged across a failing run');
     check(result.status === 1, `check-page --tests exits 1 (was ${result.status})`);
-    const findings = result.json?.findings ?? [];
+    const findings = (result.json?.findings ?? []).filter((f) => !isA11y(f));
     check(
       findings.length > 0 && findings.every((f) => f.rule === 'page-component-paint'),
       `every finding is page-component-paint (got ${JSON.stringify(findings.map((f) => f.rule))})`,

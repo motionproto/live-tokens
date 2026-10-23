@@ -748,7 +748,20 @@ export function mapPlaywrightResults(report, { root, sourceDataDir, knownIds }) 
 /** The plan's Runtime rule ids, fixed rather than read off a page's own
  *  results: `reconcileCoverage`'s expected set, same reasoning as
  *  `ALL_CONTRACT_RULES` above. */
-const PAGE_RUNTIME_RULES = ['page-component-paint', 'page-text-style', 'page-contrast', 'page-grid', 'page-overflow'];
+const PAGE_RUNTIME_RULES = [
+  'page-component-paint', 'page-text-style', 'page-contrast', 'page-grid', 'page-overflow',
+  'a11y-page', 'a11y-text-spacing', 'a11y-reduced-motion',
+];
+
+/** The accessibility tests' titles keep the `page-` prefix the title pattern
+ *  reads; coverage keys them by the rule each records, so `--off` reaches
+ *  them. A test of these that throws broke its scan, which reports as
+ *  `tests-setup` (decision 3 of docs/plans/a11y-testing.md). */
+const PAGE_A11Y_TESTS = {
+  'page-a11y': 'a11y-page',
+  'page-text-spacing': 'a11y-text-spacing',
+  'page-reduced-motion': 'a11y-reduced-motion',
+};
 
 /** `page-compliance.contract.ts` titles each test `${rule} | ${source} |
  *  ${width}x${height}`, so the rule, the page, and the viewport are read off
@@ -809,11 +822,14 @@ export function mapPageResults(report) {
   };
 
   for (const t of tests) {
-    const [, titleRule, titleSource, titleViewport] = PAGE_TEST_TITLE_RE.exec(t.specTitle) ?? [];
+    const [, titleName, titleSource, titleViewport] = PAGE_TEST_TITLE_RE.exec(t.specTitle) ?? [];
+    const titleRule = PAGE_A11Y_TESTS[titleName] ?? titleName;
     const pageAtViewport = titleSource && titleViewport ? `${titleSource}@${titleViewport}` : null;
     const context = { suite: 'playwright', title: t.specTitle, suiteFile: t.specFile, suiteLine: t.specLine };
+    // Each viewport records its own results, so the viewport tells a page's
+    // two findings for one element apart.
     findings.push(...a11yResults(t.annotations).map((result) =>
-      a11yFinding(result, { file: titleSource ?? 'package.json', line: result.line ?? 1, context })));
+      a11yFinding({ ...result, view: result.view ?? titleViewport }, { file: titleSource ?? 'package.json', line: result.line ?? 1, context })));
 
     if (t.status === 'expected' || t.status === 'flaky') {
       markCoverage(pageAtViewport, titleRule, t.status === 'flaky' ? 'flaky' : 'passed');
@@ -858,7 +874,7 @@ export function mapPageResults(report) {
       const block = messageBlock(error.message);
       const violation = PAGE_VIOLATION_RE.exec(block);
       findings.push({
-        rule: violation?.[1] ?? titleRule ?? 'tests-setup',
+        rule: violation?.[1] ?? (PAGE_A11Y_TESTS[titleName] || !titleRule ? 'tests-setup' : titleRule),
         file: violation?.[2] ?? titleSource ?? 'package.json',
         line: violation ? Number(violation[3]) : 1,
         message: violation?.[4] ?? block,

@@ -175,10 +175,19 @@ describe('timeoutFinding', () => {
   });
 });
 
-// The five runtime rule ids, decision 9's fixed list — inlined rather than
-// imported because PAGE_RUNTIME_RULES is this module's own reconciliation
-// detail, not a public export.
-const PAGE_RUNTIME_RULES = ['page-component-paint', 'page-text-style', 'page-contrast', 'page-grid', 'page-overflow'];
+// The runtime rule ids, decision 9's fixed list and the three accessibility
+// rules the page suite reports coverage for — inlined rather than imported
+// because PAGE_RUNTIME_RULES is this module's own reconciliation detail, not a
+// public export.
+const PAGE_RUNTIME_RULES = [
+  'page-component-paint', 'page-text-style', 'page-contrast', 'page-grid', 'page-overflow',
+  'a11y-page', 'a11y-text-spacing', 'a11y-reduced-motion',
+];
+const PAGE_A11Y_TITLES: Record<string, string> = {
+  'a11y-page': 'page-a11y',
+  'a11y-text-spacing': 'page-text-spacing',
+  'a11y-reduced-motion': 'page-reduced-motion',
+};
 
 describe('pageExpectedIds: the viewport list a run is reconciled against', () => {
   it('is the two fixed viewports with no settings file', () => {
@@ -211,7 +220,7 @@ describe('pageExpectedIds: the viewport list a run is reconciled against', () =>
       'export default { pageViewports: [{ width: 1440, height: 900 }] };',
     );
     const report = pageReport(
-      PAGE_RUNTIME_RULES.map((rule) => pageSpec(`${rule} | src/app/Home.svelte | 1440x900`, {})),
+      PAGE_RUNTIME_RULES.map((rule) => pageSpec(`${PAGE_A11Y_TITLES[rule] ?? rule} | src/app/Home.svelte | 1440x900`, {})),
     );
     const mapped = mapPageResults(report);
     const reconciled = reconcileCoverage(mapped.coverage, pageExpectedIds([{ source: 'src/app/Home.svelte', route: '/' }], root), {

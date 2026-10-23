@@ -114,8 +114,61 @@ describe('a11y annotations on a passing page test', () => {
     };
     const { findings } = mapPageResults(report);
     expect(findings).toEqual([
-      expect.objectContaining({ rule: 'a11y-page', file: 'src/app/Home.svelte', line: 14 }),
+      expect.objectContaining({
+        rule: 'a11y-page',
+        file: 'src/app/Home.svelte',
+        line: 14,
+        message: `link-name at .widget-label in 1280x900: ${contrast.help}. ${contrast.helpUrl}`,
+      }),
     ]);
+  });
+});
+
+function pageSuiteReport(title: string, test: Record<string, unknown>) {
+  return {
+    suites: [{
+      title: 'page-compliance.contract.ts',
+      specs: [{
+        title,
+        file: 'page-compliance.contract.ts',
+        line: 40,
+        tests: [{ status: 'expected', annotations: [], results: [{ status: 'passed', errors: [] }], ...test }],
+      }],
+    }],
+  };
+}
+
+describe('the page accessibility tests', () => {
+  const at = 'src/app/Home.svelte@1280x900';
+
+  it('reach coverage under the rule each records', () => {
+    for (const [name, rule] of [
+      ['page-a11y', 'a11y-page'],
+      ['page-text-spacing', 'a11y-text-spacing'],
+      ['page-reduced-motion', 'a11y-reduced-motion'],
+    ]) {
+      const { coverage } = mapPageResults(pageSuiteReport(`${name} | src/app/Home.svelte | 1280x900`, {}));
+      expect(coverage[at], name).toEqual({ [rule]: { status: 'passed' } });
+    }
+  });
+
+  it('read a missing engine as inapplicable coverage that --off turns disabled', () => {
+    const { findings, coverage } = mapPageResults(pageSuiteReport('page-a11y | src/app/Home.svelte | 1280x900', {
+      status: 'skipped',
+      annotations: [{ type: 'skip', description: 'axe-core is not installed' }],
+    }));
+    expect(findings).toEqual([]);
+    expect(coverage[at]['a11y-page']).toEqual({ status: 'inapplicable', reason: 'axe-core is not installed' });
+    expect(applyCoverageSeverity(coverage, PAGE_RULES, { off: ['a11y-page'] })[at]['a11y-page']).toEqual({ status: 'disabled' });
+  });
+
+  it('report a scan that throws as tests-setup', () => {
+    const { findings, coverage } = mapPageResults(pageSuiteReport('page-reduced-motion | src/app/Home.svelte | 1280x900', {
+      status: 'unexpected',
+      results: [{ status: 'failed', errors: [{ message: 'Error: page.evaluate: Target closed' }] }],
+    }));
+    expect(findings.map((f: { rule: string }) => f.rule)).toEqual(['tests-setup']);
+    expect(coverage[at]['a11y-reduced-motion']).toEqual({ status: 'failed' });
   });
 });
 
@@ -132,6 +185,13 @@ describe('a11y severity', () => {
   it('exits non-zero under --strict', () => {
     expect(exitCode([finding], COMPONENT_RULES, { strict: true })).toBe(1);
     expect(exitCode([pageFinding], PAGE_RULES, { strict: true })).toBe(1);
+  });
+
+  it('warns for each page rule by default and blocks under --strict', () => {
+    for (const rule of ['a11y-page', 'a11y-review', 'a11y-text-spacing', 'a11y-reduced-motion']) {
+      expect(exitCode([{ ...pageFinding, rule }], PAGE_RULES), rule).toBe(0);
+      expect(exitCode([{ ...pageFinding, rule }], PAGE_RULES, { strict: true }), rule).toBe(1);
+    }
   });
 
   it('stays silent under --strict once --off names the rule', () => {
