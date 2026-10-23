@@ -413,6 +413,32 @@ at release.
 **Done when** each defect page yields its finding at `warn` and fails under
 `--strict`, and `check-page --tests` exits 0 on the demo app.
 
+**Built.** Wave 6 documents these:
+
+- `page-compliance.contract.ts` adds three tests per page and viewport:
+  `page-a11y`, `page-text-spacing`, and `page-reduced-motion`. The runner's
+  `PAGE_A11Y_TESTS` keys their coverage by the rule each records, so
+  `PAGE_RUNTIME_RULES` holds eight ids, and a test of the three that throws
+  reports `tests-setup`. A page finding names its viewport as its `view`.
+- `PageHarness.scanA11y(roots)` runs axe over `[data-live-tokens-page]`,
+  excluding the router's chrome and every contract root selector, and reads
+  each result's line from its target. The page scan leaves SIA-R65 out:
+  the component suite already runs it on every shipped component.
+- `scanTextSpacing(specs)` runs `observeOverflow` before and under the
+  W3C bookmarklet's stylesheet and reports the failures the override adds,
+  matched by kind, line, and tag. It sees horizontal overflow alone, since
+  `observeOverflow` measures widths.
+- `scanReducedMotion()` loads the page again under
+  `reducedMotion: 'reduce'` and reports each running animation inside the
+  page whose computed end time passes 200 ms. An animation that finished
+  before the scan goes unseen.
+- `scripts/lib/pageGate.mjs` expects the eight coverage ids and accepts
+  `a11y-*` findings at `warn` on the template's Home page.
+- On the demo app, `check-page src/app/Home.svelte src/demo/Demo.svelte
+  --tests` reports six `a11y-text-spacing` warnings on Demo and none on
+  Home. Its exit status stays 1 from the `raw-text-axis` and
+  `page-text-style` errors the wave started with.
+
 ## Wave 4: editor panel
 
 **Cut after the probe.** Kept as the design a follow-up would start from.
