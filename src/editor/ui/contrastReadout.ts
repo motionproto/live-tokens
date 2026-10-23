@@ -15,7 +15,7 @@ export function formatRatio(ratio: number): string {
   return `${(Math.floor(ratio * 100 + 1e-9) / 100).toFixed(2)}:1`;
 }
 
-const formatFloor = (floor: number) => `${floor}:1`;
+export const formatFloor = (floor: number) => `${floor}:1`;
 
 export function measureState(measure: PairMeasure): ReadoutState {
   if (measure.pair.inactive) return 'inactive';

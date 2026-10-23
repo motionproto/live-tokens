@@ -25,6 +25,12 @@ describe('editorViewStore — view round-trip', () => {
     expect(get(editorView)).toBe('components');
   });
 
+  it('restores a session "accessibility" view', async () => {
+    sessionStorage.setItem(VIEW_KEY, 'accessibility');
+    const { editorView } = await import('./editorViewStore');
+    expect(get(editorView)).toBe('accessibility');
+  });
+
   it('falls back to tokens for an unknown stored value', async () => {
     sessionStorage.setItem(VIEW_KEY, 'bogus');
     const { editorView } = await import('./editorViewStore');

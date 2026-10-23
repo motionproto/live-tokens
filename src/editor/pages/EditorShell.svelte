@@ -8,10 +8,12 @@
   import EditorViewSwitcher from '../ui/EditorViewSwitcher.svelte';
   import ComponentsTab from '../component-editor/scaffolding/ComponentsTab.svelte';
   import SketchTab from '../ui/sketch/SketchTab.svelte';
+  import AccessibilityTab from '../ui/a11y/AccessibilityTab.svelte';
+  import { A11Y_REVIEW_SECTION, A11Y_RUN_SECTION, a11ySectionId, componentsWithIssues, issuesLabel } from '../ui/a11y/a11yView';
   import ThemePanel from '../ui/ThemePanel.svelte';
   import { scrollSectionIntoView } from '../ui/scrollSection';
   import { editorView, sidebarCondensed, selectedComponent, type EditorView } from '../core/store/editorViewStore';
-  import { componentDirty } from '../core/store/editorStore';
+  import { a11yIssues, componentDirty } from '../core/store/editorStore';
   import { getComponentRegistryEntries, validateRegistryAgainstServerScan } from '../component-editor/registry';
   import { listComponents } from '../core/components/componentConfigService';
 
@@ -42,6 +44,8 @@
     { id: 'sketch-noise', label: 'Noise', icon: 'fas fa-wave-square' },
     { id: 'sketch-preview', label: 'Preview', icon: 'fas fa-eye' }
   ];
+
+  type NavItem = { id: string; label: string; icon: string; count?: number };
 
   let { onclose }: { onclose?: () => void } = $props();
 
@@ -115,11 +119,25 @@
   let menuOpen = $state(false);
   let screenBarHeight = $state(0);
 
-  const sectionNav: Partial<Record<EditorView, { id: string }[]>> = {
+  let a11yComponentNavItems: NavItem[] = $derived(
+    componentsWithIssues($a11yIssues).map(({ component, label, icon, count }) => ({
+      id: a11ySectionId(component), label, icon, count,
+    })),
+  );
+  let a11yHasReview = $derived(Object.values($a11yIssues).some((issues) => issues.review.length > 0));
+
+  // The narrow layout shows one section at a time, so the run section and the
+  // check-by-eye line join the component sections the rail lists.
+  let sectionNav: Partial<Record<EditorView, NavItem[]>> = $derived({
     tokens: tokenNavItems,
     sketch: sketchNavItems,
     colors: colorsNavItems,
-  };
+    accessibility: [
+      { id: A11Y_RUN_SECTION, label: 'Test run', icon: 'fas fa-universal-access' },
+      ...a11yComponentNavItems,
+      ...(a11yHasReview ? [{ id: A11Y_REVIEW_SECTION, label: 'Check by eye', icon: 'fas fa-eye' }] : []),
+    ],
+  });
 
   function shownSection(view: EditorView): string | null {
     const items = sectionNav[view];
@@ -127,8 +145,8 @@
     return items.some((i) => i.id === selectedTokenSection) ? selectedTokenSection : items[0].id;
   }
 
-  let menuItems = $derived(
-    $editorView === 'components' ? allComponentNavItems : (sectionNav[$editorView] as typeof tokenNavItems),
+  let menuItems: NavItem[] = $derived(
+    $editorView === 'components' ? allComponentNavItems : sectionNav[$editorView]!,
   );
   let activeItemId = $derived(
     themeScreen ? null : $editorView === 'components' ? $selectedComponent : shownSection($editorView),
@@ -214,12 +232,17 @@
             <button
               type="button"
               class="nav-item"
+              class:counted={item.count !== undefined}
               class:active={activeItemId === item.id}
+              aria-label={item.count !== undefined ? `${item.label}, ${issuesLabel(item.count)}` : undefined}
               class:dirty={$editorView === 'components' && $componentDirty[item.id]}
               onclick={() => pickSection(item.id)}
             >
               <i class={item.icon}></i>
               <span class="nav-label">{item.label}</span>
+              {#if item.count !== undefined}
+                <span class="nav-count">{item.count}</span>
+              {/if}
               {#if $editorView === 'components' && $componentDirty[item.id]}
                 <span class="dirty-dot" aria-label="Unsaved changes" title="Unsaved changes"></span>
               {/if}
@@ -309,6 +332,28 @@
             <ThemePanel />
           </div>
         {/if}
+      {:else if $editorView === 'accessibility'}
+        <div class="nav-items">
+          {#each a11yComponentNavItems as item (item.id)}
+            <button
+              class="nav-item counted"
+              class:active={selectedTokenSection === item.id}
+              aria-label={`${item.label}, ${issuesLabel(item.count ?? 0)}`}
+              onmouseenter={(e) => showHint(item.label, e.currentTarget)}
+              onmouseleave={hideHint}
+              onclick={() => scrollToSection(item.id)}
+            >
+              <i class={item.icon}></i>
+              <span class="nav-label">{item.label}</span>
+              <span class="nav-count">{item.count}</span>
+            </button>
+          {/each}
+        </div>
+        {#if !condensed}
+          <div class="sidebar-footer">
+            <ThemePanel />
+          </div>
+        {/if}
       {:else}
         <div class="nav-items">
           {#each systemNavItems as item (item.id)}
@@ -367,6 +412,8 @@
       <ColorsTab />
     {:else if $editorView === 'sketch'}
       <SketchTab {sectionJump} />
+    {:else if $editorView === 'accessibility'}
+      <AccessibilityTab />
     {:else}
       <ComponentsTab selectedComponent={$selectedComponent} />
     {/if}
@@ -607,8 +654,20 @@
     transition: opacity 180ms ease;
   }
 
-  .layout.condensed .nav-label {
+  .layout.condensed .nav-label,
+  .layout.condensed .nav-count {
     opacity: 0;
+  }
+
+  .nav-item.counted {
+    grid-template-columns: 48px 1fr auto;
+  }
+
+  .nav-count {
+    padding-right: var(--ui-space-12);
+    font-size: var(--ui-font-size-sm);
+    color: var(--ui-text-tertiary);
+    transition: opacity 180ms ease;
   }
 
   .nav-item:hover {
