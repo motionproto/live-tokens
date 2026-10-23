@@ -334,6 +334,47 @@ local main with the prefix `A11y view W<n>: `.
 **Verify.** `npm run check`, `npx vitest run src/editor`, the new
 Playwright test.
 
+**Built.** Wave 4 can reuse these:
+
+- `src/editor/core/store/unsavedEdits.ts` exports `unsavedEdits`, one
+  derived store over `colorsAndTypeDirty`, `componentDirty` and
+  `sketchOffTheme`. ThemePanel and the view both read it.
+- `src/editor/core/a11y/contrastFailures.ts`: `contrastFailures(pairs,
+  resolver)` measures each pair with `measurePair` and keeps the ones that
+  fail. An inactive pair passes in `measurePair`, so it never appears. Run
+  test calls it with `allContrastPairs()` and `createDomResolver()`.
+- `src/editor/ui/a11y/a11yView.ts`: `componentsWithIssues(issues)` (rail
+  order, label, icon, count of contrast plus code), `reviewResults`,
+  `issueCount`, `issuesLabel`, `a11ySectionId(component)`,
+  `propertyLabel(component, variable)` (the schema row's label, first letter
+  raised; contrastContract.test pins every foreground to a schema row),
+  `codeSpans`, `formatRunTime` and `formatElapsed`.
+- `src/editor/ui/a11y/A11yIssueRow.svelte` renders one row: the "!" in
+  `--ui-highlight` (or none with `marked={false}`), the text, an optional
+  `detail` snippet and an optional guidance link. A Wave 4 "→" to the
+  property row would join it as a new optional snippet.
+- `src/editor/ui/a11y/A11yComponentIssues.svelte` renders one component's
+  "Fix with a property" and "Fix in the component's code" groups and leaves
+  an empty group out. A contrast row reads "Text color 3.87:1, needs 4.5:1"
+  over its variable and links its success criterion. A code row reads the
+  finding's help, prefixed with the case name for `a11y-keyboard`, over its
+  target and view, and links `helpUrl`. `formatFloor` is now exported from
+  `contrastReadout.ts`.
+- The view: `AccessibilityTab.svelte` beside the other tabs in
+  `src/editor/ui/a11y/`. The rail lists the components with a marked issue
+  and their counts, and a click scrolls to `#a11y-component-<id>`. The narrow
+  menu adds "Test run" (`#a11y-run`) first and "Check by eye"
+  (`#a11y-review`) last, so `sectionNav.accessibility` is never empty.
+- Judgment calls: a component whose only results are to check by eye gets
+  no section and no rail entry, and its results sit in the check-by-eye
+  line. Component sections stay open. Run test is disabled during a run
+  and while the last report carries `tests-not-installed`, and a "Check
+  again" pill then starts a run, so installing the tool needs no edit to
+  the report file. Run-level `tests-*` messages list under the run line with
+  their backticked commands as code.
+- `tests/e2e/accessibility-view.spec.ts` (project `chromium`) stubs both
+  routes with `page.route`, so no test starts a real run.
+
 ## Wave 4: markers and panels
 
 - The list "!" of D8 in all three copies of the list.
