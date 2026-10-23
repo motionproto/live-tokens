@@ -261,6 +261,62 @@ local main with the prefix `A11y view W<n>: `.
 
 **Verify.** `npx vitest run vite-plugin src/editor/core`, `npm run check`.
 
+**Built.** Waves 3 and 4 call these:
+
+- Types live in `src/editor/core/a11y/a11yReportTypes.ts`. The editor
+  sends `A11yContrastFailure[]`, one entry per failing pair:
+  `{ component, variable, backdrop, role, ratio, floor, context? }`, where
+  `variable` is the pair's `foreground` and `role` is `'text' | 'non-text'`.
+  `ContrastPair` has no view, so the entry carries none. `A11yReport` is a
+  union on `state`. Every state carries `startedAt` and `contrast`.
+  `finished` adds `finishedAt`, `theme?` and `findings`. `failed` adds
+  `finishedAt` and `error`. `theme` is absent when a missing tool stopped
+  the run before it copied the tree.
+- `POST ${API_BASE}/a11y/run` with `{ contrast }` answers 202 and the
+  running report. It answers 409 `A11Y_RUN_IN_PROGRESS` while a run goes,
+  400 `INVALID_BODY` to a malformed list, and 409 `LEGACY_LAYOUT` on an
+  unmigrated tree through the existing guard. It spawns
+  `node <pkg>/bin/cli.mjs check-component --tests --a11y --no-fix --json
+  --open-theme` from `process.cwd()`. The plugin resolves `<pkg>` as `..`
+  from its own file, the same way it finds the shipped components, so the
+  path holds from `vite-plugin/` and from `dist-plugin/`. A dev-server close
+  sends the child SIGINT.
+- `GET ${API_BASE}/a11y/report` answers `{ report: A11yReport | null }`:
+  the running report while a run goes, otherwise
+  `test-results/live-tokens/a11y-report.json` under the project root. The
+  file holds the last settled report alone, so a restart never reads back
+  an orphaned run. The report drops every finding whose
+  `details.engineRule` is `color-contrast`. Output that parses as no report
+  makes a `failed` report with the exit code and the tail of stderr. A
+  missing tool makes a `finished` report of `tests-not-installed` findings,
+  each naming its install command.
+- The `/events` stream sends `event: a11y` with the report on start and on
+  settle, to every open stream. `live-state` is unchanged.
+- The runner adds `component` to every Playwright finding that names one,
+  so the store reads the id from that field. `reportChecks` now prints
+  through `writeOut`. On macOS, `console.log` followed by `process.exit` cut
+  piped output at 64 KiB.
+- `src/editor/core/a11y/a11yReport.ts`, re-exported from `editorStore.ts`:
+  `a11yReport` (the latest report), `a11yFinishedReport` (the last finished
+  one, which the markers follow during a run), `a11yIssues`
+  (`Record<componentId, { contrast, code, review }>`), and
+  `startA11yRun(contrast)`. `code` holds each `a11y-*` finding other than
+  `a11y-review`, and `review` holds the `a11y-review` findings, which carry
+  no "!". A component appears in `a11yIssues` when it has any of the three.
+  `startA11yRun` throws an `Error` carrying `status` and `code`. Boot reads
+  `GET` after the stream opens, and `liveStateStream.ts` feeds the store from
+  the one `EventSource`. A tab reloaded mid-run shows no markers until that
+  run finishes.
+- Measured on this repository with `_active.json` naming `royal-velvet`: a
+  POST to a dev server on port 5199 settled in 185 s. It returned
+  `finished` with 27 findings across 10 components, every one of which
+  carried `component`, and no `color-contrast` finding. A second POST
+  answered 409, and the stream carried two `a11y` frames.
+- The spawned CLI copies the data tree that `live-tokens.config.json`
+  names. A dev server under `LIVE_TOKENS_TEST_DATA_DIR` therefore runs the
+  check against the project's own tree, which Wave 3's Playwright test must
+  allow for.
+
 ## Wave 3: Accessibility view
 
 - `accessibility` joins `EditorView`, `isEditorView`, the switcher and
