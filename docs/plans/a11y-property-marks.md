@@ -224,6 +224,60 @@ the prefix `A11y marks W<n>: `.
 names `--slider-range-thumb-size`, `--input-focused-border` and
 `--button-primary-text` among the findings' `variables`.
 
+**Built.** Waves 2 to 4 call these:
+
+- `src/testing/support/traceProperties.ts` exports
+  `traceProperties(page, { selector, scope }, axes, known): Promise<string[]>`,
+  `TRACE_AXES` and the `TraceAxes` type. The plan's `target` argument
+  became `{ selector, scope }`: the trace needs the scope to drop matches
+  outside it and to stop its ancestor walk there. The component suite passes
+  `SCOPE`, `[data-lt-a11y-stage]`. The result is sorted and unique.
+- `TraceAxes` is `{ target, pseudoElements, ancestors, force? }`, each a
+  list of CSS property names where a trailing `*` matches a prefix and `*`
+  alone matches every property. `force` lists the pseudo-classes forced on
+  the target while its styles are read; the trace releases them afterward.
+  `TRACE_AXES` holds `color-contrast`, `SIA-R65` and `target-size`. Wave 4
+  adds `focus-indicator-contrast` and `control-boundary-contrast` there.
+- The trace keeps every matched declaration on an axis, overridden ones
+  included, so an Input in its error state names both
+  `--input-focused-border` and `--input-error-border`. It reads authored
+  declarations from regular rules and inline styles. It follows a custom
+  property through each declaration of it on the target, its
+  pseudo-elements and its in-scope ancestors. A selector that does not
+  parse, such as an Alfa label with an unusual id, traces nothing. An Alfa
+  label that matches several elements in scope traces them all.
+- One CDP session per page, cached in a `WeakMap`, with `DOM` and `CSS`
+  enabled once.
+- `ContractHarness.propertyVariables(): Promise<Set<string>>` returns the
+  component's `schema` variables and every variant of its `intrinsics`, read
+  from the registry entry in the page. The suite passes it as `known`.
+- `A11yResult.variables?: string[]` in `src/testing/support/a11y.ts`.
+  `Occurrences` in `component-a11y.contract.ts` takes a tracer in its
+  constructor, and `add` is now async: it traces a result the first time
+  its key appears and sets `variables` only when the trace found a name.
+  An engine rule outside `TRACE_AXES` traces nothing.
+- `a11yFinding` in `bin/contractRunner.mjs` copies a non-empty
+  `result.variables` to `details.variables`.
+  `A11yFinding.details.variables?: string[]` in `a11yReportTypes.ts`.
+- Tests: `tests/e2e/trace-properties.spec.ts` (project `chromium`, four
+  cases over a `setContent` fixture) and a mapping case in
+  `bin/a11y.test.ts`.
+- The plan's Verify command names `bin/live-tokens.mjs`; the CLI is
+  `bin/cli.mjs`. `check-component` reads one id, so the wave ran it once
+  per component. Each exited 0 on the default theme:
+  - slider, 5 warnings: `target-size` at `.low` and `.high` names
+    `--slider-range-thumb-size` and `--slider-range-track-border-width`.
+    The three `SIA-R65` results trace nothing: the thumb's focus style sits
+    on its sibling `.cap`, outside the target's axes.
+  - input, 1 warning: `SIA-R65` names 11 variables, among them
+    `--input-focused-border`, `--input-focused-border-width` and
+    `--input-error-border`, beside the default border, surface and text,
+    whose rules match the field in every state.
+  - button, 38 warnings, all `a11y-review` `color-contrast`: each names the
+    variant's `-text` and `-surface`, `--button-shimmer` from `::before`,
+    and in hover views the `-hover-` pair and `--button-hover-tint-enabled`.
+    The primary rows name `--button-primary-text`.
+
 ## Wave 2: every finding marks
 
 - `issueCount` and the grouping of D6, in `a11yReport.ts` and `a11yView.ts`.
