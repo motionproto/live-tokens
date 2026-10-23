@@ -379,6 +379,68 @@ names `--slider-range-thumb-size`, `--input-focused-border` and
 **Verify.** `npm run check`, `npx vitest run src/editor`,
 `npm run test:e2e:contract`.
 
+**Built.** Waves 4 to 6 can rely on these:
+
+- `a11yReport.ts` exports `a11yPropertyFindings`, a derived store of the
+  last finished run's findings keyed by each variable in their
+  `details.variables`. It reads `findings` alone, so the editor's own
+  contrast failures add no mark (D7). A Wave 4 finding with variables marks
+  its rows with no further code.
+- `src/editor/ui/a11y/A11yPropertyMark.svelte` takes
+  `{ variables: string[], placement?: 'inline' | 'gutter' }` and renders
+  nothing when no finding names one of the variables. Otherwise it renders a
+  `UIInfoPopover` whose button carries the count as its name: "N
+  accessibility issues", or "N results to check by eye" when every finding
+  is `a11y-review`. The button holds one empty span whose `::after` draws
+  "!" in `--ui-highlight`, or "?" in `--ui-text-tertiary` for a row with
+  check-by-eye results alone, so the mark adds no text node. The popover
+  takes the same title and lists the findings through `findingRows` and
+  `A11yFindingRow` without `onreveal`: the code fixes first, the
+  check-by-eye rows last, each with its target or element count, its views,
+  its help link and the properties it traces to.
+- The mark renders in every row host:
+  - `UITokenSelector`, and through it every selector that sets
+    `data-token-variable` (palette, variant, font, padding, easing, text
+    transform). The mark sits in `.ui-ts-trigger-wrap` with
+    `placement="gutter"`: absolutely placed right of the label column, in
+    the column gap, left of the trigger. Linked-block rows carry it too.
+  - `GradientEditor`, after its section label ("Surface").
+  - Each `.property-row[data-token-variables]` toggle, inside its
+    `.property-label` after the text: the hover tint rows of Button, Icon
+    Button, Menu Select, Segmented Control, Tab Bar and Side Navigation, and
+    Button's shimmer row.
+  - Card's hover control, after its "Use hover" label.
+- The panel's "→" reaches an intrinsic's row on a tab that is not open.
+  `revealVariable` now carries a `RevealRequest`,
+  `{ variable, searches: Promise<void>[] }`. A rendered VariantGroup whose
+  schema tokens and type groups lack the variable renders its
+  `stateActions`, `extraPropertyRowsTop` and `extraPropertyRows` snippets
+  for each tab in turn, inside a hidden, inert stage, until one carries the
+  variable's `data-token-variable` or `data-token-variables`. It then opens
+  that tab. It pushes the search onto the request, and `A11yPanel` waits
+  for every search before it looks for the row. The search touches no
+  shared store until it finds the tab.
+- Tests: `A11yPropertyMark.test.ts` covers the count, the review style, the
+  editor's contrast failures adding no mark, a row of two variables, and the
+  popover's rows and views. `a11y-markers.spec.ts` gains three cases: an
+  Input row reached by the "→" carries "1 accessibility issue" and its
+  popover; the "→" for Button's shimmer opens the hover tab and lands on the
+  marked row; and a sweep that gives every registered component a finding
+  naming all its schema and intrinsic variables, walks each variant, part
+  and state tab, and requires a mark on every visible row host that carries
+  one of them. Removing the shimmer row's mark fails the sweep.
+- Judgment calls. A row with check-by-eye results alone draws "?", the
+  panel's glyph for those rows, where D7 names "!". The gutter mark sits
+  next to the trigger, so a long label stands about 4px from it. The variable
+  list of a `.property-row` mark repeats its `data-token-variables`; the
+  sweep catches drift.
+- Open items. Intrinsic rows that carry no `data-token-variables` get no
+  mark and no "→" target: Section Divider's alignment, eyebrow and
+  description display and hairline rows, Image's zoom and grow, and Image
+  Lightbox's tile fit. Giving them the attribute also enrolls them in the
+  contract suite's composite-control pass, so it waits for a wave that can
+  run that suite against the change.
+
 ## Wave 4: contrast checks
 
 - `focus-indicator-contrast` per D8 and `control-boundary-contrast` per D9,
