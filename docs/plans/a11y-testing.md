@@ -2,8 +2,8 @@
 
 Plan of 2026-10-23. The user settled D2 and approved D1 and D3 to D12 as
 recommended on 2026-10-23, and merged `contrast-checker` into main the same
-day (D10). The waves run in an ordinary session, one at a time, and the
-session stops for the user after each.
+day (D10). An orchestrator session runs each wave in a session of its own
+and stops for the user after each. Running the plan gives the rules.
 
 **The probe comes first.** Wave 0 runs axe and Alfa over every component
 state in a throwaway script and reports what they find, touching no product
@@ -197,6 +197,21 @@ with `--update-aria`.
 - Focus indicator contrast (SC 1.4.11) beyond SIA-R65's visibility check.
   A follow-up can measure the outline through `contrast.ts`.
 - Manual audits.
+
+## Running the plan
+
+One orchestrator session runs the plan. It starts one session per wave, and
+that session does the whole wave: it writes the code, runs the wave's Verify
+commands, fixes what they report, and returns a summary. The orchestrator
+reads the summary and the diff, then stops for the user before the next wave
+starts. A wave stays in one session from start to finish, with no separate
+executor, verifier, or reviewer. The plan registers no saved workflow and uses
+neither `plan-wave` nor `plan-all`.
+
+Wave 1 runs first. Waves 2 to 5 each build on Wave 1 alone, so the
+orchestrator may run them at once, each session in its own git worktree, and
+merge them in order. Wave 6 runs last. A wave runs only when the Probe outcome
+table marks it Build or Change.
 
 ## Wave 0: probe
 
