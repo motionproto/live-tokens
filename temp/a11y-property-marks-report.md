@@ -74,3 +74,22 @@ trace to no component property and carry no row mark.
   changes. No shipped component sets one.
 - `check-page --tests` exits 1 with "no page renders through a route yet". It
   did so before this plan, because the repo routes no pages of its own.
+
+## Follow-ups
+
+The user approved all three decisions on 2026-10-23.
+
+1. `references/contract-tests.md` names `boundaries` and the suite's four
+   new checks. The check-compliance SKILL.md lists them beside axe, Alfa and
+   the keyboard cases. Both atlas syncs ran. No eval copy holds either file,
+   so no rehash was due.
+2. TabBar's selected tab, SegmentedControl's selected option and
+   SideNavigation's four selected parts join `boundaries`. A part may name
+   `when`, a selector it must also match. The check now keeps the best of
+   the outline and the four border sides. On the default theme TabBar's
+   selected tab measures 2.96:1 and SegmentedControl's selected option
+   2.67:1. SideNavigation passes at 3.85:1. A private custom property now
+   traces through its winning declaration alone.
+3. Image Lightbox's Tile tab gains a "tile fit" row, Contain or Cover. The
+   registry entry now lists the component's intrinsics, and a tile follows
+   the theme's fit unless its `fit` prop is set.
