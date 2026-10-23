@@ -1,6 +1,6 @@
 import { describe, it, expect, afterEach } from 'vitest';
-import { execFileSync } from 'node:child_process';
-import { cpSync, existsSync, mkdtempSync, mkdirSync, readFileSync, readdirSync, rmSync, statSync, utimesSync, writeFileSync } from 'node:fs';
+import { execFileSync, spawnSync } from 'node:child_process';
+import { cpSync, existsSync, mkdtempSync, mkdirSync, readFileSync, readdirSync, rmSync, statSync, symlinkSync, utimesSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, relative } from 'node:path';
 // @ts-expect-error — plain .mjs module, no types
@@ -527,14 +527,17 @@ describe('config-token', () => {
 
 // @ts-expect-error — plain .mjs module, no types
 import {
+  A11Y_SELECTION,
   artifactForContractRule,
   classifyInfrastructureError,
+  copyIsolatedDataDir,
   EDITOR_SUITE_POSITIONAL_RULES,
   extractToken,
   extractViolationArray,
   findTokenLine,
   hasHardFailure,
   identifyComponent,
+  isA11yRunFinding,
   mapPlaywrightResults,
   mapRegistryViolation,
   mapVitestResults,
@@ -545,6 +548,7 @@ import {
   runContractTests,
   runPlaywrightSuite,
   runRegistrySuite,
+  testedTheme,
   writeGeneratedConfigs,
 } from './contractRunner.mjs';
 // @ts-expect-error — plain .mjs module, no types
@@ -1778,5 +1782,142 @@ describe('one broken alias, one finding', () => {
       { rule: 'contract-alias', file: 'package.json', line: 1, message: 'widget: the shipped config declares no aliases' },
     ];
     expect(dedupeAliasFindings(findings).map((f) => f.rule)).toEqual(['config-token', 'contract-alias']);
+  });
+});
+
+function suiteTitles(file: string): string[] {
+  const source = readFileSync(join(process.cwd(), 'src/testing', file), 'utf8');
+  return [...source.matchAll(/test\(`\$\{contract\.id\} ([^`]+)`/g)].map((m) => m[1]);
+}
+
+describe('check-component --tests --a11y: the suite selection', () => {
+  it('greps the accessibility test and, of the editor suite, the one test the positional table marks contract-interaction', () => {
+    const grep = new RegExp(A11Y_SELECTION.grep);
+    const editor = suiteTitles('component-editor.contract.ts');
+    expect(editor).toHaveLength(EDITOR_SUITE_POSITIONAL_RULES.length);
+    const selected = editor.map((title, index) => [title, index] as const).filter(([title]) => grep.test(`widget ${title}`));
+    expect(selected.map(([, index]) => EDITOR_SUITE_POSITIONAL_RULES[index])).toEqual(A11Y_SELECTION.editorRules);
+    expect(suiteTitles('component-a11y.contract.ts').map((title) => grep.test(`widget ${title}`))).toEqual([true]);
+  });
+
+  it('keeps a11y-* and tests-* findings and drops the rest', () => {
+    const rules = ['a11y-component', 'a11y-keyboard', 'a11y-review', 'tests-setup', 'tests-incomplete', 'tests-not-installed', 'contract-interaction', 'contract-alias', 'config-token'];
+    expect(rules.filter((rule) => isA11yRunFinding({ rule }))).toEqual(rules.slice(0, 6));
+  });
+
+  // Real Playwright over stand-in suites carrying the real titles, so the file
+  // filter and the grep meet the CLI's own matching. No test opens a page, so
+  // no browser launches.
+  it('runs the accessibility suite and the interaction test alone, and maps the interaction test to its own rule', async () => {
+    const fixture = fixtureRoot();
+    symlinkSync(join(process.cwd(), 'node_modules'), join(fixture, 'node_modules'), 'dir');
+    writeFileSync(join(fixture, 'playwright.config.ts'), "export default { projects: [{ name: 'contract', testMatch: '**/component-*.contract.ts' }] };\n");
+    const annotate = (rule: string) => `test.info().annotations.push({ type: 'a11y', description: JSON.stringify([{ rule: '${rule}', engineRule: 'case', impact: null, target: 'part', html: '', help: 'help', helpUrl: 'https://example.com' }]) });`;
+    const editorTests = suiteTitles('component-editor.contract.ts').map((title, index) =>
+      EDITOR_SUITE_POSITIONAL_RULES[index] === 'contract-interaction'
+        ? `  test(${JSON.stringify(`widget ${title}`)}, () => { ${annotate('a11y-keyboard')} throw new Error('the pointer case missed'); });`
+        : `  test(${JSON.stringify(`widget ${title}`)}, () => { throw new Error('ContractViolation: [${EDITOR_SUITE_POSITIONAL_RULES[index]}] widget: ran'); });`);
+    writeFileSync(
+      join(fixture, 'component-editor.contract.ts'),
+      `import { test } from '@playwright/test';\ntest.describe.serial('widget', () => {\n${editorTests.join('\n')}\n});\n`,
+    );
+    const [a11yTitle] = suiteTitles('component-a11y.contract.ts');
+    writeFileSync(
+      join(fixture, 'component-a11y.contract.ts'),
+      `import { test } from '@playwright/test';\ntest(${JSON.stringify(`widget ${a11yTitle}`)}, () => { ${annotate('a11y-component')} });\n`,
+    );
+    writeFileSync(
+      join(fixture, 'component-render.contract.ts'),
+      "import { test } from '@playwright/test';\ntest('widget repaints every property', () => { throw new Error('ran'); });\n",
+    );
+
+    const configDir = mkdtempSync(join(tmpdir(), 'lt-a11y-cfg-'));
+    try {
+      const outcome = await runPlaywrightSuite({
+        root: fixture,
+        configDir,
+        playwrightConfigPath: join(fixture, 'playwright.config.ts'),
+        project: 'contract',
+        files: A11Y_SELECTION.files,
+        grep: A11Y_SELECTION.grep,
+      });
+      expect(outcome.setupFinding).toBeUndefined();
+      expect(readPlaywrightTests(outcome.report).map((t: { specTitle: string }) => t.specTitle).sort()).toEqual(
+        [`widget ${a11yTitle}`, 'widget answers the pointer and the keyboard'].sort(),
+      );
+      const mapped = mapPlaywrightResults(outcome.report, {
+        root: widgetFixtureRoot(),
+        sourceDataDir: join(fixture, 'data'),
+        knownIds: new Set(['widget']),
+        positionalRules: A11Y_SELECTION.editorRules,
+      });
+      expect(mapped.findings.map((f: { rule: string }) => f.rule).sort()).toEqual(['a11y-component', 'a11y-keyboard', 'contract-interaction']);
+      expect(mapped.findings.filter(isA11yRunFinding).map((f: { rule: string }) => f.rule).sort()).toEqual(['a11y-component', 'a11y-keyboard']);
+      expect(mapped.coverage).toEqual({
+        widget: { 'a11y-component': { status: 'passed' }, 'contract-interaction': { status: 'failed' } },
+      });
+    } finally {
+      rmSync(configDir, { recursive: true, force: true });
+    }
+  }, 60_000);
+
+  it('runs no static check: a project missing the tools reports only the tests-not-installed findings', () => {
+    const root = widgetFixtureRoot();
+    const run = spawnSync('node', [join(process.cwd(), 'bin/cli.mjs'), 'check-component', 'widget', '--tests', '--a11y', '--json'], { cwd: root });
+    expect(run.status).toBe(1);
+    const report = JSON.parse(run.stdout.toString());
+    expect(report.check).toBe('check-component widget --tests --a11y');
+    expect(report.findings.map((f: { rule: string }) => f.rule)).toEqual(['tests-not-installed', 'tests-not-installed', 'tests-not-installed']);
+  });
+
+  it('refuses --a11y and --open-theme without --tests', () => {
+    for (const flag of ['--a11y', '--open-theme']) {
+      const run = spawnSync('node', [join(process.cwd(), 'bin/cli.mjs'), 'check-component', flag], { cwd: widgetFixtureRoot() });
+      expect(run.status).toBe(1);
+      expect(run.stderr.toString()).toContain('--a11y and --open-theme run with --tests.');
+    }
+  });
+});
+
+describe('check-component --tests: the isolated copy, decision 2 of docs/plans/a11y-editor.md', () => {
+  function sessionTree(): string {
+    const source = fixtureRoot();
+    const write = (rel: string, body: unknown) => {
+      mkdirSync(join(source, rel, '..'), { recursive: true });
+      writeFileSync(join(source, rel), JSON.stringify(body));
+    };
+    write('themes/_active.json', { activeFile: 'royal-velvet' });
+    write('themes/_production.json', { productionFile: 'default' });
+    write('themes/_working.json', {});
+    write('themes/royal-velvet.json', {});
+    write('colors-and-type/_working.json', {});
+    write('component-configs/button/_working.json', {});
+    write('component-configs/button/_active.json', { activeFile: 'default' });
+    write('component-configs/button/default.json', {});
+    return source;
+  }
+
+  function files(dir: string): string[] {
+    return (readdirSync(dir, { recursive: true }) as string[]).filter((entry) => entry.endsWith('.json')).sort();
+  }
+
+  it('--open-theme keeps the theme pointer and removes every buffer and every other pointer', () => {
+    const copy = copyIsolatedDataDir(sessionTree(), { keepActive: true });
+    try {
+      expect(files(copy)).toEqual(['component-configs/button/default.json', 'themes/_active.json', 'themes/royal-velvet.json']);
+      expect(testedTheme(copy)).toBe('royal-velvet');
+    } finally {
+      rmSync(copy, { recursive: true, force: true });
+    }
+  });
+
+  it('a plain run removes the theme pointer and every buffer, and tests the default theme', () => {
+    const copy = copyIsolatedDataDir(sessionTree());
+    try {
+      expect(files(copy)).toEqual(['component-configs/button/default.json', 'themes/royal-velvet.json']);
+      expect(testedTheme(copy)).toBe('default');
+    } finally {
+      rmSync(copy, { recursive: true, force: true });
+    }
   });
 });

@@ -60,6 +60,7 @@ function testsTimeoutMs() {
 // that module compiles into src/testing-js, which does not exist until
 // `build:testing` runs, and this one ships unbuilt.
 const SESSION_FILES = new Set(['_working.json', '_active.json', '_production.json']);
+const THEME_POINTER = join('themes', '_active.json');
 
 const REQUIRED_TOOLS = [
   {
@@ -108,6 +109,24 @@ export const EDITOR_SUITE_POSITIONAL_RULES = [
   'contract-theme',
   'contract-sketch',
 ];
+
+/**
+ * `--tests --a11y` (decision 3 of docs/plans/a11y-editor.md): the
+ * accessibility suite, and from the editor suite the one test that runs the
+ * keyboard cases. `--grep` selects that test by title, so the editor suite
+ * reaches the mapper with one test per component, and `editorRules` stands in
+ * for the positional table. `bin/check-component.test.ts` pins `grep` to both
+ * suites' titles.
+ */
+export const A11Y_SELECTION = {
+  files: ['component-a11y.contract', 'component-editor.contract'],
+  grep: 'records its accessibility findings in every variant and state|answers the pointer and the keyboard',
+  editorRules: ['contract-interaction'],
+};
+
+export function isA11yRunFinding(finding) {
+  return finding.rule.startsWith('a11y-') || finding.rule.startsWith('tests-');
+}
 
 // ─── tool + path resolution ─────────────────────────────────────────────────
 
@@ -194,7 +213,10 @@ function guessViteConfigPath(root, settingsPath) {
 
 // ─── data isolation ─────────────────────────────────────────────────────────
 
-function copyIsolatedDataDir(sourceDataDir) {
+/** `keepActive` (`--open-theme`) leaves the editor's theme pointer in the copy,
+ *  so the run reads that theme's saved file. Every buffer still goes, and so
+ *  does any legacy per-layer pointer, whose presence marks a tree unmigrated. */
+export function copyIsolatedDataDir(sourceDataDir, { keepActive = false } = {}) {
   if (!existsSync(sourceDataDir)) {
     throw new Error(
       `No data directory at ${sourceDataDir}. Set "dataDir" in live-tokens.config.json ` +
@@ -206,9 +228,17 @@ function copyIsolatedDataDir(sourceDataDir) {
   const dataDir = realpathSync(mkdtempSync(join(tmpdir(), 'live-tokens-check-')));
   cpSync(sourceDataDir, dataDir, { recursive: true });
   for (const entry of readdirSync(dataDir, { recursive: true })) {
+    if (keepActive && entry === THEME_POINTER) continue;
     if (SESSION_FILES.has(basename(entry))) rmSync(join(dataDir, entry), { force: true });
   }
   return dataDir;
+}
+
+/** The theme a run over `dataDir` loads: the slug its pointer names, or
+ *  `default` when the copy carries none. */
+export function testedTheme(dataDir) {
+  const pointer = join(dataDir, THEME_POINTER);
+  return existsSync(pointer) ? JSON.parse(readFileSync(pointer, 'utf8')).activeFile : 'default';
 }
 
 /** The one child process a `withCleanup` signal handler needs to stop before
@@ -410,11 +440,12 @@ export function readReportOrSetupFinding(tool, reportPath, code, stdout, stderr)
   }
 }
 
-export async function runPlaywrightSuite({ root, configDir, playwrightConfigPath, project, timeoutMs = DEFAULT_TESTS_TIMEOUT_MS }) {
+export async function runPlaywrightSuite({ root, configDir, playwrightConfigPath, project, files = [], grep, timeoutMs = DEFAULT_TESTS_TIMEOUT_MS }) {
   const reportPath = join(configDir, 'playwright-report.json');
   const bin = peerBin(root, '@playwright/test', 'cli.js');
-  const args = [bin, 'test', '-c', playwrightConfigPath, '--reporter=json'];
+  const args = [bin, 'test', '-c', playwrightConfigPath, '--reporter=json', ...files];
   if (project) args.push('--project', project);
+  if (grep) args.push('--grep', grep);
   const { code, stdout, stderr, timedOut } = await runCli(process.execPath, args, {
     cwd: root,
     env: { ...process.env, PLAYWRIGHT_JSON_OUTPUT_FILE: reportPath },
@@ -572,7 +603,7 @@ const VIOLATION_RE = /^ContractViolation:\s*\[([a-z-]+)\]\s+([a-z0-9-]+):\s*([\s
  *  `EDITOR_SUITE_POSITIONAL_RULES`), the suite file for the other two. A
  *  `ContractViolation`'s own `[rule]` prefix, when present, is more
  *  authoritative than either and wins in the caller. */
-function structuralRule(entry, componentId, positionCounters) {
+function structuralRule(entry, componentId, positionCounters, positionalRules) {
   const file = basename(entry.specFile ?? '');
   // Ahead of the positional branch: an a11y test grouped under its component's
   // id must not advance that component's editor-suite position.
@@ -580,7 +611,7 @@ function structuralRule(entry, componentId, positionCounters) {
   if (componentId && entry.describeTitles[entry.describeTitles.length - 1] === componentId) {
     const index = positionCounters.get(componentId) ?? 0;
     positionCounters.set(componentId, index + 1);
-    return EDITOR_SUITE_POSITIONAL_RULES[index] ?? null;
+    return positionalRules[index] ?? null;
   }
   if (file.startsWith('component-render.contract')) return 'contract-render';
   if (file.startsWith('component-alias.contract')) return 'contract-alias';
@@ -625,7 +656,7 @@ function a11yFinding(result, { file, line, componentId, context }) {
   };
 }
 
-export function mapPlaywrightResults(report, { root, sourceDataDir, knownIds }) {
+export function mapPlaywrightResults(report, { root, sourceDataDir, knownIds, positionalRules = EDITOR_SUITE_POSITIONAL_RULES }) {
   const zeroCollected = (report.suites ?? []).length === 0;
   if (zeroCollected || (report.errors ?? []).length > 0) {
     const detail = (report.errors ?? []).map((e) => e.message).join('\n') || 'the run collected no tests';
@@ -665,7 +696,7 @@ export function mapPlaywrightResults(report, { root, sourceDataDir, knownIds }) 
 
   for (const t of tests) {
     const componentId = identifyComponent(t.describeTitles, t.specTitle, knownIds);
-    const rule = structuralRule(t, componentId, positionCounters);
+    const rule = structuralRule(t, componentId, positionCounters, positionalRules);
     const inapplicable = t.annotations.find((a) => a.type === 'inapplicable')?.description;
     const results = a11yResults(t.annotations);
     if (results.length > 0) {
@@ -1072,7 +1103,10 @@ export function reconcileCoverage(coverage, expectedIds, { expectedRules = ALL_C
 
 // ─── entry point ────────────────────────────────────────────────────────────
 
-export async function runContractTests(id, { root = process.cwd(), dataDir: explicitDataDir, updateAria = false } = {}) {
+export async function runContractTests(
+  id,
+  { root = process.cwd(), dataDir: explicitDataDir, updateAria = false, a11y = false, openTheme = false } = {},
+) {
   const toolFindings = missingToolFindings(root);
   if (toolFindings.length > 0) return { findings: toolFindings, coverage: {} };
 
@@ -1094,12 +1128,14 @@ export async function runContractTests(id, { root = process.cwd(), dataDir: expl
   let sourceDataDir;
   let dataDir;
   let configDir;
+  let theme;
   try {
     // `dataDir` bypasses resolution entirely: the seam a caller (a test, or a
     // future batch/CI runner) uses to point an isolated copy at a source tree
     // other than the project's own, without ever touching the real one.
     sourceDataDir = explicitDataDir ?? resolveSourceDataDir(root, settingsFilePath(root));
-    dataDir = copyIsolatedDataDir(sourceDataDir);
+    dataDir = copyIsolatedDataDir(sourceDataDir, { keepActive: openTheme });
+    theme = testedTheme(dataDir);
     configDir = mkdtempSync(join(tmpdir(), 'live-tokens-check-cfg-'));
   } catch (error) {
     if (dataDir) rmSync(dataDir, { recursive: true, force: true });
@@ -1123,6 +1159,25 @@ export async function runContractTests(id, { root = process.cwd(), dataDir: expl
     else delete process.env[UPDATE_ARIA_ENV];
 
     const knownIds = new Set([...discoverComponents(root), ...discoverComponents(PKG_ROOT)]);
+
+    // Reconciliation expects every contract rule of every component, and this
+    // run covers two, so its coverage stands as the suites reported it.
+    if (a11y) {
+      const outcome = await runPlaywrightSuite({
+        root,
+        configDir,
+        playwrightConfigPath,
+        project: 'contract',
+        files: A11Y_SELECTION.files,
+        grep: A11Y_SELECTION.grep,
+        timeoutMs,
+      });
+      const mapped = outcome.setupFinding
+        ? { findings: [outcome.setupFinding], coverage: {} }
+        : mapPlaywrightResults(outcome.report, { root, sourceDataDir, knownIds, positionalRules: A11Y_SELECTION.editorRules });
+      return { findings: mapped.findings.filter(isA11yRunFinding), coverage: mapped.coverage, theme };
+    }
+
     const expectedIds = id ? [id] : [...knownIds];
 
     // Sequential: both share the one isolated data directory, and the
@@ -1152,11 +1207,12 @@ export async function runContractTests(id, { root = process.cwd(), dataDir: expl
       explainedGlobally,
     });
 
-    return { findings: [...mergedFindings, ...reconciled.findings], coverage: reconciled.coverage };
+    return { findings: [...mergedFindings, ...reconciled.findings], coverage: reconciled.coverage, theme };
   } catch (error) {
     return {
       findings: [{ rule: 'tests-setup', file: 'package.json', line: 1, message: `check-component --tests crashed: ${error.message}` }],
       coverage: {},
+      theme,
     };
   } finally {
     cleanup();
