@@ -80,7 +80,7 @@ Commands:
                               renders which component, and both checkers'
                               findings by rule under the project's severities
                               and under --strict. Always exits 0
-  check-component [id] [--tests]
+  check-component [id] [--tests] [--update-aria]
                               Validate <id>'s runtime, editor, and registration
                               against the live-tokens-create-component contract.
                               --tests also runs the registry contract under
@@ -88,7 +88,9 @@ Commands:
                               Playwright, reporting coverage by rule. Needs
                               @playwright/test, vitest, and happy-dom; a
                               missing one is a tests-not-installed finding
-                              naming the install command
+                              naming the install command. --update-aria
+                              records each component's accessibility tree
+                              anew, after a deliberate markup change
   check-page [paths...] [--tests]
                               Validate pages against the live-tokens-create-page
                               contract: catalogue components only, and every CSS
@@ -342,7 +344,7 @@ if (command === 'check-component') {
     reportChecks(label, [...migration.findings, ...results.flatMap(([, r]) => r.findings)], ids.length, COMPONENT_RULES, opts, { fix });
   }
   const { hasHardFailure, runContractTests } = await import('./contractRunner.mjs');
-  const testOutcome = await runContractTests(opts.rest[0], { root: process.cwd() });
+  const testOutcome = await runContractTests(opts.rest[0], { root: process.cwd(), updateAria: opts.updateAria });
   const findings = dedupeAliasFindings([...migration.findings, ...results.flatMap(([, r]) => r.findings), ...testOutcome.findings]);
   reportChecks(label, findings, Math.max(ids.length, 1), COMPONENT_RULES, opts, {
     fix,

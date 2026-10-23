@@ -82,6 +82,13 @@ describe('a11y annotations on a passing component test', () => {
     expect(coverage.widget['a11y-component']).toEqual({ status: 'passed' });
   });
 
+  it('name the views a result failed in', () => {
+    const view = 'Brand / base; Brand / base under ocean';
+    const { findings } = mapComponent(a11ySuiteReport({ annotations: [annotation([{ ...contrast, view }])] }));
+    expect(findings[0].message).toBe(`widget: color-contrast at .widget-label in ${view}: ${contrast.help}. ${contrast.helpUrl}`);
+    expect(findings[0].details.view).toBe(view);
+  });
+
   it('read every a11y annotation the test carries', () => {
     const { findings } = mapComponent(a11ySuiteReport({ annotations: [annotation([contrast]), annotation([focus])] }));
     expect(findings.map((f: { rule: string }) => f.rule)).toEqual(['a11y-component', 'a11y-focus-visible']);

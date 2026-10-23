@@ -1487,6 +1487,7 @@ describe('contractRunner: runContractTests, end to end', () => {
       'contract-theme': { status: 'passed' },
       'contract-sketch': { status: 'passed' },
       'contract-render': { status: 'passed' },
+      'a11y-component': { status: 'passed' },
     });
   }, 60_000);
 

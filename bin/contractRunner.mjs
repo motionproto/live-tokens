@@ -41,6 +41,8 @@ const COMPONENT_ENV = 'LIVE_TOKENS_COMPONENT';
 // as JSON. Duplicated rather than imported for the same reason as
 // SESSION_FILES below.
 const PAGES_ENV = 'LIVE_TOKENS_PAGES';
+// Mirrors src/testing/config.ts's own UPDATE_ARIA_ENV.
+const UPDATE_ARIA_ENV = 'LIVE_TOKENS_UPDATE_ARIA';
 
 /** Milliseconds a spawned tool gets before this file sends it SIGINT, then
  *  SIGKILL five seconds later. A hung dev server or worker can no longer hold
@@ -84,6 +86,7 @@ const ALL_CONTRACT_RULES = [
   'contract-theme',
   'contract-sketch',
   'contract-render',
+  'a11y-component',
 ];
 
 /**
@@ -608,11 +611,12 @@ function a11yFinding(result, { file, line, componentId, context }) {
     rule: result.rule,
     file,
     line,
-    message: `${componentId ? `${componentId}: ` : ''}${result.engineRule} at ${result.target}: ${result.help}. ${result.helpUrl}`,
+    message: `${componentId ? `${componentId}: ` : ''}${result.engineRule} at ${result.target}${result.view ? ` in ${result.view}` : ''}: ${result.help}. ${result.helpUrl}`,
     details: {
       engineRule: result.engineRule,
       impact: result.impact,
       target: result.target,
+      ...(result.view ? { view: result.view } : {}),
       html: result.html,
       help: result.help,
       helpUrl: result.helpUrl,
@@ -1050,7 +1054,7 @@ export function reconcileCoverage(coverage, expectedIds, { expectedRules = ALL_C
 
 // ─── entry point ────────────────────────────────────────────────────────────
 
-export async function runContractTests(id, { root = process.cwd(), dataDir: explicitDataDir } = {}) {
+export async function runContractTests(id, { root = process.cwd(), dataDir: explicitDataDir, updateAria = false } = {}) {
   const toolFindings = missingToolFindings(root);
   if (toolFindings.length > 0) return { findings: toolFindings, coverage: {} };
 
@@ -1097,6 +1101,8 @@ export async function runContractTests(id, { root = process.cwd(), dataDir: expl
     process.env[DATA_DIR_ENV] = dataDir;
     if (id) process.env[COMPONENT_ENV] = id;
     else delete process.env[COMPONENT_ENV];
+    if (updateAria) process.env[UPDATE_ARIA_ENV] = '1';
+    else delete process.env[UPDATE_ARIA_ENV];
 
     const knownIds = new Set([...discoverComponents(root), ...discoverComponents(PKG_ROOT)]);
     const expectedIds = id ? [id] : [...knownIds];

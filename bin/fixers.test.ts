@@ -31,6 +31,12 @@ describe('parseCheckFlags', () => {
     expect(parseCheckFlags(['--no-fix']).noFix).toBe(true);
     expect(parseCheckFlags([]).noFix).toBe(false);
   });
+
+  it('recognizes --update-aria and keeps it out of the component id', () => {
+    const opts = parseCheckFlags(['--update-aria', 'button']);
+    expect(opts.updateAria).toBe(true);
+    expect(opts.rest).toEqual(['button']);
+  });
 });
 
 describe('applyFixes', () => {

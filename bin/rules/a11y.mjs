@@ -13,7 +13,7 @@ export const componentRules = {
   'a11y-component': {
     severity: 'warn',
     repair: 'authored',
-    guidance: `axe found a WCAG 2 A or AA failure inside the component's preview. ${HELP} Repair the runtime markup, or point the semantic property that fails at a design token that passes, then rerun check-component --tests.`,
+    guidance: `axe found a WCAG 2 A or AA failure inside the component's preview. ${HELP} Repair the runtime markup, or point the semantic property that fails at a design token that passes, then rerun check-component --tests. An aria-snapshot finding means the component's accessibility tree changed since it was recorded: confirm the change is deliberate, then rerun with --update-aria.`,
   },
   ...review,
   'a11y-focus-visible': {
