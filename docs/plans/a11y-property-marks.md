@@ -554,6 +554,117 @@ default theme, with the new findings listed in the wave's summary.
 `npm run test:e2e:contract`, `npm run test:e2e:page-defects`,
 `node bin/live-tokens.mjs check-component --tests --a11y --json`.
 
+**Built.** Wave 6 documents these:
+
+- `src/testing/support/textSpacingAndMotion.ts` is the shared module. It
+  exports `textSpacingCss(scope?)`, the W3C bookmarklet's override over the
+  whole page or inside a scope, and `newUnderTextSpacing(page, observe, key,
+  scope?)`, which runs an observation without and with the override and
+  keeps what only the override brings, a key found n times before excusing n
+  after. It also exports `TEXT_SPACING_URL`, `MOTION_MS` (200),
+  `MOTION_URL`, `TEXT_SPACING_RULE` (`text-spacing`) and
+  `REDUCED_MOTION_RULE` (`prefers-reduced-motion`). `PageHarness` imports
+  them, and its `scanTextSpacing` now calls `newUnderTextSpacing` with its
+  own overflow observation and key. Page results keep their shape.
+- `scanTextSpacing(page, scope, exclude, own)` measures, in each view, every
+  element of the component that holds text: the component's root part, its
+  portaled parts and their descendants. An element fails on an axis it does
+  not scroll when its content runs more than 1px past its box. The override
+  applies inside the stage alone, and transitions stay off while the check
+  reads, so a `transition: all` box reads at its final size. A failure
+  reports under `a11y-text-spacing` with help such as "Under the text
+  spacing override, <span> holds 24px of content in 18px of height, and its
+  overflow-y is hidden".
+- `scanReducedMotion(page, scope, exclude, own)` reads, in each view, the
+  computed animations and transitions of the same elements and their
+  `::before` and `::after`, and every script animation running on them. One
+  that lasts past `MOTION_MS`, its delay included, is recorded; an infinite
+  animation lasts without end. When a view records one, the check emulates
+  `prefers-reduced-motion: reduce`, waits two frames, reads again and lifts
+  the emulation. Each motion still that long reports under
+  `a11y-reduced-motion`, one result per element or pseudo-element, with help
+  such as "A transition of left lasts 500 ms under prefers-reduced-motion:
+  reduce". A view with no long motion costs no second read.
+- Both run in `scan` after the tree is read, in plain and set-up views, and
+  under no preset. Their targets come from `describeTagged`, a new export of
+  `nonTextContrast.ts` that builds Wave 4's unique selector for tagged
+  elements. A motion result on a pseudo-element names it in the target and
+  traces the host element.
+- `TRACE_AXES` gains `text-spacing` (`height`, `max-height`, `width`,
+  `max-width`, `padding*`, `overflow*`, `white-space` on the target) and
+  `prefers-reduced-motion` (`animation`, `animation-name`,
+  `animation-duration`, `animation-delay`, `animation-iteration-count`,
+  `transition`, `transition-property`, `transition-duration`,
+  `transition-delay` on the target and its pseudo-elements, plus `display`
+  on the pseudo-elements).
+- `bin/rules/a11y.mjs` shares the two rules between `componentRules` and
+  `pageRules`, and `COMPONENT_RULES` lists them after `a11y-keyboard`, both
+  at `warn`. Without them a component finding under either rule would have
+  resolved to `error`. The runner needed no change: `a11yFinding` already
+  copies `rule` and `variables`. `bin/a11y.test.ts` maps one result of each
+  with its variables and checks the warning and `--strict`.
+- Tests: `tests/e2e/text-spacing-motion.spec.ts` (project `chromium`, three
+  cases): a fixed-height chip and a `transition: all` box that clip under the
+  override, beside a free box and one already cut at rest; a shimmer
+  transition on `::before` and an endless spin that ignore reduced motion,
+  beside a transition the media query stops and a short one; and a scope
+  with no long motion.
+- Run time (D13): `node bin/cli.mjs check-component --tests --a11y --json`
+  exited 0 in 205 s (3 min 25 s) on the compiled suite, against 215 s after
+  Wave 4. The first pass, on the source before the scans narrowed to the
+  component's own elements, took 217 s. No pass needed cutting.
+- New findings on the default theme: 46 `a11y-reduced-motion` warnings and
+  no `a11y-text-spacing` warning, 160 findings in all against 114.
+  - Button: 38 results, one per instance and state, for the shimmer sweep,
+    "A transition of left lasts 500 ms". Each traces to `--button-shimmer`,
+    the toggle that hides the sweep. The duration is a literal in the
+    component's code.
+  - Image: the zoom's `transform` transition of 300 ms on `div.image`,
+    `div.image.bare` and `img`.
+  - Image Lightbox: the thumbnail's `transform` transition of 250 ms. Its
+    script reads the preference for its own animations; this CSS
+    transition ignores it.
+  - Progress Bar: the fill's `width` transition of 400 ms.
+  - Dialog (two) and Notification (one): Button's shimmer on the Buttons
+    they hold. These trace nothing, since the host's known variables leave
+    out Button's, as the axe results on nested Buttons do.
+  - Side Navigation's 200 ms open transition sits at `MOTION_MS` and passes.
+    Slide Pager and Video Lightbox stop their motion under the preference.
+- Deviations and why:
+  - D11 reads each motion's declared timing, where the plan named running
+    animations. The harness finishes every finite animation when it selects
+    a view, so only infinite ones would still be running, and Button's
+    shimmer, the system's longest motion, would pass unseen.
+  - D11 flips the emulation in place in each view, where the plan named a
+    second pass that reselects the views. A set-up view cannot be selected
+    a second time, and the computed timing answers without reselection. A
+    script that reads the preference only at mount goes unseen either way.
+  - The two scans read the component's root and portaled parts alone. The
+    first full run reported the editor's `ShadowBackdrop` content box, which
+    clipped Dialog and Section Divider as they grew under the override.
+  - The text spacing check skips a box with no text under it. The first run
+    reported three Menu Select icons, whose glyph took 2px of letter
+    spacing after it.
+  - `text-spacing` leaves `line-height` off D2's list: the override sets
+    every line height to 1.5, so a component's own cannot cause the
+    overflow. The motion lists leave out easing, fill and direction. A
+    `transition` or `animation` shorthand still names its easing variable,
+    since the trace reads a declaration whole: Side Navigation's would name
+    `--sidenavigation-open-easing` beside its duration.
+- Verify: `npm run check` clean; `npx vitest run bin src/testing` 564
+  passed; `npm run test:e2e:contract` 321 passed in 6.1 minutes;
+  `npm run test:e2e:page-defects` 15 passed, the text spacing and reduced
+  motion defects among them; `check:skills`, `check:cli-strings` and
+  `check:docs-content` pass. `node bin/cli.mjs check-page --tests` exits 1
+  with "no page renders through a route yet", as it did before the wave:
+  this repository routes no page of its own.
+- Open items. The docs chapter's rule table lists `a11y-text-spacing` and
+  `a11y-reduced-motion` under `check-page` alone; Wave 6 adds
+  `check-component`. The shared guidance cites "WCAG 1.4.12" where the
+  writing rules ask for "WCAG 2.2 SC 1.4.12", and it names no property as a
+  repair. The editor merges Button's 38 results into rows by help and
+  variables, but `--json` lists each one.
+
 ## Wave 6: docs
 
 - `accessibility.md`: the property marks, the four checks with their
