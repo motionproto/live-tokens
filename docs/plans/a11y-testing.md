@@ -25,7 +25,7 @@ findings become errors and block, as every other `warn` rule does.
 The plan builds on existing tools. axe-core is the main engine. Siteimprove
 Alfa contributes one rule, SIA-R65, focus visibility, which axe lacks.
 Playwright's own media emulation, accessibility-tree snapshots, and keyboard
-API cover forced colours, reduced motion, structure, and keyboard operation.
+API cover reduced motion, structure, and keyboard operation.
 Two checks remain custom, and both reuse code the repository already has:
 text spacing reruns the page overflow observation, and the keyboard cases
 extend the interaction contract.
@@ -80,8 +80,8 @@ Measured on local main at `31af1c1`.
 | Tool | Licence | Job in this plan |
 |---|---|---|
 | `axe-core` ≥ 4.11.1, `@axe-core/playwright` | MPL-2.0 | Names, roles, ARIA, contrast, target size, structure. Tags `wcag2a`, `wcag2aa`, `wcag21aa`, `wcag22aa`. |
-| `@siteimprove/alfa-playwright` | MIT | Rule SIA-R65 alone: focusing an element changes at least one pixel. |
-| Playwright `emulateMedia` | Apache-2.0 | `forcedColors: 'active'` and `reducedMotion: 'reduce'`. |
+| `@siteimprove/alfa-act`, `alfa-rules`, `alfa-dom` and the packages they need | MIT | Rule SIA-R65 alone: focusing an element changes at least one pixel. |
+| Playwright `emulateMedia` | Apache-2.0 | `reducedMotion: 'reduce'`. |
 | Playwright `locator.ariaSnapshot()` | Apache-2.0 | Each component's accessibility tree, read and compared without asserting. |
 | Playwright keyboard | Apache-2.0 | `press` cases in the interaction contract. |
 
@@ -92,7 +92,7 @@ readers and costs more than it returns here.
 ## Decisions
 
 **D1. Rule ids group by concern.** Axe's own rule id travels in the finding's
-message. The rule table gains seven fixed ids, each `warn`:
+message. The rule table gains six fixed ids, each `warn`:
 
 | Rule | Source |
 |---|---|
@@ -100,13 +100,14 @@ message. The rule table gains seven fixed ids, each `warn`:
 | `a11y-page` | axe violations on a consumer page, outside shipped components |
 | `a11y-review` | axe `incomplete` results: gradients, images, backdrops axe cannot judge |
 | `a11y-focus-visible` | Alfa SIA-R65 |
-| `a11y-forced-colors` | axe and SIA-R65 rerun under forced colours |
 | `a11y-text-spacing` | overflow under the WCAG 1.4.12 spacing override |
 | `a11y-reduced-motion` | animations still running under `prefers-reduced-motion: reduce` |
 
 A user silences one with `--off=a11y-review` or a config entry, the same way
 as any other rule. *Approved.* One rule id per axe rule would put some
-ninety ids outside the fixed rule table.
+ninety ids outside the fixed rule table. The probe cut `a11y-forced-colors`:
+under forced colours axe pairs the author's text colour with the forced
+background, so the rerun added only false contrast findings.
 
 **D2. `--strict` makes accessibility findings block.** The `a11y-*` rules
 take the existing severity path unchanged: `warn` by default, `error` under
@@ -128,12 +129,19 @@ coverage shows the reason. `tests-not-installed` stays reserved for
 Playwright, Vitest, and happy-dom.
 
 **D5. The engines ship as optional peers.** `axe-core`,
-`@axe-core/playwright`, and `@siteimprove/alfa-playwright` join
-`peerDependencies` as optional and `devDependencies` pinned. The `create`
-template adds them beside `@playwright/test`.
+`@axe-core/playwright`, and every `@siteimprove/alfa-*` package that
+`scanFocusVisible` imports join `peerDependencies` as optional and
+`devDependencies` pinned. The probe imported `alfa-act`, `alfa-rules`,
+`alfa-dom`, `alfa-device`, `alfa-web`, `alfa-http`, and `alfa-url`, all at
+0.119, and never used `alfa-playwright`. The Alfa packages share one minor
+version. The `create` template adds them beside `@playwright/test`.
 
-**D6. Component scans cover every declared state under the active theme.**
-The scan scopes to `.preview-stage` and excludes the canvas toolbar.
+**D6. Component scans cover every variant and declared state under the
+active theme.** The scan scopes to `.preview-stage` and excludes the canvas
+toolbar and the editors' own demo content. The contracts' `properties` lists
+name each variant and state pair. The probe opened only each contract's
+default variant and missed eight of the contrast checker's eleven failing
+text pairs.
 
 **D7. The preset sweep runs in the repository only.** An environment flag,
 `LIVE_TOKENS_A11Y_THEMES=all`, repeats each component scan under the eight
@@ -141,27 +149,25 @@ presets through `previewTheme`. The repository's contract project sets it.
 A consumer's `check-component --tests` scans the active theme alone, which
 keeps the consumer run inside its current 15 to 20 seconds per component.
 
-**D8. `page-contrast` retires in favour of axe's `color-contrast`.** Its token
-lookup (`observeContrast`, the `named` map) moves into a helper that names the
-tokens behind each colour axe reports, so an `a11y-page` contrast finding
-still reads "`--text-secondary` on `--surface-low`". The rule id stays in the
-table as a deprecated alias of `a11y-page` for one minor release, so existing
-`--off=page-contrast` settings keep working. *Approved.* Keeping both rules
-would report each contrast failure twice.
+**D8. `page-contrast` keeps page contrast.** `a11y-page` runs axe with its
+`color-contrast` rule off, so each contrast failure reports once, through
+`page-contrast` at `error`. *Changed after the probe.* axe returns no verdict
+for text on gradients or behind a full-size pseudo-element, and three presets
+paint gradient surfaces.
 
-**D9. The editor scans its preview live.** `ComponentEditorPage` imports
+**D9. Cut after the probe.** The editor scans its preview live. `ComponentEditorPage` imports
 `axe-core` dynamically on first open, scans `.preview-stage` 500 ms after the
 last token write, and lists violations beside the contrast readout. The scan
 skips when `axe-core` cannot load. It never blocks a save or a promote. The
 failing treatment reuses the contrast readout's amber and "!" glyph.
 
-**D10. The editor panel waits on the contrast-checker merge.** Wave 4 builds
+**D10. Cut with D9.** The editor panel waits on the contrast-checker merge. Wave 4 builds
 beside the readout that branch adds. *Done:* `contrast-checker`
 merged into main on 2026-10-23.
 
 **D11. Keyboard cases report at `warn`.** The new `press` cases run through
 the interaction contract and report a failure as `a11y-keyboard` at `warn`,
-outside `contract-interaction`, whose failures stay `error`. This makes eight
+outside `contract-interaction`, whose failures stay `error`. This makes seven
 `a11y-*` ids. *Approved.* `--strict` raises them to
 errors with the other `a11y-*` rules (D2).
 
@@ -183,7 +189,7 @@ with `--update-aria`.
 4. `axe-core` resolves to 4.11.1 or later. A unit test reads the installed
    version.
 5. The editor keeps one contrast implementation, `contrast.ts`, for its live
-   readout. axe's contrast serves the test suites and the axe panel.
+   readout. axe's contrast serves the component suite.
 6. No theme token is added and no shipped default changes. Wave 0 records
    the baseline; fixes are a later plan.
 7. Every run that touches the data tree restores it per `CLAUDE.md`, and
@@ -196,6 +202,9 @@ with `--update-aria`.
 - APCA or any contrast model other than WCAG 2.
 - Focus indicator contrast (SC 1.4.11) beyond SIA-R65's visibility check.
   A follow-up can measure the outline through `contrast.ts`.
+- A forced-colours check. A follow-up can test that borders and focus
+  indicators survive `forcedColors: 'active'`.
+- An editor panel that scans the preview live (D9).
 - Manual audits.
 
 ## Running the plan
@@ -208,7 +217,7 @@ starts. A wave stays in one session from start to finish, with no separate
 executor, verifier, or reviewer. The plan registers no saved workflow and uses
 neither `plan-wave` nor `plan-all`.
 
-Wave 1 runs first. Waves 2 to 5 each build on Wave 1 alone, so the
+Wave 1 runs first. Waves 2, 3, and 5 each build on Wave 1 alone, so the
 orchestrator may run them at once, each session in its own git worktree, and
 merge them in order. Wave 6 runs last. A wave runs only when the Probe outcome
 table marks it Build or Change.
@@ -252,27 +261,33 @@ with a summary of it for the user.
 
 ## Probe outcome
 
-The user fills this in after reading the probe's report.
+The user marked this on 2026-10-23 after reading the probe's report. The
+waves below carry the changes.
 
 | Wave | Build, Change, or Cut | Note |
 |---|---|---|
-| 1. Engines and findings | | |
-| 2. Component suite | | |
-| 3. Page suite | | |
-| 4. Editor panel | | |
-| 5. Keyboard cases | | |
-| 6. Skills and docs | | |
+| 1. Engines and findings | Change | Depend on the Alfa packages the probe imported (D5). `scanFocusVisible` prunes the document before the audit. Six rules plus `a11y-keyboard`. |
+| 2. Component suite | Change | Step through variants (D6). Adjust the stage, exclude demo content, and preview themes with the stage uncovered. No forced-colours pass. |
+| 3. Page suite | Change | `page-contrast` stays and axe's `color-contrast` stays off on pages (D8). |
+| 4. Editor panel | Cut | axe sees no contrast in the stage as the editor draws it, and its other findings never move with a token edit. |
+| 5. Keyboard cases | Build | |
+| 6. Skills and docs | Build | Covers the rules that survive. |
 
 ## Wave 1: engines and findings
 
-- Add `axe-core`, `@axe-core/playwright`, and `@siteimprove/alfa-playwright`
-  as pinned devDependencies and optional peers (D5).
+- Add `axe-core`, `@axe-core/playwright`, and the Alfa packages of D5 as
+  pinned devDependencies and optional peers.
 - `src/testing/support/a11y.ts`: `scanAxe(page, scope, exclude)` and
   `scanFocusVisible(page, scope)`, each returning `A11yResult[]` with
   `rule`, `engineRule`, `impact`, `target`, `html`, `help`, `helpUrl`.
   `recordA11y(results)` pushes the D3 annotation. Engines import inside the
   functions (Invariant 3).
-- `bin/rules/a11y.mjs`: the eight rules of D1 and D11, each `warn` with
+- `scanFocusVisible` serialises the document with `@siteimprove/alfa-dom/native`
+  and keeps the head, the scope's ancestor chain, and the scope's subtrees
+  before it builds the Alfa page. SIA-R65 otherwise audits every tabbable
+  editor control: 2.5 s a scan against 0.3 to 0.8 s pruned, with identical
+  outcomes. `scratch/a11y-probe/probe.spec.ts` holds the working version.
+- `bin/rules/a11y.mjs`: the seven rules of D1 and D11, each `warn` with
   guidance that names the axe help URL.
 - `contractRunner.mjs`: `mapPlaywrightResults` reads `a11y` annotations into
   findings anchored on the component's runtime file or the page file line.
@@ -291,10 +306,19 @@ on an unchanged tree prints the same errors it printed before the wave.
 
 ## Wave 2: component suite
 
-- `src/testing/component-a11y.contract.ts`: per contract and per declared
-  state, `scanAxe` and `scanFocusVisible` over `.preview-stage` (D6), then
-  the same two under `emulateMedia({ forcedColors: 'active' })`, recorded as
-  `a11y-forced-colors`. The suite records `ariaSnapshot()` per D12.
+- `src/testing/component-a11y.contract.ts`: per contract and per variant
+  and declared state, `scanAxe` and `scanFocusVisible` over
+  `.preview-stage` (D6). The suite records `ariaSnapshot()` per D12.
+- Before each scan the suite hides `.tabs-preview::after` and paints the
+  stage's `.shadow-backdrop` with `--page-bg`. Without both, axe returns
+  every text node in the stage as `incomplete` and measures transparent
+  components against `#050505`.
+- Editor demo content in the stage carries one marker attribute, and the
+  scan excludes it: Card's content placeholder, Tooltip's demo targets,
+  CodeSnippet's "Preview text" label, CollapsibleSection's body paragraph.
+- A theme preview leaves the stage uncovered by the Theme Picker backdrop,
+  and the harness reaches the picker trigger when an overlay such as
+  ImageLightbox's covers it.
 - `LIVE_TOKENS_A11Y_THEMES=all` repeats the scans under each preset (D7).
   The repository's `contract` project sets it.
 - Register the suite file in `structuralRule` and the shipped `./testing`
@@ -302,8 +326,8 @@ on an unchanged tree prints the same errors it printed before the wave.
 - Copy the probe's report to `temp/a11y-baseline.md` as the baseline the
   suite starts from.
 
-**Budget.** Verify under 8 minutes. The probe's measured sweep time sets
-this; revise it after Wave 0.
+**Budget.** Verify within the contract run's current time plus 3 minutes,
+the preset sweep the probe measured on 4 workers.
 
 **Verify.** `npm run test:e2e:contract`, `npm run build:testing`,
 `node scripts/check-production-is-default.mjs`.
@@ -320,8 +344,7 @@ this; revise it after Wave 0.
 - Reduced motion: `emulateMedia({ reducedMotion: 'reduce' })`, then record
   each entry of `document.getAnimations()` still running past 200 ms as
   `a11y-reduced-motion`.
-- Retire `page-contrast` per D8, with the token-naming helper and the
-  deprecated alias.
+- `page-a11y` turns axe's `color-contrast` off; `page-contrast` stays (D8).
 - `tests/e2e/page-defects/` gains one page per new rule, written to trigger
   it, and asserts the annotation.
 
@@ -335,6 +358,8 @@ at release.
 `--strict`, and `check-page --tests` exits 0 on the demo app.
 
 ## Wave 4: editor panel
+
+**Cut after the probe.** Kept as the design a follow-up would start from.
 
 - `src/editor/component-editor/scaffolding/A11yPanel.svelte`: count and list
   of axe violations for `.preview-stage`, one row per violation with the
@@ -372,7 +397,7 @@ the contract run passes with any keyboard gaps reported at `warn`.
 
 ## Wave 6: skills and docs
 
-- `live-tokens-check-compliance`: the eight `a11y-*` rules appear in its
+- `live-tokens-check-compliance`: the seven `a11y-*` rules appear in its
   findings walk-through as alerts the user reviews.
 - `live-tokens-create-component` and `references/contract-tests.md`: a new
   component declares `press` cases.
