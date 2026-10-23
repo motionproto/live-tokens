@@ -10,6 +10,7 @@ import {
   type PageViewport,
 } from '../../../src/testing/support/pageHarness';
 import { TEXT_STYLES } from '../../../src/editor/ui/sections/textStyles';
+import { recordA11y, type A11yResult } from '../../../src/testing/support/a11y';
 
 // Every page rule, failed once on a page written to fail it, and passed once on
 // a page written to hold the exception it reserves. A rule that cannot fail is
@@ -115,6 +116,44 @@ test('a control wider than its phone column fails page-overflow', async ({ page 
   expect(violation.message).toContain('button');
 });
 
+/** The rule's one result for the defect, recorded the way the page suite
+ *  records it. */
+function expectRecorded(results: A11yResult[], match: (result: A11yResult) => boolean): A11yResult {
+  const found = results.filter(match);
+  expect(found, JSON.stringify(results, null, 2)).toHaveLength(1);
+  recordA11y(results);
+  const recorded = test.info().annotations.filter((a) => a.type === 'a11y');
+  expect(recorded.flatMap((a) => JSON.parse(a.description ?? '[]'))).toContainEqual(found[0]);
+  return found[0];
+}
+
+test('a list holding no list items records a11y-page at the list', async ({ page }) => {
+  const harness = await open(page, 'A11yPageDefect', 'a11y', DESKTOP);
+  const result = expectRecorded(await harness.scanA11y(await componentRoots()), (r) => r.rule === 'a11y-page');
+  expect(result.engineRule).toBe('list');
+  expect(result.line).toBe(lineOf('A11yPageDefect', '<ul class="steps">'));
+});
+
+test('a clipped label that fits at rest records a11y-text-spacing under the override', async ({ page }) => {
+  const specs = await paintSpecs();
+  for (const viewport of [DESKTOP, PHONE]) {
+    const harness = await open(page, 'TextSpacingDefect', 'text-spacing', viewport);
+    expect(await harness.assertOverflow(specs), 'the label overflows at rest').toBeNull();
+    const result = expectRecorded(await harness.scanTextSpacing(specs), (r) => r.rule === 'a11y-text-spacing');
+    expect(result.target).toBe('<p>');
+    expect(result.line).toBe(lineOf('TextSpacingDefect', '<p class="label">'));
+    expect(result.help).toContain('overflow-x is hidden');
+  }
+});
+
+test('an endless animation records a11y-reduced-motion under reduced motion', async ({ page }) => {
+  const harness = await open(page, 'ReducedMotionDefect', 'reduced-motion', DESKTOP);
+  const result = expectRecorded(await harness.scanReducedMotion(), (r) => r.rule === 'a11y-reduced-motion');
+  expect(result.target).toBe('p.pulse');
+  expect(result.line).toBe(lineOf('ReducedMotionDefect', '<p class="pulse">'));
+  expect(result.help).toBe('The animation pulse keeps running under prefers-reduced-motion: reduce, without end');
+});
+
 test('a hero on a gradient reports page-contrast inapplicable', async ({ page }) => {
   const harness = await open(page, 'GradientHero', 'gradient-hero', DESKTOP);
   const reason = await harness.assertContrast(await componentRoots());
@@ -159,8 +198,11 @@ test('the clean page passes every rule at both viewports', async ({ page }) => {
     expect(await harness.assertTextStyle(bundles, await componentRoots()), at).toBeNull();
     expect(await harness.assertContrast(await componentRoots()), at).toBeNull();
     expect(await harness.assertOverflow(await paintSpecs()), at).toBeNull();
+    expect((await harness.scanA11y(await componentRoots())).filter((r) => r.rule === 'a11y-page'), at).toEqual([]);
+    expect(await harness.scanTextSpacing(await paintSpecs()), at).toEqual([]);
     const grid = await harness.assertGrid();
     if (viewport.width < 768) expect(grid, at).toContain('one column');
     else expect(grid, at).toBeNull();
+    expect(await harness.scanReducedMotion(), at).toEqual([]);
   }
 });

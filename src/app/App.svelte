@@ -95,6 +95,18 @@
             lazy: () => import('../../tests/e2e/page-defects/NoInstance.svelte'),
             source: 'tests/e2e/page-defects/NoInstance.svelte',
           },
+          '/page-defects/a11y': {
+            lazy: () => import('../../tests/e2e/page-defects/A11yPageDefect.svelte'),
+            source: 'tests/e2e/page-defects/A11yPageDefect.svelte',
+          },
+          '/page-defects/text-spacing': {
+            lazy: () => import('../../tests/e2e/page-defects/TextSpacingDefect.svelte'),
+            source: 'tests/e2e/page-defects/TextSpacingDefect.svelte',
+          },
+          '/page-defects/reduced-motion': {
+            lazy: () => import('../../tests/e2e/page-defects/ReducedMotionDefect.svelte'),
+            source: 'tests/e2e/page-defects/ReducedMotionDefect.svelte',
+          },
         } as unknown as Record<string, RouteEntry>)
       : {}),
   };
