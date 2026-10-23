@@ -719,7 +719,9 @@ export function mapPlaywrightResults(report, { root, sourceDataDir, knownIds }) 
       }
       const block = messageBlock(error.message);
       const violation = VIOLATION_RE.exec(block);
-      const finalRule = violation?.[1] ?? rule ?? 'tests-setup';
+      // An accessibility test records its findings and passes, so one that
+      // throws broke its scan (decision 3 of docs/plans/a11y-testing.md).
+      const finalRule = violation?.[1] ?? (rule === 'a11y-component' ? 'tests-setup' : rule) ?? 'tests-setup';
       const id = violation?.[2] ?? componentId;
       const message = violation?.[3] ?? block;
       const token = extractToken(message);
@@ -737,7 +739,7 @@ export function mapPlaywrightResults(report, { root, sourceDataDir, knownIds }) 
           attachments: (last?.attachments ?? []).map((a) => a.path).filter(Boolean),
         },
       });
-      markCoverage(id, finalRule, 'failed');
+      markCoverage(id, violation ? finalRule : rule ?? finalRule, 'failed');
     }
   }
   return { findings, coverage };

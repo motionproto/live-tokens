@@ -95,6 +95,89 @@ describe('a11y annotations on a passing component test', () => {
   });
 });
 
+const keyboard: A11yResult = {
+  rule: 'a11y-keyboard',
+  engineRule: 'arrow right moves focus to the next tab',
+  impact: null,
+  target: 'secondTab',
+  html: '<button class="tab">Details</button>',
+  help: 'secondTab is not focused, expected focused',
+  helpUrl: 'https://www.w3.org/WAI/ARIA/apg/patterns/',
+};
+
+const EDITOR_SUITE_TITLES = [
+  'is listed in its registry group',
+  'declares every part and every shipped alias',
+  'resolves every alias it paints with',
+  'previews the state being edited',
+  'answers the pointer and the keyboard',
+];
+
+function editorSuiteReport(interaction: Record<string, unknown>) {
+  return {
+    suites: [{
+      title: 'component-editor.contract.ts',
+      suites: [{
+        title: 'widget',
+        specs: EDITOR_SUITE_TITLES.map((title, index) => ({
+          title: `widget ${title}`,
+          file: 'component-editor.contract.ts',
+          line: 30 + index,
+          tests: [{
+            status: 'expected',
+            annotations: [],
+            results: [{ status: 'passed', errors: [] }],
+            ...(index === EDITOR_SUITE_TITLES.length - 1 ? interaction : {}),
+          }],
+        })),
+      }],
+    }],
+  };
+}
+
+describe('a keyboard case that fails', () => {
+  const report = editorSuiteReport({ annotations: [annotation([keyboard])] });
+
+  it('reports a11y-keyboard on the runtime and leaves the interaction obligation passed', () => {
+    const { findings, coverage } = mapComponent(report);
+    expect(findings).toEqual([
+      expect.objectContaining({
+        rule: 'a11y-keyboard',
+        file: 'src/system/components/Widget.svelte',
+        message: `widget: ${keyboard.engineRule} at secondTab: ${keyboard.help}. ${keyboard.helpUrl}`,
+      }),
+    ]);
+    expect(coverage.widget['contract-interaction']).toEqual({ status: 'passed' });
+  });
+
+  it('warns by default and blocks under --strict', () => {
+    const { findings } = mapComponent(report);
+    expect(applySeverity(findings, COMPONENT_RULES)[0].severity).toBe('warn');
+    expect(exitCode(findings, COMPONENT_RULES)).toBe(0);
+    expect(applySeverity(findings, COMPONENT_RULES, { strict: true })[0].severity).toBe('error');
+    expect(exitCode(findings, COMPONENT_RULES, { strict: true })).toBe(1);
+  });
+});
+
+describe('a component accessibility test that throws', () => {
+  it('reports tests-setup and marks its rule failed', () => {
+    const { findings, coverage } = mapComponent(a11ySuiteReport({
+      status: 'unexpected',
+      results: [{ status: 'failed', errors: [{ message: 'Error: page.evaluate: Target closed' }] }],
+    }));
+    expect(findings.map((f: { rule: string }) => f.rule)).toEqual(['tests-setup']);
+    expect(coverage.widget['a11y-component']).toEqual({ status: 'failed' });
+  });
+
+  it('keeps the rule a ContractViolation names', () => {
+    const { findings } = mapComponent(a11ySuiteReport({
+      status: 'unexpected',
+      results: [{ status: 'failed', errors: [{ message: 'ContractViolation: [contract-states] widget: no state tab labelled "hover"' }] }],
+    }));
+    expect(findings.map((f: { rule: string }) => f.rule)).toEqual(['contract-states']);
+  });
+});
+
 describe('a11y annotations on a passing page test', () => {
   it('map to one finding per result at the page file and the line each result names', () => {
     const report = {
