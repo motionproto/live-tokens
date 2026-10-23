@@ -387,6 +387,43 @@ Playwright test.
 **Verify.** `npm run check`, `npx vitest run src/editor`,
 `npm run test:e2e:contract`.
 
+**Built.** Wave 5's docs can describe these:
+
+- `src/editor/ui/a11y/A11yRailMark.svelte` draws the list "!": an empty
+  span with `role="img"` and the name "Accessibility issues", whose "!" is
+  an `::after` in `--ui-highlight`. It sits right of the icon at the row's
+  middle, under the unsaved dot, so both show in the condensed rail. The
+  shell's sidebar, its narrow menu and the standalone component page each
+  mark the components `componentsWithIssues` returns.
+- `src/editor/ui/a11y/A11yPanel.svelte` follows the title row in
+  `DemoHeader`. It shows only when the last finished run gives the component
+  a contrast or code issue. It heads with "! N accessibility issues" and
+  "Last run HH:MM", then `A11yComponentIssues`, then one quiet line, "N
+  results to check by eye". In the editor shell that line opens the
+  Accessibility view at the check-by-eye list, opened; the standalone page
+  has no view, so there it stays text. The shell offers the link through a
+  context, `setA11yViewLink`.
+- A contrast row in the panel carries a "→" named "Go to <property>". It
+  scrolls the property row to the middle of the page and rings it in
+  `--ui-highlight` for two seconds. A row off the open tab is reached
+  through a new editor-context store, `revealVariable`: the VariantGroup
+  that holds the variable focuses its variant and opens its tab first. A
+  probe clicked the "→" of all 236 contrast pairs in the registry, and each
+  reached its row.
+- `tests/e2e/a11y-markers.spec.ts` (project `chromium`) stubs the report
+  and checks the mark, its text-free rail item, the condensed rail, the
+  panel, the arrow and the standalone page. `A11yPanel.test.ts` covers the
+  panel's counts and when it stays away. The contract suite ran with a
+  report that marked all 29 components and passed 321 of 321.
+- The contract suite reads whatever report the project holds, so a panel
+  can lengthen any component page under test. The longer Section Divider
+  page put its gradient editor under the pinned preview, where the
+  harness's forced click on "Solid" missed. `component-render.contract.ts`
+  now centers each gradient editor before it clicks.
+- Judgment calls: the panel sits between the title row and the
+  description; the property rows keep the live readout of decision 7 and
+  gain no mark of their own.
+
 ## Wave 5: docs
 
 - The docs chapter `accessibility.md` gains the view.
