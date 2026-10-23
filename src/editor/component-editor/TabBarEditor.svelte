@@ -197,7 +197,7 @@
     {#snippet children({ activeState })}
         {@const forceClass = activeState === 'hover tab' ? 'force-hover' : ''}
       <TabBar tabs={demoTabs} value={selectedDemoTab} class={forceClass} onchange={(id) => (selectedDemoTab = id)} />
-      <div class="tab-content-demo">
+      <div class="tab-content-demo" data-preview-demo>
         <p style="margin: 0;">placeholder tab content</p>
       </div>
           {/snippet}

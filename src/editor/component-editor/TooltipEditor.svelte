@@ -67,10 +67,10 @@
   >
     <div class="tooltip-demo-row">
       <Tooltip text={hintText} open>
-        <span class="tooltip-demo-target">Helpful Hint</span>
+        <span class="tooltip-demo-target" data-preview-demo>Helpful Hint</span>
       </Tooltip>
       <Tooltip text={hintText} position="bottom">
-        <span class="tooltip-demo-target">Hover me</span>
+        <span class="tooltip-demo-target" data-preview-demo>Hover me</span>
       </Tooltip>
     </div>
   </VariantGroup>

@@ -172,7 +172,7 @@
           open={isBody}
           class={forceClass}
         >
-          <p style="margin: 0; color: var(--text-secondary);">
+          <p style="margin: 0; color: var(--text-secondary);" data-preview-demo>
             {#if isContainerPart}
               (Container) — outer chrome only; switch to Body to see the content area.
             {:else}

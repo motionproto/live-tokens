@@ -171,10 +171,10 @@
       {@const previewClass = activeState === 'hover' ? 'force-hover' : ''}
       <div class="card-demo">
         <Card title="Card title" icon="fas fa-star" class={previewClass}>
-          <div class="content-placeholder">Content Placeholder</div>
+          <div class="content-placeholder" data-preview-demo>Content Placeholder</div>
         </Card>
         <Card variant="bare" class={previewClass}>
-          <div class="content-placeholder">Bare variant</div>
+          <div class="content-placeholder" data-preview-demo>Bare variant</div>
         </Card>
       </div>
     {/snippet}

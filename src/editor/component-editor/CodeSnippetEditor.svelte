@@ -62,7 +62,7 @@
   <VariantGroup name="codesnippet" title="Code Snippet" {states} {component}>
     {#snippet children({ activeState })}
       <div class="codesnippet-preview">
-        <label class="preview-text">
+        <label class="preview-text" data-preview-demo>
           <span>Preview text</span>
           <textarea
             bind:value={previewCode}

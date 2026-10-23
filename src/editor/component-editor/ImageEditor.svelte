@@ -87,7 +87,7 @@
       </label>
     {/snippet}
     <Image src={demoImageUrl} alt="Demo" size="banner" zoom={useZoom ? undefined : false} {overflowScaling} forceHover={useZoom} />
-    <p class="zoom-help">
+    <p class="zoom-help" data-preview-demo>
       Use zoom on hover: every image scales on hover (a page can still force it per image with the
       <code>zoom</code> prop). Overflow scaling on (default): the content zooms inside the fixed frame,
       masked by overflow. Off: the whole framed image grows past its box. Override per image with

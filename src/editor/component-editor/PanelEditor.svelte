@@ -58,7 +58,7 @@
     {#snippet children()}
       <div class="panel-demo">
         <Panel minHeight="6rem">
-          <div class="content-placeholder">Content Placeholder</div>
+          <div class="content-placeholder" data-preview-demo>Content Placeholder</div>
         </Panel>
       </div>
     {/snippet}

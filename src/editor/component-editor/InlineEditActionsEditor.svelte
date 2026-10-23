@@ -78,7 +78,7 @@
       {#snippet children({ activeState })}
             {@const forceClass = activeState === 'hover' ? 'force-hover' : ''}
         <div class="inline-edit-demo-row">
-          <span style="color: var(--text-secondary);">Editing value...</span>
+          <span style="color: var(--text-secondary);" data-preview-demo>Editing value...</span>
           <InlineEditActions
             onsave={() => {}}
             oncancel={() => {}}
