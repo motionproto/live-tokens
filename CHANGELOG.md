@@ -15,7 +15,7 @@
 - **`check-page --tests` scans pages for accessibility.** Each page and
   viewport gains three tests. `page-a11y` runs axe outside the shipped
   components, with contrast left to `page-contrast`. `page-text-spacing`
-  reports overflow the WCAG 1.4.12 text spacing override adds.
+  reports overflow the WCAG 2.2 SC 1.4.12 text spacing override adds.
   `page-reduced-motion` reports animations still running 200 ms after load
   under `prefers-reduced-motion: reduce`. They report as `a11y-page`,
   `a11y-review`, `a11y-text-spacing`, and `a11y-reduced-motion`.
@@ -43,22 +43,58 @@
   installs them. Without one, the tests it drives report as inapplicable and
   the run carries on.
 - **The editor gains an Accessibility view.** Run test checks every
-  component in the open theme as saved, in about three minutes, and lists
-  each component's issues in two groups. "Fix with a property" holds the
-  colour pairs the editor's contrast checker finds below their floor. "Fix
-  in the component's code" holds axe failures, unchanged focus styles, and
-  failed keyboard cases. Results to check by eye collect in one closed list.
-  With edits pending, Run test asks for a save and starts nothing. A missing
-  test tool shows its install command. The dev server runs one check at a
-  time and keeps the last report in
+  component in the open theme as saved, in about three and a half minutes,
+  and lists each component's findings by repair. "Fix with a property" holds
+  the colour pairs the editor's contrast checker finds below their floor and
+  the focus rings and control boundaries below 3:1. "Fix in the component's
+  code" holds every other finding: axe failures, unchanged focus styles,
+  failed keyboard cases, clipped text, and motion that ignores reduced
+  motion. Results to check by eye count in the totals and collect in one
+  closed list. Findings that share an engine rule, a help text, and their
+  traced properties merge into one row that names its element count and
+  views, and each traced property gets a "→". A property's label leads with
+  the words from its variable name that the editor's label leaves out, such
+  as "Focused border color". With edits pending, Run test asks for a save and
+  starts nothing. A missing test tool shows its install command. The dev
+  server runs one check at a time and keeps the last report in
   `test-results/live-tokens/a11y-report.json`.
-- **The editor marks the components the last run named.** The component list
+- **The editor marks the components the last run named.** Every finding
+  marks its component, results to check by eye included. The component list
   carries a "!" beside each one, in the sidebar, the narrow menu, and the
   standalone component page. Each one's page opens with a panel under its
-  title that lists its issues, and a property row in the panel carries a "→"
-  that opens the tab holding the property and highlights its row. The marks
-  follow the last finished run; the contrast readout on each colour row stays
-  live.
+  title that lists its findings in three groups: "Fix with a property", "Fix
+  in the component's code", and "Check by eye". Each "→" in the panel opens
+  the tab holding the property, an intrinsic's hover tab included, and
+  highlights its row. The marks follow the last finished run; the contrast
+  readout on each colour row stays live.
+- **Property rows carry the run's findings.** A row whose property a finding
+  traces to shows a "!" beside its label, or a grey "?" when every finding on
+  it is a result to check by eye. The mark opens a popover that lists the
+  findings with their elements, views, help pages, and traced properties.
+  Token selectors, gradient editors, and toggle rows carry it. The editor's own
+  contrast failures add no row mark, because the live readout already shows
+  them.
+- **Accessibility findings name the properties that fix them.** The
+  component suite reads the CSS rules that match each failing element
+  through the Chrome DevTools protocol and follows each `var()` to the
+  component's semantic properties and intrinsics. `check-component --tests
+  --json` lists them, sorted, in each finding's `details.variables`, and
+  leaves the field out when the trace finds nothing. The field is additive.
+- **The component suite runs four more checks.** Focus indicator contrast
+  and control boundary contrast measure a focus ring and a control's edge at
+  3:1 against the backdrop, under WCAG 2.2 SC 1.4.11. Text spacing applies
+  the WCAG 2.2 SC 1.4.12 override inside each component and reports text
+  that clips under it. Reduced motion reports motion longer than 200 ms that
+  still runs under `prefers-reduced-motion: reduce`, after WCAG technique
+  C39 for SC 2.3.3. The results are warnings under the existing rules:
+  `a11y-component` (engine rules `focus-indicator-contrast` and
+  `control-boundary-contrast`), `a11y-review` for a ring or edge over a
+  gradient or image, `a11y-text-spacing`, and `a11y-reduced-motion`, which
+  `check-component` now reports too. `--strict` raises them with the rest.
+- **Component contracts take `boundaries`.** The optional field,
+  `{ part: string; label: string }[]`, lists the parts that draw a control's
+  visible edge, for the control boundary check. Input, RadioButton, Slider,
+  Toggle, and SegmentedControl declare it.
 - **`check-component --tests` takes `--a11y` and `--open-theme`.** `--a11y`
   runs the accessibility suite and the keyboard cases alone, with no static
   checks or fixes, and reports only `a11y-*` and `tests-*` findings.
@@ -68,9 +104,11 @@
   `check-component --tests --json` adds a top-level `theme`, and each
   Playwright finding that names a component carries it in a `component`
   field. Both fields are additive.
-- **The guide gains an Accessibility chapter.** It covers what runs, the
-  rules, review findings, the recorded trees, keyboard cases, the
-  Accessibility view, the engines, and the limits.
+- **The guide gains an Accessibility chapter.** It covers the suites, the
+  rules, the focus indicator, boundary, text spacing, and motion checks,
+  property tracing, review findings, the recorded trees, keyboard cases,
+  `boundaries`, the Accessibility view, the marks in the editor, the
+  engines, and the limits.
 - **The skills cover accessibility.** `live-tokens-check-compliance` lists
   the `a11y-*` findings as alerts for the user to review.
   `live-tokens-create-component` declares keyboard cases for a new component

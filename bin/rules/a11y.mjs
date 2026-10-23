@@ -5,7 +5,7 @@ const review = {
   'a11y-review': {
     severity: 'warn',
     repair: 'authored',
-    guidance: `axe could not decide the check, typically for text over a gradient, an image, or a backdrop. ${HELP} Judge the element by eye against the help page, and repair it when it fails.`,
+    guidance: `An engine could not decide the check, typically for text, a focus ring, or a control's edge over a gradient, an image, or a backdrop. ${HELP} Judge the element by eye against the help page, and repair it when it fails.`,
   },
 };
 
@@ -13,12 +13,12 @@ const adaptation = {
   'a11y-text-spacing': {
     severity: 'warn',
     repair: 'authored',
-    guidance: `Content overflows under the WCAG 1.4.12 text spacing override: line height 1.5, paragraph spacing 2em, letter spacing 0.12em, and word spacing 0.16em. ${HELP} Let the element the finding names grow with its text: drop its fixed height or width, or its white-space: nowrap.`,
+    guidance: `Content overflows under the WCAG 2.2 SC 1.4.12 text spacing override: line height 1.5, paragraph spacing 2em, letter spacing 0.12em, and word spacing 0.16em. ${HELP} Let the element the finding names grow with its text: drop its fixed height or width, or its white-space: nowrap. In a component finding, details.variables in --json names the semantic properties that set the element's size.`,
   },
   'a11y-reduced-motion': {
     severity: 'warn',
     repair: 'authored',
-    guidance: `An animation keeps running under prefers-reduced-motion: reduce. ${HELP} Stop the animation, or cut it to a fade, inside @media (prefers-reduced-motion: reduce).`,
+    guidance: `An animation or transition keeps running past 200 ms under prefers-reduced-motion: reduce. ${HELP} Stop the motion, or cut it to a fade, inside @media (prefers-reduced-motion: reduce).`,
   },
 };
 
@@ -26,7 +26,7 @@ export const componentRules = {
   'a11y-component': {
     severity: 'warn',
     repair: 'authored',
-    guidance: `axe found a WCAG 2 A or AA failure inside the component's preview. ${HELP} Repair the runtime markup, or point the semantic property that fails at a design token that passes, then rerun check-component --tests. An aria-snapshot finding means the component's accessibility tree changed since it was recorded: confirm the change is deliberate, then rerun with --update-aria.`,
+    guidance: `axe found a WCAG 2 A or AA failure inside the component's preview, or a focus ring or control boundary measures below 3:1 against its backdrop under WCAG 2.2 SC 1.4.11. ${HELP} Repair the runtime markup, or point the semantic property that fails at a design token that passes, then rerun check-component --tests. details.variables in --json names the semantic properties the finding traces to. An aria-snapshot finding means the component's accessibility tree changed since it was recorded: confirm the change is deliberate, then rerun with --update-aria.`,
   },
   ...review,
   'a11y-focus-visible': {
