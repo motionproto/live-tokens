@@ -675,3 +675,37 @@ default theme, with the new findings listed in the wave's summary.
 
 **Verify.** `npm run check:docs-content`, `npm run check:cli-strings`,
 `npm run check:skills`.
+
+**Built.**
+
+- `src/editor/docs/content/accessibility.md` is rewritten, and
+  `content.generated.ts` resynced. New sections: Focus indicator contrast,
+  Control boundary contrast, Text spacing and motion per component, Property
+  tracing (with a `details.variables` excerpt), Boundaries in the contract
+  (the field's shape and when to list a part), and Marks in the editor. The
+  Accessibility view section describes the three groups, merged rows, the
+  "→" links and the qualified labels. The rule table lists
+  `a11y-text-spacing` and `a11y-reduced-motion` under both checkers, and
+  `a11y-component` and `a11y-review` name the new results. "What runs"
+  became "Suites and checks", a noun phrase. The Limits list gains the
+  in-view motion read, the sibling ring SIA-R65 misses, theme-token rings
+  and nested components that trace to nothing, and literals in code.
+- Reduced motion cites WCAG technique C39 for SC 2.3.3 Animation from
+  Interactions, the page check's own help page. SC 2.3.3 is AAA.
+- `bin/rules/a11y.mjs`: the text spacing guidance cites "WCAG 2.2
+  SC 1.4.12" and names `details.variables`; `a11y-component` names the two
+  contrast checks under SC 1.4.11 and `details.variables`; `a11y-review`
+  speaks of an engine and of rings and edges; `a11y-reduced-motion` names
+  transitions and the 200 ms floor. No skill or test mirrors these strings.
+- `CHANGELOG.md` under Unreleased: the view and marks entries describe three
+  groups and every finding counting; new entries for property row marks,
+  `details.variables`, the four checks under existing rules, and
+  `boundaries`. The page text spacing entry cites WCAG 2.2 SC 1.4.12.
+- Verify: `check:docs-content`, `check:cli-strings` and `check:skills` pass;
+  `npm run check` is clean; `bin/a11y.test.ts`, `bin/report.test.ts`, the
+  guidance cases of the two checker tests and `src/editor/docs` pass.
+- Open items. Skill text still says the `a11y-*` rules test "with axe,
+  Siteimprove Alfa, and the contract's keyboard cases"
+  (`live-tokens-check-compliance` SKILL.md, line 56), and
+  `references/contract-tests.md` names neither `boundaries` nor the four
+  checks. Both wait on the skill-text decision.
