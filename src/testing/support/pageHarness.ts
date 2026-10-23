@@ -7,6 +7,7 @@ import {
 } from '../config';
 import { AA_BODY, AA_LARGE, contrastRatio, isLargeText } from '../../editor/core/palettes/contrast';
 import { isInapplicable, type ComponentContract, type PaintMap } from '../componentContract';
+import { scanAxe, type A11yResult } from './a11y';
 
 export type PageRule =
   | 'page-component-paint'
@@ -303,6 +304,19 @@ const GRID_VIEWPORT = 768;
 const SETTLE_QUIET_MS = 300;
 const SETTLE_BUDGET_MS = 5_000;
 
+/** The override SC 1.4.12 names, as the W3C's own text spacing bookmarklet
+ *  applies it. */
+const TEXT_SPACING_CSS = `
+* { line-height: 1.5 !important; letter-spacing: 0.12em !important; word-spacing: 0.16em !important; }
+p { margin-bottom: 2em !important; }
+`;
+const TEXT_SPACING_URL = 'https://www.w3.org/WAI/WCAG22/Understanding/text-spacing.html';
+
+/** An animation that ends within this many milliseconds of its start reads as
+ *  a fade or a state change, which reduced motion leaves alone. */
+const MOTION_MS = 200;
+const MOTION_URL = 'https://www.w3.org/WAI/WCAG22/Techniques/css/C39';
+
 /** Findings name CSS properties as a page's own stylesheet spells them. */
 const cssName = (camel: string) => camel.replace(/[A-Z]/g, (c) => `-${c.toLowerCase()}`);
 
@@ -340,7 +354,12 @@ export class PageHarness {
   static async open(page: Page, target: PageTarget, viewport: PageViewport): Promise<PageHarness> {
     await installPageProbe(page);
     await page.setViewportSize(viewport);
-    await page.goto(target.route);
+    await PageHarness.load(page, target.route);
+    return new PageHarness(page, target, viewport);
+  }
+
+  private static async load(page: Page, route: string): Promise<void> {
+    await page.goto(route);
     await page.locator(PAGE_CONTAINER).waitFor();
     // The lazy route module: until it mounts, the container holds the dev
     // overlay and nothing of the page itself.
@@ -351,7 +370,6 @@ export class PageHarness {
     }, { container: PAGE_CONTAINER, chrome: CHROME });
     await page.waitForLoadState('networkidle');
     await PageHarness.settle(page);
-    return new PageHarness(page, target, viewport);
   }
 
   /**
@@ -1003,6 +1021,117 @@ export class PageHarness {
       );
     }
     return null;
+  }
+
+  /**
+   * The accessibility rules return their results. The suite passes them to
+   * `recordA11y`, and the run reports each one at `warn` (decision 3 of
+   * docs/plans/a11y-testing.md).
+   *
+   * axe over the page's own markup. The router's chrome and every shipped
+   * component root stay out, since the component suite answers for what a
+   * component renders, and `color-contrast` stays off, since `page-contrast`
+   * owns page contrast (decision 8).
+   */
+  async scanA11y(componentRoots: string[]): Promise<A11yResult[]> {
+    const results = await scanAxe(this.page, PAGE_CONTAINER, [CHROME, ...componentRoots], 'a11y-page');
+    const lines = await this.page.evaluate(({ targets, source }) => targets.map((target) => {
+      // A target that crosses a frame or a shadow root is no document selector.
+      try {
+        const element = document.querySelector(target);
+        return element ? window.__liveTokensPageLine(element, source) : 1;
+      } catch {
+        return 1;
+      }
+    }), { targets: results.map((result) => result.target), source: this.target.source });
+    return results.map((result, index) => ({ ...result, line: lines[index] }));
+  }
+
+  /** The overflow observation again under the SC 1.4.12 override, minus every
+   *  failure the page already has without it, which `page-overflow` reports. */
+  async scanTextSpacing(specs: ContractPaintSpec[]): Promise<A11yResult[]> {
+    const before = await this.observeOverflow(specs);
+    const style = await this.page.addStyleTag({ content: TEXT_SPACING_CSS });
+    let after: OverflowObservation;
+    try {
+      after = await this.observeOverflow(specs);
+    } finally {
+      await style.evaluate((node) => (node as Element).remove());
+    }
+    // The pixel counts in a failure's detail move under the override, so a
+    // failure is known by what overflows and where.
+    const key = (failure: OverflowFailure) => `${failure.kind}|${failure.line}|${failure.tag}`;
+    const known = new Map<string, number>();
+    for (const failure of before.failures) known.set(key(failure), (known.get(key(failure)) ?? 0) + 1);
+    const results: A11yResult[] = [];
+    for (const failure of after.failures) {
+      const left = known.get(key(failure)) ?? 0;
+      if (left > 0) {
+        known.set(key(failure), left - 1);
+        continue;
+      }
+      results.push({
+        rule: 'a11y-text-spacing',
+        engineRule: 'text-spacing',
+        impact: null,
+        target: failure.kind === 'instance' ? failure.tag : `<${failure.tag}>`,
+        html: '',
+        help: `Under the text spacing override, ${failure.detail}`,
+        helpUrl: TEXT_SPACING_URL,
+        line: failure.line,
+      });
+    }
+    return results;
+  }
+
+  /**
+   * Loads the page again under `prefers-reduced-motion: reduce`, so a script
+   * that reads the preference at mount sees it too, and reports every
+   * animation still running whose run lasts past `MOTION_MS`. The page stays
+   * under the emulation afterwards.
+   */
+  async scanReducedMotion(): Promise<A11yResult[]> {
+    await this.page.emulateMedia({ reducedMotion: 'reduce' });
+    await PageHarness.load(this.page, this.target.route);
+    return this.page.evaluate(({ container, chrome, source, limit, url }) => {
+      const root = document.querySelector(container);
+      if (!root) return [];
+      const results: A11yResult[] = [];
+      const seen = new Set<string>();
+      for (const animation of document.getAnimations()) {
+        if (animation.playState !== 'running') continue;
+        const effect = animation.effect;
+        if (!(effect instanceof KeyframeEffect) || !effect.target) continue;
+        const element = effect.target;
+        if (!root.contains(element) || element.closest(chrome)) continue;
+        const end = Number(effect.getComputedTiming().endTime ?? 0);
+        if (end <= limit) continue;
+        // Svelte scopes a component's classes and keyframes with a hash the
+        // page file never spells.
+        const name = animation instanceof CSSAnimation
+          ? `The animation ${animation.animationName.replace(/^svelte-[a-z0-9]+-/, '')}`
+          : animation instanceof CSSTransition ? `A transition of ${animation.transitionProperty}`
+            : `A script animation${animation.id ? ` ${animation.id}` : ''}`;
+        const classes = [...element.classList].filter((c) => !/^svelte-[a-z0-9]+$/.test(c));
+        const target = `${element.tagName.toLowerCase()}${classes.map((c) => `.${c}`).join('')}`
+          + (effect.pseudoElement ?? '');
+        if (seen.has(`${target}\n${name}`)) continue;
+        seen.add(`${target}\n${name}`);
+        const html = element.outerHTML;
+        results.push({
+          rule: 'a11y-reduced-motion',
+          engineRule: 'prefers-reduced-motion',
+          impact: null,
+          target,
+          html: html.slice(0, html.indexOf('>') + 1),
+          help: `${name} keeps running under prefers-reduced-motion: reduce, `
+            + (Number.isFinite(end) ? `for ${Math.round(end)} ms` : 'without end'),
+          helpUrl: url,
+          line: window.__liveTokensPageLine(element, source),
+        });
+      }
+      return results;
+    }, { container: PAGE_CONTAINER, chrome: CHROME, source: this.target.source, limit: MOTION_MS, url: MOTION_URL });
   }
 }
 

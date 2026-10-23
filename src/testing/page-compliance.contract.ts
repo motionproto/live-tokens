@@ -1,6 +1,7 @@
 import { test } from '@playwright/test';
 import { TEXT_STYLES } from '../editor/ui/sections/textStyles';
 import { allContracts } from './contracts';
+import { missingEngine, recordA11y } from './support/a11y';
 import {
   PageHarness,
   pageTargets,
@@ -64,6 +65,25 @@ for (const target of targets) {
       const harness = await PageHarness.open(page, target, viewport);
       const inapplicable = await harness.assertOverflow(specs);
       test.skip(inapplicable !== null, inapplicable ?? '');
+    });
+
+    test(`page-a11y | ${target.source} | ${at}`, async ({ page }) => {
+      const missing = await missingEngine(['axe']);
+      test.skip(missing !== null, missing ?? '');
+      const roots = await componentRoots();
+      const harness = await PageHarness.open(page, target, viewport);
+      recordA11y(await harness.scanA11y(roots));
+    });
+
+    test(`page-text-spacing | ${target.source} | ${at}`, async ({ page }) => {
+      const specs = await paintSpecs();
+      const harness = await PageHarness.open(page, target, viewport);
+      recordA11y(await harness.scanTextSpacing(specs));
+    });
+
+    test(`page-reduced-motion | ${target.source} | ${at}`, async ({ page }) => {
+      const harness = await PageHarness.open(page, target, viewport);
+      recordA11y(await harness.scanReducedMotion());
     });
   }
 }
