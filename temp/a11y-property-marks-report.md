@@ -93,3 +93,12 @@ The user approved all three decisions on 2026-10-23.
 3. Image Lightbox's Tile tab gains a "tile fit" row, Contain or Cover. The
    registry entry now lists the component's intrinsics, and a tile follows
    the theme's fit unless its `fit` prop is set.
+
+Later the same day, at the user's request, TabBar and SegmentedControl
+gained their WAI-ARIA keyboard patterns: tabs with roving focus, and a radio
+group whose arrows move focus and selection. The selected segment draws a
+neutral focus ring. TabBar's selected border and SegmentedControl's selected
+outline now map to `--border-brand-medium`, at 3.47:1 and 4.31:1 on the
+default theme. Each preset theme embeds its own copy of the old mapping, so
+autumn, ocean, spring-meadow and sketchy (SegmentedControl only) still fall
+below 3:1. SegmentedControl's bar still measures 2.42:1.
