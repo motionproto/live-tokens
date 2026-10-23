@@ -42,9 +42,35 @@
   0.119 join `peerDependencies` as optional, and the `create` template
   installs them. Without one, the tests it drives report as inapplicable and
   the run carries on.
+- **The editor gains an Accessibility view.** Run test checks every
+  component in the open theme as saved, in about three minutes, and lists
+  each component's issues in two groups. "Fix with a property" holds the
+  colour pairs the editor's contrast checker finds below their floor. "Fix
+  in the component's code" holds axe failures, unchanged focus styles, and
+  failed keyboard cases. Results to check by eye collect in one closed list.
+  With edits pending, Run test asks for a save and starts nothing. A missing
+  test tool shows its install command. The dev server runs one check at a
+  time and keeps the last report in
+  `test-results/live-tokens/a11y-report.json`.
+- **The editor marks the components the last run named.** The component list
+  carries a "!" beside each one, in the sidebar, the narrow menu, and the
+  standalone component page. Each one's page opens with a panel under its
+  title that lists its issues, and a property row in the panel carries a "→"
+  that opens the tab holding the property and highlights its row. The marks
+  follow the last finished run; the contrast readout on each colour row stays
+  live.
+- **`check-component --tests` takes `--a11y` and `--open-theme`.** `--a11y`
+  runs the accessibility suite and the keyboard cases alone, with no static
+  checks or fixes, and reports only `a11y-*` and `tests-*` findings.
+  `--open-theme` tests the theme the editor has open, as saved, and still
+  leaves every unsaved buffer out of the run.
+- **`--json` output names the tested theme and each finding's component.**
+  `check-component --tests --json` adds a top-level `theme`, and each
+  Playwright finding that names a component carries it in a `component`
+  field. Both fields are additive.
 - **The guide gains an Accessibility chapter.** It covers what runs, the
-  rules, review findings, the recorded trees, keyboard cases, the engines,
-  and the limits.
+  rules, review findings, the recorded trees, keyboard cases, the
+  Accessibility view, the engines, and the limits.
 - **The skills cover accessibility.** `live-tokens-check-compliance` lists
   the `a11y-*` findings as alerts for the user to review.
   `live-tokens-create-component` declares keyboard cases for a new component
@@ -68,6 +94,10 @@
 
 ### Fixed
 
+- **Check reports reach a pipe whole.** On macOS, `check-component` and
+  `check-page` cut piped output at 64 KiB, because the process exited before
+  the pipe drained. Both checkers now write their report synchronously, so
+  `--json` output read through a pipe parses.
 - **`page-overflow` passes a component inside a scrolling ancestor.** The
   check reported a component as clipped by the nearest ancestor with any
   overflow other than `visible`, so a Badge at the end of a Table row on a
