@@ -32,6 +32,8 @@ export interface A11yFinding {
     html: string;
     help: string;
     helpUrl: string;
+    /** The component properties the result traced to, sorted. Absent when the trace found none. */
+    variables?: string[];
   };
   context?: Record<string, unknown>;
   severity: 'error' | 'warn';

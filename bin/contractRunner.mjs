@@ -652,6 +652,7 @@ function a11yFinding(result, { file, line, componentId, context }) {
       html: result.html,
       help: result.help,
       helpUrl: result.helpUrl,
+      ...(result.variables?.length ? { variables: result.variables } : {}),
     },
     context,
   };

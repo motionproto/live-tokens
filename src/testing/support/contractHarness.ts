@@ -206,6 +206,20 @@ export class ContractHarness {
     }
   }
 
+  /** Every variable a property row of the component can set: its schema
+   *  tokens and its intrinsics. */
+  async propertyVariables(): Promise<Set<string>> {
+    const names = await this.page.evaluate((id) => {
+      const entry = window.__liveTokensEditor?.getComponentRegistryEntries().find((e) => e.id === id);
+      if (!entry) throw new Error(`no registry entry for "${id}"`);
+      return [
+        ...entry.schema.map((token) => token.variable),
+        ...(entry.intrinsics ?? []).flatMap((spec) => spec.variants.map((variant) => spec.variable(variant))),
+      ];
+    }, this.contract.id);
+    return new Set(names);
+  }
+
   // ── 2. Property projection ───────────────────────────────────────────────
 
   /**

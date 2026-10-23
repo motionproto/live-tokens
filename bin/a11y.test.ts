@@ -89,6 +89,13 @@ describe('a11y annotations on a passing component test', () => {
     expect(findings[0].details.view).toBe(view);
   });
 
+  it('carry the variables a result traced to, and omit the field when it traced none', () => {
+    const variables = ['--widget-surface', '--widget-text'];
+    const { findings } = mapComponent(a11ySuiteReport({ annotations: [annotation([{ ...contrast, variables }, focus])] }));
+    expect(findings[0].details.variables).toEqual(variables);
+    expect(findings[1].details).not.toHaveProperty('variables');
+  });
+
   it('name the component in a field of their own', () => {
     const { findings } = mapComponent(a11ySuiteReport({ annotations: [annotation([contrast, focus])] }));
     expect(findings.map((f: { component?: string }) => f.component)).toEqual(['widget', 'widget']);

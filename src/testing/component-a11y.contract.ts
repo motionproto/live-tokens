@@ -13,6 +13,7 @@ import { A11Y_THEMES_ENV, UPDATE_ARIA_ENV } from './config';
 import { selectedContracts } from './contracts';
 import { missingEngine, recordA11y, scanAxe, scanFocusVisible, type A11yResult } from './support/a11y';
 import { ContractHarness } from './support/contractHarness';
+import { TRACE_AXES, traceProperties } from './support/traceProperties';
 
 // Each test opens its own editor and only reads the preview, so the
 // components scan side by side.
@@ -225,15 +226,22 @@ function compareTrees(id: string, trees: Map<string, string>): A11yResult[] {
   }));
 }
 
-/** One result per element and engine rule, naming every view it failed in. */
+/** One result per element and engine rule, naming every view it failed in.
+ *  A result traces once, the first time it appears, while its view is on
+ *  screen (decision 4). */
 class Occurrences {
   private readonly entries = new Map<string, { result: A11yResult; views: string[] }>();
 
-  add(view: string, results: A11yResult[]): void {
+  constructor(private readonly trace: (result: A11yResult) => Promise<string[]>) {}
+
+  async add(view: string, results: A11yResult[]): Promise<void> {
     for (const result of results) {
       const key = [result.rule, result.engineRule, result.target].join('\n');
       let entry = this.entries.get(key);
-      if (!entry) this.entries.set(key, (entry = { result, views: [] }));
+      if (!entry) {
+        const variables = await this.trace(result);
+        this.entries.set(key, (entry = { result: variables.length > 0 ? { ...result, variables } : result, views: [] }));
+      }
       if (!entry.views.includes(view)) entry.views.push(view);
     }
   }
@@ -257,19 +265,23 @@ for (const contract of await selectedContracts()) {
     const { plain, setUp } = viewGroups(contract);
     const portals = portalSelectors(contract);
     const presets = process.env[A11Y_THEMES_ENV] === 'all' ? PRESETS : [];
-    const found = new Occurrences();
+    const known = await harness.propertyVariables();
+    const found = new Occurrences(async (result) => {
+      const axes = TRACE_AXES[result.engineRule];
+      return axes ? traceProperties(page, { selector: result.target, scope: SCOPE }, axes, known) : [];
+    });
     const trees = new Map<string, string>();
 
     const scan = async ({ label, view }: ScanView) => {
       await harness.selectView(view);
       await markStage(page, portals);
-      found.add(label, await scanAxe(page, SCOPE, EXCLUDE, 'a11y-component'));
-      found.add(label, await scanFocusVisible(page, SCOPE, EXCLUDE));
+      await found.add(label, await scanAxe(page, SCOPE, EXCLUDE, 'a11y-component'));
+      await found.add(label, await scanFocusVisible(page, SCOPE, EXCLUDE));
       trees.set(label, await readTree(page));
     };
     const scanContrast = async (label: string, theme: string) => {
       await markStage(page, portals);
-      found.add(`${label} under ${theme}`, await scanAxe(page, SCOPE, EXCLUDE, 'a11y-component', PRESET_RULES));
+      await found.add(`${label} under ${theme}`, await scanAxe(page, SCOPE, EXCLUDE, 'a11y-component', PRESET_RULES));
     };
 
     for (const scanView of plain) await scan(scanView);

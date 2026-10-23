@@ -11,7 +11,8 @@ export type A11yRule =
 
 /** One element one engine flagged. `line` is the page file line, which only
  *  the page suite can resolve; a component finding anchors on its runtime.
- *  `view` names the variants, states, and themes the element failed in. */
+ *  `view` names the variants, states, and themes the element failed in.
+ *  `variables` names the component properties the result traced to. */
 export interface A11yResult {
   rule: A11yRule;
   engineRule: string;
@@ -22,6 +23,7 @@ export interface A11yResult {
   helpUrl: string;
   line?: number;
   view?: string;
+  variables?: string[];
 }
 
 const A11Y_ANNOTATION = 'a11y';
