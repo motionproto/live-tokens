@@ -212,6 +212,42 @@ local main with the prefix `A11y view W<n>: `.
 **Verify.** `npx vitest run bin`, `npm run check`, one CLI run of
 `check-component --tests --a11y --no-fix --json`.
 
+**Built.** Wave 2 calls these:
+
+- `check-component [id] --tests --a11y` runs Playwright's `contract` project
+  with the file filters `component-a11y.contract` and
+  `component-editor.contract` and a `--grep` on the two test titles
+  (`A11Y_SELECTION` in `contractRunner.mjs`). It skips the Vitest suite,
+  the static checks and fixes, and coverage reconciliation, and keeps only
+  `a11y-*` and `tests-*` findings. The editor test maps through its own
+  positional table, `['contract-interaction']`, so a pointer failure counts
+  against that rule and drops out of the findings. A test in
+  `bin/check-component.test.ts` pins the grep to the real titles.
+- `--open-theme` keeps `themes/_active.json` in the copy. Every
+  `_working.json`, `_production.json` and legacy per-layer pointer still
+  goes. Both flags need `--tests`; either one without it exits 1.
+  `src/testing/isolation.ts` needs no change: the CLI sets
+  `LIVE_TOKENS_TEST_DATA_DIR`, so the config's own isolation reuses the
+  runner's copy.
+- `--json` prints `{ check, checked, errors, warnings, theme, findings,
+  coverage }`. `theme` holds the slug the copy's pointer names, or
+  `default`. Under `--a11y` coverage holds `a11y-component` and
+  `contract-interaction` per component. A `failed` interaction entry means
+  the keyboard cases after the failing case did not run.
+- The exit code is 0 while every finding stays at `warn`; `--strict` or a `tests-*`
+  finding makes it 1. The JSON goes to stdout, and the run writes nothing to
+  the data tree.
+- Measured on this repository with `_active.json` naming `royal-velvet`:
+  `check-component --tests --a11y --no-fix --json --open-theme` took
+  198 s at one worker and exited 0. It checked 29 components and returned
+  86 findings across 17 of them: 61 `a11y-review` (59 `color-contrast`, 2
+  `video-caption`), 15 `a11y-component`, 5 `a11y-focus-visible` and 5
+  `a11y-keyboard`. The same run without `--open-theme` took 191 s and
+  tested `default`. It returned 91 findings, among them 8 axe
+  `color-contrast` violations, where royal-velvet returns none.
+- A theme with a sketch style boots the run with the sketch layer on, as
+  `isolation.ts` notes, so the scans then read the sketch paint.
+
 ## Wave 2: dev server
 
 - `POST /a11y/run`, `GET /a11y/report`, and the `a11y` SSE event (D5), with
