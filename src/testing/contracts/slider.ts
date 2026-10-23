@@ -169,6 +169,18 @@ export const sliderContract: ComponentContract = {
         expect: { kind: 'focused', part: 'input', value: true },
       },
       {
+        name: 'Page Up raises the value',
+        rule: 'a11y-keyboard',
+        action: { kind: 'press', part: 'input', key: 'PageUp' },
+        expect: { kind: 'valueMoves', part: 'input', direction: 'up' },
+      },
+      {
+        name: 'End takes the value to the ceiling',
+        rule: 'a11y-keyboard',
+        action: { kind: 'press', part: 'input', key: 'End' },
+        expect: { kind: 'valueBecomes', part: 'input', value: '100' },
+      },
+      {
         name: 'a disabled slider ignores the arrow keys',
         state: 'disabled',
         action: { kind: 'press', part: 'input', key: 'ArrowRight' },

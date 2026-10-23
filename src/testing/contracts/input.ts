@@ -171,6 +171,12 @@ export const inputContract: ComponentContract = {
         expect: { kind: 'attribute', part: 'toggleButton', name: 'aria-pressed', value: 'true' },
       },
       {
+        name: 'Space activates the reveal toggle',
+        rule: 'a11y-keyboard',
+        action: { kind: 'press', part: 'toggleButton', key: 'Space' },
+        expect: { kind: 'activated', part: 'toggleButton' },
+      },
+      {
         name: 'a disabled field refuses focus',
         state: 'disabled',
         action: { kind: 'click', part: 'field' },

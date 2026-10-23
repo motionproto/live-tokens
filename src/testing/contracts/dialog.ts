@@ -113,6 +113,18 @@ export const dialogContract: ComponentContract = {
         action: { kind: 'click', part: 'closeButton' },
         expect: { kind: 'focused', part: 'closeButton', value: true },
       },
+      {
+        name: 'Enter activates the close icon',
+        rule: 'a11y-keyboard',
+        action: { kind: 'press', part: 'closeButton', key: 'Enter' },
+        expect: { kind: 'activated', part: 'closeButton' },
+      },
+      {
+        name: 'Escape closes the dialog',
+        rule: 'a11y-keyboard',
+        action: { kind: 'press', part: 'closeButton', key: 'Escape' },
+        expect: { kind: 'present', part: 'root', value: false },
+      },
     ],
   },
   behavior: {

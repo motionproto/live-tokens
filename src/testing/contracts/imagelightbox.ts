@@ -115,6 +115,22 @@ export const imageLightboxContract: ComponentContract = {
         action: { kind: 'click', part: 'nextButton' },
         expect: { kind: 'focused', part: 'nextButton', value: true },
       },
+      // `setup: []` replaces the view's thumb click, which would land on the
+      // open overlay and close the lightbox before the key does.
+      {
+        name: 'Escape closes the lightbox',
+        rule: 'a11y-keyboard',
+        setup: [],
+        action: { kind: 'press', part: 'closeButton', key: 'Escape' },
+        expect: { kind: 'attribute', part: 'thumb', name: 'aria-expanded', value: 'false' },
+      },
+      {
+        name: 'Enter on the tile opens the lightbox',
+        rule: 'a11y-keyboard',
+        setup: [],
+        action: { kind: 'press', part: 'thumb', key: 'Enter' },
+        expect: { kind: 'attribute', part: 'thumb', name: 'aria-expanded', value: 'true' },
+      },
     ],
   },
   // `overlay` and `closeButton` are inside `.image-lightbox-modal`, which

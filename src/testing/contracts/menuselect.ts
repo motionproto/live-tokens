@@ -31,6 +31,7 @@ export const menuSelectContract: ComponentContract = {
   parts: {
     root: '.menuselect',
     item: '.menuselect-item',
+    secondItem: '.menuselect > li:nth-of-type(2) > .menuselect-item',
     icon: '.menuselect-item .menuselect-icon',
     label: '.menuselect-item .menuselect-label',
     selectedItem: '.menuselect-item.selected',
@@ -129,6 +130,18 @@ export const menuSelectContract: ComponentContract = {
         name: 'clicking an item selects it',
         action: { kind: 'click', part: 'item' },
         expect: { kind: 'attribute', part: 'item', name: 'aria-selected', value: 'true' },
+      },
+      {
+        name: 'Enter selects an item',
+        rule: 'a11y-keyboard',
+        action: { kind: 'press', part: 'item', key: 'Enter' },
+        expect: { kind: 'activated', part: 'item' },
+      },
+      {
+        name: 'arrow down moves focus to the next item',
+        rule: 'a11y-keyboard',
+        action: { kind: 'press', part: 'item', key: 'ArrowDown' },
+        expect: { kind: 'focused', part: 'secondItem', value: true },
       },
     ],
   },

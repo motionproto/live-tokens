@@ -92,15 +92,27 @@ export const collapsibleSectionContract: ComponentContract = {
   interaction: {
     part: 'toggleButton',
     role: 'button',
-    // No activation case: CollapsibleSectionEditor's preview drives `open`
-    // off the active state tab and never wires `ontoggle` back to it, so
-    // clicking the real button here can't move `aria-expanded` (same
+    // Activation reads as a click on the button: CollapsibleSectionEditor's
+    // preview drives `open` off the active state tab and never wires
+    // `ontoggle` back to it, so `aria-expanded` never moves here (same
     // constraint documented on ToggleEditor in toggle.ts).
     cases: [
       {
         name: 'clicking the toggle button focuses it',
         action: { kind: 'click', part: 'toggleButton' },
         expect: { kind: 'focused', part: 'toggleButton', value: true },
+      },
+      {
+        name: 'Enter activates the toggle button',
+        rule: 'a11y-keyboard',
+        action: { kind: 'press', part: 'toggleButton', key: 'Enter' },
+        expect: { kind: 'activated', part: 'toggleButton' },
+      },
+      {
+        name: 'Space activates the toggle button',
+        rule: 'a11y-keyboard',
+        action: { kind: 'press', part: 'toggleButton', key: 'Space' },
+        expect: { kind: 'activated', part: 'toggleButton' },
       },
     ],
   },

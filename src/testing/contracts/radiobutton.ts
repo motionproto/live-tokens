@@ -37,6 +37,7 @@ export const radioButtonContract: ComponentContract = {
     dot: '.radio-dot',
     dotFill: { selector: '.radio-dot-fill' },
     label: '.radio-label',
+    secondOption: '.radio-button:nth-of-type(2)',
   },
   properties: [
     { paints: statePaints('default', true) },
@@ -87,6 +88,18 @@ export const radioButtonContract: ComponentContract = {
         name: 'clicking a radio option focuses it',
         action: { kind: 'click', part: 'root' },
         expect: { kind: 'focused', part: 'root', value: true },
+      },
+      {
+        name: 'Space selects a radio option',
+        rule: 'a11y-keyboard',
+        action: { kind: 'press', part: 'root', key: 'Space' },
+        expect: { kind: 'activated', part: 'root' },
+      },
+      {
+        name: 'arrow down moves focus to the next radio option',
+        rule: 'a11y-keyboard',
+        action: { kind: 'press', part: 'root', key: 'ArrowDown' },
+        expect: { kind: 'focused', part: 'secondOption', value: true },
       },
     ],
   },

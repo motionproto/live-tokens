@@ -14,6 +14,7 @@ export const segmentedControlContract: ComponentContract = {
     root: '.segmented-control',
     segment: '.segment',
     icon: '.segment i',
+    secondSegment: '.segment:nth-of-type(2)',
     selectedSegment: '.segment.selected',
     selectedIcon: '.segment.selected i',
     hairline: '.segment-hairline',
@@ -175,6 +176,18 @@ export const segmentedControlContract: ComponentContract = {
         name: 'clicking a segment checks it',
         action: { kind: 'click', part: 'segment' },
         expect: { kind: 'attribute', part: 'segment', name: 'aria-checked', value: 'true' },
+      },
+      {
+        name: 'Space checks a segment',
+        rule: 'a11y-keyboard',
+        action: { kind: 'press', part: 'segment', key: 'Space' },
+        expect: { kind: 'activated', part: 'segment' },
+      },
+      {
+        name: 'arrow right moves focus to the next segment',
+        rule: 'a11y-keyboard',
+        action: { kind: 'press', part: 'segment', key: 'ArrowRight' },
+        expect: { kind: 'focused', part: 'secondSegment', value: true },
       },
       {
         name: 'a disabled control refuses focus',

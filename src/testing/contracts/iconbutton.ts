@@ -99,6 +99,18 @@ export const iconButtonContract: ComponentContract = {
         action: { kind: 'click', part: 'root' },
         expect: { kind: 'focused', part: 'root', value: true },
       },
+      {
+        name: 'Enter activates an icon button',
+        rule: 'a11y-keyboard',
+        action: { kind: 'press', part: 'root', key: 'Enter' },
+        expect: { kind: 'activated', part: 'root' },
+      },
+      {
+        name: 'Space activates an icon button',
+        rule: 'a11y-keyboard',
+        action: { kind: 'press', part: 'root', key: 'Space' },
+        expect: { kind: 'activated', part: 'root' },
+      },
     ],
   },
   behavior: {

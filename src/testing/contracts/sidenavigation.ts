@@ -214,6 +214,12 @@ export const sideNavigationContract: ComponentContract = {
         action: { kind: 'click', part: 'toggle' },
         expect: { kind: 'attribute', part: 'toggle', name: 'aria-expanded', value: 'false' },
       },
+      {
+        name: 'Enter activates the toggle',
+        rule: 'a11y-keyboard',
+        action: { kind: 'press', part: 'toggle', key: 'Enter' },
+        expect: { kind: 'activated', part: 'toggle' },
+      },
     ],
   },
   behavior: {

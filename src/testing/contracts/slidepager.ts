@@ -123,6 +123,19 @@ export const slidePagerContract: ComponentContract = {
         action: { kind: 'click', part: 'nextControl' },
         expect: { kind: 'attribute', part: 'stage', name: 'aria-label', value: 'Open slide 3 full screen' },
       },
+      {
+        name: 'Escape closes the full-screen slide',
+        rule: 'a11y-keyboard',
+        setup: [{ kind: 'click', part: 'stage' }],
+        action: { kind: 'press', key: 'Escape' },
+        expect: { kind: 'attribute', part: 'stage', name: 'aria-expanded', value: 'false' },
+      },
+      {
+        name: 'Enter on the frame opens the full-screen slide',
+        rule: 'a11y-keyboard',
+        action: { kind: 'press', part: 'stage', key: 'Enter' },
+        expect: { kind: 'attribute', part: 'stage', name: 'aria-expanded', value: 'true' },
+      },
     ],
   },
   behavior: {

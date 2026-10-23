@@ -50,6 +50,7 @@ export const tabBarContract: ComponentContract = {
     // tab selected, which would invalidate that selector out from under a
     // focus check re-resolved after the click.
     secondTab: '.tab:nth-of-type(2)',
+    firstTab: '.tab:nth-of-type(1)',
   },
   properties: [
     {
@@ -122,6 +123,18 @@ export const tabBarContract: ComponentContract = {
       {
         name: 'clicking a tab focuses it',
         action: { kind: 'click', part: 'secondTab' },
+        expect: { kind: 'focused', part: 'secondTab', value: true },
+      },
+      {
+        name: 'Enter activates a tab',
+        rule: 'a11y-keyboard',
+        action: { kind: 'press', part: 'secondTab', key: 'Enter' },
+        expect: { kind: 'activated', part: 'secondTab' },
+      },
+      {
+        name: 'arrow right moves focus to the next tab',
+        rule: 'a11y-keyboard',
+        action: { kind: 'press', part: 'firstTab', key: 'ArrowRight' },
         expect: { kind: 'focused', part: 'secondTab', value: true },
       },
       {

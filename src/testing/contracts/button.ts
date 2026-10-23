@@ -113,6 +113,18 @@ export const buttonContract: ComponentContract = {
         expect: { kind: 'focused', part: 'root', value: true },
       },
       {
+        name: 'Enter activates a button',
+        rule: 'a11y-keyboard',
+        action: { kind: 'press', part: 'root', key: 'Enter' },
+        expect: { kind: 'activated', part: 'root' },
+      },
+      {
+        name: 'Space activates a button',
+        rule: 'a11y-keyboard',
+        action: { kind: 'press', part: 'root', key: 'Space' },
+        expect: { kind: 'activated', part: 'root' },
+      },
+      {
         name: 'a disabled button refuses focus',
         state: 'disabled',
         action: { kind: 'click', part: 'root' },

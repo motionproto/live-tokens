@@ -105,6 +105,19 @@ export const videoLightboxContract: ComponentContract = {
         action: { kind: 'click', part: 'trigger' },
         expect: { kind: 'attribute', part: 'trigger', name: 'aria-expanded', value: 'true' },
       },
+      // The click case above leaves the lightbox open with focus inside it.
+      {
+        name: 'Escape closes the lightbox',
+        rule: 'a11y-keyboard',
+        action: { kind: 'press', key: 'Escape' },
+        expect: { kind: 'attribute', part: 'trigger', name: 'aria-expanded', value: 'false' },
+      },
+      {
+        name: 'Enter on the still opens the lightbox',
+        rule: 'a11y-keyboard',
+        action: { kind: 'press', part: 'trigger', key: 'Enter' },
+        expect: { kind: 'attribute', part: 'trigger', name: 'aria-expanded', value: 'true' },
+      },
     ],
   },
   behavior: {
