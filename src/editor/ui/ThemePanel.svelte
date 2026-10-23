@@ -57,6 +57,7 @@
     markComponentSaved,
   } from '../core/store/editorStore';
   import { openThemeSlug } from '../core/store/editorConfigStore';
+  import { unsavedEdits } from '../core/store/unsavedEdits';
   import { sketchOffTheme, themeSketchSettings } from '../core/sketch/sketchStore';
   import {
     componentActiveRevision,
@@ -92,7 +93,6 @@
   let dirtyComponentCount = $derived(
     Object.values($componentDirty).filter(Boolean).length,
   );
-  let unsavedEdits = $derived($colorsAndTypeDirty || dirtyComponentCount > 0 || $sketchOffTheme);
 
   async function refreshFiles() {
     try {
@@ -282,7 +282,7 @@
     themeProductionState({
       openTheme: $openThemeSlug,
       production: $productionTheme,
-      unsaved: unsavedEdits || $liveUnsaved,
+      unsaved: $unsavedEdits || $liveUnsaved,
     }),
   );
 
@@ -421,7 +421,7 @@
   async function commitWholeTheme() {
     const row = previewRow;
     if (!row) return;
-    if (unsavedEdits) {
+    if ($unsavedEdits) {
       const ok = window.confirm(
         'Loading a theme will replace the editor’s current state and discard unsaved changes. Continue?',
       );
@@ -490,7 +490,7 @@
     const picked = previewLayer ?? previewedTheme?.colorsAndType ?? null;
     if (!row || !picked) return;
     const { _fileName, _source, ...buffer } = picked;
-    if (unsavedEdits) {
+    if ($unsavedEdits) {
       const ok = window.confirm(
         'Loading colors and type will discard unsaved changes. Continue?',
       );
