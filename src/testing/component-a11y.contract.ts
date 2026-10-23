@@ -60,7 +60,7 @@ function describeStep(step: SetupStep): string {
     if (step.check !== undefined) return `${named} ${step.check ? 'on' : 'off'}`;
     return named;
   }
-  if (step.kind === 'press') return `${step.key} on ${step.part}`;
+  if (step.kind === 'press') return step.part ? `${step.key} on ${step.part}` : step.key;
   return `${step.kind} ${step.part}`;
 }
 

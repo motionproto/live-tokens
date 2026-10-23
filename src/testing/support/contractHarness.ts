@@ -17,12 +17,14 @@ import {
   type ThemeExpectation,
   type View,
 } from '../componentContract';
+import { recordA11y } from './a11y';
 import { openComponentsEditor } from './editor';
 
 const STAGE_GROUP = '.variant-group';
 const STAGE_SCOPE = '.sketch-scope';
 const STAGE = `${STAGE_GROUP}:visible ${STAGE_SCOPE}`;
 const THEME_PICKER = '[role="dialog"][aria-label="Theme Picker"]';
+const KEYBOARD_PATTERNS_URL = 'https://www.w3.org/WAI/ARIA/apg/patterns/';
 
 /** A save or a reset is one file write on the dev server. Left implicit these
  *  waits inherit the run's action timeout, which is sized for a click, and a
@@ -439,7 +441,7 @@ export class ContractHarness {
     if (action.kind === 'press') {
       // A disabled control refuses focus, which is part of what the disabled
       // case asserts. The outcome check decides whether that is right.
-      await this.locator(action.part).focus().catch(() => undefined);
+      if (action.part) await this.locator(action.part).focus().catch(() => undefined);
       await this.page.keyboard.press(action.key);
       return;
     }
@@ -467,12 +469,39 @@ export class ContractHarness {
 
   private async runInteraction(testCase: InteractionCase): Promise<void> {
     await this.selectView(testCase);
+    const gap = await this.interactionGap(testCase);
+    if (gap === null) return;
+    if (testCase.rule !== 'a11y-keyboard') this.fail('contract-interaction', `${testCase.name}: ${gap}`);
+    const element = this.locator(testCase.expect.part);
+    const merged = { ...this.contract.view, ...testCase };
+    const view = [merged.variant, merged.state].filter(Boolean).join(' / ');
+    recordA11y([{
+      rule: 'a11y-keyboard',
+      engineRule: testCase.name,
+      impact: null,
+      target: testCase.expect.part,
+      html: await element.count() ? await element.evaluate((node) => node.outerHTML.slice(0, 300)) : '',
+      help: gap,
+      helpUrl: KEYBOARD_PATTERNS_URL,
+      ...(view ? { view } : {}),
+    }]);
+  }
+
+  /** What the case observed against what it expects, or null when they agree. */
+  private async interactionGap(testCase: InteractionCase): Promise<string | null> {
     const outcome = testCase.expect;
     const tracksValue = outcome.kind === 'valueMoves'
       || outcome.kind === 'valueBecomes'
       || outcome.kind === 'valueChanges'
       || outcome.kind === 'valueHolds';
     const before = tracksValue ? await this.valueOf(outcome.part) : '';
+    if (outcome.kind === 'activated') {
+      await this.locator(outcome.part).evaluate((node) => {
+        const marked = node as HTMLElement & { __contractActivated?: boolean };
+        marked.__contractActivated = false;
+        node.addEventListener('click', () => { marked.__contractActivated = true; }, { once: true });
+      });
+    }
 
     await this.performAction(testCase.action);
     await settle(this.page);
@@ -480,43 +509,39 @@ export class ContractHarness {
     if (outcome.kind === 'attribute') {
       const actual = await this.locator(outcome.part)
         .evaluate((node, name) => node.getAttribute(name), outcome.name);
-      if (actual !== outcome.value) {
-        this.fail('contract-interaction', `${testCase.name}: ${outcome.part}[${outcome.name}] is "${actual}", expected "${outcome.value}"`);
-      }
-      return;
+      return actual === outcome.value ? null : `${outcome.part}[${outcome.name}] is "${actual}", expected "${outcome.value}"`;
     }
     if (outcome.kind === 'focused') {
       const focused = await this.isFocused(outcome.part);
-      if (focused !== outcome.value) {
-        this.fail('contract-interaction', `${testCase.name}: ${outcome.part} is ${focused ? '' : 'not '}focused, expected ${outcome.value ? '' : 'not '}focused`);
-      }
-      return;
+      return focused === outcome.value
+        ? null
+        : `${outcome.part} is ${focused ? '' : 'not '}focused, expected ${outcome.value ? '' : 'not '}focused`;
+    }
+    if (outcome.kind === 'activated') {
+      const activated = await this.locator(outcome.part).evaluate((node) =>
+        (node as HTMLElement & { __contractActivated?: boolean }).__contractActivated === true);
+      return activated ? null : `${outcome.part} received no click, expected the key to activate it`;
+    }
+    if (outcome.kind === 'present') {
+      const present = await this.locator(outcome.part).count() > 0;
+      return present === outcome.value
+        ? null
+        : `${outcome.part} is ${present ? 'still' : 'not'} in the document, expected it ${outcome.value ? 'present' : 'gone'}`;
     }
 
     const after = await this.valueOf(outcome.part);
     if (outcome.kind === 'valueHolds') {
-      if (after !== before) {
-        this.fail('contract-interaction', `${testCase.name}: value moved from ${before} to ${after}`);
-      }
-      return;
+      return after === before ? null : `value moved from ${before} to ${after}`;
     }
     if (outcome.kind === 'valueChanges') {
-      if (after === before) {
-        this.fail('contract-interaction', `${testCase.name}: value held at ${before}`);
-      }
-      return;
+      return after === before ? `value held at ${before}` : null;
     }
     if (outcome.kind === 'valueBecomes') {
-      if (after !== outcome.value) {
-        this.fail('contract-interaction', `${testCase.name}: value is ${after}, expected ${outcome.value}`);
-      }
-      return;
+      return after === outcome.value ? null : `value is ${after}, expected ${outcome.value}`;
     }
     const moved = Number(after) - Number(before);
     const wanted = outcome.direction === 'up' ? moved > 0 : moved < 0;
-    if (!wanted) {
-      this.fail('contract-interaction', `${testCase.name}: value went ${before} -> ${after}, expected to move ${outcome.direction}`);
-    }
+    return wanted ? null : `value went ${before} -> ${after}, expected to move ${outcome.direction}`;
   }
 
   // ── 5. Persistence and reset ─────────────────────────────────────────────

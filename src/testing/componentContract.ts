@@ -146,7 +146,9 @@ export interface ThemeExpectation extends View {
 }
 
 export type InteractionAction =
-  | { kind: 'press'; part: string; key: string }
+  /** Without a part the key goes to the element holding focus, such as an
+   *  overlay that took focus as it opened. */
+  | { kind: 'press'; part?: string; key: string }
   | { kind: 'click'; part: string }
   | { kind: 'type'; part: string; text: string }
   | { kind: 'dragTo'; part: string; along: string; fraction: number };
@@ -159,12 +161,23 @@ export type InteractionOutcome =
   | { kind: 'valueHolds'; part: string }
   /** Whether the part takes focus. The only outcome a button with no state
    *  attribute has: a disabled one refuses it and an enabled one takes it. */
-  | { kind: 'focused'; part: string; value: boolean };
+  | { kind: 'focused'; part: string; value: boolean }
+  /** Whether the action fired a click on the part, the event a native button
+   *  sends when Enter or Space activates it. A preview that never feeds a
+   *  controlled component's callback back into its props shows activation
+   *  only this way. */
+  | { kind: 'activated'; part: string }
+  /** Whether the part is in the document, for an overlay a key closes. */
+  | { kind: 'present'; part: string; value: boolean };
 
 export interface InteractionCase extends View {
   name: string;
   action: InteractionAction;
   expect: InteractionOutcome;
+  /** `a11y-keyboard` records a failure as a keyboard finding at `warn` and
+   *  lets the test pass. Without it a failure is a `contract-interaction`
+   *  error. */
+  rule?: 'a11y-keyboard';
 }
 
 export interface InteractionExpectation {
