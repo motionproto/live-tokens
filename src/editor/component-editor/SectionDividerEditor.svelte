@@ -217,6 +217,7 @@
   import VariantGroup from './scaffolding/VariantGroup.svelte';
   import ComponentEditorBase from './scaffolding/ComponentEditorBase.svelte';
   import GradientEditor from '../ui/GradientEditor.svelte';
+  import A11yPropertyMark from '../ui/a11y/A11yPropertyMark.svelte';
   import { editorState, mutate, setComponentAlias, setComponentConfig } from '../core/store/editorStore';
   import { componentGradientSource } from '../core/store/gradientSource';
   import { computeLinkedBlock, withLinkedDisabled } from './scaffolding/linkedBlock';
@@ -393,16 +394,19 @@
       description: {
         checked: getShowDescription(v),
         label: 'Show description',
+        variables: [`--sectiondivider-${v}-description-display`],
         onchange: (c: boolean) => setIntrinsic(v, 'description-display', c ? 'flex' : 'none'),
       },
       eyebrow: {
         checked: getShowEyebrow(v),
         label: 'Show eyebrow',
+        variables: [`--sectiondivider-${v}-eyebrow-display`],
         onchange: (c: boolean) => setIntrinsic(v, 'eyebrow-display', c ? 'block' : 'none'),
       },
       hairline: {
         checked: getShowHairline(v),
         label: 'Show',
+        variables: [`--sectiondivider-${v}-hairline`],
         onchange: (c: boolean) => setIntrinsic(v, 'hairline', c ? getHairlinePosition(v) : 'none'),
       },
     };
@@ -448,8 +452,8 @@
         </div>
       {/snippet}
       {#snippet extraPropertyRowsTop(_stateName)}
-        <div class="property-row sd-intrinsic-row">
-          <span class="property-label">alignment</span>
+        <div class="property-row sd-intrinsic-row" data-token-variables={`--sectiondivider-${v.key}-align`}>
+          <span class="property-label">alignment<A11yPropertyMark variables={[`--sectiondivider-${v.key}-align`]} /></span>
           <select
             class="sd-intrinsic-select"
             value={getAlign(v.key)}
@@ -479,18 +483,21 @@
       {/snippet}
       {#snippet elementExtras(elementName)}
         {#if elementName === 'eyebrow'}
-          <label class="sd-element-check">
-            <input
-              type="checkbox"
-              checked={getEyebrowUppercase(v.key)}
-              onchange={(e) => setIntrinsic(v.key, 'eyebrow-text-transform', (e.currentTarget as HTMLInputElement).checked ? 'uppercase' : 'none')}
-            />
-            <span>All caps</span>
-          </label>
+          <span class="sd-element-check-host" data-token-variables={`--sectiondivider-${v.key}-eyebrow-text-transform`}>
+            <label class="sd-element-check">
+              <input
+                type="checkbox"
+                checked={getEyebrowUppercase(v.key)}
+                onchange={(e) => setIntrinsic(v.key, 'eyebrow-text-transform', (e.currentTarget as HTMLInputElement).checked ? 'uppercase' : 'none')}
+              />
+              <span>All caps</span>
+            </label>
+            <A11yPropertyMark variables={[`--sectiondivider-${v.key}-eyebrow-text-transform`]} />
+          </span>
         {/if}
         {#if elementName === 'hairline'}
-          <div class="property-row sd-intrinsic-row sd-hairline-position-row">
-            <span class="property-label">position</span>
+          <div class="property-row sd-intrinsic-row sd-hairline-position-row" data-token-variables={`--sectiondivider-${v.key}-hairline`}>
+            <span class="property-label">position<A11yPropertyMark variables={[`--sectiondivider-${v.key}-hairline`]} /></span>
             <select
               class="sd-intrinsic-select"
               value={getHairlinePosition(v.key)}
@@ -568,6 +575,11 @@
   /* Inline boolean control inside an element-section (e.g. "All caps" under
      the eyebrow heading). Sits flush-left so it reads as a section property
      rather than aligning with the token grid below. */
+  :global(.sd-element-check-host) {
+    display: inline-flex;
+    align-items: center;
+    margin-bottom: var(--ui-space-4);
+  }
   :global(.sd-element-check) {
     display: inline-flex;
     align-items: center;
@@ -576,7 +588,6 @@
     color: var(--ui-text-secondary);
     cursor: pointer;
     user-select: none;
-    margin-bottom: var(--ui-space-4);
   }
   :global(.sd-element-check:hover) { color: var(--ui-text-primary); }
   :global(.sd-element-check input) { margin: 0; cursor: pointer; }

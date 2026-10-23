@@ -50,6 +50,7 @@
   import VariantGroup from './scaffolding/VariantGroup.svelte';
   import ComponentEditorBase from './scaffolding/ComponentEditorBase.svelte';
   import { buildSiblings } from './scaffolding/siblings';
+  import A11yPropertyMark from '../ui/a11y/A11yPropertyMark.svelte';
   import demoImageUrl from '../../system/assets/newspaper.webp';
   import { editorState, setComponentAlias } from '../core/store/editorStore';
 
@@ -77,14 +78,20 @@
 <ComponentEditorBase {component} title="Image" description="Picture in the page flow. Default frames it with rounded corners, a border, and a shadow. Bare shows the picture alone." tokens={allTokens} variants={variantOptions}>
   <VariantGroup name="default" title="Default" states={variantStates('default')} {component} siblings={buildSiblings(variants, 'default', variantStates)}>
     {#snippet stateActions()}
-      <label class="zoom-enable">
-        <input type="checkbox" checked={useZoom} onchange={(e) => setUseZoom(e.currentTarget.checked)} />
-        <span>Use zoom on hover</span>
-      </label>
-      <label class="zoom-enable" class:disabled={!useZoom}>
-        <input type="checkbox" checked={overflowScaling} disabled={!useZoom} onchange={(e) => setOverflowScaling(e.currentTarget.checked)} />
-        <span>Overflow scaling (mask zoom to frame)</span>
-      </label>
+      <span class="zoom-control" data-token-variables="--image-zoom-enabled">
+        <label class="zoom-enable">
+          <input type="checkbox" checked={useZoom} onchange={(e) => setUseZoom(e.currentTarget.checked)} />
+          <span>Use zoom on hover</span>
+        </label>
+        <A11yPropertyMark variables={['--image-zoom-enabled']} />
+      </span>
+      <span class="zoom-control" data-token-variables="--image-grow-enabled">
+        <label class="zoom-enable" class:disabled={!useZoom}>
+          <input type="checkbox" checked={overflowScaling} disabled={!useZoom} onchange={(e) => setOverflowScaling(e.currentTarget.checked)} />
+          <span>Overflow scaling (mask zoom to frame)</span>
+        </label>
+        <A11yPropertyMark variables={['--image-grow-enabled']} />
+      </span>
     {/snippet}
     <Image src={demoImageUrl} alt="Demo" size="banner" zoom={useZoom ? undefined : false} {overflowScaling} forceHover={useZoom} />
     <p class="zoom-help" data-preview-demo>
@@ -100,6 +107,10 @@
 </ComponentEditorBase>
 
 <style>
+  .zoom-control {
+    display: inline-flex;
+    align-items: center;
+  }
   .zoom-enable {
     display: inline-flex;
     align-items: center;

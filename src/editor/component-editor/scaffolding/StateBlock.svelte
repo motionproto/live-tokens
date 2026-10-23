@@ -12,6 +12,7 @@
   import TokenLayout from './TokenLayout.svelte';
   import TypeEditor from './TypeEditor.svelte';
   import type { Token, TypeGroupConfig } from './types';
+  import A11yPropertyMark from '../../ui/a11y/A11yPropertyMark.svelte';
 
   
   
@@ -22,6 +23,8 @@
     checked: boolean;
     label?: string;
     onchange: (checked: boolean) => void;
+    /** The intrinsic variables the toggle writes, which mark it and let the panel reach it. */
+    variables?: string[];
   }
 
   interface Props {
@@ -111,14 +114,17 @@
         <div class="element-heading-row">
           <h4 class="element-heading">{section.element}</h4>
           {#if toggle}
-            <label class="element-show-toggle">
-              <input
-                type="checkbox"
-                checked={toggle.checked}
-                onchange={(e) => toggle.onchange((e.currentTarget as HTMLInputElement).checked)}
-              />
-              <span>{toggle.label ?? `Show ${section.element}`}</span>
-            </label>
+            <span class="element-show-toggle-host" data-token-variables={toggle.variables?.join(' ')}>
+              <label class="element-show-toggle">
+                <input
+                  type="checkbox"
+                  checked={toggle.checked}
+                  onchange={(e) => toggle.onchange((e.currentTarget as HTMLInputElement).checked)}
+                />
+                <span>{toggle.label ?? `Show ${section.element}`}</span>
+              </label>
+              {#if toggle.variables}<A11yPropertyMark variables={toggle.variables} />{/if}
+            </span>
           {/if}
         </div>
         {@render elementExtras?.(section.element)}
@@ -331,6 +337,11 @@
   /* Show toggle next to the section heading — drives preview visibility for
      the element. Property rows below stay visible so users can still tune the
      hidden element's tokens. */
+  .element-show-toggle-host {
+    display: inline-flex;
+    align-items: center;
+  }
+
   .element-show-toggle {
     display: inline-flex;
     align-items: center;

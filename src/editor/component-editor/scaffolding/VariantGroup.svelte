@@ -45,7 +45,7 @@
         live with the canvas rather than in a separate config block above. */
     canvasToolbarExtras?: Snippet;
     /** Per-element Show toggles, forwarded to StateBlock. Keyed by element name. */
-    elementToggles?: Record<string, { checked: boolean; label?: string; onchange: (checked: boolean) => void }>;
+    elementToggles?: Record<string, { checked: boolean; label?: string; onchange: (checked: boolean) => void; variables?: string[] }>;
     /** Explicit order for element-grouped sections, forwarded to StateBlock. */
     elementOrder?: string[];
     /** Per-element extras snippet, forwarded to StateBlock. Receives the
