@@ -212,8 +212,17 @@
     "prepublishOnly": "npm run check:no-style-imports && npm run check:no-tooling-imports && npm run check:slot-prose && npm run check:overlay-portal && npm run check:editor-font-isolation && npm run check:component-defaults && npm run check:pages && npm run check:production-is-default && npm run check:docs-content && npm run build:lib && npm run check:token-contract && npm run check:preset-themes && npm run check:skills && npm run check:cli-strings && npm run check:skill-sources && npm run check:skill-atlas && npm run check:smoke-install && npm run check:smoke-create && npm run check:smoke-component-tests && npm run check:smoke-page-tests"
   },
   "peerDependencies": {
+    "@axe-core/playwright": "^4.11.1",
     "@playwright/test": "^1.55",
+    "@siteimprove/alfa-act": "^0.119.0",
+    "@siteimprove/alfa-device": "^0.119.0",
+    "@siteimprove/alfa-dom": "^0.119.0",
+    "@siteimprove/alfa-http": "^0.119.0",
+    "@siteimprove/alfa-rules": "^0.119.0",
+    "@siteimprove/alfa-url": "^0.119.0",
+    "@siteimprove/alfa-web": "^0.119.0",
     "@sveltejs/vite-plugin-svelte": "^7.0",
+    "axe-core": "^4.11.1",
     "happy-dom": "^20.0",
     "sass": "^1.0",
     "svelte": "^5",
@@ -221,7 +230,34 @@
     "vitest": "^4.0 || ^5.0"
   },
   "peerDependenciesMeta": {
+    "@axe-core/playwright": {
+      "optional": true
+    },
     "@playwright/test": {
+      "optional": true
+    },
+    "@siteimprove/alfa-act": {
+      "optional": true
+    },
+    "@siteimprove/alfa-device": {
+      "optional": true
+    },
+    "@siteimprove/alfa-dom": {
+      "optional": true
+    },
+    "@siteimprove/alfa-http": {
+      "optional": true
+    },
+    "@siteimprove/alfa-rules": {
+      "optional": true
+    },
+    "@siteimprove/alfa-url": {
+      "optional": true
+    },
+    "@siteimprove/alfa-web": {
+      "optional": true
+    },
+    "axe-core": {
       "optional": true
     },
     "happy-dom": {
@@ -232,9 +268,18 @@
     }
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.14.0",
     "@playwright/test": "^1.62.1",
+    "@siteimprove/alfa-act": "^0.119.0",
+    "@siteimprove/alfa-device": "^0.119.0",
+    "@siteimprove/alfa-dom": "^0.119.0",
+    "@siteimprove/alfa-http": "^0.119.0",
+    "@siteimprove/alfa-rules": "^0.119.0",
+    "@siteimprove/alfa-url": "^0.119.0",
+    "@siteimprove/alfa-web": "^0.119.0",
     "@sveltejs/vite-plugin-svelte": "^7.1.2",
     "@types/node": "^25.9.1",
+    "axe-core": "^4.14.0",
     "happy-dom": "^20.9.0",
     "sass": "^1.98.0",
     "svelte": "^5.55.5",

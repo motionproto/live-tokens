@@ -15,9 +15,18 @@
     "@motion-proto/live-tokens": "__LT_VERSION__"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.14.0",
     "@playwright/test": "^1.62.1",
+    "@siteimprove/alfa-act": "^0.119.0",
+    "@siteimprove/alfa-device": "^0.119.0",
+    "@siteimprove/alfa-dom": "^0.119.0",
+    "@siteimprove/alfa-http": "^0.119.0",
+    "@siteimprove/alfa-rules": "^0.119.0",
+    "@siteimprove/alfa-url": "^0.119.0",
+    "@siteimprove/alfa-web": "^0.119.0",
     "@sveltejs/vite-plugin-svelte": "^7.1.2",
     "@types/node": "^25.9.1",
+    "axe-core": "^4.14.0",
     "happy-dom": "^20.9.0",
     "sass": "^1.98.0",
     "svelte": "^5.55.5",
