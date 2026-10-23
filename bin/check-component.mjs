@@ -33,6 +33,7 @@ import {
   extractGlobalRootBlocks,
   loadVocabulary,
 } from './lib/tokenVocabulary.mjs';
+import * as a11y from './rules/a11y.mjs';
 import * as componentStructure from './rules/componentStructure.mjs';
 import * as importsAndRoutes from './rules/importsAndRoutes.mjs';
 import * as testRuns from './rules/testRuns.mjs';
@@ -83,6 +84,10 @@ export const COMPONENT_RULES = assembleRules(
     'contract-listed',
     'contract-sketch',
     'contract-missing',
+    'a11y-component',
+    'a11y-review',
+    'a11y-focus-visible',
+    'a11y-keyboard',
     'tests-not-installed',
     'tests-setup',
     'tests-incomplete',
@@ -91,6 +96,7 @@ export const COMPONENT_RULES = assembleRules(
   tokenRules.componentRules,
   importsAndRoutes.componentRules,
   testRuns.componentRules,
+  a11y.componentRules,
 );
 
 function capitalize(id) {

@@ -16,6 +16,7 @@ import { assembleRules, isExcluded, lineOf } from './lib/findings.mjs';
 import { codeRegion, inlineStyleRegions, styleRegions } from './lib/pageSource.mjs';
 import { loadVocabulary, walk } from './lib/tokenVocabulary.mjs';
 import { resolveTokensCssPath } from './migrate.mjs';
+import * as a11y from './rules/a11y.mjs';
 import * as componentUse from './rules/componentUse.mjs';
 import * as importsAndRoutes from './rules/importsAndRoutes.mjs';
 import * as testRuns from './rules/testRuns.mjs';
@@ -49,6 +50,10 @@ export const PAGE_RULES = assembleRules(
     'page-contrast',
     'page-grid',
     'page-overflow',
+    'a11y-page',
+    'a11y-review',
+    'a11y-text-spacing',
+    'a11y-reduced-motion',
     'tests-not-installed',
     'tests-setup',
     'tests-incomplete',
@@ -57,6 +62,7 @@ export const PAGE_RULES = assembleRules(
   importsAndRoutes.pageRules,
   tokenRules.pageRules,
   testRuns.pageRules,
+  a11y.pageRules,
 );
 
 // Directories that hold the system, not pages built on it.

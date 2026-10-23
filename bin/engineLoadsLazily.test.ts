@@ -58,3 +58,20 @@ describe('modules the tests import', () => {
     expect(text).not.toMatch(TOP_LEVEL_ENGINE_LOAD);
   });
 });
+
+// The accessibility engines are optional peers (decision 4 of
+// docs/plans/a11y-testing.md), so a static import would fail every suite that
+// loads the module in a project without them.
+const STATIC_ENGINE_IMPORT = /^import\s+(?!type\b)[^;]*?from\s+['"](?:axe-core|@axe-core\/|@siteimprove\/)/m;
+
+describe('modules that load the accessibility engines', () => {
+  it('include the a11y rule table among the modules the tests reach', () => {
+    expect(modulesReachableFromTests().some((m) => m.endsWith('bin/rules/a11y.mjs'))).toBe(true);
+  });
+
+  it.each([['src/testing/support/a11y.ts']])('%s imports no engine at module top', (rel) => {
+    const text = readFileSync(join(ROOT, rel), 'utf8');
+    expect(text).not.toMatch(STATIC_ENGINE_IMPORT);
+    expect(text).not.toMatch(TOP_LEVEL_ENGINE_LOAD);
+  });
+});
