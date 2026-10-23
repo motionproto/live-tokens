@@ -9,9 +9,11 @@
   interface Props {
     component: string;
     issues: ComponentA11yIssues;
+    /** Present on the component page, where a contrast row can take the reader to its property row. */
+    onreveal?: (variable: string) => void;
   }
 
-  let { component, issues }: Props = $props();
+  let { component, issues, onreveal }: Props = $props();
 
   // A keyboard case's engine rule is the case's own name, which the gap alone leaves out.
   const findingText = (finding: A11yFinding) =>
@@ -33,6 +35,19 @@
           {label ?? failure.variable} {formatRatio(failure.ratio)}, needs {formatFloor(failure.floor)}
           {#snippet detail()}
             <code>{failure.variable}</code>{#if failure.context}, {failure.context}{/if}
+          {/snippet}
+          {#snippet action()}
+            {#if onreveal}
+              <button
+                type="button"
+                class="a11y-reveal"
+                aria-label={`Go to ${label ?? failure.variable}`}
+                title={`Go to ${label ?? failure.variable}`}
+                onclick={() => onreveal(failure.variable)}
+              >
+                <i class="fas fa-arrow-right" aria-hidden="true"></i>
+              </button>
+            {/if}
           {/snippet}
         </A11yIssueRow>
       {/each}
@@ -78,6 +93,19 @@
 
   .a11y-group code {
     font-family: var(--ui-font-mono);
+  }
+
+  .a11y-reveal {
+    padding: 0;
+    background: none;
+    border: none;
+    color: var(--ui-text-secondary);
+    font-size: var(--ui-font-size-sm);
+    cursor: pointer;
+  }
+
+  .a11y-reveal:hover {
+    color: var(--ui-text-primary);
   }
 
   .a11y-issues {

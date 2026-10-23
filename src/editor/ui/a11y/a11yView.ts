@@ -1,3 +1,4 @@
+import { getContext, setContext } from 'svelte';
 import { getComponentRegistry, getComponentRegistryEntries } from '../../component-editor/registry';
 import type { ComponentA11yIssues } from '../../core/a11y/a11yReport';
 import type { A11yFinding } from '../../core/a11y/a11yReportTypes';
@@ -7,6 +8,25 @@ export const A11Y_REVIEW_SECTION = 'a11y-review';
 
 export function a11ySectionId(component: string): string {
   return `a11y-component-${component}`;
+}
+
+const VIEW_LINK = Symbol('a11y-view-link');
+
+/** Set by the editor shell, which hosts the Accessibility view. The standalone component page hosts none. */
+export function setA11yViewLink(open: (sectionId: string) => void): void {
+  setContext(VIEW_LINK, open);
+}
+
+export function getA11yViewLink(): ((sectionId: string) => void) | undefined {
+  return getContext(VIEW_LINK);
+}
+
+export function accessibilityIssuesLabel(count: number): string {
+  return `${count} accessibility ${count === 1 ? 'issue' : 'issues'}`;
+}
+
+export function reviewLabel(count: number): string {
+  return `${count} ${count === 1 ? 'result' : 'results'} to check by eye`;
 }
 
 /** The issues that carry a "!". Results to check by eye stay out of the count (decision 6). */

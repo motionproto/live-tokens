@@ -8,9 +8,10 @@
     linkLabel?: string;
     children: Snippet;
     detail?: Snippet;
+    action?: Snippet;
   }
 
-  let { marked = true, href, linkLabel = 'Read the guidance', children, detail }: Props = $props();
+  let { marked = true, href, linkLabel = 'Read the guidance', children, detail, action }: Props = $props();
 </script>
 
 <li class="a11y-issue">
@@ -21,10 +22,15 @@
       <p class="a11y-issue-detail">{@render detail()}</p>
     {/if}
   </div>
-  {#if href}
-    <a class="a11y-issue-link" {href} target="_blank" rel="noopener" aria-label={linkLabel} title={linkLabel}>
-      <i class="fas fa-arrow-up-right-from-square" aria-hidden="true"></i>
-    </a>
+  {#if action || href}
+    <div class="a11y-issue-actions">
+      {@render action?.()}
+      {#if href}
+        <a class="a11y-issue-link" {href} target="_blank" rel="noopener" aria-label={linkLabel} title={linkLabel}>
+          <i class="fas fa-arrow-up-right-from-square" aria-hidden="true"></i>
+        </a>
+      {/if}
+    </div>
   {/if}
 </li>
 
@@ -67,6 +73,12 @@
   .a11y-issue-detail {
     font-size: var(--ui-font-size-sm);
     color: var(--ui-text-tertiary);
+  }
+
+  .a11y-issue-actions {
+    display: flex;
+    align-items: baseline;
+    gap: var(--ui-space-8);
   }
 
   .a11y-issue-link {
