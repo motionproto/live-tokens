@@ -235,7 +235,7 @@ function reportChecks(label, findings, checked, rules, opts, { coverage, hardFai
   const checksConfig = readChecksConfig(process.cwd());
   const resolved = applySeverity(findings, rules, opts, checksConfig, { exclude });
   const resolvedCoverage = coverage ? applyCoverageSeverity(coverage, rules, opts, checksConfig) : coverage;
-  console.log(
+  writeOut(
     opts.json
       ? toJson(resolved, { label, checked, coverage: resolvedCoverage, fix, theme })
       : [fix ? formatFixes(fix) : '', formatFindings(resolved, { label, checked })].filter(Boolean).join('\n'),

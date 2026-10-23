@@ -1870,6 +1870,16 @@ describe('check-component --tests --a11y: the suite selection', () => {
     expect(report.findings.map((f: { rule: string }) => f.rule)).toEqual(['tests-not-installed', 'tests-not-installed', 'tests-not-installed']);
   });
 
+  // macOS cuts an asynchronous pipe write at 64 KiB when the process exits,
+  // and the dev server reads this report through a pipe.
+  it('prints a --json report past the pipe buffer whole', () => {
+    const root = fixtureRoot();
+    for (let i = 0; i < 80; i++) write(root, `widget${i}`, BARE_FONT(`widget${i}`));
+    const run = spawnSync('node', [join(process.cwd(), 'bin/cli.mjs'), 'check-component', '--no-fix', '--json'], { cwd: root });
+    expect(run.stdout.length).toBeGreaterThan(65_536);
+    expect(JSON.parse(run.stdout.toString()).findings.length).toBeGreaterThan(80);
+  });
+
   it('refuses --a11y and --open-theme without --tests', () => {
     for (const flag of ['--a11y', '--open-theme']) {
       const run = spawnSync('node', [join(process.cwd(), 'bin/cli.mjs'), 'check-component', flag], { cwd: widgetFixtureRoot() });
