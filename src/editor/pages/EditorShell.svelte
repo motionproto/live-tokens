@@ -1,7 +1,7 @@
 <script lang="ts">
   import { run } from 'svelte/legacy';
 
-  import { onMount } from 'svelte';
+  import { onMount, tick } from 'svelte';
   import { MediaQuery } from 'svelte/reactivity';
   import VariablesTab from '../ui/VariablesTab.svelte';
   import ColorsTab from '../ui/colors/ColorsTab.svelte';
@@ -9,7 +9,15 @@
   import ComponentsTab from '../component-editor/scaffolding/ComponentsTab.svelte';
   import SketchTab from '../ui/sketch/SketchTab.svelte';
   import AccessibilityTab from '../ui/a11y/AccessibilityTab.svelte';
-  import { A11Y_REVIEW_SECTION, A11Y_RUN_SECTION, a11ySectionId, componentsWithIssues, issuesLabel } from '../ui/a11y/a11yView';
+  import A11yRailMark from '../ui/a11y/A11yRailMark.svelte';
+  import {
+    A11Y_REVIEW_SECTION,
+    A11Y_RUN_SECTION,
+    a11ySectionId,
+    componentsWithIssues,
+    issuesLabel,
+    setA11yViewLink,
+  } from '../ui/a11y/a11yView';
   import ThemePanel from '../ui/ThemePanel.svelte';
   import { scrollSectionIntoView } from '../ui/scrollSection';
   import { editorView, sidebarCondensed, selectedComponent, type EditorView } from '../core/store/editorViewStore';
@@ -103,6 +111,13 @@
     sectionJump = { id: sectionId };
   }
 
+  setA11yViewLink(async (sectionId) => {
+    editorView.set('accessibility');
+    await tick();
+    document.querySelector<HTMLDetailsElement>(`#${sectionId} details`)?.setAttribute('open', '');
+    scrollToSection(sectionId);
+  });
+
   function selectComponent(id: string) {
     selectedComponent.set(id);
     hideHint();
@@ -124,6 +139,7 @@
       id: a11ySectionId(component), label, icon, count,
     })),
   );
+  let a11yMarked = $derived(new Set(componentsWithIssues($a11yIssues).map((row) => row.component)));
   let a11yHasReview = $derived(Object.values($a11yIssues).some((issues) => issues.review.length > 0));
 
   // The narrow layout shows one section at a time, so the run section and the
@@ -245,6 +261,9 @@
               {/if}
               {#if $editorView === 'components' && $componentDirty[item.id]}
                 <span class="dirty-dot" aria-label="Unsaved changes" title="Unsaved changes"></span>
+              {/if}
+              {#if $editorView === 'components' && a11yMarked.has(item.id)}
+                <A11yRailMark />
               {/if}
             </button>
           {/each}
@@ -370,6 +389,9 @@
               {#if $componentDirty[item.id]}
                 <span class="dirty-dot" aria-label="Unsaved changes" title="Unsaved changes"></span>
               {/if}
+              {#if a11yMarked.has(item.id)}
+                <A11yRailMark />
+              {/if}
             </button>
           {/each}
           {#if customNavItems.length > 0}
@@ -389,6 +411,9 @@
                 <span class="nav-label">{item.label}</span>
                 {#if $componentDirty[item.id]}
                   <span class="dirty-dot" aria-label="Unsaved changes" title="Unsaved changes"></span>
+                {/if}
+                {#if a11yMarked.has(item.id)}
+                  <A11yRailMark />
                 {/if}
               </button>
             {/each}

@@ -8,7 +8,9 @@
   import { getComponentRegistryEntries, validateRegistryAgainstServerScan } from '../component-editor/registry';
   import { listComponents } from '../core/components/componentConfigService';
   import { selectedComponent } from '../core/store/editorViewStore';
-  import { componentDirty, editorState, mutate } from '../core/store/editorStore';
+  import { a11yIssues, componentDirty, editorState, mutate } from '../core/store/editorStore';
+  import A11yRailMark from '../ui/a11y/A11yRailMark.svelte';
+  import { componentsWithIssues } from '../ui/a11y/a11yView';
   import { setSketch } from '../core/sketch';
   import type { LiveTokensEditorHandle } from './liveTokensEditorHandle';
   // Editor chrome + form controls + icon font must be JS imports (not @import
@@ -110,6 +112,7 @@
   const allComponentNavItems = getComponentRegistryEntries().map(({ id, label, icon, origin }) => ({ id, label, icon, origin }));
   const systemNavItems = allComponentNavItems.filter((i) => i.origin === 'system');
   const customNavItems = allComponentNavItems.filter((i) => i.origin === 'custom');
+  let a11yMarked = $derived(new Set(componentsWithIssues($a11yIssues).map((row) => row.component)));
 </script>
 
 <!--
@@ -167,6 +170,9 @@
           {#if $componentDirty[item.id]}
             <span class="dirty-dot" aria-label="Unsaved changes" title="Unsaved changes"></span>
           {/if}
+          {#if a11yMarked.has(item.id)}
+            <A11yRailMark />
+          {/if}
         </button>
       {/each}
       {#if customNavItems.length > 0}
@@ -186,6 +192,9 @@
             <span class="rail-label">{item.label}</span>
             {#if $componentDirty[item.id]}
               <span class="dirty-dot" aria-label="Unsaved changes" title="Unsaved changes"></span>
+            {/if}
+            {#if a11yMarked.has(item.id)}
+              <A11yRailMark />
             {/if}
           </button>
         {/each}
