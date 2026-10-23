@@ -18,6 +18,7 @@ export const chapters: Chapter[] = [
   { id: 'where-themes-live',   title: 'Where themes live' },
   { id: 'light-and-dark',      title: 'Light and dark' },
   { id: 'creating-components', title: 'Creating components' },
+  { id: 'accessibility',       title: 'Accessibility' },
   { id: 'production-css',      title: 'Production CSS' },
 ];
 
