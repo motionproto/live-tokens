@@ -1,0 +1,30 @@
+"Info": |
+  - text: Information
+  - button "Action"
+  - button "Dismiss"
+  - text: This is an informational message to keep you updated.
+"Success": |
+  - text: Success
+  - button "Action"
+  - button "Dismiss"
+  - text: Your action was completed successfully.
+"Warning": |
+  - text: Warning
+  - button "Action"
+  - button "Dismiss"
+  - text: "Caution: This action may have unintended consequences."
+"Danger": |
+  - text: Danger
+  - button "Action"
+  - button "Dismiss"
+  - text: "Critical error: Please address this issue immediately."
+"Info / base": |
+  - text: Information
+  - button "Action"
+  - button "Dismiss"
+  - text: This is an informational message to keep you updated.
+"Info / colors": |
+  - text: Information
+  - button "Action"
+  - button "Dismiss"
+  - text: This is an informational message to keep you updated.

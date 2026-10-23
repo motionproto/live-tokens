@@ -1,0 +1,23 @@
+"Container / Container": |
+  - button "Click to expand"
+"Container / Header": |
+  - button "Click to expand"
+"Container / Body": |
+  - button "Click to expand" [expanded]
+  - paragraph: This content is revealed when the section is open. Any content can go here.
+"Chromeless / Header": |
+  - button "Click to expand"
+"Chromeless / Body": |
+  - button "Click to expand" [expanded]
+  - paragraph: This content is revealed when the section is open. Any content can go here.
+"With Hairline / Header": |
+  - button "Click to expand"
+"With Hairline / Body": |
+  - button "Click to expand" [expanded]
+  - paragraph: This content is revealed when the section is open. Any content can go here.
+"Container / Header (Hover)": |
+  - button "Click to expand"
+"Chromeless / Header (Hover)": |
+  - button "Click to expand"
+"With Hairline / Header (Hover)": |
+  - button "Click to expand"

@@ -12,6 +12,14 @@ export const COMPONENTS_PATH_ENV = 'LIVE_TOKENS_COMPONENTS_PATH';
 /** Narrows a run to one component. */
 export const COMPONENT_ENV = 'LIVE_TOKENS_COMPONENT';
 
+/** `all` repeats each component accessibility scan under the eight preset
+ *  themes. The repository's own contract run sets it; a consumer run scans
+ *  the active theme alone. */
+export const A11Y_THEMES_ENV = 'LIVE_TOKENS_A11Y_THEMES';
+
+/** Rewrites each component's recorded accessibility tree. */
+export const UPDATE_ARIA_ENV = 'LIVE_TOKENS_UPDATE_ARIA';
+
 /** The page targets a run opens, as JSON: `[{ source, route }]`. */
 export const PAGES_ENV = 'LIVE_TOKENS_PAGES';
 

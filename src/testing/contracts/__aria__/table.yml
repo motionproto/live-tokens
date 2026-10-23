@@ -1,0 +1,144 @@
+"preview": |
+  - table:
+    - rowgroup:
+      - row "Resource Yield Tier":
+        - columnheader "Resource"
+        - columnheader "Yield"
+        - columnheader "Tier"
+    - rowgroup:
+      - row "Farmland 2 Food I":
+        - cell "Farmland"
+        - cell "2 Food"
+        - cell "I"
+      - row "Quarry 1 Stone II":
+        - cell "Quarry"
+        - cell "1 Stone"
+        - cell "II"
+      - row "Mine 1 Ore II":
+        - cell "Mine"
+        - cell "1 Ore"
+        - cell "II"
+      - row "Forest 2 Lumber I":
+        - cell "Forest"
+        - cell "2 Lumber"
+        - cell "I"
+"wrapper": |
+  - table:
+    - rowgroup:
+      - row "Resource Yield Tier":
+        - columnheader "Resource"
+        - columnheader "Yield"
+        - columnheader "Tier"
+    - rowgroup:
+      - row "Farmland 2 Food I":
+        - cell "Farmland"
+        - cell "2 Food"
+        - cell "I"
+      - row "Quarry 1 Stone II":
+        - cell "Quarry"
+        - cell "1 Stone"
+        - cell "II"
+      - row "Mine 1 Ore II":
+        - cell "Mine"
+        - cell "1 Ore"
+        - cell "II"
+      - row "Forest 2 Lumber I":
+        - cell "Forest"
+        - cell "2 Lumber"
+        - cell "I"
+"header": |
+  - table:
+    - rowgroup:
+      - row "Resource Yield Tier":
+        - columnheader "Resource"
+        - columnheader "Yield"
+        - columnheader "Tier"
+    - rowgroup:
+      - row "Farmland 2 Food I":
+        - cell "Farmland"
+        - cell "2 Food"
+        - cell "I"
+      - row "Quarry 1 Stone II":
+        - cell "Quarry"
+        - cell "1 Stone"
+        - cell "II"
+      - row "Mine 1 Ore II":
+        - cell "Mine"
+        - cell "1 Ore"
+        - cell "II"
+      - row "Forest 2 Lumber I":
+        - cell "Forest"
+        - cell "2 Lumber"
+        - cell "I"
+"cell": |
+  - table:
+    - rowgroup:
+      - row "Resource Yield Tier":
+        - columnheader "Resource"
+        - columnheader "Yield"
+        - columnheader "Tier"
+    - rowgroup:
+      - row "Farmland 2 Food I":
+        - cell "Farmland"
+        - cell "2 Food"
+        - cell "I"
+      - row "Quarry 1 Stone II":
+        - cell "Quarry"
+        - cell "1 Stone"
+        - cell "II"
+      - row "Mine 1 Ore II":
+        - cell "Mine"
+        - cell "1 Ore"
+        - cell "II"
+      - row "Forest 2 Lumber I":
+        - cell "Forest"
+        - cell "2 Lumber"
+        - cell "I"
+"row": |
+  - table:
+    - rowgroup:
+      - row "Resource Yield Tier":
+        - columnheader "Resource"
+        - columnheader "Yield"
+        - columnheader "Tier"
+    - rowgroup:
+      - row "Farmland 2 Food I":
+        - cell "Farmland"
+        - cell "2 Food"
+        - cell "I"
+      - row "Quarry 1 Stone II":
+        - cell "Quarry"
+        - cell "1 Stone"
+        - cell "II"
+      - row "Mine 1 Ore II":
+        - cell "Mine"
+        - cell "1 Ore"
+        - cell "II"
+      - row "Forest 2 Lumber I":
+        - cell "Forest"
+        - cell "2 Lumber"
+        - cell "I"
+"column": |
+  - table:
+    - rowgroup:
+      - row "Resource Yield Tier":
+        - columnheader "Resource"
+        - columnheader "Yield"
+        - columnheader "Tier"
+    - rowgroup:
+      - row "Farmland 2 Food I":
+        - cell "Farmland"
+        - cell "2 Food"
+        - cell "I"
+      - row "Quarry 1 Stone II":
+        - cell "Quarry"
+        - cell "1 Stone"
+        - cell "II"
+      - row "Mine 1 Ore II":
+        - cell "Mine"
+        - cell "1 Ore"
+        - cell "II"
+      - row "Forest 2 Lumber I":
+        - cell "Forest"
+        - cell "2 Lumber"
+        - cell "I"

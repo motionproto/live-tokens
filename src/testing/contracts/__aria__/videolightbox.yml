@@ -1,0 +1,12 @@
+"preview": |
+  - 'button "Play video: Navigation running on a smartwatch"'
+  - button "Close"
+"hover": |
+  - 'button "Play video: Navigation running on a smartwatch"'
+  - button "Close"
+"default": |
+  - 'button "Play video: Navigation running on a smartwatch"'
+  - button "Close"
+"preview (click closeButton)": |
+  - 'button "Play video: Navigation running on a smartwatch"'
+  - button "Close"

@@ -1,0 +1,16 @@
+"preview": |
+  - button "Defense"
+  - button "Economy"
+  - button "Loyalty"
+"hover": |
+  - button "Defense"
+  - button "Economy"
+  - button "Loyalty"
+"selected": |
+  - button "Defense"
+  - button "Economy"
+  - button "Loyalty"
+"default": |
+  - button "Defense"
+  - button "Economy"
+  - button "Loyalty"

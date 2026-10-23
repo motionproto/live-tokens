@@ -1,0 +1,50 @@
+"preview": |
+  - 'button "Expand image: Newspaper" [expanded]':
+    - img "Newspaper"
+  - img "Newspaper"
+  - button "Close"
+  - button "Previous image"
+  - button "Next image"
+  - button "Zoom out" [disabled]
+  - text: 59%
+  - button "Zoom in"
+"tile": |
+  - 'button "Expand image: Newspaper" [expanded]':
+    - img "Newspaper"
+  - img "Newspaper"
+  - button "Close"
+  - button "Previous image"
+  - button "Next image"
+  - button "Zoom out" [disabled]
+  - text: 59%
+  - button "Zoom in"
+"overlay": |
+  - 'button "Expand image: Newspaper" [expanded]':
+    - img "Newspaper"
+  - img "Newspaper"
+  - button "Close"
+  - button "Previous image"
+  - button "Next image"
+  - button "Zoom out" [disabled]
+  - text: 59%
+  - button "Zoom in"
+"chrome": |
+  - 'button "Expand image: Newspaper" [expanded]':
+    - img "Newspaper"
+  - img "Newspaper"
+  - button "Close"
+  - button "Previous image"
+  - button "Next image"
+  - button "Zoom out" [disabled]
+  - text: 59%
+  - button "Zoom in"
+"preview (click nextButton)": |
+  - 'button "Expand image: Newspaper" [expanded]':
+    - img "Newspaper"
+  - img "Newspaper"
+  - button "Close"
+  - button "Previous image"
+  - button "Next image"
+  - button "Zoom out" [disabled]
+  - text: 59%
+  - button "Zoom in"

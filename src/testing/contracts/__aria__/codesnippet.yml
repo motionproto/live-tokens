@@ -1,0 +1,21 @@
+"preview": |
+  - text: Preview text
+  - textbox "Preview text":
+    - /placeholder: Paste a long command or block to preview scrolling
+    - text: npx @motion-proto/live-tokens setup-claude
+  - code: npx @motion-proto/live-tokens setup-claude
+  - button "Copy to clipboard"
+"default": |
+  - text: Preview text
+  - textbox "Preview text":
+    - /placeholder: Paste a long command or block to preview scrolling
+    - text: npx @motion-proto/live-tokens setup-claude
+  - code: npx @motion-proto/live-tokens setup-claude
+  - button "Copy to clipboard"
+"hover": |
+  - text: Preview text
+  - textbox "Preview text":
+    - /placeholder: Paste a long command or block to preview scrolling
+    - text: npx @motion-proto/live-tokens setup-claude
+  - code: npx @motion-proto/live-tokens setup-claude
+  - button "Copy to clipboard"

@@ -10,7 +10,8 @@ export type A11yRule =
   | 'a11y-keyboard';
 
 /** One element one engine flagged. `line` is the page file line, which only
- *  the page suite can resolve; a component finding anchors on its runtime. */
+ *  the page suite can resolve; a component finding anchors on its runtime.
+ *  `view` names the variants, states, and themes the element failed in. */
 export interface A11yResult {
   rule: A11yRule;
   engineRule: string;
@@ -20,6 +21,7 @@ export interface A11yResult {
   help: string;
   helpUrl: string;
   line?: number;
+  view?: string;
 }
 
 const A11Y_ANNOTATION = 'a11y';
@@ -117,15 +119,18 @@ function axeResults(rule: A11yRule, results: AxeRuleResult[], withReasons: boole
 
 /** axe over `scope` (a selector), minus `exclude`. Violations report under
  *  `rule`, and the results axe cannot decide under `a11y-review`. A page scan
- *  leaves contrast to `page-contrast` (decision 8). */
+ *  leaves contrast to `page-contrast` (decision 8). `only` narrows the scan
+ *  from the WCAG tags to the axe rules it names. */
 export async function scanAxe(
   page: Page,
   scope: string,
   exclude: string[],
   rule: 'a11y-component' | 'a11y-page',
+  only?: string[],
 ): Promise<A11yResult[]> {
   const { AxeBuilder } = await loadAxe();
-  let builder = new AxeBuilder({ page }).include(scope).withTags(AXE_TAGS);
+  let builder = new AxeBuilder({ page }).include(scope);
+  builder = only ? builder.withRules(only) : builder.withTags(AXE_TAGS);
   for (const selector of exclude) builder = builder.exclude(selector);
   if (rule === 'a11y-page') builder = builder.disableRules(['color-contrast']);
   const result = await builder.analyze();

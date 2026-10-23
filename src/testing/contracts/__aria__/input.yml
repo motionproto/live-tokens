@@ -1,0 +1,61 @@
+"preview": |
+  - text: Field label
+  - textbox "Field label" [invalid]:
+    - /placeholder: Enter password
+  - button "Show password"
+  - paragraph: Helper text describing the field.
+  - alert: Please enter a valid value.
+"error": |
+  - text: Field label
+  - textbox "Field label" [invalid]:
+    - /placeholder: Enter password
+  - button "Show password"
+  - paragraph: Helper text describing the field.
+  - alert: Please enter a valid value.
+"field": |
+  - text: Field label
+  - textbox "Field label" [invalid]:
+    - /placeholder: Enter password
+  - button "Show password"
+  - paragraph: Helper text describing the field.
+  - alert: Please enter a valid value.
+"default": |
+  - text: Field label
+  - textbox "Field label" [invalid]:
+    - /placeholder: Enter password
+  - button "Show password"
+  - paragraph: Helper text describing the field.
+  - alert: Please enter a valid value.
+"disabled": |
+  - text: Field label
+  - textbox "Field label" [disabled] [invalid]:
+    - /placeholder: Enter password
+  - button "Show password" [disabled]
+  - paragraph: Helper text describing the field.
+  - alert: Please enter a valid value.
+"label": |
+  - text: Field label
+  - textbox "Field label" [invalid]:
+    - /placeholder: Enter password
+  - button "Show password"
+  - paragraph: Helper text describing the field.
+  - alert: Please enter a valid value.
+"hint": |
+  - text: Field label
+  - textbox "Field label" [invalid]:
+    - /placeholder: Enter password
+  - button "Show password"
+  - paragraph: Helper text describing the field.
+  - alert: Please enter a valid value.
+"focused (password, Error off)": |
+  - text: Field label
+  - textbox "Field label":
+    - /placeholder: Enter password
+  - button "Show password"
+  - paragraph: Helper text describing the field.
+"disabled (password, Error off)": |
+  - text: Field label
+  - textbox "Field label" [disabled]:
+    - /placeholder: Enter password
+  - button "Show password" [disabled]
+  - paragraph: Helper text describing the field.

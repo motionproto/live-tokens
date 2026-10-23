@@ -1,0 +1,35 @@
+"control bar": |
+  - radiogroup:
+    - radio "Option 1"
+    - radio "Option 2"
+    - radio "Option 3"
+"option base": |
+  - radiogroup:
+    - radio "Option 1"
+    - radio "Option 2"
+    - radio "Option 3"
+"default option": |
+  - radiogroup:
+    - radio "Option 1"
+    - radio "Option 2"
+    - radio "Option 3"
+"selected option": |
+  - radiogroup:
+    - radio "Option 1"
+    - radio "Option 2" [checked]
+    - radio "Option 3"
+"disabled option": |
+  - radiogroup:
+    - radio "Option 1" [disabled]
+    - radio "Option 2" [disabled]
+    - radio "Option 3" [disabled]
+"hover option": |
+  - radiogroup:
+    - radio "Option 1"
+    - radio "Option 2"
+    - radio "Option 3"
+"selected option (small)": |
+  - radiogroup:
+    - radio "Option 1"
+    - radio "Option 2" [checked]
+    - radio "Option 3"

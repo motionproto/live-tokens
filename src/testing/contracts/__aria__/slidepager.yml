@@ -1,0 +1,72 @@
+"preview": |
+  - group "Slide deck":
+    - button "Open slide 2 full screen":
+      - img "Permanent, temporary, or situational"
+    - button "Previous slide"
+    - paragraph: 2 / 3
+    - button "Next slide"
+  - img "Permanent, temporary, or situational"
+  - button "Previous slide"
+  - paragraph: 2 / 3
+  - button "Next slide"
+  - button "Close"
+"default": |
+  - group "Slide deck":
+    - button "Open slide 2 full screen":
+      - img "Permanent, temporary, or situational"
+    - button "Previous slide"
+    - paragraph: 2 / 3
+    - button "Next slide"
+  - img "Permanent, temporary, or situational"
+  - button "Previous slide"
+  - paragraph: 2 / 3
+  - button "Next slide"
+  - button "Close"
+"hover": |
+  - group "Slide deck":
+    - button "Open slide 2 full screen":
+      - img "Permanent, temporary, or situational"
+    - button "Previous slide"
+    - paragraph: 2 / 3
+    - button "Next slide"
+  - img "Permanent, temporary, or situational"
+  - button "Previous slide"
+  - paragraph: 2 / 3
+  - button "Next slide"
+  - button "Close"
+"disabled": |
+  - group "Slide deck":
+    - button "Open slide 2 full screen":
+      - img "Permanent, temporary, or situational"
+    - button "Previous slide"
+    - paragraph: 2 / 3
+    - button "Next slide"
+  - img "Permanent, temporary, or situational"
+  - button "Previous slide"
+  - paragraph: 2 / 3
+  - button "Next slide"
+  - button "Close"
+"preview (click closeButton)": |
+  - group "Slide deck":
+    - button "Open slide 2 full screen":
+      - img "Permanent, temporary, or situational"
+    - button "Previous slide"
+    - paragraph: 2 / 3
+    - button "Next slide"
+  - img "Permanent, temporary, or situational"
+  - button "Previous slide"
+  - paragraph: 2 / 3
+  - button "Next slide"
+  - button "Close"
+"preview (click prevControl)": |
+  - group "Slide deck":
+    - button "Open slide 1 full screen":
+      - 'img "Types of disabilities: visual, auditory, motor, cognitive"'
+    - button "Previous slide" [disabled]
+    - paragraph: 1 / 3
+    - button "Next slide"
+  - img "Permanent, temporary, or situational"
+  - button "Previous slide"
+  - paragraph: 2 / 3
+  - button "Next slide"
+  - button "Close"

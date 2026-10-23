@@ -1,0 +1,12 @@
+"Info": |
+  - strong: Note.
+  - text: This is contextual information you should know about.
+"Success": |
+  - strong: Tip.
+  - text: Bookmark this page so you can return when you need it.
+"Warning": |
+  - strong: Warning.
+  - text: This is a warning callout for important caveats or potential issues.
+"Danger": |
+  - strong: Danger.
+  - text: This action is destructive and cannot be undone.

@@ -1,0 +1,28 @@
+"Single": |
+  - text: Volume 40
+  - slider "Volume": "40"
+"Range": |
+  - text: Price 20 – 70
+  - slider "Price minimum": "20"
+  - slider "Price maximum": "70"
+"Single / default": |
+  - text: Volume 40
+  - slider "Volume": "40"
+"Single / hover": |
+  - text: Volume 40
+  - slider "Volume": "40"
+"Single / disabled": |
+  - text: Volume 40
+  - slider "Volume" [disabled]: "40"
+"Range / default": |
+  - text: Price 20 – 70
+  - slider "Price minimum": "20"
+  - slider "Price maximum": "70"
+"Range / hover": |
+  - text: Price 20 – 70
+  - slider "Price minimum": "20"
+  - slider "Price maximum": "70"
+"Range / disabled": |
+  - text: Price 20 – 70
+  - slider "Price minimum" [disabled]: "20"
+  - slider "Price maximum" [disabled]: "70"

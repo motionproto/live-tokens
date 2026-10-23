@@ -1,0 +1,12 @@
+"preview": |
+  - switch "Enable feature"
+"default": |
+  - switch "Enable feature"
+"hover": |
+  - switch "Enable feature"
+"on": |
+  - switch "Enable feature" [checked]
+"on hover": |
+  - switch "Enable feature" [checked]
+"disabled": |
+  - switch "Enable feature" [disabled]

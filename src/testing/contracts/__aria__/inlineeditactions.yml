@@ -1,0 +1,16 @@
+"Save button / default": |
+  - text: Editing value...
+  - button "Save"
+  - button "Cancel"
+"Save button / hover": |
+  - text: Editing value...
+  - button "Save"
+  - button "Cancel"
+"Cancel button / default": |
+  - text: Editing value...
+  - button "Save"
+  - button "Cancel"
+"Cancel button / hover": |
+  - text: Editing value...
+  - button "Save"
+  - button "Cancel"

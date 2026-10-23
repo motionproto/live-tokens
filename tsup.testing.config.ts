@@ -1,3 +1,4 @@
+import { cpSync } from 'node:fs';
 import { defineConfig } from 'tsup';
 
 // Node refuses to strip types from a `.ts` file under `node_modules`, and
@@ -18,6 +19,7 @@ export default defineConfig({
     'src/testing/component-editor.contract.ts',
     'src/testing/registry.contract.ts',
     'src/testing/component-behavior.contract.ts',
+    'src/testing/component-a11y.contract.ts',
     'src/testing/page-compliance.contract.ts',
   ],
   outDir: 'src/testing-js',
@@ -36,7 +38,12 @@ export default defineConfig({
     /^\.\.\/editor\/component-editor\//,
     /^\.\.\/\.\.\/bin\//,
   ],
-  // Only `index.ts` and `vitest.ts` are modules a consumer imports; the six
+  // Only `index.ts` and `vitest.ts` are modules a consumer imports; the seven
   // contract files are Playwright/Vitest entry points discovered by path.
   dts: { entry: { index: 'src/testing/index.ts', vitest: 'src/testing/vitest.ts' } },
+  // The accessibility suite compares each component's tree with the one
+  // recorded beside it, and the tarball ships no file under `src/testing`.
+  onSuccess: async () => {
+    cpSync('src/testing/contracts/__aria__', 'src/testing-js/__aria__', { recursive: true });
+  },
 });

@@ -1,0 +1,304 @@
+"Panel": |
+  - complementary:
+    - link "Title":
+      - /url: "#"
+    - button "Collapse sidebar" [expanded]
+    - button "Collapse section" [expanded]
+    - link "Section 1":
+      - /url: "#section-1"
+    - link "Item 1":
+      - /url: "#section-1/item-1"
+    - link "Item 2":
+      - /url: "#section-1/item-2"
+    - link "Item 3":
+      - /url: "#section-1/item-3"
+    - button "Expand section"
+    - link "Section 2":
+      - /url: "#section-2"
+    - link "Footer":
+      - /url: "#footer"
+"Title Block": |
+  - complementary:
+    - link "Title":
+      - /url: "#"
+    - button "Collapse sidebar" [expanded]
+    - button "Collapse section" [expanded]
+    - link "Section 1":
+      - /url: "#section-1"
+    - link "Item 1":
+      - /url: "#section-1/item-1"
+    - link "Item 2":
+      - /url: "#section-1/item-2"
+    - link "Item 3":
+      - /url: "#section-1/item-3"
+    - button "Expand section"
+    - link "Section 2":
+      - /url: "#section-2"
+    - link "Footer":
+      - /url: "#footer"
+"Title": |
+  - complementary:
+    - link "Title":
+      - /url: "#"
+    - button "Collapse sidebar" [expanded]
+    - button "Collapse section" [expanded]
+    - link "Section 1":
+      - /url: "#section-1"
+    - link "Item 1":
+      - /url: "#section-1/item-1"
+    - link "Item 2":
+      - /url: "#section-1/item-2"
+    - link "Item 3":
+      - /url: "#section-1/item-3"
+    - button "Expand section"
+    - link "Section 2":
+      - /url: "#section-2"
+    - link "Footer":
+      - /url: "#footer"
+"Toggle": |
+  - complementary:
+    - link "Title":
+      - /url: "#"
+    - button "Collapse sidebar" [expanded]
+    - button "Collapse section" [expanded]
+    - link "Section 1":
+      - /url: "#section-1"
+    - link "Item 1":
+      - /url: "#section-1/item-1"
+    - link "Item 2":
+      - /url: "#section-1/item-2"
+    - link "Item 3":
+      - /url: "#section-1/item-3"
+    - button "Expand section"
+    - link "Section 2":
+      - /url: "#section-2"
+    - link "Footer":
+      - /url: "#footer"
+"Section": |
+  - complementary:
+    - link "Title":
+      - /url: "#"
+    - button "Collapse sidebar" [expanded]
+    - button "Collapse section" [expanded]
+    - link "Section 1":
+      - /url: "#section-1"
+    - link "Item 1":
+      - /url: "#section-1/item-1"
+    - link "Item 2":
+      - /url: "#section-1/item-2"
+    - link "Item 3":
+      - /url: "#section-1/item-3"
+    - button "Expand section"
+    - link "Section 2":
+      - /url: "#section-2"
+    - link "Footer":
+      - /url: "#footer"
+"Item": |
+  - complementary:
+    - link "Title":
+      - /url: "#"
+    - button "Collapse sidebar" [expanded]
+    - button "Collapse section" [expanded]
+    - link "Section 1":
+      - /url: "#section-1"
+    - link "Item 1":
+      - /url: "#section-1/item-1"
+    - link "Item 2":
+      - /url: "#section-1/item-2"
+    - link "Item 3":
+      - /url: "#section-1/item-3"
+    - button "Expand section"
+    - link "Section 2":
+      - /url: "#section-2"
+    - link "Footer":
+      - /url: "#footer"
+"Footer": |
+  - complementary:
+    - link "Title":
+      - /url: "#"
+    - button "Collapse sidebar" [expanded]
+    - button "Collapse section" [expanded]
+    - link "Section 1":
+      - /url: "#section-1"
+    - link "Item 1":
+      - /url: "#section-1/item-1"
+    - link "Item 2":
+      - /url: "#section-1/item-2"
+    - link "Item 3":
+      - /url: "#section-1/item-3"
+    - button "Expand section"
+    - link "Section 2":
+      - /url: "#section-2"
+    - link "Footer":
+      - /url: "#footer"
+"Animation": |
+  - complementary:
+    - link "Title":
+      - /url: "#"
+    - button "Collapse sidebar" [expanded]
+    - button "Collapse section" [expanded]
+    - link "Section 1":
+      - /url: "#section-1"
+    - link "Item 1":
+      - /url: "#section-1/item-1"
+    - link "Item 2":
+      - /url: "#section-1/item-2"
+    - link "Item 3":
+      - /url: "#section-1/item-3"
+    - button "Expand section"
+    - link "Section 2":
+      - /url: "#section-2"
+    - link "Footer":
+      - /url: "#footer"
+"Title (Hover)": |
+  - complementary:
+    - link "Title":
+      - /url: "#"
+    - button "Collapse sidebar" [expanded]
+    - button "Collapse section" [expanded]
+    - link "Section 1":
+      - /url: "#section-1"
+    - link "Item 1":
+      - /url: "#section-1/item-1"
+    - link "Item 2":
+      - /url: "#section-1/item-2"
+    - link "Item 3":
+      - /url: "#section-1/item-3"
+    - button "Expand section"
+    - link "Section 2":
+      - /url: "#section-2"
+    - link "Footer":
+      - /url: "#footer"
+"Title (Selected)": |
+  - complementary:
+    - link "Title":
+      - /url: "#"
+    - button "Collapse sidebar" [expanded]
+    - button "Collapse section" [expanded]
+    - link "Section 1":
+      - /url: "#section-1"
+    - link "Item 1":
+      - /url: "#section-1/item-1"
+    - link "Item 2":
+      - /url: "#section-1/item-2"
+    - link "Item 3":
+      - /url: "#section-1/item-3"
+    - button "Expand section"
+    - link "Section 2":
+      - /url: "#section-2"
+    - link "Footer":
+      - /url: "#footer"
+"Toggle (Hover)": |
+  - complementary:
+    - link "Title":
+      - /url: "#"
+    - button "Collapse sidebar" [expanded]
+    - button "Collapse section" [expanded]
+    - link "Section 1":
+      - /url: "#section-1"
+    - link "Item 1":
+      - /url: "#section-1/item-1"
+    - link "Item 2":
+      - /url: "#section-1/item-2"
+    - link "Item 3":
+      - /url: "#section-1/item-3"
+    - button "Expand section"
+    - link "Section 2":
+      - /url: "#section-2"
+    - link "Footer":
+      - /url: "#footer"
+"Section (Hover)": |
+  - complementary:
+    - link "Title":
+      - /url: "#"
+    - button "Collapse sidebar" [expanded]
+    - button "Collapse section" [expanded]
+    - link "Section 1":
+      - /url: "#section-1"
+    - link "Item 1":
+      - /url: "#section-1/item-1"
+    - link "Item 2":
+      - /url: "#section-1/item-2"
+    - link "Item 3":
+      - /url: "#section-1/item-3"
+    - button "Expand section"
+    - link "Section 2":
+      - /url: "#section-2"
+    - link "Footer":
+      - /url: "#footer"
+"Section (Selected)": |
+  - complementary:
+    - link "Title":
+      - /url: "#"
+    - button "Collapse sidebar" [expanded]
+    - button "Collapse section" [expanded]
+    - link "Section 1":
+      - /url: "#section-1"
+    - link "Item 1":
+      - /url: "#section-1/item-1"
+    - link "Item 2":
+      - /url: "#section-1/item-2"
+    - link "Item 3":
+      - /url: "#section-1/item-3"
+    - button "Expand section"
+    - link "Section 2":
+      - /url: "#section-2"
+    - link "Footer":
+      - /url: "#footer"
+"Item (Hover)": |
+  - complementary:
+    - link "Title":
+      - /url: "#"
+    - button "Collapse sidebar" [expanded]
+    - button "Collapse section" [expanded]
+    - link "Section 1":
+      - /url: "#section-1"
+    - link "Item 1":
+      - /url: "#section-1/item-1"
+    - link "Item 2":
+      - /url: "#section-1/item-2"
+    - link "Item 3":
+      - /url: "#section-1/item-3"
+    - button "Expand section"
+    - link "Section 2":
+      - /url: "#section-2"
+    - link "Footer":
+      - /url: "#footer"
+"Footer (Hover)": |
+  - complementary:
+    - link "Title":
+      - /url: "#"
+    - button "Collapse sidebar" [expanded]
+    - button "Collapse section" [expanded]
+    - link "Section 1":
+      - /url: "#section-1"
+    - link "Item 1":
+      - /url: "#section-1/item-1"
+    - link "Item 2":
+      - /url: "#section-1/item-2"
+    - link "Item 3":
+      - /url: "#section-1/item-3"
+    - button "Expand section"
+    - link "Section 2":
+      - /url: "#section-2"
+    - link "Footer":
+      - /url: "#footer"
+"Footer (Selected)": |
+  - complementary:
+    - link "Title":
+      - /url: "#"
+    - button "Collapse sidebar" [expanded]
+    - button "Collapse section" [expanded]
+    - link "Section 1":
+      - /url: "#section-1"
+    - link "Item 1":
+      - /url: "#section-1/item-1"
+    - link "Item 2":
+      - /url: "#section-1/item-2"
+    - link "Item 3":
+      - /url: "#section-1/item-3"
+    - button "Expand section"
+    - link "Section 2":
+      - /url: "#section-2"
+    - link "Footer":
+      - /url: "#footer"

@@ -1,0 +1,88 @@
+"Primary / base": |
+  - button "Primary"
+  - button "With Icon"
+"Secondary / base": |
+  - button "Secondary"
+  - button "With Icon"
+"Secondary / default": |
+  - button "Secondary"
+  - button "With Icon"
+"Secondary / hover": |
+  - button "Secondary"
+  - button "With Icon"
+"Secondary / disabled": |
+  - button "Secondary" [disabled]
+  - button "With Icon" [disabled]
+"Outline / base": |
+  - button "Outline"
+  - button "With Icon"
+"Outline / default": |
+  - button "Outline"
+  - button "With Icon"
+"Outline / hover": |
+  - button "Outline"
+  - button "With Icon"
+"Outline / disabled": |
+  - button "Outline" [disabled]
+  - button "With Icon" [disabled]
+"Success / base": |
+  - button "Success"
+  - button "With Icon"
+"Success / default": |
+  - button "Success"
+  - button "With Icon"
+"Success / hover": |
+  - button "Success"
+  - button "With Icon"
+"Success / disabled": |
+  - button "Success" [disabled]
+  - button "With Icon" [disabled]
+"Danger / base": |
+  - button "Danger"
+  - button "With Icon"
+"Danger / default": |
+  - button "Danger"
+  - button "With Icon"
+"Danger / hover": |
+  - button "Danger"
+  - button "With Icon"
+"Danger / disabled": |
+  - button "Danger" [disabled]
+  - button "With Icon" [disabled]
+"Warning / base": |
+  - button "Warning"
+  - button "With Icon"
+"Warning / default": |
+  - button "Warning"
+  - button "With Icon"
+"Warning / hover": |
+  - button "Warning"
+  - button "With Icon"
+"Warning / disabled": |
+  - button "Warning" [disabled]
+  - button "With Icon" [disabled]
+"Outline / active": |
+  - button "Outline"
+  - button "With Icon"
+"Primary / default": |
+  - button "Primary"
+  - button "With Icon"
+"Primary / hover": |
+  - button "Primary"
+  - button "With Icon"
+"Primary / disabled": |
+  - button "Primary" [disabled]
+  - button "With Icon" [disabled]
+"Primary (small)": |
+  - button "Primary"
+  - button "Secondary"
+  - button "Outline"
+  - button "Success"
+  - button "Danger"
+  - button "Warning"
+  - button "Primary"
+  - button "Secondary"
+  - button "Outline"
+  - button "Success"
+  - button "Danger"
+  - button "Warning"

@@ -1,6 +1,10 @@
 import { devices } from '@playwright/test';
 import { createPlaywrightConfig } from './src/testing';
+import { A11Y_THEMES_ENV } from './src/testing/config';
 import settings from './live-tokens.testing';
+
+// Decision 7 of docs/plans/a11y-testing.md: the preset sweep runs here alone.
+process.env[A11Y_THEMES_ENV] ??= 'all';
 
 // The contract project, the dev server, and the isolated data copy come from
 // the shipped factory, so every run here exercises what a consumer runs. The

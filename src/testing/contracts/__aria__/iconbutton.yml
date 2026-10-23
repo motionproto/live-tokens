@@ -1,0 +1,57 @@
+"Primary / base": |
+  - button "primary action"
+"Secondary / base": |
+  - button "secondary action"
+"Secondary / default": |
+  - button "secondary action"
+"Secondary / hover": |
+  - button "secondary action"
+"Secondary / disabled": |
+  - button "secondary action" [disabled]
+"Outline / base": |
+  - button "outline action"
+"Outline / default": |
+  - button "outline action"
+"Outline / hover": |
+  - button "outline action"
+"Outline / disabled": |
+  - button "outline action" [disabled]
+"Success / base": |
+  - button "success action"
+"Success / default": |
+  - button "success action"
+"Success / hover": |
+  - button "success action"
+"Success / disabled": |
+  - button "success action" [disabled]
+"Danger / base": |
+  - button "danger action"
+"Danger / default": |
+  - button "danger action"
+"Danger / hover": |
+  - button "danger action"
+"Danger / disabled": |
+  - button "danger action" [disabled]
+"Warning / base": |
+  - button "warning action"
+"Warning / default": |
+  - button "warning action"
+"Warning / hover": |
+  - button "warning action"
+"Warning / disabled": |
+  - button "warning action" [disabled]
+"Outline / active": |
+  - button "outline action"
+"Primary / default": |
+  - button "primary action"
+"Primary / hover": |
+  - button "primary action"
+"Primary / disabled": |
+  - button "primary action" [disabled]
+"Primary (small)": |
+  - button "primary action"
+  - button "secondary action"
+  - button "outline action"
+  - button "success action"
+  - button "danger action"
+  - button "warning action"

@@ -1,0 +1,30 @@
+"bar": |
+  - button "Overview"
+  - button "Details"
+  - button "Settings"
+  - button "Disabled" [disabled]
+  - paragraph: placeholder tab content
+"default tab": |
+  - button "Overview"
+  - button "Details"
+  - button "Settings"
+  - button "Disabled" [disabled]
+  - paragraph: placeholder tab content
+"hover tab": |
+  - button "Overview"
+  - button "Details"
+  - button "Settings"
+  - button "Disabled" [disabled]
+  - paragraph: placeholder tab content
+"selected tab": |
+  - button "Overview"
+  - button "Details"
+  - button "Settings"
+  - button "Disabled" [disabled]
+  - paragraph: placeholder tab content
+"disabled tab": |
+  - button "Overview"
+  - button "Details"
+  - button "Settings"
+  - button "Disabled" [disabled]
+  - paragraph: placeholder tab content

@@ -1,0 +1,50 @@
+"menu": |
+  - listbox:
+    - listitem:
+      - option "Option one"
+    - listitem:
+      - option "Option two"
+    - listitem:
+      - option "Option three"
+    - listitem:
+      - option "Option four" [disabled]
+"default item": |
+  - listbox:
+    - listitem:
+      - option "Option one"
+    - listitem:
+      - option "Option two"
+    - listitem:
+      - option "Option three"
+    - listitem:
+      - option "Option four" [disabled]
+"hover item": |
+  - listbox:
+    - listitem:
+      - option "Option one"
+    - listitem:
+      - option "Option two"
+    - listitem:
+      - option "Option three"
+    - listitem:
+      - option "Option four" [disabled]
+"selected item": |
+  - listbox:
+    - listitem:
+      - option "Option one"
+    - listitem:
+      - option "Option two" [selected]
+    - listitem:
+      - option "Option three"
+    - listitem:
+      - option "Option four" [disabled]
+"disabled item": |
+  - listbox:
+    - listitem:
+      - option "Option one"
+    - listitem:
+      - option "Option two"
+    - listitem:
+      - option "Option three"
+    - listitem:
+      - option "Option four" [disabled]
