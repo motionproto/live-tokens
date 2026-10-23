@@ -18,6 +18,7 @@
   import RadialShapePad from '../component-editor/scaffolding/RadialShapePad.svelte';
   import UISegmentedControl from './UISegmentedControl.svelte';
   import UIPillButton from './UIPillButton.svelte';
+  import A11yPropertyMark from './a11y/A11yPropertyMark.svelte';
   import { snapTokenToFamily } from '../core/palettes/familySwap';
 
   interface Props {
@@ -287,7 +288,10 @@
   >
     {#if sectionLabel || hasAside}
       <div class="editor-header editor-section-left">
-        <span class="editor-section-label">{sectionLabel ?? ''}</span>
+        <span class="editor-section-heading">
+          <span class="editor-section-label">{sectionLabel ?? ''}</span>
+          <A11yPropertyMark variables={[gradientSource.targetVariable]} />
+        </span>
         {#if !isFlat}
           <div class="stop-actions">
             <UIPillButton
@@ -495,6 +499,10 @@
     font-weight: 500;
     color: var(--ui-text-primary);
     line-height: 1;
+  }
+  .editor-section-heading {
+    display: inline-flex;
+    align-items: center;
   }
   .editor-section-left { grid-column: 1; }
   .editor-section-right { grid-column: 2; }

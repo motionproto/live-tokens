@@ -43,6 +43,20 @@ export const a11yIssues: Readable<Record<string, ComponentA11yIssues>> = derived
   return out;
 });
 
+/** The run's findings under each component property they trace to (decision 7). The editor's contrast failures stay out. */
+export const a11yPropertyFindings: Readable<Map<string, A11yFinding[]>> = derived(lastFinished, ($report) => {
+  const out = new Map<string, A11yFinding[]>();
+  for (const finding of $report?.findings ?? []) {
+    if (!finding.component || !finding.rule.startsWith('a11y-')) continue;
+    for (const variable of finding.details?.variables ?? []) {
+      const list = out.get(variable);
+      if (list) list.push(finding);
+      else out.set(variable, [finding]);
+    }
+  }
+  return out;
+});
+
 export function receiveA11yReport(report: A11yReport): void {
   heard = true;
   latest.set(report);

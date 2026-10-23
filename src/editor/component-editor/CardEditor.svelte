@@ -118,6 +118,7 @@
   import Card from '../../system/components/Card.svelte';
   import VariantGroup from './scaffolding/VariantGroup.svelte';
   import ComponentEditorBase from './scaffolding/ComponentEditorBase.svelte';
+  import A11yPropertyMark from '../ui/a11y/A11yPropertyMark.svelte';
   import { editorState, setComponentAlias } from '../core/store/editorStore';
   import { computeLinkedBlock, withLinkedDisabled } from './scaffolding/linkedBlock';
   let linked = $derived(computeLinkedBlock(component, linkableContexts, allTokens, $editorState));
@@ -160,6 +161,7 @@
             <input type="checkbox" checked={hoverEnabled} onchange={(e) => setHoverEnabled(e.currentTarget.checked)} />
             <span>Use hover</span>
           </label>
+          <A11yPropertyMark variables={['--card-hover-border-enabled', '--card-hover-shadow-enabled']} />
           <p class="hover-help">
             Checked: every card lifts on hover. Unchecked: hover is off by default and a page turns it on
             per card with the <code>hover</code> prop.

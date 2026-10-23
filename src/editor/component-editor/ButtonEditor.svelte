@@ -155,6 +155,7 @@
 <script lang="ts">
   import Button from '../../system/components/Button.svelte';
   import Toggle from '../ui/Toggle.svelte';
+  import A11yPropertyMark from '../ui/a11y/A11yPropertyMark.svelte';
   import UIPaletteSelector from '../ui/UIPaletteSelector.svelte';
   import VariantGroup from './scaffolding/VariantGroup.svelte';
   import ComponentEditorBase from './scaffolding/ComponentEditorBase.svelte';
@@ -246,7 +247,7 @@
         {#snippet extraPropertyRows(stateName)}
           {#if stateName === 'hover'}
             <div class="property-row" data-token-variables="--button-hover-tint-enabled">
-              <span class="property-label">tint layer</span>
+              <span class="property-label">tint layer<A11yPropertyMark variables={['--button-hover-tint-enabled']} /></span>
               <Toggle checked={tintOn} onchange={setTintOn} />
             </div>
             {#if tintOn}
@@ -256,7 +257,7 @@
               </div>
             {/if}
             <div class="property-row" data-token-variables="--button-shimmer">
-              <span class="property-label">hover shimmer</span>
+              <span class="property-label">hover shimmer<A11yPropertyMark variables={['--button-shimmer']} /></span>
               <Toggle checked={shimmerEnabled} onchange={handleShimmerChange} />
             </div>
           {/if}

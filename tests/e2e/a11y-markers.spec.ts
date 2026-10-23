@@ -34,9 +34,39 @@ const REPORT: A11yFinishedReport = {
   ],
 };
 
-async function stubReport(page: Page): Promise<void> {
-  await page.route('**/api/live-tokens/a11y/report', (route) => route.fulfill({ json: { report: REPORT } }));
+async function stubReport(page: Page, report: A11yFinishedReport = REPORT): Promise<void> {
+  await page.route('**/api/live-tokens/a11y/report', (route) => route.fulfill({ json: { report } }));
 }
+
+const traced = (
+  rule: string,
+  component: string,
+  details: Pick<NonNullable<A11yFinding['details']>, 'engineRule' | 'help' | 'view' | 'variables'>,
+): A11yFinding => {
+  const base = finding(rule, component, details.engineRule, details.help);
+  return { ...base, details: { ...base.details!, ...details } };
+};
+
+const TRACED_REPORT: A11yFinishedReport = {
+  ...REPORT,
+  contrast: [],
+  findings: [
+    traced('a11y-focus-visible', 'input', {
+      engineRule: 'SIA-R65',
+      help: 'Focusing the element changes no style on it',
+      view: 'error / field',
+      variables: ['--input-error-border', '--input-focused-border'],
+    }),
+    traced('a11y-review', 'button', {
+      engineRule: 'color-contrast',
+      help: 'Elements must meet minimum color contrast ratio thresholds',
+      view: 'primary / hover',
+      variables: ['--button-primary-hover-surface', '--button-primary-hover-text', '--button-shimmer'],
+    }),
+  ],
+};
+
+const HOSTS = '[data-token-variable], [data-token-variables]';
 
 const railItem = (scope: Page | Frame, label: string): Locator =>
   scope.locator('.nav-items > .nav-item').filter({ has: scope.getByText(label, { exact: true }) });
@@ -117,4 +147,116 @@ test('the standalone component page marks its rail and shows the panel', async (
 
   await panel.getByRole('button', { name: 'Go to Brand text color' }).click();
   await expect(page.locator('.variant-group .ui-token-selector[data-token-variable="--badge-brand-text"]')).toBeInViewport();
+});
+
+test('a property a finding traces to carries a mark that lists the finding', async ({ page }) => {
+  await stubReport(page, TRACED_REPORT);
+  await openComponentsEditor(page);
+  await railItem(page, 'Input').click();
+
+  await page.locator('.a11y-panel').getByRole('button', { name: 'Go to Focused border color' }).click();
+  const row = page.locator('.variant-group .token-entry').filter({
+    has: page.locator('.ui-token-selector[data-token-variable="--input-focused-border"]'),
+  });
+  await expect(row).toBeInViewport();
+  const label = await row.locator('.token-label').textContent();
+
+  const mark = row.getByRole('button', { name: '1 accessibility issue' });
+  await expect(mark).toBeVisible();
+  expect(await mark.evaluate((el) => el.textContent?.trim())).toBe('');
+  expect(await row.locator('.token-label').textContent()).toBe(label);
+
+  await mark.click();
+  const popover = page.getByRole('dialog', { name: '1 accessibility issue' });
+  await expect(popover.locator('.a11y-issue-text')).toHaveText('Focusing the element changes no style on it');
+  await expect(popover.locator('.a11y-issue-detail')).toContainText('error / field');
+  await expect(popover.locator('.a11y-issue.review')).toHaveCount(0);
+
+  const clean = page.locator('.variant-group .ui-token-selector[data-token-variable="--input-focused-surface"]');
+  await expect(clean.locator('.a11y-property-mark')).toHaveCount(0);
+});
+
+test("the arrow opens the tab that holds an intrinsic's row and lands on its mark", async ({ page }) => {
+  await stubReport(page, TRACED_REPORT);
+  const frame = await openOverlayEditor(page, 'components');
+  await railItem(frame, 'Button').click();
+
+  const row = frame.locator('.variant-group .property-row[data-token-variables="--button-shimmer"]');
+  await expect(row).toHaveCount(0);
+
+  await frame.locator('.a11y-panel').getByRole('button', { name: 'Go to Shimmer' }).click();
+  await expect(frame.locator('.variant-group .state-tab-btn', { hasText: /^hover$/ })).toHaveAttribute('aria-selected', 'true');
+  await expect(row).toBeInViewport();
+  await expect(row).toHaveCount(1);
+  await expect(row.getByRole('button', { name: '1 result to check by eye' })).toBeVisible();
+  expect(await row.locator('.property-label').evaluate((el) => el.textContent?.trim())).toBe('hover shimmer');
+});
+
+test("every registered component's editor marks each row whose property a finding names", async ({ page }) => {
+  test.setTimeout(300_000);
+  await openComponentsEditor(page);
+  const components = await page.evaluate(() => window.__liveTokensEditor!.getComponentRegistryEntries().map((entry) => ({
+    id: entry.id,
+    variables: [
+      ...entry.schema.map((token) => token.variable),
+      ...(entry.intrinsics ?? []).flatMap((spec) => spec.variants.map((variant) => spec.variable(variant))),
+    ],
+  })));
+  await stubReport(page, {
+    ...REPORT,
+    contrast: [],
+    findings: components.map(({ id, variables }) => traced('a11y-component', id, {
+      engineRule: 'focus-indicator-contrast',
+      help: 'Focus indicator contrast',
+      view: 'default',
+      variables,
+    })),
+  });
+  await openComponentsEditor(page);
+
+  for (const { id, variables } of components) {
+    await page.evaluate((component) => window.__liveTokensEditor!.selectComponent(component), id);
+    await page.locator('.variant-group').filter({ visible: true }).first().waitFor();
+    const { marked, unmarked } = await page.evaluate(async ({ hosts, variables }) => {
+      const known = new Set(variables);
+      const marked = new Set<string>();
+      const unmarked = new Set<string>();
+      const settle = () => new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
+      const visible = (selector: string, scope: ParentNode = document) =>
+        [...scope.querySelectorAll<HTMLElement>(selector)].filter((el) => el.getClientRects().length > 0);
+      const check = () => {
+        for (const host of visible(hosts)) {
+          const names = (host.dataset.tokenVariable ?? host.dataset.tokenVariables ?? '').split(/\s+/).filter((name) => known.has(name));
+          const own = [...host.querySelectorAll('.a11y-property-mark')].some((mark) => mark.closest(hosts) === host);
+          for (const name of names) (own ? marked : unmarked).add(name);
+        }
+      };
+      const variantCount = Math.max(1, visible('.variant-tab-btn').length);
+      for (let v = 0; v < variantCount; v++) {
+        visible('.variant-tab-btn')[v]?.click();
+        await settle();
+        const groupCount = visible('.variant-group').length;
+        for (let g = 0; g < groupCount; g++) {
+          const tabs = (selector: string) => {
+            const group = visible('.variant-group')[g];
+            return group ? visible(selector, group) : [];
+          };
+          const partCount = Math.max(1, tabs('.tabs-selectors:not(.substrip) .state-tab-btn').length);
+          for (let p = 0; p < partCount; p++) {
+            tabs('.tabs-selectors:not(.substrip) .state-tab-btn')[p]?.click();
+            await settle();
+            const stateCount = Math.max(1, tabs('.substrip .state-tab-btn').length);
+            for (let st = 0; st < stateCount; st++) {
+              tabs('.substrip .state-tab-btn')[st]?.click();
+              await settle();
+              check();
+            }
+          }
+        }
+      }
+      return { marked: [...marked], unmarked: [...unmarked] };
+    }, { hosts: HOSTS, variables });
+    expect(unmarked, `${id}: rows without a mark`).toEqual([]);
+    expect(marked.length, `${id}: no marked row`).toBeGreaterThan(0);
+  }
 });

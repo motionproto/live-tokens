@@ -23,6 +23,7 @@
   import UILinkToggle from './UILinkToggle.svelte';
   import UIRelinkConfirmDialog from './UIRelinkConfirmDialog.svelte';
   import { anchorToTrigger } from './anchorToTrigger';
+  import A11yPropertyMark from './a11y/A11yPropertyMark.svelte';
 
   type DropdownContext = { close: () => void; handleReset: () => void };
 
@@ -295,6 +296,7 @@
   bind:this={container}
 >
   <div class="ui-ts-trigger-wrap">
+    <A11yPropertyMark variables={[variable]} placement="gutter" />
     <button
       bind:this={triggerEl}
       class="ui-ts-trigger"

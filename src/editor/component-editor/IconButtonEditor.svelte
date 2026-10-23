@@ -140,6 +140,7 @@
   import { editorState, setComponentAlias, clearComponentAlias } from '../core/store/editorStore';
   import { computeLinkedBlock, withLinkedDisabled } from './scaffolding/linkedBlock';
   import Toggle from '../ui/Toggle.svelte';
+  import A11yPropertyMark from '../ui/a11y/A11yPropertyMark.svelte';
   import UIPaletteSelector from '../ui/UIPaletteSelector.svelte';
 
   // One switch. Turning the tint on also stands each hover surface down to its
@@ -220,7 +221,7 @@
         {#snippet extraPropertyRows(stateName)}
           {#if stateName === 'hover'}
             <div class="property-row" data-token-variables="--iconbutton-hover-tint-enabled">
-              <span class="property-label">tint layer</span>
+              <span class="property-label">tint layer<A11yPropertyMark variables={['--iconbutton-hover-tint-enabled']} /></span>
               <Toggle checked={tintOn} onchange={setTintOn} />
             </div>
             {#if tintOn}
