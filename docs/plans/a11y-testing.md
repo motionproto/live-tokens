@@ -355,6 +355,42 @@ the preset sweep the probe measured on 4 workers.
 **Done when** the contract run passes with accessibility findings present,
 `temp/a11y-baseline.md` exists, and every `__aria__` file is committed.
 
+**Built.** The later waves rely on these:
+
+- `component-a11y.contract.ts` runs one test per contract, titled
+  `<id> records its accessibility findings in every variant and state`. It
+  scans the union of the views the contract's `properties` and `states` name,
+  each once. Views without a setup of their own run first and select their
+  tabs again under each preset. A view with its own setup runs once, with
+  each preset previewed over it, because a setup control such as Button's
+  Small size hides the tabs a second selection would click.
+- The default theme runs axe, SIA-R65, and the tree snapshot. Each preset
+  runs axe's `color-contrast` alone, through `scanAxe`'s fifth argument,
+  `only`. The probe found every other rule theme-independent.
+- Editor demo content inside the stage carries `data-preview-demo`: Card's
+  and Panel's content placeholders, Tooltip's demo targets, CodeSnippet's
+  "Preview text" label, CollapsibleSection's body paragraph, TabBar's
+  placeholder tab content, InlineEditActions' "Editing value..." text, and
+  Image's zoom help. The scans exclude it with the canvas toolbar.
+- `ContractHarness.previewThemeUncovered(slug)` and
+  `cancelUncoveredPreview()` dispatch each click on its element and hide the
+  Theme Picker's backdrop while the preview lasts.
+- `A11yResult.view` names the views a result failed in; the runner prints it
+  as `at <target> in <view>` and keeps it in `details.view`. One result
+  stands for one element and engine rule across views and themes.
+- Trees live in `src/testing/contracts/__aria__/<id>.yml`, one block per view
+  label. A change reports `a11y-component` with engine rule `aria-snapshot`.
+  A missing file records itself. `check-component --tests --update-aria`
+  sets `LIVE_TOKENS_UPDATE_ARIA=1` (`UPDATE_ARIA_ENV`), which rewrites the
+  files. `build:testing` copies them to `src/testing-js/__aria__`; a copy
+  under `node_modules` is read and never written.
+- `LIVE_TOKENS_A11Y_THEMES=all` (`A11Y_THEMES_ENV`) comes from the
+  repository's `playwright.config.ts`. `ALL_CONTRACT_RULES` holds
+  `a11y-component`.
+- The contract run took 2 min 54 s before the wave and 5 min 10 s after, at 4
+  workers. Wave 6 still has to document `--update-aria` in the README's
+  command table and the docs.
+
 ## Wave 3: page suite
 
 - `page-compliance.contract.ts` gains `page-a11y`: `scanAxe` over the page
