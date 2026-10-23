@@ -216,6 +216,10 @@ export {
   markComponentSaved,
 } from '../themes/slices/components';
 
+export { a11yReport, a11yFinishedReport, a11yIssues, startA11yRun } from '../a11y/a11yReport';
+export type { ComponentA11yIssues } from '../a11y/a11yReport';
+export type { A11yContrastFailure, A11yFinding, A11yReport } from '../a11y/a11yReportTypes';
+
 export {
   setFontSources,
   setFontStacks,

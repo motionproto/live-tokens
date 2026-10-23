@@ -5,9 +5,12 @@ import { API_BASE } from '../storage/apiBase';
 
 vi.mock('./themeDocumentSync', () => ({ hydrateAppliedTheme: vi.fn() }));
 vi.mock('../productionPulse', () => ({ refreshProductionTheme: vi.fn() }));
+vi.mock('../a11y/a11yReport', () => ({ receiveA11yReport: vi.fn() }));
 
 import { hydrateAppliedTheme } from './themeDocumentSync';
 import { refreshProductionTheme } from '../productionPulse';
+import { receiveA11yReport } from '../a11y/a11yReport';
+import { A11Y_EVENT } from '../a11y/a11yReportTypes';
 import { __resetForTests, init, LIVE_STATE_EVENT } from './liveStateStream';
 
 class FakeEventSource {
@@ -45,6 +48,7 @@ afterEach(() => {
   vi.unstubAllGlobals();
   vi.mocked(hydrateAppliedTheme).mockReset();
   vi.mocked(refreshProductionTheme).mockReset();
+  vi.mocked(receiveA11yReport).mockReset();
 });
 
 describe('liveStateStream', () => {
@@ -65,6 +69,15 @@ describe('liveStateStream', () => {
     init();
     FakeEventSource.instances[0].emit(LIVE_STATE_EVENT, STATE);
     expect(refreshProductionTheme).toHaveBeenCalledTimes(1);
+  });
+
+  it('hands each a11y frame to the report store on the same stream', () => {
+    init();
+    const report = { state: 'running', startedAt: '2026-10-23T14:00:00.000Z', contrast: [] };
+    FakeEventSource.instances[0].emit(A11Y_EVENT, report);
+    expect(FakeEventSource.instances).toHaveLength(1);
+    expect(receiveA11yReport).toHaveBeenCalledWith(report);
+    expect(hydrateAppliedTheme).not.toHaveBeenCalled();
   });
 
   it('does nothing where EventSource is absent', () => {

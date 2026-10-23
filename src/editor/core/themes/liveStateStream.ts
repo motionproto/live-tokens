@@ -2,6 +2,8 @@ import { API_BASE } from '../storage/apiBase';
 import { refreshProductionTheme } from '../productionPulse';
 import { hydrateAppliedTheme } from './themeDocumentSync';
 import type { LiveState } from './themeService';
+import { receiveA11yReport } from '../a11y/a11yReport';
+import { A11Y_EVENT, type A11yReport } from '../a11y/a11yReportTypes';
 
 export const LIVE_STATE_EVENT = 'live-state';
 
@@ -12,7 +14,8 @@ let source: EventSource | null = null;
  * from outside the page (a CLI verb, a branch switch) arrives as one frame,
  * and this document hydrates from it the way it does from an Apply. An outside
  * writer can also save the production theme past its bake (`save-theme` into
- * the open, published theme), so production is re-read too.
+ * the open, published theme), so production is re-read too. The same stream
+ * carries each accessibility run's report on its start and on its end.
  */
 export function init(): void {
   if (source || typeof EventSource === 'undefined') return;
@@ -21,6 +24,9 @@ export function init(): void {
     const state = JSON.parse((event as MessageEvent<string>).data) as LiveState;
     hydrateAppliedTheme(state.fileName, state);
     void refreshProductionTheme();
+  });
+  source.addEventListener(A11Y_EVENT, (event) => {
+    receiveA11yReport(JSON.parse((event as MessageEvent<string>).data) as A11yReport);
   });
 }
 
