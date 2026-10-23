@@ -18,6 +18,10 @@ const FOCUS = ['focus', 'focus-visible'];
 const BORDER_PAINT = ['border-block*', 'border-inline*', ...['', '-top', '-right', '-bottom', '-left']
   .flatMap((side) => [`border${side}`, `border${side}-color`, `border${side}-width`, `border${side}-style`])];
 
+// What sets how long a motion lasts; easing and fill shape it without lengthening it.
+const MOTION = ['animation', 'animation-name', 'animation-duration', 'animation-delay', 'animation-iteration-count',
+  'transition', 'transition-property', 'transition-duration', 'transition-delay'];
+
 /** Decision 2 of docs/plans/a11y-property-marks.md, keyed by engine rule. An
  *  engine rule absent here traces nothing. */
 export const TRACE_AXES: Readonly<Record<string, TraceAxes>> = {
@@ -40,6 +44,14 @@ export const TRACE_AXES: Readonly<Record<string, TraceAxes>> = {
     force: FOCUS,
   },
   'control-boundary-contrast': { target: [...BORDER_PAINT, 'background*'], pseudoElements: [], ancestors: ['background*'] },
+  // Every element's line height is 1.5 under the override, so the theme's own cannot cause the overflow.
+  'text-spacing': {
+    target: ['height', 'max-height', 'width', 'max-width', 'padding*', 'overflow*', 'white-space'],
+    pseudoElements: [],
+    ancestors: [],
+  },
+  // A pseudo-element that does not display does not move, so its display gates the motion, as Button's shimmer does.
+  'prefers-reduced-motion': { target: MOTION, pseudoElements: [...MOTION, 'display'], ancestors: [] },
 };
 
 interface Declaration {

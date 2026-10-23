@@ -8,6 +8,7 @@ import {
 import { AA_BODY, AA_LARGE, contrastRatio, isLargeText } from '../../editor/core/palettes/contrast';
 import { isInapplicable, type ComponentContract, type PaintMap } from '../componentContract';
 import { scanAxe, type A11yResult } from './a11y';
+import { MOTION_MS, MOTION_URL, TEXT_SPACING_RULE, TEXT_SPACING_URL, newUnderTextSpacing } from './textSpacingAndMotion';
 
 export type PageRule =
   | 'page-component-paint'
@@ -303,19 +304,6 @@ const GRID_VIEWPORT = 768;
  *  long to wait for that before measuring anyway. */
 const SETTLE_QUIET_MS = 300;
 const SETTLE_BUDGET_MS = 5_000;
-
-/** The override SC 1.4.12 names, as the W3C's own text spacing bookmarklet
- *  applies it. */
-const TEXT_SPACING_CSS = `
-* { line-height: 1.5 !important; letter-spacing: 0.12em !important; word-spacing: 0.16em !important; }
-p { margin-bottom: 2em !important; }
-`;
-const TEXT_SPACING_URL = 'https://www.w3.org/WAI/WCAG22/Understanding/text-spacing.html';
-
-/** An animation that ends within this many milliseconds of its start reads as
- *  a fade or a state change, which reduced motion leaves alone. */
-const MOTION_MS = 200;
-const MOTION_URL = 'https://www.w3.org/WAI/WCAG22/Techniques/css/C39';
 
 /** Findings name CSS properties as a page's own stylesheet spells them. */
 const cssName = (camel: string) => camel.replace(/[A-Z]/g, (c) => `-${c.toLowerCase()}`);
@@ -1050,38 +1038,21 @@ export class PageHarness {
   /** The overflow observation again under the SC 1.4.12 override, minus every
    *  failure the page already has without it, which `page-overflow` reports. */
   async scanTextSpacing(specs: ContractPaintSpec[]): Promise<A11yResult[]> {
-    const before = await this.observeOverflow(specs);
-    const style = await this.page.addStyleTag({ content: TEXT_SPACING_CSS });
-    let after: OverflowObservation;
-    try {
-      after = await this.observeOverflow(specs);
-    } finally {
-      await style.evaluate((node) => (node as Element).remove());
-    }
-    // The pixel counts in a failure's detail move under the override, so a
-    // failure is known by what overflows and where.
-    const key = (failure: OverflowFailure) => `${failure.kind}|${failure.line}|${failure.tag}`;
-    const known = new Map<string, number>();
-    for (const failure of before.failures) known.set(key(failure), (known.get(key(failure)) ?? 0) + 1);
-    const results: A11yResult[] = [];
-    for (const failure of after.failures) {
-      const left = known.get(key(failure)) ?? 0;
-      if (left > 0) {
-        known.set(key(failure), left - 1);
-        continue;
-      }
-      results.push({
-        rule: 'a11y-text-spacing',
-        engineRule: 'text-spacing',
-        impact: null,
-        target: failure.kind === 'instance' ? failure.tag : `<${failure.tag}>`,
-        html: '',
-        help: `Under the text spacing override, ${failure.detail}`,
-        helpUrl: TEXT_SPACING_URL,
-        line: failure.line,
-      });
-    }
-    return results;
+    const found = await newUnderTextSpacing(
+      this.page,
+      async () => (await this.observeOverflow(specs)).failures,
+      (failure) => `${failure.kind}|${failure.line}|${failure.tag}`,
+    );
+    return found.map((failure) => ({
+      rule: 'a11y-text-spacing',
+      engineRule: TEXT_SPACING_RULE,
+      impact: null,
+      target: failure.kind === 'instance' ? failure.tag : `<${failure.tag}>`,
+      html: '',
+      help: `Under the text spacing override, ${failure.detail}`,
+      helpUrl: TEXT_SPACING_URL,
+      line: failure.line,
+    }));
   }
 
   /**

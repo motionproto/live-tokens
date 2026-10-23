@@ -88,6 +88,8 @@ export const COMPONENT_RULES = assembleRules(
     'a11y-review',
     'a11y-focus-visible',
     'a11y-keyboard',
+    'a11y-text-spacing',
+    'a11y-reduced-motion',
     'tests-not-installed',
     'tests-setup',
     'tests-incomplete',

@@ -14,6 +14,7 @@ import { selectedContracts } from './contracts';
 import { missingEngine, recordA11y, scanAxe, scanFocusVisible, type A11yResult } from './support/a11y';
 import { ContractHarness } from './support/contractHarness';
 import { scanBoundaries, scanFocusIndicators, type CheckedResult, type TraceRequest } from './support/nonTextContrast';
+import { scanReducedMotion, scanTextSpacing } from './support/textSpacingAndMotion';
 import { TRACE_AXES, traceProperties } from './support/traceProperties';
 
 // Each test opens its own editor and only reads the preview, so the
@@ -271,6 +272,7 @@ for (const contract of await selectedContracts()) {
     const known = await harness.propertyVariables();
     const boundaries = (contract.boundaries ?? []).map(({ part, label }) => ({ selector: partLocator(contract, part).selector, label }));
     const root = partLocator(contract, contract.root).selector;
+    const own = [root, ...portals];
     const found = new Occurrences(async (result, request) => {
       const axes = TRACE_AXES[result.engineRule];
       return axes ? traceProperties(page, { selector: result.target, scope: SCOPE, ...request }, axes, known) : [];
@@ -288,6 +290,8 @@ for (const contract of await selectedContracts()) {
       await found.add(label, await scanFocusVisible(page, SCOPE, EXCLUDE));
       await scanNonText(label);
       trees.set(label, await readTree(page));
+      await found.add(label, await scanTextSpacing(page, SCOPE, EXCLUDE, own));
+      await found.add(label, await scanReducedMotion(page, SCOPE, EXCLUDE, own));
     };
     const scanContrast = async (label: string, theme: string) => {
       await markStage(page, portals);

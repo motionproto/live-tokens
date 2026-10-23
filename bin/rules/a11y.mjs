@@ -9,6 +9,19 @@ const review = {
   },
 };
 
+const adaptation = {
+  'a11y-text-spacing': {
+    severity: 'warn',
+    repair: 'authored',
+    guidance: `Content overflows under the WCAG 1.4.12 text spacing override: line height 1.5, paragraph spacing 2em, letter spacing 0.12em, and word spacing 0.16em. ${HELP} Let the element the finding names grow with its text: drop its fixed height or width, or its white-space: nowrap.`,
+  },
+  'a11y-reduced-motion': {
+    severity: 'warn',
+    repair: 'authored',
+    guidance: `An animation keeps running under prefers-reduced-motion: reduce. ${HELP} Stop the animation, or cut it to a fade, inside @media (prefers-reduced-motion: reduce).`,
+  },
+};
+
 export const componentRules = {
   'a11y-component': {
     severity: 'warn',
@@ -26,6 +39,7 @@ export const componentRules = {
     repair: 'authored',
     guidance: `A keyboard case of the component's interaction contract failed: a key that should activate, move, or close did nothing. ${HELP} Handle the key on the element that holds focus, as the WAI-ARIA pattern for its role describes.`,
   },
+  ...adaptation,
 };
 
 export const pageRules = {
@@ -35,14 +49,5 @@ export const pageRules = {
     guidance: `axe found a WCAG 2 A or AA failure on the page, outside the shipped components. ${HELP} Repair the page markup at the line the finding names. Text contrast reports under page-contrast.`,
   },
   ...review,
-  'a11y-text-spacing': {
-    severity: 'warn',
-    repair: 'authored',
-    guidance: `Content overflows under the WCAG 1.4.12 text spacing override: line height 1.5, paragraph spacing 2em, letter spacing 0.12em, and word spacing 0.16em. ${HELP} Let the element the finding names grow with its text: drop its fixed height or width, or its white-space: nowrap.`,
-  },
-  'a11y-reduced-motion': {
-    severity: 'warn',
-    repair: 'authored',
-    guidance: `An animation keeps running under prefers-reduced-motion: reduce. ${HELP} Stop the animation, or cut it to a fade, inside @media (prefers-reduced-motion: reduce).`,
-  },
+  ...adaptation,
 };

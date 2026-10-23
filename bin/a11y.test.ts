@@ -96,6 +96,34 @@ describe('a11y annotations on a passing component test', () => {
     expect(findings[1].details).not.toHaveProperty('variables');
   });
 
+  it('report text spacing and reduced motion under their own rules at warn, with their variables', () => {
+    const spacing: A11yResult = {
+      ...contrast,
+      rule: 'a11y-text-spacing',
+      engineRule: 'text-spacing',
+      impact: null,
+      help: 'Under the text spacing override, <span> holds 30px of content in 20px of height, and its overflow-y is hidden',
+      variables: ['--widget-height'],
+    };
+    const motion: A11yResult = {
+      ...contrast,
+      rule: 'a11y-reduced-motion',
+      engineRule: 'prefers-reduced-motion',
+      impact: null,
+      target: 'button.widget::before',
+      help: 'A transition of left lasts 500 ms under prefers-reduced-motion: reduce',
+      variables: ['--widget-duration'],
+    };
+    const { findings } = mapComponent(a11ySuiteReport({ annotations: [annotation([spacing, motion])] }));
+    expect(findings.map((f: { rule: string; details: { variables?: string[] } }) => [f.rule, f.details.variables])).toEqual([
+      ['a11y-text-spacing', ['--widget-height']],
+      ['a11y-reduced-motion', ['--widget-duration']],
+    ]);
+    expect(applySeverity(findings, COMPONENT_RULES).map((f: { severity: string }) => f.severity)).toEqual(['warn', 'warn']);
+    expect(exitCode(findings, COMPONENT_RULES)).toBe(0);
+    expect(exitCode(findings, COMPONENT_RULES, { strict: true })).toBe(1);
+  });
+
   it('name the component in a field of their own', () => {
     const { findings } = mapComponent(a11ySuiteReport({ annotations: [annotation([contrast, focus])] }));
     expect(findings.map((f: { component?: string }) => f.component)).toEqual(['widget', 'widget']);

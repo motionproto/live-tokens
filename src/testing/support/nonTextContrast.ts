@@ -60,7 +60,8 @@ type PageRequest =
   | { kind: 'snapshot'; attr: string; index: number; scope: string; exclude: string[] }
   | { kind: 'measure'; attr: string; index: number; scope: string; exclude: string[]; before: Snapshot }
   | { kind: 'cleanup'; attr: string; styleId: string }
-  | { kind: 'boundaries'; scope: string; exclude: string[]; parts: BoundaryPart[]; root: string };
+  | { kind: 'boundaries'; scope: string; exclude: string[]; parts: BoundaryPart[]; root: string }
+  | { kind: 'describe'; scope: string; exclude: string[]; attr: string; values: string[] };
 
 /**
  * Runs in the page, so it carries every helper it needs. Colours resolve and
@@ -274,11 +275,30 @@ function inPage(request: PageRequest): unknown {
       }
       return outcomes;
     }
+    case 'describe': {
+      return request.values.map((value) => {
+        const el = document.querySelector(`[${request.attr}="${value}"]`)!;
+        return { target: selectorFor(el), html: html(el) };
+      });
+    }
   }
 }
 
 function run<T>(page: Page, request: PageRequest): Promise<T> {
   return page.evaluate(inPage, request) as Promise<T>;
+}
+
+/** The selector and markup a result names for each element in `scope` whose
+ *  `attr` holds one of `values`, in that order. The selector is unique in
+ *  `scope`, which the trace needs. */
+export function describeTagged(
+  page: Page,
+  scope: string,
+  exclude: string[],
+  attr: string,
+  values: string[],
+): Promise<{ target: string; html: string }[]> {
+  return run(page, { kind: 'describe', scope, exclude, attr, values });
 }
 
 /** Below 3:1 fails; WCAG does not round, so neither does the reading. */
