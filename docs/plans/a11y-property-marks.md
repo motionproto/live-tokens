@@ -454,6 +454,95 @@ names `--slider-range-thumb-size`, `--input-focused-border` and
 `node bin/live-tokens.mjs check-component --tests --a11y --json` on the
 default theme, with the new findings listed in the wave's summary.
 
+**Built.** Waves 5 and 6 can rely on these:
+
+- `src/testing/support/nonTextContrast.ts` exports `scanFocusIndicators(page,
+  scope, exclude)` and `scanBoundaries(page, scope, exclude, parts, root)`.
+  Each returns `CheckedResult[]`, `{ result, trace }`, where `trace` is a
+  `TraceRequest`, `{ selector, forceOn?, ancestorsFrom? }`. A violation
+  reports under `a11y-component`, a gradient or image behind the edge under
+  `a11y-review`, both with `impact: null` and the Understanding page for
+  WCAG 2.2 SC 1.4.11 as `helpUrl`. Help reads "Focus outline on span.cap
+  2.14:1 against the backdrop, needs 3:1" and "Track border 1.45:1 and
+  surface 1.3:1 against the backdrop, needs 3:1". Ratios floor to two
+  places, since WCAG does not round.
+- The indicator rule, which settles Slider's open item from Wave 1. The
+  check snapshots the outline, box shadow and border sides of the focused
+  element, its descendants and its siblings with their descendants, forces
+  `:focus` and `:focus-visible` through CDP, and takes the first of them,
+  in that order, whose style focus changes. On that element it reads D8's
+  order: an outline focus changes, else the first outer box shadow, else a
+  border side. A fully transparent channel is no indicator. Chromium's
+  `outline-style: auto` ring passes: it pairs a dark and a light band, one of
+  which contrasts with any backdrop. Slider's ring on `.cap` now measures
+  and traces to `--slider-*-thumb-border` and its width. A style tag turns
+  transitions off while the check runs, so the forced colour reads at its
+  end.
+- The backdrop is every box, from the indicator or part outward, whose
+  border box contains the ring's outer edge (the element grown by outline
+  offset and width, or by shadow offset, blur and spread), composited over
+  white up to the first opaque one. A box the ring overhangs, such as
+  Slider's track, thinner than the ring around its thumb, counts for neither the ratio
+  nor the trace. Colours resolve and composite on a 1px canvas. Ancestor
+  `opacity` is ignored.
+- A boundary part passes when its border, 1px or wider, or its surface
+  contrasts 3:1 with the backdrop. A part is skipped when every form control
+  in its root part (`button, input, select, textarea, [aria-disabled]`) is
+  disabled, the inactive case SC 1.4.11 exempts.
+- `ComponentContract.boundaries?: BoundaryExpectation[]`, with
+  `BoundaryExpectation = { part, label }`. Declared on Input (field "Field"),
+  RadioButton (dot "Circle"), Slider (track "Track", thumb "Thumb"), Toggle
+  (track "Track", thumb "Thumb") and SegmentedControl (root "Bar"). The
+  thumbs are there because their position shows the value; no other shipped
+  control draws its own edge.
+- `traceProperties` takes a `TraceTarget`, `{ selector, scope, forceOn?,
+  ancestorsFrom? }`, and exports `cdpSession(page)`. `forceOn` forces the
+  pseudo-classes on another element while the target's styles are read.
+  `ancestorsFrom` narrows the ancestor axis to the boxes behind the edge;
+  custom properties still follow through every ancestor. `TRACE_AXES` gains
+  both rules. Deviation from D2: their border axis lists border colour,
+  width and style and leaves out the radii, which carried
+  `--videoframe-frame-radius` into a focus result and the track radius into
+  a boundary result. `focus-indicator-contrast` also drops
+  `text-decoration*`, which paints no ring.
+- The suite's `Occurrences.add` takes plain results or `CheckedResult`s and
+  hands the trace request to its tracer. Both checks run after
+  `scanFocusVisible` in each view and after the axe contrast scan in each
+  preset view. A target is a selector built in the page from tag and
+  classes, with `:nth-of-type` and parents added until it is unique in
+  scope, so state classes such as `selected` and `force-hover` make
+  separate results, each traced with its own state's properties.
+- Image's zoom and grow rows and Section Divider's alignment, eyebrow and
+  description display, hairline (show and position) and all-caps rows carry
+  `data-token-variables` and a mark. `StateBlock`'s element toggles take
+  `variables`. Image Lightbox's tile fit has no row in its editor, so it has
+  nothing to mark. The full contract suite passed after the change.
+- Tests: `tests/e2e/non-text-contrast.spec.ts` (project `chromium`, six
+  cases): a 2:1 ring, a ring on a sibling and a faint glow, a 2:1 field
+  border with both ratios, a gradient backdrop, a passing fixture with the
+  browser ring, and a disabled field. The end-to-end runner tests in
+  `bin/check-component.test.ts` moved from Toggle, which now warns, to Icon
+  Button.
+- Verify on the default theme: `npm run check` clean; `npx vitest run bin
+  src/testing` 563 passed; `npm run test:e2e:contract` 321 passed in 5.6
+  minutes; `node bin/cli.mjs check-component --tests --a11y --json` exited
+  0 in 215 s (3 min 35 s, against 3 to 3.5 minutes before the wave) with 24
+  new warnings among 114 findings:
+  - Boundaries: Input field 2.42:1 border, 1.09:1 surface; RadioButton
+    circle 2.42:1, nine results across its three dots and the default,
+    hover and selected views; SegmentedControl bar 2.42:1 and 1.24:1, at
+    both sizes; Slider track 1.45:1 and 1.3:1; Toggle track 2.42:1 and
+    1.71:1. Each names its border, border width and surface variables, and
+    the state's own variables in hover and selected views.
+  - Focus: Slider's three thumbs 2.14:1, tracing the thumb border and its
+    width; Video Frame, Video Lightbox and five Slide Pager controls,
+    1.06:1 to 1.09:1, whose `--ring-focus-md` shadow is a theme token and
+    traces nothing but the scrim behind two of the controls.
+- Open items. TabBar's selected tab and SegmentedControl's selected option
+  show state by surface and could join `boundaries` as state indicators.
+  The docs chapter does not yet name the two checks or `boundaries`;
+  Wave 6 writes it.
+
 ## Wave 5: text spacing and reduced motion
 
 - D10 and D11, with the shared support module.
