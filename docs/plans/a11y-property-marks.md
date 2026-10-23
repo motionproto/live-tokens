@@ -1,6 +1,6 @@
 # Accessibility property marks
 
-Plan of 2026-10-23, awaiting approval. It builds on `docs/plans/a11y-editor.md`
+Plan of 2026-10-23, approved and run the same day. It builds on `docs/plans/a11y-editor.md`
 and `docs/plans/a11y-testing.md`, both executed the same day on local main.
 
 Every finding of a run marks its component: the rail "!" and the panel count
