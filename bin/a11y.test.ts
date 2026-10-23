@@ -89,6 +89,11 @@ describe('a11y annotations on a passing component test', () => {
     expect(findings[0].details.view).toBe(view);
   });
 
+  it('name the component in a field of their own', () => {
+    const { findings } = mapComponent(a11ySuiteReport({ annotations: [annotation([contrast, focus])] }));
+    expect(findings.map((f: { component?: string }) => f.component)).toEqual(['widget', 'widget']);
+  });
+
   it('read every a11y annotation the test carries', () => {
     const { findings } = mapComponent(a11ySuiteReport({ annotations: [annotation([contrast]), annotation([focus])] }));
     expect(findings.map((f: { rule: string }) => f.rule)).toEqual(['a11y-component', 'a11y-focus-visible']);
@@ -175,6 +180,7 @@ describe('a component accessibility test that throws', () => {
       results: [{ status: 'failed', errors: [{ message: 'ContractViolation: [contract-states] widget: no state tab labelled "hover"' }] }],
     }));
     expect(findings.map((f: { rule: string }) => f.rule)).toEqual(['contract-states']);
+    expect(findings[0].component).toBe('widget');
   });
 });
 

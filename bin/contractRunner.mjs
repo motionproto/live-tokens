@@ -643,6 +643,7 @@ function a11yFinding(result, { file, line, componentId, context }) {
     file,
     line,
     message: `${componentId ? `${componentId}: ` : ''}${result.engineRule} at ${result.target}${result.view ? ` in ${result.view}` : ''}: ${result.help}. ${result.helpUrl}`,
+    ...(componentId ? { component: componentId } : {}),
     details: {
       engineRule: result.engineRule,
       impact: result.impact,
@@ -728,6 +729,7 @@ export function mapPlaywrightResults(report, { root, sourceDataDir, knownIds, po
         file: 'package.json',
         line: 1,
         message: `${componentId ? `${componentId}: ` : ''}"${t.specTitle}" did not finish (${last.status})`,
+        ...(componentId ? { component: componentId } : {}),
         context: { suite: 'playwright', title: [...t.describeTitles, t.specTitle].join(' > '), suiteFile: t.specFile, suiteLine: t.specLine },
       });
       markCoverage(componentId, rule, 'failed');
@@ -762,6 +764,7 @@ export function mapPlaywrightResults(report, { root, sourceDataDir, knownIds, po
         file,
         line,
         message: id ? `${id}: ${message}` : message,
+        ...(id ? { component: id } : {}),
         context: {
           suite: 'playwright',
           title: [...t.describeTitles, t.specTitle].join(' > '),

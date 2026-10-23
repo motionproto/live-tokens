@@ -951,6 +951,7 @@ describe('contractRunner: mapping a Playwright report', () => {
         file: 'package.json',
         line: 1,
         message: 'widget: "widget persists an edit and resets to the saved config" did not finish (timedOut)',
+        component: 'widget',
         context: expect.objectContaining({ suite: 'playwright' }),
       },
     ]);
