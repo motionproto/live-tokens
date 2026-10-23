@@ -122,7 +122,7 @@
 
     /* Bar (outer wrapper) */
     --segmentedcontrol-bar-surface: color-mix(in srgb, var(--surface-neutral-lowest) 75%, transparent);
-    --segmentedcontrol-bar-border: var(--border-neutral);
+    --segmentedcontrol-bar-border: var(--border-neutral-medium);
     --segmentedcontrol-bar-border-width: var(--border-width-1);
     --segmentedcontrol-bar-radius: var(--radius-lg);
     --segmentedcontrol-bar-padding: var(--space-4);

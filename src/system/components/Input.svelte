@@ -165,7 +165,7 @@
 
     /* Default */
     --input-default-surface: var(--surface-neutral-lower);
-    --input-default-border: var(--border-neutral);
+    --input-default-border: var(--border-neutral-medium);
     --input-default-text: var(--text-primary);
     --input-default-text-font-family: var(--font-sans);
     --input-default-text-font-size: var(--font-size-sm);

@@ -5,7 +5,7 @@
   "updatedAt": "2026-05-29T20:51:21.628Z",
   "aliases": {
     "--toggle-track-surface": "--surface-neutral",
-    "--toggle-track-border": "--border-neutral",
+    "--toggle-track-border": "--border-neutral-medium",
     "--toggle-track-border-width": "--border-width-1",
     "--toggle-track-radius": "--radius-full",
     "--toggle-track-padding": "--space-2",
@@ -20,7 +20,7 @@
     "--toggle-hover-track-surface": "--surface-neutral-high",
     "--toggle-hover-thumb-surface": "--text-primary",
     "--toggle-on-track-surface": "--surface-brand-high",
-    "--toggle-on-track-border": "--border-brand",
+    "--toggle-on-track-border": "--border-brand-medium",
     "--toggle-on-thumb-surface": "--text-primary",
     "--toggle-on-thumb-border": "--border-brand-strong",
     "--toggle-on-hover-track-surface": "--surface-brand-higher",

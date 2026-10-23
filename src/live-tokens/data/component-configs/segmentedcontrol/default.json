@@ -7,7 +7,7 @@
     "--segmentedcontrol-hover-tint": "--tint",
     "--segmentedcontrol-hover-tint-enabled": "--color-transparent",
     "--segmentedcontrol-bar-surface": "color-mix(in srgb, var(--surface-neutral-lowest) 75%, transparent)",
-    "--segmentedcontrol-bar-border": "--border-neutral",
+    "--segmentedcontrol-bar-border": "--border-neutral-medium",
     "--segmentedcontrol-bar-border-width": "--border-width-1",
     "--segmentedcontrol-bar-radius": "--radius-lg",
     "--segmentedcontrol-bar-padding": "--space-4",

@@ -131,13 +131,13 @@
        to one moves the other until the designer unlinks it. */
     /* Single: one thumb. */
     --slider-single-track-surface: var(--surface-neutral-lowest);
-    --slider-single-track-border: var(--border-neutral-subtle);
+    --slider-single-track-border: var(--border-neutral-medium);
     --slider-single-track-border-width: var(--border-width-1);
     --slider-single-track-height: var(--space-8);
     --slider-single-track-radius: var(--radius-full);
     --slider-single-fill: var(--surface-brand-high);
     --slider-single-thumb-surface: var(--surface-neutral-highest);
-    --slider-single-thumb-border: var(--border-brand);
+    --slider-single-thumb-border: var(--border-brand-medium);
     --slider-single-thumb-border-width: var(--border-width-2);
     --slider-single-thumb-size: var(--font-size-lg);
     --slider-single-thumb-radius: var(--radius-full);
@@ -151,13 +151,13 @@
 
     /* Range: two thumbs bounding a fill. */
     --slider-range-track-surface: var(--surface-neutral-lowest);
-    --slider-range-track-border: var(--border-neutral-subtle);
+    --slider-range-track-border: var(--border-neutral-medium);
     --slider-range-track-border-width: var(--border-width-1);
     --slider-range-track-height: var(--space-8);
     --slider-range-track-radius: var(--radius-full);
     --slider-range-fill: var(--surface-brand-high);
     --slider-range-thumb-surface: var(--surface-neutral-highest);
-    --slider-range-thumb-border: var(--border-brand);
+    --slider-range-thumb-border: var(--border-brand-medium);
     --slider-range-thumb-border-width: var(--border-width-2);
     --slider-range-thumb-size: var(--font-size-lg);
     --slider-range-thumb-radius: var(--radius-full);

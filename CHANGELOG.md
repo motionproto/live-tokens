@@ -178,6 +178,15 @@
   `--segmentedcontrol-selected-border` maps to `--border-brand-medium` in
   place of `--border-brand`, which lifts the outline from 2.67:1 to 4.31:1
   against the default theme's bar.
+- **Control edges meet 3:1.** Input's field, RadioButton's circle in every
+  state, SegmentedControl's bar, Slider's track at both variants and Toggle's
+  track now draw their edge in `--border-neutral-medium`, in place of
+  `--border-neutral` (`--border-neutral-subtle` for Slider). Toggle's on
+  track and Slider's thumbs draw `--border-brand-medium` in place of
+  `--border-brand`. Against the default theme's page the neutral edges rise
+  from 2.42:1 to 3.97:1, Slider's track from 1.45:1, and Toggle's on track
+  from 2.14:1 to 3.47:1. Slider's focus ring, drawn in the thumb's border
+  colour, rises from 2.14:1 to 3.47:1.
 
 ## 0.97.0 — Custom colors
 

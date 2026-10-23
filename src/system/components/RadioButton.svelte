@@ -53,7 +53,7 @@
 <style lang="scss">
   :global(:root) {
     /* Default */
-    --radiobutton-default-dot-border-color: var(--border-neutral);
+    --radiobutton-default-dot-border-color: var(--border-neutral-medium);
     --radiobutton-default-dot-border-width: var(--border-width-2);
     --radiobutton-default-dot-fill: var(--text-secondary);
     --radiobutton-default-dot-size: var(--dot-size-0);
@@ -64,7 +64,7 @@
     --radiobutton-default-label-line-height: var(--line-height-none);
 
     /* Hover */
-    --radiobutton-hover-dot-border-color: var(--border-neutral);
+    --radiobutton-hover-dot-border-color: var(--border-neutral-medium);
     --radiobutton-hover-dot-border-width: var(--border-width-2);
     --radiobutton-hover-dot-fill: var(--text-secondary);
     --radiobutton-hover-dot-size: var(--dot-size-50);
@@ -75,7 +75,7 @@
     --radiobutton-hover-label-line-height: var(--line-height-none);
 
     /* Selected */
-    --radiobutton-selected-dot-border-color: var(--border-neutral);
+    --radiobutton-selected-dot-border-color: var(--border-neutral-medium);
     --radiobutton-selected-dot-border-width: var(--border-width-2);
     --radiobutton-selected-dot-fill: var(--text-secondary);
     --radiobutton-selected-dot-size: var(--dot-size-50);

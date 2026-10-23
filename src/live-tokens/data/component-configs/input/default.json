@@ -9,7 +9,7 @@
     "--input-border-width": "--border-width-1",
     "--input-gap": "--space-6",
     "--input-default-surface": "--surface-neutral-lower",
-    "--input-default-border": "--border-neutral",
+    "--input-default-border": "--border-neutral-medium",
     "--input-default-text": "--text-primary",
     "--input-default-text-font-family": "--font-sans",
     "--input-default-text-font-size": "--font-size-sm",

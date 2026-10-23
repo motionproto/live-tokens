@@ -59,7 +59,7 @@
   :global(:root) {
     /* Default (off resting) — also carries all geometry + label typography. */
     --toggle-track-surface: var(--surface-neutral);
-    --toggle-track-border: var(--border-neutral);
+    --toggle-track-border: var(--border-neutral-medium);
     --toggle-track-border-width: var(--border-width-1);
     --toggle-track-radius: var(--radius-full);
     --toggle-track-padding: var(--space-2);
@@ -78,7 +78,7 @@
 
     /* On (selected — toggle is checked). */
     --toggle-on-track-surface: var(--surface-brand-high);
-    --toggle-on-track-border: var(--border-brand);
+    --toggle-on-track-border: var(--border-brand-medium);
     --toggle-on-thumb-surface: var(--text-primary);
     --toggle-on-thumb-border: var(--border-brand-strong);
 
