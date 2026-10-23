@@ -34,11 +34,34 @@ const FIXTURE = `
 </div>
 <input class="field outside" aria-label="Outside">`;
 
-const SCOPE = '[data-scope]';
-const KNOWN = new Set(['--fixture-border', '--fixture-surface', '--fixture-ring', '--fixture-cap-ring', '--fixture-glow', '--fixture-track']);
+// A segmented row whose selected option draws an inset outline, and a tab
+// whose underline is its one visible side.
+const SELECTED_FIXTURE = `
+<style>
+  body { margin: 0; }
+  .stage { padding: 24px; background: #fff; }
+  .row { display: flex; padding: 4px; background: var(--fixture-row); }
+  .seg { border: 0; background: transparent; }
+  .seg.on { background: var(--fixture-on-surface); outline: 1px solid var(--fixture-on-outline); outline-offset: -1px; }
+  .tab { border: 2px solid transparent; border-bottom: 2px solid var(--fixture-underline); background: transparent; }
+</style>
+<div class="stage" data-scope>
+  <div class="row"><button class="seg on">One</button><button class="seg">Two</button></div>
+  <button class="tab">Tab</button>
+</div>`;
 
-async function open(page: Page, values: Record<string, string>): Promise<void> {
-  await page.setContent(FIXTURE);
+const SCOPE = '[data-scope]';
+const KNOWN = new Set([
+  '--fixture-border', '--fixture-surface', '--fixture-ring', '--fixture-cap-ring', '--fixture-glow', '--fixture-track',
+  '--fixture-row', '--fixture-on-surface', '--fixture-on-outline', '--fixture-underline',
+]);
+const SELECTED_PARTS = [
+  { selector: '.seg', label: 'Selected option', when: '.on' },
+  { selector: '.tab', label: 'Selected tab' },
+];
+
+async function open(page: Page, values: Record<string, string>, fixture = FIXTURE): Promise<void> {
+  await page.setContent(fixture);
   await page.evaluate((values) => {
     for (const [name, value] of Object.entries(values)) document.documentElement.style.setProperty(name, value);
   }, values);
@@ -101,6 +124,22 @@ test.describe('non-text contrast', () => {
     await open(page, PASSING);
     expect(await scanFocusIndicators(page, SCOPE, ['.wash'])).toEqual([]);
     expect(await scanBoundaries(page, SCOPE, ['.wash'], [{ selector: '.field', label: 'Field' }], '.field')).toEqual([]);
+  });
+
+  test('a selected option measures its outline, a tab its best side, and `when` keeps the unselected option out', async ({ page }) => {
+    await open(page, { '--fixture-row': '#fff', '--fixture-on-surface': '#fff', '--fixture-on-outline': '#b7b7b7', '--fixture-underline': '#b7b7b7' }, SELECTED_FIXTURE);
+    const found = await scanBoundaries(page, SCOPE, [], SELECTED_PARTS, '.row');
+    expect(found.map(({ result }) => [result.rule, result.engineRule, result.target, result.help])).toEqual([
+      ['a11y-component', BOUNDARY_RULE, 'button.seg.on', 'Selected option outline 2:1 and surface 1:1 against the backdrop, needs 3:1'],
+      ['a11y-component', BOUNDARY_RULE, 'button.tab', 'Selected tab border 2:1 and surface 1:1 against the backdrop, needs 3:1'],
+    ]);
+    expect(await traced(page, found[0])).toEqual(['--fixture-on-outline', '--fixture-on-surface', '--fixture-row']);
+    expect(await traced(page, found[1])).toEqual(['--fixture-underline']);
+  });
+
+  test('a contrasting outline or underline reports nothing', async ({ page }) => {
+    await open(page, { '--fixture-row': '#fff', '--fixture-on-surface': '#fff', '--fixture-on-outline': '#767676', '--fixture-underline': '#767676' }, SELECTED_FIXTURE);
+    expect(await scanBoundaries(page, SCOPE, [], SELECTED_PARTS, '.row')).toEqual([]);
   });
 
   test('a disabled control is exempt', async ({ page }) => {

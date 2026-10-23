@@ -227,6 +227,9 @@ export interface SketchExpectation extends View {
 export interface BoundaryExpectation {
   part: string;
   label: string;
+  /** A selector the part's element must also match to be measured, such as a
+   *  state class a part shared across states carries in one of them. */
+  when?: string;
 }
 
 export interface ComponentContract {
@@ -255,9 +258,10 @@ export interface ComponentContract {
   persistence: PersistenceExpectation;
   theme: ThemeExpectation;
   interaction: InteractionExpectation | Inapplicable;
-  /** The parts whose border or surface draws the control's visible edge.
-   *  The accessibility suite measures each against the backdrop behind it,
-   *  at 3:1 under WCAG 2.2 SC 1.4.11. `label` names the part in a finding. */
+  /** The parts whose border, outline or surface draws the control's visible
+   *  edge or marks its selected state. The accessibility suite measures each
+   *  against the backdrop behind it, at 3:1 under WCAG 2.2 SC 1.4.11. `label`
+   *  names the part in a finding. */
   boundaries?: BoundaryExpectation[];
   /** What the component does when it is driven, proven under happy-dom. */
   behavior: BehaviorExpectation | Inapplicable;

@@ -116,6 +116,7 @@ export const tabBarContract: ComponentContract = {
     },
     observe: { part: 'tab', css: 'borderTopWidth', variable: '--tabbar-default-tab-border-width' },
   },
+  boundaries: [{ part: 'tabSelected', label: 'Selected tab' }],
   interaction: {
     part: 'secondTab',
     role: 'button',

@@ -93,9 +93,10 @@ SIA-R65's finding and adds none here.
 ## Control boundary contrast
 
 A control whose edge shows where to click or what it holds needs that edge
-at 3:1 against the backdrop behind it. The contract lists the parts that
-draw it in `boundaries`. Each part passes when its border, 1px or wider, or
-its surface reaches 3:1. A failure names both ratios, such as "Track border
+at 3:1 against the backdrop behind it. So does a selected or current item
+whose surface or edge alone shows that state. The contract lists these parts
+in `boundaries`. Each part passes when its border, on any side, or its
+outline, 1px or wider, or its surface reaches 3:1. A failure names both ratios, such as "Track border
 1.45:1 and surface 1.3:1 against the backdrop, needs 3:1", and reports under
 `a11y-component` with engine rule `control-boundary-contrast`. A part whose
 form controls are all disabled is skipped, because SC 1.4.11 exempts inactive
@@ -103,7 +104,12 @@ controls.
 
 The shipped controls that draw their own edge declare it: Input's field,
 RadioButton's circle, Slider's and Toggle's track and thumb, and
-SegmentedControl's bar.
+SegmentedControl's bar. The selected states that show by surface and edge
+alone declare their part too: TabBar's selected tab, SegmentedControl's
+selected option, and SideNavigation's selected title, section, item and
+footer. Each measures against the bar or panel behind it, the surface the
+unselected items show. MenuSelect's selected option carries a check mark, so
+it declares none.
 
 ## Text spacing and motion per component
 
@@ -203,9 +209,11 @@ or a hover target, marks it `data-preview-demo`, and the scans skip it.
 ## Boundaries in the contract
 
 `boundaries` is an optional contract field,
-`{ part: string; label: string }[]`, for the parts that draw a control's
-visible edge. `part` is a key of the contract's `parts`, and `label` names
-the part in a finding.
+`{ part: string; label: string; when?: string }[]`, for the parts that draw a
+control's visible edge or show its selected state. `part` is a key of the
+contract's `parts`, and `label` names the part in a finding. `when` is a
+selector the part must also match to be measured, for a part that carries its
+selected state as a class in some views only.
 
 ```ts
 boundaries: [
@@ -215,7 +223,8 @@ boundaries: [
 ```
 
 List a part whose border or surface is the only thing that shows the control
-is there, or a thumb whose position shows the value. Leave out a part whose
+is there, a thumb whose position shows the value, or a selected item whose
+surface or edge is the only thing that shows it is selected. Leave out a part whose
 text or icon already shows it. A contract without the field runs no boundary
 check.
 

@@ -14,11 +14,16 @@ const FIXTURE = `
   .field:focus { outline: 2px solid var(--fixture-ring); }
   .field.error, .field.error:focus { outline: 2px solid var(--fixture-error); }
   .field.error { border-radius: var(--fixture-radius); outline-offset: var(--fixture-offset); }
+  .row { --_bg: var(--fixture-row); background: var(--_bg); }
+  .chip { --_ink: var(--fixture-ink); --_bg: var(--fixture-chip); color: var(--_ink); }
+  .chip.on { --_ink: var(--fixture-on-ink) !important; }
+  .chip.on.loud { --_ink: var(--fixture-loud-ink); }
 </style>
 <div class="editor">
   <div class="stage" data-scope>
     <div class="fixture"><button class="knob">Go</button></div>
     <input class="field plain"><input class="field error">
+    <div class="row"><span class="chip on loud">On</span></div>
   </div>
   <button class="knob">Outside</button>
 </div>`;
@@ -26,6 +31,7 @@ const FIXTURE = `
 const KNOWN = new Set([
   '--fixture-size', '--fixture-text', '--fixture-surface', '--fixture-ring', '--fixture-glow',
   '--fixture-border', '--fixture-error', '--fixture-radius', '--fixture-offset',
+  '--fixture-row', '--fixture-ink', '--fixture-chip', '--fixture-on-ink', '--fixture-loud-ink',
 ]);
 const TARGET = { selector: '.knob', scope: '[data-scope]' };
 
@@ -56,6 +62,12 @@ test.describe('traceProperties', () => {
     const field = (state: string) => ({ selector: `.field.${state}`, scope: '[data-scope]' });
     expect(await traceProperties(page, field('plain'), TRACE_AXES['SIA-R65'], KNOWN)).toEqual(['--fixture-ring']);
     expect(await traceProperties(page, field('error'), TRACE_AXES['SIA-R65'], KNOWN)).toEqual(['--fixture-error', '--fixture-ring']);
+  });
+
+  test('follows the winning declaration of a private property on the element whose value reads it', async ({ page }) => {
+    await open(page);
+    const chip = { selector: '.chip', scope: '[data-scope]' };
+    expect(await traceProperties(page, chip, TRACE_AXES['color-contrast'], KNOWN)).toEqual(['--fixture-on-ink', '--fixture-row']);
   });
 
   test('traces nothing for a target outside the scope', async ({ page }) => {

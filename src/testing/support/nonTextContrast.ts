@@ -25,10 +25,12 @@ export interface CheckedResult {
   trace: TraceRequest;
 }
 
-/** A part whose border or surface draws a control's visible edge. */
+/** A part whose border, outline or surface draws a control's visible edge.
+ *  `when` narrows it to the elements that also match, such as a state class. */
 export interface BoundaryPart {
   selector: string;
   label: string;
+  when?: string;
 }
 
 type Snapshot = string[];
@@ -50,7 +52,7 @@ type BoundaryOutcome = {
   label: string;
   target: string;
   html: string;
-  border: number | null;
+  edge: { channel: 'border' | 'outline'; ratio: number } | null;
   surface: number | null;
   ancestorsFrom: number;
 };
@@ -255,22 +257,34 @@ function inPage(request: PageRequest): unknown {
       for (const part of request.parts) {
         const elements = scopes.flatMap((scope) => [scope, ...scope.querySelectorAll(part.selector)])
           .filter((el, i, all) => all.indexOf(el) === i && el.matches(part.selector) && inScope(el))
+          .filter((el) => !part.when || el.matches(part.when))
           .filter((el) => el.checkVisibility({ visibilityProperty: true }) && el.getBoundingClientRect().width > 0 && !inactive(el));
         for (const el of elements) {
           const style = getComputedStyle(el);
           const behind = backdrop(el.parentElement!, el.getBoundingClientRect());
           const common = { label: part.label, target: selectorFor(el), html: html(el), ancestorsFrom: behind.first + 1 };
           if (!behind.color) {
-            outcomes.push({ kind: 'review', border: null, surface: null, ...common });
+            outcomes.push({ kind: 'review', edge: null, surface: null, ...common });
             continue;
           }
           const surfaceColor = paint([rgb(behind.color), style.backgroundColor]);
           const surface = style.backgroundImage === 'none' ? contrast(surfaceColor, behind.color) : null;
-          const edge = SIDES.map((side) => visibleSide(style, side)).find(Boolean);
-          const under = style.backgroundClip === 'border-box' ? surfaceColor : behind.color;
-          const border = edge ? contrast(paint([rgb(under), edge]), behind.color) : null;
-          if ((border ?? 0) >= 3 || (surface ?? 0) >= 3) continue;
-          outcomes.push({ kind: surface === null ? 'review' : 'fail', border, surface, ...common });
+          // A state indicator may draw one side, as TabBar's underline does, or
+          // an inset outline, as SegmentedControl's selected option does.
+          const edges: { channel: 'border' | 'outline'; color: string; under: number[] }[] = [];
+          const borderUnder = style.backgroundClip === 'border-box' ? surfaceColor : behind.color;
+          for (const side of SIDES) {
+            const color = visibleSide(style, side);
+            if (color) edges.push({ channel: 'border', color, under: borderUnder });
+          }
+          if (!['none', 'auto'].includes(style.outlineStyle) && px(style.outlineWidth) >= 0.99) {
+            edges.push({ channel: 'outline', color: style.outlineColor, under: px(style.outlineOffset) < 0 ? surfaceColor : behind.color });
+          }
+          const edge = edges
+            .map(({ channel, color, under }) => ({ channel, ratio: contrast(paint([rgb(under), color]), behind.color) }))
+            .reduce<BoundaryOutcome['edge']>((best, next) => (best && best.ratio >= next.ratio ? best : next), null);
+          if ((edge?.ratio ?? 0) >= 3 || (surface ?? 0) >= 3) continue;
+          outcomes.push({ kind: surface === null ? 'review' : 'fail', edge, surface, ...common });
         }
       }
       return outcomes;
@@ -356,10 +370,10 @@ export async function scanFocusIndicators(page: Page, scope: string, exclude: st
 
 /**
  * Decision 9: each visible element of each boundary part in `scope` passes
- * when its border, 1px or wider, or its surface contrasts 3:1 with the
- * surfaces behind it. A part of a control whose every form control is
- * disabled is inactive, which SC 1.4.11 exempts. `root` names the component's
- * root part, the extent of the control.
+ * when its best border side or outline, 1px or wider, or its surface
+ * contrasts 3:1 with the surfaces behind it. A part of a control whose every
+ * form control is disabled is inactive, which SC 1.4.11 exempts. `root` names
+ * the component's root part, the extent of the control.
  */
 export async function scanBoundaries(
   page: Page,
@@ -371,7 +385,7 @@ export async function scanBoundaries(
   if (parts.length === 0) return [];
   const outcomes = await run<BoundaryOutcome[]>(page, { kind: 'boundaries', scope, exclude, parts, root });
   return outcomes.map((outcome) => {
-    const border = outcome.border === null ? 'no border' : `border ${ratioText(outcome.border)}`;
+    const edge = outcome.edge === null ? 'no border' : `${outcome.edge.channel} ${ratioText(outcome.edge.ratio)}`;
     return {
       result: {
         rule: outcome.kind === 'fail' ? 'a11y-component' : 'a11y-review',
@@ -380,7 +394,7 @@ export async function scanBoundaries(
         target: outcome.target,
         html: outcome.html,
         help: outcome.kind === 'fail'
-          ? `${outcome.label} ${border} and surface ${ratioText(outcome.surface!)} against the backdrop, needs 3:1`
+          ? `${outcome.label} ${edge} and surface ${ratioText(outcome.surface!)} against the backdrop, needs 3:1`
           : `${outcome.label} sits on or carries a gradient or image. Check by eye that its edge contrasts 3:1 with the backdrop`,
         helpUrl: NON_TEXT_URL,
       },

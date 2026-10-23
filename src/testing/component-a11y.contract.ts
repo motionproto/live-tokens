@@ -270,7 +270,7 @@ for (const contract of await selectedContracts()) {
     const portals = portalSelectors(contract);
     const presets = process.env[A11Y_THEMES_ENV] === 'all' ? PRESETS : [];
     const known = await harness.propertyVariables();
-    const boundaries = (contract.boundaries ?? []).map(({ part, label }) => ({ selector: partLocator(contract, part).selector, label }));
+    const boundaries = (contract.boundaries ?? []).map(({ part, label, when }) => ({ selector: partLocator(contract, part).selector, label, when }));
     const root = partLocator(contract, contract.root).selector;
     const own = [root, ...portals];
     const found = new Occurrences(async (result, request) => {

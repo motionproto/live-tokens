@@ -43,7 +43,11 @@ export const TRACE_AXES: Readonly<Record<string, TraceAxes>> = {
     ancestors: ['background*'],
     force: FOCUS,
   },
-  'control-boundary-contrast': { target: [...BORDER_PAINT, 'background*'], pseudoElements: [], ancestors: ['background*'] },
+  'control-boundary-contrast': {
+    target: [...BORDER_PAINT, 'outline', 'outline-color', 'outline-width', 'outline-style', 'background*'],
+    pseudoElements: [],
+    ancestors: ['background*'],
+  },
   // Every element's line height is 1.5 under the override, so the theme's own cannot cause the overflow.
   'text-spacing': {
     target: ['height', 'max-height', 'width', 'max-width', 'padding*', 'overflow*', 'white-space'],
@@ -58,6 +62,7 @@ interface Declaration {
   name: string;
   value: string;
   text?: string;
+  important?: boolean;
 }
 
 interface Style {
@@ -111,6 +116,19 @@ function regularRules(styles: ElementStyles): RuleMatch['rule'][] {
 
 function declarations(styles: ElementStyles): Declaration[] {
   return [authored(styles.inlineStyle), ...regularRules(styles).map((rule) => authored(rule.style))].flat();
+}
+
+/** One element's declarations from lowest to highest precedence: its rules
+ *  in cascade order, then its inline style. */
+function cascadeOrder(styles: ElementStyles): Declaration[] {
+  return [...regularRules(styles).flatMap((rule) => authored(rule.style)), ...authored(styles.inlineStyle)];
+}
+
+/** The declaration of `name` that wins among `ordered`, or none. */
+function winning(ordered: Declaration[], name: string): Declaration | undefined {
+  const all = ordered.filter((d) => d.name === name);
+  // Chromium flags `important` on standard properties and leaves it in a custom property's value.
+  return all.filter((d) => d.important || /!\s*important\s*$/i.test(d.value)).at(-1) ?? all.at(-1);
 }
 
 function ruleKey(rule: RuleMatch['rule']): string {
@@ -199,21 +217,45 @@ async function traceNode(
     : declarations(matched);
   const pseudo = (matched.pseudoElements ?? []).flatMap(({ matches }) => declarations({ matchedCSSRules: matches }));
   const chain = (matched.inherited ?? []).slice(0, node.depth);
-  const ancestors = chain.flatMap(declarations);
-  const pending = [
-    ...own.filter((d) => onAxis(d.name, axes.target)),
-    ...pseudo.filter((d) => onAxis(d.name, axes.pseudoElements)),
-    ...chain.slice(Math.max(node.ancestorsFrom - 1, 0)).flatMap(declarations).filter((d) => onAxis(d.name, axes.ancestors)),
-  ].flatMap((d) => references(d.value));
 
-  const custom = [...declarations(matched), ...pseudo, ...ancestors].filter((d) => d.name.startsWith('--'));
+  // A reference resolves on the element whose declaration holds it: level 0
+  // is the target, level n its nth ancestor, and PSEUDO its pseudo-elements.
+  // Only the winning declaration of a private property counts there, so a
+  // selected tab traces its selected binding and leaves the default one out.
+  const PSEUDO = -1;
+  const levels = [cascadeOrder(matched), ...chain.map(cascadeOrder)];
+  const pseudoCustom = pseudo.filter((d) => d.name.startsWith('--'));
+  const from = Math.max(node.ancestorsFrom - 1, 0);
+  const pending: { name: string; level: number }[] = [
+    ...own.filter((d) => onAxis(d.name, axes.target)).map((d) => ({ d, level: 0 })),
+    ...pseudo.filter((d) => onAxis(d.name, axes.pseudoElements)).map((d) => ({ d, level: PSEUDO })),
+    ...chain.slice(from).flatMap((entry, i) => declarations(entry)
+      .filter((d) => onAxis(d.name, axes.ancestors))
+      .map((d) => ({ d, level: from + i + 1 }))),
+  ].flatMap(({ d, level }) => references(d.value).map((name) => ({ name, level })));
+
+  const resolve = (name: string, level: number): { declarations: Declaration[]; level: number } => {
+    if (level === PSEUDO) {
+      const own = pseudoCustom.filter((d) => d.name === name);
+      if (own.length > 0) return { declarations: own, level: PSEUDO };
+    }
+    for (let at = Math.max(level, 0); at < levels.length; at++) {
+      const won = winning(levels[at], name);
+      if (won) return { declarations: [won], level: at };
+    }
+    return { declarations: [], level };
+  };
+
   const found = new Set<string>();
   const followed = new Set<string>();
-  for (let name = pending.pop(); name !== undefined; name = pending.pop()) {
+  for (let next = pending.pop(); next !== undefined; next = pending.pop()) {
+    const { name, level } = next;
+    const key = `${name}@${level}`;
     if (known.has(name)) found.add(name);
-    else if (!followed.has(name)) {
-      followed.add(name);
-      for (const d of custom) if (d.name === name) pending.push(...references(d.value));
+    else if (!followed.has(key)) {
+      followed.add(key);
+      const resolved = resolve(name, level);
+      for (const d of resolved.declarations) pending.push(...references(d.value).map((ref) => ({ name: ref, level: resolved.level })));
     }
   }
   return [...found];
@@ -234,9 +276,9 @@ export interface TraceTarget {
  * The component properties `axes` reads on the element `target.selector`
  * names inside `target.scope` (decisions 1 to 3): each matched declaration on
  * an axis, narrowed under `axes.force` to the ones the force brings in or
- * changes, its `var()` references followed through every private custom
- * property the target or an in-scope ancestor declares, kept where a name is
- * in `known`. Sorted and unique.
+ * changes, its `var()` references followed through the winning declaration
+ * of each private custom property on the target or an in-scope ancestor,
+ * kept where a name is in `known`. Sorted and unique.
  */
 export async function traceProperties(
   page: Page,

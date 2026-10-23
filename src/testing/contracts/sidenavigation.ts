@@ -205,6 +205,12 @@ export const sideNavigationContract: ComponentContract = {
     },
     observe: { part: 'root', css: 'borderRightWidth', variable: '--sidenavigation-panel-border-width' },
   },
+  boundaries: [
+    { part: 'title', label: 'Selected title', when: '.selected' },
+    { part: 'sectionSelected', label: 'Selected section' },
+    { part: 'itemSelected', label: 'Selected item' },
+    { part: 'footer', label: 'Selected footer', when: '.selected, .force-footer-selected .sn-footer' },
+  ],
   interaction: {
     part: 'toggle',
     role: 'button',

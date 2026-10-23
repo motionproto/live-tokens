@@ -95,6 +95,15 @@
   `{ part: string; label: string }[]`, lists the parts that draw a control's
   visible edge, for the control boundary check. Input, RadioButton, Slider,
   Toggle, and SegmentedControl declare it.
+- **Selected states join the control boundary check.** TabBar's selected
+  tab, SegmentedControl's selected option, and SideNavigation's selected
+  title, section, item, and footer show their state by surface and edge
+  alone, so their contracts list them in `boundaries`. Each measures against
+  the bar or panel behind it. A `boundaries` entry takes `when`, a selector
+  the part must also match, and the check reads an outline and every border
+  side and keeps the best. The trace follows only the winning declaration of
+  a private property, so a selected tab's finding names the selected tab's
+  properties alone.
 - **`check-component --tests` takes `--a11y` and `--open-theme`.** `--a11y`
   runs the accessibility suite and the keyboard cases alone, with no static
   checks or fixes, and reports only `a11y-*` and `tests-*` findings.
