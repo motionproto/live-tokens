@@ -36,6 +36,8 @@ import { detectLegacyLayout, type LegacyLayout } from './files/legacyLayout';
 import { validateTokensCss, runAdditiveTokensCssMigrations } from './tokensCssMigrations';
 import { checkBeforeBuild } from './buildChecks';
 import { formatReport, rewriteBundle, type ProductionCssOptions } from './productionCss';
+import { a11yRunServer, spawnCli } from './a11y/a11yRunServer';
+import { A11Y_EVENT } from '../src/editor/core/a11y/a11yReportTypes';
 import { fileURLToPath } from 'node:url';
 
 // Read live-tokens' own package.json by walking up from this file. Works the
@@ -200,6 +202,9 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
   // themes the same way. The Default theme never ships:
   // `ensureDefaultTheme` derives the full local set at boot, before the
   // first request.
+  // The package's own CLI, by the same `..`-from-this-file resolution.
+  const PACKAGE_CLI_PATH = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', 'bin', 'cli.mjs');
+
   const packageDataDir = testPackageDataDir() ?? path.resolve(
     path.dirname(fileURLToPath(import.meta.url)),
     '..',
@@ -1281,6 +1286,8 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
   // so there is nothing per-layer to promote and nothing to name in the body.
   const PRODUCTION_ROUTE = `${API_BASE}/production`;
   const EVENTS_ROUTE = `${API_BASE}/events`;
+  const A11Y_RUN_ROUTE = `${API_BASE}/a11y/run`;
+  const A11Y_REPORT_ROUTE = `${API_BASE}/a11y/report`;
 
   // ── Route handlers ────────────────────────────────────────────────────────
   // Each handler can throw — the route-table dispatcher centralises the 500
@@ -1824,7 +1831,37 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
       const state = resolveLiveState(read.theme, activeFile);
       res.write(`event: live-state\ndata: ${JSON.stringify(state)}\n\n`);
     });
-    req.on('close', unsubscribe);
+    eventClients.add(res);
+    req.on('close', () => {
+      unsubscribe();
+      eventClients.delete(res);
+    });
+  }
+
+  const eventClients = new Set<any>();
+  const a11yRuns = a11yRunServer({
+    root: process.cwd(),
+    runCli: spawnCli(PACKAGE_CLI_PATH),
+    broadcast: (report) => {
+      const frame = `event: ${A11Y_EVENT}\ndata: ${JSON.stringify(report)}\n\n`;
+      for (const client of eventClients) client.write(frame);
+    },
+  });
+
+  async function handleStartA11yRun({ req, res }: any) {
+    let body: unknown;
+    try {
+      body = JSON.parse(await readBody(req));
+    } catch {
+      body = undefined;
+    }
+    const answer = a11yRuns.start(body);
+    jsonResponse(res, answer.status, answer.body);
+  }
+
+  async function handleGetA11yReport({ res }: any) {
+    const answer = a11yRuns.report();
+    jsonResponse(res, answer.status, answer.body);
   }
 
   /**
@@ -2204,6 +2241,14 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
     { method: 'POST',   pattern: SKETCH_STYLE_BY_NAME_REGEX, handler: methodNotAllowed },
 
     { method: 'GET',    pattern: EVENTS_ROUTE,            handler: handleEvents },
+    { method: 'POST',   pattern: A11Y_RUN_ROUTE,          handler: handleStartA11yRun },
+    { method: 'GET',    pattern: A11Y_RUN_ROUTE,          handler: methodNotAllowed },
+    { method: 'PUT',    pattern: A11Y_RUN_ROUTE,          handler: methodNotAllowed },
+    { method: 'DELETE', pattern: A11Y_RUN_ROUTE,          handler: methodNotAllowed },
+    { method: 'GET',    pattern: A11Y_REPORT_ROUTE,       handler: handleGetA11yReport },
+    { method: 'PUT',    pattern: A11Y_REPORT_ROUTE,       handler: methodNotAllowed },
+    { method: 'POST',   pattern: A11Y_REPORT_ROUTE,       handler: methodNotAllowed },
+    { method: 'DELETE', pattern: A11Y_REPORT_ROUTE,       handler: methodNotAllowed },
     { method: 'PUT',    pattern: PRODUCTION_ROUTE,        handler: handleAdoptTheme },
     { method: 'GET',    pattern: PRODUCTION_ROUTE,        handler: methodNotAllowed },
     { method: 'POST',   pattern: PRODUCTION_ROUTE,        handler: methodNotAllowed },
@@ -2340,6 +2385,8 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
         const handled = await dispatch(req, res, routes);
         if (!handled) next();
       });
+      // A restart builds a new plugin, and the old run would go on unseen.
+      server.httpServer?.once('close', () => a11yRuns.stop());
     },
     handleHotUpdate(ctx) {
       // Boot wrote nothing on the pre-0.48 layout, and an editor save while a
