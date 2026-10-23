@@ -292,6 +292,81 @@ names `--slider-range-thumb-size`, `--input-focused-border` and
 **Verify.** `npm run check`, `npx vitest run src/editor`,
 `npx playwright test tests/e2e/a11y-markers.spec.ts tests/e2e/accessibility-view.spec.ts`.
 
+**Built.** Waves 3 and 4 call these:
+
+- The trace narrows under a forced pseudo-class. `traceProperties` reads
+  the target's matched styles once without the force and once with it. It
+  keeps every declaration of a rule that matches only under the force, and
+  every declaration of a later rule, or of the inline style, that sets one
+  of the longhands those rules set. The page's CSSOM expands each shorthand
+  to its longhands, so `outline` overrides `outline-color`. Rules that match
+  in every state drop. Pseudo-elements, ancestors and the custom properties
+  the trace follows keep Wave 1's reading. Input's `SIA-R65` result now
+  names six variables: `--input-error-border`, `--input-error-border-width`,
+  `--input-focused-border`, `--input-focused-border-width`,
+  `--input-focused-surface` and `--input-focused-text`. No shipped
+  component sets a private custom property in a focus rule, so the trace
+  does not follow one that only focus changes.
+  `tests/e2e/trace-properties.spec.ts` gains a plain field and an error
+  field: the plain one names its ring alone, the error one its ring and its
+  error outline, and neither names its resting border, surface or radius.
+- `ComponentA11yIssues` gains `property: A11yFinding[]`. `a11yIssues` sorts
+  an `a11y-review` finding into `review`, a finding whose engine rule is in
+  `PROPERTY_FIX_RULES` (`focus-indicator-contrast`,
+  `control-boundary-contrast`, exported from `a11yReport.ts`) into
+  `property`, and every other `a11y-*` finding into `code`. Wave 4 adds no
+  grouping code: its findings land in "Fix with a property" by engine rule.
+- `a11yView.ts`: `issueCount` sums all four lists, so `componentsWithIssues`
+  returns, and the rail marks, a component with check-by-eye results alone.
+  `findingRows(findings): A11yFindingRow[]` merges findings that share the
+  rule, the engine rule, the help text and the traced variables. The help
+  joins the key because `aria-snapshot` and the keyboard cases vary their
+  help under one engine rule; axe and Alfa keep it fixed per rule. A row
+  carries `finding` (the first), `targets` (unique), `views` and
+  `variables`. A lone finding keeps its `view` as the run wrote it. Merged
+  views list each name once, up to four, then "and more", because each
+  finding has already cut its own list at four. `findingText`,
+  `elementsLabel` and `reviewResults` (now `{ component, label, row }`)
+  join it.
+- `propertyLabel(component, variable)` leads the schema label with the
+  variable's words after `--<component>-` that the label lacks:
+  "Focused border color", "Brand text color", "Single thumb size". An
+  intrinsic names itself by its key ("Shimmer", "Hover tint"). Contrast
+  rows read the same labels, so Badge's row now reads "Brand text color
+  3.87:1, needs 4.5:1".
+- `src/editor/ui/a11y/A11yFindingRow.svelte` renders one merged row:
+  `{ component, row, review?, prefix?, onreveal? }`. Its detail reads the
+  target in code, or "N elements", then the views. Its links line lists each
+  traced property: a button reading the label and "→", named "Go to
+  <label>" with the variable as its title, when `onreveal` is present, and
+  the label as text otherwise.
+- `A11yIssueRow` trades `marked` for `review`, which draws "?" in
+  `--ui-text-tertiary` in place of the "!" in `--ui-highlight` and sets the
+  class `review` on the row. It gains an optional `links` snippet under the
+  detail.
+- `A11yComponentIssues` takes `withReview`. It renders "Fix with a
+  property" (the editor's contrast rows, then the property rows), "Fix in
+  the component's code" and, with `withReview`, "Check by eye".
+- `A11yPanel` shows for any finding, passes `withReview`, and drops its
+  link to the view. Its reveal also finds rows by `data-token-variables~=`.
+  A row of an intrinsic on a tab that is not open stays unreached: the
+  VariantGroup's `tabHolding` reads only schema tokens, and the hover-tab
+  toggles sit in `extraPropertyRows`.
+- The Accessibility view counts check-by-eye results in its summary, rail
+  and per-component counts. A component section with such results ends in a
+  quiet "N results to check by eye" button that opens the collapsed list.
+  The list merges its rows per component and leads each with the component
+  label.
+- Tests: `a11yReport.test.ts` sorts a property finding; `a11yView.test.ts`
+  covers the counts, the merge, the views and the labels; `A11yPanel.test.ts`
+  covers the inline group, a check-by-eye-only component, a merged row and
+  the property links; `a11y-markers.spec.ts` checks Video Frame's rail mark
+  and panel; `accessibility-view.spec.ts` checks the new totals and the
+  section's link to the list.
+- The docs chapter `accessibility.md` still describes the panel's two
+  groups, the check-by-eye results kept apart from the counts, and the
+  unqualified "Text color 3.87:1" row; Wave 6 rewrites it.
+
 ## Wave 3: property row marks
 
 - `A11yPropertyMark.svelte` per D7, placed in each row host.
