@@ -119,7 +119,7 @@ export const tabBarContract: ComponentContract = {
   boundaries: [{ part: 'tabSelected', label: 'Selected tab' }],
   interaction: {
     part: 'secondTab',
-    role: 'button',
+    role: 'tab',
     cases: [
       {
         name: 'clicking a tab focuses it',

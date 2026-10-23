@@ -3869,7 +3869,7 @@
         "--tabbar-hover-tab-bottom-radius": "--radius-none",
         "--tabbar-hover-indicator-width": "--border-width-2",
         "--tabbar-selected-text": "--text-primary",
-        "--tabbar-selected-border": "--color-brand-500",
+        "--tabbar-selected-border": "--border-brand-medium",
         "--tabbar-selected-surface": "--tint-low",
         "--tabbar-selected-text-font-family": "--font-sans",
         "--tabbar-selected-text-font-size": "--font-size-md",

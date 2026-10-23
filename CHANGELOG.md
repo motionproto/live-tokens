@@ -162,6 +162,13 @@
   for that component can do, and told the agent to save one first. The
   example now expects the theme to move a color property through its design
   tokens and lists the component's radius and padding as unchanged.
+- **TabBar follows the WAI-ARIA tabs pattern.** The bar is a `tablist` of
+  `tab` elements that carry `aria-selected`. Tab reaches the selected tab
+  alone, the arrow keys move focus between enabled tabs and wrap, Home and
+  End jump to the first and last, and Enter or Space selects.
+- **TabBar's selected indicator meets 3:1.** `--tabbar-selected-border` maps
+  to `--border-brand-medium` in place of `--color-brand-500`, which lifts the
+  underline from 2.96:1 to 3.47:1 against the default theme's page.
 
 ## 0.97.0 — Custom colors
 

@@ -58,19 +58,48 @@
       dispatch('tabChange', tab.id);
     }
   }
+
+  const buttons: HTMLButtonElement[] = $state([]);
+
+  // Roving tab stop: the bar takes one Tab press, on the selected tab.
+  let tabStop = $derived(
+    tabs.find((t) => t.id === value && !t.disabled)?.id ?? tabs.find((t) => !t.disabled)?.id,
+  );
+
+  // Arrows move focus alone; Enter or Space selects, since a consumer's
+  // onchange may load the panel.
+  function moveFocus(event: KeyboardEvent, from: number) {
+    const enabled = tabs.flatMap((t, i) => (t.disabled ? [] : [i]));
+    const at = enabled.indexOf(from);
+    const to = {
+      ArrowRight: enabled[(at + 1) % enabled.length],
+      ArrowLeft: enabled[(at - 1 + enabled.length) % enabled.length],
+      Home: enabled[0],
+      End: enabled[enabled.length - 1],
+    }[event.key];
+    if (to === undefined) return;
+    event.preventDefault();
+    buttons[to].focus();
+  }
 </script>
 
 <div
   class="tab-bar {className}"
+  role="tablist"
   style:--tabbar-hover-tint-enabled={hoverTintValue}
 >
-  {#each tabs as tab}
+  {#each tabs as tab, i}
     <button
       class="tab"
       class:selected={value === tab.id}
       class:icon-only={iconOnly}
+      role="tab"
+      aria-selected={value === tab.id}
+      tabindex={tab.id === tabStop ? 0 : -1}
       disabled={tab.disabled}
+      bind:this={buttons[i]}
       onclick={() => selectTab(tab)}
+      onkeydown={(event) => moveFocus(event, i)}
     >
       {#if tab.icon}
         <i class={tab.icon}></i>
@@ -133,7 +162,7 @@
 
     /* Selected tab */
     --tabbar-selected-text: var(--text-primary);
-    --tabbar-selected-border: var(--color-brand-500);
+    --tabbar-selected-border: var(--border-brand-medium);
     --tabbar-selected-surface: var(--tint-low);
     --tabbar-selected-text-font-family: var(--font-sans);
     --tabbar-selected-text-font-size: var(--font-size-md);
