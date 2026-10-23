@@ -26,6 +26,7 @@ Both checkers are static. They read the project's source, never open a browser, 
     - the fixes the checkers applied, each with its count and any visible shift
     - the remaining changes by rule, each with its count and any visible shift
     - the findings left, each with its reason and any config entry the user chose
+    - the `a11y-*` alerts, each with its element and guidance, for the user to review
     - both checker commands with their exit codes
 
 `check-page <path>` scopes a run to one page. `check-component <id>` scopes a run to one component: its runtime, its editor, and its registration. The checkers read tokens.css from its default location.
@@ -49,6 +50,10 @@ Every finding's `repair` says what moving it costs.
 - **`auto`.** The value determines the fix, such as a spacing literal with one nearest design-token step. The checkers apply it and list it in `fix.applied`.
 - **`choice`.** A role or an ambiguous value determines the fix, such as a color literal and the role it plays, or a spacing literal tied between two steps. `details` lists the candidates, and `guidance` says how to pick one.
 - **`authored`.** New code is the fix: a runtime that has to start behaving, an editor schema that has to name a token, a route that has to move. `guidance` names what to write. No candidate list applies.
+
+## Accessibility alerts
+
+A `--tests` run adds the `a11y-*` rules, which test the rendered page or component against WCAG 2 A and AA with axe, Siteimprove Alfa, and the contract's keyboard cases. Each reports at `warn` and blocks only under `--strict`. Every `a11y-*` finding is an alert the user reviews: list it in the reply, and repair it from its guidance when the repair scope includes warnings. An `a11y-review` finding marks a check axe could not decide, such as text over a gradient, and the user judges it by eye. Inside the live-tokens repository, an `a11y-component` finding with engine rule `aria-snapshot` marks an accessibility tree that changed since it was recorded; after a deliberate markup change, `check-component <id> --tests --update-aria` records it anew.
 
 ## Scope
 

@@ -152,12 +152,63 @@ Each obligation and what it needs from the project:
   changed property resolves to under it. A theme assigns geometry steps only
   to the components it holds a block for, so a new component's radius,
   padding, and border width belong in `unchanged`.
-- `interaction`: the interactive part's role and its cases. `applicable:
-  false` for a component with no interactive role.
+- `interaction`: the interactive part's role and its cases, keyboard cases
+  among them. See Keyboard cases below. `applicable: false` for a component
+  with no interactive role.
 - `behavior`: what a callback prop does. See Behavior below.
 - `sketch`: a sketch style id and the fill and stroke each reserved-class part
   resolves to under it. `applicable: false` only for a component
   `references/sketch-mode.md` exempts.
+
+## Keyboard cases
+
+An interactive component declares one `press` case for each key its WAI-ARIA
+pattern handles: Enter or Space activates, an arrow key moves focus or value
+where the pattern moves it, and Escape closes an overlay. Each sets
+`rule: 'a11y-keyboard'`. A failed keyboard case reports `a11y-keyboard` at
+`warn` and lets the test pass; a case without `rule` fails as
+`contract-interaction`, an error.
+
+```ts
+interaction: {
+  part: 'secondTab',
+  role: 'button',
+  cases: [
+    {
+      name: 'Enter activates a tab',
+      rule: 'a11y-keyboard',
+      action: { kind: 'press', part: 'secondTab', key: 'Enter' },
+      expect: { kind: 'activated', part: 'secondTab' },
+    },
+    {
+      name: 'arrow right moves focus to the next tab',
+      rule: 'a11y-keyboard',
+      action: { kind: 'press', part: 'firstTab', key: 'ArrowRight' },
+      expect: { kind: 'focused', part: 'secondTab', value: true },
+    },
+  ],
+},
+```
+
+- `press` focuses `part` and sends `key`. Without `part`, the key goes to the
+  element that holds focus, such as an overlay that focused itself as it
+  opened.
+- `activated` passes when the key fired a click on the part, as a native
+  button does for Enter and Space. The preview never feeds a controlled
+  component's callback back into its props, so a click is the activation it
+  shows.
+- `focused` with `value: true` names the part an arrow key moves focus to.
+  Arrow cases need parts that keep their position as the selection moves,
+  such as `firstTab` and `secondTab`.
+- `present` with `value: false` passes when the part has left the document,
+  as a dialog's root does when Escape closes it:
+  `{ kind: 'present', part: 'root', value: false }`.
+
+The accessibility suite reads the same contract. It scans every view that
+`properties` and `states` name with axe and Siteimprove Alfa's rule SIA-R65,
+and reports each failure at `warn` under an `a11y-*` rule. Mark placeholder
+content the editor adds to its preview, such as a demo label, with
+`data-preview-demo`, and the scans skip it.
 
 ## Behavior
 

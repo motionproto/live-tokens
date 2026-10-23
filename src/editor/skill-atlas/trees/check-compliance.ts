@@ -2,7 +2,7 @@ import type { SkillTree } from '../types';
 
 export const checkCompliance: SkillTree = {
   "id": "live-tokens-check-compliance",
-  "digest": "sha256:d6a1cdc3c9aead66",
+  "digest": "sha256:a0e6cb51d92367de",
   "title": "check-compliance",
   "tagline": "Check and Fix a Project's Use of Live Tokens",
   "nodes": [
@@ -40,8 +40,8 @@ export const checkCompliance: SkillTree = {
       "row": 3,
       "kind": "done",
       "title": "Reply with the results",
-      "desc": "The fixes, the judgment calls made, the findings left with their reasons, and both exit codes.",
-      "lines": [25, 29],
+      "desc": "The fixes, the judgment calls made, the findings left with their reasons, the accessibility alerts, and both exit codes.",
+      "lines": [25, 30],
       "anchor": "Reply with:",
       "anchorEnd": "both checker commands with their exit codes"
     }
