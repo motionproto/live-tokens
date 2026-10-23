@@ -520,3 +520,26 @@ the contract run passes with any keyboard gaps reported at `warn`.
 `npm run check:cli-strings`.
 
 **Done when** every listed check passes.
+
+**Built.**
+
+- `live-tokens-check-compliance` gains an Accessibility alerts section, and
+  its reply lists each `a11y-*` alert for the user to review.
+- `live-tokens-create-component` names the keyboard cases in Registration.
+  Its Verification step 2 states that `--strict` makes the `a11y-*`
+  findings block, has the agent judge `a11y-review` by eye with
+  `--off=a11y-review` as the one disabled check it allows, and points
+  `aria-snapshot` at `--update-aria` inside the repository. `check:skills` required both skills to name `--update-aria`.
+- `references/contract-tests.md` gains Keyboard cases: the `press` part,
+  `activated`, `focused`, `present`, the accessibility suite, and
+  `data-preview-demo`.
+- `src/editor/docs/content/accessibility.md` registers after Creating
+  components in `chapters.ts`.
+- The README command table gains `--tests` and `--update-aria` on
+  `check-component` and `--tests` on `check-page`. The CHANGELOG records the
+  whole plan under Unreleased.
+- The `outcome-build-billing-no-lookup` copy carries both SKILL.md edits. The
+  other two copies strip the passages they touch. All three cases were
+  rehashed.
+- Open: `--update-aria` writes nothing in a project, since the trees sit
+  under `node_modules`, so a project's own components have no recorded tree.
