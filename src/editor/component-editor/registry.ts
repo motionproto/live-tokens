@@ -27,7 +27,7 @@ import DialogEditor, { allTokens as dialogTokens, contrastPairs as dialogContras
 import { catalogue as dialogCatalogue } from '../../system/components/Dialog.svelte';
 import ImageEditor, { allTokens as imageTokens, intrinsics as imageIntrinsics } from './ImageEditor.svelte';
 import { catalogue as imageCatalogue } from '../../system/components/Image.svelte';
-import ImageLightboxEditor, { allTokens as imageLightboxTokens, contrastPairs as imageLightboxContrastPairs } from './ImageLightboxEditor.svelte';
+import ImageLightboxEditor, { allTokens as imageLightboxTokens, intrinsics as imageLightboxIntrinsics, contrastPairs as imageLightboxContrastPairs } from './ImageLightboxEditor.svelte';
 import { catalogue as imageLightboxCatalogue } from '../../system/components/ImageLightbox.svelte';
 import VideoLightboxEditor, { allTokens as videoLightboxTokens, contrastPairs as videoLightboxContrastPairs } from './VideoLightboxEditor.svelte';
 import VideoFrameEditor, { allTokens as videoFrameTokens, contrastPairs as videoFrameContrastPairs } from './VideoFrameEditor.svelte';
@@ -284,6 +284,7 @@ const builtInRegistry: Readonly<Record<BuiltInComponentId, RegistryEntry>> = Obj
     sourceFile: 'src/system/components/ImageLightbox.svelte',
     editorComponent: ImageLightboxEditor,
     schema: imageLightboxTokens,
+    intrinsics: imageLightboxIntrinsics,
     contrastPairs: imageLightboxContrastPairs,
     catalogue: imageLightboxCatalogue,
     origin: 'system',

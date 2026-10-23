@@ -55,7 +55,11 @@
   import ImageLightbox from '../../system/components/ImageLightbox.svelte';
   import VariantGroup from './scaffolding/VariantGroup.svelte';
   import ComponentEditorBase from './scaffolding/ComponentEditorBase.svelte';
+  import UISegmentedControl from '../ui/UISegmentedControl.svelte';
+  import A11yPropertyMark from '../ui/a11y/A11yPropertyMark.svelte';
   import newspaperUrl from '../../system/assets/newspaper.webp';
+  import { editorState, setComponentAlias } from '../core/store/editorStore';
+  import type { CssVarRef } from '../core/store/editorTypes';
 
   const demoImages = [
     // The first entry carries explicit dimensions (the no-reflow path); the second
@@ -66,6 +70,18 @@
 
   let multiple = $state(true);
   let shadow = $state<'box' | 'content' | 'none'>('box');
+
+  type TileFit = 'contain' | 'cover';
+  const TILE_FIT = intrinsics[0].variable('default');
+  const fitOptions: { value: TileFit; label: string; title: string }[] = [
+    { value: 'contain', label: 'Contain', title: 'Show the whole image inside the tile' },
+    { value: 'cover', label: 'Cover', title: 'Crop the image to fill the tile' },
+  ];
+  let tileFit = $derived.by((): TileFit => {
+    const ref = ($editorState.components[component]?.aliases as Record<string, CssVarRef> | undefined)?.[TILE_FIT];
+    const value = ref?.kind === 'literal' ? ref.value : intrinsics[0].default.default;
+    return value === 'cover' ? 'cover' : 'contain';
+  });
 </script>
 
 <ComponentEditorBase
@@ -89,6 +105,21 @@
         </select>
       </label>
     {/snippet}
+    {#snippet extraPropertyRowsTop(stateName)}
+      {#if stateName === 'tile'}
+        <div class="property-row" data-token-variables={TILE_FIT}>
+          <span class="property-label">tile fit<A11yPropertyMark variables={[TILE_FIT]} /></span>
+          <div class="tile-fit-control">
+            <UISegmentedControl
+              value={tileFit}
+              options={fitOptions}
+              ariaLabel="Tile fit"
+              onchange={(value) => setComponentAlias(component, TILE_FIT, { kind: 'literal', value })}
+            />
+          </div>
+        </div>
+      {/if}
+    {/snippet}
     <div class="preview-frame">
       <ImageLightbox images={multiple ? demoImages : [demoImages[0]]} {shadow} extended />
     </div>
@@ -100,6 +131,9 @@
     width: 100%;
     max-width: 28rem;
     margin: 0 auto;
+  }
+  .tile-fit-control {
+    display: flex;
   }
   .preview-toggle {
     display: inline-flex;

@@ -104,6 +104,11 @@
   side and keeps the best. The trace follows only the winning declaration of
   a private property, so a selected tab's finding names the selected tab's
   properties alone.
+- **Image Lightbox's editor sets the tile fit.** The Tile tab gains a "tile
+  fit" row, Contain or Cover, which writes `--imagelightbox-tile-object-fit`
+  and carries the accessibility mark. ImageLightbox's `fit` prop no longer
+  defaults to `contain` on every tile, so a tile without it follows the
+  theme's value.
 - **`check-component --tests` takes `--a11y` and `--open-theme`.** `--a11y`
   runs the accessibility suite and the keyboard cases alone, with no static
   checks or fixes, and reports only `a11y-*` and `tests-*` findings.

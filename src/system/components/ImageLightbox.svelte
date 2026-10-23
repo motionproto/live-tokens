@@ -45,6 +45,8 @@
     thumbSrc?: string | undefined;
     /** Closed-thumbnail object-fit. `cover` crops the thumbnail to fill its box;
         the expanded modal always uses `contain` so the whole image stays visible.
+        Unset, it follows the theme's `--imagelightbox-tile-object-fit`, which
+        defaults to `contain`.
         `cover` only crops when the thumbnail box differs from the image's shape
         (a `thumbAspect`, or a CSS-constrained container). */
     fit?: 'contain' | 'cover';
@@ -111,7 +113,7 @@
     maxWidth = undefined,
     thumbAspect = undefined,
     thumbSrc = undefined,
-    fit = 'contain',
+    fit = undefined,
     shadow = 'box',
     surface = undefined,
     border = undefined,
