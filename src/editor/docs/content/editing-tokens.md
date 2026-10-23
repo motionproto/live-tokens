@@ -3,7 +3,7 @@
 A tour of the editor. The page behind it repaints on every change; saving
 writes a theme file you can reload later.
 
-The editor has four views:
+The editor has five views:
 
 - **Tokens**: the design-system primitives (colour, type, spacing, and so on).
   They apply everywhere your site uses them.
@@ -13,6 +13,8 @@ The editor has four views:
   without changing the underlying system.
 - **Sketchstyle**: an effect layer that redraws the page by hand. See
   [Sketch mode](sketch-mode.md).
+- **Accessibility**: Run test checks every component in the open theme as
+  saved and lists each issue it finds by component.
 
 This page covers **Tokens**. For components, see
 [Creating components](creating-components.md).
