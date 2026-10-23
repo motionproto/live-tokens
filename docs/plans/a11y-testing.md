@@ -2,8 +2,20 @@
 
 Plan of 2026-10-23. The user settled D2 and approved D1 and D3 to D12 as
 recommended on 2026-10-23, and merged `contrast-checker` into main the same
-day (D10). The waves run in an ordinary session, one at a time, with a
-review after each.
+day (D10). The waves run in an ordinary session, one at a time, and the
+session stops for the user after each.
+
+**The probe comes first.** Wave 0 runs axe and Alfa over every component
+state in a throwaway script and reports what they find, touching no product
+code. The user then marks each later wave Build, Change, or Cut in the
+Probe outcome table. A wave runs only when that table marks it Build or
+Change. Waves 1 to 6 below stand as the full design; the probe decides how
+much of it earns its place.
+
+**Every Verify step finishes in minutes.** No wave runs an eval, a smoke
+gate, or a tarball install. The release gates run those once. Each wave
+states a budget, and a verify step past twice its budget is treated as stuck
+and stopped.
 
 The shipped components and the styling a user applies to them get tested
 for accessibility. By default the tests alert: every accessibility finding
@@ -26,11 +38,10 @@ Measured on local main at `31af1c1`.
    (`src/testing/support/pageHarness.ts:952`) measures text on surfaces
    for consumer pages and skips text inside shipped components. It reports
    at `error` (`bin/rules/testRuns.mjs:104`).
-2. **The contrast readout in the editor is unmerged.** Branch
-   `contrast-checker` in `../live-tokens-contrast` carries 21 commits: a ratio
-   beside every foreground colour row, declared per editor through
-   `contrastPairs`. `temp/contrast-checker-defaults.md` on that branch records
-   30 of 205 pairs failing in the shipped default theme.
+2. **The editor shows a contrast readout.** Merged from `contrast-checker`
+   as `16e4303`: a ratio beside every foreground colour row, declared per
+   editor through `contrastPairs`. `temp/contrast-checker-defaults.md`
+   records 30 of 205 pairs failing in the shipped default theme.
 3. **The finding system already has a non-blocking severity.** Every rule
    carries `severity: 'error' | 'warn'`. `bin/lib/findings.mjs:108-114`
    resolves it from the rule table, `live-tokens.config.json`, and
@@ -173,7 +184,7 @@ with `--update-aria`.
    version.
 5. The editor keeps one contrast implementation, `contrast.ts`, for its live
    readout. axe's contrast serves the test suites and the axe panel.
-6. No theme token is added and no shipped default changes. Wave 2 records
+6. No theme token is added and no shipped default changes. Wave 0 records
    the baseline; fixes are a later plan.
 7. Every run that touches the data tree restores it per `CLAUDE.md`, and
    `node scripts/check-production-is-default.mjs` passes after each wave.
@@ -186,6 +197,56 @@ with `--update-aria`.
 - Focus indicator contrast (SC 1.4.11) beyond SIA-R65's visibility check.
   A follow-up can measure the outline through `contrast.ts`.
 - Manual audits.
+
+## Wave 0: probe
+
+Throwaway. Everything lives in `scratch/a11y-probe/`, which git ignores.
+
+- Install the engines without saving them:
+  `npm install --no-save axe-core@^4.11.1 @axe-core/playwright @siteimprove/alfa-playwright`.
+  `package.json` and the lockfile stay untouched.
+- `scratch/a11y-probe/playwright.config.ts` builds on
+  `createPlaywrightConfig`, as the contrast checker's Wave 5 script did, so
+  the dev server and the isolated data copy come from the shipped factory.
+- `scratch/a11y-probe/probe.spec.ts`: for each contract in `allContracts()`,
+  open it with `ContractHarness.open`, and for each declared state run axe
+  (tags `wcag2a`, `wcag2aa`, `wcag21aa`, `wcag22aa`) and Alfa SIA-R65 over
+  `.preview-stage`. Repeat under the default theme and the eight presets
+  through `previewTheme`. Under the default theme alone, repeat once more
+  with `emulateMedia({ forcedColors: 'active' })`. Write every result,
+  `incomplete` included, to `results.json`, with the wall time per theme.
+- `scratch/a11y-probe/report.md`, generated from `results.json`:
+  - one row per axe or Alfa rule: violations, `incomplete` count,
+    components, themes;
+  - for each rule, up to five examples with component, state, theme,
+    target, and the HTML snippet;
+  - axe `color-contrast` findings set beside the matching failures in
+    `temp/contrast-checker-defaults.md`, counting the overlap and each
+    side's extras;
+  - the run's wall time, total and per theme, as the measured cost of D7's
+    preset sweep.
+- Restore the data tree per `CLAUDE.md`.
+
+**Budget.** About an hour to write, under 20 minutes to run.
+
+**Verify.** `node scripts/check-production-is-default.mjs`, and
+`git status --short` lists nothing outside `scratch/`.
+
+**Done when** `scratch/a11y-probe/report.md` exists and the session stops
+with a summary of it for the user.
+
+## Probe outcome
+
+The user fills this in after reading the probe's report.
+
+| Wave | Build, Change, or Cut | Note |
+|---|---|---|
+| 1. Engines and findings | | |
+| 2. Component suite | | |
+| 3. Page suite | | |
+| 4. Editor panel | | |
+| 5. Keyboard cases | | |
+| 6. Skills and docs | | |
 
 ## Wave 1: engines and findings
 
@@ -205,13 +266,15 @@ with `--update-aria`.
   finding per result; a missing engine yields `inapplicable` coverage and
   exits 0 under `--strict`; the axe version check (Invariant 4).
 
+**Budget.** Verify under 3 minutes.
+
 **Verify.** `npx vitest run bin src/testing`, `npm run check`,
 `npx vitest run bin/engineLoadsLazily.test.ts`.
 
 **Done when** every listed test passes and `check-component button --tests`
 on an unchanged tree prints the same errors it printed before the wave.
 
-## Wave 2: component suite and baseline
+## Wave 2: component suite
 
 - `src/testing/component-a11y.contract.ts`: per contract and per declared
   state, `scanAxe` and `scanFocusVisible` over `.preview-stage` (D6), then
@@ -221,8 +284,11 @@ on an unchanged tree prints the same errors it printed before the wave.
   The repository's `contract` project sets it.
 - Register the suite file in `structuralRule` and the shipped `./testing`
   exports.
-- Run the full sweep once and write `temp/a11y-baseline.md`: one table per
-  rule, sorted by component, with the theme and state of each finding.
+- Copy the probe's report to `temp/a11y-baseline.md` as the baseline the
+  suite starts from.
+
+**Budget.** Verify under 8 minutes. The probe's measured sweep time sets
+this; revise it after Wave 0.
 
 **Verify.** `npm run test:e2e:contract`, `npm run build:testing`,
 `node scripts/check-production-is-default.mjs`.
@@ -244,16 +310,16 @@ on an unchanged tree prints the same errors it printed before the wave.
 - `tests/e2e/page-defects/` gains one page per new rule, written to trigger
   it, and asserts the annotation.
 
+**Budget.** Verify under 10 minutes.
+
 **Verify.** `npm run test:e2e:page-defects`, `npm run test:e2e:contract`,
-`npx vitest run bin`, `npm run check:smoke-page-tests`.
+`npx vitest run bin`. The tarball smoke gate, `check:smoke-page-tests`, runs
+at release.
 
 **Done when** each defect page yields its finding at `warn` and fails under
-`--strict`, `check-page --tests` exits 0 on the demo app, and the smoke gate
-passes from the tarball.
+`--strict`, and `check-page --tests` exits 0 on the demo app.
 
 ## Wave 4: editor panel
-
-Starts after `contrast-checker` merges (D10).
 
 - `src/editor/component-editor/scaffolding/A11yPanel.svelte`: count and list
   of axe violations for `.preview-stage`, one row per violation with the
@@ -262,6 +328,8 @@ Starts after `contrast-checker` merges (D10).
   the last token write (D9).
 - A Playwright test changes a text colour to fail contrast and reads the
   panel's count rise, then restores the colour.
+
+**Budget.** Verify under 8 minutes.
 
 **Verify.** `npm run check`, `npm run test:e2e:contract`, `npm run build`,
 then confirm `axe-core` is absent from the main chunk in `dist/`.
@@ -280,6 +348,8 @@ code.
   `rule: 'a11y-keyboard'`; `runInteraction` records its failure as an
   annotation.
 
+**Budget.** Verify under 6 minutes.
+
 **Verify.** `npm run test:e2e:contract`, `npx vitest run src/testing`.
 
 **Done when** every listed component declares at least one `press` case and
@@ -297,6 +367,8 @@ the contract run passes with any keyboard gaps reported at `warn`.
   `npm run sync:skill-sources`, carry the edits into each billing eval copy
   in `.claude/evals/_skills/<case>/`, and run
   `node scripts/eval-stage-skills.mjs --rehash <case>`.
+
+**Budget.** Verify under 2 minutes.
 
 **Verify.** `npm run check:skills`, `npm run check:skill-atlas`,
 `npm run check:skill-sources`, `npm run check:docs-content`,
