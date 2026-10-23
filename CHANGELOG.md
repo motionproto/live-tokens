@@ -4,6 +4,51 @@
 
 ### Added
 
+- **`check-component --tests` scans components for accessibility.** A new
+  suite opens every variant and state a component's contract names and runs
+  axe-core against WCAG 2 A and AA and Siteimprove Alfa's focus-visibility
+  rule SIA-R65 over the preview. Findings report as `a11y-component`,
+  `a11y-focus-visible`, and `a11y-review`, the last for checks axe could not
+  decide, such as text over a gradient. Editor demo content marked
+  `data-preview-demo` stays out of the scan. The library's own test run
+  repeats axe's contrast rule under the eight preset themes.
+- **`check-page --tests` scans pages for accessibility.** Each page and
+  viewport gains three tests. `page-a11y` runs axe outside the shipped
+  components, with contrast left to `page-contrast`. `page-text-spacing`
+  reports overflow the WCAG 1.4.12 text spacing override adds.
+  `page-reduced-motion` reports animations still running 200 ms after load
+  under `prefers-reduced-motion: reduce`. They report as `a11y-page`,
+  `a11y-review`, `a11y-text-spacing`, and `a11y-reduced-motion`.
+- **Accessibility findings alert by default.** All seven `a11y-*` rules
+  report at `warn`, and `--strict` makes them errors, as it does every other
+  warning. `--off` and `live-tokens.config.json` silence or raise each one.
+  A scan that crashes reports `tests-setup`.
+- **Each shipped component's accessibility tree is recorded.** The trees
+  live in `src/testing/contracts/__aria__/<id>.yml`, one block per view. A
+  run that reads a different tree reports `a11y-component` with engine rule
+  `aria-snapshot`, and `check-component --tests --update-aria` records the
+  trees anew after a deliberate markup change. A project's own components
+  get no recorded tree yet.
+- **Component contracts take keyboard cases.** An `InteractionCase` with
+  `rule: 'a11y-keyboard'` reports its failure as an `a11y-keyboard` warning
+  and lets the test pass. A `press` action may omit `part`
+  to send the key to whatever holds focus. `InteractionOutcome` gains
+  `activated`, for a key that fired a click on the part, and `present`, for
+  whether the part is in the document. The fifteen interactive shipped
+  components carry 27 keyboard cases for activation, arrow movement, and
+  Escape.
+- **The accessibility engines ship as optional peers.** `axe-core` 4.11.1 or
+  later, `@axe-core/playwright`, and seven `@siteimprove/alfa-*` packages at
+  0.119 join `peerDependencies` as optional, and the `create` template
+  installs them. Without one, the tests it drives report as inapplicable and
+  the run carries on.
+- **The guide gains an Accessibility chapter.** It covers what runs, the
+  rules, review findings, the recorded trees, keyboard cases, the engines,
+  and the limits.
+- **The skills cover accessibility.** `live-tokens-check-compliance` lists
+  the `a11y-*` findings as alerts for the user to review.
+  `live-tokens-create-component` declares keyboard cases for a new component
+  and judges `a11y-review` findings by eye.
 - **Component editors show the contrast ratio of every foreground color.** A
   color row whose variable paints text, an icon or another foreground mark
   shows the WCAG ratio between that color and the layers behind it, down to the

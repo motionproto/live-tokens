@@ -326,8 +326,8 @@ npx @motion-proto/live-tokens <command>
 | `components [id] [--json]` | List every component the project has, shipped and its own, with the props each takes; with an id, its props, variants, tokens, and defaults. |
 | `tokens [--scale <name>] [--json]` | List every design token the project's `tokens.css` declares, by scale, with its value. |
 | `report [--json]` | The project as facts: pending migrations, tokens each component reads, which page renders which component, and both checkers' findings by rule. Always exits 0. |
-| `check-component [id]` | Validate a component's runtime, editor, and registration against the authoring contract; with no id, every component authored under `src/system/components`. |
-| `check-page [paths...]` | Validate pages against the create-page contract: catalogue components and their props, theme tokens over literals, route wiring. |
+| `check-component [id] [--tests] [--update-aria]` | Validate a component's runtime, editor, and registration against the authoring contract; with no id, every component authored under `src/system/components`. `--tests` also runs the contract suites, the accessibility scans among them; `--update-aria` records each scanned component's accessibility tree anew after a deliberate markup change. |
+| `check-page [paths...] [--tests]` | Validate pages against the create-page contract: catalogue components and their props, theme tokens over literals, route wiring. `--tests` also opens each page in the app and checks its rendered paint, contrast, layout, and accessibility. |
 | `set-colors <base-colors.json> [--dry-run]` | Build the theme's whole color identity from 10 OKLCH base colors, enforce AA contrast on the derived text tokens, and write the result to the unsaved colors-and-type buffer. |
 | `set-type <pairing.json> [--dry-run] [--no-verify]` | Bind Google Fonts families to the theme's font stacks, verified against the API. |
 | `set-geometry <ops.json> [--dry-run]` | Move radius, padding, gap, and border-width aliases along their token scales. |
