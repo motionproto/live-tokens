@@ -108,6 +108,49 @@ and its `references/contract-tests.md` describes their shape.
 An editor that adds placeholder content to its preview, such as a demo label
 or a hover target, marks it `data-preview-demo`, and the scans skip it.
 
+## Accessibility view
+
+The editor's Accessibility view runs the component checks from the browser.
+**Run test** checks every component in the open theme as saved, in about
+three minutes. With edits pending, it shows "Save the changes you want to have
+checked." and starts nothing. Save the theme first, so the run and the editor
+read the same values.
+
+The report lists each component with issues and sorts them by repair:
+
+- **Fix with a property** holds each colour pair below its WCAG floor, as the
+  editor's contrast checker measures it, such as "Text color 3.87:1, needs
+  4.5:1".
+- **Fix in the component's code** holds axe failures, focus styles that
+  SIA-R65 finds unchanged, and failed keyboard cases. Each row names the
+  element, the view, and a help page.
+
+The `a11y-review` results collect apart, in one closed list of results to
+check by eye. axe's contrast results stay out of the report, because the
+contrast checker measures the same pairs.
+
+The last finished run also marks the rest of the editor:
+
+- The component list carries a "!" beside each component the run named.
+- That component's page opens with a panel under its title that lists its
+  issues in the same two groups.
+- A property row in the panel carries a "→" that opens the tab holding the
+  property and highlights its row.
+
+The marks and the panel keep the run's time and change when the next run
+finishes. The contrast readout on each colour row stays live and measures
+every edit as you make it.
+
+When Playwright, axe, or Alfa is missing, the report names its install
+command and Run test stays disabled. Install the package and press **Check
+again**. The view runs its tests through the dev server, so it exists under
+the dev server alone, with the rest of the editor.
+
+The view runs `check-component --tests --a11y --no-fix --json --open-theme`.
+`--a11y` runs the accessibility suite and the keyboard cases alone, and
+`--open-theme` tests the theme the editor has open. A run without it tests
+the `default` theme. Both work from the command line too.
+
 ## Installing the engines
 
 The engines ship as optional peer dependencies. A project made with `create`
