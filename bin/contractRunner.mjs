@@ -570,12 +570,15 @@ const VIOLATION_RE = /^ContractViolation:\s*\[([a-z-]+)\]\s+([a-z0-9-]+):\s*([\s
  *  `ContractViolation`'s own `[rule]` prefix, when present, is more
  *  authoritative than either and wins in the caller. */
 function structuralRule(entry, componentId, positionCounters) {
+  const file = basename(entry.specFile ?? '');
+  // Ahead of the positional branch: an a11y test grouped under its component's
+  // id must not advance that component's editor-suite position.
+  if (file.startsWith('component-a11y.contract')) return 'a11y-component';
   if (componentId && entry.describeTitles[entry.describeTitles.length - 1] === componentId) {
     const index = positionCounters.get(componentId) ?? 0;
     positionCounters.set(componentId, index + 1);
     return EDITOR_SUITE_POSITIONAL_RULES[index] ?? null;
   }
-  const file = basename(entry.specFile ?? '');
   if (file.startsWith('component-render.contract')) return 'contract-render';
   if (file.startsWith('component-alias.contract')) return 'contract-alias';
   return null;
@@ -588,6 +591,35 @@ function structuralRule(entry, componentId, positionCounters) {
  *  retried obligation stays visible rather than being overwritten by a
  *  sibling that passed clean the first time. */
 const COVERAGE_PRIORITY = { failed: 4, flaky: 3, passed: 2, inapplicable: 1 };
+
+// Mirrors the annotation type src/testing/support/a11y.ts records, duplicated
+// for the same reason as SESSION_FILES above.
+const A11Y_ANNOTATION = 'a11y';
+
+function a11yResults(annotations) {
+  return annotations.filter((a) => a.type === A11Y_ANNOTATION).flatMap((a) => JSON.parse(a.description));
+}
+
+/** One finding per result a passing test recorded (decision 3). Coverage stays
+ *  with the test's own pass: a warning must not read as a failed obligation,
+ *  which would excuse every gap reconciliation looks for. */
+function a11yFinding(result, { file, line, componentId, context }) {
+  return {
+    rule: result.rule,
+    file,
+    line,
+    message: `${componentId ? `${componentId}: ` : ''}${result.engineRule} at ${result.target}: ${result.help}. ${result.helpUrl}`,
+    details: {
+      engineRule: result.engineRule,
+      impact: result.impact,
+      target: result.target,
+      html: result.html,
+      help: result.help,
+      helpUrl: result.helpUrl,
+    },
+    context,
+  };
+}
 
 export function mapPlaywrightResults(report, { root, sourceDataDir, knownIds }) {
   const zeroCollected = (report.suites ?? []).length === 0;
@@ -631,6 +663,12 @@ export function mapPlaywrightResults(report, { root, sourceDataDir, knownIds }) 
     const componentId = identifyComponent(t.describeTitles, t.specTitle, knownIds);
     const rule = structuralRule(t, componentId, positionCounters);
     const inapplicable = t.annotations.find((a) => a.type === 'inapplicable')?.description;
+    const results = a11yResults(t.annotations);
+    if (results.length > 0) {
+      const { file, line } = artifactForContractRule(root, sourceDataDir, 'a11y-component', componentId, null);
+      const context = { suite: 'playwright', title: [...t.describeTitles, t.specTitle].join(' > '), suiteFile: t.specFile, suiteLine: t.specLine };
+      findings.push(...results.map((result) => a11yFinding(result, { file, line, componentId, context })));
+    }
 
     if (t.status === 'expected' || t.status === 'flaky') {
       // Flaky reaches a passing final attempt, same as expected, but a retry
@@ -712,7 +750,7 @@ const PAGE_RUNTIME_RULES = ['page-component-paint', 'page-text-style', 'page-con
  *  ${width}x${height}`, so the rule, the page, and the viewport are read off
  *  the title rather than off describe-block position (there is none — every
  *  page test is a sibling at the suite's top level). */
-const PAGE_TEST_TITLE_RE = /^(page-[a-z-]+) \| (.+) \| (\d+x\d+)$/;
+const PAGE_TEST_TITLE_RE = /^(page-[a-z0-9-]+) \| (.+) \| (\d+x\d+)$/;
 
 /** A `PageViolation`'s own `[rule] source:line: message`, read back out of
  *  Playwright's `Error.prototype.toString()` (`${name}: ${message}`), the
@@ -769,6 +807,9 @@ export function mapPageResults(report) {
   for (const t of tests) {
     const [, titleRule, titleSource, titleViewport] = PAGE_TEST_TITLE_RE.exec(t.specTitle) ?? [];
     const pageAtViewport = titleSource && titleViewport ? `${titleSource}@${titleViewport}` : null;
+    const context = { suite: 'playwright', title: t.specTitle, suiteFile: t.specFile, suiteLine: t.specLine };
+    findings.push(...a11yResults(t.annotations).map((result) =>
+      a11yFinding(result, { file: titleSource ?? 'package.json', line: result.line ?? 1, context })));
 
     if (t.status === 'expected' || t.status === 'flaky') {
       markCoverage(pageAtViewport, titleRule, t.status === 'flaky' ? 'flaky' : 'passed');
