@@ -80,7 +80,7 @@ Commands:
                               renders which component, and both checkers'
                               findings by rule under the project's severities
                               and under --strict. Always exits 0
-  check-component [id] [--tests] [--update-aria]
+  check-component [id] [--tests] [--update-aria] [--a11y] [--open-theme]
                               Validate <id>'s runtime, editor, and registration
                               against the live-tokens-create-component contract.
                               --tests also runs the registry contract under
@@ -90,7 +90,14 @@ Commands:
                               missing one is a tests-not-installed finding
                               naming the install command. --update-aria
                               records each component's accessibility tree
-                              anew, after a deliberate markup change
+                              anew, after a deliberate markup change.
+                              --a11y runs the accessibility checks alone: the
+                              accessibility suite and the keyboard cases,
+                              with no static checks or fixes, reporting only
+                              a11y-* and tests-* findings. --open-theme tests
+                              the theme the editor has loaded, as saved; the
+                              buffer stays out of the run. Both need --tests.
+                              --json names the tested theme under "theme"
   check-page [paths...] [--tests]
                               Validate pages against the live-tokens-create-page
                               contract: catalogue components only, and every CSS
@@ -224,13 +231,13 @@ if (command === 'create') {
   }
 }
 
-function reportChecks(label, findings, checked, rules, opts, { coverage, hardFailure, exclude, fix } = {}) {
+function reportChecks(label, findings, checked, rules, opts, { coverage, hardFailure, exclude, fix, theme } = {}) {
   const checksConfig = readChecksConfig(process.cwd());
   const resolved = applySeverity(findings, rules, opts, checksConfig, { exclude });
   const resolvedCoverage = coverage ? applyCoverageSeverity(coverage, rules, opts, checksConfig) : coverage;
   console.log(
     opts.json
-      ? toJson(resolved, { label, checked, coverage: resolvedCoverage, fix })
+      ? toJson(resolved, { label, checked, coverage: resolvedCoverage, fix, theme })
       : [fix ? formatFixes(fix) : '', formatFindings(resolved, { label, checked })].filter(Boolean).join('\n'),
   );
   // Decision 2: a missing tool or a setup failure under --tests is an error
@@ -321,7 +328,23 @@ if (command === 'report') {
 
 if (command === 'check-component') {
   const opts = parseCheckFlags(rest);
+  if ((opts.a11y || opts.openTheme) && !opts.tests) fail('--a11y and --open-theme run with --tests.');
   const ids = opts.rest.length > 0 ? [opts.rest[0]] : discoverComponents();
+  if (opts.a11y) {
+    const { hasHardFailure, runContractTests } = await import('./contractRunner.mjs');
+    const outcome = await runContractTests(opts.rest[0], {
+      root: process.cwd(),
+      updateAria: opts.updateAria,
+      a11y: true,
+      openTheme: opts.openTheme,
+    });
+    const label = `check-component${ids.length === 1 ? ` ${ids[0]}` : ''} --tests --a11y`;
+    reportChecks(label, outcome.findings, Math.max(ids.length, 1), COMPONENT_RULES, opts, {
+      coverage: outcome.coverage,
+      hardFailure: hasHardFailure(outcome.findings),
+      theme: outcome.theme,
+    });
+  }
   if (ids.length === 0 && !opts.tests) {
     console.log('✓ check-component: no component authored under src/system/components yet.');
     process.exit(0);
@@ -344,12 +367,17 @@ if (command === 'check-component') {
     reportChecks(label, [...migration.findings, ...results.flatMap(([, r]) => r.findings)], ids.length, COMPONENT_RULES, opts, { fix });
   }
   const { hasHardFailure, runContractTests } = await import('./contractRunner.mjs');
-  const testOutcome = await runContractTests(opts.rest[0], { root: process.cwd(), updateAria: opts.updateAria });
+  const testOutcome = await runContractTests(opts.rest[0], {
+    root: process.cwd(),
+    updateAria: opts.updateAria,
+    openTheme: opts.openTheme,
+  });
   const findings = dedupeAliasFindings([...migration.findings, ...results.flatMap(([, r]) => r.findings), ...testOutcome.findings]);
   reportChecks(label, findings, Math.max(ids.length, 1), COMPONENT_RULES, opts, {
     fix,
     coverage: testOutcome.coverage,
     hardFailure: hasHardFailure(testOutcome.findings),
+    theme: testOutcome.theme,
   });
 }
 

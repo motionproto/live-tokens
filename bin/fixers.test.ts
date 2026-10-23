@@ -37,6 +37,13 @@ describe('parseCheckFlags', () => {
     expect(opts.updateAria).toBe(true);
     expect(opts.rest).toEqual(['button']);
   });
+
+  it('recognizes --a11y and --open-theme and keeps them out of the component id', () => {
+    const opts = parseCheckFlags(['--a11y', '--open-theme', 'button']);
+    expect(opts.a11y).toBe(true);
+    expect(opts.openTheme).toBe(true);
+    expect(opts.rest).toEqual(['button']);
+  });
 });
 
 describe('applyFixes', () => {

@@ -57,11 +57,15 @@ export function isExcluded(relPath, root) {
 }
 
 /**
- * Parse `--off=a,b --warn=c --error=d --strict --json --update-aria` out of argv.
+ * Parse `--off=a,b --warn=c --error=d --strict --json --tests --no-fix
+ * --update-aria --a11y --open-theme` out of argv.
  * Unrecognised flags are returned in `rest` for the caller to handle.
  */
 export function parseCheckFlags(argv) {
-  const opts = { off: [], warn: [], error: [], strict: false, json: false, tests: false, noFix: false, updateAria: false, rest: [] };
+  const opts = {
+    off: [], warn: [], error: [], strict: false, json: false, tests: false, noFix: false, updateAria: false,
+    a11y: false, openTheme: false, rest: [],
+  };
   for (const arg of argv) {
     const m = arg.match(/^--(off|warn|error)=(.+)$/);
     if (m) {
@@ -71,6 +75,8 @@ export function parseCheckFlags(argv) {
     else if (arg === '--tests') opts.tests = true;
     else if (arg === '--no-fix') opts.noFix = true;
     else if (arg === '--update-aria') opts.updateAria = true;
+    else if (arg === '--a11y') opts.a11y = true;
+    else if (arg === '--open-theme') opts.openTheme = true;
     else opts.rest.push(arg);
   }
   return opts;
@@ -192,10 +198,19 @@ export function formatFindings(findings, { label, checked = 0 } = {}) {
   return lines.join('\n');
 }
 
-export function toJson(findings, { label, checked = 0, coverage, fix } = {}) {
+export function toJson(findings, { label, checked = 0, coverage, fix, theme } = {}) {
   const { errors, warnings } = countBySeverity(findings);
   return JSON.stringify(
-    { check: label, checked, errors, warnings, ...(fix ? { fix } : {}), findings, ...(coverage ? { coverage } : {}) },
+    {
+      check: label,
+      checked,
+      errors,
+      warnings,
+      ...(theme ? { theme } : {}),
+      ...(fix ? { fix } : {}),
+      findings,
+      ...(coverage ? { coverage } : {}),
+    },
     null,
     2,
   );
