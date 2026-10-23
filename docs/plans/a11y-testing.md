@@ -304,6 +304,26 @@ waves below carry the changes.
 **Done when** every listed test passes and `check-component button --tests`
 on an unchanged tree prints the same errors it printed before the wave.
 
+**Built.** The later waves call these:
+
+- `scanAxe(page, scope, exclude, rule)`, where `rule` is `a11y-component` or
+  `a11y-page`; the page rule turns `color-contrast` off.
+  `scanFocusVisible(page, scope, exclude)`. `scope` is a selector. axe
+  `incomplete` reports as `a11y-review`, and SIA-R65 `cantTell` as
+  `a11y-focus-visible`. `recordA11y(results)` pushes the annotation.
+- `missingEngine(['axe', 'alfa'])` returns the `inapplicable` reason or null.
+  A page test reports a missing engine through `test.skip`, the path
+  `mapPageResults` already reads.
+- `structuralRule` maps `component-a11y.contract.ts` to `a11y-component`
+  ahead of the positional branch. `ALL_CONTRACT_RULES` still lacks it, so
+  Wave 2 adds it once the suite runs.
+- An `a11y` finding leaves coverage to the test's own pass. A page result
+  carries `line`. The page title pattern now admits digits, for `page-a11y`.
+- `PAGE_RULES` holds `a11y-page`, `a11y-review`, `a11y-text-spacing`, and
+  `a11y-reduced-motion`. A page scan that adds SIA-R65 adds
+  `a11y-focus-visible` there too; an id missing from a table resolves to
+  `error`.
+
 ## Wave 2: component suite
 
 - `src/testing/component-a11y.contract.ts`: per contract and per variant
