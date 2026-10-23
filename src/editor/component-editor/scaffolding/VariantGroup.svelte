@@ -1,6 +1,6 @@
 <script lang="ts">
   import { writable } from 'svelte/store';
-  import { untrack, type Snippet } from 'svelte';
+  import { tick, untrack, type Snippet } from 'svelte';
   import TokenLayout from './TokenLayout.svelte';
   import StateBlock from './StateBlock.svelte';
   import CopyFromMenu from './CopyFromMenu.svelte';
@@ -10,7 +10,7 @@
   import { getDeclaredValue } from '../../core/palettes/tokenRegistry';
   import type { CssVarRef } from '../../core/store/editorTypes';
   import { cssStringToRef, refToCss } from '../../core/store/cssVarRef';
-  import { getEditorContext } from './editorContext';
+  import { getEditorContext, type RevealRequest } from './editorContext';
   import { setSketchScope } from '../../core/sketch/sketchLayer';
   import { sketchEnabled, sketchSettings } from '../../core/sketch/sketchStore';
   import type { Token, TypeGroupConfig } from './types';
@@ -101,7 +101,7 @@
   const focusedStateStore = editorCtx?.focusedState ?? writable<string | null>(null);
   const variantsStore = editorCtx?.variants ?? writable<{ value: string; label: string }[]>([]);
   const preserveColorFamilyStore = editorCtx?.preserveColorFamily ?? writable(false);
-  const revealVariableStore = editorCtx?.revealVariable ?? writable<{ variable: string } | null>(null);
+  const revealVariableStore = editorCtx?.revealVariable ?? writable<RevealRequest | null>(null);
   let linkedOrder = $derived($linkedOrderStore ?? undefined);
 
   let activeTab: string = $state('');
@@ -385,18 +385,49 @@
     return stateNames.find((s) => holds(states[s], variable) || typeGroupHolds(typeGroups[s], variable)) ?? null;
   }
 
+  let searchedTab: string | null = $state(null);
+  let searchStage = $state<HTMLDivElement | undefined>(undefined);
+
+  /** The tab whose editor-authored rows include `variable`. Those rows come
+      from snippets, which show nothing of their variables until they render,
+      so each tab renders them out of sight in turn. */
+  async function snippetTabHolding(variable: string): Promise<string | null> {
+    const escaped = CSS.escape(variable);
+    const selector = `[data-token-variable="${escaped}"], [data-token-variables~="${escaped}"]`;
+    try {
+      for (const tab of stateNames) {
+        searchedTab = tab;
+        await tick();
+        if (searchStage?.querySelector(selector)) return tab;
+      }
+      return null;
+    } finally {
+      searchedTab = null;
+    }
+  }
+
+  function openTab(tab: string) {
+    if (inFocusMode) focusedVariantStore.set(name);
+    if (tab) {
+      activeTab = tab;
+      focusedStateStore.set(tab);
+    }
+  }
+
   // Untracked so a later edit, which rebuilds `states`, never pulls the tabs back to an old request.
   $effect(() => {
     const request = $revealVariableStore;
     if (!request) return;
     untrack(() => {
       const tab = tabHolding(request.variable);
-      if (tab === null) return;
-      if (inFocusMode) focusedVariantStore.set(name);
-      if (tab) {
-        activeTab = tab;
-        focusedStateStore.set(tab);
+      if (tab !== null) {
+        openTab(tab);
+        return;
       }
+      if (!shouldRender || !states || !(stateActions || extraPropertyRowsTop || extraPropertyRows)) return;
+      request.searches.push(snippetTabHolding(request.variable).then((found) => {
+        if (found !== null) openTab(found);
+      }));
     });
   });
 
@@ -511,6 +542,14 @@
         </div>
       {/if}
     </div>
+
+    {#if searchedTab !== null}
+      <div hidden inert bind:this={searchStage}>
+        {@render stateActions?.(searchedTab)}
+        {@render extraPropertyRowsTop?.(searchedTab)}
+        {@render extraPropertyRows?.(searchedTab)}
+      </div>
+    {/if}
 
     {#if activeTab && states[activeTab]}
       {@const stateName = activeTab}

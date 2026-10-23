@@ -5,6 +5,9 @@ const KEY = Symbol('editor-context');
 
 export type VariantOption = { value: string; label: string };
 
+/** A request to show a variable's row. A group that has to search its tabs adds the search, so the requester can wait for it. */
+export type RevealRequest = { variable: string; searches: Promise<void>[] };
+
 export type EditorContext = {
   /** Per-variable rank for TokenLayout row alignment; null when no linked block. */
   linkedOrder: Readable<Map<string, number> | null>;
@@ -21,7 +24,7 @@ export type EditorContext = {
       when the user changes which variant is focused. */
   preserveColorFamily: Writable<boolean>;
   /** Rebuilt per request. The VariantGroup holding the variable focuses its variant and opens its tab. */
-  revealVariable: Writable<{ variable: string } | null>;
+  revealVariable: Writable<RevealRequest | null>;
 };
 
 /** Mutable handle for ComponentEditorBase. */
@@ -37,7 +40,7 @@ export function createEditorContext(): EditorContextInternal {
   const focusedState = writable<string | null>(null);
   const hoveredLinkedVariable = writable<string | null>(null);
   const preserveColorFamily = writable<boolean>(false);
-  const revealVariable = writable<{ variable: string } | null>(null);
+  const revealVariable = writable<RevealRequest | null>(null);
   const ctx: EditorContextInternal = {
     linkedOrder: _linkedOrder,
     focusedVariant,

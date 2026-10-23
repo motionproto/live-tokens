@@ -2,7 +2,7 @@
   import { tick } from 'svelte';
   import { a11yFinishedReport, a11yIssues } from '../../core/a11y/a11yReport';
   import { FLASH_DURATION_MS } from '../../core/flashStatus';
-  import { getEditorContext } from '../../component-editor/scaffolding/editorContext';
+  import { getEditorContext, type RevealRequest } from '../../component-editor/scaffolding/editorContext';
   import A11yComponentIssues from './A11yComponentIssues.svelte';
   import { accessibilityIssuesLabel, formatRunTime, issueCount } from './a11yView';
 
@@ -27,7 +27,10 @@
   async function reveal(variable: string) {
     let rows = renderedRows(variable);
     if (!rows[0]?.closest('.variant-group') && editorCtx) {
-      editorCtx.revealVariable.set({ variable });
+      const request: RevealRequest = { variable, searches: [] };
+      editorCtx.revealVariable.set(request);
+      await tick();
+      await Promise.all(request.searches);
       await tick();
       rows = renderedRows(variable);
     }
