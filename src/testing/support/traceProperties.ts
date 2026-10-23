@@ -7,7 +7,8 @@ export interface TraceAxes {
   target: string[];
   pseudoElements: string[];
   ancestors: string[];
-  /** Pseudo-classes forced on the target while its styles are read. */
+  /** Pseudo-classes forced on the target while its styles are read. The
+   *  target then keeps only the declarations the force brings in or changes. */
   force?: string[];
 }
 
@@ -41,7 +42,12 @@ interface Style {
 }
 
 interface RuleMatch {
-  rule: { origin: string; style: Style };
+  rule: {
+    origin: string;
+    style: Style & { range?: unknown };
+    styleSheetId?: string;
+    selectorList: { text: string };
+  };
 }
 
 interface ElementStyles {
@@ -71,11 +77,59 @@ function onAxis(property: string, axis: string[]): boolean {
 
 /** Authored declarations only: Chromium also lists each shorthand's longhands
  *  without text, which would repeat every reference. */
+function authored(style: Style | undefined): Declaration[] {
+  return (style?.cssProperties ?? []).filter((declaration) => declaration.text);
+}
+
+function regularRules(styles: ElementStyles): RuleMatch['rule'][] {
+  return (styles.matchedCSSRules ?? []).filter(({ rule }) => rule.origin === 'regular').map(({ rule }) => rule);
+}
+
 function declarations(styles: ElementStyles): Declaration[] {
-  return [
-    ...(styles.inlineStyle?.cssProperties ?? []),
-    ...(styles.matchedCSSRules ?? []).filter(({ rule }) => rule.origin === 'regular').flatMap(({ rule }) => rule.style.cssProperties),
-  ].filter((declaration) => declaration.text);
+  return [authored(styles.inlineStyle), ...regularRules(styles).map((rule) => authored(rule.style))].flat();
+}
+
+function ruleKey(rule: RuleMatch['rule']): string {
+  return JSON.stringify([rule.styleSheetId, rule.selectorList.text, rule.style.range]);
+}
+
+type Longhands = (names: string[]) => Promise<Map<string, string[]>>;
+
+/** The longhands each property sets, read from the page's CSSOM, so that
+ *  `outline` and `outline-color` count as the same property. */
+function longhandsIn(page: Page): Longhands {
+  return async (names) => new Map(await page.evaluate((names) => names.map((name): [string, string[]] => {
+    if (name.startsWith('--')) return [name, [name]];
+    const style = document.createElement('div').style;
+    style.setProperty(name, 'initial');
+    return [name, style.length ? Array.from({ length: style.length }, (_, i) => style.item(i)) : [name]];
+  }), names));
+}
+
+/**
+ * The target's declarations under `forced` that the force brings in or
+ * changes: every declaration of a rule that matches only under the force,
+ * and every declaration of a later rule, or of the inline style, that sets a
+ * property one of those rules sets. Rules that match in every state drop, so
+ * a field's resting border and surface never name a focus finding.
+ */
+async function forcedDeclarations(plain: ElementStyles, forced: ElementStyles, longhands: Longhands): Promise<Declaration[]> {
+  const before = new Set(regularRules(plain).map(ruleKey));
+  const cascade = [
+    ...regularRules(forced).map((rule) => ({ forcedOnly: !before.has(ruleKey(rule)), declarations: authored(rule.style) })),
+    { forcedOnly: false, declarations: authored(forced.inlineStyle) },
+  ];
+  const expanded = await longhands([...new Set(cascade.flatMap((entry) => entry.declarations.map((d) => d.name)))]);
+  const changed = new Set<string>();
+  const kept: Declaration[] = [];
+  for (const { forcedOnly, declarations } of cascade) {
+    for (const d of declarations) {
+      const sets = expanded.get(d.name) ?? [d.name];
+      if (forcedOnly) sets.forEach((name) => changed.add(name));
+      if (forcedOnly || sets.some((name) => changed.has(name))) kept.push(d);
+    }
+  }
+  return kept;
 }
 
 function references(value: string): string[] {
@@ -94,12 +148,25 @@ function scopeDepths(page: Page, selector: string, scope: string): Promise<numbe
   }), { selector, scope });
 }
 
-async function traceNode(cdp: CDPSession, nodeId: number, depth: number, axes: TraceAxes, known: ReadonlySet<string>): Promise<string[]> {
-  const force = (forcedPseudoClasses: string[]) => cdp.send('CSS.forcePseudoState', { nodeId, forcedPseudoClasses });
-  if (axes.force) await force(axes.force);
-  const matched = await cdp.send('CSS.getMatchedStylesForNode', { nodeId }).finally(() => axes.force && force([]));
+async function matchedStyles(cdp: CDPSession, nodeId: number, force: string[] = []) {
+  const forcePseudoState = (forcedPseudoClasses: string[]) => cdp.send('CSS.forcePseudoState', { nodeId, forcedPseudoClasses });
+  if (force.length === 0) return cdp.send('CSS.getMatchedStylesForNode', { nodeId });
+  await forcePseudoState(force);
+  return cdp.send('CSS.getMatchedStylesForNode', { nodeId }).finally(() => forcePseudoState([]));
+}
 
-  const own = declarations(matched);
+async function traceNode(
+  cdp: CDPSession,
+  nodeId: number,
+  depth: number,
+  axes: TraceAxes,
+  known: ReadonlySet<string>,
+  longhands: Longhands,
+): Promise<string[]> {
+  const matched = await matchedStyles(cdp, nodeId, axes.force);
+  const own = axes.force
+    ? await forcedDeclarations(await matchedStyles(cdp, nodeId), matched, longhands)
+    : declarations(matched);
   const pseudo = (matched.pseudoElements ?? []).flatMap(({ matches }) => declarations({ matchedCSSRules: matches }));
   const ancestors = (matched.inherited ?? []).slice(0, depth).flatMap(declarations);
   const pending = [
@@ -108,7 +175,7 @@ async function traceNode(cdp: CDPSession, nodeId: number, depth: number, axes: T
     ...ancestors.filter((d) => onAxis(d.name, axes.ancestors)),
   ].flatMap((d) => references(d.value));
 
-  const custom = [...own, ...pseudo, ...ancestors].filter((d) => d.name.startsWith('--'));
+  const custom = [...declarations(matched), ...pseudo, ...ancestors].filter((d) => d.name.startsWith('--'));
   const found = new Set<string>();
   const followed = new Set<string>();
   for (let name = pending.pop(); name !== undefined; name = pending.pop()) {
@@ -124,7 +191,8 @@ async function traceNode(cdp: CDPSession, nodeId: number, depth: number, axes: T
 /**
  * The component properties `axes` reads on the element `target.selector`
  * names inside `target.scope` (decisions 1 to 3): each matched declaration on
- * an axis, its `var()` references followed through every private custom
+ * an axis, narrowed under `axes.force` to the ones the force brings in or
+ * changes, its `var()` references followed through every private custom
  * property the target or an in-scope ancestor declares, kept where a name is
  * in `known`. Sorted and unique.
  */
@@ -144,10 +212,11 @@ export async function traceProperties(
   const cdp = await sessionFor(page);
   const { root } = await cdp.send('DOM.getDocument', { depth: 0 });
   const { nodeIds } = await cdp.send('DOM.querySelectorAll', { nodeId: root.nodeId, selector: target.selector });
+  const longhands = longhandsIn(page);
   const found = new Set<string>();
   for (const [index, nodeId] of nodeIds.entries()) {
     if (depths[index] < 0) continue;
-    for (const name of await traceNode(cdp, nodeId, depths[index], axes, known)) found.add(name);
+    for (const name of await traceNode(cdp, nodeId, depths[index], axes, known, longhands)) found.add(name);
   }
   return [...found].sort();
 }
