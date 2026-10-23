@@ -244,6 +244,9 @@ async function exerciseVisibleGradientControls(
     const before = await page.evaluate((name) =>
       document.documentElement.style.getPropertyValue(name).trim(), variable);
 
+    // A forced click lands on whatever covers the point. An editor scrolled
+    // up to the edge sits under the pinned preview, so it goes to the middle.
+    await editor.evaluate((el) => el.scrollIntoView({ block: 'center' }));
     // Promote an empty/flat background to Solid so its stop picker is present,
     // then select a non-active invariant colour through the real palette UI.
     const solid = editor.getByRole('radio', { name: 'Solid' });
