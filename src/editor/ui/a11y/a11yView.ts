@@ -29,9 +29,63 @@ export function reviewLabel(count: number): string {
   return `${count} ${count === 1 ? 'result' : 'results'} to check by eye`;
 }
 
-/** The issues that carry a "!". Results to check by eye stay out of the count (decision 6). */
+/** Every finding of the run counts, results to check by eye included (decision 6). */
 export function issueCount(issues: ComponentA11yIssues): number {
-  return issues.contrast.length + issues.code.length;
+  return issues.contrast.length + issues.property.length + issues.code.length + issues.review.length;
+}
+
+/** One panel row: the findings that share an engine rule, a help text and the properties they trace to. */
+export interface A11yFindingRow {
+  finding: A11yFinding;
+  targets: string[];
+  views: string;
+  variables: string[];
+}
+
+const VIEW_LIMIT = 4;
+const MORE_VIEWS = /^and \d+ more$/;
+
+/** The views of several findings, once each, in the order they first
+ *  appear. A finding lists four views and counts the rest, so the merged list
+ *  cannot count what it drops and says "and more". */
+function mergeViews(views: (string | undefined)[]): string {
+  const named: string[] = [];
+  let hidden = false;
+  for (const view of views) {
+    for (const part of view ? view.split('; ') : []) {
+      if (MORE_VIEWS.test(part)) hidden = true;
+      else if (!named.includes(part)) named.push(part);
+    }
+  }
+  const shown = named.slice(0, VIEW_LIMIT);
+  return hidden || named.length > shown.length ? [...shown, 'and more'].join('; ') : shown.join('; ');
+}
+
+/** Findings that share an engine rule, a help text and their traced properties merge into one row (decision 6). */
+export function findingRows(findings: A11yFinding[]): A11yFindingRow[] {
+  const rows = new Map<string, A11yFinding[]>();
+  for (const finding of findings) {
+    const key = finding.details
+      ? [finding.rule, finding.details.engineRule, finding.details.help, ...(finding.details.variables ?? [])].join('\n')
+      : finding.message;
+    rows.set(key, [...(rows.get(key) ?? []), finding]);
+  }
+  return [...rows.values()].map((group) => ({
+    finding: group[0],
+    targets: [...new Set(group.flatMap((f) => (f.details ? [f.details.target] : [])))],
+    views: group.length === 1 ? (group[0].details?.view ?? '') : mergeViews(group.map((f) => f.details?.view)),
+    variables: group[0].details?.variables ?? [],
+  }));
+}
+
+/** A finding's own words. A keyboard case's engine rule is the case's own name, which the help alone leaves out. */
+export function findingText(finding: A11yFinding): string {
+  if (!finding.details) return finding.message;
+  return finding.rule === 'a11y-keyboard' ? `${finding.details.engineRule}: ${finding.details.help}` : finding.details.help;
+}
+
+export function elementsLabel(count: number): string {
+  return `${count} ${count === 1 ? 'element' : 'elements'}`;
 }
 
 export function issuesLabel(count: number): string {
@@ -46,7 +100,7 @@ export interface A11yComponentRow {
   issues: ComponentA11yIssues;
 }
 
-/** Every registered component with an issue, in the component rail's order. */
+/** Every registered component with a finding, in the component rail's order. */
 export function componentsWithIssues(all: Record<string, ComponentA11yIssues>): A11yComponentRow[] {
   return getComponentRegistryEntries().flatMap(({ id, label, icon }) => {
     const issues = all[id];
@@ -55,16 +109,32 @@ export function componentsWithIssues(all: Record<string, ComponentA11yIssues>): 
   });
 }
 
-/** Every result to check by eye, grouped under its component in the rail's order. */
-export function reviewResults(all: Record<string, ComponentA11yIssues>): { label: string; finding: A11yFinding }[] {
+/** Every result to check by eye, merged into rows per component, in the rail's order. */
+export function reviewResults(all: Record<string, ComponentA11yIssues>): { component: string; label: string; row: A11yFindingRow }[] {
   return getComponentRegistryEntries().flatMap(({ id, label }) =>
-    (all[id]?.review ?? []).map((finding) => ({ label, finding })),
+    findingRows(all[id]?.review ?? []).map((row) => ({ component: id, label, row })),
   );
 }
 
-/** The label of the property row that sets `variable`, with its first letter raised. */
+/** The words of `variable` after the component's prefix that `label` lacks,
+ *  such as "focused" for `--input-focused-border` and "border color". Rows in
+ *  different variants and states share a label, so these words tell them apart. */
+function qualifier(component: string, variable: string, label: string): string {
+  const prefix = `--${component}-`;
+  if (!variable.startsWith(prefix)) return '';
+  const own = new Set(label.split(/[\s-]+/));
+  return variable.slice(prefix.length).split('-').filter((word) => !own.has(word)).join(' ');
+}
+
+/** The label of the property row that sets `variable`, led by its variant and
+ *  state words, with its first letter raised. An intrinsic has no schema row,
+ *  so its key names it. */
 export function propertyLabel(component: string, variable: string): string | null {
-  const label = getComponentRegistry()[component]?.schema.find((token) => token.variable === variable)?.label;
+  const entry = getComponentRegistry()[component];
+  const token = entry?.schema.find((t) => t.variable === variable);
+  const label = token
+    ? [qualifier(component, variable, token.label), token.label].filter(Boolean).join(' ')
+    : entry?.intrinsics?.find((spec) => spec.variants.some((v) => spec.variable(v) === variable))?.key.replaceAll('-', ' ');
   return label ? label.charAt(0).toUpperCase() + label.slice(1) : null;
 }
 

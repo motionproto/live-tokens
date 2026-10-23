@@ -52,10 +52,24 @@ test('the rail marks each component the report names and adds no text', async ({
   await expect(badge.getByRole('img', { name: 'Accessibility issues' })).toBeVisible();
   expect(await badge.evaluate((el) => el.textContent?.trim())).toBe('Badge');
   await expect(railItem(frame, 'Button').locator('.a11y-rail-mark')).toHaveCount(0);
-  await expect(railItem(frame, 'Video Frame').locator('.a11y-rail-mark')).toHaveCount(0);
 
   await frame.getByRole('button', { name: 'Collapse sidebar' }).click();
   await expect(badge.getByRole('img', { name: 'Accessibility issues' })).toBeVisible();
+});
+
+test('a component with results to check by eye alone carries the mark and the panel', async ({ page }) => {
+  await stubReport(page);
+  const frame = await openOverlayEditor(page, 'components');
+
+  const videoFrame = railItem(frame, 'Video Frame');
+  await expect(videoFrame.getByRole('img', { name: 'Accessibility issues' })).toBeVisible();
+  expect(await videoFrame.evaluate((el) => el.textContent?.trim())).toBe('Video Frame');
+
+  await videoFrame.click();
+  const panel = frame.locator('.a11y-panel');
+  await expect(panel.getByRole('heading', { name: '1 accessibility issue' })).toBeVisible();
+  await expect(panel.locator('.a11y-group-title')).toHaveText(['Check by eye']);
+  await expect(panel.locator('.a11y-issue.review .a11y-issue-mark')).toHaveText('?');
 });
 
 test('a marked component carries the panel and a clean one carries none', async ({ page }, testInfo) => {
@@ -68,16 +82,12 @@ test('a marked component carries the panel and a clean one carries none', async 
 
   await railItem(frame, 'Badge').click();
   const panel = frame.locator('.a11y-panel');
-  await expect(panel.getByRole('heading', { name: '2 accessibility issues' })).toBeVisible();
+  await expect(panel.getByRole('heading', { name: '3 accessibility issues' })).toBeVisible();
   await expect(panel.locator('.a11y-panel-run')).toHaveText(/^Last run .+$/);
-  await expect(panel.getByText('Fix with a property')).toBeVisible();
-  await expect(panel.getByText('Text color 3.87:1, needs 4.5:1')).toBeVisible();
-  await expect(panel.getByText("Fix in the component's code")).toBeVisible();
+  await expect(panel.locator('.a11y-group-title')).toHaveText(['Fix with a property', "Fix in the component's code", 'Check by eye']);
+  await expect(panel.getByText('Brand text color 3.87:1, needs 4.5:1')).toBeVisible();
+  await expect(panel.locator('.a11y-issue.review')).toContainText('Elements must meet minimum color contrast ratio thresholds');
   await testInfo.attach('panel', { body: await frame.locator('.demo-block').first().screenshot(), contentType: 'image/png' });
-
-  await panel.getByRole('button', { name: '1 result to check by eye' }).click();
-  await expect(frame.getByRole('heading', { name: 'Accessibility', level: 2 })).toBeVisible();
-  await expect(frame.locator('#a11y-review details')).toHaveAttribute('open', '');
 });
 
 test('the arrow opens the tab that holds the property and scrolls its row into view', async ({ page }) => {
@@ -88,7 +98,7 @@ test('the arrow opens the tab that holds the property and scrolls its row into v
   const row = frame.locator('.variant-group .ui-token-selector[data-token-variable="--badge-brand-text"]');
   await expect(row).toHaveCount(0);
 
-  await frame.locator('.a11y-panel').getByRole('button', { name: 'Go to Text color' }).click();
+  await frame.locator('.a11y-panel').getByRole('button', { name: 'Go to Brand text color' }).click();
   await expect(frame.locator('.variant-tab-btn', { hasText: 'Brand' })).toHaveAttribute('aria-selected', 'true');
   await expect(frame.locator('.variant-group .state-tab-btn', { hasText: /^colors$/ })).toHaveAttribute('aria-selected', 'true');
   await expect(row).toBeInViewport();
@@ -102,9 +112,9 @@ test('the standalone component page marks its rail and shows the panel', async (
   await expect(badge.getByRole('img', { name: 'Accessibility issues' })).toBeVisible();
   await badge.click();
   const panel = page.locator('.a11y-panel');
-  await expect(panel.getByRole('heading', { name: '2 accessibility issues' })).toBeVisible();
-  await expect(panel.locator('p.a11y-panel-review')).toHaveText('1 result to check by eye');
+  await expect(panel.getByRole('heading', { name: '3 accessibility issues' })).toBeVisible();
+  await expect(panel.locator('.a11y-issue.review')).toHaveCount(1);
 
-  await panel.getByRole('button', { name: 'Go to Text color' }).click();
+  await panel.getByRole('button', { name: 'Go to Brand text color' }).click();
   await expect(page.locator('.variant-group .ui-token-selector[data-token-variable="--badge-brand-text"]')).toBeInViewport();
 });

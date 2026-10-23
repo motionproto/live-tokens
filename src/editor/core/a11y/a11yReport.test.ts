@@ -21,12 +21,13 @@ const CONTRAST: A11yContrastFailure = {
   floor: 4.5,
 };
 
-const finding = (rule: string, component?: string): A11yFinding => ({
+const finding = (rule: string, component?: string, engineRule?: string): A11yFinding => ({
   rule,
   file: 'src/system/components/Badge.svelte',
   line: 1,
   message: `${component ? `${component}: ` : ''}case`,
   ...(component ? { component } : {}),
+  ...(engineRule ? { details: { engineRule, target: '.part', html: '<div></div>', help: 'case', helpUrl: 'https://example.test/' } } : {}),
   severity: rule.startsWith('tests-') ? 'error' : 'warn',
   repair: 'authored',
 });
@@ -45,6 +46,8 @@ const FINISHED: A11yFinishedReport = {
     finding('a11y-review', 'video'),
     finding('tests-incomplete', 'table'),
     finding('tests-setup'),
+    finding('a11y-component', 'input', 'focus-indicator-contrast'),
+    finding('a11y-review', 'input', 'focus-indicator-contrast'),
   ],
 };
 
@@ -65,9 +68,10 @@ describe('a11yIssues', () => {
   it('keys the last finished run by component and sorts each finding by its fix', () => {
     receiveA11yReport(FINISHED);
     expect(get(a11yIssues)).toEqual({
-      badge: { contrast: [CONTRAST], code: [FINDING_AT(1)], review: [FINDING_AT(2)] },
-      'radio-button': { contrast: [], code: [FINDING_AT(0)], review: [] },
-      video: { contrast: [], code: [], review: [FINDING_AT(3)] },
+      badge: { contrast: [CONTRAST], property: [], code: [FINDING_AT(1)], review: [FINDING_AT(2)] },
+      input: { contrast: [], property: [FINDING_AT(6)], code: [], review: [FINDING_AT(7)] },
+      'radio-button': { contrast: [], property: [], code: [FINDING_AT(0)], review: [] },
+      video: { contrast: [], property: [], code: [], review: [FINDING_AT(3)] },
     });
   });
 
@@ -77,7 +81,7 @@ describe('a11yIssues', () => {
     expect(get(a11yReport)).toEqual(RUNNING);
     expect(get(a11yFinishedReport)).toEqual(FINISHED);
     receiveA11yReport({ ...RUNNING, state: 'failed', finishedAt: '2026-10-23T14:01:00.000Z', error: 'boom' });
-    expect(Object.keys(get(a11yIssues))).toEqual(['badge', 'radio-button', 'video']);
+    expect(Object.keys(get(a11yIssues))).toEqual(['badge', 'radio-button', 'video', 'input']);
   });
 
   it('is empty before any run finishes', () => {

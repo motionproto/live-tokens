@@ -1,7 +1,16 @@
 import { describe, expect, it } from 'vitest';
 import type { ComponentA11yIssues } from '../../core/a11y/a11yReport';
 import type { A11yContrastFailure, A11yFinding } from '../../core/a11y/a11yReportTypes';
-import { codeSpans, componentsWithIssues, formatElapsed, formatRunTime, propertyLabel, reviewResults } from './a11yView';
+import {
+  codeSpans,
+  componentsWithIssues,
+  findingRows,
+  formatElapsed,
+  formatRunTime,
+  issueCount,
+  propertyLabel,
+  reviewResults,
+} from './a11yView';
 
 const failure: A11yContrastFailure = {
   component: 'badge',
@@ -22,31 +31,87 @@ const finding = (rule: string, component: string): A11yFinding => ({
   repair: 'authored',
 });
 
+const traced = (target: string, view: string, variables?: string[], engineRule = 'SIA-R65'): A11yFinding => ({
+  ...finding('a11y-focus-visible', 'input'),
+  details: {
+    engineRule,
+    target,
+    view,
+    html: '<input>',
+    help: 'Focusing the element changes no style on it',
+    helpUrl: 'https://alfa.siteimprove.com/rules/sia-r65',
+    ...(variables ? { variables } : {}),
+  },
+});
+
 const issues: Record<string, ComponentA11yIssues> = {
-  radiobutton: { contrast: [], code: [finding('a11y-keyboard', 'radiobutton')], review: [] },
-  badge: { contrast: [failure], code: [finding('a11y-component', 'badge')], review: [finding('a11y-review', 'badge')] },
-  videoframe: { contrast: [], code: [], review: [finding('a11y-review', 'videoframe')] },
+  radiobutton: { contrast: [], property: [], code: [finding('a11y-keyboard', 'radiobutton')], review: [] },
+  badge: {
+    contrast: [failure],
+    property: [],
+    code: [finding('a11y-component', 'badge')],
+    review: [finding('a11y-review', 'badge')],
+  },
+  videoframe: { contrast: [], property: [], code: [], review: [finding('a11y-review', 'videoframe')] },
 };
 
+describe('issueCount', () => {
+  it('counts every finding, results to check by eye included', () => {
+    expect(issueCount({ ...issues.badge, property: [traced('.a', 'error')] })).toBe(4);
+  });
+});
+
 describe('componentsWithIssues', () => {
-  it('lists each component with a marked issue in rail order, counting contrast and code alone', () => {
+  it('lists each component with a finding in rail order, a check-by-eye result alone included', () => {
     const rows = componentsWithIssues(issues);
     expect(rows.map((r) => [r.component, r.label, r.count])).toEqual([
-      ['badge', 'Badge', 2],
+      ['badge', 'Badge', 3],
       ['radiobutton', 'Radio Button', 1],
+      ['videoframe', 'Video Frame', 1],
     ]);
+  });
+});
+
+describe('findingRows', () => {
+  it('merges findings that share an engine rule and their properties, counting elements and views', () => {
+    const variables = ['--input-error-border', '--input-focused-border'];
+    const rows = findingRows([
+      traced('.a', 'error / field', variables),
+      traced('.b', 'error / field; error / filled', variables),
+      traced('.c', 'default', ['--input-focused-border']),
+      traced('.d', 'default', ['--input-focused-border'], 'target-size'),
+    ]);
+    expect(rows.map((r) => [r.targets, r.views, r.variables])).toEqual([
+      [['.a', '.b'], 'error / field; error / filled', variables],
+      [['.c'], 'default', ['--input-focused-border']],
+      [['.d'], 'default', ['--input-focused-border']],
+    ]);
+  });
+
+  it('keeps a lone finding\'s views as the run wrote them', () => {
+    expect(findingRows([traced('.a', 'one; two; three; four; and 2 more')])[0].views).toBe('one; two; three; four; and 2 more');
+  });
+
+  it('lists four views of merged findings and says "and more" past them', () => {
+    const [row] = findingRows([traced('.a', 'one; two; three; and 2 more'), traced('.b', 'four; five')]);
+    expect(row.views).toBe('one; two; three; four; and more');
   });
 });
 
 describe('reviewResults', () => {
   it('collects every result to check by eye under its component label', () => {
-    expect(reviewResults(issues).map((r) => r.label)).toEqual(['Badge', 'Video Frame']);
+    expect(reviewResults(issues).map((r) => [r.component, r.label])).toEqual([['badge', 'Badge'], ['videoframe', 'Video Frame']]);
   });
 });
 
 describe('propertyLabel', () => {
-  it('names the row that sets the variable', () => {
-    expect(propertyLabel('badge', '--badge-brand-text')).toBe('Text color');
+  it('names the row that sets the variable, led by its variant and state words', () => {
+    expect(propertyLabel('badge', '--badge-brand-text')).toBe('Brand text color');
+    expect(propertyLabel('input', '--input-focused-border')).toBe('Focused border color');
+  });
+
+  it('names an intrinsic by its key', () => {
+    expect(propertyLabel('button', '--button-shimmer')).toBe('Shimmer');
   });
 
   it('answers null for a variable no row sets', () => {

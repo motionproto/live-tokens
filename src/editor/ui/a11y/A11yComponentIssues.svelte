@@ -1,30 +1,28 @@
 <script lang="ts">
   import type { ComponentA11yIssues } from '../../core/a11y/a11yReport';
-  import type { A11yFinding } from '../../core/a11y/a11yReportTypes';
   import { CONTRAST_RULES } from '../../core/palettes/contrast';
   import { formatFloor, formatRatio } from '../contrastReadout';
+  import A11yFindingRow from './A11yFindingRow.svelte';
   import A11yIssueRow from './A11yIssueRow.svelte';
-  import { propertyLabel } from './a11yView';
+  import { findingRows, propertyLabel } from './a11yView';
 
   interface Props {
     component: string;
     issues: ComponentA11yIssues;
-    /** Present on the component page, where a contrast row can take the reader to its property row. */
+    /** Lists the results to check by eye as a third group. The Accessibility view lists them apart. */
+    withReview?: boolean;
+    /** Present on the component page, where a row can take the reader to its property row. */
     onreveal?: (variable: string) => void;
   }
 
-  let { component, issues, onreveal }: Props = $props();
+  let { component, issues, withReview = false, onreveal }: Props = $props();
 
-  // A keyboard case's engine rule is the case's own name, which the gap alone leaves out.
-  const findingText = (finding: A11yFinding) =>
-    !finding.details
-      ? finding.message
-      : finding.rule === 'a11y-keyboard'
-        ? `${finding.details.engineRule}: ${finding.details.help}`
-        : finding.details.help;
+  let propertyRows = $derived(findingRows(issues.property));
+  let codeRows = $derived(findingRows(issues.code));
+  let reviewRows = $derived(withReview ? findingRows(issues.review) : []);
 </script>
 
-{#if issues.contrast.length > 0}
+{#if issues.contrast.length > 0 || propertyRows.length > 0}
   <div class="a11y-group">
     <h4 class="a11y-group-title">Fix with a property</h4>
     <ul class="a11y-issues">
@@ -51,23 +49,30 @@
           {/snippet}
         </A11yIssueRow>
       {/each}
+      {#each propertyRows as row, i (i)}
+        <A11yFindingRow {component} {row} {onreveal} />
+      {/each}
     </ul>
   </div>
 {/if}
 
-{#if issues.code.length > 0}
+{#if codeRows.length > 0}
   <div class="a11y-group">
     <h4 class="a11y-group-title">Fix in the component's code</h4>
     <ul class="a11y-issues">
-      {#each issues.code as finding, i (i)}
-        <A11yIssueRow href={finding.details?.helpUrl}>
-          {findingText(finding)}
-          {#snippet detail()}
-            {#if finding.details}
-              <code>{finding.details.target}</code>{#if finding.details.view}, {finding.details.view}{/if}
-            {/if}
-          {/snippet}
-        </A11yIssueRow>
+      {#each codeRows as row, i (i)}
+        <A11yFindingRow {component} {row} {onreveal} />
+      {/each}
+    </ul>
+  </div>
+{/if}
+
+{#if reviewRows.length > 0}
+  <div class="a11y-group">
+    <h4 class="a11y-group-title">Check by eye</h4>
+    <ul class="a11y-issues">
+      {#each reviewRows as row, i (i)}
+        <A11yFindingRow {component} {row} review {onreveal} />
       {/each}
     </ul>
   </div>

@@ -7,7 +7,7 @@
   import { listThemes } from '../../core/themes/themeService';
   import UIPillButton from '../UIPillButton.svelte';
   import A11yComponentIssues from './A11yComponentIssues.svelte';
-  import A11yIssueRow from './A11yIssueRow.svelte';
+  import A11yFindingRow from './A11yFindingRow.svelte';
   import {
     A11Y_REVIEW_SECTION,
     A11Y_RUN_SECTION,
@@ -16,12 +16,17 @@
     componentsWithIssues,
     formatElapsed,
     formatRunTime,
+    getA11yViewLink,
     issuesLabel,
+    reviewLabel,
     reviewResults,
   } from './a11yView';
 
+  const openView = getA11yViewLink();
+
   let rows = $derived(componentsWithIssues($a11yIssues));
   let review = $derived(reviewResults($a11yIssues));
+  let reviewTotal = $derived(rows.reduce((sum, row) => sum + row.issues.review.length, 0));
   let total = $derived(rows.reduce((sum, row) => sum + row.count, 0));
   let running = $derived($a11yReport?.state === 'running' ? $a11yReport : null);
   let failed = $derived($a11yReport?.state === 'failed' ? $a11yReport : null);
@@ -150,23 +155,21 @@
         <span class="a11y-count">{issuesLabel(row.count)}</span>
       </header>
       <A11yComponentIssues component={row.component} issues={row.issues} />
+      {#if row.issues.review.length > 0}
+        <button type="button" class="a11y-review-link" onclick={() => openView?.(A11Y_REVIEW_SECTION)}>
+          {reviewLabel(row.issues.review.length)}
+        </button>
+      {/if}
     </section>
   {/each}
 
   {#if review.length > 0}
     <section id={A11Y_REVIEW_SECTION} class="a11y-review">
       <details class="a11y-disclosure">
-        <summary>{review.length} {review.length === 1 ? 'result' : 'results'} to check by eye</summary>
+        <summary>{reviewLabel(reviewTotal)}</summary>
         <ul class="a11y-review-list">
-          {#each review as { label, finding }, i (i)}
-            <A11yIssueRow marked={false} href={finding.details?.helpUrl}>
-              {label}: {finding.details?.help ?? finding.message}
-              {#snippet detail()}
-                {#if finding.details}
-                  <code>{finding.details.target}</code>{#if finding.details.view}, {finding.details.view}{/if}
-                {/if}
-              {/snippet}
-            </A11yIssueRow>
+          {#each review as { component, label, row }, i (i)}
+            <A11yFindingRow {component} {row} review prefix={label} />
           {/each}
         </ul>
       </details>
@@ -276,6 +279,22 @@
     margin-left: auto;
     font-size: var(--ui-font-size-sm);
     color: var(--ui-text-tertiary);
+  }
+
+  .a11y-review-link {
+    align-self: flex-start;
+    padding: 0;
+    background: none;
+    border: none;
+    font-size: var(--ui-font-size-sm);
+    color: var(--ui-text-tertiary);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+    cursor: pointer;
+  }
+
+  .a11y-review-link:hover {
+    color: var(--ui-text-primary);
   }
 
   .a11y-review-list {

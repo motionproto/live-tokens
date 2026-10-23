@@ -4,13 +4,18 @@ import type { A11yContrastFailure, A11yFinding, A11yFinishedReport, A11yReport }
 
 /** One component's share of the last finished run, sorted by its fix (decision 6). */
 export interface ComponentA11yIssues {
-  /** Fix with a property. */
+  /** Fix with a property: the editor's own contrast failures. */
   contrast: A11yContrastFailure[];
-  /** Fix in the component's code: every `a11y-*` finding but `a11y-review`. */
+  /** Fix with a property: the run's findings whose engine rule measures a property's value. */
+  property: A11yFinding[];
+  /** Fix in the component's code: every other `a11y-*` finding but `a11y-review`. */
   code: A11yFinding[];
-  /** Check by eye. These carry no "!". */
+  /** Check by eye. */
   review: A11yFinding[];
 }
+
+/** Engine rules whose failure a property's value fixes. */
+export const PROPERTY_FIX_RULES: ReadonlySet<string> = new Set(['focus-indicator-contrast', 'control-boundary-contrast']);
 
 const latest = writable<A11yReport | null>(null);
 const lastFinished = writable<A11yFinishedReport | null>(null);
@@ -25,12 +30,15 @@ export const a11yFinishedReport: Readable<A11yFinishedReport | null> = { subscri
 export const a11yIssues: Readable<Record<string, ComponentA11yIssues>> = derived(lastFinished, ($report) => {
   const out: Record<string, ComponentA11yIssues> = {};
   if (!$report) return out;
-  const entry = (id: string) => (out[id] ??= { contrast: [], code: [], review: [] });
+  const entry = (id: string) => (out[id] ??= { contrast: [], property: [], code: [], review: [] });
   for (const failure of $report.contrast) entry(failure.component).contrast.push(failure);
   for (const finding of $report.findings) {
     if (!finding.component || !finding.rule.startsWith('a11y-')) continue;
     const issues = entry(finding.component);
-    (finding.rule === 'a11y-review' ? issues.review : issues.code).push(finding);
+    const group = finding.rule === 'a11y-review'
+      ? issues.review
+      : PROPERTY_FIX_RULES.has(finding.details?.engineRule ?? '') ? issues.property : issues.code;
+    group.push(finding);
   }
   return out;
 });

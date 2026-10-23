@@ -4,30 +4,22 @@
   import { FLASH_DURATION_MS } from '../../core/flashStatus';
   import { getEditorContext } from '../../component-editor/scaffolding/editorContext';
   import A11yComponentIssues from './A11yComponentIssues.svelte';
-  import {
-    A11Y_REVIEW_SECTION,
-    accessibilityIssuesLabel,
-    formatRunTime,
-    getA11yViewLink,
-    issueCount,
-    reviewLabel,
-  } from './a11yView';
+  import { accessibilityIssuesLabel, formatRunTime, issueCount } from './a11yView';
 
   let { component }: { component: string } = $props();
   const titleId = $props.id();
 
   const editorCtx = getEditorContext();
-  const openView = getA11yViewLink();
 
   let panel: HTMLElement | undefined = $state();
   let issues = $derived($a11yIssues[component]);
   let count = $derived(issues ? issueCount(issues) : 0);
-  let reviewCount = $derived(issues?.review.length ?? 0);
 
   /** Rendered rows for `variable`. The linked block can repeat a variant's row, so the variant's own row comes first. */
   function renderedRows(variable: string): HTMLElement[] {
     const scope = panel?.closest('.demo-block') ?? document;
-    const rows = [...scope.querySelectorAll<HTMLElement>(`[data-token-variable="${variable}"]`)]
+    const selector = `[data-token-variable="${variable}"], [data-token-variables~="${variable}"]`;
+    const rows = [...scope.querySelectorAll<HTMLElement>(selector)]
       .filter((row) => row.getClientRects().length > 0);
     return [...rows.filter((row) => row.closest('.variant-group')), ...rows.filter((row) => !row.closest('.variant-group'))];
   }
@@ -59,16 +51,7 @@
       <h3 id={titleId} class="a11y-panel-title">{accessibilityIssuesLabel(count)}</h3>
       <span class="a11y-panel-run">Last run {formatRunTime($a11yFinishedReport.finishedAt)}</span>
     </header>
-    <A11yComponentIssues {component} {issues} onreveal={reveal} />
-    {#if reviewCount > 0}
-      {#if openView}
-        <button type="button" class="a11y-panel-review a11y-panel-review-link" onclick={() => openView(A11Y_REVIEW_SECTION)}>
-          {reviewLabel(reviewCount)}
-        </button>
-      {:else}
-        <p class="a11y-panel-review">{reviewLabel(reviewCount)}</p>
-      {/if}
-    {/if}
+    <A11yComponentIssues {component} {issues} withReview onreveal={reveal} />
   </section>
 {/if}
 
@@ -101,25 +84,5 @@
     margin-left: auto;
     font-size: var(--ui-font-size-sm);
     color: var(--ui-text-tertiary);
-  }
-
-  .a11y-panel-review {
-    margin: 0;
-    font-size: var(--ui-font-size-sm);
-    color: var(--ui-text-tertiary);
-  }
-
-  .a11y-panel-review-link {
-    align-self: flex-start;
-    padding: 0;
-    background: none;
-    border: none;
-    text-decoration: underline;
-    text-underline-offset: 2px;
-    cursor: pointer;
-  }
-
-  .a11y-panel-review-link:hover {
-    color: var(--ui-text-primary);
   }
 </style>

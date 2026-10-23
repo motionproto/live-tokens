@@ -89,13 +89,13 @@ test('Run test posts the measured contrast and shows the finished report', async
   await expect.poll(() => posts.length).toBe(1);
   expect(Array.isArray((posts[0] as { contrast: unknown }).contrast)).toBe(true);
 
-  await expect(frame.locator('.a11y-summary')).toHaveText('2 components with issues, 3 issues');
+  await expect(frame.locator('.a11y-summary')).toHaveText('3 components with issues, 5 issues');
   await expect(frame.locator('.a11y-status')).toHaveText(/^Last run .+, theme Royal Velvet$/);
 
   const badge = frame.locator('#a11y-component-badge');
   await expect(badge.getByRole('heading', { name: 'Badge' })).toBeVisible();
-  await expect(badge.locator('.a11y-count')).toHaveText('2 issues');
-  const contrastRow = badge.locator('.a11y-issue', { hasText: 'Text color 3.87:1, needs 4.5:1' });
+  await expect(badge.locator('.a11y-count')).toHaveText('3 issues');
+  const contrastRow = badge.locator('.a11y-issue', { hasText: 'Brand text color 3.87:1, needs 4.5:1' });
   await expect(contrastRow.locator('.a11y-issue-mark')).toHaveText('!');
   await expect(badge.getByText('Fix with a property')).toBeVisible();
   await expect(badge.getByText("Fix in the component's code")).toBeVisible();
@@ -109,9 +109,15 @@ test('Run test posts the measured contrast and shows the finished report', async
   await expect(review).toHaveText('2 results to check by eye');
   await expect(frame.locator('#a11y-review .a11y-issue').first()).toBeHidden();
 
+  const videoFrame = frame.locator('#a11y-component-videoframe');
+  await expect(videoFrame.locator('.a11y-count')).toHaveText('1 issue');
+  await videoFrame.getByRole('button', { name: '1 result to check by eye' }).click();
+  await expect(frame.locator('#a11y-review details')).toHaveAttribute('open', '');
+  await expect(frame.locator('#a11y-review .a11y-issue.review .a11y-issue-mark').first()).toHaveText('?');
+
   const rail = frame.locator('.sidebar .nav-item');
-  await expect(rail).toHaveCount(2);
-  await expect(rail.first()).toHaveAccessibleName('Badge, 2 issues');
+  await expect(rail).toHaveCount(3);
+  await expect(rail.first()).toHaveAccessibleName('Badge, 3 issues');
   await testInfo.attach('accessibility view', { body: await frame.locator('.layout').screenshot(), contentType: 'image/png' });
 });
 
