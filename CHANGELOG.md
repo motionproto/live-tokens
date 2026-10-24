@@ -224,6 +224,9 @@
 - **TabBar's icon-only tabs carry a name.** With `iconOnly` set, each tab
   takes its `label` as `aria-label`, and the icon is hidden from assistive
   technology.
+- **CodeSnippet's code line takes keyboard focus.** A long snippet scrolls
+  sideways, so the code element now sits in the tab order and shows the
+  neutral focus ring, and the arrow keys scroll it.
 
 ## 0.97.0 — Custom colors
 

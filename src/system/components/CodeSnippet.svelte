@@ -46,7 +46,9 @@
 </script>
 
 <div class="codesnippet {className}">
-  <code class="code">{code}</code>
+  <!-- A long snippet scrolls sideways, so the keyboard needs a stop on it. -->
+  <!-- svelte-ignore a11y_no_noninteractive_tabindex -->
+  <code class="code" tabindex="0">{code}</code>
   <Tooltip text={copied ? 'Copied' : ''} open={copied} position="top">
     <button
       type="button"
@@ -116,6 +118,11 @@
     overflow-y: hidden;
     scrollbar-width: thin;
     scrollbar-color: var(--codesnippet-scrollbar-thumb) transparent;
+  }
+
+  .code:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 var(--border-width-2) var(--border-neutral-strong);
   }
 
   .code::-webkit-scrollbar {
