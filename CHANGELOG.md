@@ -233,6 +233,10 @@
   options and wrap, and Home and End jump to the ends. A new optional
   `ariaLabel` prop names the list; pass the text of the Button that opens
   it.
+- **Dialog follows the WAI-ARIA dialog pattern.** The panel is a `dialog`
+  named by its title, and `aria-modal` outside the inline preview. Escape
+  takes the cancel path: it calls `cancel.onClick` when a cancel button is
+  set, else `onclose`, as the close icon does.
 
 ## 0.97.0 — Custom colors
 

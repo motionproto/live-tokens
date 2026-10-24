@@ -119,12 +119,6 @@ export const dialogContract: ComponentContract = {
         action: { kind: 'press', part: 'closeButton', key: 'Enter' },
         expect: { kind: 'activated', part: 'closeButton' },
       },
-      {
-        name: 'Escape closes the dialog',
-        rule: 'a11y-keyboard',
-        action: { kind: 'press', part: 'closeButton', key: 'Escape' },
-        expect: { kind: 'present', part: 'root', value: false },
-      },
     ],
   },
   behavior: {
@@ -133,6 +127,12 @@ export const dialogContract: ComponentContract = {
         name: 'clicking close asks to close',
         props: { open: true, inline: true, title: 'Confirm' },
         action: { kind: 'click', part: 'closeButton' },
+        expect: { kind: 'callback', prop: 'onclose', args: [] },
+      },
+      {
+        name: 'Escape asks to close',
+        props: { open: true, inline: true, title: 'Confirm' },
+        action: { kind: 'keydown', part: 'closeButton', key: 'Escape' },
         expect: { kind: 'callback', prop: 'onclose', args: [] },
       },
       {

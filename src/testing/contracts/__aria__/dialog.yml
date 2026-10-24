@@ -1,36 +1,42 @@
 "preview": |
-  - heading "Sample Dialog" [level=3]
-  - button "Close"
-  - paragraph: This is the dialog body content. It supports any slotted content including forms, lists, or other components.
-  - button "Cancel"
-  - button "Save"
+  - dialog "Sample Dialog":
+    - heading "Sample Dialog" [level=3]
+    - button "Close"
+    - paragraph: This is the dialog body content. It supports any slotted content including forms, lists, or other components.
+    - button "Cancel"
+    - button "Save"
 "scrim": |
-  - heading "Sample Dialog" [level=3]
-  - button "Close"
-  - paragraph: This is the dialog body content. It supports any slotted content including forms, lists, or other components.
-  - button "Cancel"
-  - button "Save"
+  - dialog "Sample Dialog":
+    - heading "Sample Dialog" [level=3]
+    - button "Close"
+    - paragraph: This is the dialog body content. It supports any slotted content including forms, lists, or other components.
+    - button "Cancel"
+    - button "Save"
 "dialog": |
-  - heading "Sample Dialog" [level=3]
-  - button "Close"
-  - paragraph: This is the dialog body content. It supports any slotted content including forms, lists, or other components.
-  - button "Cancel"
-  - button "Save"
+  - dialog "Sample Dialog":
+    - heading "Sample Dialog" [level=3]
+    - button "Close"
+    - paragraph: This is the dialog body content. It supports any slotted content including forms, lists, or other components.
+    - button "Cancel"
+    - button "Save"
 "header": |
-  - heading "Sample Dialog" [level=3]
-  - button "Close"
-  - paragraph: This is the dialog body content. It supports any slotted content including forms, lists, or other components.
-  - button "Cancel"
-  - button "Save"
+  - dialog "Sample Dialog":
+    - heading "Sample Dialog" [level=3]
+    - button "Close"
+    - paragraph: This is the dialog body content. It supports any slotted content including forms, lists, or other components.
+    - button "Cancel"
+    - button "Save"
 "body": |
-  - heading "Sample Dialog" [level=3]
-  - button "Close"
-  - paragraph: This is the dialog body content. It supports any slotted content including forms, lists, or other components.
-  - button "Cancel"
-  - button "Save"
+  - dialog "Sample Dialog":
+    - heading "Sample Dialog" [level=3]
+    - button "Close"
+    - paragraph: This is the dialog body content. It supports any slotted content including forms, lists, or other components.
+    - button "Cancel"
+    - button "Save"
 "footer": |
-  - heading "Sample Dialog" [level=3]
-  - button "Close"
-  - paragraph: This is the dialog body content. It supports any slotted content including forms, lists, or other components.
-  - button "Cancel"
-  - button "Save"
+  - dialog "Sample Dialog":
+    - heading "Sample Dialog" [level=3]
+    - button "Close"
+    - paragraph: This is the dialog body content. It supports any slotted content including forms, lists, or other components.
+    - button "Cancel"
+    - button "Save"

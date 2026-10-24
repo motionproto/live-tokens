@@ -64,6 +64,8 @@
     children,
   }: Props = $props();
 
+  const titleId = $props.id();
+
   let effectiveConfirmVariant = $derived(confirm?.variant ?? asVariant(confirmVarValue, 'primary'));
   let effectiveCancelVariant = $derived(cancel?.variant ?? asVariant(cancelVarValue, 'outline'));
 
@@ -116,17 +118,31 @@
       open = false;
     }
   }
+
+  function closeOnEscape(event: KeyboardEvent) {
+    if (event.key !== 'Escape') return;
+    event.preventDefault();
+    handleCancel();
+  }
 </script>
 
 {#if open}
   <!-- The fixed backdrop portals to <body> to escape transformed/isolated
        ancestors; the inline preview variant stays in flow. -->
   <div class="dialog-backdrop" class:inline use:portal={!inline}>
-    <div class="dialog" style="width: {width}; max-width: {width};">
+    <div
+      class="dialog"
+      role="dialog"
+      aria-modal={inline ? undefined : true}
+      aria-labelledby={title ? titleId : undefined}
+      tabindex="-1"
+      style="width: {width}; max-width: {width};"
+      onkeydown={closeOnEscape}
+    >
       <div class="dialog-content">
         {#if title}
           <div class="dialog-header">
-            <h3 class="dialog-title">{title}</h3>
+            <h3 class="dialog-title" id={titleId}>{title}</h3>
             <button
               bind:this={closeButtonRef}
               class="dialog-close"
