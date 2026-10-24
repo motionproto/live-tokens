@@ -207,8 +207,8 @@
   theme. The canvas badges keep `--surface-canvas` and take
   `--text-secondary`, since no canvas text step reaches 4.5:1 on a canvas
   surface; they rise from 1.55:1 to 7.15:1. The eight presets carry the same
-  mappings, and axe reports no `color-contrast` failure on either component
-  under any of them.
+  mappings, and under each of them axe reports no `color-contrast` failure
+  on the three components.
 - **Input shows focus in its error state.** The red error outline replaced
   the focus outline, so focusing an invalid field changed nothing visible.
   Focus now adds a `--border-neutral-strong` ring outside the red outline.

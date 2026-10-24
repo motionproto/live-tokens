@@ -102,3 +102,42 @@ outline now map to `--border-brand-medium`, at 3.47:1 and 4.31:1 on the
 default theme. Each preset theme embeds its own copy of the old mapping, so
 autumn, ocean, spring-meadow and sketchy (SegmentedControl only) still fall
 below 3:1. SegmentedControl's bar still measures 2.42:1.
+
+## Default theme sweep, 2026-10-24
+
+Full `check-component --tests --a11y --json` runs on the default theme
+listed the findings below, leaving out reduced motion and the check-by-eye
+results. Each fix has its own commit on local main.
+
+| Component | Finding | Cause | Fix |
+|---|---|---|---|
+| VideoFrame, VideoLightbox, SlidePager | `focus-indicator-contrast` 1.06:1 to 1.09:1 on seven controls | `--ring-focus-md`, a brand colour at 10% opacity | The neutral ring SegmentedControl uses: a `--border-width-2` box shadow in `--border-neutral-strong` |
+| Badge, CornerBadge, Notification | `color-contrast` on the brand, canvas and danger badges and the danger title | Brand text 3.87:1, danger 3.30:1 and canvas 1.55:1 on their surfaces | Brand and danger move to the `-low` surface step (5.38:1, 4.56:1); canvas takes `--text-secondary` (7.15:1). Default theme, configs and the eight presets |
+| CodeSnippet | `scrollable-region-focusable` | The code line scrolls sideways with no keyboard stop | `tabindex="0"` on the code element and the neutral focus ring |
+| Input | SIA-R65 in the error views | The red error outline replaces the focus outline, and the focused surface equals the resting one | Focus adds a neutral ring outside the red outline |
+| Slider | `target-size` on the range thumbs | Both inputs share one box, so neither passes axe's spacing exception, and each is 18px tall | The input and its native thumb take the pointer over `max(thumb size, --space-24)`; the cap draws at its own size |
+| RadioButton | Arrow Down did not move focus | Each option was a plain button | `role="radio"` with `aria-checked`, a roving tab stop, and arrows that move focus and selection within the radiogroup or the shared parent |
+| TabBar | Icon-only tabs had no name | The label rendered only as visible text | `aria-label` from the tab's label when `iconOnly` is set; the icon is `aria-hidden` |
+| MenuSelect | `aria-required-children`, `aria-required-parent`, `listitem`, `aria-input-field-name`; Arrow Down did not move focus | The `li` wrappers broke the listbox to option chain, and the list had no name or key handling | `li role="none"`, an optional `ariaLabel` prop, a roving tab stop, and Up, Down, Home and End |
+| Dialog | Escape did not close | No key handling, and no dialog role | `role="dialog"`, `aria-modal` outside the inline preview, `aria-labelledby` to the title, Escape takes the cancel path. The keyboard case became a behavior case: the editor's preview never closes, so the old case could not pass |
+
+### Known false positives
+
+- **Slider, SIA-R65, three thumbs.** The native thumb is transparent, and
+  focus draws its ring on the sibling `.cap`. Alfa reads only the focused
+  element, its descendants and its ancestors, so it sees no change. The
+  focus indicator check, which also reads siblings, measures that ring at
+  3.47:1 and reports nothing, which confirms the ring exists and passes.
+- **Input, SIA-R65, focused view.** The view forces the focused look at rest
+  through `.force-focus`, so real focus has nothing left to change. Input
+  passes SIA-R65 in every view that leaves it at rest.
+
+### Final run
+
+The last full run, after every fix, reports 4 findings outside reduced
+motion (46) and the check-by-eye results (57): the three Slider thumbs and
+Input's focused view under SIA-R65, both listed above. Verify passed:
+`npm run check`, `npm run check:component-defaults`,
+`node scripts/check-preset-themes.mjs`, `npx vitest run bin src/testing
+src/editor src/system` (4915 tests), and `npm run test:e2e:contract` (321
+passed in 5.4 minutes).

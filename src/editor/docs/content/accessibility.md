@@ -329,9 +329,13 @@ too.
 - SIA-R65 reads the focused element, its descendants, and its ancestors, so
   it reports a focus ring painted on a sibling as missing. The focus
   indicator check measures that ring; confirm it by eye.
+- A view that forces the focused look at rest, such as Input's focused
+  state, leaves real focus nothing to change, so SIA-R65 reports it there.
+  The same element passes in the views that leave it at rest.
 - A finding traces to the component's own semantic properties and
   intrinsics. A ring or colour that a theme token paints directly, such as
-  `--ring-focus-md`, traces to nothing. A finding on a component nested
+  SegmentedControl's `--border-neutral-strong` focus ring, traces to
+  nothing. A finding on a component nested
   inside another, such as a Button inside a Dialog, marks the host and names
   none of the nested component's properties.
 - A literal value in the component's code, such as a transition's duration,
