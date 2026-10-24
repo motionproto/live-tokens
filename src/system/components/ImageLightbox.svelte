@@ -21,6 +21,7 @@
 <script lang="ts">
   import { onMount, tick, type Snippet } from 'svelte';
   import { portal } from '../internal/portal';
+  import { trapTab } from '../internal/focusTrap';
 
   interface GalleryImage {
     src: string;
@@ -609,29 +610,12 @@
     if (!isGallery && scale <= MIN_SCALE) closeLightbox();
   }
 
-  // Keep Tab inside the open dialog. The stage (tabindex -1) is excluded, so an
-  // image-only lightbox holds focus on its close button.
-  function trapTab(e: KeyboardEvent) {
-    if (!modalEl) return;
-    const f = [
-      ...modalEl.querySelectorAll<HTMLElement>('button:not([disabled]), [href], [tabindex]:not([tabindex="-1"])'),
-    ];
-    if (f.length === 0) {
-      e.preventDefault();
-      stageEl?.focus();
-      return;
-    }
-    const first = f[0];
-    const last = f[f.length - 1];
-    const active = document.activeElement as HTMLElement | null;
-    const inside = active && modalEl.contains(active);
-    if (e.shiftKey && (!inside || active === first)) {
-      e.preventDefault();
-      last.focus();
-    } else if (!e.shiftKey && (!inside || active === last)) {
-      e.preventDefault();
-      first.focus();
-    }
+  // The stage (tabindex -1) is no tab stop, so an image-only lightbox holds
+  // focus on its close button.
+  function onTab(e: KeyboardEvent) {
+    if (!modalEl || trapTab(modalEl, e)) return;
+    e.preventDefault();
+    stageEl?.focus();
   }
 
   onMount(() => {
@@ -640,7 +624,7 @@
       if (e.key === 'Escape') {
         closeLightbox();
       } else if (e.key === 'Tab') {
-        trapTab(e);
+        onTab(e);
       } else if (isGallery && e.key === 'ArrowRight') {
         e.preventDefault();
         next();

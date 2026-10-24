@@ -250,6 +250,11 @@
   `prefers-reduced-motion: reduce`, the hovered tile scales without its
   250 ms transition, as the lightbox's own open and close animations already
   did.
+- **Dialog holds focus while it is open.** Outside the inline preview,
+  opening the dialog moves focus to its confirm, cancel or close button,
+  else its first focusable element, else the panel. Tab and Shift+Tab cycle
+  inside the panel, and closing returns focus to the element that held it
+  before. Image Lightbox's Tab handling now shares the same helper.
 
 ## 0.97.0 — Custom colors
 

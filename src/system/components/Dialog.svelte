@@ -15,6 +15,7 @@
   import { createEventDispatcher, tick } from 'svelte';
   import type { Snippet } from 'svelte';
   import { portal } from '../internal/portal';
+  import { tabbables, trapTab } from '../internal/focusTrap';
   import Button from './Button.svelte';
   import type { ButtonVariant, DialogButtonSpec } from './types';
 
@@ -77,6 +78,7 @@
   let confirmButtonRef: HTMLButtonElement = $state()!;
   let cancelButtonRef: HTMLButtonElement = $state()!;
   let closeButtonRef: HTMLButtonElement = $state()!;
+  let dialogEl: HTMLDivElement | undefined = $state();
 
   $effect(() => {
     if (typeof document === 'undefined') return;
@@ -88,20 +90,28 @@
     return () => obs.disconnect();
   });
 
-  // Focus the primary button when dialog opens (skip in inline mode so the editor doesn't steal focus).
+  // The inline preview stays out of the trap, so the editor keeps its focus.
   $effect(() => {
-    if (open && !inline) {
-      tick().then(() => {
-        if (confirm && confirmButtonRef && !confirm.disabled) {
-          confirmButtonRef.focus();
-        } else if (cancel && cancelButtonRef) {
-          cancelButtonRef.focus();
-        } else if (closeButtonRef) {
-          closeButtonRef.focus();
-        }
-      });
-    }
+    if (!open || inline) return;
+    const returnTo = document.activeElement as HTMLElement | null;
+    tick().then(() => {
+      const target =
+        (confirm && !confirm.disabled && confirmButtonRef) ||
+        (cancel && cancelButtonRef) ||
+        closeButtonRef ||
+        (dialogEl && tabbables(dialogEl)[0]) ||
+        dialogEl;
+      target?.focus();
+    });
+    return () => returnTo?.focus();
   });
+
+  function holdTab(event: KeyboardEvent) {
+    if (event.key !== 'Tab' || !open || inline || !dialogEl) return;
+    if (trapTab(dialogEl, event)) return;
+    event.preventDefault();
+    dialogEl.focus();
+  }
 
   function handleConfirm() {
     if (confirm && !confirm.disabled) {
@@ -126,11 +136,14 @@
   }
 </script>
 
+<svelte:document onkeydown={holdTab} />
+
 {#if open}
   <!-- The fixed backdrop portals to <body> to escape transformed/isolated
        ancestors; the inline preview variant stays in flow. -->
   <div class="dialog-backdrop" class:inline use:portal={!inline}>
     <div
+      bind:this={dialogEl}
       class="dialog"
       role="dialog"
       aria-modal={inline ? undefined : true}
