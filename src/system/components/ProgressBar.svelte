@@ -135,4 +135,10 @@
     border-radius: var(--progressbar-radius);
     transition: width 0.4s ease;
   }
+
+  @media (prefers-reduced-motion: reduce) {
+    .progress-fill {
+      transition: none;
+    }
+  }
 </style>

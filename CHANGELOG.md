@@ -243,6 +243,9 @@
 - **Image's hover zoom jumps under reduced motion.** With
   `prefers-reduced-motion: reduce`, the zoom and grow transforms apply at
   once in place of the 300 ms transition.
+- **Progress Bar's fill moves at once under reduced motion.** With
+  `prefers-reduced-motion: reduce`, the fill takes its new width without the
+  400 ms transition.
 
 ## 0.97.0 — Custom colors
 
