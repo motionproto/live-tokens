@@ -212,6 +212,10 @@
 - **Input shows focus in its error state.** The red error outline replaced
   the focus outline, so focusing an invalid field changed nothing visible.
   Focus now adds a `--border-neutral-strong` ring outside the red outline.
+- **Slider's thumbs take the pointer over 24px.** Each native thumb and its
+  input now measure `max(thumb size, --space-24)`, the WCAG 2.2 SC 2.5.8
+  minimum, while the visible cap keeps its own size. axe reported both range
+  thumbs under `target-size`, because their inputs share one box.
 
 ## 0.97.0 — Custom colors
 

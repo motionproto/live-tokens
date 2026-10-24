@@ -224,6 +224,10 @@
     margin-block: calc((var(--_thumb-size) - var(--_track-height)) / 2);
     border-style: solid;
     transition: background var(--duration-150), border-color var(--duration-150);
+    /* WCAG 2.2 SC 2.5.8: the native thumb takes the pointer over 24px or
+       more. A cap smaller than that sits up to half the difference off the
+       native thumb's centre at either end of the travel. */
+    --_hit-size: max(var(--_thumb-size), var(--space-24));
     --_origin: calc(var(--_thumb-size) / 2 - var(--_track-border-width));
     --_travel: calc(100% + var(--_track-border-width) * 2 - var(--_thumb-size));
   }
@@ -287,7 +291,7 @@
     top: 50%;
     left: calc(-1 * var(--_track-border-width));
     width: calc(100% + var(--_track-border-width) * 2);
-    height: var(--_thumb-size);
+    height: var(--_hit-size);
     margin: 0;
     padding: 0;
     transform: translateY(-50%);
@@ -299,14 +303,14 @@
   .thumb:disabled { cursor: not-allowed; }
   .thumb::-webkit-slider-thumb {
     appearance: none;
-    width: var(--_thumb-size);
-    height: var(--_thumb-size);
+    width: var(--_hit-size);
+    height: var(--_hit-size);
     opacity: 0;
     pointer-events: auto;
   }
   .thumb::-moz-range-thumb {
-    width: var(--_thumb-size);
-    height: var(--_thumb-size);
+    width: var(--_hit-size);
+    height: var(--_hit-size);
     border: 0;
     opacity: 0;
     pointer-events: auto;
