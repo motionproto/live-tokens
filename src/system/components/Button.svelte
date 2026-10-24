@@ -542,4 +542,10 @@
          margin-left: var(--space-4);
       }
    }
+
+   @media (prefers-reduced-motion: reduce) {
+      .button::before {
+         display: none;
+      }
+   }
 </style>

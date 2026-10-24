@@ -237,6 +237,9 @@
   named by its title, and `aria-modal` outside the inline preview. Escape
   takes the cancel path: it calls `cancel.onClick` when a cancel button is
   set, else `onclose`, as the close icon does.
+- **Button's shimmer stops under reduced motion.** With
+  `prefers-reduced-motion: reduce`, the 500 ms sweep across a hovered
+  Button no longer draws. The `--button-shimmer` switch is unchanged.
 
 ## 0.97.0 — Custom colors
 
