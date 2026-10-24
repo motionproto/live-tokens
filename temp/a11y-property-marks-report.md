@@ -141,3 +141,50 @@ Input's focused view under SIA-R65, both listed above. Verify passed:
 `node scripts/check-preset-themes.mjs`, `npx vitest run bin src/testing
 src/editor src/system` (4915 tests), and `npm run test:e2e:contract` (321
 passed in 5.4 minutes).
+
+## Reduced motion and Dialog focus, 2026-10-24
+
+Each fix has its own commit on local main. Each motion fix is an
+`@media (prefers-reduced-motion: reduce)` block in the component's own
+stylesheet, the pattern Slide Pager and Video Lightbox already use. No token
+value or component default changed.
+
+| Component | Finding | Fix |
+|---|---|---|
+| Button | Shimmer `left` transition, 500 ms: 38 results, plus two in Dialog and one in Notification | The sweep's `::before` does not display under the preference. `--button-shimmer` is unchanged |
+| Image | Zoom `transform` transition, 300 ms, on the frame and the `img`: 3 results | `transition: none`; the zoom and grow scales apply at once |
+| Image Lightbox | Tile `transform` transition, 250 ms: 1 result | `transition: none` on the tile and the attached layer that follows it |
+| Progress Bar | Fill `width` transition, 400 ms: 1 result | `transition: none`; the fill takes its width at once |
+| Dialog | Tab left the modal, and closing dropped focus | Outside the inline preview, open moves focus to the confirm, cancel or close button, else the first tabbable element, else the panel. Tab and Shift+Tab wrap inside the panel, and a Tab from outside enters it. Close returns focus to the element that held it at open |
+
+Image Lightbox's `trapTab` moved to `src/system/internal/focusTrap.ts`,
+which Dialog and Image Lightbox share. Slide Pager and Video Lightbox keep
+their own Tab handling, which steps through buttons and the modal itself.
+`src/system/components/__tests__/dialogFocusTrap.test.ts` covers the trap and
+the return. The contract's behavior cases cannot express focus or a key
+sequence, so the cases live in Vitest. No ARIA snapshot changed.
+
+### Final run
+
+The full `check-component --tests --a11y --json` run reports 61 warnings and
+no errors: 57 `a11y-review` check-by-eye results and 4 `a11y-focus-visible`,
+the Slider thumbs and Input's focused view listed above as known false
+positives. `a11y-reduced-motion` reports none, down from 46.
+
+Verify: `npm run check`, `npm run check:component-defaults`,
+`node scripts/check-preset-themes.mjs` and `npx vitest run bin src/testing
+src/editor src/system` (4922 tests) passed. `npm run test:e2e:contract`
+passed 320 of 321 in two runs.
+
+### Open
+
+- **Dialog's render contract fails beside other Dialog tests.** "dialog
+  repaints every property in its standardized runtime preview" reports
+  `--dialog-close-icon` unchanged when "previews the state being edited" or
+  "persists an edit" runs at the same time in another worker. It passes alone
+  and with one worker, and it fails the same way on the sources of
+  `58ae975`. The failing page shows Dialog with unsaved changes: the other
+  test's edits reach it through the shared dev server mid-probe. Worker
+  isolation of the editor buffer would fix it.
+- Button's loading spinner runs an endless `spin` animation. No contract view
+  shows it, so the check never reads it.
