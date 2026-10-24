@@ -73,7 +73,7 @@
     /* Per-variant color overrides. Default = inherit the same family/level the
        inner Badge uses; author can swap to a different level (e.g. -low) to
        reduce contrast against the host surface. */
-    --cornerbadge-brand-surface: var(--surface-brand);
+    --cornerbadge-brand-surface: var(--surface-brand-low);
     --cornerbadge-brand-border: var(--border-brand);
     --cornerbadge-brand-text: var(--text-brand);
     --cornerbadge-accent-surface: var(--surface-accent);
@@ -87,7 +87,7 @@
     --cornerbadge-alternate-text: var(--text-alternate);
     --cornerbadge-canvas-surface: var(--surface-canvas);
     --cornerbadge-canvas-border: var(--border-canvas);
-    --cornerbadge-canvas-text: var(--text-canvas);
+    --cornerbadge-canvas-text: var(--text-secondary);
     --cornerbadge-special-surface: var(--surface-special);
     --cornerbadge-special-border: var(--border-special);
     --cornerbadge-special-text: var(--text-special);
@@ -97,7 +97,7 @@
     --cornerbadge-warning-surface: var(--surface-warning);
     --cornerbadge-warning-border: var(--border-warning);
     --cornerbadge-warning-text: var(--text-warning);
-    --cornerbadge-danger-surface: var(--surface-danger);
+    --cornerbadge-danger-surface: var(--surface-danger-low);
     --cornerbadge-danger-border: var(--border-danger);
     --cornerbadge-danger-text: var(--text-danger);
     --cornerbadge-info-surface: var(--surface-info);

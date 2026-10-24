@@ -75,7 +75,7 @@
   // -secondary/-tertiary scale); `--text-brand` is the brand-family text.
   :global(:root) {
     /* Brand */
-    --badge-brand-surface: var(--surface-brand);
+    --badge-brand-surface: var(--surface-brand-low);
     --badge-brand-text: var(--text-brand);
     --badge-brand-border: var(--border-brand);
     --badge-brand-text-font-family: var(--font-sans);
@@ -136,7 +136,7 @@
 
     /* Canvas */
     --badge-canvas-surface: var(--surface-canvas);
-    --badge-canvas-text: var(--text-canvas);
+    --badge-canvas-text: var(--text-secondary);
     --badge-canvas-border: var(--border-canvas);
     --badge-canvas-text-font-family: var(--font-sans);
     --badge-canvas-text-font-size: var(--font-size-md);
@@ -195,7 +195,7 @@
     --badge-warning-icon-size: var(--icon-size-sm);
 
     /* Danger */
-    --badge-danger-surface: var(--surface-danger);
+    --badge-danger-surface: var(--surface-danger-low);
     --badge-danger-text: var(--text-danger);
     --badge-danger-border: var(--border-danger);
     --badge-danger-text-font-family: var(--font-sans);

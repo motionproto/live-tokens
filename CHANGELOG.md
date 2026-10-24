@@ -200,6 +200,15 @@
   `--ring-focus-md`, a brand colour at 10% opacity that measured 1.06:1 to
   1.09:1. Each now draws the neutral ring SegmentedControl uses, a
   `--border-width-2` box shadow in `--border-neutral-strong`.
+- **Badge, CornerBadge and Notification text meets 4.5:1.** The brand and
+  danger badges, and Notification's danger variant, sit on the next lower
+  surface step, `--surface-brand-low` and `--surface-danger-low`, which lifts
+  their text from 3.87:1 to 5.38:1 and from 3.30:1 to 4.56:1 on the default
+  theme. The canvas badges keep `--surface-canvas` and take
+  `--text-secondary`, since no canvas text step reaches 4.5:1 on a canvas
+  surface; they rise from 1.55:1 to 7.15:1. The eight presets carry the same
+  mappings, and axe reports no `color-contrast` failure on either component
+  under any of them.
 
 ## 0.97.0 — Custom colors
 

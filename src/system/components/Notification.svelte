@@ -188,7 +188,7 @@
       --notification-warning-text-line-height: var(--line-height-normal);
 
       /* Danger */
-      --notification-danger-surface: var(--surface-danger);
+      --notification-danger-surface: var(--surface-danger-low);
       --notification-danger-action-surface: var(--surface-neutral-lowest);
       --notification-danger-border: var(--border-danger);
       --notification-danger-border-width: var(--border-width-1);

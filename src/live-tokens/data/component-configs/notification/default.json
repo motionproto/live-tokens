@@ -58,7 +58,7 @@
     "--notification-warning-text-font-size": "--font-size-md",
     "--notification-warning-text-font-weight": "--font-weight-normal",
     "--notification-warning-text-line-height": "--line-height-normal",
-    "--notification-danger-surface": "--surface-danger",
+    "--notification-danger-surface": "--surface-danger-low",
     "--notification-danger-action-surface": "--surface-neutral-lowest",
     "--notification-danger-border": "--border-danger",
     "--notification-danger-border-width": "--border-width-1",
