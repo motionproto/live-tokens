@@ -83,7 +83,7 @@ export const radioButtonContract: ComponentContract = {
   boundaries: [{ part: 'dot', label: 'Circle' }],
   interaction: {
     part: 'root',
-    role: 'button',
+    role: 'radio',
     cases: [
       {
         name: 'clicking a radio option focuses it',

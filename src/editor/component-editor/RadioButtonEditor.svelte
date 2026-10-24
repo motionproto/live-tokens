@@ -128,7 +128,7 @@
     {#snippet children({ activeState })}
         {@const forceClass = activeState === 'hover' ? 'force-hover' : ''}
       {@const forceSelected = activeState === 'selected'}
-      <div class="radio-demo-row">
+      <div class="radio-demo-row" role="radiogroup" aria-label="Priority">
         <RadioButton
           label="Defense"
           selected={forceSelected || selectedRadio === 'option-a'}

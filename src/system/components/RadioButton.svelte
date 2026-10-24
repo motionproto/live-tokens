@@ -38,13 +38,46 @@
     onclick?.();
     dispatch('click');
   }
+
+  let button: HTMLButtonElement;
+
+  // Each option renders alone, so the group is read from the DOM: the nearest
+  // radiogroup, else the parent the options share.
+  function groupOf(radio: HTMLButtonElement): HTMLButtonElement[] {
+    const scope = radio.closest('[role="radiogroup"]') ?? radio.parentElement;
+    return scope ? [...scope.querySelectorAll<HTMLButtonElement>('.radio-button')] : [radio];
+  }
+
+  // Roving tab stop: the group takes one Tab press, on the checked option.
+  $effect(() => {
+    void selected;
+    const group = groupOf(button);
+    const stop = group.find((radio) => radio.getAttribute('aria-checked') === 'true') ?? group[0];
+    for (const radio of group) radio.tabIndex = radio === stop ? 0 : -1;
+  });
+
+  const ARROW_STEPS: Record<string, number> = { ArrowRight: 1, ArrowDown: 1, ArrowLeft: -1, ArrowUp: -1 };
+
+  function moveSelection(event: KeyboardEvent) {
+    const step = ARROW_STEPS[event.key];
+    if (step === undefined) return;
+    event.preventDefault();
+    const group = groupOf(button);
+    const next = group[(group.indexOf(button) + step + group.length) % group.length];
+    next.focus();
+    next.click();
+  }
 </script>
 
 <button
   class="radio-button {className}"
   class:selected
+  role="radio"
+  aria-checked={selected}
   style={color ? `--radiobutton-color: ${color};` : ''}
+  bind:this={button}
   onclick={fireClick}
+  onkeydown={moveSelection}
 >
   <span class="radio-dot"><span class="radio-dot-fill"></span></span>
   <span class="radio-label">{label}</span>

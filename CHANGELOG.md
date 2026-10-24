@@ -216,6 +216,11 @@
   input now measure `max(thumb size, --space-24)`, the WCAG 2.2 SC 2.5.8
   minimum, while the visible cap keeps its own size. axe reported both range
   thumbs under `target-size`, because their inputs share one box.
+- **RadioButton follows the WAI-ARIA radio group pattern.** Each option is a
+  `radio` with `aria-checked`. Tab reaches the checked option alone, and the
+  arrow keys move focus and selection to the next or previous option and
+  wrap. A group is the nearest `role="radiogroup"` ancestor, else the parent
+  the options share; wrap a set in a `radiogroup` with a name.
 
 ## 0.97.0 — Custom colors
 

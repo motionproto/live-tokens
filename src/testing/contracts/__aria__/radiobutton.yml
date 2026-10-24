@@ -1,16 +1,20 @@
 "preview": |
-  - button "Defense"
-  - button "Economy"
-  - button "Loyalty"
+  - radiogroup "Priority":
+    - radio "Defense"
+    - radio "Economy" [checked]
+    - radio "Loyalty"
 "hover": |
-  - button "Defense"
-  - button "Economy"
-  - button "Loyalty"
+  - radiogroup "Priority":
+    - radio "Defense"
+    - radio "Economy" [checked]
+    - radio "Loyalty"
 "selected": |
-  - button "Defense"
-  - button "Economy"
-  - button "Loyalty"
+  - radiogroup "Priority":
+    - radio "Defense" [checked]
+    - radio "Economy" [checked]
+    - radio "Loyalty" [checked]
 "default": |
-  - button "Defense"
-  - button "Economy"
-  - button "Loyalty"
+  - radiogroup "Priority":
+    - radio "Defense"
+    - radio "Economy" [checked]
+    - radio "Loyalty"
