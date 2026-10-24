@@ -95,6 +95,7 @@
       class:icon-only={iconOnly}
       role="tab"
       aria-selected={value === tab.id}
+      aria-label={iconOnly ? tab.label : undefined}
       tabindex={tab.id === tabStop ? 0 : -1}
       disabled={tab.disabled}
       bind:this={buttons[i]}
@@ -102,7 +103,7 @@
       onkeydown={(event) => moveFocus(event, i)}
     >
       {#if tab.icon}
-        <i class={tab.icon}></i>
+        <i class={tab.icon} aria-hidden="true"></i>
       {/if}
       {#if !iconOnly}
         <span>{tab.label}</span>

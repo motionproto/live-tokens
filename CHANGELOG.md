@@ -221,6 +221,9 @@
   arrow keys move focus and selection to the next or previous option and
   wrap. A group is the nearest `role="radiogroup"` ancestor, else the parent
   the options share; wrap a set in a `radiogroup` with a name.
+- **TabBar's icon-only tabs carry a name.** With `iconOnly` set, each tab
+  takes its `label` as `aria-label`, and the icon is hidden from assistive
+  technology.
 
 ## 0.97.0 — Custom colors
 

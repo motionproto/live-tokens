@@ -166,6 +166,11 @@ export const tabBarContract: ComponentContract = {
         action: { kind: 'click', part: 'secondTab' },
         expect: { kind: 'no-callback', prop: 'onchange' },
       },
+      {
+        name: 'an icon-only tab takes its label as its name',
+        props: { tabs: behaviorTabs, value: 'one', iconOnly: true },
+        expect: { kind: 'attribute', part: 'secondTab', name: 'aria-label', value: 'Two' },
+      },
     ],
   },
   sketch: {
