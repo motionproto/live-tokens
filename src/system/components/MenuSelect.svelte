@@ -40,6 +40,8 @@
     minWidth?: string;
     /** ARIA role on the wrapper. `listbox` for select-like menus; `menu` for command menus. */
     role?: 'listbox' | 'menu';
+    /** The list's accessible name, such as the text of the Button that opens it. */
+    ariaLabel?: string;
     /** Selection callback. */
     onchange?: (value: string) => void;
   }
@@ -51,6 +53,7 @@
     forceHoverValue = null,
     minWidth = undefined,
     role = 'listbox',
+    ariaLabel = undefined,
     onchange,
   }: Props = $props();
 
@@ -67,16 +70,38 @@
     onchange?.(v);
     dispatch('change', v);
   }
+
+  const buttons: HTMLButtonElement[] = $state([]);
+
+  // Roving tab stop: the list takes one Tab press, on the selected item.
+  let tabStop = $derived(
+    items.find((i) => i.value === value && !i.disabled)?.value ?? items.find((i) => !i.disabled)?.value,
+  );
+
+  function moveFocus(event: KeyboardEvent, from: number) {
+    const enabled = items.flatMap((item, i) => (item.disabled ? [] : [i]));
+    const at = enabled.indexOf(from);
+    const to = {
+      ArrowDown: enabled[(at + 1) % enabled.length],
+      ArrowUp: enabled[(at - 1 + enabled.length) % enabled.length],
+      Home: enabled[0],
+      End: enabled[enabled.length - 1],
+    }[event.key];
+    if (to === undefined) return;
+    event.preventDefault();
+    buttons[to].focus();
+  }
 </script>
 
 <ul
   style:--menuselect-hover-tint-enabled={hoverTintValue}
   class="menuselect"
   {role}
+  aria-label={ariaLabel}
   style:min-width={minWidth}
 >
-  {#each items as item (item.value)}
-    <li>
+  {#each items as item, i (item.value)}
+    <li role="none">
       <button
         type="button"
         class="menuselect-item"
@@ -85,7 +110,10 @@
         disabled={item.disabled}
         role={role === 'listbox' ? 'option' : 'menuitem'}
         aria-selected={role === 'listbox' ? value === item.value : undefined}
+        tabindex={item.value === tabStop ? 0 : -1}
+        bind:this={buttons[i]}
         onclick={() => select(item.value)}
+        onkeydown={(event) => moveFocus(event, i)}
       >
         {#if item.icon}<i class="menuselect-icon {item.icon}" aria-hidden="true"></i>{/if}
         <span class="menuselect-label">{item.label}</span>

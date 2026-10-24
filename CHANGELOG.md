@@ -227,6 +227,12 @@
 - **CodeSnippet's code line takes keyboard focus.** A long snippet scrolls
   sideways, so the code element now sits in the tab order and shows the
   neutral focus ring, and the arrow keys scroll it.
+- **MenuSelect follows the WAI-ARIA listbox pattern.** The list items carry
+  `role="none"`, so each option sits directly in the listbox or menu. Tab
+  reaches the selected option alone, Up and Down move focus between enabled
+  options and wrap, and Home and End jump to the ends. A new optional
+  `ariaLabel` prop names the list; pass the text of the Button that opens
+  it.
 
 ## 0.97.0 — Custom colors
 

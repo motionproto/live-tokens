@@ -228,6 +228,7 @@
         items={previewItems}
         value={previewValue}
         forceHoverValue={previewForceHover}
+        ariaLabel="Options"
       />
     {/snippet}
   </VariantGroup>

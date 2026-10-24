@@ -164,7 +164,7 @@
 
   {#if open}
     <div class="labeled-select-panel" bind:this={panelEl} use:portal>
-      <MenuSelect {items} {value} minWidth="12rem" onchange={select} />
+      <MenuSelect {items} {value} ariaLabel={label} minWidth="12rem" onchange={select} />
     </div>
   {/if}
 
