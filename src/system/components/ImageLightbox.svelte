@@ -922,6 +922,13 @@
     transition: none;
   }
 
+  @media (prefers-reduced-motion: reduce) {
+    .image-lightbox-thumb,
+    .image-lightbox-attached {
+      transition: none;
+    }
+  }
+
   .image-lightbox-thumb:focus-visible {
     outline: 2px solid var(--border-brand-medium);
     outline-offset: 2px;

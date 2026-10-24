@@ -246,6 +246,10 @@
 - **Progress Bar's fill moves at once under reduced motion.** With
   `prefers-reduced-motion: reduce`, the fill takes its new width without the
   400 ms transition.
+- **Image Lightbox's tile holds still under reduced motion.** With
+  `prefers-reduced-motion: reduce`, the hovered tile scales without its
+  250 ms transition, as the lightbox's own open and close animations already
+  did.
 
 ## 0.97.0 — Custom colors
 
