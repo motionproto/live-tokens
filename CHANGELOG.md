@@ -209,6 +209,9 @@
   surface; they rise from 1.55:1 to 7.15:1. The eight presets carry the same
   mappings, and axe reports no `color-contrast` failure on either component
   under any of them.
+- **Input shows focus in its error state.** The red error outline replaced
+  the focus outline, so focusing an invalid field changed nothing visible.
+  Focus now adds a `--border-neutral-strong` ring outside the red outline.
 
 ## 0.97.0 — Custom colors
 

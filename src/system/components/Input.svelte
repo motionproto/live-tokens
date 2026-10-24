@@ -305,6 +305,13 @@
     outline: var(--input-error-border-width) solid var(--input-error-border);
   }
 
+  /* The red outline stays put on focus, so focus adds a neutral ring outside
+     it. The spread covers the outline's width, which paints over the shadow. */
+  .input-field.invalid .input-control:focus,
+  .input-field.invalid.force-focus .input-control {
+    box-shadow: 0 0 0 calc(var(--input-error-border-width) + var(--border-width-2)) var(--border-neutral-strong);
+  }
+
   .input-icon {
     color: var(--input-default-icon);
     font-size: var(--input-default-icon-size);
