@@ -240,6 +240,9 @@
 - **Button's shimmer stops under reduced motion.** With
   `prefers-reduced-motion: reduce`, the 500 ms sweep across a hovered
   Button no longer draws. The `--button-shimmer` switch is unchanged.
+- **Image's hover zoom jumps under reduced motion.** With
+  `prefers-reduced-motion: reduce`, the zoom and grow transforms apply at
+  once in place of the 300 ms transition.
 
 ## 0.97.0 — Custom colors
 

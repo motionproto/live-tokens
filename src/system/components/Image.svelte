@@ -144,4 +144,11 @@
   .image.force-hover img {
     transform: var(--image-zoom-enabled);
   }
+
+  @media (prefers-reduced-motion: reduce) {
+    .image,
+    img {
+      transition: none;
+    }
+  }
 </style>
