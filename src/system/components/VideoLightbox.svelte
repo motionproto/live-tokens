@@ -318,7 +318,7 @@
 
   .videolightbox-trigger:focus-visible {
     outline: none;
-    box-shadow: var(--ring-focus-md);
+    box-shadow: 0 0 0 var(--border-width-2) var(--border-neutral-strong);
   }
 
   .videolightbox-trigger img,
@@ -436,7 +436,7 @@
 
   .videolightbox-close:focus-visible {
     outline: none;
-    box-shadow: var(--ring-focus-md);
+    box-shadow: 0 0 0 var(--border-width-2) var(--border-neutral-strong);
   }
 
   @media (prefers-reduced-motion: reduce) {

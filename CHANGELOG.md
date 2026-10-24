@@ -195,6 +195,11 @@
   track measured 1.4:1 and its selected tab 2.47:1. Halloween,
   midnight-study and sunset paint a gradient page, so their edges stay a
   check by eye.
+- **VideoFrame, VideoLightbox and SlidePager draw a focus ring at 3:1.** The
+  trigger, the close button, the stage and the pager controls drew
+  `--ring-focus-md`, a brand colour at 10% opacity that measured 1.06:1 to
+  1.09:1. Each now draws the neutral ring SegmentedControl uses, a
+  `--border-width-2` box shadow in `--border-neutral-strong`.
 
 ## 0.97.0 — Custom colors
 

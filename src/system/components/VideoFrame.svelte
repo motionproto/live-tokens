@@ -225,7 +225,7 @@
 
   .videoframe-trigger:focus-visible {
     outline: none;
-    box-shadow: var(--ring-focus-md);
+    box-shadow: 0 0 0 var(--border-width-2) var(--border-neutral-strong);
     border-radius: var(--sketch-radius, var(--videoframe-frame-radius));
   }
 
