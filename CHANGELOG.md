@@ -4,12 +4,16 @@
 
 ### Changed
 
-- **The editor keeps its accessibility report in the data directory.** The
-  dev server writes the last run to `<dataDir>/_a11y-report.json`. It used to
-  sit in `test-results/live-tokens/`, which Playwright and other test tools
-  clear, so a test run could erase it. Add `_a11y-report.json` to the
-  project's `.gitignore`; projects made with `create` now ignore it. Test runs
-  leave it out of their copy of the data tree.
+- **Each theme keeps its own accessibility report, in the data directory.**
+  The dev server writes a theme's last finished run to
+  `<dataDir>/_a11y-reports/<theme>.json`, and the editor shows the open
+  theme's report. The single report used to sit in `test-results/live-tokens/`,
+  which Playwright and other test tools clear, so a test run could erase it.
+  A failed run now leaves the theme's last report in place, and deleting a
+  theme deletes its report. `GET /a11y/report` answers `{ running, reports }`.
+  Add `_a11y-reports/` to the project's `.gitignore`; projects made with
+  `create` now ignore it. Test runs leave it out of their copy of the data
+  tree.
 - **A contrast failure fixed since the run turns green.** The editor
   re-measures each contrast failure of the last run as you edit. Once one
   passes, its row in the component's panel and in the Accessibility view

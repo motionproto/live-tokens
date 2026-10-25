@@ -43,6 +43,8 @@ export interface A11yFinding {
 
 interface A11yReportBase {
   startedAt: string;
+  /** The theme the run tests, the one open when it started. */
+  theme: string;
   contrast: A11yContrastFailure[];
 }
 
@@ -54,12 +56,10 @@ export interface A11yRunningReport extends A11yReportBase {
 export interface A11yFinishedReport extends A11yReportBase {
   state: 'finished';
   finishedAt: string;
-  /** Absent when the run stopped before it copied the data tree, as a missing tool stops it. */
-  theme?: string;
   findings: A11yFinding[];
 }
 
-/** The CLI crashed or printed no report. */
+/** The CLI crashed or printed no report. The theme's last finished report stands. */
 export interface A11yFailedReport extends A11yReportBase {
   state: 'failed';
   finishedAt: string;
@@ -67,3 +67,9 @@ export interface A11yFailedReport extends A11yReportBase {
 }
 
 export type A11yReport = A11yRunningReport | A11yFinishedReport | A11yFailedReport;
+
+/** `GET /a11y/report`: the run going, if any, and each theme's last finished report by theme name. */
+export interface A11yReportState {
+  running: A11yRunningReport | null;
+  reports: Record<string, A11yFinishedReport>;
+}

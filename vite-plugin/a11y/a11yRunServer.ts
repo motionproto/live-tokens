@@ -4,13 +4,14 @@ import path from 'node:path';
 import type {
   A11yContrastFailure,
   A11yFinding,
+  A11yFinishedReport,
   A11yReport,
   A11yRunningReport,
 } from '../../src/editor/core/a11y/a11yReportTypes';
 
 export const A11Y_RUN_ARGS = ['check-component', '--tests', '--a11y', '--no-fix', '--json', '--open-theme'];
-/** Sits in the data directory beside the other editor state, out of reach of test tools that clear their output folders. */
-export const A11Y_REPORT_FILE_NAME = '_a11y-report.json';
+/** Holds one report per theme. It sits in the data directory beside the other editor state, out of reach of test tools that clear their output folders. */
+export const A11Y_REPORTS_DIR_NAME = '_a11y-reports';
 
 const STDERR_TAIL = 2000;
 const CONTRAST_ROLES = new Set(['text', 'non-text']);
@@ -72,7 +73,7 @@ function readContrast(body: unknown): A11yContrastFailure[] | null {
   return Array.isArray(contrast) && contrast.every(isContrastFailure) ? contrast : null;
 }
 
-function parseCliReport(stdout: string): { theme?: string; findings: A11yFinding[] } | null {
+function parseCliReport(stdout: string): { findings: A11yFinding[] } | null {
   try {
     const parsed = JSON.parse(stdout);
     return parsed && Array.isArray(parsed.findings) ? parsed : null;
@@ -83,21 +84,30 @@ function parseCliReport(stdout: string): { theme?: string; findings: A11yFinding
 
 /**
  * One accessibility run at a time (decision 5 of docs/plans/a11y-editor.md).
- * A run lives in memory while it goes; the file holds the last settled report,
- * so a dev-server restart never reads back a run nobody is still waiting on.
+ * A run lives in memory while it goes. Each theme's last finished report lives
+ * in `reportsDir` under the theme's name, so a dev-server restart never reads
+ * back a run nobody is still waiting on. A failed run reaches the open editors
+ * and leaves the theme's report as it was.
  */
-export function a11yRunServer({ root, reportFile, runCli, broadcast }: {
+export function a11yRunServer({ root, reportsDir, openTheme, runCli, broadcast }: {
   root: string;
-  reportFile: string;
+  reportsDir: string;
+  /** The theme the run tests: the CLI's `--open-theme` reads the same pointer. */
+  openTheme: () => string;
   runCli: RunCli;
   broadcast: (report: A11yReport) => void;
 }) {
   let running: { report: A11yRunningReport; stop(): void } | null = null;
 
-  function current(): A11yReport | null {
-    if (running) return running.report;
-    if (!fs.existsSync(reportFile)) return null;
-    return JSON.parse(fs.readFileSync(reportFile, 'utf-8')) as A11yReport;
+  const reportFile = (theme: string) => path.join(reportsDir, `${theme}.json`);
+
+  function reports(): Record<string, A11yFinishedReport> {
+    if (!fs.existsSync(reportsDir)) return {};
+    return Object.fromEntries(
+      fs.readdirSync(reportsDir)
+        .filter((name) => name.endsWith('.json'))
+        .map((name) => [name.slice(0, -'.json'.length), JSON.parse(fs.readFileSync(path.join(reportsDir, name), 'utf-8'))]),
+    );
   }
 
   function settle(started: A11yRunningReport, outcome: CliOutcome): A11yReport {
@@ -116,7 +126,6 @@ export function a11yRunServer({ root, reportFile, runCli, broadcast }: {
       ...started,
       state: 'finished',
       finishedAt,
-      ...(cli.theme ? { theme: cli.theme } : {}),
       findings: cli.findings.filter((f) => f.details?.engineRule !== 'color-contrast'),
     };
   }
@@ -132,14 +141,16 @@ export function a11yRunServer({ root, reportFile, runCli, broadcast }: {
         body: { error: 'Body must be { contrast: [...] } with one entry per failing pair', code: 'INVALID_BODY' },
       };
     }
-    const report: A11yRunningReport = { state: 'running', startedAt: new Date().toISOString(), contrast };
+    const report: A11yRunningReport = { state: 'running', startedAt: new Date().toISOString(), theme: openTheme(), contrast };
     const run = runCli(A11Y_RUN_ARGS, root);
     running = { report, stop: run.stop };
     broadcast(report);
     void run.done.then((outcome) => {
       const settled = settle(report, outcome);
-      fs.mkdirSync(path.dirname(reportFile), { recursive: true });
-      fs.writeFileSync(reportFile, `${JSON.stringify(settled, null, 2)}\n`);
+      if (settled.state === 'finished') {
+        fs.mkdirSync(reportsDir, { recursive: true });
+        fs.writeFileSync(reportFile(settled.theme), `${JSON.stringify(settled, null, 2)}\n`);
+      }
       running = null;
       broadcast(settled);
     });
@@ -148,7 +159,9 @@ export function a11yRunServer({ root, reportFile, runCli, broadcast }: {
 
   return {
     start,
-    report: (): A11yAnswer => ({ status: 200, body: { report: current() } }),
+    report: (): A11yAnswer => ({ status: 200, body: { running: running?.report ?? null, reports: reports() } }),
+    /** Removes a deleted theme's report. */
+    forget: (theme: string) => fs.rmSync(reportFile(theme), { force: true }),
     stop: () => running?.stop(),
   };
 }

@@ -138,7 +138,7 @@
           Run test checks every component in the open theme as saved. It scans each one with axe and Alfa,
           presses the keys each one answers, and measures the contrast of every color pair.
         </p>
-        <p>A run takes about three minutes. The report stays here until the next run.</p>
+        <p>A run takes about three minutes. Each theme keeps its report until its next run.</p>
       </div>
     {/if}
   </section>

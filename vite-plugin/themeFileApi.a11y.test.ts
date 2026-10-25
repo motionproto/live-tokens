@@ -128,7 +128,7 @@ describe('the a11y routes', () => {
     expect(second.json.code).toBe('A11Y_RUN_IN_PROGRESS');
 
     cli.runs[0].finish({ code: 0, stdout: FINISHED_CLI, stderr: '' });
-    await vi.waitFor(async () => expect((await request('GET', `${API}/a11y/report`)).json.report.state).toBe('finished'));
+    await vi.waitFor(async () => expect((await request('GET', `${API}/a11y/report`)).json.reports.default.state).toBe('finished'));
     expect((await request('POST', `${API}/a11y/run`, { contrast: [] })).status).toBe(202);
   });
 
@@ -147,11 +147,11 @@ describe('the a11y routes', () => {
   it('read the last report back after a restart', async () => {
     await request('POST', `${API}/a11y/run`, { contrast: [] });
     cli.runs[0].finish({ code: 0, stdout: FINISHED_CLI, stderr: '' });
-    await vi.waitFor(() => expect(fs.existsSync(path.join(tmp, '_a11y-report.json'))).toBe(true));
+    await vi.waitFor(() => expect(fs.existsSync(path.join(tmp, '_a11y-reports/default.json'))).toBe(true));
     bootPlugin();
     const { status, json } = await request('GET', `${API}/a11y/report`);
     expect(status).toBe(200);
-    expect(json.report).toMatchObject({ state: 'finished', theme: 'default', findings: [] });
+    expect(json).toMatchObject({ running: null, reports: { default: { state: 'finished', theme: 'default', findings: [] } } });
   });
 
   it('send an a11y frame to every open stream on start and on finish', async () => {
@@ -173,8 +173,8 @@ describe('the a11y routes', () => {
   });
 
   it('keep the report inside the isolated copy under test isolation', async () => {
-    const projectReport = path.join(tmp, '_a11y-report.json');
-    const seeded = `${JSON.stringify({ state: 'finished', startedAt: '', finishedAt: '', contrast: [], findings: [] })}\n`;
+    const projectReport = path.join(tmp, '_a11y-reports/default.json');
+    const seeded = `${JSON.stringify({ state: 'finished', startedAt: '', finishedAt: '', theme: 'default', contrast: [], findings: [] })}\n`;
     fs.mkdirSync(path.dirname(projectReport), { recursive: true });
     fs.writeFileSync(projectReport, seeded);
     const isolated = path.join(tmp, 'isolated');
@@ -182,10 +182,10 @@ describe('the a11y routes', () => {
     process.env.LIVE_TOKENS_TEST_DATA_DIR = isolated;
     bootPlugin();
 
-    expect((await request('GET', `${API}/a11y/report`)).json).toEqual({ report: null });
+    expect((await request('GET', `${API}/a11y/report`)).json).toEqual({ running: null, reports: {} });
     await request('POST', `${API}/a11y/run`, { contrast: [] });
     cli.runs[0].finish({ code: 0, stdout: FINISHED_CLI, stderr: '' });
-    await vi.waitFor(() => expect(fs.existsSync(path.join(isolated, '_a11y-report.json'))).toBe(true));
+    await vi.waitFor(() => expect(fs.existsSync(path.join(isolated, '_a11y-reports/default.json'))).toBe(true));
     expect(fs.readFileSync(projectReport, 'utf-8')).toBe(seeded);
   });
 });

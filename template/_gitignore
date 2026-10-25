@@ -7,8 +7,8 @@ dist-ssr
 playwright-report/
 test-results/
 
-# The live-tokens editor's last accessibility run, kept in the data directory.
-_a11y-report.json
+# The live-tokens editor's last accessibility run per theme, kept in the data directory.
+_a11y-reports/
 
 # The live-tokens skills are a copy of what the package ships; postinstall
 # refreshes them, so they are the package's to version, not this project's.

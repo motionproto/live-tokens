@@ -31,7 +31,7 @@ const report = (findings: A11yFinding[], contrast: A11yFinishedReport['contrast'
   state: 'finished',
   startedAt: '2026-10-23T14:00:00.000Z',
   finishedAt: '2026-10-23T14:03:20.000Z',
-  theme: 'royal-velvet',
+  theme: 'default',
   contrast,
   findings,
 });

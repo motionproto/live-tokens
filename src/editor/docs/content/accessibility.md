@@ -236,6 +236,11 @@ three and a half minutes. With edits pending, it shows "Save the changes you
 want to have checked." and starts nothing. Save the theme first, so the run
 and the editor read the same values.
 
+Each theme keeps its own report. Opening another theme shows that theme's
+last run, or none if it has never run. The dev server keeps each report in
+`_a11y-reports/` in the data directory, and deleting a theme deletes its
+report. A failed run leaves the theme's last report in place.
+
 Every finding counts, results to check by eye included. An overview opens
 the report. It shows the total, the count in each repair group below, and a
 table of every component with a finding: its count per group and a bar of
@@ -308,8 +313,8 @@ with its element, its views, its help page, and the properties it traces to. The
 editor's own contrast failures add no row mark, because the contrast readout
 on the colour row already shows them.
 
-The marks and the panel keep the run's time and change when the next run
-finishes. The contrast readout on each colour row stays live and measures
+The marks and the panel keep the run's time and change when the open
+theme's next run finishes. The contrast readout on each colour row stays live and measures
 every edit as you make it.
 
 The editor also re-measures each contrast failure of the run as you edit.

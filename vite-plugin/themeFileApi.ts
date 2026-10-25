@@ -36,7 +36,7 @@ import { detectLegacyLayout, type LegacyLayout } from './files/legacyLayout';
 import { validateTokensCss, runAdditiveTokensCssMigrations } from './tokensCssMigrations';
 import { checkBeforeBuild } from './buildChecks';
 import { formatReport, rewriteBundle, type ProductionCssOptions } from './productionCss';
-import { A11Y_REPORT_FILE_NAME, a11yRunServer, spawnCli } from './a11y/a11yRunServer';
+import { A11Y_REPORTS_DIR_NAME, a11yRunServer, spawnCli } from './a11y/a11yRunServer';
 import { A11Y_EVENT } from '../src/editor/core/a11y/a11yReportTypes';
 import { fileURLToPath } from 'node:url';
 
@@ -169,7 +169,7 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
     : opts.fontsCssPath
       ? path.resolve(opts.fontsCssPath)
       : path.join(path.dirname(CSS_PATH), 'fonts.css');
-  const A11Y_REPORT_FILE = path.join(dataDirs.dataDir, A11Y_REPORT_FILE_NAME);
+  const A11Y_REPORTS_DIR = path.join(dataDirs.dataDir, A11Y_REPORTS_DIR_NAME);
   // Default keeps live-tokens' REST routes under a single namespace so they
   // can't collide with the consumer's own `/api/themes` or `/api/components`.
   // The client side reads the same value via the `__LIVE_TOKENS_API_BASE__`
@@ -1710,6 +1710,7 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
           }
         }
         fs.unlinkSync(filePath);
+        a11yRuns.forget(fileName);
         // A package theme with the same name takes over; a local-only name
         // heals to Default. Convert the former live state into deltas from that
         // replacement so deleting the open document never changes the page.
@@ -1843,7 +1844,8 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
   const eventClients = new Set<any>();
   const a11yRuns = a11yRunServer({
     root: process.cwd(),
-    reportFile: A11Y_REPORT_FILE,
+    reportsDir: A11Y_REPORTS_DIR,
+    openTheme: () => themesResource.getActiveName(),
     runCli: spawnCli(PACKAGE_CLI_PATH),
     broadcast: (report) => {
       const frame = `event: ${A11Y_EVENT}\ndata: ${JSON.stringify(report)}\n\n`;

@@ -38,7 +38,7 @@ const REPORT: A11yFinishedReport = {
   state: 'finished',
   startedAt: '2026-10-23T14:00:00.000Z',
   finishedAt: '2026-10-23T14:03:20.000Z',
-  theme: 'royal-velvet',
+  theme: 'default',
   contrast: [{
     component: 'badge',
     variable: '--badge-brand-text',
@@ -175,7 +175,7 @@ describe('A11yPanel', () => {
 
   it('follows the last finished run while a new one goes', () => {
     receiveA11yReport(REPORT);
-    receiveA11yReport({ state: 'running', startedAt: '2026-10-23T15:00:00.000Z', contrast: [] });
+    receiveA11yReport({ state: 'running', startedAt: '2026-10-23T15:00:00.000Z', theme: 'default', contrast: [] });
     mountPanel('badge');
     expect(target.querySelector('.a11y-panel')).not.toBeNull();
   });

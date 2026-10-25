@@ -3,7 +3,7 @@ import fs from 'fs';
 import os from 'os';
 import path from 'path';
 import {
-  A11Y_REPORT_FILE_NAME,
+  A11Y_REPORTS_DIR_NAME,
   A11Y_RUN_ARGS,
   a11yRunServer,
   spawnCli,
@@ -59,7 +59,8 @@ function serverWith(runCli: RunCli) {
   const frames: A11yReport[] = [];
   const server = a11yRunServer({
     root,
-    reportFile: path.join(root, A11Y_REPORT_FILE_NAME),
+    reportsDir: path.join(root, A11Y_REPORTS_DIR_NAME),
+    openTheme: () => 'royal-velvet',
     runCli,
     broadcast: (report) => frames.push(report),
   });
@@ -96,14 +97,14 @@ describe('a11yRunServer', () => {
     const cli = stubCli();
     const { server, frames } = serverWith(cli.runCli);
     const answer = server.start({ contrast: [CONTRAST] });
-    const running = { state: 'running', startedAt: expect.any(String), contrast: [CONTRAST] };
+    const running = { state: 'running', startedAt: expect.any(String), theme: 'royal-velvet', contrast: [CONTRAST] };
     expect(answer.body).toEqual(running);
-    expect(server.report()).toEqual({ status: 200, body: { report: running } });
+    expect(server.report()).toEqual({ status: 200, body: { running, reports: {} } });
     expect(frames).toEqual([running]);
   });
 
   it('answers an empty report before any run', () => {
-    expect(serverWith(stubCli().runCli).server.report()).toEqual({ status: 200, body: { report: null } });
+    expect(serverWith(stubCli().runCli).server.report()).toEqual({ status: 200, body: { running: null, reports: {} } });
   });
 
   it('refuses a body without a well-formed contrast list', () => {
@@ -136,15 +137,39 @@ describe('a11yRunServer', () => {
     });
   });
 
-  it('keeps the settled report in the file, so a new server reads it back', async () => {
+  it("keeps the finished report in its theme's file, so a new server reads it back", async () => {
     const cli = stubCli();
     const { server, frames, settled } = serverWith(cli.runCli);
     server.start({ contrast: [CONTRAST] });
     cli.finish({ code: 0, stdout: cliJson([axe('a11y-component', 'aria-allowed-role')]), stderr: '' });
     await settled();
-    const file = path.join(root, A11Y_REPORT_FILE_NAME);
+    const file = path.join(root, A11Y_REPORTS_DIR_NAME, 'royal-velvet.json');
     expect(JSON.parse(fs.readFileSync(file, 'utf-8'))).toEqual(frames.at(-1));
-    expect(serverWith(stubCli().runCli).server.report().body).toEqual({ report: frames.at(-1) });
+    expect(serverWith(stubCli().runCli).server.report().body).toEqual({ running: null, reports: { 'royal-velvet': frames.at(-1) } });
+  });
+
+  it("leaves the theme's finished report in place when a run fails", async () => {
+    const cli = stubCli();
+    const { server, frames, settled } = serverWith(cli.runCli);
+    server.start({ contrast: [] });
+    cli.finish({ code: 0, stdout: cliJson([]), stderr: '' });
+    await settled();
+    const finished = frames.at(-1);
+    server.start({ contrast: [] });
+    cli.finish({ code: 1, stdout: '', stderr: 'boom' });
+    await settled();
+    expect(frames.at(-1)?.state).toBe('failed');
+    expect(server.report().body).toEqual({ running: null, reports: { 'royal-velvet': finished } });
+  });
+
+  it("forgets a deleted theme's report", async () => {
+    const cli = stubCli();
+    const { server, settled } = serverWith(cli.runCli);
+    server.start({ contrast: [] });
+    cli.finish({ code: 0, stdout: cliJson([]), stderr: '' });
+    await settled();
+    server.forget('royal-velvet');
+    expect(server.report().body).toEqual({ running: null, reports: {} });
   });
 
   it('fails a run whose output is no report, and keeps the tail of its stderr', async () => {
@@ -157,6 +182,7 @@ describe('a11yRunServer', () => {
       state: 'failed',
       startedAt: expect.any(String),
       finishedAt: expect.any(String),
+      theme: 'royal-velvet',
       contrast: [],
       error: 'check-component exited with code 1 and printed no report.\nTypeError: boom',
     });
@@ -178,7 +204,7 @@ describe('a11yRunServer', () => {
     const report = frames.at(-1)!;
     expect(report.state).toBe('finished');
     if (report.state !== 'finished') return;
-    expect(report.theme).toBeUndefined();
+    expect(report.theme).toBe('royal-velvet');
     expect(report.findings.map((f) => f.rule)).toEqual(['tests-not-installed', 'tests-not-installed', 'tests-not-installed']);
     expect(report.findings[0].message).toContain('npm install -D @playwright/test');
   });

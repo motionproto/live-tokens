@@ -1905,7 +1905,7 @@ describe('check-component --tests: the isolated copy, decision 2 of docs/plans/a
     write('component-configs/button/_working.json', {});
     write('component-configs/button/_active.json', { activeFile: 'default' });
     write('component-configs/button/default.json', {});
-    write('_a11y-report.json', { state: 'finished' });
+    write('_a11y-reports/royal-velvet.json', { state: 'finished' });
     return source;
   }
 

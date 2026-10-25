@@ -59,7 +59,7 @@ function testsTimeoutMs() {
 // Mirrors src/testing/isolation.ts's own list. Duplicated rather than shared:
 // that module compiles into src/testing-js, which does not exist until
 // `build:testing` runs, and this one ships unbuilt.
-const SESSION_FILES = new Set(['_working.json', '_active.json', '_production.json', '_a11y-report.json']);
+const SESSION_FILES = new Set(['_working.json', '_active.json', '_production.json', '_a11y-reports']);
 const THEME_POINTER = join('themes', '_active.json');
 
 const REQUIRED_TOOLS = [
@@ -229,7 +229,7 @@ export function copyIsolatedDataDir(sourceDataDir, { keepActive = false } = {}) 
   cpSync(sourceDataDir, dataDir, { recursive: true });
   for (const entry of readdirSync(dataDir, { recursive: true })) {
     if (keepActive && entry === THEME_POINTER) continue;
-    if (SESSION_FILES.has(basename(entry))) rmSync(join(dataDir, entry), { force: true });
+    if (SESSION_FILES.has(basename(entry))) rmSync(join(dataDir, entry), { recursive: true, force: true });
   }
   return dataDir;
 }

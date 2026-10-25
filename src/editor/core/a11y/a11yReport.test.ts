@@ -1,6 +1,7 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { get } from 'svelte/store';
 import { API_BASE } from '../storage/apiBase';
+import { openThemeSlug } from '../store/editorConfigStore';
 import {
   __resetForTests,
   a11yFinishedReport,
@@ -33,7 +34,7 @@ const finding = (rule: string, component?: string, engineRule?: string): A11yFin
   repair: 'authored',
 });
 
-const RUNNING: A11yReport = { state: 'running', startedAt: '2026-10-23T14:00:00.000Z', contrast: [CONTRAST] };
+const RUNNING: A11yReport = { state: 'running', startedAt: '2026-10-23T14:00:00.000Z', theme: 'royal-velvet', contrast: [CONTRAST] };
 const FINISHED: A11yFinishedReport = {
   state: 'finished',
   startedAt: '2026-10-23T14:00:00.000Z',
@@ -60,8 +61,13 @@ function respond(status: number, body: unknown) {
   return fetch;
 }
 
+beforeEach(() => {
+  openThemeSlug.set('royal-velvet');
+});
+
 afterEach(() => {
   __resetForTests();
+  openThemeSlug.set('default');
   vi.unstubAllGlobals();
 });
 
@@ -91,6 +97,33 @@ describe('a11yIssues', () => {
     expect(Object.keys(get(a11yIssues))).toEqual(['badge', 'radio-button', 'video', 'input']);
   });
 
+  it("follows the open theme's own report", () => {
+    receiveA11yReport(FINISHED);
+    openThemeSlug.set('ocean');
+    expect(get(a11yFinishedReport)).toBeNull();
+    expect(get(a11yIssues)).toEqual({});
+    openThemeSlug.set('royal-velvet');
+    expect(get(a11yFinishedReport)).toEqual(FINISHED);
+  });
+
+  it("keeps each theme's last finished run apart", () => {
+    const ocean = { ...FINISHED, theme: 'ocean', findings: [] };
+    receiveA11yReport(FINISHED);
+    receiveA11yReport(ocean);
+    expect(get(a11yFinishedReport)).toEqual(FINISHED);
+    openThemeSlug.set('ocean');
+    expect(get(a11yFinishedReport)).toEqual(ocean);
+  });
+
+  it("shows a failed run only under the theme it tested", () => {
+    receiveA11yReport(FINISHED);
+    const failure = { ...RUNNING, state: 'failed' as const, finishedAt: '2026-10-23T14:01:00.000Z', error: 'boom' };
+    receiveA11yReport(failure);
+    expect(get(a11yReport)).toEqual(failure);
+    openThemeSlug.set('ocean');
+    expect(get(a11yReport)).toBeNull();
+  });
+
   it('is empty before any run finishes', () => {
     receiveA11yReport(RUNNING);
     expect(get(a11yIssues)).toEqual({});
@@ -98,21 +131,27 @@ describe('a11yIssues', () => {
 });
 
 describe('init', () => {
-  it('reads the last report from the dev server', async () => {
-    const fetch = respond(200, { report: FINISHED });
+  it("reads each theme's last report from the dev server", async () => {
+    const fetch = respond(200, { running: null, reports: { 'royal-velvet': FINISHED } });
     await init();
     expect(fetch).toHaveBeenCalledWith(`${API_BASE}/a11y/report`);
     expect(get(a11yReport)).toEqual(FINISHED);
   });
 
+  it('takes a run that is going', async () => {
+    respond(200, { running: RUNNING, reports: {} });
+    await init();
+    expect(get(a11yReport)).toEqual(RUNNING);
+  });
+
   it('leaves the store empty when no run has settled', async () => {
-    respond(200, { report: null });
+    respond(200, { running: null, reports: {} });
     await init();
     expect(get(a11yReport)).toBeNull();
   });
 
   it('yields to an event that arrived while the read was in flight', async () => {
-    respond(200, { report: FINISHED });
+    respond(200, { running: null, reports: { 'royal-velvet': FINISHED } });
     const read = init();
     receiveA11yReport(RUNNING);
     await read;
