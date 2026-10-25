@@ -567,7 +567,11 @@ for (const [component, aliases] of aliasesByComponent) {
       // Portaled dialogs sit outside `.tabs-preview`; hover their first action
       // so hover-only chrome aliases are painted too. Role-based discovery keeps
       // this independent of any component name or DOM implementation class.
-      const dialogAction = page.locator('[role="dialog"] button:not(:disabled)').first();
+      // An inline dialog inside the preview is excluded: hovering its close
+      // button would mask that button's own colour property for the whole probe.
+      const dialogAction = page.locator(
+        '[role="dialog"]:not(.tabs-preview [role="dialog"]) button:not(:disabled)',
+      ).first();
       if (await dialogAction.count()) await dialogAction.hover({ force: true });
 
       await exerciseVisibleTokenControls(page, componentAliases, controlExercised, proof);
