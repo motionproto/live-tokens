@@ -1,6 +1,6 @@
 {
   "name": "@motion-proto/live-tokens",
-  "version": "0.98.0",
+  "version": "0.98.1",
   "type": "module",
   "sideEffects": [
     "**/*.css"

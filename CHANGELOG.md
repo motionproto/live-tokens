@@ -1,6 +1,8 @@
 # Changelog
 
-## 0.98.0 — Accessibility testing
+## 0.98.1 — Accessibility testing
+
+The v0.98.0 tag never reached npm: its Verify run hit the test time limit.
 
 ### Added
 
