@@ -8,6 +8,7 @@
   import UIPillButton from '../UIPillButton.svelte';
   import A11yComponentIssues from './A11yComponentIssues.svelte';
   import A11yFindingRow from './A11yFindingRow.svelte';
+  import A11yOverview from './A11yOverview.svelte';
   import {
     A11Y_REVIEW_SECTION,
     A11Y_RUN_SECTION,
@@ -18,6 +19,7 @@
     formatRunTime,
     getA11yViewLink,
     issuesLabel,
+    openComponentAt,
     reviewLabel,
     reviewResults,
   } from './a11yView';
@@ -27,7 +29,6 @@
   let rows = $derived(componentsWithIssues($a11yIssues));
   let review = $derived(reviewResults($a11yIssues));
   let reviewTotal = $derived(rows.reduce((sum, row) => sum + row.issues.review.length, 0));
-  let total = $derived(rows.reduce((sum, row) => sum + row.count, 0));
   let running = $derived($a11yReport?.state === 'running' ? $a11yReport : null);
   let failed = $derived($a11yReport?.state === 'failed' ? $a11yReport : null);
   let finished = $derived($a11yFinishedReport);
@@ -127,14 +128,8 @@
           </div>
         {/if}
       {/if}
-      {#if !notInstalled}
-        <p class="a11y-summary">
-          {#if rows.length === 0}
-            Every component passes the automated checks.
-          {:else}
-            {rows.length} {rows.length === 1 ? 'component' : 'components'} with issues, {issuesLabel(total)}
-          {/if}
-        </p>
+      {#if !notInstalled && rows.length === 0}
+        <p class="a11y-summary">Every component passes the automated checks.</p>
       {/if}
     {:else if !running && !failed}
       <div class="a11y-empty">
@@ -147,14 +142,30 @@
     {/if}
   </section>
 
+  {#if rows.length > 0}
+    <A11yOverview {rows} onjump={(component) => openView?.(a11ySectionId(component))} />
+  {/if}
+
   {#each rows as row (row.component)}
     <section id={a11ySectionId(row.component)} class="editor-section-card a11y-component">
       <header class="a11y-component-head">
         <i class={row.icon} aria-hidden="true"></i>
         <h3 class="editor-subsection-title">{row.label}</h3>
         <span class="a11y-count">{issuesLabel(row.count)}</span>
+        <UIPillButton
+          size="compact"
+          variant="outline"
+          icon="fa-arrow-right"
+          title={`Open ${row.label} in the Components view`}
+          onclick={() => openComponentAt(row.component)}
+        >Open component</UIPillButton>
       </header>
-      <A11yComponentIssues component={row.component} issues={row.issues} />
+      <A11yComponentIssues
+        component={row.component}
+        issues={row.issues}
+        onreveal={(variable) => openComponentAt(row.component, variable)}
+        onopen={() => openComponentAt(row.component)}
+      />
       {#if row.issues.review.length > 0}
         <button type="button" class="a11y-review-link" onclick={() => openView?.(A11Y_REVIEW_SECTION)}>
           {reviewLabel(row.issues.review.length)}
@@ -169,7 +180,14 @@
         <summary>{reviewLabel(reviewTotal)}</summary>
         <ul class="a11y-review-list">
           {#each review as { component, label, row }, i (i)}
-            <A11yFindingRow {component} {row} review prefix={label} />
+            <A11yFindingRow
+              {component}
+              {row}
+              review
+              prefix={label}
+              onreveal={(variable) => openComponentAt(component, variable)}
+              onopen={() => openComponentAt(component)}
+            />
           {/each}
         </ul>
       </details>
@@ -270,15 +288,19 @@
 
   .a11y-component-head {
     display: flex;
-    align-items: baseline;
-    gap: var(--ui-space-8);
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--ui-space-8) var(--ui-space-12);
     color: var(--ui-text-primary);
   }
 
   .a11y-count {
-    margin-left: auto;
     font-size: var(--ui-font-size-sm);
     color: var(--ui-text-tertiary);
+  }
+
+  .a11y-component-head :global(.ui-pill) {
+    margin-left: auto;
   }
 
   .a11y-review-link {

@@ -4,7 +4,7 @@
   import { FLASH_DURATION_MS } from '../../core/flashStatus';
   import { getEditorContext, type RevealRequest } from '../../component-editor/scaffolding/editorContext';
   import A11yComponentIssues from './A11yComponentIssues.svelte';
-  import { accessibilityIssuesLabel, formatRunTime, issueCount } from './a11yView';
+  import { accessibilityIssuesLabel, formatRunTime, issueCount, pendingA11yReveal } from './a11yView';
 
   let { component }: { component: string } = $props();
   const titleId = $props.id();
@@ -35,22 +35,32 @@
       rows = renderedRows(variable);
     }
     const row = rows[0];
-    if (!row) return;
-    const target = row.closest<HTMLElement>('.token-entry') ?? row;
+    if (row) flash(row.closest<HTMLElement>('.token-entry') ?? row);
+  }
+
+  function flash(target: HTMLElement, block: ScrollLogicalPosition = 'center') {
     const still = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    target.scrollIntoView({ block: 'center', behavior: still ? 'auto' : 'smooth' });
+    target.scrollIntoView({ block, behavior: still ? 'auto' : 'smooth' });
     const highlight = getComputedStyle(target).getPropertyValue('--ui-highlight').trim();
     target.animate(
       [{ boxShadow: `0 0 0 2px ${highlight}` }, { boxShadow: '0 0 0 2px transparent' }],
       { duration: FLASH_DURATION_MS, easing: 'ease-in' },
     );
   }
+
+  $effect(() => {
+    const pending = $pendingA11yReveal;
+    if (!pending || pending.component !== component || !panel) return;
+    pendingA11yReveal.set(null);
+    if (pending.variable) reveal(pending.variable);
+    else flash(panel, 'start');
+  });
 </script>
 
 {#if issues && count > 0 && $a11yFinishedReport}
   <section class="editor-section-card a11y-panel" aria-labelledby={titleId} bind:this={panel}>
     <header class="a11y-panel-head">
-      <span class="a11y-panel-mark" aria-hidden="true">!</span>
+      <i class="fa-solid fa-triangle-exclamation a11y-panel-mark" aria-hidden="true"></i>
       <h3 id={titleId} class="a11y-panel-title">{accessibilityIssuesLabel(count)}</h3>
       <span class="a11y-panel-run">Last run {formatRunTime($a11yFinishedReport.finishedAt)}</span>
     </header>
@@ -73,7 +83,6 @@
 
   .a11y-panel-mark {
     color: var(--ui-highlight);
-    font-weight: var(--ui-font-weight-bold);
   }
 
   .a11y-panel-title {

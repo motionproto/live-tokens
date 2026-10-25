@@ -1,5 +1,7 @@
 import { getContext, setContext } from 'svelte';
+import { writable } from 'svelte/store';
 import { getComponentRegistry, getComponentRegistryEntries } from '../../component-editor/registry';
+import { selectedComponent, setEditorView } from '../../core/store/editorViewStore';
 import type { ComponentA11yIssues } from '../../core/a11y/a11yReport';
 import type { A11yFinding } from '../../core/a11y/a11yReportTypes';
 
@@ -19,6 +21,63 @@ export function setA11yViewLink(open: (sectionId: string) => void): void {
 
 export function getA11yViewLink(): ((sectionId: string) => void) | undefined {
   return getContext(VIEW_LINK);
+}
+
+export interface A11yRevealTarget {
+  component: string;
+  /** The property row to scroll to. Null scrolls to the component's issues panel. */
+  variable: string | null;
+}
+
+/** One-shot: where the component page scrolls once it opens. The issues panel of that component clears it. */
+export const pendingA11yReveal = writable<A11yRevealTarget | null>(null);
+
+export function openComponentAt(component: string, variable: string | null = null): void {
+  pendingA11yReveal.set({ component, variable });
+  selectedComponent.set(component);
+  setEditorView('components');
+}
+
+export function componentLabel(component: string): string {
+  return getComponentRegistry()[component]?.label ?? component;
+}
+
+/** The success criteria the suite's own checks link to by their Understanding page. */
+const UNDERSTANDING_CRITERIA: Record<string, string> = {
+  'non-text-contrast': '1.4.11',
+  'text-spacing': '1.4.12',
+};
+
+/** Names the kind of page a finding's help URL opens, so the link says where it goes.
+ *  axe and Alfa link to their own rule pages; the suite's own checks link to WCAG and the APG. */
+export function guidanceLabel(url: string): string {
+  const { hostname, pathname } = new URL(url);
+  if (hostname === 'www.w3.org') {
+    const understanding = pathname.match(/\/Understanding\/([a-z-]+)\.html$/);
+    if (understanding) {
+      const criterion = UNDERSTANDING_CRITERIA[understanding[1]];
+      return criterion ? `Success criterion ${criterion}` : 'Success criterion';
+    }
+    if (pathname.includes('/Techniques/')) return 'Technique';
+    if (pathname.includes('/ARIA/apg/')) return 'Pattern';
+  }
+  if (hostname === 'playwright.dev') return 'Reference';
+  return 'Rule';
+}
+
+export interface A11yIssueTotals {
+  property: number;
+  code: number;
+  review: number;
+}
+
+/** A component's findings counted by the fix they need, as the view groups them. */
+export function issueTotals(issues: ComponentA11yIssues): A11yIssueTotals {
+  return {
+    property: issues.contrast.length + issues.property.length,
+    code: issues.code.length,
+    review: issues.review.length,
+  };
 }
 
 export function accessibilityIssuesLabel(count: number): string {

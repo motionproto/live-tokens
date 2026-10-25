@@ -50,7 +50,7 @@
       {#snippet trigger()}
         <span class="contrast-value {readout.state}">
           {#if readout.state === 'fail'}
-            <span class="contrast-mark" aria-hidden="true">!</span>
+            <i class="fa-solid fa-triangle-exclamation contrast-mark" aria-hidden="true"></i>
           {/if}
           {readout.label}
         </span>
@@ -68,7 +68,7 @@
               Measured
               <span class="contrast-value {pairState}">
                 {#if pairState === 'fail'}
-                  <span class="contrast-mark" aria-hidden="true">!</span>
+                  <i class="fa-solid fa-triangle-exclamation contrast-mark" aria-hidden="true"></i>
                 {/if}
                 {formatRatio(m.ratio)}
               </span>
@@ -118,7 +118,8 @@
   }
 
   .contrast-mark {
-    font-weight: var(--ui-font-weight-bold);
+    margin-right: var(--ui-space-4);
+    font-size: var(--ui-font-size-xs);
   }
 
   .contrast-pairs {

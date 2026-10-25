@@ -7,7 +7,9 @@ import {
   findingRows,
   formatElapsed,
   formatRunTime,
+  guidanceLabel,
   issueCount,
+  issueTotals,
   propertyLabel,
   reviewResults,
 } from './a11yView';
@@ -58,6 +60,30 @@ const issues: Record<string, ComponentA11yIssues> = {
 describe('issueCount', () => {
   it('counts every finding, results to check by eye included', () => {
     expect(issueCount({ ...issues.badge, property: [traced('.a', 'error')] })).toBe(4);
+  });
+});
+
+describe('issueTotals', () => {
+  it('counts the contrast failures with the property findings', () => {
+    expect(issueTotals({ ...issues.badge, property: [traced('.a', 'error')] })).toEqual({ property: 2, code: 1, review: 1 });
+  });
+});
+
+describe('guidanceLabel', () => {
+  it('calls an engine rule page a rule', () => {
+    expect(guidanceLabel('https://alfa.siteimprove.com/rules/sia-r65')).toBe('Rule');
+    expect(guidanceLabel('https://dequeuniversity.com/rules/axe/4.10/aria-allowed-role')).toBe('Rule');
+  });
+
+  it('numbers a success criterion the suite links by its Understanding page', () => {
+    expect(guidanceLabel('https://www.w3.org/WAI/WCAG22/Understanding/non-text-contrast.html')).toBe('Success criterion 1.4.11');
+    expect(guidanceLabel('https://www.w3.org/WAI/WCAG22/Understanding/text-spacing.html')).toBe('Success criterion 1.4.12');
+  });
+
+  it('names a technique, a pattern and a reference page for what they are', () => {
+    expect(guidanceLabel('https://www.w3.org/WAI/WCAG22/Techniques/css/C39')).toBe('Technique');
+    expect(guidanceLabel('https://www.w3.org/WAI/ARIA/apg/patterns/')).toBe('Pattern');
+    expect(guidanceLabel('https://playwright.dev/docs/aria-snapshots')).toBe('Reference');
   });
 });
 

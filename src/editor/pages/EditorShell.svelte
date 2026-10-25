@@ -255,15 +255,12 @@
               onclick={() => pickSection(item.id)}
             >
               <i class={item.icon}></i>
-              <span class="nav-label">{item.label}</span>
+              <span class="nav-label">{#if $editorView === 'components' && a11yMarked.has(item.id)}<A11yRailMark />{/if}{item.label}</span>
               {#if item.count !== undefined}
                 <span class="nav-count">{item.count}</span>
               {/if}
               {#if $editorView === 'components' && $componentDirty[item.id]}
                 <span class="dirty-dot" aria-label="Unsaved changes" title="Unsaved changes"></span>
-              {/if}
-              {#if $editorView === 'components' && a11yMarked.has(item.id)}
-                <A11yRailMark />
               {/if}
             </button>
           {/each}
@@ -385,12 +382,12 @@
               onclick={() => selectComponent(item.id)}
             >
               <i class={item.icon}></i>
-              <span class="nav-label">{item.label}</span>
+              <span class="nav-label">{#if a11yMarked.has(item.id)}<A11yRailMark />{/if}{item.label}</span>
               {#if $componentDirty[item.id]}
                 <span class="dirty-dot" aria-label="Unsaved changes" title="Unsaved changes"></span>
               {/if}
-              {#if a11yMarked.has(item.id)}
-                <A11yRailMark />
+              {#if condensed && a11yMarked.has(item.id)}
+                <A11yRailMark placement="corner" />
               {/if}
             </button>
           {/each}
@@ -408,12 +405,12 @@
                 onclick={() => selectComponent(item.id)}
               >
                 <i class={item.icon}></i>
-                <span class="nav-label">{item.label}</span>
+                <span class="nav-label">{#if a11yMarked.has(item.id)}<A11yRailMark />{/if}{item.label}</span>
                 {#if $componentDirty[item.id]}
                   <span class="dirty-dot" aria-label="Unsaved changes" title="Unsaved changes"></span>
                 {/if}
-                {#if a11yMarked.has(item.id)}
-                  <A11yRailMark />
+                {#if condensed && a11yMarked.has(item.id)}
+                  <A11yRailMark placement="corner" />
                 {/if}
               </button>
             {/each}
@@ -569,6 +566,11 @@
     z-index: 1;
     flex-direction: column;
     min-width: 0;
+  }
+
+  /* A classic scrollbar would cover a third of the 48px rail. It still scrolls by wheel, trackpad and keyboard. */
+  .sidebar.condensed {
+    scrollbar-width: none;
   }
 
   .rail-toggle-row {

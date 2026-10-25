@@ -236,8 +236,14 @@ three and a half minutes. With edits pending, it shows "Save the changes you
 want to have checked." and starts nothing. Save the theme first, so the run
 and the editor read the same values.
 
-Every finding counts, results to check by eye included. The report lists
-each component with any finding and sorts its rows by repair:
+Every finding counts, results to check by eye included. An overview opens
+the report. It shows the total, the count in each repair group below, and a
+table of every component with a finding: its count per group and a bar of
+its share. A component's name in the table scrolls to its section.
+
+Each component's section heads its count with **Open component**, which opens
+the component's page at its accessibility panel. The section sorts its rows
+by repair:
 
 - **Fix with a property** holds each colour pair below its WCAG floor, as the
   editor's contrast checker measures it, such as "Brand text color 3.87:1,
@@ -249,15 +255,23 @@ each component with any finding and sorts its rows by repair:
 
 Findings that share an engine rule, a help text, and their traced properties
 merge into one row. The row names its element, or its element count, and the
-views it failed in, up to four. Each property the row traces to follows as a
-link with a "→".
+views it failed in, up to four. An issue's text is amber, and a result to
+check by eye is grey. The row's links sit beside its text:
+
+- Each property the row traces to links with a "→" to its row on the
+  component's page, which scrolls to the row and highlights it. A row that
+  traces to no property links to the component's page instead.
+- The link on the right opens the page the finding cites and names its kind:
+  "Rule" for an axe or Alfa rule, "Success criterion" with its number for a
+  WCAG criterion, "Technique" for a WCAG technique, and "Pattern" for a
+  WAI-ARIA pattern.
 
 A property's label leads with the words from its variable name that the
 editor's label leaves out, so `--input-focused-border` reads "Focused border
 color" where the editor's row reads "Border color". The contrast rows read
 the same labels.
 
-The view's summary and per-component counts include the results to check by
+The overview and the per-component counts include the results to check by
 eye. A component's section ends in a "N results to check by eye" button that
 opens one closed list of those results, merged per component. axe's contrast
 violations stay out of the report, because the contrast checker measures the
@@ -277,13 +291,15 @@ the `default` theme. Both work from the command line too.
 
 The last finished run marks the rest of the editor:
 
-- The component list carries a "!" beside each component with any finding.
+- The component list leads the name of each component with any finding
+  with a warning triangle. A condensed list shows the triangle on the
+  component's icon.
 - That component's page opens with a panel under its title that lists its
   findings in all three groups, check by eye included.
 - Each "→" in the panel opens the tab holding the property and highlights
   its row.
-- Each property row a finding traces to carries a mark beside its label: "!"
-  in the highlight colour, or a grey "?" when every finding on the row is a
+- Each property row a finding traces to carries a mark beside its label: a
+  warning triangle in the highlight colour, or a grey "?" when every finding on the row is a
   result to check by eye. On a colour or size row the mark sits between the
   label and the value. On a toggle row it follows the label.
 

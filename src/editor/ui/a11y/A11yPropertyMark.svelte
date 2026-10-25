@@ -25,7 +25,11 @@
   <span class="a11y-property-mark" class:gutter={placement === 'gutter'}>
     <UIInfoPopover title={label} ariaLabel={label}>
       {#snippet trigger()}
-        <span class="a11y-property-mark-glyph" class:review aria-hidden="true"></span>
+        {#if review}
+          <span class="a11y-property-mark-glyph review" aria-hidden="true"></span>
+        {:else}
+          <i class="fa-solid fa-triangle-exclamation a11y-property-mark-glyph" aria-hidden="true"></i>
+        {/if}
       {/snippet}
       <ul class="a11y-property-findings">
         {#each rows as row, i (i)}
@@ -54,17 +58,17 @@
     margin: 0 var(--ui-space-2) 0 0;
   }
 
-  /* The "!" is generated content because the contract harness matches rows by their text. */
-  .a11y-property-mark-glyph::after {
-    content: '!';
+  .a11y-property-mark-glyph {
     color: var(--ui-highlight);
-    font-size: var(--ui-font-size-sm);
-    font-weight: var(--ui-font-weight-bold);
+    font-size: var(--ui-font-size-xs);
   }
 
+  /* The "?" is generated content because the contract harness matches rows by their text. */
   .a11y-property-mark-glyph.review::after {
     content: '?';
     color: var(--ui-text-tertiary);
+    font-size: var(--ui-font-size-sm);
+    font-weight: var(--ui-font-weight-bold);
   }
 
   .a11y-property-findings {

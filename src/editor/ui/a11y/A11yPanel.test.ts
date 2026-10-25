@@ -4,7 +4,9 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { flushSync, mount, unmount } from 'svelte';
 import { __resetForTests, receiveA11yReport } from '../../core/a11y/a11yReport';
 import type { A11yFinding, A11yFinishedReport } from '../../core/a11y/a11yReportTypes';
+import { get } from 'svelte/store';
 import A11yPanel from './A11yPanel.svelte';
+import { pendingA11yReveal } from './a11yView';
 
 const finding = (rule: string, component: string, details: Partial<NonNullable<A11yFinding['details']>> = {}): A11yFinding => ({
   rule,
@@ -83,16 +85,15 @@ describe('A11yPanel', () => {
     expect(target.querySelector('.a11y-panel-run')?.textContent).toMatch(/^Last run .+$/);
     const groups = [...target.querySelectorAll('.a11y-group-title')].map((h) => h.textContent);
     expect(groups).toEqual(['Fix with a property', "Fix in the component's code", 'Check by eye']);
-    expect(target.querySelector('.a11y-reveal')?.getAttribute('aria-label')).toBe('Go to Brand text color');
+    expect(target.querySelector('.a11y-issue-links button')?.getAttribute('aria-label')).toBe('Go to Brand text color');
   });
 
-  it('lists the results to check by eye inline, marked with a question mark', () => {
+  it('lists the results to check by eye inline, set apart as review rows', () => {
     receiveA11yReport(REPORT);
     mountPanel('badge');
 
     const rows = [...target.querySelectorAll('.a11y-issue')];
-    expect(rows.map((row) => row.querySelector('.a11y-issue-mark')?.textContent)).toEqual(['!', '!', '?']);
-    expect(rows[2].classList.contains('review')).toBe(true);
+    expect(rows.map((row) => row.classList.contains('review'))).toEqual([false, false, true]);
   });
 
   it('shows a component with results to check by eye alone', () => {
@@ -120,6 +121,31 @@ describe('A11yPanel', () => {
     const links = [...target.querySelectorAll('.a11y-issue-links button')];
     expect(links.map((link) => link.getAttribute('aria-label'))).toEqual(['Go to Error border color', 'Go to Focused border color']);
     expect(links.map((link) => link.textContent?.trim())).toEqual(['Error border color', 'Focused border color']);
+  });
+
+  it('names each guidance link for the page it opens', () => {
+    receiveA11yReport(REPORT);
+    mountPanel('badge');
+
+    const labels = [...target.querySelectorAll('.a11y-issue-guidance')].map((link) => link.textContent?.trim());
+    expect(labels).toEqual(['Success criterion 1.4.3', 'Rule', 'Rule']);
+  });
+
+  it('takes the jump the Accessibility view left for this component and clears it', () => {
+    receiveA11yReport(REPORT);
+    pendingA11yReveal.set({ component: 'badge', variable: null });
+    mountPanel('badge');
+
+    expect(get(pendingA11yReveal)).toBeNull();
+  });
+
+  it('leaves a jump meant for another component', () => {
+    receiveA11yReport(REPORT);
+    pendingA11yReveal.set({ component: 'input', variable: null });
+    mountPanel('badge');
+
+    expect(get(pendingA11yReveal)).toEqual({ component: 'input', variable: null });
+    pendingA11yReveal.set(null);
   });
 
   it('stays out of the page for a component the report leaves clean', () => {
