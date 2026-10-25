@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.98.0 — Accessibility testing
 
 ### Added
 
@@ -44,7 +44,11 @@
   the run carries on.
 - **The editor gains an Accessibility view.** Run test checks every
   component in the open theme as saved, in about three and a half minutes,
-  and lists each component's findings by repair. "Fix with a property" holds
+  and lists each component's findings by repair. An overview opens the
+  report with the total, the count in each repair group, and a table of every
+  component with a finding, whose names scroll to their sections. Each
+  section's **Open component** opens the component's page at its
+  accessibility panel. "Fix with a property" holds
   the colour pairs the editor's contrast checker finds below their floor and
   the focus rings and control boundaries below 3:1. "Fix in the component's
   code" holds every other finding: axe failures, unchanged focus styles,
@@ -52,7 +56,9 @@
   motion. Results to check by eye count in the totals and collect in one
   closed list. Findings that share an engine rule, a help text, and their
   traced properties merge into one row that names its element count and
-  views, and each traced property gets a "→". A property's label leads with
+  views, and each traced property gets a "→". A row's right-hand link opens
+  the rule, success criterion, technique, or pattern the finding cites and
+  names its kind. A property's label leads with
   the words from its variable name that the editor's label leaves out, such
   as "Focused border color". With edits pending, Run test asks for a save and
   starts nothing. A missing test tool shows its install command. The dev
@@ -60,16 +66,17 @@
   `test-results/live-tokens/a11y-report.json`.
 - **The editor marks the components the last run named.** Every finding
   marks its component, results to check by eye included. The component list
-  carries a "!" beside each one, in the sidebar, the narrow menu, and the
-  standalone component page. Each one's page opens with a panel under its
+  leads each one's name with a warning triangle, in the sidebar, the narrow
+  menu, and the standalone component page. A condensed list shows the
+  triangle on the component's icon. Each one's page opens with a panel under its
   title that lists its findings in three groups: "Fix with a property", "Fix
   in the component's code", and "Check by eye". Each "→" in the panel opens
   the tab holding the property, an intrinsic's hover tab included, and
   highlights its row. The marks follow the last finished run; the contrast
   readout on each colour row stays live.
 - **Property rows carry the run's findings.** A row whose property a finding
-  traces to shows a "!" beside its label, or a grey "?" when every finding on
-  it is a result to check by eye. The mark opens a popover that lists the
+  traces to shows a warning triangle beside its label, or a grey "?" when
+  every finding on it is a result to check by eye. The mark opens a popover that lists the
   findings with their elements, views, help pages, and traced properties.
   Token selectors, gradient editors, and toggle rows carry it. The editor's own
   contrast failures add no row mark, because the live readout already shows
@@ -143,6 +150,12 @@
   pair closest to failing.
 - **`UITokenSelector` takes a `metaAfter` snippet.** It renders after the value
   name in the same column, and the value name truncates first.
+
+### Changed
+
+- **Button's catalogue entry covers navigation.** A Button is a labelled
+  trigger that runs an action or opens another page, such as View details.
+  An anchor stays the choice for a link inside running text.
 
 ### Fixed
 
