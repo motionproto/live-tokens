@@ -35,17 +35,30 @@
       rows = renderedRows(variable);
     }
     const row = rows[0];
-    if (row) flash(row.closest<HTMLElement>('.token-entry') ?? row);
+    if (row) flashRow(row.closest<HTMLElement>('.token-entry') ?? row);
+  }
+
+  function scrollTo(target: HTMLElement, block: ScrollLogicalPosition) {
+    const still = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    target.scrollIntoView({ block, behavior: still ? 'auto' : 'smooth' });
   }
 
   function flash(target: HTMLElement, block: ScrollLogicalPosition = 'center') {
-    const still = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    target.scrollIntoView({ block, behavior: still ? 'auto' : 'smooth' });
+    scrollTo(target, block);
     const highlight = getComputedStyle(target).getPropertyValue('--ui-highlight').trim();
     target.animate(
       [{ boxShadow: `0 0 0 2px ${highlight}` }, { boxShadow: '0 0 0 2px transparent' }],
       { duration: FLASH_DURATION_MS, easing: 'ease-in' },
     );
+  }
+
+  /** A row's content runs to its edges, so its ring sits out to the sides on a pseudo-element. */
+  function flashRow(row: HTMLElement) {
+    scrollTo(row, 'center');
+    row.classList.add('a11y-flash-row');
+    row
+      .animate([{ opacity: 1 }, { opacity: 0 }], { duration: FLASH_DURATION_MS, easing: 'ease-in', pseudoElement: '::after' })
+      .finished.finally(() => row.classList.remove('a11y-flash-row'));
   }
 
   $effect(() => {
@@ -69,6 +82,21 @@
 {/if}
 
 <style>
+  :global(.a11y-flash-row) {
+    position: relative;
+  }
+
+  /* Overhangs the row by the same space-6 as its linked-hover band. */
+  :global(.a11y-flash-row)::after {
+    content: '';
+    position: absolute;
+    inset: calc(-1 * var(--ui-space-2)) calc(-1 * (var(--ui-space-6) + var(--ui-space-2)));
+    border: 2px solid var(--ui-highlight);
+    border-radius: calc(var(--ui-radius-sm) + var(--ui-space-6));
+    opacity: 0;
+    pointer-events: none;
+  }
+
   .a11y-panel {
     gap: var(--ui-space-12);
     font-size: var(--ui-font-size-md);

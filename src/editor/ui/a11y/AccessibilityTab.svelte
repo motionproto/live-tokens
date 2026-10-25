@@ -215,6 +215,8 @@
     align-items: center;
     justify-content: space-between;
     gap: var(--ui-space-12);
+    /* Clears an overlay scrollbar and lines the button up with the cards' own buttons. */
+    padding-right: var(--ui-space-20);
   }
 
   .a11y-title {
