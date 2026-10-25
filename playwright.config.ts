@@ -11,6 +11,10 @@ process.env[A11Y_THEMES_ENV] ??= 'all';
 // two projects below are repository-only.
 export default createPlaywrightConfig({
   ...settings,
+  // The preset sweep above runs the accessibility suite under every theme,
+  // which takes the contract run past the shipped fifteen minutes on CI's two
+  // workers. Publish waits forty minutes on Verify, so this stays under it.
+  globalTimeout: 30 * 60_000,
   testDir: './tests/e2e',
   extraProjects: [
     {
