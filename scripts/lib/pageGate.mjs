@@ -256,7 +256,7 @@ function runFixtureScenarios(dir) {
     const findings = (result.json?.findings ?? []).filter((f) => !isA11y(f));
     check(
       findings.length > 0 && findings.every((f) => f.rule === 'page-component-paint'),
-      `every finding is page-component-paint (got ${JSON.stringify(findings.map((f) => f.rule))})`,
+      `every finding is page-component-paint (got ${JSON.stringify(findings.map((f) => f.rule === 'page-component-paint' ? f.rule : `${f.rule}: ${f.message}`))})`,
     );
     check(
       findings.every((f) => f.file === PAGE_SOURCE),

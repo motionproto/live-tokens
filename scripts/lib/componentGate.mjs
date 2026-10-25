@@ -25,6 +25,14 @@ const FIXTURE_SRC = join(REPO_ROOT, 'scripts/fixtures/component-tests');
 const PLAYWRIGHT_VERSION = '^1.62.1';
 const VITEST_VERSION = '^4.1.4';
 const HAPPY_DOM_VERSION = '^20.9.0';
+// Every rule a passing `check-component <id> --tests` run records in its coverage.
+const COVERAGE_RULES = [
+  'contract-registry', 'contract-behavior', 'contract-render', 'contract-listed',
+  'contract-alias', 'contract-states', 'contract-interaction', 'contract-persist',
+  'contract-theme', 'contract-sketch', 'a11y-component',
+];
+const namesEveryRule = (rules) =>
+  COVERAGE_RULES.every((rule) => rule in rules) && Object.keys(rules).length === COVERAGE_RULES.length;
 
 // Bounds the whole gate, not any one child process inside it: `LIVE_TOKENS_
 // TESTS_TIMEOUT` (bin/contractRunner.mjs) already bounds the Playwright and
@@ -252,7 +260,7 @@ function scenarioCleanPass(dir, id, { expectSketchInapplicable = true, dataDir =
   check((result.json?.findings ?? []).length === 0, `${id} --tests reports no findings`);
   const rules = result.json?.coverage?.[id] ?? {};
   const ruleIds = Object.keys(rules);
-  check(ruleIds.length === 10, `${id}: coverage names all 10 contract rules (has ${ruleIds.length})`);
+  check(namesEveryRule(rules), `${id}: coverage names all ${COVERAGE_RULES.length} rules (has ${ruleIds.join(', ')})`);
   const statuses = Object.entries(rules).map(([rule, e]) => [rule, e.status]);
   const badStatus = statuses.filter(([, s]) => s !== 'passed' && s !== 'inapplicable');
   check(badStatus.length === 0, `${id}: every rule is passed or inapplicable (${JSON.stringify(badStatus)})`);
@@ -367,8 +375,8 @@ async function runFixtureAScenarios(dir) {
     const toggleCoverage = result.json?.coverage?.toggle ?? {};
     const statuses = Object.values(toggleCoverage).map((e) => e.status);
     check(
-      statuses.length === 10 && statuses.every((s) => s === 'passed'),
-      'the contract run is fully green for the shipped id',
+      namesEveryRule(toggleCoverage) && statuses.every((s) => s === 'passed'),
+      `the contract run is fully green for the shipped id (got ${JSON.stringify(toggleCoverage)})`,
     );
   }
 
@@ -467,7 +475,7 @@ async function runFixtureAScenarios(dir) {
     const rules = result.json?.coverage?.beacon ?? {};
     const statuses = Object.values(rules).map((e) => e.status);
     check(
-      statuses.length === 10 && statuses.every((s) => s === 'passed' || s === 'inapplicable'),
+      namesEveryRule(rules) && statuses.every((s) => s === 'passed' || s === 'inapplicable'),
       'the requested component\'s own coverage stays complete: this finding carries no coverage entry',
     );
   }
@@ -518,7 +526,7 @@ async function runFixtureAScenarios(dir) {
     );
     const others = Object.entries(rules).filter(([rule]) => rule !== 'contract-registry' && rule !== 'contract-behavior');
     check(
-      others.length === 8 && others.every(([, e]) => e.status === 'passed' || e.status === 'inapplicable'),
+      namesEveryRule(rules) && others.every(([, e]) => e.status === 'passed' || e.status === 'inapplicable'),
       'every browser obligation still runs and passes: the defect is isolated to the Vitest child',
     );
   }
@@ -549,7 +557,7 @@ async function runFixtureAScenarios(dir) {
     check(rules['contract-render']?.status === 'failed', 'coverage marks contract-render failed');
     const others = Object.entries(rules).filter(([rule]) => rule !== 'contract-render');
     check(
-      others.length === 9 && others.every(([, e]) => e.status === 'passed' || e.status === 'inapplicable'),
+      namesEveryRule(rules) && others.every(([, e]) => e.status === 'passed' || e.status === 'inapplicable'),
       'the editor-suite describe.serial block is untouched: this obligation runs outside it',
     );
   }
@@ -577,7 +585,7 @@ async function runFixtureAScenarios(dir) {
       'the finding names the editor file at the line-1 fallback: positional index 0 carries no reporter location',
     );
     const rules = result.json?.coverage?.beacon ?? {};
-    check(Object.keys(rules).length === 10, 'coverage still names all 10 rules');
+    check(namesEveryRule(rules), `coverage still names all ${COVERAGE_RULES.length} rules`);
     check(rules['contract-listed']?.status === 'failed', 'coverage marks contract-listed failed');
     check(rules['contract-registry']?.status === 'passed', 'the registry check does not read the contract fixture\'s origin');
     check(rules['contract-render']?.status === 'passed', 'the separate always-run render suite is unaffected by origin');
