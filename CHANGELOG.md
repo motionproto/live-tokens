@@ -1,5 +1,21 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+- **The editor keeps its accessibility report in the data directory.** The
+  dev server writes the last run to `<dataDir>/_a11y-report.json`. It used to
+  sit in `test-results/live-tokens/`, which Playwright and other test tools
+  clear, so a test run could erase it. Add `_a11y-report.json` to the
+  project's `.gitignore`; projects made with `create` now ignore it. Test runs
+  leave it out of their copy of the data tree.
+- **A contrast failure fixed since the run turns green.** The editor
+  re-measures each contrast failure of the last run as you edit. Once one
+  passes, its row in the component's panel and in the Accessibility view
+  shows the run's ratio and the ratio now, and it no longer counts as an
+  issue.
+
 ## 0.98.2 — Accessibility testing
 
 The v0.98.0 and v0.98.1 tags never reached npm. Release checks stopped both:

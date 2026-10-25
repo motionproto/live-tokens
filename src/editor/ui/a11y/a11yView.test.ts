@@ -3,6 +3,7 @@ import type { ComponentA11yIssues } from '../../core/a11y/a11yReport';
 import type { A11yContrastFailure, A11yFinding } from '../../core/a11y/a11yReportTypes';
 import {
   codeSpans,
+  componentsInReport,
   componentsWithIssues,
   findingRows,
   formatElapsed,
@@ -47,14 +48,16 @@ const traced = (target: string, view: string, variables?: string[], engineRule =
 });
 
 const issues: Record<string, ComponentA11yIssues> = {
-  radiobutton: { contrast: [], property: [], code: [finding('a11y-keyboard', 'radiobutton')], review: [] },
+  radiobutton: { contrast: [], property: [], code: [finding('a11y-keyboard', 'radiobutton')], review: [], fixed: [] },
   badge: {
     contrast: [failure],
     property: [],
     code: [finding('a11y-component', 'badge')],
     review: [finding('a11y-review', 'badge')],
+    fixed: [],
   },
-  videoframe: { contrast: [], property: [], code: [], review: [finding('a11y-review', 'videoframe')] },
+  videoframe: { contrast: [], property: [], code: [], review: [finding('a11y-review', 'videoframe')], fixed: [] },
+  input: { contrast: [], property: [], code: [], review: [], fixed: [{ failure: { ...failure, component: 'input' }, ratio: 5.1 }] },
 };
 
 describe('issueCount', () => {
@@ -94,6 +97,18 @@ describe('componentsWithIssues', () => {
       ['badge', 'Badge', 3],
       ['radiobutton', 'Radio Button', 1],
       ['videoframe', 'Video Frame', 1],
+    ]);
+  });
+});
+
+describe('componentsInReport', () => {
+  it('adds a component whose issues are all fixed, at a count of zero', () => {
+    const rows = componentsInReport(issues);
+    expect(rows.map((r) => [r.component, r.count])).toEqual([
+      ['badge', 3],
+      ['input', 0],
+      ['radiobutton', 1],
+      ['videoframe', 1],
     ]);
   });
 });

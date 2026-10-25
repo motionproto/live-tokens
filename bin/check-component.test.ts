@@ -1905,6 +1905,7 @@ describe('check-component --tests: the isolated copy, decision 2 of docs/plans/a
     write('component-configs/button/_working.json', {});
     write('component-configs/button/_active.json', { activeFile: 'default' });
     write('component-configs/button/default.json', {});
+    write('_a11y-report.json', { state: 'finished' });
     return source;
   }
 
@@ -1912,7 +1913,7 @@ describe('check-component --tests: the isolated copy, decision 2 of docs/plans/a
     return (readdirSync(dir, { recursive: true }) as string[]).filter((entry) => entry.endsWith('.json')).sort();
   }
 
-  it('--open-theme keeps the theme pointer and removes every buffer and every other pointer', () => {
+  it('--open-theme keeps the theme pointer and removes every buffer, every other pointer and the editor\'s report', () => {
     const copy = copyIsolatedDataDir(sessionTree(), { keepActive: true });
     try {
       expect(files(copy)).toEqual(['component-configs/button/default.json', 'themes/_active.json', 'themes/royal-velvet.json']);

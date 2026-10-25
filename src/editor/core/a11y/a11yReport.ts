@@ -12,6 +12,14 @@ export interface ComponentA11yIssues {
   code: A11yFinding[];
   /** Check by eye. */
   review: A11yFinding[];
+  /** Contrast failures of the run that pass as the editor now measures them. They count as no issue. */
+  fixed: A11yFixedContrast[];
+}
+
+export interface A11yFixedContrast {
+  failure: A11yContrastFailure;
+  /** The ratio the editor measures now. */
+  ratio: number;
 }
 
 /** Engine rules whose failure a property's value fixes. */
@@ -19,6 +27,7 @@ export const PROPERTY_FIX_RULES: ReadonlySet<string> = new Set(['focus-indicator
 
 const latest = writable<A11yReport | null>(null);
 const lastFinished = writable<A11yFinishedReport | null>(null);
+const fixedRatios = writable<ReadonlyMap<A11yContrastFailure, number>>(new Map());
 let heard = false;
 
 /** The dev server's latest word: a run going, finished or failed. */
@@ -27,11 +36,20 @@ export const a11yReport: Readable<A11yReport | null> = { subscribe: latest.subsc
 /** The last run that finished, which the markers follow while a new run goes (decision 7). */
 export const a11yFinishedReport: Readable<A11yFinishedReport | null> = { subscribe: lastFinished.subscribe };
 
-export const a11yIssues: Readable<Record<string, ComponentA11yIssues>> = derived(lastFinished, ($report) => {
+/** Sets the run's contrast failures that pass now, with the ratio each measures. `contrastFixes` measures them. */
+export function setFixedContrast(ratios: ReadonlyMap<A11yContrastFailure, number>): void {
+  fixedRatios.set(ratios);
+}
+
+export const a11yIssues: Readable<Record<string, ComponentA11yIssues>> = derived([lastFinished, fixedRatios], ([$report, $fixed]) => {
   const out: Record<string, ComponentA11yIssues> = {};
   if (!$report) return out;
-  const entry = (id: string) => (out[id] ??= { contrast: [], property: [], code: [], review: [] });
-  for (const failure of $report.contrast) entry(failure.component).contrast.push(failure);
+  const entry = (id: string) => (out[id] ??= { contrast: [], property: [], code: [], review: [], fixed: [] });
+  for (const failure of $report.contrast) {
+    const ratio = $fixed.get(failure);
+    if (ratio === undefined) entry(failure.component).contrast.push(failure);
+    else entry(failure.component).fixed.push({ failure, ratio });
+  }
   for (const finding of $report.findings) {
     if (!finding.component || !finding.rule.startsWith('a11y-')) continue;
     const issues = entry(finding.component);
@@ -98,4 +116,5 @@ export function __resetForTests(): void {
   heard = false;
   latest.set(null);
   lastFinished.set(null);
+  fixedRatios.set(new Map());
 }

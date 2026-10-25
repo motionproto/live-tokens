@@ -147,7 +147,7 @@ describe('the a11y routes', () => {
   it('read the last report back after a restart', async () => {
     await request('POST', `${API}/a11y/run`, { contrast: [] });
     cli.runs[0].finish({ code: 0, stdout: FINISHED_CLI, stderr: '' });
-    await vi.waitFor(() => expect(fs.existsSync(path.join(tmp, 'test-results/live-tokens/a11y-report.json'))).toBe(true));
+    await vi.waitFor(() => expect(fs.existsSync(path.join(tmp, '_a11y-report.json'))).toBe(true));
     bootPlugin();
     const { status, json } = await request('GET', `${API}/a11y/report`);
     expect(status).toBe(200);
@@ -173,7 +173,7 @@ describe('the a11y routes', () => {
   });
 
   it('keep the report inside the isolated copy under test isolation', async () => {
-    const projectReport = path.join(tmp, 'test-results/live-tokens/a11y-report.json');
+    const projectReport = path.join(tmp, '_a11y-report.json');
     const seeded = `${JSON.stringify({ state: 'finished', startedAt: '', finishedAt: '', contrast: [], findings: [] })}\n`;
     fs.mkdirSync(path.dirname(projectReport), { recursive: true });
     fs.writeFileSync(projectReport, seeded);
@@ -185,7 +185,7 @@ describe('the a11y routes', () => {
     expect((await request('GET', `${API}/a11y/report`)).json).toEqual({ report: null });
     await request('POST', `${API}/a11y/run`, { contrast: [] });
     cli.runs[0].finish({ code: 0, stdout: FINISHED_CLI, stderr: '' });
-    await vi.waitFor(() => expect(fs.existsSync(path.join(isolated, 'a11y-report.json'))).toBe(true));
+    await vi.waitFor(() => expect(fs.existsSync(path.join(isolated, '_a11y-report.json'))).toBe(true));
     expect(fs.readFileSync(projectReport, 'utf-8')).toBe(seeded);
   });
 });

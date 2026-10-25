@@ -22,6 +22,8 @@
     ),
   );
   let total = $derived(sums.property + sums.code + sums.review);
+  let withIssues = $derived(rows.filter((row) => row.count > 0).length);
+  let fixed = $derived(rows.reduce((sum, row) => sum + row.issues.fixed.length, 0));
   let widest = $derived(Math.max(1, ...rows.map((row) => row.count)));
 </script>
 
@@ -30,7 +32,7 @@
     <div class="a11y-stat a11y-stat-total">
       <span class="a11y-stat-value">{total}</span>
       <span class="a11y-stat-label">
-        {total === 1 ? 'issue' : 'issues'} in {rows.length} {rows.length === 1 ? 'component' : 'components'}
+        {total === 1 ? 'issue' : 'issues'} in {withIssues} {withIssues === 1 ? 'component' : 'components'}
       </span>
     </div>
     {#each KINDS as kind (kind.key)}
@@ -41,6 +43,14 @@
         </span>
       </div>
     {/each}
+    {#if fixed > 0}
+      <div class="a11y-stat a11y-stat-fixed">
+        <span class="a11y-stat-value">{fixed}</span>
+        <span class="a11y-stat-label">
+          <i class="fa-solid fa-check" aria-hidden="true"></i>Fixed since the run
+        </span>
+      </div>
+    {/if}
   </div>
 
   <table class="a11y-table">
@@ -50,6 +60,9 @@
         {#each KINDS as kind (kind.key)}
           <th scope="col" class="num">{kind.column}</th>
         {/each}
+        {#if fixed > 0}
+          <th scope="col" class="num">Fixed</th>
+        {/if}
         <th scope="col" class="bar-col"><span class="a11y-hidden">Issues</span></th>
       </tr>
     </thead>
@@ -64,6 +77,9 @@
           {#each KINDS as kind (kind.key)}
             <td class="num" class:zero={totals[kind.key] === 0}>{totals[kind.key]}</td>
           {/each}
+          {#if fixed > 0}
+            <td class="num fixed" class:zero={row.issues.fixed.length === 0}>{row.issues.fixed.length}</td>
+          {/if}
           <td class="bar-col">
             <span class="a11y-bar" style:width={`${(row.count / widest) * 100}%`} title={issuesLabel(row.count)}>
               {#each KINDS as kind (kind.key)}
@@ -125,6 +141,12 @@
 
   .zero {
     color: var(--ui-text-muted);
+  }
+
+  .a11y-stat-fixed .a11y-stat-value,
+  .a11y-stat-fixed i,
+  .a11y-table td.fixed:not(.zero) {
+    color: var(--ui-fixed);
   }
 
   .a11y-swatch {

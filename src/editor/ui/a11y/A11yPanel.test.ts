@@ -2,7 +2,7 @@
 
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { flushSync, mount, unmount } from 'svelte';
-import { __resetForTests, receiveA11yReport } from '../../core/a11y/a11yReport';
+import { __resetForTests, receiveA11yReport, setFixedContrast } from '../../core/a11y/a11yReport';
 import type { A11yFinding, A11yFinishedReport } from '../../core/a11y/a11yReportTypes';
 import { get } from 'svelte/store';
 import A11yPanel from './A11yPanel.svelte';
@@ -152,6 +152,25 @@ describe('A11yPanel', () => {
     receiveA11yReport(REPORT);
     mountPanel('button');
     expect(target.querySelector('.a11y-panel')).toBeNull();
+  });
+
+  it('turns a contrast failure that passes now green, with its run ratio and its ratio now', () => {
+    receiveA11yReport(REPORT);
+    setFixedContrast(new Map([[REPORT.contrast[0], 5.38]]));
+    mountPanel('badge');
+
+    expect(target.querySelector('.a11y-panel-title')?.textContent).toBe('2 accessibility issues');
+    const fixed = target.querySelector('.a11y-issue.fixed .a11y-issue-text');
+    expect(fixed?.textContent?.replace(/\s+/g, ' ').trim()).toBe('Brand text color 3.87:1 → 5.38:1, meets 4.5:1');
+  });
+
+  it('heads a panel whose issues are all fixed with the fixed count', () => {
+    const contrastOnly = { ...REPORT, findings: [] };
+    receiveA11yReport(contrastOnly);
+    setFixedContrast(new Map([[contrastOnly.contrast[0], 5.38]]));
+    mountPanel('badge');
+
+    expect(target.querySelector('.a11y-panel-title')?.textContent).toBe('1 issue fixed');
   });
 
   it('follows the last finished run while a new one goes', () => {

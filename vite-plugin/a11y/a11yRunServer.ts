@@ -9,7 +9,8 @@ import type {
 } from '../../src/editor/core/a11y/a11yReportTypes';
 
 export const A11Y_RUN_ARGS = ['check-component', '--tests', '--a11y', '--no-fix', '--json', '--open-theme'];
-export const A11Y_REPORT_PATH = path.join('test-results', 'live-tokens', 'a11y-report.json');
+/** Sits in the data directory beside the other editor state, out of reach of test tools that clear their output folders. */
+export const A11Y_REPORT_FILE_NAME = '_a11y-report.json';
 
 const STDERR_TAIL = 2000;
 const CONTRAST_ROLES = new Set(['text', 'non-text']);

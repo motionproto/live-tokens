@@ -59,7 +59,7 @@ function testsTimeoutMs() {
 // Mirrors src/testing/isolation.ts's own list. Duplicated rather than shared:
 // that module compiles into src/testing-js, which does not exist until
 // `build:testing` runs, and this one ships unbuilt.
-const SESSION_FILES = new Set(['_working.json', '_active.json', '_production.json']);
+const SESSION_FILES = new Set(['_working.json', '_active.json', '_production.json', '_a11y-report.json']);
 const THEME_POINTER = join('themes', '_active.json');
 
 const REQUIRED_TOOLS = [

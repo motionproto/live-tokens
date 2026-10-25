@@ -312,6 +312,13 @@ The marks and the panel keep the run's time and change when the next run
 finishes. The contrast readout on each colour row stays live and measures
 every edit as you make it.
 
+The editor also re-measures each contrast failure of the run as you edit.
+Once one passes, its row in the panel and in the Accessibility view turns
+green and shows the run's ratio beside the ratio now, such as
+"Fill color 2.66:1 → 5.31:1". A fixed row counts as no issue, so a component
+whose only issues are fixed loses its triangle in the component list. The
+run's other findings change only when the next run finishes.
+
 ## Installing the engines
 
 The engines ship as optional peer dependencies. A project made with `create`

@@ -43,3 +43,6 @@ src/live-tokens/data/themes/package-fixture-look.json
 # Names the theme the editor has open. Local dev state: it ships in no
 # tarball, boot recreates it, and every reader falls back to "default".
 src/live-tokens/data/themes/_active.json
+
+# The editor's last accessibility run. Local dev state, like the pointer above.
+src/live-tokens/data/_a11y-report.json

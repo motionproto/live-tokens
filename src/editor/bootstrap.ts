@@ -50,11 +50,12 @@ export async function bootLiveTokens(
   if (import.meta.env.DEV) {
     // Imported here, never statically, so a build drops the editor. The
     // registry alone imports every shipped component and editor.
-    const [editorStore, themeDocumentSync, liveStateStream, a11yReport, { initializeTheme }] = await Promise.all([
+    const [editorStore, themeDocumentSync, liveStateStream, a11yReport, contrastFixes, { initializeTheme }] = await Promise.all([
       import('./core/store/editorStore'),
       import('./core/themes/themeDocumentSync'),
       import('./core/themes/liveStateStream'),
       import('./core/a11y/a11yReport'),
+      import('./core/a11y/contrastFixes'),
       import('./core/themes/themeInit'),
       import('./component-editor/registry'),
     ]);
@@ -62,6 +63,7 @@ export async function bootLiveTokens(
     themeDocumentSync.init();
     liveStateStream.init();
     void a11yReport.init();
+    contrastFixes.init();
     if (opts.components) {
       for (const entry of opts.components) {
         registerComponent(entry);

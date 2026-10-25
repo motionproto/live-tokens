@@ -49,6 +49,8 @@
 
   /* Shared "this is live" amber: selection, focus, dirty state. */
   --ui-highlight:       #ffac28;
+  /* An accessibility failure the editor now measures as passing. */
+  --ui-fixed:           #5fd38d;
 
   /* Link-state bar: active = attached to control edge, broken = popped into column gap. */
   --ui-link-active:       #6cd0c2;

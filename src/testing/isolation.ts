@@ -27,11 +27,13 @@ export const DATA_DIR_ENV = 'LIVE_TOKENS_DATA_DIR';
  *                     every fill onto a pseudo-element and leaves the real
  *                     background transparent
  *   _production.json  the theme baked into tokens.generated.css
+ *   _a11y-report.json the editor's last accessibility run, which would mark
+ *                     the editor under test
  *
  * A missing pointer resolves to "default" at runtime, so removing them is the
  * whole reset.
  */
-const SESSION_FILES = new Set(['_working.json', '_active.json', '_production.json']);
+const SESSION_FILES = new Set(['_working.json', '_active.json', '_production.json', '_a11y-report.json']);
 
 export interface IsolatedData {
   dataDir: string;

@@ -3,7 +3,7 @@ import fs from 'fs';
 import os from 'os';
 import path from 'path';
 import {
-  A11Y_REPORT_PATH,
+  A11Y_REPORT_FILE_NAME,
   A11Y_RUN_ARGS,
   a11yRunServer,
   spawnCli,
@@ -59,7 +59,7 @@ function serverWith(runCli: RunCli) {
   const frames: A11yReport[] = [];
   const server = a11yRunServer({
     root,
-    reportFile: path.join(root, A11Y_REPORT_PATH),
+    reportFile: path.join(root, A11Y_REPORT_FILE_NAME),
     runCli,
     broadcast: (report) => frames.push(report),
   });
@@ -142,7 +142,7 @@ describe('a11yRunServer', () => {
     server.start({ contrast: [CONTRAST] });
     cli.finish({ code: 0, stdout: cliJson([axe('a11y-component', 'aria-allowed-role')]), stderr: '' });
     await settled();
-    const file = path.join(root, A11Y_REPORT_PATH);
+    const file = path.join(root, A11Y_REPORT_FILE_NAME);
     expect(JSON.parse(fs.readFileSync(file, 'utf-8'))).toEqual(frames.at(-1));
     expect(serverWith(stubCli().runCli).server.report().body).toEqual({ report: frames.at(-1) });
   });

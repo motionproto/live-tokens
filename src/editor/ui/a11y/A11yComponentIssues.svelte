@@ -1,5 +1,6 @@
 <script lang="ts">
   import type { ComponentA11yIssues } from '../../core/a11y/a11yReport';
+  import type { A11yContrastFailure } from '../../core/a11y/a11yReportTypes';
   import { CONTRAST_RULES } from '../../core/palettes/contrast';
   import { formatFloor, formatRatio } from '../contrastReadout';
   import A11yFindingRow from './A11yFindingRow.svelte';
@@ -23,29 +24,41 @@
   let reviewRows = $derived(withReview ? findingRows(issues.review) : []);
 </script>
 
-{#if issues.contrast.length > 0 || propertyRows.length > 0}
+{#snippet contrastRow(failure: A11yContrastFailure, fixedRatio: number | undefined)}
+  {@const label = propertyLabel(component, failure.variable) ?? failure.variable}
+  {@const rule = CONTRAST_RULES[failure.role]}
+  <A11yIssueRow fixed={fixedRatio !== undefined} href={rule.url} linkLabel={`Success criterion ${rule.criterion}`}>
+    {#if fixedRatio === undefined}
+      {label} {formatRatio(failure.ratio)}, needs {formatFloor(failure.floor)}
+    {:else}
+      <i class="fa-solid fa-check a11y-fixed-mark" aria-hidden="true"></i>
+      {label} {formatRatio(failure.ratio)} → {formatRatio(fixedRatio)}, meets {formatFloor(failure.floor)}
+    {/if}
+    {#snippet detail()}
+      <code>{failure.variable}</code>{#if failure.context}, {failure.context}{/if}
+    {/snippet}
+    {#snippet links()}
+      {#if onreveal}
+        <button type="button" class="a11y-link" aria-label={`Go to ${label}`} title={failure.variable} onclick={() => onreveal(failure.variable)}>
+          {label} <i class="fas fa-arrow-right" aria-hidden="true"></i>
+        </button>
+      {/if}
+    {/snippet}
+  </A11yIssueRow>
+{/snippet}
+
+{#if issues.contrast.length > 0 || propertyRows.length > 0 || issues.fixed.length > 0}
   <div class="a11y-group">
     <h4 class="a11y-group-title">Fix with a property</h4>
     <ul class="a11y-issues">
       {#each issues.contrast as failure, i (i)}
-        {@const label = propertyLabel(component, failure.variable) ?? failure.variable}
-        {@const rule = CONTRAST_RULES[failure.role]}
-        <A11yIssueRow href={rule.url} linkLabel={`Success criterion ${rule.criterion}`}>
-          {label} {formatRatio(failure.ratio)}, needs {formatFloor(failure.floor)}
-          {#snippet detail()}
-            <code>{failure.variable}</code>{#if failure.context}, {failure.context}{/if}
-          {/snippet}
-          {#snippet links()}
-            {#if onreveal}
-              <button type="button" class="a11y-link" aria-label={`Go to ${label}`} title={failure.variable} onclick={() => onreveal(failure.variable)}>
-                {label} <i class="fas fa-arrow-right" aria-hidden="true"></i>
-              </button>
-            {/if}
-          {/snippet}
-        </A11yIssueRow>
+        {@render contrastRow(failure, undefined)}
       {/each}
       {#each propertyRows as row, i (i)}
         <A11yFindingRow {component} {row} {onreveal} {onopen} />
+      {/each}
+      {#each issues.fixed as { failure, ratio }, i (i)}
+        {@render contrastRow(failure, ratio)}
       {/each}
     </ul>
   </div>
@@ -93,6 +106,11 @@
 
   .a11y-group code {
     font-family: var(--ui-font-mono);
+  }
+
+  .a11y-fixed-mark {
+    margin-right: var(--ui-space-4);
+    font-size: var(--ui-font-size-sm);
   }
 
   .a11y-issues {

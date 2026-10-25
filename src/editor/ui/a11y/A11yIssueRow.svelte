@@ -4,6 +4,8 @@
   interface Props {
     /** A result to check by eye: its text in grey, where an issue's is amber. */
     review?: boolean;
+    /** An issue the editor now measures as passing: its text in green. */
+    fixed?: boolean;
     href?: string;
     /** Names what `href` points at, such as "Rule" or "Success criterion 1.4.11". */
     linkLabel?: string;
@@ -13,10 +15,10 @@
     links?: Snippet;
   }
 
-  let { review = false, href, linkLabel = 'Guidance', children, detail, links }: Props = $props();
+  let { review = false, fixed = false, href, linkLabel = 'Guidance', children, detail, links }: Props = $props();
 </script>
 
-<li class="a11y-issue" class:review>
+<li class="a11y-issue" class:review class:fixed>
   <div class="a11y-issue-head">
     <p class="a11y-issue-text">{@render children()}</p>
     {#if links || href}
@@ -77,6 +79,10 @@
 
   .review .a11y-issue-text {
     color: var(--ui-text-secondary);
+  }
+
+  .fixed .a11y-issue-text {
+    color: var(--ui-fixed);
   }
 
   .a11y-issue-detail {

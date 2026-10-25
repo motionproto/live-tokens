@@ -8,6 +8,7 @@ import {
   a11yReport,
   init,
   receiveA11yReport,
+  setFixedContrast,
   startA11yRun,
 } from './a11yReport';
 import type { A11yContrastFailure, A11yFinding, A11yFinishedReport, A11yReport } from './a11yReportTypes';
@@ -68,11 +69,17 @@ describe('a11yIssues', () => {
   it('keys the last finished run by component and sorts each finding by its fix', () => {
     receiveA11yReport(FINISHED);
     expect(get(a11yIssues)).toEqual({
-      badge: { contrast: [CONTRAST], property: [], code: [FINDING_AT(1)], review: [FINDING_AT(2)] },
-      input: { contrast: [], property: [FINDING_AT(6)], code: [], review: [FINDING_AT(7)] },
-      'radio-button': { contrast: [], property: [], code: [FINDING_AT(0)], review: [] },
-      video: { contrast: [], property: [], code: [], review: [FINDING_AT(3)] },
+      badge: { contrast: [CONTRAST], property: [], code: [FINDING_AT(1)], review: [FINDING_AT(2)], fixed: [] },
+      input: { contrast: [], property: [FINDING_AT(6)], code: [], review: [FINDING_AT(7)], fixed: [] },
+      'radio-button': { contrast: [], property: [], code: [FINDING_AT(0)], review: [], fixed: [] },
+      video: { contrast: [], property: [], code: [], review: [FINDING_AT(3)], fixed: [] },
     });
+  });
+
+  it('moves a contrast failure that passes now to the fixed list, with the ratio it measures', () => {
+    receiveA11yReport(FINISHED);
+    setFixedContrast(new Map([[CONTRAST, 5.38]]));
+    expect(get(a11yIssues).badge).toMatchObject({ contrast: [], fixed: [{ failure: CONTRAST, ratio: 5.38 }] });
   });
 
   it('keeps the last finished run while a new one goes and when one fails', () => {

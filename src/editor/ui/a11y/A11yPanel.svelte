@@ -4,7 +4,7 @@
   import { FLASH_DURATION_MS } from '../../core/flashStatus';
   import { getEditorContext, type RevealRequest } from '../../component-editor/scaffolding/editorContext';
   import A11yComponentIssues from './A11yComponentIssues.svelte';
-  import { accessibilityIssuesLabel, formatRunTime, issueCount, pendingA11yReveal } from './a11yView';
+  import { accessibilityIssuesLabel, fixedLabel, formatRunTime, issueCount, pendingA11yReveal } from './a11yView';
 
   let { component }: { component: string } = $props();
   const titleId = $props.id();
@@ -14,6 +14,7 @@
   let panel: HTMLElement | undefined = $state();
   let issues = $derived($a11yIssues[component]);
   let count = $derived(issues ? issueCount(issues) : 0);
+  let fixedCount = $derived(issues?.fixed.length ?? 0);
 
   /** Rendered rows for `variable`. The linked block can repeat a variant's row, so the variant's own row comes first. */
   function renderedRows(variable: string): HTMLElement[] {
@@ -70,11 +71,16 @@
   });
 </script>
 
-{#if issues && count > 0 && $a11yFinishedReport}
+{#if issues && (count > 0 || fixedCount > 0) && $a11yFinishedReport}
   <section class="editor-section-card a11y-panel" aria-labelledby={titleId} bind:this={panel}>
     <header class="a11y-panel-head">
-      <i class="fa-solid fa-triangle-exclamation a11y-panel-mark" aria-hidden="true"></i>
-      <h3 id={titleId} class="a11y-panel-title">{accessibilityIssuesLabel(count)}</h3>
+      {#if count > 0}
+        <i class="fa-solid fa-triangle-exclamation a11y-panel-mark" aria-hidden="true"></i>
+        <h3 id={titleId} class="a11y-panel-title">{accessibilityIssuesLabel(count)}</h3>
+      {:else}
+        <i class="fa-solid fa-check a11y-panel-mark fixed" aria-hidden="true"></i>
+        <h3 id={titleId} class="a11y-panel-title">{fixedLabel(fixedCount)}</h3>
+      {/if}
       <span class="a11y-panel-run">Last run {formatRunTime($a11yFinishedReport.finishedAt)}</span>
     </header>
     <A11yComponentIssues {component} {issues} withReview onreveal={reveal} />
@@ -111,6 +117,10 @@
 
   .a11y-panel-mark {
     color: var(--ui-highlight);
+  }
+
+  .a11y-panel-mark.fixed {
+    color: var(--ui-fixed);
   }
 
   .a11y-panel-title {

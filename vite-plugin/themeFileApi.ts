@@ -36,7 +36,7 @@ import { detectLegacyLayout, type LegacyLayout } from './files/legacyLayout';
 import { validateTokensCss, runAdditiveTokensCssMigrations } from './tokensCssMigrations';
 import { checkBeforeBuild } from './buildChecks';
 import { formatReport, rewriteBundle, type ProductionCssOptions } from './productionCss';
-import { A11Y_REPORT_PATH, a11yRunServer, spawnCli } from './a11y/a11yRunServer';
+import { A11Y_REPORT_FILE_NAME, a11yRunServer, spawnCli } from './a11y/a11yRunServer';
 import { A11Y_EVENT } from '../src/editor/core/a11y/a11yReportTypes';
 import { fileURLToPath } from 'node:url';
 
@@ -169,9 +169,7 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
     : opts.fontsCssPath
       ? path.resolve(opts.fontsCssPath)
       : path.join(path.dirname(CSS_PATH), 'fonts.css');
-  const A11Y_REPORT_FILE = ISOLATED_DATA_DIR
-    ? path.join(ISOLATED_DATA_DIR, path.basename(A11Y_REPORT_PATH))
-    : path.join(process.cwd(), A11Y_REPORT_PATH);
+  const A11Y_REPORT_FILE = path.join(dataDirs.dataDir, A11Y_REPORT_FILE_NAME);
   // Default keeps live-tokens' REST routes under a single namespace so they
   // can't collide with the consumer's own `/api/themes` or `/api/components`.
   // The client side reads the same value via the `__LIVE_TOKENS_API_BASE__`

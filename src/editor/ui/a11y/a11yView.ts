@@ -84,6 +84,10 @@ export function accessibilityIssuesLabel(count: number): string {
   return `${count} accessibility ${count === 1 ? 'issue' : 'issues'}`;
 }
 
+export function fixedLabel(count: number): string {
+  return `${count} ${count === 1 ? 'issue' : 'issues'} fixed`;
+}
+
 export function reviewLabel(count: number): string {
   return `${count} ${count === 1 ? 'result' : 'results'} to check by eye`;
 }
@@ -165,6 +169,15 @@ export function componentsWithIssues(all: Record<string, ComponentA11yIssues>): 
     const issues = all[id];
     const count = issues ? issueCount(issues) : 0;
     return count > 0 ? [{ component: id, label, icon, count, issues }] : [];
+  });
+}
+
+/** Every registered component the report lists: those with an issue and those whose issues are all fixed. */
+export function componentsInReport(all: Record<string, ComponentA11yIssues>): A11yComponentRow[] {
+  return getComponentRegistryEntries().flatMap(({ id, label, icon }) => {
+    const issues = all[id];
+    const count = issues ? issueCount(issues) : 0;
+    return count > 0 || (issues?.fixed.length ?? 0) > 0 ? [{ component: id, label, icon, count, issues }] : [];
   });
 }
 

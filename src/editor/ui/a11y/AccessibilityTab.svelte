@@ -14,7 +14,8 @@
     A11Y_RUN_SECTION,
     a11ySectionId,
     codeSpans,
-    componentsWithIssues,
+    componentsInReport,
+    fixedLabel,
     formatElapsed,
     formatRunTime,
     getA11yViewLink,
@@ -26,7 +27,7 @@
 
   const openView = getA11yViewLink();
 
-  let rows = $derived(componentsWithIssues($a11yIssues));
+  let rows = $derived(componentsInReport($a11yIssues));
   let review = $derived(reviewResults($a11yIssues));
   let reviewTotal = $derived(rows.reduce((sum, row) => sum + row.issues.review.length, 0));
   let running = $derived($a11yReport?.state === 'running' ? $a11yReport : null);
@@ -151,7 +152,10 @@
       <header class="a11y-component-head">
         <i class={row.icon} aria-hidden="true"></i>
         <h3 class="editor-subsection-title">{row.label}</h3>
-        <span class="a11y-count">{issuesLabel(row.count)}</span>
+        <span class="a11y-count">{[
+          row.count > 0 ? issuesLabel(row.count) : '',
+          row.issues.fixed.length > 0 ? fixedLabel(row.issues.fixed.length) : '',
+        ].filter(Boolean).join(', ')}</span>
         <UIPillButton
           size="compact"
           variant="outline"

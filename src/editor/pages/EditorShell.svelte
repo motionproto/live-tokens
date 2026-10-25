@@ -14,6 +14,7 @@
     A11Y_REVIEW_SECTION,
     A11Y_RUN_SECTION,
     a11ySectionId,
+    componentsInReport,
     componentsWithIssues,
     issuesLabel,
     setA11yViewLink,
@@ -135,7 +136,7 @@
   let screenBarHeight = $state(0);
 
   let a11yComponentNavItems: NavItem[] = $derived(
-    componentsWithIssues($a11yIssues).map(({ component, label, icon, count }) => ({
+    componentsInReport($a11yIssues).map(({ component, label, icon, count }) => ({
       id: a11ySectionId(component), label, icon, count,
     })),
   );
