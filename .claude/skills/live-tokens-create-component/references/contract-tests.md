@@ -155,6 +155,11 @@ Each obligation and what it needs from the project:
 - `interaction`: the interactive part's role and its cases, keyboard cases
   among them. See Keyboard cases below. `applicable: false` for a component
   with no interactive role.
+- `boundaries`: optional. The parts that draw a control's visible edge,
+  such as a text field or a switch track, each with a label:
+  `[{ part: 'field', label: 'Field' }]`. The accessibility suite measures
+  each part's border and surface against the backdrop behind it at 3:1, per
+  WCAG 2.2 SC 1.4.11. A component with no control edge leaves it out.
 - `behavior`: what a callback prop does. See Behavior below.
 - `sketch`: a sketch style id and the fill and stroke each reserved-class part
   resolves to under it. `applicable: false` only for a component
@@ -206,7 +211,9 @@ interaction: {
 
 The accessibility suite reads the same contract. It scans every view that
 `properties` and `states` name with axe and Siteimprove Alfa's rule SIA-R65,
-and reports each failure at `warn` under an `a11y-*` rule. Mark placeholder
+measures focus indicators and the `boundaries` parts at 3:1, checks text
+spacing and reduced motion, and reports each failure at `warn` under an
+`a11y-*` rule. Mark placeholder
 content the editor adds to its preview, such as a demo label, with
 `data-preview-demo`, and the scans skip it.
 

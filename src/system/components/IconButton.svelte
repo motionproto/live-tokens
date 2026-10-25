@@ -5,7 +5,7 @@
     description: 'An action that an icon alone carries.',
     whenToUse: 'an action whose meaning is plain from the glyph, such as close, edit, or delete.',
     whenNotToUse: [
-      { when: 'the action needs a word to be unambiguous.', use: 'button' },
+      { when: 'the trigger needs a word to be unambiguous.', use: 'button' },
       { when: 'the pair confirms or cancels an inline edit.', use: 'inlineeditactions' },
     ],
     props: {

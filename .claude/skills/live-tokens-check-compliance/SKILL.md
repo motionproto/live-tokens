@@ -53,7 +53,7 @@ Every finding's `repair` says what moving it costs.
 
 ## Accessibility alerts
 
-A `--tests` run adds the `a11y-*` rules, which test the rendered page or component against WCAG 2 A and AA with axe, Siteimprove Alfa, and the contract's keyboard cases. Each reports at `warn` and blocks only under `--strict`. Every `a11y-*` finding is an alert the user reviews: list it in the reply, and repair it from its guidance when the repair scope includes warnings. An `a11y-review` finding marks a check axe could not decide, such as text over a gradient, and the user judges it by eye. Inside the live-tokens repository, an `a11y-component` finding with engine rule `aria-snapshot` marks an accessibility tree that changed since it was recorded; after a deliberate markup change, `check-component <id> --tests --update-aria` records it anew.
+A `--tests` run adds the `a11y-*` rules, which test the rendered page or component against WCAG 2 A and AA with axe, Siteimprove Alfa, the contract's keyboard cases, and the suite's own focus indicator, control boundary, text spacing, and reduced motion checks. Each reports at `warn` and blocks only under `--strict`. Every `a11y-*` finding is an alert the user reviews: list it in the reply, and repair it from its guidance when the repair scope includes warnings. An `a11y-review` finding marks a check axe could not decide, such as text over a gradient, and the user judges it by eye. Inside the live-tokens repository, an `a11y-component` finding with engine rule `aria-snapshot` marks an accessibility tree that changed since it was recorded; after a deliberate markup change, `check-component <id> --tests --update-aria` records it anew.
 
 ## Scope
 

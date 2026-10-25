@@ -2,8 +2,8 @@
   import type { CatalogueEntry } from '../../editor/component-editor/scaffolding/types';
 
   export const catalogue = {
-    description: 'A labelled action.',
-    whenToUse: 'an action that needs a word to be unambiguous.',
+    description: 'A labelled trigger.',
+    whenToUse: 'a trigger that needs a word to be unambiguous. It runs an action or opens another page, such as View details or Create project.',
     whenNotToUse: [
       { when: 'the glyph alone is plain, and space is short.', use: 'iconbutton' },
       { when: 'the actions confirm or cancel an inline edit.', use: 'inlineeditactions' },
@@ -11,7 +11,7 @@
     constraints: [
       'One primary Button per page.',
       'A danger Button opens a Dialog to confirm before it runs.',
-      'A link to another page is an anchor.',
+      'A link inside running text is an anchor.',
     ],
     props: {
       variant: 'one primary per page; secondary for the rest; outline for a tertiary action; danger for a destructive one.',
