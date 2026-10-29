@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.99.0 — Accessibility reports by theme
 
 ### Changed
 
