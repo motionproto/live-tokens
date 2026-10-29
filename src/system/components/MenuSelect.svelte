@@ -158,7 +158,7 @@
     --menuselect-default-icon-size: var(--icon-size-sm);
 
     /* Hover item */
-    --menuselect-hover-surface: var(--surface-neutral-higher);
+    --menuselect-hover-surface: var(--surface-neutral-high);
     --menuselect-hover-text: var(--text-primary);
     --menuselect-hover-text-font-family: var(--font-sans);
     --menuselect-hover-text-font-size: var(--font-size-sm);

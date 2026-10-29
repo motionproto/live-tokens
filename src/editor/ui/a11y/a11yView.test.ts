@@ -3,6 +3,7 @@ import type { ComponentA11yIssues } from '../../core/a11y/a11yReport';
 import type { A11yContrastFailure, A11yFinding } from '../../core/a11y/a11yReportTypes';
 import {
   codeSpans,
+  componentSections,
   componentsInReport,
   componentsWithIssues,
   findingRows,
@@ -48,21 +49,23 @@ const traced = (target: string, view: string, variables?: string[], engineRule =
 });
 
 const issues: Record<string, ComponentA11yIssues> = {
-  radiobutton: { contrast: [], property: [], code: [finding('a11y-keyboard', 'radiobutton')], review: [], fixed: [] },
+  radiobutton: { contrast: [], property: [], code: [finding('a11y-keyboard', 'radiobutton')], review: [], confirmed: [], fixed: [] },
   badge: {
     contrast: [failure],
     property: [],
     code: [finding('a11y-component', 'badge')],
     review: [finding('a11y-review', 'badge')],
+    confirmed: [],
     fixed: [],
   },
-  videoframe: { contrast: [], property: [], code: [], review: [finding('a11y-review', 'videoframe')], fixed: [] },
-  input: { contrast: [], property: [], code: [], review: [], fixed: [{ failure: { ...failure, component: 'input' }, ratio: 5.1 }] },
+  videoframe: { contrast: [], property: [], code: [], review: [finding('a11y-review', 'videoframe')], confirmed: [], fixed: [] },
+  videolightbox: { contrast: [], property: [], code: [], review: [], confirmed: [finding('a11y-review', 'videolightbox')], fixed: [] },
+  input: { contrast: [], property: [], code: [], review: [], fixed: [{ failure: { ...failure, component: 'input' }, ratio: 5.1 }], confirmed: [] },
 };
 
 describe('issueCount', () => {
-  it('counts every finding, results to check by eye included', () => {
-    expect(issueCount({ ...issues.badge, property: [traced('.a', 'error')] })).toBe(4);
+  it('counts the findings a fix clears and leaves out the results to check by eye', () => {
+    expect(issueCount({ ...issues.badge, property: [traced('.a', 'error')] })).toBe(3);
   });
 });
 
@@ -91,25 +94,31 @@ describe('guidanceLabel', () => {
 });
 
 describe('componentsWithIssues', () => {
-  it('lists each component with a finding in rail order, a check-by-eye result alone included', () => {
+  it('lists each component with an issue or an unmarked result to check by eye, in rail order', () => {
     const rows = componentsWithIssues(issues);
-    expect(rows.map((r) => [r.component, r.label, r.count])).toEqual([
-      ['badge', 'Badge', 3],
-      ['radiobutton', 'Radio Button', 1],
-      ['videoframe', 'Video Frame', 1],
+    expect(rows.map((r) => [r.component, r.label, r.count, r.review])).toEqual([
+      ['badge', 'Badge', 2, 1],
+      ['radiobutton', 'Radio Button', 1, 0],
+      ['videoframe', 'Video Frame', 0, 1],
     ]);
   });
 });
 
 describe('componentsInReport', () => {
-  it('adds a component whose issues are all fixed, at a count of zero', () => {
+  it('adds a component whose issues are all fixed, and leaves out one whose results all look right', () => {
     const rows = componentsInReport(issues);
     expect(rows.map((r) => [r.component, r.count])).toEqual([
-      ['badge', 3],
+      ['badge', 2],
       ['input', 0],
       ['radiobutton', 1],
-      ['videoframe', 1],
+      ['videoframe', 0],
     ]);
+  });
+});
+
+describe('componentSections', () => {
+  it('lists the components with an issue or a fix, and leaves results to check by eye to the By eye list', () => {
+    expect(componentSections(issues).map((r) => r.component)).toEqual(['badge', 'input', 'radiobutton']);
   });
 });
 
@@ -122,6 +131,7 @@ describe('findingRows', () => {
       traced('.c', 'default', ['--input-focused-border']),
       traced('.d', 'default', ['--input-focused-border'], 'target-size'),
     ]);
+    expect(rows[0].findings.map((f) => f.details?.target)).toEqual(['.a', '.b']);
     expect(rows.map((r) => [r.targets, r.views, r.variables])).toEqual([
       [['.a', '.b'], 'error / field; error / filled', variables],
       [['.c'], 'default', ['--input-focused-border']],
@@ -140,8 +150,12 @@ describe('findingRows', () => {
 });
 
 describe('reviewResults', () => {
-  it('collects every result to check by eye under its component label', () => {
-    expect(reviewResults(issues).map((r) => [r.component, r.label])).toEqual([['badge', 'Badge'], ['videoframe', 'Video Frame']]);
+  it('collects every result to check by eye under its component label, the marked ones last', () => {
+    expect(reviewResults(issues).map((r) => [r.component, r.label, r.confirmed])).toEqual([
+      ['badge', 'Badge', false],
+      ['videoframe', 'Video Frame', false],
+      ['videolightbox', 'Video Lightbox', true],
+    ]);
   });
 });
 

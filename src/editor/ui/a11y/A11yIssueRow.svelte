@@ -4,6 +4,8 @@
   interface Props {
     /** A result to check by eye: its text in grey, where an issue's is amber. */
     review?: boolean;
+    /** A result to check by eye marked as looking right: its text dimmer still. */
+    confirmed?: boolean;
     /** An issue the editor now measures as passing: its text in green. */
     fixed?: boolean;
     href?: string;
@@ -13,44 +15,63 @@
     detail?: Snippet;
     /** The in-editor links that lead the link group, such as the traced properties. */
     links?: Snippet;
+    /** Sits in its own column at the row's right edge, so it keeps its place from row to row. */
+    action?: Snippet;
   }
 
-  let { review = false, fixed = false, href, linkLabel = 'Guidance', children, detail, links }: Props = $props();
+  let { review = false, confirmed = false, fixed = false, href, linkLabel = 'Guidance', children, detail, links, action }: Props = $props();
 </script>
 
-<li class="a11y-issue" class:review class:fixed>
-  <div class="a11y-issue-head">
-    <p class="a11y-issue-text">{@render children()}</p>
-    {#if links || href}
-      <div class="a11y-issue-links">
-        {@render links?.()}
-        {#if href}
-          <a
-            class="a11y-link a11y-issue-guidance"
-            {href}
-            target="_blank"
-            rel="noopener"
-            title={href}
-            aria-label={`${linkLabel} (opens in a new tab)`}
-          >
-            {linkLabel}
-            <i class="fas fa-arrow-up-right-from-square" aria-hidden="true"></i>
-          </a>
-        {/if}
-      </div>
+<li class="a11y-issue" class:review class:confirmed class:fixed>
+  <div class="a11y-issue-body">
+    <div class="a11y-issue-head">
+      <p class="a11y-issue-text">{@render children()}</p>
+      {#if links || href}
+        <div class="a11y-issue-links">
+          {@render links?.()}
+          {#if href}
+            <a
+              class="a11y-link a11y-issue-guidance"
+              {href}
+              target="_blank"
+              rel="noopener"
+              title={href}
+              aria-label={`${linkLabel} (opens in a new tab)`}
+            >
+              {linkLabel}
+              <i class="fas fa-arrow-up-right-from-square" aria-hidden="true"></i>
+            </a>
+          {/if}
+        </div>
+      {/if}
+    </div>
+    {#if detail}
+      <p class="a11y-issue-detail">{@render detail()}</p>
     {/if}
   </div>
-  {#if detail}
-    <p class="a11y-issue-detail">{@render detail()}</p>
+  {#if action}
+    <div class="a11y-issue-action">{@render action()}</div>
   {/if}
 </li>
 
 <style>
   .a11y-issue {
     display: flex;
+    gap: var(--ui-space-16);
+    padding: var(--ui-space-12) 0;
+  }
+
+  .a11y-issue-body {
+    display: flex;
+    flex: 1;
     flex-direction: column;
     gap: var(--ui-space-4);
-    padding: var(--ui-space-12) 0;
+    min-width: 0;
+  }
+
+  .a11y-issue-action {
+    flex: none;
+    align-self: flex-start;
   }
 
   .a11y-issue + :global(.a11y-issue) {
@@ -79,6 +100,10 @@
 
   .review .a11y-issue-text {
     color: var(--ui-text-secondary);
+  }
+
+  .confirmed .a11y-issue-text {
+    color: var(--ui-text-tertiary);
   }
 
   .fixed .a11y-issue-text {

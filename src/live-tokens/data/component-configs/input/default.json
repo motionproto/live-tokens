@@ -19,7 +19,7 @@
     "--input-default-icon-size": "--icon-size-sm",
     "--input-default-placeholder": "--text-tertiary",
     "--input-focused-surface": "--surface-neutral-lower",
-    "--input-focused-border": "--border-brand",
+    "--input-focused-border": "--border-brand-strong",
     "--input-focused-border-width": "--border-width-2",
     "--input-focused-text": "--text-primary",
     "--input-focused-text-font-family": "--font-sans",

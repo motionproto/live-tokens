@@ -129,6 +129,19 @@ describe('measurePair', () => {
     expect(measure.passes).toBe(true);
   });
 
+  it('passes a fully transparent non-text part and holds transparent text to its floor', () => {
+    const resolver = stubResolver({
+      [PAGE_BG]: rgba('#ffffff'),
+      '--x-surface': rgba('#ffffff'),
+      '--x-border': rgba('#000000', 0),
+      '--x-text': rgba('#000000', 0),
+    }, fonts);
+    const border = measurePair({ foreground: '--x-border', backdrop: ['--x-surface'], role: 'non-text' }, resolver);
+    const text = measurePair(textPair(), resolver);
+    expect([border.ratio, border.passes]).toEqual([1, true]);
+    expect([text.ratio, text.passes]).toEqual([1, false]);
+  });
+
   it('drops the text floor to 3:1 for large text', () => {
     const resolver = stubResolver({
       [PAGE_BG]: rgba('#ffffff'),

@@ -57,6 +57,8 @@ export interface A11yFinishedReport extends A11yReportBase {
   state: 'finished';
   finishedAt: string;
   findings: A11yFinding[];
+  /** The messages of the results to check by eye that someone marked as looking right. A new run keeps each one it finds again. */
+  confirmed?: string[];
 }
 
 /** The CLI crashed or printed no report. The theme's last finished report stands. */

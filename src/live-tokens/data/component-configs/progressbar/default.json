@@ -9,7 +9,7 @@
     "--progressbar-track-border-width": "--border-width-1",
     "--progressbar-track-height": "--space-16",
     "--progressbar-radius": "--radius-full",
-    "--progressbar-fill": "--surface-special-highest",
+    "--progressbar-fill": "--border-special-medium",
     "--progressbar-label-gap": "--space-6",
     "--progressbar-label": "--text-secondary",
     "--progressbar-label-font-family": "--font-sans",

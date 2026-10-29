@@ -1,4 +1,4 @@
-import { derived, writable, type Readable } from 'svelte/store';
+import { derived, get, writable, type Readable } from 'svelte/store';
 import { API_BASE } from '../storage/apiBase';
 import { openThemeSlug } from '../store/editorConfigStore';
 import type {
@@ -19,8 +19,10 @@ export interface ComponentA11yIssues {
   property: A11yFinding[];
   /** Fix in the component's code: every other `a11y-*` finding but `a11y-review`. */
   code: A11yFinding[];
-  /** Check by eye. */
+  /** Check by eye, unmarked. */
   review: A11yFinding[];
+  /** Check by eye, marked as looking right. They count as no issue. */
+  confirmed: A11yFinding[];
   /** Contrast failures of the run that pass as the editor now measures them. They count as no issue. */
   fixed: A11yFixedContrast[];
 }
@@ -60,7 +62,8 @@ export function setFixedContrast(ratios: ReadonlyMap<A11yContrastFailure, number
 export const a11yIssues: Readable<Record<string, ComponentA11yIssues>> = derived([a11yFinishedReport, fixedRatios], ([$report, $fixed]) => {
   const out: Record<string, ComponentA11yIssues> = {};
   if (!$report) return out;
-  const entry = (id: string) => (out[id] ??= { contrast: [], property: [], code: [], review: [], fixed: [] });
+  const confirmed = new Set($report.confirmed);
+  const entry = (id: string) => (out[id] ??= { contrast: [], property: [], code: [], review: [], confirmed: [], fixed: [] });
   for (const failure of $report.contrast) {
     const ratio = $fixed.get(failure);
     if (ratio === undefined) entry(failure.component).contrast.push(failure);
@@ -70,18 +73,19 @@ export const a11yIssues: Readable<Record<string, ComponentA11yIssues>> = derived
     if (!finding.component || !finding.rule.startsWith('a11y-')) continue;
     const issues = entry(finding.component);
     const group = finding.rule === 'a11y-review'
-      ? issues.review
+      ? (confirmed.has(finding.message) ? issues.confirmed : issues.review)
       : PROPERTY_FIX_RULES.has(finding.details?.engineRule ?? '') ? issues.property : issues.code;
     group.push(finding);
   }
   return out;
 });
 
-/** The run's findings under each component property they trace to (decision 7). The editor's contrast failures stay out. */
+/** The run's findings under each component property they trace to (decision 7). The editor's contrast failures and the results marked as looking right stay out. */
 export const a11yPropertyFindings: Readable<Map<string, A11yFinding[]>> = derived(a11yFinishedReport, ($report) => {
   const out = new Map<string, A11yFinding[]>();
+  const confirmed = new Set($report?.confirmed);
   for (const finding of $report?.findings ?? []) {
-    if (!finding.component || !finding.rule.startsWith('a11y-')) continue;
+    if (!finding.component || !finding.rule.startsWith('a11y-') || confirmed.has(finding.message)) continue;
     for (const variable of finding.details?.variables ?? []) {
       const list = out.get(variable);
       if (list) list.push(finding);
@@ -133,6 +137,22 @@ export async function startA11yRun(contrast: A11yContrastFailure[]): Promise<A11
   const report = (await res.json()) as A11yReport;
   receiveA11yReport(report);
   return report;
+}
+
+/** Marks results to check by eye in the open theme's last report as looking right, or clears the mark. */
+export async function confirmReview(findings: A11yFinding[], confirmed: boolean): Promise<void> {
+  const theme = get(a11yFinishedReport)?.theme;
+  if (!theme) return;
+  const res = await fetch(`${API_BASE}/a11y/confirmed`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ theme, messages: findings.map((f) => f.message), confirmed }),
+  });
+  if (!res.ok) {
+    const body = (await res.json().catch(() => ({}))) as { error?: string };
+    throw new Error(body.error || 'The mark did not save');
+  }
+  receiveA11yReport((await res.json()) as A11yReport);
 }
 
 export function __resetForTests(): void {

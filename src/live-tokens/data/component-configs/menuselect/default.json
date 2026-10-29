@@ -23,7 +23,7 @@
     "--menuselect-default-text-line-height": "--line-height-tighter",
     "--menuselect-default-icon": "--text-tertiary",
     "--menuselect-default-icon-size": "--icon-size-sm",
-    "--menuselect-hover-surface": "--surface-neutral-higher",
+    "--menuselect-hover-surface": "--surface-neutral-high",
     "--menuselect-hover-text": "--text-primary",
     "--menuselect-hover-text-font-family": "--font-sans",
     "--menuselect-hover-text-font-size": "--font-size-sm",

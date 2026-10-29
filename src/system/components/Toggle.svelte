@@ -63,7 +63,7 @@
     --toggle-track-border-width: var(--border-width-1);
     --toggle-track-radius: var(--radius-full);
     --toggle-track-padding: var(--space-2);
-    --toggle-thumb-surface: var(--surface-neutral-highest);
+    --toggle-thumb-surface: var(--text-primary);
     --toggle-thumb-border: var(--border-neutral-strong);
     --toggle-thumb-size: var(--font-size-md);
     --toggle-label: var(--text-primary);

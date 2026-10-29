@@ -92,14 +92,16 @@ export function reviewLabel(count: number): string {
   return `${count} ${count === 1 ? 'result' : 'results'} to check by eye`;
 }
 
-/** Every finding of the run counts, results to check by eye included (decision 6). */
+/** The findings a fix clears. A result to check by eye counts apart, since only a person can settle it. */
 export function issueCount(issues: ComponentA11yIssues): number {
-  return issues.contrast.length + issues.property.length + issues.code.length + issues.review.length;
+  return issues.contrast.length + issues.property.length + issues.code.length;
 }
 
 /** One panel row: the findings that share an engine rule, a help text and the properties they trace to. */
 export interface A11yFindingRow {
   finding: A11yFinding;
+  /** Every finding the row merges, `finding` first. */
+  findings: A11yFinding[];
   targets: string[];
   views: string;
   variables: string[];
@@ -135,6 +137,7 @@ export function findingRows(findings: A11yFinding[]): A11yFindingRow[] {
   }
   return [...rows.values()].map((group) => ({
     finding: group[0],
+    findings: group,
     targets: [...new Set(group.flatMap((f) => (f.details ? [f.details.target] : [])))],
     views: group.length === 1 ? (group[0].details?.view ?? '') : mergeViews(group.map((f) => f.details?.view)),
     variables: group[0].details?.variables ?? [],
@@ -159,33 +162,56 @@ export interface A11yComponentRow {
   component: string;
   label: string;
   icon: string;
+  /** `issueCount`: the findings a fix clears. */
   count: number;
+  /** The results to check by eye no one has marked. */
+  review: number;
   issues: ComponentA11yIssues;
 }
 
-/** Every registered component with a finding, in the component rail's order. */
+function componentRows(
+  all: Record<string, ComponentA11yIssues>,
+  listed: (row: A11yComponentRow) => boolean,
+): A11yComponentRow[] {
+  return getComponentRegistryEntries().flatMap(({ id, label, icon }) => {
+    const issues = all[id];
+    if (!issues) return [];
+    const row = { component: id, label, icon, count: issueCount(issues), review: issues.review.length, issues };
+    return listed(row) ? [row] : [];
+  });
+}
+
+/** Every registered component with an issue or an unmarked result to check by eye, in the component rail's order. */
 export function componentsWithIssues(all: Record<string, ComponentA11yIssues>): A11yComponentRow[] {
-  return getComponentRegistryEntries().flatMap(({ id, label, icon }) => {
-    const issues = all[id];
-    const count = issues ? issueCount(issues) : 0;
-    return count > 0 ? [{ component: id, label, icon, count, issues }] : [];
-  });
+  return componentRows(all, (row) => row.count > 0 || row.review > 0);
 }
 
-/** Every registered component the report lists: those with an issue and those whose issues are all fixed. */
+/** Every registered component the overview table lists: an issue, a fix, or an unmarked result to check by eye.
+ *  A result marked as looking right is acknowledged, so it alone lists nothing. */
 export function componentsInReport(all: Record<string, ComponentA11yIssues>): A11yComponentRow[] {
-  return getComponentRegistryEntries().flatMap(({ id, label, icon }) => {
-    const issues = all[id];
-    const count = issues ? issueCount(issues) : 0;
-    return count > 0 || (issues?.fixed.length ?? 0) > 0 ? [{ component: id, label, icon, count, issues }] : [];
-  });
+  return componentRows(all, (row) => row.count > 0 || row.review > 0 || row.issues.fixed.length > 0);
 }
 
-/** Every result to check by eye, merged into rows per component, in the rail's order. */
-export function reviewResults(all: Record<string, ComponentA11yIssues>): { component: string; label: string; row: A11yFindingRow }[] {
-  return getComponentRegistryEntries().flatMap(({ id, label }) =>
-    findingRows(all[id]?.review ?? []).map((row) => ({ component: id, label, row })),
-  );
+/** Every component with its own section in the Accessibility view: an issue or a fix. The By eye list holds the rest. */
+export function componentSections(all: Record<string, ComponentA11yIssues>): A11yComponentRow[] {
+  return componentRows(all, (row) => row.count > 0 || row.issues.fixed.length > 0);
+}
+
+export interface A11yReviewResult {
+  component: string;
+  label: string;
+  row: A11yFindingRow;
+  confirmed: boolean;
+}
+
+/** Every result to check by eye, merged into rows per component in the rail's order, the unmarked ones first. */
+export function reviewResults(all: Record<string, ComponentA11yIssues>): A11yReviewResult[] {
+  const entries = getComponentRegistryEntries();
+  const results = (confirmed: boolean) =>
+    entries.flatMap(({ id, label }) =>
+      findingRows((confirmed ? all[id]?.confirmed : all[id]?.review) ?? []).map((row) => ({ component: id, label, row, confirmed })),
+    );
+  return [...results(false), ...results(true)];
 }
 
 /** The words of `variable` after the component's prefix that `label` lacks,

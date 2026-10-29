@@ -101,6 +101,25 @@ export function a11yRunServer({ root, reportsDir, openTheme, runCli, broadcast }
 
   const reportFile = (theme: string) => path.join(reportsDir, `${theme}.json`);
 
+  /** Reads only a file the directory lists, so a theme name from a request cannot reach outside it. */
+  function readReport(theme: string): A11yFinishedReport | null {
+    const listed = fs.existsSync(reportsDir) && fs.readdirSync(reportsDir).includes(`${theme}.json`);
+    return listed ? JSON.parse(fs.readFileSync(reportFile(theme), 'utf-8')) : null;
+  }
+
+  function writeReport(report: A11yFinishedReport): void {
+    fs.mkdirSync(reportsDir, { recursive: true });
+    fs.writeFileSync(reportFile(report.theme), `${JSON.stringify(report, null, 2)}\n`);
+  }
+
+  function withConfirmed(report: A11yFinishedReport, confirmed: Iterable<string>): A11yFinishedReport {
+    const review = new Set(report.findings.filter((f) => f.rule === 'a11y-review').map((f) => f.message));
+    const kept = [...new Set(confirmed)].filter((message) => review.has(message)).sort();
+    const out: A11yFinishedReport = { ...report, confirmed: kept };
+    if (kept.length === 0) delete out.confirmed;
+    return out;
+  }
+
   function reports(): Record<string, A11yFinishedReport> {
     if (!fs.existsSync(reportsDir)) return {};
     return Object.fromEntries(
@@ -147,18 +166,46 @@ export function a11yRunServer({ root, reportsDir, openTheme, runCli, broadcast }
     broadcast(report);
     void run.done.then((outcome) => {
       const settled = settle(report, outcome);
-      if (settled.state === 'finished') {
-        fs.mkdirSync(reportsDir, { recursive: true });
-        fs.writeFileSync(reportFile(settled.theme), `${JSON.stringify(settled, null, 2)}\n`);
-      }
+      const final = settled.state === 'finished'
+        ? withConfirmed(settled, readReport(settled.theme)?.confirmed ?? [])
+        : settled;
+      if (final.state === 'finished') writeReport(final);
       running = null;
-      broadcast(settled);
+      broadcast(final);
     });
     return { status: 202, body: report };
   }
 
+  /** Marks results to check by eye in a theme's last report as looking right, or clears the mark. */
+  function confirm(body: unknown): A11yAnswer {
+    const { theme, messages, confirmed } = (body ?? {}) as { theme?: unknown; messages?: unknown; confirmed?: unknown };
+    if (
+      typeof theme !== 'string' ||
+      typeof confirmed !== 'boolean' ||
+      !Array.isArray(messages) ||
+      !messages.every((m) => typeof m === 'string')
+    ) {
+      return {
+        status: 400,
+        body: { error: 'Body must be { theme, messages: [...], confirmed: true | false }', code: 'INVALID_BODY' },
+      };
+    }
+    const report = readReport(theme);
+    if (!report) return { status: 404, body: { error: `No report for theme "${theme}"`, code: 'NO_REPORT' } };
+    const marked = new Set(report.confirmed ?? []);
+    for (const message of messages) {
+      if (confirmed) marked.add(message);
+      else marked.delete(message);
+    }
+    const updated = withConfirmed(report, marked);
+    writeReport(updated);
+    broadcast(updated);
+    return { status: 200, body: updated };
+  }
+
   return {
     start,
+    confirm,
     report: (): A11yAnswer => ({ status: 200, body: { running: running?.report ?? null, reports: reports() } }),
     /** Removes a deleted theme's report. */
     forget: (theme: string) => fs.rmSync(reportFile(theme), { force: true }),

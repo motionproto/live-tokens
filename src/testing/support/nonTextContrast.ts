@@ -9,6 +9,9 @@ const NON_TEXT_URL = 'https://www.w3.org/WAI/WCAG22/Understanding/non-text-contr
 const FOCUS_ATTR = 'data-lt-focus-probe';
 const NO_TRANSITION_ID = 'lt-focus-probe-no-transition';
 const FORCE = ['focus', 'focus-visible'];
+/** Marks a focusable whose focus ring the probe found on a sibling, which
+ *  SIA-R65 cannot see. `scanFocusVisible` reads it. */
+export const SIBLING_FOCUS_ATTR = 'data-lt-focus-sibling';
 
 /** Where the trace reads a result's properties: `selector` names the element
  *  that paints the colour, `forceOn` the element focus is forced on, and
@@ -58,9 +61,9 @@ type BoundaryOutcome = {
 };
 
 type PageRequest =
-  | { kind: 'focusables'; scope: string; exclude: string[]; attr: string; styleId: string }
+  | { kind: 'focusables'; scope: string; exclude: string[]; attr: string; styleId: string; marker: string }
   | { kind: 'snapshot'; attr: string; index: number; scope: string; exclude: string[] }
-  | { kind: 'measure'; attr: string; index: number; scope: string; exclude: string[]; before: Snapshot }
+  | { kind: 'measure'; attr: string; index: number; scope: string; exclude: string[]; before: Snapshot; marker: string }
   | { kind: 'cleanup'; attr: string; styleId: string }
   | { kind: 'boundaries'; scope: string; exclude: string[]; parts: BoundaryPart[]; root: string }
   | { kind: 'describe'; scope: string; exclude: string[]; attr: string; values: string[] };
@@ -125,15 +128,19 @@ function inPage(request: PageRequest): unknown {
 
   /** The surfaces behind `ring`, from the nearest box that contains it up to
    *  the first opaque one, composited over white. A gradient or image among
-   *  them leaves the colour unknown. */
+   *  them leaves the colour unknown. Past a scope lie the editor's own
+   *  surfaces, so the walk ends there on `--page-bg`, which a real page puts
+   *  behind the component. A part that fills its preview edge to edge spills
+   *  its ring past the scope. */
   const backdrop = (from: Element, ring: DOMRect) => {
     const layers: string[] = [];
     let level = 0;
     let first = -1;
     for (let e: Element | null = from; e; e = e.parentElement, level++) {
       const box = e.getBoundingClientRect();
-      const contains = box.left <= ring.left + 0.5 && box.top <= ring.top + 0.5
-        && box.right >= ring.right - 0.5 && box.bottom >= ring.bottom - 0.5;
+      const isScope = scopes.includes(e as HTMLElement);
+      const contains = isScope || (box.left <= ring.left + 0.5 && box.top <= ring.top + 0.5
+        && box.right >= ring.right - 0.5 && box.bottom >= ring.bottom - 0.5);
       if (!contains) continue;
       if (first < 0) first = level;
       const style = getComputedStyle(e);
@@ -141,6 +148,12 @@ function inPage(request: PageRequest): unknown {
       const a = alpha(style.backgroundColor);
       if (a > 0) layers.unshift(style.backgroundColor);
       if (a >= 1) break;
+      if (isScope) {
+        const page = getComputedStyle(document.documentElement).getPropertyValue('--page-bg').trim();
+        if (/gradient|url\(/.test(page)) return { color: null, first };
+        if (page) layers.unshift(page);
+        break;
+      }
     }
     return { color: paint(layers), first: Math.max(first, 0) };
   };
@@ -206,6 +219,7 @@ function inPage(request: PageRequest): unknown {
       style.id = request.styleId;
       style.textContent = '*, *::before, *::after { transition: none !important; }';
       document.head.append(style);
+      for (const el of document.querySelectorAll(`[${request.marker}]`)) el.removeAttribute(request.marker);
       const focusable = 'a[href], area[href], button, input:not([type="hidden"]), select, textarea, summary, iframe, [tabindex], [contenteditable]:not([contenteditable="false"])';
       const found = scopes.flatMap((scope) => [scope, ...scope.querySelectorAll(focusable)])
         .filter((el, i, all) => all.indexOf(el) === i && el.matches(focusable) && inScope(el))
@@ -224,6 +238,7 @@ function inPage(request: PageRequest): unknown {
         if (request.before[i] === undefined || request.before[i] === signature(el)) continue;
         const found = indicatorOf(el, request.before[i]);
         if (!found) continue;
+        if (el !== target && !target.contains(el)) target.setAttribute(request.marker, '');
         if (found.channel === 'browser') return { kind: 'browser' };
         const ring = inflate(el.getBoundingClientRect(), Math.max(found.extent, 0));
         const behind = backdrop(found.channel === 'border' ? el.parentElement! : el, found.extent < 0 ? el.getBoundingClientRect() : ring);
@@ -327,11 +342,13 @@ function ratioText(ratio: number): string {
  * shadow or border focus changes, so a ring drawn on a sibling, as Slider
  * draws it, counts. Chromium's own `auto` ring pairs a dark and a light band,
  * one of which contrasts with any backdrop, so it passes. An element focus
- * leaves unchanged is SIA-R65's finding and adds none here.
+ * leaves unchanged is SIA-R65's finding and adds none here. A ring found on
+ * a sibling marks the focused element with `SIBLING_FOCUS_ATTR` until the
+ * next scan, which settles SIA-R65's "can't tell" on it.
  */
 export async function scanFocusIndicators(page: Page, scope: string, exclude: string[]): Promise<CheckedResult[]> {
   const cdp = await cdpSession(page);
-  const count = await run<number>(page, { kind: 'focusables', scope, exclude, attr: FOCUS_ATTR, styleId: NO_TRANSITION_ID });
+  const count = await run<number>(page, { kind: 'focusables', scope, exclude, attr: FOCUS_ATTR, styleId: NO_TRANSITION_ID, marker: SIBLING_FOCUS_ATTR });
   const checked: CheckedResult[] = [];
   try {
     const { root } = await cdp.send('DOM.getDocument', { depth: 0 });
@@ -341,7 +358,7 @@ export async function scanFocusIndicators(page: Page, scope: string, exclude: st
       await cdp.send('CSS.forcePseudoState', { nodeId, forcedPseudoClasses: FORCE });
       let outcome: FocusOutcome;
       try {
-        outcome = await run<FocusOutcome>(page, { kind: 'measure', attr: FOCUS_ATTR, index, scope, exclude, before });
+        outcome = await run<FocusOutcome>(page, { kind: 'measure', attr: FOCUS_ATTR, index, scope, exclude, before, marker: SIBLING_FOCUS_ATTR });
       } finally {
         await cdp.send('CSS.forcePseudoState', { nodeId, forcedPseudoClasses: [] });
       }

@@ -26,7 +26,7 @@
     "--inlineeditactions-cancel-default-padding": "--space-4",
     "--inlineeditactions-cancel-default-icon-size": "--icon-size-md",
     "--inlineeditactions-cancel-hover-surface": "--surface-danger-high",
-    "--inlineeditactions-cancel-hover-text": "--text-danger",
+    "--inlineeditactions-cancel-hover-text": "--text-primary",
     "--inlineeditactions-cancel-hover-border": "--border-danger",
     "--inlineeditactions-cancel-hover-border-width": "--border-width-0",
     "--inlineeditactions-cancel-hover-radius": "--radius-md",

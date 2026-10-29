@@ -19,6 +19,53 @@
   passes, its row in the component's panel and in the Accessibility view
   shows the run's ratio and the ratio now, and it no longer counts as an
   issue.
+- **Component defaults and the shipped themes pass WCAG AA contrast.**
+  Every contrast pair the editor checks now passes in the default theme and
+  all eight presets. Slider: fill `--border-brand-medium`, thumb and hover
+  thumb `--text-primary`. Toggle: resting thumb `--text-primary`, as its
+  other states already were. ProgressBar: fill `--border-special-medium`.
+  SlidePager: hover icon `--text-primary`. TabBar: selected underline
+  `--border-brand-strong`. Input: focus ring `--border-brand-strong`.
+  Button secondary, success and warning hovers and the MenuSelect hover sit
+  one surface step lighter, and InlineEditActions' cancel hover icon is
+  `--text-primary`. Halloween's page gradient ends on canvas 800. Themes you
+  saved keep their own values.
+- **The Accessibility overview table lists components by the fixes a theme
+  can make.** Rows sort by "Fix with a property", then by "Fix in the
+  component's code". The bar column and its colour key are gone.
+- **Results to check by eye carry an eye.** The component list, the
+  component panel, and each property row draw a grey eye for them in place of
+  the warning triangle or the "?". They no longer count toward a component's
+  issues.
+
+### Added
+
+- **Looks right marks a result to check by eye as judged.** Each such row in
+  the Accessibility view and the component panel has the button at its right
+  edge. A marked row dims, stops counting, and drops its marks from the
+  editor. The open theme's report keeps the mark through every later run
+  that finds the same result. The dev server stores it in the report and
+  answers `PUT /a11y/confirmed` with `{ theme, messages, confirmed }`.
+- **The By eye list gathers every result to check by eye.** It closes the
+  Accessibility view: the results to check first, under a tally and a
+  progress bar, then the marked ones in a closed group to revisit. Marking one moves focus to
+  the next. **Mark all as looking right** marks the rest in one step. A
+  result marked as looking right raises nothing elsewhere: no sidebar mark,
+  no component panel, and no property mark. A component whose results all
+  look right leaves the overview table, the component sections, and the
+  sidebar.
+
+### Fixed
+
+- **Contrast checks pass parts that paint nothing or only decorate.** A non-text part
+  painted fully transparent, such as an unselected tab's underline, passes.
+  Section divider hairlines are decorative and carry no contrast pair.
+- **The focus checks judge what focus changes.** A state view that forces
+  the focused look, such as Input's, lifts it while focus is measured, so
+  SIA-R65 sees the change and the focus ring's contrast is measured. A ring
+  drawn on a sibling, as Slider draws it, settles SIA-R65's "can't tell". A
+  ring that spills past the preview is measured against `--page-bg` and no
+  longer against the editor's own surfaces.
 
 ## 0.98.2 — Accessibility testing
 

@@ -14,7 +14,7 @@
     A11Y_REVIEW_SECTION,
     A11Y_RUN_SECTION,
     a11ySectionId,
-    componentsInReport,
+    componentSections,
     componentsWithIssues,
     issuesLabel,
     setA11yViewLink,
@@ -136,12 +136,13 @@
   let screenBarHeight = $state(0);
 
   let a11yComponentNavItems: NavItem[] = $derived(
-    componentsInReport($a11yIssues).map(({ component, label, icon, count }) => ({
+    componentSections($a11yIssues).map(({ component, label, icon, count }) => ({
       id: a11ySectionId(component), label, icon, count,
     })),
   );
-  let a11yMarked = $derived(new Set(componentsWithIssues($a11yIssues).map((row) => row.component)));
-  let a11yHasReview = $derived(Object.values($a11yIssues).some((issues) => issues.review.length > 0));
+  /** Each marked component, true when its only results are to check by eye. A result marked as looking right marks nothing. */
+  let a11yMarked = $derived(new Map(componentsWithIssues($a11yIssues).map((row) => [row.component, row.count === 0])));
+  let a11yHasReview = $derived(Object.values($a11yIssues).some((issues) => issues.review.length + issues.confirmed.length > 0));
 
   // The narrow layout shows one section at a time, so the run section and the
   // check-by-eye line join the component sections the rail lists.
@@ -256,7 +257,7 @@
               onclick={() => pickSection(item.id)}
             >
               <i class={item.icon}></i>
-              <span class="nav-label">{#if $editorView === 'components' && a11yMarked.has(item.id)}<A11yRailMark />{/if}{item.label}</span>
+              <span class="nav-label">{#if $editorView === 'components' && a11yMarked.has(item.id)}<A11yRailMark review={a11yMarked.get(item.id)} />{/if}{item.label}</span>
               {#if item.count !== undefined}
                 <span class="nav-count">{item.count}</span>
               {/if}
@@ -383,12 +384,12 @@
               onclick={() => selectComponent(item.id)}
             >
               <i class={item.icon}></i>
-              <span class="nav-label">{#if a11yMarked.has(item.id)}<A11yRailMark />{/if}{item.label}</span>
+              <span class="nav-label">{#if a11yMarked.has(item.id)}<A11yRailMark review={a11yMarked.get(item.id)} />{/if}{item.label}</span>
               {#if $componentDirty[item.id]}
                 <span class="dirty-dot" aria-label="Unsaved changes" title="Unsaved changes"></span>
               {/if}
               {#if condensed && a11yMarked.has(item.id)}
-                <A11yRailMark placement="corner" />
+                <A11yRailMark placement="corner" review={a11yMarked.get(item.id)} />
               {/if}
             </button>
           {/each}
@@ -406,12 +407,12 @@
                 onclick={() => selectComponent(item.id)}
               >
                 <i class={item.icon}></i>
-                <span class="nav-label">{#if a11yMarked.has(item.id)}<A11yRailMark />{/if}{item.label}</span>
+                <span class="nav-label">{#if a11yMarked.has(item.id)}<A11yRailMark review={a11yMarked.get(item.id)} />{/if}{item.label}</span>
                 {#if $componentDirty[item.id]}
                   <span class="dirty-dot" aria-label="Unsaved changes" title="Unsaved changes"></span>
                 {/if}
                 {#if condensed && a11yMarked.has(item.id)}
-                  <A11yRailMark placement="corner" />
+                  <A11yRailMark placement="corner" review={a11yMarked.get(item.id)} />
                 {/if}
               </button>
             {/each}

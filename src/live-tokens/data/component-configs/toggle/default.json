@@ -9,7 +9,7 @@
     "--toggle-track-border-width": "--border-width-1",
     "--toggle-track-radius": "--radius-full",
     "--toggle-track-padding": "--space-2",
-    "--toggle-thumb-surface": "--surface-neutral-highest",
+    "--toggle-thumb-surface": "--text-primary",
     "--toggle-thumb-border": "--border-neutral-strong",
     "--toggle-thumb-size": "--font-size-md",
     "--toggle-label": "--text-primary",

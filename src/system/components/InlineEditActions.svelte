@@ -92,7 +92,7 @@
 
       /* Cancel (hover) */
       --inlineeditactions-cancel-hover-surface: var(--surface-danger-high);
-      --inlineeditactions-cancel-hover-text: var(--text-danger);
+      --inlineeditactions-cancel-hover-text: var(--text-primary);
       --inlineeditactions-cancel-hover-border: var(--border-danger);
       --inlineeditactions-cancel-hover-border-width: var(--border-width-0);
       --inlineeditactions-cancel-hover-radius: var(--radius-md);

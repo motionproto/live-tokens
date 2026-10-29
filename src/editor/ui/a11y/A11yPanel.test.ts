@@ -81,7 +81,7 @@ describe('A11yPanel', () => {
     receiveA11yReport(REPORT);
     mountPanel('badge');
 
-    expect(target.querySelector('.a11y-panel-title')?.textContent).toBe('3 accessibility issues');
+    expect(target.querySelector('.a11y-panel-title')?.textContent).toBe('2 accessibility issues');
     expect(target.querySelector('.a11y-panel-run')?.textContent).toMatch(/^Last run .+$/);
     const groups = [...target.querySelectorAll('.a11y-group-title')].map((h) => h.textContent);
     expect(groups).toEqual(['Fix with a property', "Fix in the component's code", 'Check by eye']);
@@ -94,14 +94,33 @@ describe('A11yPanel', () => {
 
     const rows = [...target.querySelectorAll('.a11y-issue')];
     expect(rows.map((row) => row.classList.contains('review'))).toEqual([false, false, true]);
+    expect(rows.map((row) => row.querySelector('.a11y-review-mark.fa-eye') !== null)).toEqual([false, false, true]);
+    const toggle = rows[2].querySelector('.a11y-confirm button');
+    expect([toggle?.textContent?.trim(), toggle?.getAttribute('aria-pressed')]).toEqual(['Looks right', 'false']);
   });
 
-  it('shows a component with results to check by eye alone', () => {
+  it('heads a component with results to check by eye alone with the eye and their count', () => {
     receiveA11yReport(REPORT);
     mountPanel('videoframe');
 
-    expect(target.querySelector('.a11y-panel-title')?.textContent).toBe('1 accessibility issue');
+    expect(target.querySelector('.a11y-panel-mark.fa-eye')).not.toBeNull();
+    expect(target.querySelector('.a11y-panel-title')?.textContent).toBe('1 result to check by eye');
     expect([...target.querySelectorAll('.a11y-group-title')].map((h) => h.textContent)).toEqual(['Check by eye']);
+  });
+
+  it('stays out of the page for a component whose results all look right', () => {
+    receiveA11yReport({ ...REPORT, confirmed: ['videoframe: case'] });
+    mountPanel('videoframe');
+
+    expect(target.querySelector('.a11y-panel')).toBeNull();
+  });
+
+  it('leaves a result marked as looking right out of a panel that has other issues', () => {
+    receiveA11yReport({ ...REPORT, confirmed: ['badge: case'] });
+    mountPanel('badge');
+
+    expect([...target.querySelectorAll('.a11y-group-title')].map((h) => h.textContent)).toEqual(['Fix with a property', "Fix in the component's code"]);
+    expect(target.querySelector('.a11y-issue.confirmed')).toBeNull();
   });
 
   it('merges findings that share an engine rule and properties into one row', () => {
@@ -159,7 +178,7 @@ describe('A11yPanel', () => {
     setFixedContrast(new Map([[REPORT.contrast[0], 5.38]]));
     mountPanel('badge');
 
-    expect(target.querySelector('.a11y-panel-title')?.textContent).toBe('2 accessibility issues');
+    expect(target.querySelector('.a11y-panel-title')?.textContent).toBe('1 accessibility issue');
     const fixed = target.querySelector('.a11y-issue.fixed .a11y-issue-text');
     expect(fixed?.textContent?.replace(/\s+/g, ' ').trim()).toBe('Brand text color 3.87:1 → 5.38:1, meets 4.5:1');
   });

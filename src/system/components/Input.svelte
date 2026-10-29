@@ -177,7 +177,7 @@
 
     /* Focused — applied as a CSS outline so the layout doesn't shift on focus */
     --input-focused-surface: var(--surface-neutral-lower);
-    --input-focused-border: var(--border-brand);
+    --input-focused-border: var(--border-brand-strong);
     --input-focused-border-width: var(--border-width-2);
     --input-focused-text: var(--text-primary);
     --input-focused-text-font-family: var(--font-sans);

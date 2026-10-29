@@ -83,12 +83,19 @@ sibling, such as a slider thumb's cap, counts. The indicator is the outline
 when focus changes one, else the first outer box shadow, else a border side.
 
 The backdrop is every box behind the ring's outer edge, composited in order
-over white. A ring below 3:1 against it reports under `a11y-component` with
+over white. The walk stops at the preview's edge and ends on `--page-bg`, so a
+part that fills its preview edge to edge is measured against the page. A ring below 3:1 against it reports under `a11y-component` with
 engine rule `focus-indicator-contrast`, such as "Focus outline on span.cap
 2.14:1 against the backdrop, needs 3:1". Ratios floor to two places, because
 WCAG does not round. Chromium's own `outline-style: auto` ring passes: it pairs
 a dark band with a light one. An element with no indicator at all is
-SIA-R65's finding and adds none here.
+SIA-R65's finding and adds none here. Alfa reads only the element, its
+descendants, and its ancestors, so a ring this check finds on a sibling settles
+SIA-R65's "can't tell" for that element.
+
+A state view that forces the focused look with a class, such as Input's
+focused state, would leave focus nothing to change. Both focus checks lift
+that class while they measure, then put it back.
 
 ## Control boundary contrast
 
@@ -241,10 +248,14 @@ last run, or none if it has never run. The dev server keeps each report in
 `_a11y-reports/` in the data directory, and deleting a theme deletes its
 report. A failed run leaves the theme's last report in place.
 
-Every finding counts, results to check by eye included. An overview opens
-the report. It shows the total, the count in each repair group below, and a
-table of every component with a finding: its count per group and a bar of
-its share. A component's name in the table scrolls to its section.
+The total counts the findings a fix clears. A result to check by eye counts
+apart, because only a person can settle it. An overview opens the report. It
+shows the total, the count in each repair group below, and a table of every
+component with a finding and its count per group. The "Check by eye" figure
+scrolls to the By eye list. The table
+lists first the components with the most findings a property fixes, then those
+with the most a code change fixes. A component's name in the table scrolls to
+its section.
 
 Each component's section heads its count with **Open component**, which opens
 the component's page at its accessibility panel. The section sorts its rows
@@ -256,7 +267,8 @@ by repair:
 - **Fix in the component's code** holds every other finding: axe failures,
   focus styles that SIA-R65 finds unchanged, failed keyboard cases, text that
   clips under the spacing override, and motion that ignores reduced motion.
-- **Check by eye** holds the `a11y-review` results.
+- **Check by eye** holds the `a11y-review` results, each led by an eye. The
+  By eye list gathers them for the whole report.
 
 Findings that share an engine rule, a help text, and their traced properties
 merge into one row. The row names its element, or its element count, and the
@@ -270,15 +282,33 @@ check by eye is grey. The row's links sit beside its text:
   "Rule" for an axe or Alfa rule, "Success criterion" with its number for a
   WCAG criterion, "Technique" for a WCAG technique, and "Pattern" for a
   WAI-ARIA pattern.
+- A result to check by eye has **Looks right** at the row's right edge.
+  Press it once you have judged the element and found it passes. The row's
+  eye turns to a check, its text dims, and it stops counting and stops
+  marking the editor. Press it again to clear the mark. The mark belongs to
+  the open theme's report, and each later run of that theme keeps it while
+  the run finds the same result.
 
 A property's label leads with the words from its variable name that the
 editor's label leaves out, so `--input-focused-border` reads "Focused border
 color" where the editor's row reads "Border color". The contrast rows read
 the same labels.
 
-The overview and the per-component counts include the results to check by
-eye. A component's section ends in a "N results to check by eye" button that
-opens one closed list of those results, merged per component. axe's contrast
+The overview's "Check by eye" column counts the results no one has marked.
+A component whose results all look right leaves the table, the sections, and
+the view's sidebar. A component section lists only issues and fixes, so the
+view's sidebar lists the components with one of those.
+
+The **By eye** list closes the view and holds every result to check by eye,
+merged per component. The results to check come first, under a tally such
+as "2 to check, 18 look right" and a bar that fills as you mark them. Pressing
+**Looks right** moves focus to the result that takes the row's place, so
+Enter or Space walks the list. **Mark all as looking right** marks every
+result still to check in one step. The marked results follow in **Looks
+right**, a group that starts closed and shows their count. Open it to
+revisit them, each with its button pressed, or to clear a mark. A component's
+section with results still to check ends in a link such as "2 results to
+check by eye" that scrolls to the list. axe's contrast
 violations stay out of the report, because the contrast checker measures the
 same pairs.
 
@@ -294,18 +324,25 @@ the `default` theme. Both work from the command line too.
 
 ## Marks in the editor
 
-The last finished run marks the rest of the editor:
+The last finished run marks the rest of the editor. A result marked as
+looking right is acknowledged and marks nothing: no sidebar mark, no panel,
+and no property mark. The By eye list keeps it to revisit.
 
-- The component list leads the name of each component with any finding
-  with a warning triangle. A condensed list shows the triangle on the
+- The component list leads the name of each component with a finding with a
+  warning triangle, or with a grey eye when its only results are unmarked
+  results to check by eye. A condensed list shows the mark on the
   component's icon.
 - That component's page opens with a panel under its title that lists its
-  findings in all three groups, check by eye included.
+  findings in all three groups, check by eye included, and leaves out the
+  results marked as looking right. The panel heads with
+  the triangle and the issue count, or with the eye and the count to check by
+  eye when no issue remains.
 - Each "→" in the panel opens the tab holding the property and highlights
   its row.
 - Each property row a finding traces to carries a mark beside its label: a
-  warning triangle in the highlight colour, or a grey "?" when every finding on the row is a
-  result to check by eye. On a colour or size row the mark sits between the
+  warning triangle in the highlight colour, or a grey eye when every finding
+  on the row is a result to check by eye. A result marked as looking right
+  adds no mark. On a colour or size row the mark sits between the
   label and the value. On a toggle row it follows the label.
 
 Click a row's mark to open its findings: the count, then each merged row

@@ -298,7 +298,7 @@
 
     --slidepager-control-hover-surface: var(--surface-brand-high);
     --slidepager-control-hover-border: var(--border-brand);
-    --slidepager-control-hover-icon: var(--text-inverted);
+    --slidepager-control-hover-icon: var(--text-primary);
 
     --slidepager-control-disabled-surface: var(--surface-neutral-lower);
     --slidepager-control-disabled-border: var(--border-neutral-subtle);

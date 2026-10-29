@@ -1,4 +1,5 @@
 import { test, type Page } from '@playwright/test';
+import { SIBLING_FOCUS_ATTR } from './nonTextContrast';
 
 export type A11yRule =
   | 'a11y-component'
@@ -168,7 +169,8 @@ const FOCUS_HELP = {
 
 /** Alfa's SIA-R65 over `scope` (a selector), minus `exclude`. A cantTell
  *  outcome means Alfa found no focus style at all, so it reports beside a
- *  failure under `a11y-focus-visible`. */
+ *  failure under `a11y-focus-visible`, unless `scanFocusIndicators` found the
+ *  element's ring on a sibling, where Alfa does not look. */
 export async function scanFocusVisible(page: Page, scope: string, exclude: string[]): Promise<A11yResult[]> {
   const alfa = await loadAlfa();
   await page.evaluate(({ scope, exclude, scopeAttr, excludeAttr }) => {
@@ -206,6 +208,7 @@ export async function scanFocusVisible(page: Page, scope: string, exclude: strin
     if (!kind) continue;
     const target = outcome.target as unknown as AlfaElement;
     if (!inScope(target)) continue;
+    if (kind === 'cantTell' && target.attribute?.(SIBLING_FOCUS_ATTR).isSome()) continue;
     results.push({
       rule: 'a11y-focus-visible',
       engineRule: 'SIA-R65',

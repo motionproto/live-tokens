@@ -4,11 +4,11 @@
 /* Adobe Typekit — fira-code */
 @import url('https://use.typekit.net/jes8oow.css');
 
+/* Google Fonts — Manrope */
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@200..800&display=swap');
+
+/* Google Fonts — Arvo */
+@import url('https://fonts.googleapis.com/css2?family=Arvo:ital,wght@0,400;0,700;1,400;1,700&display=swap');
+
 /* Google Fonts — GFS Didot */
 @import url('https://fonts.googleapis.com/css2?family=GFS+Didot&display=swap');
-
-/* Google Fonts — Cinzel */
-@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400..900&display=swap');
-
-/* Google Fonts — Lato */
-@import url('https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700;900&display=swap');

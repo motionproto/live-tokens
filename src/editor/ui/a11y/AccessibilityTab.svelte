@@ -6,14 +6,15 @@
   import { unsavedEdits } from '../../core/store/unsavedEdits';
   import { listThemes } from '../../core/themes/themeService';
   import UIPillButton from '../UIPillButton.svelte';
+  import A11yByEye from './A11yByEye.svelte';
   import A11yComponentIssues from './A11yComponentIssues.svelte';
-  import A11yFindingRow from './A11yFindingRow.svelte';
   import A11yOverview from './A11yOverview.svelte';
   import {
     A11Y_REVIEW_SECTION,
     A11Y_RUN_SECTION,
     a11ySectionId,
     codeSpans,
+    componentSections,
     componentsInReport,
     fixedLabel,
     formatElapsed,
@@ -27,9 +28,9 @@
 
   const openView = getA11yViewLink();
 
-  let rows = $derived(componentsInReport($a11yIssues));
+  let tableRows = $derived(componentsInReport($a11yIssues));
+  let sectionRows = $derived(componentSections($a11yIssues));
   let review = $derived(reviewResults($a11yIssues));
-  let reviewTotal = $derived(rows.reduce((sum, row) => sum + row.issues.review.length, 0));
   let running = $derived($a11yReport?.state === 'running' ? $a11yReport : null);
   let failed = $derived($a11yReport?.state === 'failed' ? $a11yReport : null);
   let finished = $derived($a11yFinishedReport);
@@ -129,7 +130,7 @@
           </div>
         {/if}
       {/if}
-      {#if !notInstalled && rows.length === 0}
+      {#if !notInstalled && sectionRows.length === 0}
         <p class="a11y-summary">Every component passes the automated checks.</p>
       {/if}
     {:else if !running && !failed}
@@ -143,11 +144,15 @@
     {/if}
   </section>
 
-  {#if rows.length > 0}
-    <A11yOverview {rows} onjump={(component) => openView?.(a11ySectionId(component))} />
+  {#if tableRows.length > 0}
+    <A11yOverview
+      rows={tableRows}
+      onjump={(component) => openView?.(a11ySectionId(component))}
+      onreview={() => openView?.(A11Y_REVIEW_SECTION)}
+    />
   {/if}
 
-  {#each rows as row (row.component)}
+  {#each sectionRows as row (row.component)}
     <section id={a11ySectionId(row.component)} class="editor-section-card a11y-component">
       <header class="a11y-component-head">
         <i class={row.icon} aria-hidden="true"></i>
@@ -170,32 +175,16 @@
         onreveal={(variable) => openComponentAt(row.component, variable)}
         onopen={() => openComponentAt(row.component)}
       />
-      {#if row.issues.review.length > 0}
+      {#if row.review > 0}
         <button type="button" class="a11y-review-link" onclick={() => openView?.(A11Y_REVIEW_SECTION)}>
-          {reviewLabel(row.issues.review.length)}
+          {reviewLabel(row.review)}
         </button>
       {/if}
     </section>
   {/each}
 
   {#if review.length > 0}
-    <section id={A11Y_REVIEW_SECTION} class="a11y-review">
-      <details class="a11y-disclosure">
-        <summary>{reviewLabel(reviewTotal)}</summary>
-        <ul class="a11y-review-list">
-          {#each review as { component, label, row }, i (i)}
-            <A11yFindingRow
-              {component}
-              {row}
-              review
-              prefix={label}
-              onreveal={(variable) => openComponentAt(component, variable)}
-              onopen={() => openComponentAt(component)}
-            />
-          {/each}
-        </ul>
-      </details>
-    </section>
+    <A11yByEye />
   {/if}
 </div>
 
@@ -323,12 +312,6 @@
 
   .a11y-review-link:hover {
     color: var(--ui-text-primary);
-  }
-
-  .a11y-review-list {
-    margin: var(--ui-space-8) 0 0;
-    padding: 0;
-    list-style: none;
   }
 
   .a11y-tab code {

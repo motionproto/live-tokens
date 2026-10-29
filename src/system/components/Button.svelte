@@ -141,7 +141,7 @@
       --button-secondary-border-width: var(--border-width-1);
       --button-secondary-radius: var(--radius-xl);
       --button-secondary-padding: var(--space-8);
-      --button-secondary-hover-surface: var(--surface-neutral-higher);
+      --button-secondary-hover-surface: var(--surface-neutral-high);
       --button-secondary-hover-text: var(--text-primary);
       --button-secondary-hover-border: var(--border-neutral-strong);
       --button-secondary-disabled-surface: var(--color-neutral-700);
@@ -180,7 +180,7 @@
       --button-success-border-width: var(--border-width-1);
       --button-success-radius: var(--radius-xl);
       --button-success-padding: var(--space-8);
-      --button-success-hover-surface: var(--surface-success-higher);
+      --button-success-hover-surface: var(--surface-success-high);
       --button-success-hover-text: var(--text-primary);
       --button-success-hover-border: var(--border-success-strong);
       --button-success-disabled-surface: var(--color-neutral-700);
@@ -218,7 +218,7 @@
       --button-warning-border-width: var(--border-width-1);
       --button-warning-radius: var(--radius-xl);
       --button-warning-padding: var(--space-8);
-      --button-warning-hover-surface: var(--surface-warning-high);
+      --button-warning-hover-surface: var(--surface-warning);
       --button-warning-hover-text: var(--text-primary);
       --button-warning-hover-border: var(--border-warning-medium);
       --button-warning-disabled-surface: var(--color-neutral-700);

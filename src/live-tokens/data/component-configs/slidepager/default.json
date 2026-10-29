@@ -20,7 +20,7 @@
     "--slidepager-control-icon-size": "--icon-size-md",
     "--slidepager-control-hover-surface": "--surface-brand-high",
     "--slidepager-control-hover-border": "--border-brand",
-    "--slidepager-control-hover-icon": "--text-inverted",
+    "--slidepager-control-hover-icon": "--text-primary",
     "--slidepager-control-disabled-surface": "--surface-neutral-lower",
     "--slidepager-control-disabled-border": "--border-neutral-subtle",
     "--slidepager-control-disabled-icon": "--text-disabled",

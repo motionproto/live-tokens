@@ -188,6 +188,58 @@ describe('a11yRunServer', () => {
     });
   });
 
+  it('marks results to check by eye as looking right, clears a mark, and sends each change', async () => {
+    const cli = stubCli();
+    const { server, frames, settled } = serverWith(cli.runCli);
+    server.start({ contrast: [] });
+    const video = axe('a11y-review', 'video-caption', 'videoframe');
+    const lightbox = axe('a11y-review', 'video-caption', 'videolightbox');
+    cli.finish({ code: 0, stdout: cliJson([axe('a11y-component', 'aria-allowed-role'), video, lightbox]), stderr: '' });
+    await settled();
+    const marked = server.confirm({ theme: 'royal-velvet', messages: [video.message, lightbox.message], confirmed: true });
+    expect(marked).toMatchObject({ status: 200, body: { confirmed: [video.message, lightbox.message].sort() } });
+    expect(frames.at(-1)).toEqual(marked.body);
+    const cleared = server.confirm({ theme: 'royal-velvet', messages: [lightbox.message], confirmed: false });
+    expect(cleared.body).toMatchObject({ confirmed: [video.message] });
+    expect((server.report().body as { reports: Record<string, unknown> }).reports['royal-velvet']).toEqual(cleared.body);
+  });
+
+  it('marks only results to check by eye the report holds', async () => {
+    const cli = stubCli();
+    const { server, settled } = serverWith(cli.runCli);
+    server.start({ contrast: [] });
+    const component = axe('a11y-component', 'aria-allowed-role');
+    cli.finish({ code: 0, stdout: cliJson([component]), stderr: '' });
+    await settled();
+    const answer = server.confirm({ theme: 'royal-velvet', messages: [component.message, 'gone'], confirmed: true });
+    expect(answer.body).not.toHaveProperty('confirmed');
+  });
+
+  it('keeps a mark through a new run that finds the result again, and drops the rest', async () => {
+    const cli = stubCli();
+    const { server, frames, settled } = serverWith(cli.runCli);
+    const video = axe('a11y-review', 'video-caption', 'videoframe');
+    const lightbox = axe('a11y-review', 'video-caption', 'videolightbox');
+    server.start({ contrast: [] });
+    cli.finish({ code: 0, stdout: cliJson([video, lightbox]), stderr: '' });
+    await settled();
+    server.confirm({ theme: 'royal-velvet', messages: [video.message, lightbox.message], confirmed: true });
+    server.start({ contrast: [] });
+    cli.finish({ code: 0, stdout: cliJson([video]), stderr: '' });
+    await settled();
+    expect(frames.at(-1)).toMatchObject({ state: 'finished', confirmed: [video.message] });
+  });
+
+  it('refuses a malformed mark, and a theme with no report or outside the reports folder', () => {
+    const { server } = serverWith(stubCli().runCli);
+    for (const body of [undefined, {}, { theme: 'royal-velvet', messages: 'x', confirmed: true }, { theme: 'royal-velvet', messages: [], confirmed: 'yes' }]) {
+      expect(server.confirm(body).status).toBe(400);
+    }
+    fs.writeFileSync(path.join(root, 'outside.json'), '{}');
+    expect(server.confirm({ theme: 'royal-velvet', messages: [], confirmed: true }).status).toBe(404);
+    expect(server.confirm({ theme: '../outside', messages: [], confirmed: true }).status).toBe(404);
+  });
+
   it('stops the running CLI', () => {
     const cli = stubCli();
     const { server } = serverWith(cli.runCli);

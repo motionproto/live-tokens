@@ -1,12 +1,14 @@
 <script lang="ts">
-  import { issueTotals, issuesLabel, type A11yComponentRow, type A11yIssueTotals } from './a11yView';
+  import { issueTotals, type A11yComponentRow, type A11yIssueTotals } from './a11yView';
 
   interface Props {
     rows: A11yComponentRow[];
     onjump: (component: string) => void;
+    /** Scrolls to the By eye list. */
+    onreview?: () => void;
   }
 
-  let { rows, onjump }: Props = $props();
+  let { rows, onjump, onreview }: Props = $props();
 
   const KINDS: { key: keyof A11yIssueTotals; label: string; column: string }[] = [
     { key: 'property', label: 'Fix with a property', column: 'Property' },
@@ -14,17 +16,25 @@
     { key: 'review', label: 'Check by eye', column: 'By eye' },
   ];
 
-  let tallies = $derived(rows.map((row) => ({ row, totals: issueTotals(row.issues) })));
+  let tallies = $derived(
+    rows
+      .map((row) => ({ row, totals: issueTotals(row.issues) }))
+      .sort(
+        (a, b) =>
+          b.totals.property - a.totals.property ||
+          b.totals.code - a.totals.code ||
+          a.row.label.localeCompare(b.row.label),
+      ),
+  );
   let sums = $derived(
     tallies.reduce(
       (acc, { totals }) => ({ property: acc.property + totals.property, code: acc.code + totals.code, review: acc.review + totals.review }),
       { property: 0, code: 0, review: 0 },
     ),
   );
-  let total = $derived(sums.property + sums.code + sums.review);
+  let total = $derived(sums.property + sums.code);
   let withIssues = $derived(rows.filter((row) => row.count > 0).length);
   let fixed = $derived(rows.reduce((sum, row) => sum + row.issues.fixed.length, 0));
-  let widest = $derived(Math.max(1, ...rows.map((row) => row.count)));
 </script>
 
 <section class="editor-section-card a11y-overview" aria-label="Overview">
@@ -36,12 +46,17 @@
       </span>
     </div>
     {#each KINDS as kind (kind.key)}
-      <div class="a11y-stat">
-        <span class="a11y-stat-value" class:zero={sums[kind.key] === 0}>{sums[kind.key]}</span>
-        <span class="a11y-stat-label">
-          <span class="a11y-swatch {kind.key}" aria-hidden="true"></span>{kind.label}
-        </span>
-      </div>
+      {#if kind.key === 'review' && onreview}
+        <button type="button" class="a11y-stat a11y-stat-jump" onclick={onreview}>
+          <span class="a11y-stat-value" class:zero={sums[kind.key] === 0}>{sums[kind.key]}</span>
+          <span class="a11y-stat-label">{kind.label} <i class="fas fa-arrow-down" aria-hidden="true"></i></span>
+        </button>
+      {:else}
+        <div class="a11y-stat">
+          <span class="a11y-stat-value" class:zero={sums[kind.key] === 0}>{sums[kind.key]}</span>
+          <span class="a11y-stat-label">{kind.label}</span>
+        </div>
+      {/if}
     {/each}
     {#if fixed > 0}
       <div class="a11y-stat a11y-stat-fixed">
@@ -63,7 +78,6 @@
         {#if fixed > 0}
           <th scope="col" class="num">Fixed</th>
         {/if}
-        <th scope="col" class="bar-col"><span class="a11y-hidden">Issues</span></th>
       </tr>
     </thead>
     <tbody>
@@ -80,15 +94,6 @@
           {#if fixed > 0}
             <td class="num fixed" class:zero={row.issues.fixed.length === 0}>{row.issues.fixed.length}</td>
           {/if}
-          <td class="bar-col">
-            <span class="a11y-bar" style:width={`${(row.count / widest) * 100}%`} title={issuesLabel(row.count)}>
-              {#each KINDS as kind (kind.key)}
-                {#if totals[kind.key] > 0}
-                  <span class="a11y-bar-part {kind.key}" style:flex-grow={totals[kind.key]}></span>
-                {/if}
-              {/each}
-            </span>
-          </td>
         </tr>
       {/each}
     </tbody>
@@ -112,6 +117,33 @@
     gap: var(--ui-space-4);
     padding-left: var(--ui-space-16);
     border-left: 1px solid var(--ui-border-low);
+  }
+
+  .a11y-stat-jump {
+    margin: 0;
+    background: none;
+    border-top: none;
+    border-right: none;
+    border-bottom: none;
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+  }
+
+  .a11y-stat-jump i {
+    font-size: var(--ui-font-size-xs);
+    opacity: 0;
+    transition: opacity var(--ui-transition-fast);
+  }
+
+  .a11y-stat-jump:hover .a11y-stat-label,
+  .a11y-stat-jump:focus-visible .a11y-stat-label {
+    color: var(--ui-text-primary);
+  }
+
+  .a11y-stat-jump:hover i,
+  .a11y-stat-jump:focus-visible i {
+    opacity: 1;
   }
 
   .a11y-stat-total {
@@ -147,25 +179,6 @@
   .a11y-stat-fixed i,
   .a11y-table td.fixed:not(.zero) {
     color: var(--ui-fixed);
-  }
-
-  .a11y-swatch {
-    flex: none;
-    width: var(--ui-space-8);
-    height: var(--ui-space-8);
-    border-radius: var(--ui-radius-full);
-  }
-
-  .property {
-    background: var(--ui-text-primary);
-  }
-
-  .code {
-    background: var(--ui-border-high);
-  }
-
-  .review {
-    border: 1px solid var(--ui-border-high);
   }
 
   .a11y-table {
@@ -207,10 +220,6 @@
     color: var(--ui-text-muted);
   }
 
-  .bar-col {
-    width: 40%;
-  }
-
   .a11y-jump {
     display: inline-flex;
     align-items: center;
@@ -233,32 +242,5 @@
     color: var(--ui-text-primary);
     text-decoration: underline;
     text-underline-offset: var(--ui-space-2);
-  }
-
-  .a11y-bar {
-    display: flex;
-    gap: var(--ui-space-2);
-    height: var(--ui-space-8);
-    min-width: var(--ui-space-8);
-  }
-
-  .a11y-bar-part {
-    flex-basis: 0;
-    border-radius: var(--ui-radius-full);
-  }
-
-  .a11y-hidden {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    overflow: hidden;
-    clip-path: inset(50%);
-    white-space: nowrap;
-  }
-
-  @media (max-width: 600px) {
-    .bar-col {
-      display: none;
-    }
   }
 </style>

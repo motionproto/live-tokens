@@ -68,7 +68,10 @@ export function measurePair(pair: ContrastPair, resolver: Resolver): PairMeasure
       pair.fontWeight ? resolver.fontWeight(pair.fontWeight) : NORMAL_WEIGHT,
     );
   const floor = floorFor(pair.role, large);
-  return { pair, ratio, floor, large, passes: pair.inactive === true || ratio >= floor };
+  // A non-text part painted fully transparent, such as an unselected tab's
+  // underline, draws nothing for SC 1.4.11 to measure.
+  const absent = pair.role === 'non-text' && fronts.every((front) => front[3] === 0);
+  return { pair, ratio, floor, large, passes: pair.inactive === true || absent || ratio >= floor };
 }
 
 /** An inactive pair applies no floor, so it ranks only when every pair is inactive. */

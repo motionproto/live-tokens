@@ -65,7 +65,7 @@
     --progressbar-track-border-width: var(--border-width-1);
     --progressbar-track-height: var(--space-16);
     --progressbar-radius: var(--radius-full);
-    --progressbar-fill: var(--surface-special-highest);
+    --progressbar-fill: var(--border-special-medium);
     --progressbar-label-gap: var(--space-6);
     --progressbar-label: var(--text-secondary);
     --progressbar-label-font-family: var(--font-sans);

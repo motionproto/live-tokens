@@ -1290,6 +1290,7 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
   const EVENTS_ROUTE = `${API_BASE}/events`;
   const A11Y_RUN_ROUTE = `${API_BASE}/a11y/run`;
   const A11Y_REPORT_ROUTE = `${API_BASE}/a11y/report`;
+  const A11Y_CONFIRMED_ROUTE = `${API_BASE}/a11y/confirmed`;
 
   // ── Route handlers ────────────────────────────────────────────────────────
   // Each handler can throw — the route-table dispatcher centralises the 500
@@ -1864,6 +1865,17 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
     jsonResponse(res, answer.status, answer.body);
   }
 
+  async function handleConfirmA11yReview({ req, res }: any) {
+    let body: unknown;
+    try {
+      body = JSON.parse(await readBody(req));
+    } catch {
+      body = undefined;
+    }
+    const answer = a11yRuns.confirm(body);
+    jsonResponse(res, answer.status, answer.body);
+  }
+
   async function handleGetA11yReport({ res }: any) {
     const answer = a11yRuns.report();
     jsonResponse(res, answer.status, answer.body);
@@ -2254,6 +2266,10 @@ export function themeFileApi(opts: ThemeFileApiOptions): Plugin {
     { method: 'PUT',    pattern: A11Y_REPORT_ROUTE,       handler: methodNotAllowed },
     { method: 'POST',   pattern: A11Y_REPORT_ROUTE,       handler: methodNotAllowed },
     { method: 'DELETE', pattern: A11Y_REPORT_ROUTE,       handler: methodNotAllowed },
+    { method: 'PUT',    pattern: A11Y_CONFIRMED_ROUTE,    handler: handleConfirmA11yReview },
+    { method: 'GET',    pattern: A11Y_CONFIRMED_ROUTE,    handler: methodNotAllowed },
+    { method: 'POST',   pattern: A11Y_CONFIRMED_ROUTE,    handler: methodNotAllowed },
+    { method: 'DELETE', pattern: A11Y_CONFIRMED_ROUTE,    handler: methodNotAllowed },
     { method: 'PUT',    pattern: PRODUCTION_ROUTE,        handler: handleAdoptTheme },
     { method: 'GET',    pattern: PRODUCTION_ROUTE,        handler: methodNotAllowed },
     { method: 'POST',   pattern: PRODUCTION_ROUTE,        handler: methodNotAllowed },

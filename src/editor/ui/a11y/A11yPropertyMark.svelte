@@ -13,8 +13,12 @@
   let { variables, placement = 'inline' }: Props = $props();
 
   let findings = $derived([...new Set(variables.flatMap((variable) => $a11yPropertyFindings.get(variable) ?? []))]);
-  let review = $derived(findings.every((finding) => finding.rule === 'a11y-review'));
-  let label = $derived(review ? reviewLabel(findings.length) : accessibilityIssuesLabel(findings.length));
+  let reviewCount = $derived(findings.filter((finding) => finding.rule === 'a11y-review').length);
+  let review = $derived(reviewCount === findings.length);
+  let label = $derived([
+    review ? '' : accessibilityIssuesLabel(findings.length - reviewCount),
+    reviewCount > 0 ? reviewLabel(reviewCount) : '',
+  ].filter(Boolean).join(', '));
   let rows = $derived(findingRows([
     ...findings.filter((finding) => finding.rule !== 'a11y-review'),
     ...findings.filter((finding) => finding.rule === 'a11y-review'),
@@ -26,7 +30,7 @@
     <UIInfoPopover title={label} ariaLabel={label}>
       {#snippet trigger()}
         {#if review}
-          <span class="a11y-property-mark-glyph review" aria-hidden="true"></span>
+          <i class="fa-solid fa-eye a11y-property-mark-glyph review" aria-hidden="true"></i>
         {:else}
           <i class="fa-solid fa-triangle-exclamation a11y-property-mark-glyph" aria-hidden="true"></i>
         {/if}
@@ -63,12 +67,8 @@
     font-size: var(--ui-font-size-xs);
   }
 
-  /* The "?" is generated content because the contract harness matches rows by their text. */
-  .a11y-property-mark-glyph.review::after {
-    content: '?';
+  .a11y-property-mark-glyph.review {
     color: var(--ui-text-tertiary);
-    font-size: var(--ui-font-size-sm);
-    font-weight: var(--ui-font-weight-bold);
   }
 
   .a11y-property-findings {

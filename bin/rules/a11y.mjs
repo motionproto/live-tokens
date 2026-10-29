@@ -32,7 +32,7 @@ export const componentRules = {
   'a11y-focus-visible': {
     severity: 'warn',
     repair: 'authored',
-    guidance: `Siteimprove Alfa rule SIA-R65 found no visible change when the element takes focus. ${HELP} Give the element a :focus-visible style, such as an outline, that differs from its resting style. Alfa reads only the element, its descendants, and its ancestors, so confirm by eye a focus style painted on a sibling.`,
+    guidance: `Siteimprove Alfa rule SIA-R65 found no visible change when the element takes focus. ${HELP} Give the element a :focus-visible style, such as an outline, that differs from its resting style. Alfa reads only the element, its descendants, and its ancestors. The suite's focus probe also reads the element's siblings and drops the finding when it finds the ring there.`,
   },
   'a11y-keyboard': {
     severity: 'warn',

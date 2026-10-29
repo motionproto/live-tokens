@@ -112,7 +112,8 @@
   const allComponentNavItems = getComponentRegistryEntries().map(({ id, label, icon, origin }) => ({ id, label, icon, origin }));
   const systemNavItems = allComponentNavItems.filter((i) => i.origin === 'system');
   const customNavItems = allComponentNavItems.filter((i) => i.origin === 'custom');
-  let a11yMarked = $derived(new Set(componentsWithIssues($a11yIssues).map((row) => row.component)));
+  /** Each marked component, true when its only results are to check by eye. */
+  let a11yMarked = $derived(new Map(componentsWithIssues($a11yIssues).map((row) => [row.component, row.count === 0])));
 </script>
 
 <!--
@@ -171,7 +172,7 @@
             <span class="dirty-dot" aria-label="Unsaved changes" title="Unsaved changes"></span>
           {/if}
           {#if a11yMarked.has(item.id)}
-            <A11yRailMark />
+            <A11yRailMark review={a11yMarked.get(item.id)} />
           {/if}
         </button>
       {/each}
@@ -194,7 +195,7 @@
               <span class="dirty-dot" aria-label="Unsaved changes" title="Unsaved changes"></span>
             {/if}
             {#if a11yMarked.has(item.id)}
-              <A11yRailMark />
+              <A11yRailMark review={a11yMarked.get(item.id)} />
             {/if}
           </button>
         {/each}

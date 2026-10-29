@@ -163,7 +163,7 @@
 
     /* Selected tab */
     --tabbar-selected-text: var(--text-primary);
-    --tabbar-selected-border: var(--border-brand-medium);
+    --tabbar-selected-border: var(--border-brand-strong);
     --tabbar-selected-surface: var(--tint-low);
     --tabbar-selected-text-font-family: var(--font-sans);
     --tabbar-selected-text-font-size: var(--font-size-md);

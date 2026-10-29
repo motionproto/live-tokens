@@ -195,18 +195,17 @@
   ];
   const INTRINSIC_BY_KEY = new Map(intrinsics.map((i) => [i.key, i]));
 
+  // The hairline is decorative: the heading carries the section break, so
+  // WCAG 2.2 SC 1.4.11 sets no floor on it and it has no pair.
   function variantContrastPairs(v: Variant): ContrastPair[] {
     const backdrop = [`--sectiondivider-${v}-surface`];
-    return [
-      ...variantTypeGroups(v).map((g): ContrastPair => ({
-        foreground: g.colorVariable,
-        backdrop,
-        role: 'text',
-        fontSize: g.sizeVariable,
-        fontWeight: g.weightVariable,
-      })),
-      { foreground: `--sectiondivider-${v}-hairline-color`, backdrop, role: 'non-text' },
-    ];
+    return variantTypeGroups(v).map((g): ContrastPair => ({
+      foreground: g.colorVariable,
+      backdrop,
+      role: 'text',
+      fontSize: g.sizeVariable,
+      fontWeight: g.weightVariable,
+    }));
   }
 
   export const contrastPairs: ContrastPair[] = variants.flatMap((v) => variantContrastPairs(v.key));

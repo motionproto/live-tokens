@@ -102,13 +102,22 @@ describe('A11yPropertyMark', () => {
 
     expect(button()?.getAttribute('aria-label')).toBe('1 result to check by eye');
     expect(target.querySelector('.a11y-property-mark-glyph')?.classList.contains('review')).toBe(true);
+    expect(target.querySelector('.a11y-property-mark-glyph')?.classList.contains('fa-eye')).toBe(true);
+  });
+
+  it('stays away from a property whose only result is marked as looking right', () => {
+    const review = finding('a11y-review', REVIEW);
+    receiveA11yReport({ ...report([review]), confirmed: [review.message] });
+    mountMark(['--input-text']);
+
+    expect(target.querySelector('.a11y-property-mark')).toBeNull();
   });
 
   it('counts a row whose variables share findings once per finding', () => {
     receiveA11yReport(report([finding('a11y-focus-visible'), finding('a11y-review', { ...REVIEW, variables: ['--input-focused-border'] })]));
     mountMark(['--input-error-border', '--input-focused-border']);
 
-    expect(button()?.getAttribute('aria-label')).toBe('2 accessibility issues');
+    expect(button()?.getAttribute('aria-label')).toBe('1 accessibility issue, 1 result to check by eye');
     expect(target.querySelector('.a11y-property-mark-glyph')?.classList.contains('review')).toBe(false);
   });
 
@@ -123,7 +132,7 @@ describe('A11yPropertyMark', () => {
     flushSync();
 
     const dialog = target.querySelector('[role="dialog"]')!;
-    expect(dialog.getAttribute('aria-label')).toBe('2 accessibility issues');
+    expect(dialog.getAttribute('aria-label')).toBe('1 accessibility issue, 1 result to check by eye');
     const rows = [...dialog.querySelectorAll('.a11y-issue')];
     expect(rows.map((row) => row.querySelector('.a11y-issue-text')?.textContent?.trim())).toEqual([
       'Focusing the element changes no style on it',

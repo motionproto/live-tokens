@@ -125,6 +125,10 @@ it. Each edit and each theme load updates it, and the rows keep their places.
   header and the body text on the page, so its popover lists two pairs.
 - **Disabled states.** WCAG exempts disabled controls, so a disabled state's
   ratio shows in a dimmer grey, whatever its value.
+- **Transparent marks.** A mark painted fully transparent, such as an
+  unselected tab's underline, draws nothing, so it meets its floor at any
+  ratio. Transparent text still needs its floor. A decorative line, such as
+  a section divider's hairline, shows no readout.
 - **Page background.** Every stack ends on the page background, `--page-bg`.
   A translucent layer blends into the layers beneath it, and the readout
   measures the blend. A gradient layer counts its worst stop.

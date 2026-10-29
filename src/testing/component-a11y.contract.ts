@@ -107,6 +107,42 @@ function portalSelectors(contract: ComponentContract): string[] {
     .map((part) => part.selector);
 }
 
+const LIFTED_ATTR = 'data-lt-a11y-lifted';
+
+/** The class the editor puts on the preview for the view's state. A property
+ *  view shares its state tab with the contract's state entry, which names it. */
+function forcedClass(contract: ComponentContract, view: View): string | undefined {
+  if (isInapplicable(contract.states)) return undefined;
+  const variant = view.variant ?? contract.view?.variant;
+  return contract.states.find((s) => s.state === view.state && (s.variant ?? contract.view?.variant) === variant)?.forceClass;
+}
+
+/** Runs `fn` with `forceClass` taken off the stage. A state such as Input's
+ *  focused one paints its look at rest, which would leave focus nothing to
+ *  change. */
+async function withoutForcedState(page: Page, forceClass: string | undefined, fn: () => Promise<void>): Promise<void> {
+  if (!forceClass) return fn();
+  await page.evaluate(({ scope, forceClass, attr }) => {
+    for (const stage of document.querySelectorAll(scope)) {
+      for (const el of [stage, ...stage.querySelectorAll(`.${forceClass}`)]) {
+        if (!el.classList.contains(forceClass)) continue;
+        el.classList.remove(forceClass);
+        el.setAttribute(attr, forceClass);
+      }
+    }
+  }, { scope: SCOPE, forceClass, attr: LIFTED_ATTR });
+  try {
+    await fn();
+  } finally {
+    await page.evaluate((attr) => {
+      for (const el of document.querySelectorAll(`[${attr}]`)) {
+        el.classList.add(el.getAttribute(attr)!);
+        el.removeAttribute(attr);
+      }
+    }, LIFTED_ATTR);
+  }
+}
+
 /** Marks the visible stage and every portaled part, so both engines scope to
  *  one selector, and the component's own tree for the snapshot. */
 async function markStage(page: Page, portals: string[]): Promise<void> {
@@ -277,34 +313,39 @@ for (const contract of await selectedContracts()) {
       const axes = TRACE_AXES[result.engineRule];
       return axes ? traceProperties(page, { selector: result.target, scope: SCOPE, ...request }, axes, known) : [];
     });
-    const scanNonText = async (view: string) => {
-      await found.add(view, await scanFocusIndicators(page, SCOPE, EXCLUDE));
-      await found.add(view, await scanBoundaries(page, SCOPE, EXCLUDE, boundaries, root));
-    };
+    // The focus probe runs before SIA-R65, which reads the marks it leaves on
+    // elements whose ring a sibling draws.
+    const scanFocus = (view: View, label: string, withAlfa: boolean) =>
+      withoutForcedState(page, forcedClass(contract, view), async () => {
+        await found.add(label, await scanFocusIndicators(page, SCOPE, EXCLUDE));
+        if (withAlfa) await found.add(label, await scanFocusVisible(page, SCOPE, EXCLUDE));
+      });
     const trees = new Map<string, string>();
 
     const scan = async ({ label, view }: ScanView) => {
       await harness.selectView(view);
       await markStage(page, portals);
       await found.add(label, await scanAxe(page, SCOPE, EXCLUDE, 'a11y-component'));
-      await found.add(label, await scanFocusVisible(page, SCOPE, EXCLUDE));
-      await scanNonText(label);
+      await scanFocus(view, label, true);
+      await found.add(label, await scanBoundaries(page, SCOPE, EXCLUDE, boundaries, root));
       trees.set(label, await readTree(page));
       await found.add(label, await scanTextSpacing(page, SCOPE, EXCLUDE, own));
       await found.add(label, await scanReducedMotion(page, SCOPE, EXCLUDE, own));
     };
-    const scanContrast = async (label: string, theme: string) => {
+    const scanContrast = async ({ label, view }: ScanView, theme: string) => {
+      const themed = `${label} under ${theme}`;
       await markStage(page, portals);
-      await found.add(`${label} under ${theme}`, await scanAxe(page, SCOPE, EXCLUDE, 'a11y-component', PRESET_RULES));
-      await scanNonText(`${label} under ${theme}`);
+      await found.add(themed, await scanAxe(page, SCOPE, EXCLUDE, 'a11y-component', PRESET_RULES));
+      await scanFocus(view, themed, false);
+      await found.add(themed, await scanBoundaries(page, SCOPE, EXCLUDE, boundaries, root));
     };
 
     for (const scanView of plain) await scan(scanView);
     for (const theme of presets) {
       await harness.previewThemeUncovered(theme);
-      for (const { label, view } of plain) {
-        await harness.selectView(view);
-        await scanContrast(label, theme);
+      for (const scanView of plain) {
+        await harness.selectView(scanView.view);
+        await scanContrast(scanView, theme);
       }
       await harness.cancelUncoveredPreview();
     }
@@ -312,7 +353,7 @@ for (const contract of await selectedContracts()) {
       await scan(scanView);
       for (const theme of presets) {
         await harness.previewThemeUncovered(theme);
-        await scanContrast(scanView.label, theme);
+        await scanContrast(scanView, theme);
         await harness.cancelUncoveredPreview();
       }
     }

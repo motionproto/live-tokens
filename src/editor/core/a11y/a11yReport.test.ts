@@ -6,7 +6,9 @@ import {
   __resetForTests,
   a11yFinishedReport,
   a11yIssues,
+  a11yPropertyFindings,
   a11yReport,
+  confirmReview,
   init,
   receiveA11yReport,
   setFixedContrast,
@@ -75,11 +77,17 @@ describe('a11yIssues', () => {
   it('keys the last finished run by component and sorts each finding by its fix', () => {
     receiveA11yReport(FINISHED);
     expect(get(a11yIssues)).toEqual({
-      badge: { contrast: [CONTRAST], property: [], code: [FINDING_AT(1)], review: [FINDING_AT(2)], fixed: [] },
-      input: { contrast: [], property: [FINDING_AT(6)], code: [], review: [FINDING_AT(7)], fixed: [] },
-      'radio-button': { contrast: [], property: [], code: [FINDING_AT(0)], review: [], fixed: [] },
-      video: { contrast: [], property: [], code: [], review: [FINDING_AT(3)], fixed: [] },
+      badge: { contrast: [CONTRAST], property: [], code: [FINDING_AT(1)], review: [FINDING_AT(2)], confirmed: [], fixed: [] },
+      input: { contrast: [], property: [FINDING_AT(6)], code: [], review: [FINDING_AT(7)], confirmed: [], fixed: [] },
+      'radio-button': { contrast: [], property: [], code: [FINDING_AT(0)], review: [], confirmed: [], fixed: [] },
+      video: { contrast: [], property: [], code: [], review: [FINDING_AT(3)], confirmed: [], fixed: [] },
     });
+  });
+
+  it('moves a result to check by eye that someone marked to the confirmed list', () => {
+    receiveA11yReport({ ...FINISHED, confirmed: [FINDING_AT(3).message] });
+    expect(get(a11yIssues).video).toMatchObject({ review: [], confirmed: [FINDING_AT(3)] });
+    expect(get(a11yIssues).badge).toMatchObject({ review: [FINDING_AT(2)], confirmed: [] });
   });
 
   it('moves a contrast failure that passes now to the fixed list, with the ratio it measures', () => {
@@ -179,5 +187,39 @@ describe('startA11yRun', () => {
       code: 'A11Y_RUN_IN_PROGRESS',
     });
     expect(get(a11yReport)).toBeNull();
+  });
+});
+
+describe('confirmReview', () => {
+  it("puts the marked messages under the open theme's report and takes the answer", async () => {
+    receiveA11yReport(FINISHED);
+    const marked = { ...FINISHED, confirmed: [FINDING_AT(3).message] };
+    const fetch = respond(200, marked);
+    await confirmReview([FINDING_AT(3)], true);
+    expect(fetch).toHaveBeenCalledWith(`${API_BASE}/a11y/confirmed`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ theme: 'royal-velvet', messages: [FINDING_AT(3).message], confirmed: true }),
+    });
+    expect(get(a11yFinishedReport)).toEqual(marked);
+  });
+
+  it("throws the server's refusal and keeps the report", async () => {
+    receiveA11yReport(FINISHED);
+    respond(404, { error: 'No report for theme "royal-velvet"' });
+    await expect(confirmReview([FINDING_AT(3)], true)).rejects.toThrow('No report for theme "royal-velvet"');
+    expect(get(a11yFinishedReport)).toEqual(FINISHED);
+  });
+});
+
+describe('a11yPropertyFindings', () => {
+  it('leaves out a result marked as looking right', () => {
+    const traced = (message: string): A11yFinding => ({
+      ...finding('a11y-review', 'input', 'focus-indicator-contrast'),
+      message,
+      details: { engineRule: 'focus-indicator-contrast', target: '.part', html: '', help: 'case', helpUrl: 'https://example.test/', variables: ['--input-focused-border'] },
+    });
+    receiveA11yReport({ ...FINISHED, findings: [traced('one'), traced('two')], confirmed: ['one'] });
+    expect(get(a11yPropertyFindings).get('--input-focused-border')?.map((f) => f.message)).toEqual(['two']);
   });
 });
