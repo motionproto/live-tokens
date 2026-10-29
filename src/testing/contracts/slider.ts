@@ -135,7 +135,7 @@ export const sliderContract: ComponentContract = {
     ],
     aliasedTo: {
       '--slider-single-track-surface': '--surface-neutral-lowest',
-      '--slider-single-fill': '--surface-brand-high',
+      '--slider-single-fill': '--border-brand-medium',
     },
     observe: { part: 'track', css: 'backgroundColor', variable: '--slider-single-track-surface' },
   },
