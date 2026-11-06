@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased — Lightbox zoom uses the whole screen
+## 0.99.1 — Lightbox zoom uses the whole screen
 
 ### Fixed
 
