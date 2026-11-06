@@ -248,14 +248,23 @@
     };
   }
 
+  // The zoomed image spills past the stage onto the whole viewport. Larger than
+  // the viewport on an axis, it pans until an edge meets the viewport's edge;
+  // smaller, it pans until an edge would leave the screen.
+  function clampAxis(v: number, start: number, size: number, s: number, view: number) {
+    const half = (size * s) / 2;
+    const center = start + size / 2;
+    const toNear = half - center;
+    const toFar = view - center - half;
+    return Math.max(Math.min(toNear, toFar), Math.min(Math.max(toNear, toFar), v));
+  }
+
   function clampOffset(x: number, y: number, s: number) {
     if (!stageEl) return { x: 0, y: 0 };
     const r = stageEl.getBoundingClientRect();
-    const maxX = Math.max(0, (r.width * s - r.width) / 2);
-    const maxY = Math.max(0, (r.height * s - r.height) / 2);
     return {
-      x: Math.max(-maxX, Math.min(maxX, x)),
-      y: Math.max(-maxY, Math.min(maxY, y)),
+      x: clampAxis(x, r.left, r.width, s, vw),
+      y: clampAxis(y, r.top, r.height, s, vh),
     };
   }
 
@@ -726,7 +735,8 @@
       class="image-lightbox-stage"
       class:shadow-box={shadow === 'box'}
       class:shadow-content={shadow === 'content'}
-        role="presentation"
+      class:zoomed={scale > MIN_SCALE}
+      role="presentation"
       tabindex="-1"
       onclick={onStageClick}
       onpointerdown={onPointerDown}
@@ -959,6 +969,14 @@
     inset: 0;
     border-radius: inherit;
     overflow: hidden;
+  }
+
+  .image-lightbox-stage.zoomed {
+    cursor: grab;
+  }
+
+  .image-lightbox-stage.zoomed .image-lightbox-clip {
+    overflow: visible;
   }
 
   .image-lightbox-transform {

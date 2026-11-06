@@ -1,5 +1,16 @@
 # Changelog
 
+## Unreleased — Lightbox zoom uses the whole screen
+
+### Fixed
+
+- **ImageLightbox zoom fills the viewport.** With `extended`, a zoomed image
+  used to stay clipped to its fitted frame, so a tall screenshot zoomed in
+  showed only a narrow column. The zoomed image now spills past the frame
+  across the whole viewport. An image larger than the viewport pans until
+  its edge meets the viewport's edge; a smaller one pans until an edge would
+  leave the screen. The cursor shows `grab` while zoomed.
+
 ## 0.99.0 — Accessibility reports by theme
 
 ### Changed
