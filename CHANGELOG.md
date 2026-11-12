@@ -1,5 +1,18 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+- **The `extended` ImageLightbox works like an image viewer.** A click no
+  longer closes it; the close button and Escape do. The zoom tool is the
+  default, with a magnifier cursor: a click zooms in at the pointer, an
+  Alt-click zooms out, and a click at the zoom cap returns to the fit. Holding
+  Space switches to the hand tool until release. The bottom toolbar gains a
+  zoom tool button and a hand tool button beside the zoom in and out buttons.
+  The wheel and drag work over the scrim as well as the image. A lightbox
+  without `extended` still closes on a click.
+
 ## 0.99.1 — Lightbox zoom uses the whole screen
 
 ### Fixed

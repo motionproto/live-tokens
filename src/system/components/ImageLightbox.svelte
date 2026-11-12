@@ -77,7 +77,7 @@
         The modal portals to <body>, out of reach of a wrapper around the tile,
         so a page that wants its own scrim has to say so here. */
     scrim?: string | undefined;
-    /** When true, shows a bottom toolbar (zoom in/out + percent) and enables wheel/drag zoom inside the open modal. Either way, a click on the unzoomed image closes. The percent measures the image against its natural resolution: 100% shows one source pixel per CSS pixel, so a large image opens fitted below 100%. Until the natural size is known it measures against the fitted view. */
+    /** When true, the open modal becomes a zoom view. A bottom toolbar holds a zoom tool, a hand tool, zoom in/out buttons, and a percent; the wheel zooms and a drag pans. The zoom tool is the default: a click zooms in at the pointer, an Alt-click zooms out, and a click at the cap returns to the fit. Holding Space switches to the hand tool until release. Only the close button and Escape close it. Without `extended`, a click on the image or the scrim closes. The percent measures the image against its natural resolution: 100% shows one source pixel per CSS pixel, so a large image opens fitted below 100%. Until the natural size is known it measures against the fitted view. */
     extended?: boolean;
     /** Maximum zoom, as a multiple of the image's natural resolution: `1` = 100%
         of the source's real pixels (1 source px = 1 screen px), `2` = 200%. The
@@ -205,6 +205,12 @@
   // Pointer drag for pan (extended + zoomed only).
   let dragState: { startX: number; startY: number; baseX: number; baseY: number; pointerId: number } | null = null;
   let didDrag = false;
+  let panning = $state(false);
+
+  let tool = $state<'zoom' | 'hand'>('zoom');
+  let spaceHeld = $state(false);
+  let altHeld = $state(false);
+  const activeTool = $derived(spaceHeld ? 'hand' : tool);
 
   const aspectOf = (it?: GalleryImage) => {
     if (!it) return undefined;
@@ -435,6 +441,9 @@
       scale = 1;
       offset = { x: 0, y: 0 };
       index = 0;
+      tool = 'zoom';
+      spaceHeld = false;
+      altHeld = false;
       open = false;
       mounted = false;
       document.body.style.overflow = '';
@@ -599,7 +608,7 @@
     if (!dragState) return;
     const dx = e.clientX - dragState.startX;
     const dy = e.clientY - dragState.startY;
-    if (!didDrag && Math.hypot(dx, dy) > 4) didDrag = true;
+    if (!didDrag && Math.hypot(dx, dy) > 4) didDrag = panning = true;
     offset = clampOffset(dragState.baseX + dx, dragState.baseY + dy, scale);
     applyTransform(scale, offset);
   }
@@ -609,14 +618,41 @@
       (e.currentTarget as HTMLElement).releasePointerCapture(dragState.pointerId);
       dragState = null;
     }
+    panning = false;
   }
 
-  function onStageClick() {
+  const atCap = $derived(scale >= maxScale - 0.001);
+
+  const cursor = $derived.by(() => {
+    if (!extended) return undefined;
+    if (panning) return 'grabbing';
+    if (activeTool === 'hand') return 'grab';
+    return altHeld || atCap ? 'zoom-out' : 'zoom-in';
+  });
+
+  function onZoomClick(e: MouseEvent) {
+    if (activeTool !== 'zoom') return;
+    const at = { x: e.clientX, y: e.clientY };
+    if (e.altKey) zoomTo(scale / ZOOM_STEP, at);
+    else if (atCap) zoomTo(MIN_SCALE);
+    else zoomTo(scale * ZOOM_STEP, at);
+  }
+
+  function onStageClick(e: MouseEvent) {
     if (didDrag) {
       didDrag = false;
       return;
     }
-    if (!isGallery && scale <= MIN_SCALE) closeLightbox();
+    if (extended) onZoomClick(e);
+    else if (!isGallery) closeLightbox();
+  }
+
+  function onOverlayClick(e: MouseEvent) {
+    if (!extended) {
+      closeLightbox();
+      return;
+    }
+    onStageClick(e);
   }
 
   // The stage (tabindex -1) is no tab stop, so an image-only lightbox holds
@@ -632,6 +668,12 @@
       if (!open) return;
       if (e.key === 'Escape') {
         closeLightbox();
+      } else if (extended && e.key === ' ') {
+        // Also blocks Space from pressing the focused button, which on open is Close.
+        e.preventDefault();
+        spaceHeld = true;
+      } else if (e.key === 'Alt') {
+        altHeld = true;
       } else if (e.key === 'Tab') {
         onTab(e);
       } else if (isGallery && e.key === 'ArrowRight') {
@@ -641,6 +683,19 @@
         e.preventDefault();
         prev();
       }
+    };
+    const onKeyUp = (e: KeyboardEvent) => {
+      if (e.key === ' ' && spaceHeld) {
+        e.preventDefault();
+        spaceHeld = false;
+      } else if (e.key === 'Alt') {
+        altHeld = false;
+      }
+    };
+    // A key released while the window is unfocused never reports its keyup.
+    const onBlur = () => {
+      spaceHeld = false;
+      altHeld = false;
     };
     vw = window.innerWidth;
     vh = window.innerHeight;
@@ -654,10 +709,14 @@
     const onMotionChange = (e: MediaQueryListEvent) => { reducedMotion = e.matches; };
     motionQuery.addEventListener('change', onMotionChange);
     document.addEventListener('keydown', onKey);
+    document.addEventListener('keyup', onKeyUp);
+    window.addEventListener('blur', onBlur);
     window.addEventListener('resize', onResize);
     return () => {
       motionQuery.removeEventListener('change', onMotionChange);
       document.removeEventListener('keydown', onKey);
+      document.removeEventListener('keyup', onKeyUp);
+      window.removeEventListener('blur', onBlur);
       window.removeEventListener('resize', onResize);
       document.body.style.overflow = '';
       restoreEditorOverlay();
@@ -721,8 +780,15 @@
       class="image-lightbox-overlay"
       style:--imagelightbox-scrim-surface={scrim}
       class:active={open}
+      class:extended
+      style:cursor
       aria-hidden="true"
-      onclick={closeLightbox}
+      onclick={onOverlayClick}
+      onpointerdown={onPointerDown}
+      onpointermove={onPointerMove}
+      onpointerup={onPointerUp}
+      onpointercancel={onPointerUp}
+      onwheel={onWheel}
       role="presentation"
     ></div>
 
@@ -736,6 +802,8 @@
       class:shadow-box={shadow === 'box'}
       class:shadow-content={shadow === 'content'}
       class:zoomed={scale > MIN_SCALE}
+      class:extended
+      style:cursor
       role="presentation"
       tabindex="-1"
       onclick={onStageClick}
@@ -809,6 +877,33 @@
         <button
           class="image-lightbox-chrome-button"
           type="button"
+          aria-label="Zoom tool"
+          aria-pressed={activeTool === 'zoom'}
+          onclick={() => (tool = 'zoom')}
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="11" cy="11" r="7" />
+            <path d="M21 21l-4.35-4.35" />
+          </svg>
+        </button>
+        <button
+          class="image-lightbox-chrome-button"
+          type="button"
+          aria-label="Hand tool (hold Space)"
+          aria-pressed={activeTool === 'hand'}
+          onclick={() => (tool = 'hand')}
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M18 11V6a2 2 0 0 0-4 0" />
+            <path d="M14 10V4a2 2 0 0 0-4 0v2" />
+            <path d="M10 10.5V6a2 2 0 0 0-4 0v8" />
+            <path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15" />
+          </svg>
+        </button>
+        <span class="image-lightbox-toolbar-divider" aria-hidden="true"></span>
+        <button
+          class="image-lightbox-chrome-button"
+          type="button"
           aria-label="Zoom out"
           disabled={scale <= MIN_SCALE + 0.001}
           onclick={() => zoomTo(scale / ZOOM_STEP)}
@@ -822,7 +917,7 @@
           class="image-lightbox-chrome-button"
           type="button"
           aria-label="Zoom in"
-          disabled={scale >= maxScale - 0.001}
+          disabled={atCap}
           onclick={() => zoomTo(scale * ZOOM_STEP)}
         >
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -959,7 +1054,6 @@
   .image-lightbox-stage {
     position: fixed;
     z-index: var(--z-modal);
-    cursor: zoom-out;
     border: var(--imagelightbox-tile-border-width) solid var(--imagelightbox-tile-border);
     border-radius: var(--imagelightbox-tile-radius);
   }
@@ -971,8 +1065,8 @@
     overflow: hidden;
   }
 
-  .image-lightbox-stage.zoomed {
-    cursor: grab;
+  .image-lightbox-stage:not(.extended) {
+    cursor: zoom-out;
   }
 
   .image-lightbox-stage.zoomed .image-lightbox-clip {
@@ -1020,6 +1114,9 @@
 
   .image-lightbox-overlay.active {
     pointer-events: auto;
+  }
+
+  .image-lightbox-overlay.active:not(.extended) {
     cursor: zoom-out;
   }
 
@@ -1142,8 +1239,16 @@
     transition: background var(--duration-200) ease;
   }
 
-  .image-lightbox-chrome-button:hover:not(:disabled) {
+  .image-lightbox-chrome-button:hover:not(:disabled),
+  .image-lightbox-chrome-button[aria-pressed='true'] {
     background: var(--imagelightbox-chrome-hover-surface);
+  }
+
+  .image-lightbox-toolbar-divider {
+    align-self: stretch;
+    width: var(--imagelightbox-chrome-border-width);
+    margin: var(--space-4) var(--space-4);
+    background: var(--imagelightbox-chrome-border);
   }
 
   .image-lightbox-chrome-button:disabled {

@@ -94,3 +94,71 @@ describe('ImageLightbox zoomed pan', () => {
     expect(translate()).toEqual({ x: 50, y: -100 });
   });
 });
+
+function scaleOf(): number {
+  const m = /scale\((-?[\d.]+)\)/.exec(transform().style.transform);
+  return m ? Number(m[1]) : 1;
+}
+
+function clickStage(init: MouseEventInit = {}) {
+  stage().dispatchEvent(new MouseEvent('click', { clientX: 500, clientY: 400, bubbles: true, ...init }));
+  flushSync();
+}
+
+const isOpen = () => document.querySelector('.image-lightbox-stage') !== null;
+const key = (type: 'keydown' | 'keyup', k: string) => {
+  document.dispatchEvent(new KeyboardEvent(type, { key: k, bubbles: true }));
+  flushSync();
+};
+
+describe('ImageLightbox zoom and hand tools', () => {
+  it('zooms in on a click of the unzoomed image instead of closing', async () => {
+    await openZoomed(0);
+    clickStage();
+    await Promise.resolve();
+    expect(isOpen()).toBe(true);
+    expect(scaleOf()).toBe(1.5);
+    expect(stage().style.cursor).toBe('zoom-in');
+  });
+
+  it('zooms out on an Alt-click', async () => {
+    await openZoomed(2);
+    clickStage({ altKey: true });
+    expect(scaleOf()).toBe(1.5);
+  });
+
+  it('shows zoom-out at the cap and returns to the fit on a click', async () => {
+    await openZoomed(12);
+    expect(stage().style.cursor).toBe('zoom-out');
+    clickStage();
+    expect(scaleOf()).toBe(1);
+  });
+
+  it('keeps the modal open on a click of the scrim', async () => {
+    await openZoomed(0);
+    document.querySelector<HTMLElement>('.image-lightbox-overlay')!.click();
+    flushSync();
+    await Promise.resolve();
+    expect(isOpen()).toBe(true);
+  });
+
+  it('switches to the hand while Space is held', async () => {
+    await openZoomed(1);
+    key('keydown', ' ');
+    expect(stage().style.cursor).toBe('grab');
+    clickStage();
+    expect(scaleOf()).toBe(1.5);
+    key('keyup', ' ');
+    expect(stage().style.cursor).toBe('zoom-in');
+  });
+
+  it('selects the hand tool from the toolbar', async () => {
+    await openZoomed(0);
+    const hand = document.querySelector<HTMLButtonElement>('button[aria-label^="Hand tool"]')!;
+    hand.click();
+    flushSync();
+    expect(hand.getAttribute('aria-pressed')).toBe('true');
+    clickStage();
+    expect(scaleOf()).toBe(1);
+  });
+});
