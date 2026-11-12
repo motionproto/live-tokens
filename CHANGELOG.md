@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.100.0 — Lightbox zoom and hand tools
 
 ### Changed
 
