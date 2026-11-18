@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.101.0 — Video lightbox controls
 
 ### Added
 
