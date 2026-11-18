@@ -15,6 +15,8 @@
         '`badge` lays a play badge over the thumbnail, so a still reads as a clip. `none` shows the still alone.',
       inline: 'true renders the open lightbox in flow, without the thumbnail. The editor preview uses it.',
       loop: 'true repeats the clip.',
+      controls:
+        'true gives the open clip the native video controls, which show while paused and hide during playback. A click on the clip then pauses and resumes it, and only the scrim, the close button and Escape close the lightbox. false leaves the clip bare, and a click on it closes the lightbox.',
       hoverPlay:
         'true plays the thumbnail muted under the pointer, and rewinds it on the way out. A reader who asked for less motion keeps the still.',
       stretch:
@@ -42,6 +44,8 @@
     width?: number;
     height?: number;
     loop?: boolean;
+    /** Native controls on the open clip; a click on the clip then toggles play instead of closing. */
+    controls?: boolean;
     /** "badge" lays a play badge over the thumbnail. */
     chrome?: 'badge' | 'none';
     /** Renders the open lightbox in flow, without the thumbnail. Used by the editor preview. */
@@ -67,6 +71,7 @@
     width = undefined,
     height = undefined,
     loop = false,
+    controls = false,
     chrome = 'none',
     inline = false,
     hoverPlay = false,
@@ -209,8 +214,8 @@
   </div>
 
   {#if mounted}
-    <!-- Clicking anywhere closes it, the clip included; the close button and
-         Escape do the same. -->
+    <!-- A click closes it, as do the close button and Escape. With
+         `controls`, the clip keeps its own clicks for the native controls. -->
     <div
       bind:this={modalEl}
       class="videolightbox-modal"
@@ -226,8 +231,19 @@
       onkeydown={onModalKey}
     >
       <!-- No caption track ships with the source footage. -->
-      <!-- svelte-ignore a11y_media_has_caption -->
-      <video bind:this={videoEl} class="videolightbox-video" {src} {poster} {loop} playsinline></video>
+      <!-- svelte-ignore a11y_media_has_caption, a11y_click_events_have_key_events, a11y_no_noninteractive_element_interactions -->
+      <video
+        bind:this={videoEl}
+        class="videolightbox-video"
+        {src}
+        {poster}
+        {loop}
+        {controls}
+        controlslist={controls ? 'nodownload' : undefined}
+        playsinline
+        class:has-controls={controls}
+        onclick={controls ? (e) => e.stopPropagation() : undefined}
+      ></video>
       <button
           bind:this={closeBtnEl}
         type="button"
@@ -443,6 +459,10 @@
     .videolightbox-modal {
       transition: none;
     }
+  }
+
+  .videolightbox-video.has-controls {
+    cursor: default;
   }
 
   /* The clip plays at its own pixel size and shrinks only to fit the screen. */

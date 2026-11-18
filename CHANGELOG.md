@@ -1,5 +1,15 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+- **VideoLightbox takes `controls`.** With `controls`, the open clip carries
+  the native video controls, which show while paused and hide during
+  playback, and a click on the clip pauses and resumes it instead of closing
+  the lightbox. A click on the scrim, the close button and Escape still close
+  it. Without `controls` the lightbox behaves as before.
+
 ## 0.100.0 — Lightbox zoom and hand tools
 
 ### Changed
