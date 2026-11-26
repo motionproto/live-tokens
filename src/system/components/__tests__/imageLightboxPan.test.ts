@@ -9,6 +9,7 @@ import ImageLightbox from '../ImageLightbox.svelte';
 
 const VIEW = { w: 1000, h: 800 };
 const STAGE = { left: 200, top: 200, width: 600, height: 400 };
+const GUTTER = { x: VIEW.w * 0.03, y: VIEW.h * 0.04 };
 
 let app: ReturnType<typeof mount> | undefined;
 let restore: (() => void) | undefined;
@@ -80,18 +81,18 @@ describe('ImageLightbox zoomed pan', () => {
     expect(stage().classList.contains('zoomed')).toBe(true);
   });
 
-  it('pans an image larger than the viewport until its edge meets the viewport edge', async () => {
+  it('pans an image larger than the viewport until its edge meets the gutter', async () => {
     await openZoomed(3); // 3.375× → 2025 × 1350
     drag(5000, 5000);
-    expect(translate()).toEqual({ x: 2025 / 2 - 500, y: 1350 / 2 - 400 });
+    expect(translate()).toEqual({ x: GUTTER.x + 2025 / 2 - 500, y: GUTTER.y + 1350 / 2 - 400 });
     drag(-10000, -10000);
-    expect(translate()).toEqual({ x: 1000 - 500 - 2025 / 2, y: 800 - 400 - 1350 / 2 });
+    expect(translate()).toEqual({ x: 1000 - GUTTER.x - 500 - 2025 / 2, y: 800 - GUTTER.y - 400 - 1350 / 2 });
   });
 
-  it('keeps an image smaller than the viewport whole on screen', async () => {
+  it('keeps an image smaller than the viewport inside the gutter', async () => {
     await openZoomed(1); // 1.5× → 900 × 600
     drag(5000, -5000);
-    expect(translate()).toEqual({ x: 50, y: -100 });
+    expect(translate()).toEqual({ x: 1000 - GUTTER.x - 500 - 450, y: GUTTER.y + 300 - 400 });
   });
 });
 
