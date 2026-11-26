@@ -233,11 +233,15 @@
     return Math.max(MIN_SCALE, (maxZoom * nw) / fitW);
   });
 
+  // The fitted image and a zoomed image panned to its edge keep the same gutter.
+  const GUTTER_X = 0.03;
+  const GUTTER_Y = 0.04;
+
   function viewportTarget() {
-    const capW = vw * 0.94;
-    const capH = vh * 0.92;
+    const capW = vw * (1 - 2 * GUTTER_X);
+    const capH = vh * (1 - 2 * GUTTER_Y);
     if (!aspect) {
-      return { top: vh * 0.04, left: vw * 0.03, width: capW, height: capH };
+      return { top: vh * GUTTER_Y, left: vw * GUTTER_X, width: capW, height: capH };
     }
     let tileW = Math.min(capW, capH * aspect);
     if (capNatural) {
@@ -255,13 +259,13 @@
   }
 
   // The zoomed image spills past the stage onto the whole viewport. Larger than
-  // the viewport on an axis, it pans until an edge meets the viewport's edge;
-  // smaller, it pans until an edge would leave the screen.
-  function clampAxis(v: number, start: number, size: number, s: number, view: number) {
+  // the viewport less its gutter on an axis, it pans until an edge meets the
+  // gutter; smaller, it pans until an edge would cross into the gutter.
+  function clampAxis(v: number, start: number, size: number, s: number, view: number, gutter: number) {
     const half = (size * s) / 2;
     const center = start + size / 2;
-    const toNear = half - center;
-    const toFar = view - center - half;
+    const toNear = gutter + half - center;
+    const toFar = view - gutter - center - half;
     return Math.max(Math.min(toNear, toFar), Math.min(Math.max(toNear, toFar), v));
   }
 
@@ -269,8 +273,8 @@
     if (!stageEl) return { x: 0, y: 0 };
     const r = stageEl.getBoundingClientRect();
     return {
-      x: clampAxis(x, r.left, r.width, s, vw),
-      y: clampAxis(y, r.top, r.height, s, vh),
+      x: clampAxis(x, r.left, r.width, s, vw, vw * GUTTER_X),
+      y: clampAxis(y, r.top, r.height, s, vh, vh * GUTTER_Y),
     };
   }
 

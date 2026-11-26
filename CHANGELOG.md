@@ -1,5 +1,14 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+- **A zoomed lightbox image stops short of the screen edge.** With
+  `extended`, panning to an edge of a zoomed image leaves the same gutter the
+  fitted view keeps: 3% of the viewport width at the sides and 4% of its
+  height at the top and bottom.
+
 ## 0.101.1 — Lightbox focus outline
 
 ### Fixed
