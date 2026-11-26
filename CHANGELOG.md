@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.101.2 — Lightbox zoom gutter
+## 0.101.3 — Lightbox zoom gutter
 
 ### Changed
 
