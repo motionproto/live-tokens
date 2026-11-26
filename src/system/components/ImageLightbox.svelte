@@ -1058,6 +1058,12 @@
     border-radius: var(--imagelightbox-tile-radius);
   }
 
+  /* The stage takes focus only to hold it inside the dialog. Space toggles the
+     hand tool, which would otherwise wake :focus-visible around the image. */
+  .image-lightbox-stage:focus {
+    outline: none;
+  }
+
   .image-lightbox-clip {
     position: absolute;
     inset: 0;

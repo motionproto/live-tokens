@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.101.1 — Lightbox focus outline
+
+### Fixed
+
+- **Holding Space in the zoom lightbox draws no focus outline.** With
+  `extended`, a click on the image gives the stage focus, and Space then woke
+  the browser's focus ring around the image. The stage now draws no outline;
+  the close button and thumbnails keep theirs.
+
 ## 0.101.0 — Video lightbox controls
 
 ### Added
